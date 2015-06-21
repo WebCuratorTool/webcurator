@@ -91,6 +91,20 @@ public class EditorContext{
 			putObject(element);
 		}
 	}
+
+	/**
+	 * Removes all of the collection's objects of class type.
+	 * @param clazz The class type of the objects.
+	 */
+	protected void removeObjectsOfType(Class clazz){
+		// Get the cache for the given object type.
+		Map<String,HasIdentity> clazzCache = objectCache.get(clazz);
+
+		// Get the object out of the cache.
+		if(clazzCache != null) {
+			clazzCache.clear();
+		}
+	}
 }
 
 
