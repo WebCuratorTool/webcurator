@@ -101,6 +101,7 @@ public class ProfileCommand {
 	private boolean overrideH3IncludedUrls;
 
 	private String rawProfile;
+	private boolean overrideRawProfile;
 
 	/**
 	 * @return Returns the profileOid.
@@ -799,5 +800,13 @@ public class ProfileCommand {
 
 	public void setRawProfile(String rawProfile) {
 		this.rawProfile = rawProfile;
+	}
+
+	public boolean isOverrideRawProfile() {
+		return overrideRawProfile;
+	}
+
+	public void setOverrideRawProfile(boolean overrideRawProfile) {
+		this.overrideRawProfile = overrideRawProfile;
 	}
 }
