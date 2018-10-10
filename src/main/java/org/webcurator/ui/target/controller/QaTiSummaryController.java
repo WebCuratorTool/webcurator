@@ -694,15 +694,18 @@ public class QaTiSummaryController extends AbstractFormController {
 										HttpServletResponse response,
 										TargetInstanceSummaryCommand command,
 										BindException errors) throws Exception {
-    	ProfileCommand profileCommand = new ProfileCommand();
-    	profileCommand.setFromSummaryCommand(command);
-    	profileCommand.updateOverrides(ti.getTarget().getProfileOverrides());
+    	// Because the type of profile (whether it is a standard (H1 or H3) OR a H3 imported) affects what overrides
+		// get applied, we first determine what profile we are overriding and then perform the conditional overrides.
 
-    	// update the profile used by the target if it has changed
-    	if (command.getProfileOid() != ti.getTarget().getProfile().getOid()) {
-    		Profile newProfile = profileManager.load(profileCommand.getProfileOid());
-    		ti.getTarget().setProfile(newProfile);
-    	}
+		ProfileCommand profileCommand = new ProfileCommand();
+		Profile selectedProfile = profileManager.load(command.getProfileOid());
+		// update the profile used by the target if it has changed
+		if (!command.getProfileOid().equals(ti.getTarget().getProfile().getOid())) {
+			ti.getTarget().setProfile(selectedProfile);
+		}
+
+    	profileCommand.setFromSummaryCommand(command, selectedProfile.isImported());
+    	profileCommand.updateOverrides(ti.getTarget().getProfileOverrides());
 
     	// save everything
     	targetInstanceManager.save(ti);
