@@ -1,14 +1,14 @@
 WebCurator Store
 ================
 
-WebCurator webapp for storing web crawler results.
+WebCurator webapp for storing web harvests.
 
 
 Synopsis
 --------
 
 The `webcurator-store` project build produces a ``webcurator-store-<version>.war``, which is used to store the
-archives produced by the WebCurator web crawlers. WebCurator Store is part of the `WebCuratorTool set of applications`_.
+harvests produced by the WebCurator web crawlers. WebCurator Store is part of the `WebCuratorTool set of applications`_.
 
 
 Versioning
