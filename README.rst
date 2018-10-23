@@ -15,7 +15,7 @@ to crawl the web using the Heritrix H1 crawler. WebCurator Harvest Agent H1 is p
 Versioning
 ----------
 
-See the ``build.gradle`` file for the current jar version that will be generated.
+See the ``build.gradle`` file for the current war version that will be generated.
 
 
 Build and installation
