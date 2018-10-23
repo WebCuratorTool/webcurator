@@ -1,3 +1,16 @@
+/build
+/build-static
+/classes
+/bin
+/eclipse-bin
+/out
+/lib
+*.ipr
+*.iws
+.packaging
+.xdoclet
+nbproject
+
 ### Eclipse ###
 .metadata
 .gradle
@@ -57,4 +70,3 @@ wct-submit-to-rosetta/DpsDepositError.log
 
 # IntelliJ
 /out/
-
