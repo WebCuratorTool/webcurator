@@ -14,7 +14,7 @@ to manage Heritrix-3 web crawlers. WebCurator Harvest Agent H3 is part of the `W
 Versioning
 ----------
 
-See the ``build.gradle`` file for the current jar version that will be generated.
+See the ``build.gradle`` file for the current war version that will be generated.
 
 
 Build and installation
