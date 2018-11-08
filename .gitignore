@@ -61,3 +61,6 @@ local.properties
 
 # IntelliJ
 /out/
+
+# Don't check in hs_err files
+hs_err*.log
