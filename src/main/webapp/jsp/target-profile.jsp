@@ -31,6 +31,27 @@
     document.getElementById('tabForm').submit();
   
   }
+    // Add/Remove 'required' attribute from input field, depending on state of override checkbox
+    function toggleRequired(override, input_element){
+        if (override.checked == true) {
+            document.getElementById(input_element.id).required = true;
+        }
+        else{
+            document.getElementById(input_element.id).required = false;
+            if (document.getElementById(input_element.id).value == ''){
+                document.getElementById(input_element.id).value = 0.0;
+            }
+        }
+    }
+
+    // If an input field is empty and not being overridden then reset to 0
+    function resetIfNull(input_element, override){
+        if (override.checked == false) {
+            if (document.getElementById(input_element.id).value == ''){
+                document.getElementById(input_element.id).value = 0.0;
+            }
+        }
+    }
   
 // -->
 </script>
@@ -58,7 +79,10 @@
   }
 
 
-function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPageLoad=false) {
+function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPageLoad) {
+    if (onPageLoad == undefined) {
+        onPageLoad = false;
+    }
     if (!onPageLoad && currentProfileIndex >= 0) {
         // Save any h3RawProfile editor changes
         profilesList[currentProfileIndex].h3RawProfile = codeMirrorInstance.getValue();
@@ -98,6 +122,7 @@ function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPage
       $('#h3ProfileOverrides').show();
       $('#h1ProfileOverrides').hide();
       $('#h1Credentials').hide();
+      $('#overrideH3RawProfile').attr('checked', false);
       $('#overrideH3RawProfileCheckbox').hide();
       $('#editorDiv').hide();
     }
@@ -404,62 +429,57 @@ function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPage
 
     <tr>
       <td class="annotationsLiteRow">Document Limit</td>
-      <td class="annotationsLiteRow"><input size="20" type="number" min="0" name="h3DocumentLimit" value="<c:out value="${command.h3DocumentLimit}"/>"/></td>
-      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3DocumentLimit" ${command.overrideH3DocumentLimit ? 'checked' : ''}/></td>
+      <td class="annotationsLiteRow"><input size="20" type="number" min="0" id="h3DocumentLimit" name="h3DocumentLimit" onblur='resetIfNull(this, overrideH3DocumentLimit);' value="<c:out value="${command.h3DocumentLimit}"/>"/></td>
+      <td class="annotationsLiteRow"><input type="checkbox" id="overrideH3DocumentLimit" name="overrideH3DocumentLimit" onclick='toggleRequired(this, h3DocumentLimit);' ${command.overrideH3DocumentLimit ? 'checked' : ''}/></td>
     </tr>
 
     <tr>
       <td class="annotationsLiteRow">Data Limit</td>
       <td class="annotationsLiteRow">
-        <input size="20" type="number" step="0.001" min="0.000" name="h3DataLimit" value="<c:out value="${command.h3DataLimit}"/>"/>
+        <input size="20" type="number" step="0.001" min="0.000" id="h3DataLimit" name="h3DataLimit" onblur='resetIfNull(this, overrideH3DataLimit);' value="<c:out value="${command.h3DataLimit}"/>"/>
         <select name="h3DataLimitUnit" id="h3DataLimitUnit">
           <c:forEach items="${profileDataUnits}" var="unit">
 	        <option id="${unit}" ${command.h3DataLimitUnit eq unit ? 'SELECTED' : ''}>${unit}</option>
 	      </c:forEach>
 	    </select>
       </td>
-      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3DataLimit" ${command.overrideH3DataLimit ? 'checked' : ''}/></td>
+      <td class="annotationsLiteRow"><input type="checkbox" id="overrideH3DataLimit" name="overrideH3DataLimit" onclick='toggleRequired(this, h3DataLimit);' ${command.overrideH3DataLimit ? 'checked' : ''}/></td>
     </tr>
 
     <tr>
       <td class="annotationsLiteRow">Time Limit</td>
       <td class="annotationsLiteRow">
-        <input size="20" type="number" step="0.001" min="0.000" name="h3TimeLimit" value="<c:out value="${command.h3TimeLimit}"/>"/>
+        <input size="20" type="number" step="0.001" min="0.000" id="h3TimeLimit" name="h3TimeLimit" onblur='resetIfNull(this, overrideH3TimeLimit);' value="<c:out value="${command.h3TimeLimit}"/>"/>
         <select name="h3TimeLimitUnit" id="h3TimeLimitUnit">
           <c:forEach items="${profileTimeUnits}" var="unit">
 	        <option id="${unit}" ${command.h3TimeLimitUnit eq unit ? 'SELECTED' : ''}>${unit}</option>
 	      </c:forEach>
 	    </select>
       </td>
-      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3TimeLimit" ${command.overrideH3TimeLimit ? 'checked' : ''}/></td>
+      <td class="annotationsLiteRow"><input type="checkbox" id="overrideH3TimeLimit" name="overrideH3TimeLimit" onclick='toggleRequired(this, h3TimeLimit);' ${command.overrideH3TimeLimit ? 'checked' : ''}/></td>
     </tr>
 
     <tr>
       <td class="annotationsLiteRow">Max Path Depth</td>
-      <td class="annotationsLiteRow"><input size="20" type="number" min="0" name="h3MaxPathDepth" value="<c:out value="${command.h3MaxPathDepth}"/>"/></td>
-      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3MaxPathDepth" ${command.overrideH3MaxPathDepth ? 'checked' : ''}/></td>
+      <td class="annotationsLiteRow"><input size="20" type="number" min="0" id="h3MaxPathDepth" name="h3MaxPathDepth" onblur='resetIfNull(this, overrideH3MaxPathDepth);' value="<c:out value="${command.h3MaxPathDepth}"/>"/></td>
+      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3MaxPathDepth" onclick='toggleRequired(this, h3MaxPathDepth);' ${command.overrideH3MaxPathDepth ? 'checked' : ''}/></td>
     </tr>
 
     <tr>
       <td class="annotationsLiteRow">Max Hops</td>
-      <td class="annotationsLiteRow"><input size="20" type="number" min="0" name="h3MaxHops" value="<c:out value="${command.h3MaxHops}"/>"/></td>
-      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3MaxHops" ${command.overrideH3MaxHops ? 'checked' : ''}/></td>
+      <td class="annotationsLiteRow"><input size="20" type="number" min="0" id="h3MaxHops" name="h3MaxHops" onblur='resetIfNull(this, overrideH3MaxHops);' value="<c:out value="${command.h3MaxHops}"/>"/></td>
+      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3MaxHops" onclick='toggleRequired(this, h3MaxHops);' ${command.overrideH3MaxHops ? 'checked' : ''}/></td>
     </tr>
 
     <tr>
       <td class="annotationsLiteRow">Max Transitive Hops</td>
-      <td class="annotationsLiteRow"><input size="20" type="number" min="0" name="h3MaxTransitiveHops" value="<c:out value="${command.h3MaxTransitiveHops}"/>"/></td>
-      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3MaxTransitiveHops" ${command.overrideH3MaxTransitiveHops ? 'checked' : ''}/></td>
+      <td class="annotationsLiteRow"><input size="20" type="number" min="0" id="h3MaxTransitiveHops" name="h3MaxTransitiveHops" onblur='resetIfNull(this, overrideH3MaxTransitiveHops);' value="<c:out value="${command.h3MaxTransitiveHops}"/>"/></td>
+      <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3MaxTransitiveHops" onclick='toggleRequired(this, h3MaxTransitiveHops);' ${command.overrideH3MaxTransitiveHops ? 'checked' : ''}/></td>
     </tr>
 
     <tr>
-      <td class="annotationsLiteRow">Ignore Robots</td>
-      <td class="annotationsLiteRow">
-        <select name="h3IgnoreRobots">
-          <option value="ignore" ${command.h3IgnoreRobots eq 'ignore' ? 'selected' : ''}>ignore</option>
-          <option value="obey" ${command.h3IgnoreRobots eq 'obey' ? 'selected' : ''}>obey</option>
-        </select>
-      </td>
+      <td class="annotationsLiteRow">Ignore Robots.txt</td>
+      <td class="annotationsLiteRow"><input type="checkbox" name="h3IgnoreRobots" ${command.h3IgnoreRobots ? 'checked' : ''}/></td>
       <td class="annotationsLiteRow"><input type="checkbox" name="overrideH3IgnoreRobots" ${command.overrideH3IgnoreRobots ? 'checked' : ''}/></td>
     </tr>
 
@@ -526,7 +546,7 @@ function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPage
       <td class="annotationsLiteRow">${command.overrideH3MaxTransitiveHops ? 'Yes' : 'No'}</td>
     </tr>
     <tr>
-      <td class="annotationsLiteRow">Ignore Robots</td>
+      <td class="annotationsLiteRow">Ignore Robots.txt</td>
       <td class="annotationsLiteRow"><c:out value="${command.h3IgnoreRobots}"/></td>
       <td class="annotationsLiteRow">${command.overrideH3IgnoreRobots ? 'Yes' : 'No'}</td>
     </tr>
@@ -592,7 +612,7 @@ No overrides.
 <authority:showControl ownedObject="${ownable}" privileges="${privlege}" editMode="${profileEditMode}">
 <authority:show>
 <div id="editorDiv">
-<textarea id="h3RawProfile" name="h3RawProfile"/>
+<textarea id="h3RawProfile" name="h3RawProfile">
 <c:out value="${command.h3RawProfile}"/>
 </textarea>
 </div>
@@ -606,7 +626,7 @@ No overrides.
 <authority:dont>
 <c:if test="${command.harvesterType == 'HERITRIX3' && command.overrideH3RawProfile}">
 <div id="editorDiv">
-<textarea id="h3RawProfile" name="h3RawProfile"/>
+<textarea id="h3RawProfile" name="h3RawProfile">
 <c:out value="${command.h3RawProfile}"/>
 </textarea>
 </div>
