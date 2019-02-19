@@ -88,7 +88,7 @@ public class ProfileCommand {
 	private Long h3MaxTransitiveHops;
 	private boolean overrideH3MaxTransitiveHops;
 
-	private String h3IgnoreRobots;
+	private boolean h3IgnoreRobots;
 	private boolean overrideH3IgnoreRobots;
 
 	private boolean h3IgnoreCookies;
@@ -488,11 +488,11 @@ public class ProfileCommand {
 		this.overrideH3MaxTransitiveHops = overrideH3MaxTransitiveHops;
 	}
 
-	public String getH3IgnoreRobots() {
+	public boolean isH3IgnoreRobots() {
 		return h3IgnoreRobots;
 	}
 
-	public void setH3IgnoreRobots(String h3IgnoreRobots) {
+	public void setH3IgnoreRobots(boolean h3IgnoreRobots) {
 		this.h3IgnoreRobots = h3IgnoreRobots;
 	}
 
@@ -605,7 +605,7 @@ public class ProfileCommand {
 		setH3MaxTransitiveHops(overrides.getH3MaxTransitiveHops());
 		setOverrideH3MaxTransitiveHops(overrides.isOverrideH3MaxTransitiveHops());
 
-		setH3IgnoreRobots(overrides.getH3IgnoreRobots());
+		setH3IgnoreRobots(overrides.isH3IgnoreRobots());
 		setOverrideH3IgnoreRobots(overrides.isOverrideH3IgnoreRobots());
 
 		setH3IgnoreCookies(overrides.isH3IgnoreCookies());
@@ -757,6 +757,39 @@ public class ProfileCommand {
 
 			setForceAcceptFilters(command.getForceAcceptFilters());
 			setOverrideForceAcceptFilters(command.isOverrideForceAcceptFilters());
+
+			setH3DocumentLimit(command.getH3DocumentLimit());
+			setOverrideH3DocumentLimit(command.isOverrideH3DocumentLimit());
+
+			setH3DataLimitUnit(command.getH3DataLimitUnit());
+			setH3DataLimit(command.getH3DataLimit());
+			setOverrideH3DataLimit(command.isOverrideH3DataLimit());
+
+			setH3TimeLimitUnit(command.getH3TimeLimitUnit());
+			setH3TimeLimit(command.getH3TimeLimit());
+			setOverrideH3TimeLimit(command.isOverrideH3TimeLimit());
+
+			setH3MaxPathDepth(command.getH3MaxPathDepth());
+			setOverrideH3MaxPathDepth(command.isOverrideH3MaxPathDepth());
+
+			setH3MaxHops(command.getH3MaxHops());
+			setOverrideH3MaxHops(command.isOverrideH3MaxHops());
+
+			setH3MaxTransitiveHops(command.getH3MaxTransitiveHops());
+			setOverrideH3MaxTransitiveHops(command.isOverrideH3MaxTransitiveHops());
+
+			setH3IgnoreRobots(command.isH3IgnoreRobots());
+			setOverrideH3IgnoreRobots(command.isOverrideH3IgnoreRobots());
+
+			setH3IgnoreCookies(command.isH3IgnoreCookies());
+			setOverrideH3IgnoreCookies(command.isOverrideH3IgnoreCookies());
+
+			setH3BlockedUrls(command.getH3BlockedUrls());
+			setOverrideH3BlockedUrls(command.isOverrideH3BlockedUrls());
+
+			setH3IncludedUrls(command.getH3IncludedUrls());
+			setOverrideH3IncludedUrls(command.isOverrideH3IncludedUrls());
+
 		}
 	}
 
