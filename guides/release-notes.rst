@@ -20,7 +20,9 @@ Contents of this document
 Following this introduction, the Web Curator Tool Release Notes includes the
 following sections:
 
--   **Changes since 2.0.0** - Changes since the last official release *2.0.0*.
+-   **Changes since 2.0.1** - Changes since the last official release *2.0.1*.
+
+-   **2.0.1** - Release 2.0.1.
 
 -   **2.0.0** - Release 2.0.0.
 
@@ -39,11 +41,31 @@ following sections:
 -   **Previous versions** - Versions prior to release 1.5.
 
 
-Changes since 2.0.0
+Changes since 2.0.1
 ===================
 
-This is a placeholder for changes since the official *2.0.0* release. Please
+This is a placeholder for changes since the official *2.0.1* release. Please
 add notes here for changes and fixes as they are released into the master branch.
+
+
+2.0.1
+=====
+
+-   The SOAP implementation has changed. As part of that change, the ex-libris Rosetta SDK dependency has moved from
+    `2.2.0` to `5.5.0`. This means that the `dps-sdk-5.5.0.jar` must be installed in a local Maven repository for the
+    maven build to work. This jar is now sourced from the github project *rosetta-dps-sdk-projects-maven-lib*, found
+    at (https://github.com/NLNZDigitalPreservation/rosetta-dps-sdk-projects-maven-lib). The installation of this jar
+    includes a pom with its maven dependencies so the *wct-store* and *wct-submit-to-rosetta* subprojects no longer need
+    to explicitly include or track the dps-sdk dependencies in their project poms. It has a different `groupId` and
+    `artifactId` from `the dps-sdk-5.5.0.jar` downloaded from *Rosetta.dps-sdk-projects*
+    (https://github.com/ExLibrisGroup/Rosetta.dps-sdk-projects). This dependnecy is installed into the local maven
+    repository by running the script `install_maven_dependencies.[sh|bat]`.
+
+-   Because of some classpath issues, harvest-agent-h1 now uses a modified version of heritrix that has been created
+    with the github project https://github.com/WebCuratorTool/heritrix-1-14-adjust. This version of heritrix and its
+    necessary dependencies are installed into the local maven repository by running the script
+    `install_maven_dependencies.[sh|bat]`. Note that this script now requires that the program `git` works from the
+    command line.
 
 
 2.0.0
