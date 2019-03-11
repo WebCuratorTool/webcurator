@@ -33,17 +33,8 @@ local.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-wct-core/logs/
-harvest-agent-h1/logs/
-harvest-agent-h3/logs/
-wct-store/logs/
-wct-core/target/
-harvest-agent-h1/target/
-harvest-agent-h3/target/
-wct-store/target/
-wct-submit-to-rosetta/target/
-wct-assembly/target/
-wct-submit-to-rosetta/DpsDepositError.log
+/logs/
+/target/
 
 *.eml
 
@@ -70,3 +61,6 @@ wct-submit-to-rosetta/DpsDepositError.log
 
 # IntelliJ
 /out/
+
+# Don't check in hs_err files
+hs_err*.log
