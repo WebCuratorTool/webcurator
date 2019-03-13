@@ -1,15 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>wct-core</artifactId>
+	<groupId>org.webcurator</groupId>
+	<artifactId>webcurator-core</artifactId>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Web Curator Tool Core</name>
 	<description>Web Curator Tool core web application</description>
-
-	<parent>
-		<artifactId>wct-parent</artifactId>
-		<groupId>org.webcurator</groupId>
-		<version>2.0.1</version>
-	</parent>
 
 	<properties>
 		<browse.double_escape>false</browse.double_escape>
@@ -18,7 +14,7 @@
     </properties>
 
 	<build>
-		<finalName>wct-core</finalName>
+		<finalName>${pom.artifactId}-${pom.version}</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -53,6 +49,16 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+					<!-- Install only as there is no maven repository -->
+					<goals>install</goals>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -333,7 +339,14 @@
 			</dependencies>
 		</profile>
 	</profiles>
-
+	<repositories>
+		<repository>
+			<!-- Needed for com.sleepycat:je:3.374 -->
+			<id>spring-plugins</id>
+			<name>Spring Plugins</name>
+			<url>http://repo.spring.io/plugins-release/</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>JimiProClasses</groupId>
@@ -352,6 +365,12 @@
 			<artifactId>heritrix</artifactId>
 			<version>1.14.2-webcuratortool-2.0.1</version>
 			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>antlr</groupId>
@@ -526,6 +545,11 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>14.0.1</version>
+		</dependency>
+		<dependency>
 			<groupId>com.lowagie</groupId>
 			<artifactId>itext</artifactId>
 			<version>1.2.3</version>
@@ -589,7 +613,19 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
-			<scope>compile</scope>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>1.5.1</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.jcraft</groupId>
@@ -606,7 +642,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
+			<version>1.2.17</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
