@@ -1,14 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.webcurator</groupId>
 	<artifactId>harvest-agent-h3</artifactId>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>Harvest Agent - Heritrix 3.x</name>
-
-	<parent>
-		<artifactId>wct-parent</artifactId>
-		<groupId>org.webcurator</groupId>
-		<version>2.0.1</version>
-	</parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,7 +12,7 @@
     </properties>
 
 	<build>
-		<finalName>harvest-agent-h3</finalName>
+		<finalName>${pom.artifactId}-${pom.version}</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -185,6 +181,19 @@
 		</pluginManagement>
 	</build>
 
+	<repositories>
+		<repository>
+			<!-- Needed for com.sleepycat:je:3.374 -->
+			<id>spring-plugins</id>
+			<name>Spring Plugins</name>
+			<url>http://repo.spring.io/plugins-release/</url>
+		</repository>
+		<repository>
+			<id>builds-archive-org</id>
+			<name>builds-archive-org</name>
+			<url>http://builds.archive.org:8080/maven2</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>JimiProClasses</groupId>
@@ -378,7 +387,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
+			<version>1.2.17</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -473,8 +482,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.webcurator</groupId>
-			<artifactId>wct-core</artifactId>
-			<version>2.0.1</version>
+			<artifactId>webcurator-core</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -494,7 +503,6 @@
 			<artifactId>heritrix3-wrapper</artifactId>
 			<version>1.0.3</version>
 			<scope>compile</scope>
-
 			<exclusions>
 				<exclusion>
 					<groupId>ch.qos.logback</groupId>
