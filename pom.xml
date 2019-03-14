@@ -1,15 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>wct-core</artifactId>
+	<groupId>org.webcurator</groupId>
+	<artifactId>webcurator-core</artifactId>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Web Curator Tool Core</name>
 	<description>Web Curator Tool core web application</description>
-
-	<parent>
-		<artifactId>wct-parent</artifactId>
-		<groupId>org.webcurator</groupId>
-		<version>2.0.1</version>
-	</parent>
 
 	<properties>
 		<browse.double_escape>false</browse.double_escape>
@@ -18,7 +14,7 @@
     </properties>
 
 	<build>
-		<finalName>wct-core</finalName>
+		<finalName>${pom.artifactId}-${pom.version}</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -53,6 +49,16 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+					<!-- Install only as there is no maven repository -->
+					<goals>install</goals>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -333,14 +339,15 @@
 			</dependencies>
 		</profile>
 	</profiles>
-
+	<repositories>
+		<repository>
+			<!-- Needed for com.sleepycat:je:3.374 -->
+			<id>spring-plugins</id>
+			<name>Spring Plugins</name>
+			<url>http://repo.spring.io/plugins-release/</url>
+		</repository>
+	</repositories>
 	<dependencies>
-		<dependency>
-			<groupId>JimiProClasses</groupId>
-			<artifactId>JimiProClasses</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.acegisecurity</groupId>
 			<artifactId>acegi-security</artifactId>
@@ -352,53 +359,17 @@
 			<artifactId>heritrix</artifactId>
 			<version>1.14.2-webcuratortool-2.0.1</version>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>antlr</groupId>
-			<artifactId>antlr</artifactId>
-			<version>2.7.7</version>
-			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>axis</groupId>
 			<artifactId>axis</artifactId>
 			<version>1.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>backport-util-concurrent</groupId>
-			<artifactId>backport-util-concurrent</artifactId>
-			<version>2.0_01_pd</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>bsf</groupId>
-			<artifactId>bsf</artifactId>
-			<version>2.3.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.beanshell</groupId>
-			<artifactId>bsh</artifactId>
-			<version>1.3.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>castor</groupId>
-			<artifactId>castor</artifactId>
-			<version>0.9.5.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>colt</groupId>
-			<artifactId>colt</artifactId>
-			<version>1.2.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-			<version>1.0</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -411,18 +382,6 @@
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
 			<version>3.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-discovery</groupId>
-			<artifactId>commons-discovery</artifactId>
-			<version>0.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-fileupload</groupId>
-			<artifactId>commons-fileupload</artifactId>
-			<version>1.1.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -456,18 +415,6 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>commons-net</groupId>
-			<artifactId>commons-net</artifactId>
-			<version>1.4.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>dnsjava</groupId>
-			<artifactId>dnsjava</artifactId>
-			<version>2.0.6</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.drools</groupId>
 			<artifactId>drools-compiler</artifactId>
 			<version>7.15.0.Final</version>
@@ -476,12 +423,6 @@
 		<dependency>
 			<groupId>org.drools</groupId>
 			<artifactId>drools-core</artifactId>
-			<version>7.15.0.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.drools</groupId>
-			<artifactId>drools-decisiontables</artifactId>
 			<version>7.15.0.Final</version>
 			<scope>compile</scope>
 		</dependency>
@@ -496,27 +437,9 @@
 		</dependency>
 		-->
 		<dependency>
-			<groupId>org.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
-			<version>3.6.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>fastutil</groupId>
-			<artifactId>fastutil</artifactId>
-			<version>5.0.9</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate</artifactId>
 			<version>3.1.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>httpunit</groupId>
-			<artifactId>httpunit</artifactId>
-			<version>1.5.4</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -526,10 +449,9 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.lowagie</groupId>
-			<artifactId>itext</artifactId>
-			<version>1.2.3</version>
-			<scope>compile</scope>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>14.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf</groupId>
@@ -538,33 +460,16 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.6.0.GA</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.anotherbigidea</groupId>
-			<artifactId>javaswf</artifactId>
-			<version>CVS-SNAPSHOT-1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>javax.xml</groupId>
 			<artifactId>jaxrpc-api</artifactId>
 			<version>1.1</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- Override version brought in by org.archive:heritrix-->
 		<dependency>
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>
 			<version>3.3.74</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.jms</groupId>
-			<artifactId>jms</artifactId>
-			<version>1.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -574,39 +479,27 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>1.1.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.transaction</groupId>
-			<artifactId>jta</artifactId>
-			<version>1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>compile</scope>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.jcraft</groupId>
-			<artifactId>jzlib</artifactId>
-			<version>1.0.7</version>
-			<scope>compile</scope>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.gnu.inet</groupId>
-			<artifactId>libidn</artifactId>
-			<version>0.6.5</version>
-			<scope>compile</scope>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>1.5.1</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
+			<version>1.2.17</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -622,27 +515,9 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>it.unimi.dsi</groupId>
-			<artifactId>mg4j</artifactId>
-			<version>2.0.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mvel</groupId>
-			<artifactId>mvel2</artifactId>
-			<version>2.4.3.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.6</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jdt.core.compiler</groupId>
-			<artifactId>ecj</artifactId>
-			<version>4.6.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -652,27 +527,9 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>2.5.1-final-20040804</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>poi</groupId>
-			<artifactId>poi-scratchpad</artifactId>
-			<version>2.5.1-final-20040804</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>quartz</groupId>
 			<artifactId>quartz</artifactId>
 			<version>1.5.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.xml.soap</groupId>
-			<artifactId>saaj-api</artifactId>
-			<version>1.3.5</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -707,12 +564,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
 			<artifactId>spring-dao</artifactId>
 			<version>1.2.7</version>
 			<scope>compile</scope>
@@ -734,12 +585,6 @@
 			<artifactId>spring-mock</artifactId>
 			<version>1.2.7</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-orm</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -766,33 +611,9 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>taglibs</groupId>
-			<artifactId>standard</artifactId>
-			<version>1.1.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>struts</groupId>
-			<artifactId>struts</artifactId>
-			<version>1.2.8</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.archive.wayback</groupId>
 			<artifactId>wayback-core</artifactId>
 			<version>1.2.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>wsdl4j</groupId>
-			<artifactId>wsdl4j</artifactId>
-			<version>1.5.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>xalan</groupId>
-			<artifactId>xalan</artifactId>
-			<version>2.7.1</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
