@@ -1,15 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>wct-core</artifactId>
-	<packaging>jar</packaging>
-	<name>Web Curator Tool Core</name>
-	<description>Web Curator Tool core web application</description>
-
-	<parent>
-		<artifactId>wct-parent</artifactId>
-		<groupId>org.webcurator</groupId>
-		<version>2.0.1</version>
-	</parent>
+	<groupId>org.webcurator</groupId>
+	<artifactId>webcurator-webapp</artifactId>
+	<version>3.0.0-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<name>Web Curator Tool WebApp</name>
+	<description>Web Curator Tool web application</description>
 
 	<properties>
 		<browse.double_escape>false</browse.double_escape>
@@ -18,7 +14,7 @@
     </properties>
 
 	<build>
-		<finalName>wct-core</finalName>
+		<finalName>${pom.artifactId}-${pom.version}</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -47,64 +43,8 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<!-- This plugin should eventually be replaced by Hibernate or JPA annotations -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>xdoclet-maven-plugin</artifactId>
-				<version>1.0</version>
-				<dependencies>
-					<dependency>
-						<groupId>xdoclet</groupId>
-						<artifactId>xdoclet</artifactId>
-						<version>1.2.3-updated</version>
-					</dependency>
-					<dependency>
-						<groupId>xdoclet</groupId>
-						<artifactId>xjavadoc</artifactId>
-						<version>1.5-snapshot050611</version>
-					</dependency>
-					<dependency>
-						<groupId>xdoclet</groupId>
-						<artifactId>xdoclet-hibernate-module</artifactId>
-						<version>1.2.3</version>
-					</dependency>
-					<dependency>
-						<groupId>dom4j</groupId>
-						<artifactId>dom4j</artifactId>
-						<version>1.6.1</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>xdoclet</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<hibernatedoclet destdir="${project.build.directory}/classes" mergedir="${project.build.directory}/merge" force="true" verbose="true">
-									<fileset dir="${project.build.sourceDirectory}">
-										<include name="org/webcurator/domain/model/**/*.java" />
-										<include name="org/webcurator/core/permissionmapping/Mapping.java" />
-										<include name="org/webcurator/core/permissionmapping/MappingView.java" />
-									</fileset>
-									<hibernate version="3.0" />
-								</hibernatedoclet>
-
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
+				<!-- Needed to unpack webcurator-core jar, as some of the files in that jar are opened as a File,
+				     not as a resource. -->
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>
 				<executions>
@@ -143,76 +83,42 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
-						<phase>prepare-package</phase>
-						<configuration>
-							<!-- The maven plugin is not compatible with the way hibernate files 
-								are generated. Perhaps this will change if/when WCT uses JPA -->
-							<target name="generate_sql">
-								<taskdef name="schemaexport" classname="org.hibernate.tool.hbm2ddl.SchemaExportTask" classpathref="maven.plugin.classpath" />
-
-								<schemaexport properties="build/hib_mysql.properties" quiet="no" text="yes" drop="no" delimiter=";" output="target/wct-schema-mysql.sql">
-									<fileset dir="${project.build.directory}/classes">
-										<include name="**/*.hbm.xml" />
-									</fileset>
-								</schemaexport>
-								<replace file="target/wct-schema-mysql.sql" token="TIMESTAMP(9)," value="TIMESTAMP(9) NULL," />
-
-								<schemaexport properties="build/hib_postgres.properties" quiet="no" text="yes" drop="no" delimiter=";" output="target/wct-schema-postgres.sql">
-									<fileset dir="${project.build.directory}/classes">
-										<include name="**/*.hbm.xml" />
-									</fileset>
-								</schemaexport>
-								<replace file="target/wct-schema-postgres.sql" token="TIMESTAMP(9)," value="TIMESTAMP(9) NULL," />
-
-								<schemaexport properties="build/hib_oracle.properties" quiet="no" text="yes" drop="no" delimiter=";" output="target/wct-schema-oracle.sql">
-									<fileset dir="${project.build.directory}/classes">
-										<include name="**/*.hbm.xml" />
-									</fileset>
-								</schemaexport>
-								<replace file="target/wct-schema-oracle.sql" token="TIMESTAMP(9)," value="TIMESTAMP(9) NULL," />
-
-							</target>
-						</configuration>
+						<id>unpack-my-lib</id>
+						<phase>process-resources</phase>
 						<goals>
-							<goal>run</goal>
+							<goal>unpack</goal>
 						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.webcurator</groupId>
+									<artifactId>webcurator-core</artifactId>
+									<version>3.0.0-SNAPSHOT</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+						</configuration>
 					</execution>
 				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate</artifactId>
-						<version>3.1.3</version>
-					</dependency>
-					<dependency>
-						<groupId>javax.transaction</groupId>
-						<artifactId>jta</artifactId>
-						<version>1.1</version>
-					</dependency>
-					<dependency>
-						<groupId>commons-collections</groupId>
-						<artifactId>commons-collections</artifactId>
-						<version>3.2.2</version>
-					</dependency>
-				</dependencies>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.3</version>
 				<configuration>
-					<warName>wct</warName>
 					<webResources>
 						<resource>
 							<!-- include the license file, as per the original build process -->
-							<directory>docs</directory>
+							<directory>.</directory>
 							<includes>
-								<include>license.txt</include>
+								<include>LICENSE</include>
 							</includes>
 						</resource>
 						<resource>
@@ -402,434 +308,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>JimiProClasses</groupId>
-			<artifactId>JimiProClasses</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.acegisecurity</groupId>
-			<artifactId>acegi-security</artifactId>
-			<version>1.0.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.archive</groupId>
-			<artifactId>heritrix</artifactId>
-			<version>1.14.2-webcuratortool-2.0.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>antlr</groupId>
-			<artifactId>antlr</artifactId>
-			<version>2.7.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>axis</groupId>
-			<artifactId>axis</artifactId>
-			<version>1.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>backport-util-concurrent</groupId>
-			<artifactId>backport-util-concurrent</artifactId>
-			<version>2.0_01_pd</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>bsf</groupId>
-			<artifactId>bsf</artifactId>
-			<version>2.3.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.beanshell</groupId>
-			<artifactId>bsh</artifactId>
-			<version>1.3.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>castor</groupId>
-			<artifactId>castor</artifactId>
-			<version>0.9.5.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>colt</groupId>
-			<artifactId>colt</artifactId>
-			<version>1.2.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>1.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-discovery</groupId>
-			<artifactId>commons-discovery</artifactId>
-			<version>0.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-fileupload</groupId>
-			<artifactId>commons-fileupload</artifactId>
-			<version>1.1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-httpclient</groupId>
-			<artifactId>commons-httpclient</artifactId>
-			<!-- Use the version of commons-httpclient pulled in from org.archive.heritrix.
-			     When the dependency with org.archive:heritrix is broken the non-modified version of commons-httpclient
-			     can be used instead. Note that this dependency is required because the class BrowseHelper.java uses
-			     UURIFactory.java, which uses UURI.java, which extends LaxURI.java, which is a custom heritrix-1.14.2-...
-			     part of commons-httpclient-3.1.1-heritrix-1.14.2-webcuratortool-2.0.1 (and not commons-httpclient-3.1).
-			-->
-			<version>3.1.1-heritrix-1.14.2-webcuratortool-2.0.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>1.3.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-net</groupId>
-			<artifactId>commons-net</artifactId>
-			<version>1.4.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>dnsjava</groupId>
-			<artifactId>dnsjava</artifactId>
-			<version>2.0.6</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.drools</groupId>
-			<artifactId>drools-compiler</artifactId>
-			<version>7.15.0.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.drools</groupId>
-			<artifactId>drools-core</artifactId>
-			<version>7.15.0.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.drools</groupId>
-			<artifactId>drools-decisiontables</artifactId>
-			<version>7.15.0.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<!-- I'm not sure where this dependency is appearing from. And it's a pom only.
-			 TODO Determine if this is a valid dependecy, if not, remove it.
-		<dependency>
-			<groupId>org.drools</groupId>
-			<artifactId>droolsjbpm-knowledge</artifactId>
-			<version>5.4.0.Final</version>
-			<type>pom</type>
-			<scope>compile</scope>
-		</dependency>
-		-->
-		<dependency>
-			<groupId>org.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
-			<version>3.6.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>fastutil</groupId>
-			<artifactId>fastutil</artifactId>
-			<version>5.0.9</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate</artifactId>
-			<version>3.1.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>httpunit</groupId>
-			<artifactId>httpunit</artifactId>
-			<version>1.5.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm</groupId>
-			<artifactId>ibmjsse</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.lowagie</groupId>
-			<artifactId>itext</artifactId>
-			<version>1.2.3</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.sf</groupId>
-			<artifactId>jargs</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.6.0.GA</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.anotherbigidea</groupId>
-			<artifactId>javaswf</artifactId>
-			<version>CVS-SNAPSHOT-1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.xml</groupId>
-			<artifactId>jaxrpc-api</artifactId>
-			<version>1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sleepycat</groupId>
-			<artifactId>je</artifactId>
-			<version>3.3.74</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.jms</groupId>
-			<artifactId>jms</artifactId>
-			<version>1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet.jsp</groupId>
-			<artifactId>jsp-api</artifactId>
-			<version>2.0</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>1.1.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.transaction</groupId>
-			<artifactId>jta</artifactId>
-			<version>1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jcraft</groupId>
-			<artifactId>jzlib</artifactId>
-			<version>1.0.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.gnu.inet</groupId>
-			<artifactId>libidn</artifactId>
-			<version>0.6.5</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mailapi</artifactId>
-			<version>1.4.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>it.unimi.dsi</groupId>
-			<artifactId>mg4j</artifactId>
-			<version>2.0.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mvel</groupId>
-			<artifactId>mvel2</artifactId>
-			<version>2.4.3.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.6</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jdt.core.compiler</groupId>
-			<artifactId>ecj</artifactId>
-			<version>4.6.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>oro</groupId>
-			<artifactId>oro</artifactId>
-			<version>2.0.8</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>2.5.1-final-20040804</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>poi</groupId>
-			<artifactId>poi-scratchpad</artifactId>
-			<version>2.5.1-final-20040804</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>quartz</groupId>
-			<artifactId>quartz</artifactId>
-			<version>1.5.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.xml.soap</groupId>
-			<artifactId>saaj-api</artifactId>
-			<version>1.3.5</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.4</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.5</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>smalltext-0.1.4</groupId>
-			<artifactId>smalltext-0.1.4</artifactId>
-			<version>0.1.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-dao</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-hibernate</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-mock</artifactId>
-			<version>1.2.7</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-orm</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-remoting</artifactId>
-			<version>2.0.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-support</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
+			<groupId>org.webcurator</groupId>
+			<artifactId>webcurator-core</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>taglibs</groupId>
@@ -841,24 +322,6 @@
 			<groupId>struts</groupId>
 			<artifactId>struts</artifactId>
 			<version>1.2.8</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.archive.wayback</groupId>
-			<artifactId>wayback-core</artifactId>
-			<version>1.2.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>wsdl4j</groupId>
-			<artifactId>wsdl4j</artifactId>
-			<version>1.5.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>xalan</groupId>
-			<artifactId>xalan</artifactId>
-			<version>2.7.1</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
