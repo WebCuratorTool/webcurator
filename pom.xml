@@ -6,10 +6,10 @@
 	<packaging>war</packaging>
 	<name>Harvest Agent - Heritrix 1.x</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
 
 	<build>
 		<finalName>${pom.artifactId}-${pom.version}</finalName>
@@ -194,12 +194,6 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>JimiProClasses</groupId>
-			<artifactId>JimiProClasses</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.archive</groupId>
 			<artifactId>heritrix</artifactId>
 			<version>1.14.2-webcuratortool-2.0.1</version>
@@ -215,109 +209,16 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>backport-util-concurrent</groupId>
-			<artifactId>backport-util-concurrent</artifactId>
-			<version>2.0_01_pd</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>bsf</groupId>
-			<artifactId>bsf</artifactId>
-			<version>2.3.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.beanshell</groupId>
-			<artifactId>bsh</artifactId>
-			<version>1.3.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>castor</groupId>
-			<artifactId>castor</artifactId>
-			<version>0.9.5.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>colt</groupId>
-			<artifactId>colt</artifactId>
-			<version>1.2.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-discovery</groupId>
-			<artifactId>commons-discovery</artifactId>
-			<version>0.2</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>1.3.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>commons-net</groupId>
-			<artifactId>commons-net</artifactId>
-			<version>1.4.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>fastutil</groupId>
-			<artifactId>fastutil</artifactId>
-			<version>5.0.9</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.ibm</groupId>
-			<artifactId>ibmjsse</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.sf</groupId>
-			<artifactId>jargs</artifactId>
-			<version>1.0</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.xml</groupId>
-			<artifactId>jaxrpc-api</artifactId>
-			<version>1.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-impl</artifactId>
-			<version>2.3.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-core</artifactId>
-			<version>2.3.0.1</version>
-		</dependency>
+		<!-- Override the version that comes in from org.archive:heritrix -->
 		<dependency>
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>
 			<version>3.3.74</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.jms</groupId>
-			<artifactId>jms</artifactId>
-			<version>1.1</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -327,51 +228,15 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.sun.jdmk</groupId>
-			<artifactId>jmxtools</artifactId>
-			<version>1.2.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.4</version>
+			<version>4.12</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jcraft</groupId>
-			<artifactId>jzlib</artifactId>
-			<version>1.0.7</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>oro</groupId>
-			<artifactId>oro</artifactId>
-			<version>2.0.8</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>2.5.1-final-20040804</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>poi</groupId>
-			<artifactId>poi-scratchpad</artifactId>
-			<version>2.5.1-final-20040804</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -381,22 +246,10 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.xml.soap</groupId>
-			<artifactId>saaj-api</artifactId>
-			<version>1.3.5</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 			<version>2.4</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>smalltext-0.1.4</groupId>
-			<artifactId>smalltext-0.1.4</artifactId>
-			<version>0.1.4</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -407,18 +260,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-dao</artifactId>
 			<version>1.2.7</version>
 			<scope>compile</scope>
 		</dependency>
@@ -455,18 +296,5 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>wsdl4j</groupId>
-			<artifactId>wsdl4j</artifactId>
-			<version>1.5.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>xalan</groupId>
-			<artifactId>xalan</artifactId>
-			<version>2.7.1</version>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
-
 </project>
