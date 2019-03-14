@@ -67,36 +67,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>2.6.ga</version>
-		</dependency>
-
-		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-			<version>2.3.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-impl</artifactId>
-			<version>2.3.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.sun.xml.ws</groupId>
-			<artifactId>jaxws-rt</artifactId>
-			<version>2.3.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>policy</groupId>
-			<artifactId>policy</artifactId>
-			<version>4.2.2.GA</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.google.code.guice</groupId>
 			<artifactId>guice</artifactId>
 			<version>1.0</version>
@@ -106,18 +76,6 @@
 			<groupId>org.apache.xmlbeans</groupId>
 			<artifactId>xmlbeans</artifactId>
 			<version>2.3.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-			<version>2.7.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>jaxen</groupId>
-			<artifactId>jaxen</artifactId>
-			<version>1.1.6</version>
 		</dependency>
 
 		<dependency>
@@ -153,7 +111,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.4</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -182,18 +140,6 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>fastutil</groupId>
-			<artifactId>fastutil</artifactId>
-			<version>5.0.9</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-httpclient</groupId>
-			<artifactId>commons-httpclient</artifactId>
-			<version>3.1</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
