@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+	default-autowire="no" default-lazy-init="false" default-dependency-check="none">
 
-<beans default-autowire="no" default-lazy-init="false" default-dependency-check="none">
-	
     <bean id="WCTCoreServletConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
             <list>
@@ -14,7 +15,7 @@
         <property name="order" value="150"/>
     </bean>
 	
-	<bean id="simpleUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="simpleUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="interceptors">
 			<list>
             	<ref bean="openSessionInViewInterceptor"/>
@@ -110,25 +111,28 @@
 	
 	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
 	    <property name="maxUploadSize" value="1500000"/>
-	</bean>	
-
-	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-		<property name="requestContextAttribute" value="requestContext"/>
-		<property name="viewClass" value="org.springframework.web.servlet.view.tiles.TilesView"/>
 	</bean>
-	
-	<bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles.TilesConfigurer">
-	<property name="factoryClass" value="org.apache.struts.tiles.xmlDefinition.I18nFactorySet"/>
-	<property name="definitions">
-	<list>
-	<value>/WEB-INF/tiles-defs.xml</value>
-	</list>
-	</property>
+
+	<bean id="tilesViewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="requestContextAttribute" value="requestContext"/>
+		<property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView"/>
+	</bean>
+
+	<!-- Helper class to configure Tiles 2.x for the Spring Framework -->
+	<!-- See http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/web/servlet/view/tiles2/TilesConfigurer.html -->
+	<!-- The actual tiles templates are in the tiles-definitions.xml  -->
+	<bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+		<property name="definitions">
+			<list>
+				<value>/WEB-INF/tiles-defs.xml</value>
+			</list>
+		</property>
+		<!--<property name="org.apache.tiles.factory.TilesContainerFactory" value="org.apache.tiles.factory.BasicTilesContainerFactory"/>-->
 	</bean>
 
 	<bean id="exceptionResolver"
 		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="defaultErrorView">
 			<value type="java.lang.String">Error</value>
@@ -146,7 +150,7 @@
 		</property>
 	</bean>
 
-	<bean id="homeController" class="org.webcurator.ui.home.controller.HomeController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="homeController" class="org.webcurator.ui.home.controller.HomeController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET"/>
 		<property name="inTrayManager" ref="inTrayManager"/>
 		<property name="authorityManager" ref="authorityManager"/>
@@ -158,13 +162,13 @@
 		</property>	
 	</bean>
 	
-	<bean id="siteSearchController" class="org.webcurator.ui.site.controller.SiteSearchController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="siteSearchController" class="org.webcurator.ui.site.controller.SiteSearchController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="siteManager" ref="siteManager"/>
 		<property name="agencyUserManager" ref="agencyUserManager"/>
 		<property name="commandClass" value="org.webcurator.ui.site.command.SiteSearchCommand"/>
 	</bean>
 	
-	<bean id="siteController" class="org.webcurator.ui.site.controller.SiteController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="siteController" class="org.webcurator.ui.site.controller.SiteController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="tabConfig" ref="siteTabConfig"/> 
 		<property name="defaultCommandClass" value="org.webcurator.ui.site.command.DefaultSiteCommand"/>
@@ -183,7 +187,7 @@
 		</property>
 	</bean>
 	
-	<bean id="generatePermissionTemplateController" class="org.webcurator.ui.site.controller.GeneratePermissionTemplateController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="generatePermissionTemplateController" class="org.webcurator.ui.site.controller.GeneratePermissionTemplateController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="siteManager" ref="siteManager"/>
 		<property name="mailServer" ref="mailServer"/>
@@ -191,7 +195,7 @@
 		<property name="permissionTemplateManager" ref="permissionTemplateManager"/>
 	</bean>	
 	
-	<bean id="transferSeedsController" class="org.webcurator.ui.site.controller.TransferSeedsController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="transferSeedsController" class="org.webcurator.ui.site.controller.TransferSeedsController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 	  <property name="targetManager" ref="targetManager"/>
 	  <property name="siteManager" ref="siteManager"/>
 	  <property name="messageSource" ref="messageSource"/>
@@ -204,7 +208,7 @@
 
 
 	
-	<bean id="harvestHistoryController" class="org.webcurator.ui.tools.controller.HarvestHistoryController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="harvestHistoryController" class="org.webcurator.ui.tools.controller.HarvestHistoryController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="targetInstanceManager" ref="targetInstanceManager"/>
 	</bean>	
@@ -212,7 +216,7 @@
 	
 
 
-	<bean id="siteTabConfig" class="org.webcurator.ui.util.TabConfig" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="siteTabConfig" class="org.webcurator.ui.util.TabConfig" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="viewName" value="site"/>	
 		<property name="tabs">
 			<list>
@@ -282,7 +286,7 @@
 		<property name="overrideableType" value="Target Instance"/>
 	</bean>
 	
-	<bean id="targetInstanceTabConfig" class="org.webcurator.ui.util.TabConfig" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="targetInstanceTabConfig" class="org.webcurator.ui.util.TabConfig" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="viewName" value="targetInstance"/>
 		<property name="tabs">
 			<list>
@@ -402,7 +406,7 @@
 		</property>
 	</bean>
 
-	<bean id="tabbedTargetInstanceController" class="org.webcurator.ui.target.controller.TabbedTargetInstanceController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="tabbedTargetInstanceController" class="org.webcurator.ui.target.controller.TabbedTargetInstanceController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="tabConfig" ref="targetInstanceTabConfig"/> 
 		<property name="defaultCommandClass" value="org.webcurator.ui.target.command.TargetInstanceCommand"/>
@@ -413,7 +417,7 @@
 		<property name="messageSource" ref="messageSource"/>
 	</bean>	
 	
-	<bean id="manageHarvestAgentController" class="org.webcurator.ui.agent.controller.ManageHarvestAgentController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="manageHarvestAgentController" class="org.webcurator.ui.agent.controller.ManageHarvestAgentController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -421,7 +425,7 @@
 			<ref bean="harvestCoordinator"/>
 		</property>
 	</bean>
-	<bean id="bandwidthRestrictionsController" class="org.webcurator.ui.agent.controller.BandwidthRestrictionsController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="bandwidthRestrictionsController" class="org.webcurator.ui.agent.controller.BandwidthRestrictionsController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -436,15 +440,15 @@
 		</property>
 	</bean>
 	
-	<bean id="bandwidthRestrictionValidator" class="org.webcurator.ui.agent.validator.BandwidthRestrictionValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="bandwidthRestrictionValidator" class="org.webcurator.ui.agent.validator.BandwidthRestrictionValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 	
-	<bean id="openSessionInViewInterceptor" class="org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="openSessionInViewInterceptor" class="org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="sessionFactory"><ref bean="sessionFactory"/></property>
 	</bean>
 	
-	<bean id="logoutController" class="org.webcurator.ui.base.LogoutController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"/>
+	<bean id="logoutController" class="org.webcurator.ui.base.LogoutController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"/>
 	
-	<bean id="resetPasswordController" class="org.webcurator.ui.credentials.controller.ResetPasswordController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="resetPasswordController" class="org.webcurator.ui.credentials.controller.ResetPasswordController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -462,9 +466,9 @@
 		</property>
 	</bean>
 	
-	<bean id="resetPasswordValidator" class="org.webcurator.ui.credentials.validator.ResetPasswordValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="resetPasswordValidator" class="org.webcurator.ui.credentials.validator.ResetPasswordValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 
-    <bean id="changePasswordController" class="org.webcurator.ui.admin.controller.ChangePasswordController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+    <bean id="changePasswordController" class="org.webcurator.ui.admin.controller.ChangePasswordController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">POST</value>
 		</property>
@@ -488,10 +492,10 @@
 		</property>
 	</bean>
 	
-	<bean id="changePasswordValidator" class="org.webcurator.ui.admin.validator.ChangePasswordValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="changePasswordValidator" class="org.webcurator.ui.admin.validator.ChangePasswordValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 
 
-	<bean id="queueController" class="org.webcurator.ui.target.controller.QueueController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="queueController" class="org.webcurator.ui.target.controller.QueueController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetInstanceManager">
 			<ref bean="targetInstanceManager" />
 		</property>
@@ -532,7 +536,7 @@
 	 	</property>
 	 </bean>
 	
-	<bean id="qaTiSummaryController" class="org.webcurator.ui.target.controller.QaTiSummaryController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="qaTiSummaryController" class="org.webcurator.ui.target.controller.QaTiSummaryController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetInstanceManager" ref="targetInstanceManager" />
 		<property name="harvestCoordinator" ref="harvestCoordinator"/>
 		<property name="environment" ref="environment"/>
@@ -546,7 +550,7 @@
 		<property name="digitalAssetStore"><ref bean="digitalAssetStore"></ref></property>
 	</bean>
 	
-	<bean id="qaIndicatorReportController" class="org.webcurator.ui.target.controller.QaIndicatorReportController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="qaIndicatorReportController" class="org.webcurator.ui.target.controller.QaIndicatorReportController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetInstanceManager" ref="targetInstanceManager" />
 		<property name="indicatorDAO" ref="indicatorDAO" />
 		<property name="agencyUserManager" ref="agencyUserManager"/>
@@ -564,7 +568,7 @@
 		</property>
 	</bean>
 	
-	<bean id="qaIndicatorRobotsReportController" class="org.webcurator.ui.target.controller.QaIndicatorRobotsReportController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="qaIndicatorRobotsReportController" class="org.webcurator.ui.target.controller.QaIndicatorRobotsReportController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetInstanceManager" ref="targetInstanceManager" />
 		<property name="indicatorDAO" ref="indicatorDAO" />
 		<property name="agencyUserManager" ref="agencyUserManager"/>
@@ -574,7 +578,7 @@
 		<property name="fileNotFoundMessage" value="robots.txt file not found" />
 	</bean>
 
-	<bean id="annotationAjaxController" class="org.webcurator.ui.target.controller.AnnotationAjaxController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="annotationAjaxController" class="org.webcurator.ui.target.controller.AnnotationAjaxController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetInstanceManager">
 			<ref bean="targetInstanceManager" />
 		</property>
@@ -583,7 +587,7 @@
 		</property>
 	</bean>
  
-    <bean id="roleController" class="org.webcurator.ui.admin.controller.RoleController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+    <bean id="roleController" class="org.webcurator.ui.admin.controller.RoleController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -601,7 +605,7 @@
 		</property>
 	</bean>
 	
-	<bean id="rejReasonController" class="org.webcurator.ui.admin.controller.RejReasonController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="rejReasonController" class="org.webcurator.ui.admin.controller.RejReasonController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -616,7 +620,7 @@
 		</property>
 	</bean>
 
-	<bean id="createRejReasonController" class="org.webcurator.ui.admin.controller.CreateRejReasonController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="createRejReasonController" class="org.webcurator.ui.admin.controller.CreateRejReasonController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -634,7 +638,7 @@
 		</property>
 	</bean>
 
-	<bean id="qaIndicatorController" class="org.webcurator.ui.admin.controller.QaIndicatorController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="qaIndicatorController" class="org.webcurator.ui.admin.controller.QaIndicatorController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -649,7 +653,7 @@
 		</property>
 	</bean>
 	
-	<bean id="flagController" class="org.webcurator.ui.admin.controller.FlagController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="flagController" class="org.webcurator.ui.admin.controller.FlagController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -664,7 +668,7 @@
 		</property>
 	</bean>
 
-	<bean id="createQaIndicatorController" class="org.webcurator.ui.admin.controller.CreateQaIndicatorController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="createQaIndicatorController" class="org.webcurator.ui.admin.controller.CreateQaIndicatorController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -682,7 +686,7 @@
 		</property>
 	</bean>
 	
-		<bean id="createFlagController" class="org.webcurator.ui.admin.controller.CreateFlagController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+		<bean id="createFlagController" class="org.webcurator.ui.admin.controller.CreateFlagController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -701,7 +705,7 @@
 	</bean>
 	
 	
-	<bean id="userController" class="org.webcurator.ui.admin.controller.UserController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="userController" class="org.webcurator.ui.admin.controller.UserController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -716,7 +720,7 @@
 		</property>
 	</bean>
 	
-	<bean id="createUserController" class="org.webcurator.ui.admin.controller.CreateUserController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="createUserController" class="org.webcurator.ui.admin.controller.CreateUserController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -740,7 +744,7 @@
 		</property>
 	</bean>
 	
-	<bean id="associateUserRoleController" class="org.webcurator.ui.admin.controller.AssociateUserRoleController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="associateUserRoleController" class="org.webcurator.ui.admin.controller.AssociateUserRoleController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">POST</value>
 		</property>
@@ -755,7 +759,7 @@
 		</property>
 	</bean>
 	
-	<bean id="agencyController" class="org.webcurator.ui.admin.controller.AgencyController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="agencyController" class="org.webcurator.ui.admin.controller.AgencyController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -771,21 +775,21 @@
 		<property name="typeList" ref="dublinCoreTypesList"/>
 	</bean>
 	
-	<bean id="createUserValidator" class="org.webcurator.ui.admin.validator.CreateUserValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="createUserValidator" class="org.webcurator.ui.admin.validator.CreateUserValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 
-	<bean id="agencyValidator" class="org.webcurator.ui.admin.validator.AgencyValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="agencyValidator" class="org.webcurator.ui.admin.validator.AgencyValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 	
-	<bean id="roleValidator" class="org.webcurator.ui.admin.validator.RoleValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="roleValidator" class="org.webcurator.ui.admin.validator.RoleValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 
-	<bean id="createRejReasonValidator" class="org.webcurator.ui.admin.validator.CreateRejReasonValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="createRejReasonValidator" class="org.webcurator.ui.admin.validator.CreateRejReasonValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 	
-	<bean id="createQaIndicatorValidator" class="org.webcurator.ui.admin.validator.CreateQaIndicatorValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="createQaIndicatorValidator" class="org.webcurator.ui.admin.validator.CreateQaIndicatorValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 
-	<bean id="createFlagValidator" class="org.webcurator.ui.admin.validator.CreateFlagValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="createFlagValidator" class="org.webcurator.ui.admin.validator.CreateFlagValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 	
-	<bean id="qaTiSummaryValidator" class="org.webcurator.ui.target.validator.QaTiSummaryValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="qaTiSummaryValidator" class="org.webcurator.ui.target.validator.QaTiSummaryValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 	
-	<bean id="harvestNowController" class="org.webcurator.ui.target.controller.HarvestNowController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="harvestNowController" class="org.webcurator.ui.target.controller.HarvestNowController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">POST</value>
 		</property>
@@ -803,9 +807,9 @@
 		 </property>
 	</bean>
 	
-	<bean id="harvestNowValidator" class="org.webcurator.ui.target.validator.HarvestNowValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="harvestNowValidator" class="org.webcurator.ui.target.validator.HarvestNowValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
 
-	<bean id="targetSearchController" class="org.webcurator.ui.target.controller.TargetSearchController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="targetSearchController" class="org.webcurator.ui.target.controller.TargetSearchController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetDao" ref="targetDao"/>
 		<property name="agencyUserManager" ref="agencyUserManager"/>
 		<property name="commandClass" value="org.webcurator.ui.target.command.TargetSearchCommand"/>
@@ -818,7 +822,7 @@
 	</bean>
 	
 	<!--  Target Controller and Tab Configuration -->	
-	<bean id="targetController" class="org.webcurator.ui.target.controller.TabbedTargetController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="targetController" class="org.webcurator.ui.target.controller.TabbedTargetController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="tabConfig" ref="targetTabConfig"/>
 		<property name="defaultCommandClass" value="org.webcurator.ui.target.command.TargetDefaultCommand"/>
@@ -837,7 +841,7 @@
 		<property name="overrideableType" value="Target"/>
 	</bean>
 
-	<bean id="targetTabConfig" class="org.webcurator.ui.util.TabConfig" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="targetTabConfig" class="org.webcurator.ui.util.TabConfig" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="viewName" value="target"/>	
 		<property name="tabs">
 			<list>
@@ -1042,7 +1046,7 @@
 	</bean>
 
 	<!--  Groups Controller and Tab Configuration -->	
-	<bean id="groupsController" class="org.webcurator.ui.groups.controller.TabbedGroupController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="groupsController" class="org.webcurator.ui.groups.controller.TabbedGroupController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="tabConfig" ref="groupsTabConfig"/>
 		<property name="defaultCommandClass" value="org.webcurator.ui.groups.command.DefaultCommand"/>
@@ -1057,7 +1061,7 @@
 		<property name="overrideableType" value="Target Group"/>
 	</bean>
 
-	<bean id="groupsTabConfig" class="org.webcurator.ui.util.TabConfig" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="groupsTabConfig" class="org.webcurator.ui.util.TabConfig" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="viewName" value="groups"/>	
 		<property name="tabs">
 			<list>
@@ -1309,7 +1313,7 @@
 		<property name="authorityManager" ref="authorityManager"/>
 	</bean>
 	
-	<bean id="profileController" class="org.webcurator.ui.profiles.controller.ProfileController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="profileController" class="org.webcurator.ui.profiles.controller.ProfileController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="tabConfig" ref="profileTabConfig"/> 
 		<property name="defaultCommandClass" value="org.webcurator.ui.profiles.command.DefaultCommand"/>
@@ -1317,7 +1321,7 @@
 		<property name="authorityManager" ref="authorityManager"/>
 	</bean>
 
-	<bean id="profileH3Controller" class="org.webcurator.ui.profiles.controller.ProfileController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="profileH3Controller" class="org.webcurator.ui.profiles.controller.ProfileController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="tabConfig" ref="profileH3TabConfig"/>
 		<property name="defaultCommandClass" value="org.webcurator.ui.profiles.command.DefaultCommand"/>
@@ -1325,7 +1329,7 @@
 		<property name="authorityManager" ref="authorityManager"/>
 	</bean>
 
-	<bean id="importedProfileH3Controller" class="org.webcurator.ui.profiles.controller.ProfileController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="importedProfileH3Controller" class="org.webcurator.ui.profiles.controller.ProfileController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods" value="GET,POST"/>
 		<property name="tabConfig" ref="importedProfileH3TabConfig"/>
 		<property name="defaultCommandClass" value="org.webcurator.ui.profiles.command.DefaultCommand"/>
@@ -1333,7 +1337,7 @@
 		<property name="authorityManager" ref="authorityManager"/>
 	</bean>
 
-	<bean id="profileTabConfig" class="org.webcurator.ui.util.TabConfig" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="profileTabConfig" class="org.webcurator.ui.util.TabConfig" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="viewName" value="profile"/>	
 		<property name="tabs">
 			<list>
@@ -1460,7 +1464,7 @@
 		</property>
 	</bean>
 
-	<bean id="profileH3TabConfig" class="org.webcurator.ui.util.TabConfig" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="profileH3TabConfig" class="org.webcurator.ui.util.TabConfig" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="viewName" value="profileH3"/>
 		<property name="tabs">
 			<list>
@@ -1492,7 +1496,7 @@
 		</property>
 	</bean>
 
-	<bean id="importedProfileH3TabConfig" class="org.webcurator.ui.util.TabConfig" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="importedProfileH3TabConfig" class="org.webcurator.ui.util.TabConfig" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="viewName" value="imported-profileH3"/>
 		<property name="tabs">
 			<list>
@@ -1526,7 +1530,7 @@
 
 	<bean name="logReaderController"
 		class="org.webcurator.ui.target.controller.LogReaderController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="harvestCoordinator">
 			<ref bean="harvestCoordinator"/>
@@ -1538,7 +1542,7 @@
         
 	<bean name="contentReaderController"
 		class="org.webcurator.ui.target.controller.ContentReaderController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="harvestLogManager">
 			<ref bean="harvestLogManager"/>
@@ -1550,7 +1554,7 @@
         
 	<bean name="aqaReaderController"
 		class="org.webcurator.ui.target.controller.AQAReaderController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="harvestCoordinator">
 			<ref bean="harvestCoordinator"/>
@@ -1562,13 +1566,13 @@
 	
 	<bean name="liveContentRetrieverController"
 		class="org.webcurator.ui.target.controller.LiveContentRetrieverController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 	</bean>
         
 	<bean name="logRetrieverController"
 		class="org.webcurator.ui.target.controller.LogRetrieverController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="harvestLogManager">
 			<ref bean="harvestLogManager"/>
@@ -1580,7 +1584,7 @@
 
 	<bean name="inTrayController"
 		class="org.webcurator.ui.intray.controller.InTrayController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="inTrayManager">
 			<ref bean="inTrayManager"/>
@@ -1588,7 +1592,7 @@
 	</bean>
 
 	<!-- Reporting -->
-	<bean id="reportController" class="org.webcurator.ui.report.controller.ReportController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="reportController" class="org.webcurator.ui.report.controller.ReportController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -1602,7 +1606,7 @@
 		</property>
 	</bean>
 	
-	<bean id="reportPreviewController" class="org.webcurator.ui.report.controller.ReportPreviewController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="reportPreviewController" class="org.webcurator.ui.report.controller.ReportPreviewController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -1610,7 +1614,7 @@
 		<property name="commandClass" value="org.webcurator.ui.report.command.ReportPreviewCommand"/>
 	</bean>
 	
-	<bean id="reportSaveController" class="org.webcurator.ui.report.controller.ReportSaveController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="reportSaveController" class="org.webcurator.ui.report.controller.ReportSaveController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -1618,7 +1622,7 @@
 		<property name="commandClass" value="org.webcurator.ui.report.command.ReportSaveCommand"/>
 	</bean>
 
-	<bean id="reportEmailController" class="org.webcurator.ui.report.controller.ReportEmailController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="reportEmailController" class="org.webcurator.ui.report.controller.ReportEmailController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -1631,7 +1635,7 @@
 
 	
 	<!--  Management Controllers -->
-	<bean id="managementController" class="org.webcurator.ui.management.controller.ManagementController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="managementController" class="org.webcurator.ui.management.controller.ManagementController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET</value>
 		</property>
@@ -1640,7 +1644,7 @@
 		</property>	
 	</bean>
 	
-	<bean id="templateController" class="org.webcurator.ui.admin.controller.TemplateController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="templateController" class="org.webcurator.ui.admin.controller.TemplateController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -1651,11 +1655,11 @@
 		<property name="defaultSubject" value="Web Preservation Programme"/>
 	</bean>
 	
-	<bean id="templateValidator" class="org.webcurator.ui.admin.validator.TemplateValidator" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default"/>
+	<bean id="templateValidator" class="org.webcurator.ui.admin.validator.TemplateValidator" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"/>
 
 	<bean id="siteAgencyController"
 		class="org.webcurator.ui.site.controller.SiteAgencyController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="siteController" ref="siteController"/>
 		<property name="busObjFactory" ref="businessObjectFactory" />
@@ -1668,7 +1672,7 @@
 	
 	<bean id="sitePermissionController"
 		class="org.webcurator.ui.site.controller.SitePermissionController"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<property name="siteController" ref="siteController"/>
 		<property name="businessObjectFactory" ref="businessObjectFactory" />
@@ -1678,7 +1682,7 @@
 		<property name="accessStatusList" ref="accessStatusList"/>
 	</bean>
 	
-	<bean id="assignToHarvesterController" class="org.webcurator.ui.target.controller.AssignToHarvesterController" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="assignToHarvesterController" class="org.webcurator.ui.target.controller.AssignToHarvesterController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetInstanceManager" ref="targetInstanceManager"/>
  		<property name="harvestCoordinator" ref="harvestCoordinator"/>
 	</bean>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-
-<beans default-autowire="no" default-lazy-init="false" default-dependency-check="none">
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+    default-autowire="no" default-lazy-init="false" default-dependency-check="none">
 
     <bean id="WCTCoreConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
@@ -14,12 +15,12 @@
         <property name="order" value="150"/>
     </bean>
     
-    <bean id="openSessionInViewInterceptor" class="org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+    <bean id="openSessionInViewInterceptor" class="org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
         <property name="sessionFactory"><ref bean="sessionFactory"/></property>
     </bean>
     
     
-    <bean id="simpleUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+    <bean id="simpleUrlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
         <property name="interceptors">
             <list>
                 <ref bean="openSessionInViewInterceptor"/>
@@ -32,15 +33,26 @@
             </map>
         </property>
     </bean>
-    
-    <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+
+    <bean id="tilesViewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
         <property name="requestContextAttribute" value="requestContext"/>
-        <property name="viewClass" value="org.springframework.web.servlet.view.tiles.TilesView"/>
+        <property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView"/>
     </bean>
-    
+
+    <!-- Helper class to configure Tiles 2.x for the Spring Framework -->
+    <!-- See http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/web/servlet/view/tiles2/TilesConfigurer.html -->
+    <!-- The actual tiles templates are in the tiles-definitions.xml  -->
+    <bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+        <property name="definitions">
+            <list>
+                <value>/WEB-INF/tiles-defs.xml</value>
+            </list>
+        </property>
+    </bean>
+
     <bean id="exceptionResolver"
    class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"
-   abstract="false" singleton="true" lazy-init="default"
+   scope="singleton" lazy-init="default"
    autowire="default" dependency-check="default">
         <property name="defaultErrorView">
             <value type="java.lang.String">browse-tool-error</value>
@@ -56,7 +68,7 @@
     </bean>
     
     
-    <bean id="browseController" class="org.webcurator.ui.tools.controller.BrowseController"  abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+    <bean id="browseController" class="org.webcurator.ui.tools.controller.BrowseController"  scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
         <property name="supportedMethods" value="GET"/>
         <property name="qualityReviewFacade" ref="qualityReviewFacade"/>
         <property name="browseHelper" ref="browseHelper"/>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-<beans default-autowire="no" default-lazy-init="false"
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+	default-autowire="no" default-lazy-init="false"
 	default-dependency-check="none">
 
 	<bean id="accessStatusList" class="java.util.ArrayList">
@@ -37,7 +39,7 @@
 	</bean>
 
 	<bean id="dublinCoreTypesList" class="org.webcurator.core.common.WCTTreeSet"
-		abstract="false" singleton="true" lazy-init="default" autowire="default"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<constructor-arg index="0" type="java.util.List">
 			<list>
@@ -63,7 +65,7 @@
 	</bean>
 
 	<bean id="selectionTypesList" class="org.webcurator.core.common.WCTTreeSet"
-		abstract="false" singleton="true" lazy-init="default" autowire="default"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<constructor-arg index="0" type="java.util.List">
 			<list>
@@ -80,7 +82,7 @@
 	</bean>
 
 	<bean id="harvestTypesList" class="org.webcurator.core.common.WCTTreeSet"
-		abstract="false" singleton="true" lazy-init="default" autowire="default"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<constructor-arg index="0" type="java.util.List">
 			<list>
@@ -96,7 +98,7 @@
 
 
 	<bean id="groupTypesList" class="org.webcurator.core.common.WCTTreeSet"
-		abstract="false" singleton="true" lazy-init="default" autowire="default"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<constructor-arg index="0" type="java.util.List">
 			<list>
@@ -115,7 +117,7 @@
 	</bean>
 
 	<bean id="subGroupParentTypesList" class="org.webcurator.core.common.WCTTreeSet"
-		abstract="false" singleton="true" lazy-init="default" autowire="default"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<constructor-arg index="0" type="java.util.List">
 			<list>
