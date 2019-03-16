@@ -42,7 +42,7 @@ public class DeleteProfileControllerTest extends BaseWCTTest<DeleteProfileContro
 			ViewCommand comm = new ViewCommand();
 			comm.setProfileOid(profileOid);
 			
-			BindException errors = new BindException(comm, null);
+			BindException errors = new BindException(comm, "DUMMY-COMMAND");
 	
 			mav = testInstance.handle(req, res, comm, errors);
 			assertTrue(mav != null);

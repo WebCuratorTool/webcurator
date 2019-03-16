@@ -15,6 +15,7 @@
  */
 package org.webcurator.core.report.parameter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.validation.Errors;
@@ -214,12 +215,28 @@ public class SimpleErrors implements Errors {
 		return 0;
 	}
 
+
+	/**
+	 * Get all errors associated with a field.
+	 * @return a List of {@link FieldError} instances
+	 */
+	public List getFieldErrors() {
+		return new ArrayList();
+	}
+
 	/**
 	 * Empty method
 	 * @deprecated
 	 */
 	public List getFieldErrors(String arg0) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * Empty method
+	 */
+	public FieldError getFieldError() {
 		return null;
 	}
 
@@ -234,6 +251,23 @@ public class SimpleErrors implements Errors {
 
 	/**
 	 * Empty method
+	 */
+	public boolean hasFieldErrors() {
+		return false;
+	}
+
+	/**
+	 * Return the number of errors associated with a field.
+	 * @return the number of errors associated with a field
+	 * @see #getGlobalErrorCount()
+	 */
+	public int getFieldErrorCount() {
+		return 0;
+	}
+
+
+	/**
+	 * Empty method
 	 * @deprecated
 	 */
 	public Object getFieldValue(String arg0) {
@@ -241,4 +275,12 @@ public class SimpleErrors implements Errors {
 		return null;
 	}
 
+	/**
+	 * Empty method.
+	 * @param var1
+	 * @return
+	 */
+	public Class getFieldType(String var1) {
+		return null;
+	}
 }

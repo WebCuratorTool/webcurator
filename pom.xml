@@ -14,7 +14,7 @@
     </properties>
 
 	<build>
-		<finalName>${pom.artifactId}-${pom.version}</finalName>
+		<finalName>${project.artifactId}-${project.version}</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -351,8 +351,24 @@
 		<dependency>
 			<groupId>org.acegisecurity</groupId>
 			<artifactId>acegi-security</artifactId>
-			<version>1.0.1</version>
+			<version>1.0.7</version>
 			<scope>compile</scope>
+			<exclusions>
+				<!-- brings in spring-core, spring-remoting and spring-support 1.2.9, which have been superseded by
+					spring-core 2.5.6, spring-context 2.5.6 and spring-context-support 2.5.6 -->
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-remoting</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-support</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.archive</groupId>
@@ -364,8 +380,14 @@
 					<groupId>junit</groupId>
 					<artifactId>junit</artifactId>
 				</exclusion>
+				<exclusion>
+					<!-- Pulls in 2.3, instead of javax.servlet:javax.servlet-api:3.1.0 -->
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
+		<!-- Includes org.apache.axis:axis-jaxrpc:jar:1.4, which supersedes javax.xml:jaxrpc-api:jar:1.1 -->
 		<dependency>
 			<groupId>axis</groupId>
 			<artifactId>axis</artifactId>
@@ -411,7 +433,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
+			<version>1.2</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -419,6 +441,9 @@
 			<artifactId>drools-compiler</artifactId>
 			<version>7.15.0.Final</version>
 			<scope>compile</scope>
+			<!-- Note that the drools-compiler brings in, as a dependency, com.thoughtworks.xstream:xstream:1.4.10,
+				 which brings in xmlpull:xmlpull:1.1.3.1 which brings in xpp3:xpp3_min:1.1.4c.xmlpull and xpp3_min
+				 have some classes in common, which jetty may complain about. -->
 		</dependency>
 		<dependency>
 			<groupId>org.drools</groupId>
@@ -459,12 +484,6 @@
 			<version>1.0</version>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>javax.xml</groupId>
-			<artifactId>jaxrpc-api</artifactId>
-			<version>1.1</version>
-			<scope>compile</scope>
-		</dependency>
 		<!-- Override version brought in by org.archive:heritrix-->
 		<dependency>
 			<groupId>com.sleepycat</groupId>
@@ -502,16 +521,11 @@
 			<version>1.2.17</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- includes the classes in javax.mail:mailapi:1.4.2 -->
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
-			<version>1.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mailapi</artifactId>
-			<version>1.4.2</version>
+			<version>1.4.7</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -534,8 +548,8 @@
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.4</version>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -553,63 +567,67 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>1.2.7</version>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>1.2.7</version>
+			<artifactId>spring-tx</artifactId>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-dao</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-hibernate</artifactId>
-			<version>1.2.7</version>
+			<artifactId>spring-orm</artifactId>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
-			<version>1.2.7</version>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-mock</artifactId>
-			<version>1.2.7</version>
+			<artifactId>spring-test</artifactId>
+			<version>2.5.6</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-remoting</artifactId>
-			<version>2.0.7</version>
+			<artifactId>spring-context</artifactId>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-support</artifactId>
-			<version>1.2.7</version>
+			<artifactId>spring-context-support</artifactId>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-			<version>1.2.7</version>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
-			<version>1.2.7</version>
+			<version>2.5.6</version>
 			<scope>compile</scope>
 		</dependency>
+		<!-- Not sure yet if this is required here or in webcurator-webapp
+		-->
+		<!--
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc-struts</artifactId>
+			<version>2.5.6</version>
+			<scope>compile</scope>
+		</dependency>
+		-->
 		<dependency>
 			<groupId>org.archive.wayback</groupId>
 			<artifactId>wayback-core</artifactId>

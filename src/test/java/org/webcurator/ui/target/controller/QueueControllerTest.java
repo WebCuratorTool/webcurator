@@ -118,7 +118,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		mockRequest = new MockHttpServletRequest();
 		mockResponse = new MockHttpServletResponse();
 		command = new TargetInstanceCommand();
-		errors = new BindException(command, null);
+		errors = new BindException(command, "DUMMY-COMMAND");
 
 	}
 
