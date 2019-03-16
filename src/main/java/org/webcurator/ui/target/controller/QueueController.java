@@ -621,7 +621,7 @@ public class QueueController extends AbstractFormController {
 		// for a multi-delete operation
 		for (String targetInstanceOid : aCmd.getMultiselect()) {
 			// delete the ti
-			processDelete(new Long(targetInstanceOid), aErrors);
+			processDelete(Long.parseLong(targetInstanceOid), aErrors);
 		}
 	}
 
@@ -637,7 +637,7 @@ public class QueueController extends AbstractFormController {
 		// the id of each TI to endorse is passed in the multiselect attribute
 		// for a multi-endorse operation
 		for (String selectedOid : aCmd.getMultiselect()) {
-			Long targetInstanceOid = new Long(selectedOid);
+			Long targetInstanceOid = Long.parseLong(selectedOid);
 			TargetInstance ti = processEndorse(targetInstanceOid, this.getLastHarvestResultOid(targetInstanceOid));
 			aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 		}
