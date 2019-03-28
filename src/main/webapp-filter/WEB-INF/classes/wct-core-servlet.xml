@@ -503,7 +503,7 @@
 			<ref bean="harvestCoordinator"/>
 		</property>
 		<property name="environment">
-			<ref bean="environment"/>
+			<ref bean="environmentWCT"/>
 		</property>
 		<property name="agencyUserManager">
 			<ref bean="agencyUserManager"/>
@@ -539,7 +539,7 @@
 	<bean id="qaTiSummaryController" class="org.webcurator.ui.target.controller.QaTiSummaryController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="targetInstanceManager" ref="targetInstanceManager" />
 		<property name="harvestCoordinator" ref="harvestCoordinator"/>
-		<property name="environment" ref="environment"/>
+		<property name="environment" ref="environmentWCT"/>
 		<property name="agencyUserManager" ref="agencyUserManager"/>
 		<property name="profileManager" ref="profileManager"/>
 		<property name="authorityManager" ref="authorityManager"/>

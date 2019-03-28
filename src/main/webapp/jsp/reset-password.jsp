@@ -1,5 +1,5 @@
 <%@ page language="java" pageEncoding="UTF-8"%><%@ page import="org.webcurator.ui.admin.command.ChangePasswordCommand" %><%@ page import="org.webcurator.ui.credentials.command.ResetPasswordCommand" %>
-<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %><%
+<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %><%
 String path = request.getContextPath();
 String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
 
@@ -36,7 +36,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							<div id="homeBoxLine"><img src="images/x.gif" width="1" height="5" border="0" /></div>
 						  	<div id="homeBoxText">
 						  	    <p>Your password has expired and must be changed</p>
-						  	    <tiles:insert attribute="validation" />
+							    <tiles:insertAttribute name="validation" />
 								New Password:<br />
 								<input type="password" name="<%=ChangePasswordCommand.PARAM_NEW_PWD%>"/><font color=red size=2>&nbsp;<strong>*</strong></font><br />
 								Confirm Password:<br />

@@ -1,4 +1,4 @@
-<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
+<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
  

@@ -129,20 +129,15 @@
 							<resourceBase>src/main/webapp</resourceBase>
 						</resourceBases>
 					</webApp>
-					<connectors>
-						<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-							<port>${core.port}</port>
-							<maxIdleTime>10000</maxIdleTime>
-						</connector>
-					</connectors>
+					<!--See https://www.eclipse.org/jetty/documentation/9.4.x/configuring-connectors.html
+						Prior to Jetty 9, the type of the connector specified both the protocol and the implementation
+						used. Jetty 9 has a single selector-based non-blocking I/O connector, and a collection of
+						ConnectionFactories now configure the protocol on the connector. -->
+					<httpConnector>
+						<port>${core.port}</port>
+						<idleTimeout>10000</idleTimeout>
+					</httpConnector>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>commons-dbcp</groupId>
-						<artifactId>commons-dbcp</artifactId>
-						<version>1.4</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 		</plugins>
 		<pluginManagement>
@@ -198,7 +193,7 @@
 				<dependency>
 					<groupId>com.h2database</groupId>
 					<artifactId>h2</artifactId>
-					<version>1.3.172</version>
+					<version>1.4.199</version>
 				</dependency>
 			</dependencies>
 			<build>
@@ -295,7 +290,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 			<exclusions>
 				<!-- Use the classes found in jcl-over-slf4j -->
@@ -349,6 +344,15 @@
 			<version>2.2.2</version>
 		</dependency>
 		<dependency>
+			<!-- Note that this includes org.apache.taglibs.standard, which is also in
+				 org.apache.taglibs:taglibs-standard-impl. Jetty will complain about the duplication of classes, but
+				 the Jetty implementation provides taglibs-standard-impl as part of its deployment, so there's no way
+				 to easily resolve the duplication. -->
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
 			<version>1.4</version>
@@ -363,6 +367,12 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>1.7.26</version>
+		</dependency>
+		<dependency>
+			<!-- Required by hibernate but was not included as a transitive dependency in the hibernate pom. -->
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.4</version>
 		</dependency>
 	</dependencies>
 

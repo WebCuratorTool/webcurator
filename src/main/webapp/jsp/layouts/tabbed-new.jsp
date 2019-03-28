@@ -1,5 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" %>
-<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
+<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@page import="org.webcurator.ui.util.*" %>
 <%
@@ -47,21 +47,22 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 <body> 
 <a name="top"></a>
-<tiles:insert attribute="header">
-  <tiles:put name="page-help">
-    <tiles:getAsString name="page-help"/> 
-  </tiles:put>
-</tiles:insert>
-<tiles:insert page="top-nav-bar.jsp">
-  <tiles:put name="activeTab"><tiles:getAsString name="activeTab"/></tiles:put>
-  <tiles:put name="pageIcon"><tiles:getAsString name="pageIcon"/></tiles:put>
-</tiles:insert>
+<tiles:importAttribute name="page-help" toName="pageHelp"/>
+<tiles:insertAttribute name="header">
+	<tiles:putAttribute name="page-help" value="${pageHelp}"/>
+</tiles:insertAttribute>
+<tiles:importAttribute name="activeTab"/>
+<tiles:importAttribute name="pageIcon"/>
+<tiles:insertTemplate template="top-nav-bar.jsp">
+	<tiles:putAttribute name="activeTab">${activeTab}</tiles:putAttribute>
+	<tiles:putAttribute name="pageIcon">${pageIcon}</tiles:putAttribute>
+</tiles:insertTemplate>
 <div id="pageBody">
 	<div id="pageContent">
-		<tiles:insert attribute="page-title" />
-		<tiles:insert attribute="validation" />	
+		<tiles:insertAttribute name="page-title" />
+		<tiles:insertAttribute name="validation" />
 		
-		<tiles:insert attribute="object-identifier"/>
+		<tiles:insertAttribute name="object-identifier"/>
 		
 <form id="tabForm" name="tabForm" method="post" action="<tiles:getAsString name="controller"/>"<c:if test="${tabStatus.currentTab.formEncodingType != null}">enctype="${tabStatus.currentTab.formEncodingType}"</c:if>>
 <input type="hidden" name="_tab_current_page" value="<c:out value="${tabStatus.currentTab.pageId}"/>">
@@ -96,7 +97,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </c:choose>
 </p>
 </form>
-	<tiles:insert attribute="footer-nav" />
+	<tiles:insertAttribute name="footer-nav" />
 	</div>
 </div>
 <script language="javascript" src="scripts/_javascript.jsp"></script>

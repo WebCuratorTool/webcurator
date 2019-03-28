@@ -400,7 +400,7 @@
 
 	
 	<bean id="harvestAgentFactory" class="org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
-	<bean id="environment" class="org.webcurator.core.common.EnvironmentImpl">	
+	<bean id="environmentWCT" class="org.webcurator.core.common.EnvironmentImpl">
 		<property name="daysToSchedule" value="${harvestAgentFactory.daysToSchedule}"/>
 		<property name="schedulesPerBatch" value="${createNewTargetInstancesTrigger.schedulesPerBatch}"/>
 		<property name="applicationVersion" value="${project.version}"/>

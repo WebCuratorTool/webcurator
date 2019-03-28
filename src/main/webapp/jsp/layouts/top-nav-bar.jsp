@@ -2,7 +2,7 @@
 <%@ page import="org.webcurator.ui.common.Constants" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
+<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 
 <%-- ${activeTab} holds the name of the active tab --%>
 <tiles:importAttribute name="activeTab" scope="page"/>

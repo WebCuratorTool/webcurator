@@ -1,5 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" %>
-<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
+<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@page import="org.webcurator.ui.util.*" %>
 <%
@@ -48,8 +48,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   </HEAD>
 
 <body bgcolor="#ffffff" text="#000000" link="#023264" alink="#023264" vlink="#023264">
-<tiles:insert attribute="header" />
-<tiles:insert attribute="validation" />
+<tiles:insertAttribute name="header" />
+<tiles:insertAttribute name="validation" />
 
 <form id="tabForm" method="post" action="<tiles:getAsString name="controller"/>" <c:if test="${tabStatus.currentTab.formEncodingType != null}">enctype="${tabStatus.currentTab.formEncodingType}"</c:if>>
 
@@ -95,6 +95,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 </form>
 
-<tiles:insert attribute="footer" />
+<tiles:insertAttribute name="footer" />
 </body>
 </html>

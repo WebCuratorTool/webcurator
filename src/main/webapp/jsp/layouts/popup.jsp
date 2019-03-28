@@ -1,5 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" %>
-<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
+<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@page import="org.webcurator.ui.util.*" %>
 <%
@@ -39,7 +39,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	  <tr>
 		<td width="15" background="images/subbox-left-bg.gif"><img src="images/x.gif" width="15" height="1" border="0" /></td>
 		<td bgcolor="#fffcf9" width="100%">
-		<tiles:insert attribute="body" />
+		<tiles:insertAttribute name="body" />
 		</td>
 		<td width="18" background="images/subbox-right-bg.gif"><img src="images/x.gif" width="18" height="1" border="0" /></td>
 	  </tr>

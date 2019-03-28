@@ -11,7 +11,12 @@
 		<param-name>contextConfigLocation</param-name>
 		<param-value>/WEB-INF/classes/wct-core.xml, /WEB-INF/classes/wct-core-security.xml, /WEB-INF/classes/wct-core-report.xml, /WEB-INF/classes/wct-core-lists.xml</param-value>		
 	</context-param>
-	
+
+	<context-param>
+		<param-name>org.apache.tiles.factory.AbstractTilesContainerFactory</param-name>
+		<param-value>org.apache.tiles.factory.BasicTilesContainerFactory</param-value>
+	</context-param>
+
 	<filter>
         <filter-name>encoding-filter</filter-name>
         <filter-class>

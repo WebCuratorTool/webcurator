@@ -1,5 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" %>
-<%@ taglib uri="/WEB-INF/struts-tiles.tld" prefix="tiles" %>
+<%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
 	// Expires immediately.
@@ -46,11 +46,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 <body> 
 <a name="top"></a>
-<tiles:insert attribute="header" />
+<tiles:insertAttribute name="header" />
 <div id="pageBody">
 	<div id="pageContent">
 			
-		<tiles:insert attribute="body" />
+		<tiles:insertAttribute name="body" />
 		
 	</div>
 </div>
