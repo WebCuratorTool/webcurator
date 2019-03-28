@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
-	default-autowire="no" default-lazy-init="false" default-dependency-check="none">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+	default-autowire="no" default-lazy-init="false">
 
     <bean id="WCTCoreConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
@@ -98,7 +98,7 @@
 	<bean id="digitalAssetStore"
 		class="org.webcurator.core.store.DigitalAssetStoreSOAPClient"
 		scope="singleton" lazy-init="default"
-		autowire="default" dependency-check="default">
+		autowire="default">
 		<property name="host" value="${digitalAssetStore.host}" />
 		<property name="port" value="${digitalAssetStore.port}" />
 	</bean>
@@ -106,7 +106,7 @@
 	<bean id="digitalAssetStoreFactory"
 		class="org.webcurator.core.store.DigitalAssetStoreFactoryImpl"
 		scope="singleton" lazy-init="default"
-		autowire="default" dependency-check="default">
+		autowire="default">
 		<property name="digitalAssetStoreConfig">
 	 		<ref bean="digitalAssetStore"/>
 		</property>
@@ -115,7 +115,7 @@
 	<bean id="qaRecommendationService"
 		class="org.webcurator.core.rules.QaRecommendationServiceImpl"
 		scope="singleton" lazy-init="default"
-		autowire="default" dependency-check="default">
+		autowire="default">
 		
 		<!--
 			the state that will be used to denote a failure within the Rules Engine (eg: an unexpected exception).
@@ -266,7 +266,7 @@
 	</bean>
 
 	
-	<bean id="harvestCoordinator" class="org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="harvestCoordinator" class="org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl" scope="singleton" lazy-init="default" autowire="default">
 		<property name="targetInstanceDao" ref="targetInstanceDao"/>
 		<property name="harvestAgentManager" ref="harvestAgentManager"/>
 		<property name="harvestLogManager" ref="harvestLogManager"/>
@@ -318,7 +318,7 @@
 		<property name="autoPrunedNote" value="${queueController.autoPrunedNote}" />
 	</bean>
 	
-	<bean id="targetInstanceManager" class="org.webcurator.core.scheduler.TargetInstanceManagerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="targetInstanceManager" class="org.webcurator.core.scheduler.TargetInstanceManagerImpl" scope="singleton" lazy-init="default" autowire="default">
 		<property name="targetInstanceDao">
 			<ref bean="targetInstanceDao"></ref>
 		</property>
@@ -346,9 +346,9 @@
 		<property name="storeSeedHistory" value="${targetInstanceManager.storeSeedHistory}"/>
 	</bean>
 
-	<bean id="lockManager" class="org.webcurator.core.util.LockManager" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"/>
+	<bean id="lockManager" class="org.webcurator.core.util.LockManager" scope="singleton" lazy-init="default" autowire="default"/>
 
-	<bean id="siteManager" class="org.webcurator.core.sites.SiteManagerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="siteManager" class="org.webcurator.core.sites.SiteManagerImpl" scope="singleton" lazy-init="default" autowire="default">
 		<property name="siteDao" ref="siteDao"/>
 		<property name="annotationDAO" ref="annotationDao"/>
 		<property name="listeners">
@@ -362,7 +362,7 @@
 	</bean>
 
 
-	<bean id="targetManager" class="org.webcurator.core.targets.TargetManagerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="targetManager" class="org.webcurator.core.targets.TargetManagerImpl" scope="singleton" lazy-init="default" autowire="default">
 		<property name="targetDao" ref="targetDao"/>
 		<property name="siteDao" ref="siteDao"/>
 		<property name="annotationDAO" ref="annotationDao"/>
@@ -378,7 +378,7 @@
 		<property name="subGroupTypeName" value="${groupTypes.subgroup}"/>
 	</bean>
 	
-	<bean id="profileManager" class="org.webcurator.core.profiles.ProfileManager" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="profileManager" class="org.webcurator.core.profiles.ProfileManager" scope="singleton" lazy-init="default" autowire="default">
 		<property name="profileDao" ref="profileDao"/>
 		<property name="authorityManager" ref="authorityManager"/>
 		<property name="auditor" ref="audit"/>
@@ -399,7 +399,7 @@
 	</bean>
 
 	
-	<bean id="harvestAgentFactory" class="org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="harvestAgentFactory" class="org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl" scope="singleton" lazy-init="default" autowire="default"></bean>
 	<bean id="environmentWCT" class="org.webcurator.core.common.EnvironmentImpl">
 		<property name="daysToSchedule" value="${harvestAgentFactory.daysToSchedule}"/>
 		<property name="schedulesPerBatch" value="${createNewTargetInstancesTrigger.schedulesPerBatch}"/>
@@ -466,7 +466,7 @@
   		<property name="repeatInterval" value="${bandwidthCheckTrigger.repeatInterval}"/>
 	</bean>		
 	
-	<bean id="schedulerFactory" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="schedulerFactory" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" scope="singleton" lazy-init="default" autowire="default">
 		<property name="triggers">
 			<list>
  		    	<ref bean="processScheduleTrigger"/>
@@ -479,7 +479,7 @@
 		</property>
 	</bean>	
 
-	<bean id="agencyUserManager" class="org.webcurator.core.agency.AgencyUserManagerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="agencyUserManager" class="org.webcurator.core.agency.AgencyUserManagerImpl" scope="singleton" lazy-init="default" autowire="default">
 		<property name="userRoleDAO">
 			<ref bean="userRoleDAO"/>
 		</property>
@@ -501,19 +501,19 @@
 		<property name="profileManager" ref="profileManager"/>
 	</bean>
 	
-	<bean id="authorityManager" class="org.webcurator.auth.AuthorityManagerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default"></bean>
+	<bean id="authorityManager" class="org.webcurator.auth.AuthorityManagerImpl" scope="singleton" lazy-init="default" autowire="default"></bean>
 	
 	<bean id="businessObjectFactory" class="org.webcurator.domain.model.core.BusinessObjectFactory">
 		<property name="profileManager" ref="profileManager"/>
 	</bean>
 		
 	<bean id="annotationDao"
-		class="org.webcurator.domain.AnnotationDAOImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+		class="org.webcurator.domain.AnnotationDAOImpl" scope="singleton" lazy-init="default" autowire="default">
 		<property name="sessionFactory" ref="sessionFactory"/>
 		<property name="txTemplate" ref="transactionTemplate"/>	
 	</bean>
 	
-	<bean id="mailServer" class="org.webcurator.core.notification.MailServerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="mailServer" class="org.webcurator.core.notification.MailServerImpl" scope="singleton" lazy-init="default" autowire="default">
 	  <constructor-arg>
 		<props>
 		  <prop key="mail.transport.protocol">${mail.protocol}</prop>
@@ -525,8 +525,7 @@
 
 	<bean id="bandwidthChecker"
 		class="org.webcurator.core.check.BandwidthChecker"
-		scope="singleton" lazy-init="default" autowire="default"
-		dependency-check="default">
+		scope="singleton" lazy-init="default" autowire="default">
 		<property name="warnThreshold" value="${bandwidthChecker.warnThreshold}"/>
 		<property name="errorThreshold" value="${bandwidthChecker.errorThreshold}"/>
 		<property name="notificationSubject" value="Core"/>
@@ -540,14 +539,12 @@
 	</bean>
 	<bean id="checkNotifier"
 		class="org.webcurator.core.check.CoreCheckNotifier"
-		scope="singleton" lazy-init="default" autowire="default"
-		dependency-check="default">
+		scope="singleton" lazy-init="default" autowire="default">
 		<property name="inTrayManager" ref="inTrayManager" />
 	</bean>
 	<bean id="checkProcessor"
 		class="org.webcurator.core.check.CheckProcessor"
-		scope="singleton" lazy-init="default" autowire="default"
-		dependency-check="default">
+		scope="singleton" lazy-init="default" autowire="default">
 		<property name="checks">
 			<list>
 				<ref bean="bandwidthChecker"/>
@@ -598,7 +595,7 @@
   		<property name="repeatInterval" value="${purgeAbortedTargetInstancesTrigger.repeatInterval}"/>
 	</bean>
 
-	<bean id="inTrayManager" class="org.webcurator.core.notification.InTrayManagerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="inTrayManager" class="org.webcurator.core.notification.InTrayManagerImpl" scope="singleton" lazy-init="default" autowire="default">
 	  <property name="inTrayDAO"><ref bean="inTrayDao"/></property>
 	  <property name="userRoleDAO"><ref bean="userRoleDAO"/></property>
 	  <property name="agencyUserManager"><ref bean="agencyUserManager"/></property>
@@ -609,7 +606,7 @@
 	  <property name="wctBaseUrl" value="${inTrayManager.wctBaseUrl}"/>
 	</bean>
 	
-	<bean id="permissionTemplateManager" class="org.webcurator.core.admin.PermissionTemplateManagerImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="permissionTemplateManager" class="org.webcurator.core.admin.PermissionTemplateManagerImpl" scope="singleton" lazy-init="default" autowire="default">
 	  <property name="permissionTemplateDAO"><ref bean="permissionTemplateDao"/></property>
 	  <property name="authorityManager"><ref bean="authorityManager"/></property>
 	</bean>
@@ -648,7 +645,7 @@
   		<property name="repeatInterval" value="${createNewTargetInstancesTrigger.repeatInterval}"/>
 	</bean>		
 
-	<bean id="archiveAdapter" class="org.webcurator.core.archive.ArchiveAdapterImpl" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="archiveAdapter" class="org.webcurator.core.archive.ArchiveAdapterImpl" scope="singleton" lazy-init="default" autowire="default">
 		<property name="digitalAssetStore">
 			<ref bean="digitalAssetStore"></ref>
 		</property>
@@ -687,7 +684,7 @@
 	</bean>
 	
 	
-	<bean id="treeToolController" class="org.webcurator.ui.tools.controller.TreeToolController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="treeToolController" class="org.webcurator.ui.tools.controller.TreeToolController" scope="singleton" lazy-init="default" autowire="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -709,7 +706,7 @@
 		</property>
 	</bean>	
 	
-	<bean id="treeToolControllerAJAX" class="org.webcurator.ui.tools.controller.TreeToolControllerAJAX" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="treeToolControllerAJAX" class="org.webcurator.ui.tools.controller.TreeToolControllerAJAX" scope="singleton" lazy-init="default" autowire="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET,POST</value>
 		</property>
@@ -723,7 +720,7 @@
 		
 	</bean>	
 
-	<bean id="qualityReviewToolController" class="org.webcurator.ui.tools.controller.QualityReviewToolController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="qualityReviewToolController" class="org.webcurator.ui.tools.controller.QualityReviewToolController" scope="singleton" lazy-init="default" autowire="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET</value>
 		</property>
@@ -740,7 +737,7 @@
 		<property name="webArchiveTarget" value="${qualityReviewToolController.webArchiveTarget}"/>
 		
 	</bean>	
-	<bean id="showHopPathController" class="org.webcurator.ui.target.controller.ShowHopPathController" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="showHopPathController" class="org.webcurator.ui.target.controller.ShowHopPathController" scope="singleton" lazy-init="default" autowire="default">
 		<property name="supportedMethods">
 			<value type="java.lang.String">GET</value>
 		</property>
@@ -752,7 +749,7 @@
 		</property>
 	</bean>
 
-	<bean id="politePolitenessOptions" class="org.webcurator.core.profiles.PolitenessOptions" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="politePolitenessOptions" class="org.webcurator.core.profiles.PolitenessOptions" scope="singleton" lazy-init="default" autowire="default">
 		<!-- Delay Factor -->
 		<constructor-arg index = "0" type = "double" value = "10.0"/>
 		<!-- Min Delay milliseconds -->
@@ -765,7 +762,7 @@
 		<constructor-arg index = "4" type = "long" value = "400"/>
 	</bean>
 
-	<bean id="mediumPolitenessOptions" class="org.webcurator.core.profiles.PolitenessOptions" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="mediumPolitenessOptions" class="org.webcurator.core.profiles.PolitenessOptions" scope="singleton" lazy-init="default" autowire="default">
 		<!-- Delay Factor -->
 		<constructor-arg index = "0" type = "double" value = "5.0"/>
 		<!-- Min Delay milliseconds -->
@@ -778,7 +775,7 @@
 		<constructor-arg index = "4" type = "long" value = "800"/>
 	</bean>
 
-	<bean id="aggressivePolitenessOptions" class="org.webcurator.core.profiles.PolitenessOptions" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="aggressivePolitenessOptions" class="org.webcurator.core.profiles.PolitenessOptions" scope="singleton" lazy-init="default" autowire="default">
 		<!-- Delay Factor -->
 		<constructor-arg index = "0" type = "double" value = "1.0"/>
 		<!-- Min Delay milliseconds -->

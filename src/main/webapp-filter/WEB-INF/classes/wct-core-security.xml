@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<import resource="security-userdn-list.xml"/>
    <!-- ======================== FILTER CHAIN ======================= -->
@@ -27,13 +27,13 @@
       </property>
     </bean>
     
-    <bean id="WCTPasswordExpiredFilter" class="org.webcurator.auth.dbms.WCTForcePasswordChange" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+    <bean id="WCTPasswordExpiredFilter" class="org.webcurator.auth.dbms.WCTForcePasswordChange" scope="singleton" lazy-init="default" autowire="default">
     	<property name="auditor"><ref bean="audit"/></property>
     </bean>
 
    <!-- ======================== AUTHENTICATION ======================= -->
 
-	<bean id="authenticationManager" class="org.acegisecurity.providers.ProviderManager" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="authenticationManager" class="org.acegisecurity.providers.ProviderManager" scope="singleton" lazy-init="default" autowire="default">
 		<property name="providers">
 			<list>
 				<!-- Remove the comments if you want LDAP authentication to occur -->
@@ -52,7 +52,7 @@
 
 	
 	<!-- Note that the distinguished name patterns are in the file "security-userdn-list.xml" -->
-	<bean id="ldapAuthenticator" class="org.acegisecurity.providers.ldap.LdapAuthenticationProvider" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="ldapAuthenticator" class="org.acegisecurity.providers.ldap.LdapAuthenticationProvider" scope="singleton" lazy-init="default" autowire="default">
 		<constructor-arg>
 	        <bean class="org.acegisecurity.providers.ldap.authenticator.BindAuthenticator">
 	           <constructor-arg><ref local="initialDirContextFactory"/></constructor-arg>
@@ -176,7 +176,7 @@
       <property name="auditor"><ref bean="audit"/></property>
    </bean>
    
-   <bean id="authenticationProcessingFilterEntryPoint" class="org.acegisecurity.ui.webapp.AuthenticationProcessingFilterEntryPoint" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
+   <bean id="authenticationProcessingFilterEntryPoint" class="org.acegisecurity.ui.webapp.AuthenticationProcessingFilterEntryPoint" scope="singleton" lazy-init="default" autowire="default">
 		<property name="loginFormUrl">
 			<value>/logon.jsp</value>
 		</property>
