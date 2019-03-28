@@ -12,7 +12,7 @@
     </properties>
 
 	<build>
-		<finalName>${pom.artifactId}-${pom.version}</finalName>
+		<finalName>${project.artifactId}-${project.version}</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -94,9 +94,9 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.mortbay.jetty</groupId>
+				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
-				<version>7.5.4.v20111024</version>
+				<version>9.4.15.v20190215</version>
 				<configuration>
 					<stopKey>${das.stopKey}</stopKey>
 					<stopPort>${das.stopPort}</stopPort>
@@ -107,12 +107,14 @@
 							<resourceBase>src/main/webapp</resourceBase>
 						</resourceBases>
 					</webApp>
-					<connectors>
-						<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
-							<port>${das.port}</port>
-							<maxIdleTime>60000</maxIdleTime>
-						</connector>
-					</connectors>
+					<!--See https://www.eclipse.org/jetty/documentation/9.4.x/configuring-connectors.html
+						Prior to Jetty 9, the type of the connector specified both the protocol and the implementation
+						used. Jetty 9 has a single selector-based non-blocking I/O connector, and a collection of
+						ConnectionFactories now configure the protocol on the connector. -->
+					<httpConnector>
+						<port>${das.port}</port>
+						<idleTimeout>60000</idleTimeout>
+					</httpConnector>
 				</configuration>
 				<dependencies>
 					<dependency>
@@ -179,6 +181,8 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<!-- Note that this dependency also brings in org.apache.axis:axis-jaxrpc:1.4, which has 1 class in common with
+				 stax:stax-api:1.0.1, which is javax.xml.namespace.QName. We leave the conflict in place. -->
 			<groupId>axis</groupId>
 			<artifactId>axis</artifactId>
 			<version>1.4</version>
@@ -203,6 +207,10 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<!-- Note that this dependency also brings in stax:stax-api:1.0.1, which has 1 class in common with
+				 org.apache.axis:axis-jaxrpc:1.4, which is javax.xml.namespace.QName. We leave the conflict in place. -->
+			<!-- Note that this dependency also brings injaxen:jaxen:1.1.6 and xmlbeans:xmlbeans:2.3.0 which have
+				 classes in common. Jetty will complain but we assume there are no problematic conflicts. -->
 			<groupId>com.exlibris.dps</groupId>
 			<artifactId>dps-sdk-fat-all</artifactId>
 			<version>5.5.0</version>
@@ -230,31 +238,6 @@
 			<groupId>smalltext-0.1.4</groupId>
 			<artifactId>smalltext-0.1.4</artifactId>
 			<version>0.1.4</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<!-- We need this dependency otherwise spring-remoting:2.0.7 brings in the wrong version. -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>1.2.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-remoting</artifactId>
-			<version>2.0.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>1.2.7</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
