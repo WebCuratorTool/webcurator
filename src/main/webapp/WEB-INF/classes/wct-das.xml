@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="WCTDASConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
@@ -23,7 +23,7 @@
 	<bean name="arcDigitalAssetStoreService"
 		class="org.webcurator.core.store.arc.ArcDigitalAssetStoreService"
 		scope="singleton" lazy-init="default"
-		autowire="default" dependency-check="default">
+		autowire="default">
 		<!-- the base directory for the arc store -->
 		<property name="baseDir">
 			<value>${arcDigitalAssetStoreService.baseDir}</value>
@@ -96,16 +96,14 @@
 
 	<bean id="logReader"
 		class="org.webcurator.core.reader.LogReaderImpl"
-		scope="singleton" lazy-init="default" autowire="default"
-		dependency-check="default">
+		scope="singleton" lazy-init="default" autowire="default">
 		<property name="logProvider">
 			<ref bean="arcDigitalAssetStoreService" />
 		</property>
 	</bean>	
 	<bean id="fileArchive"
 		class="org.webcurator.core.archive.file.FileArchive"
-		scope="singleton" lazy-init="default" autowire="default"
-		dependency-check="default">
+		scope="singleton" lazy-init="default" autowire="default">
 		<property name="archiveRepository">
 			<value>${fileArchive.archiveRepository}</value>
 		</property>
@@ -124,8 +122,7 @@
 	</bean>
  	<bean id="omsArchive"
 		class="org.webcurator.core.archive.oms.OMSArchive"
-		scope="singleton" lazy-init="default" autowire="default"
-		dependency-check="default">
+		scope="singleton" lazy-init="default" autowire="default">
 		<property name="archiveLogReportFiles">
 			<value>${omsArchive.archiveLogReportFiles}</value>
 		</property>
@@ -170,8 +167,7 @@
 	-->
 	<bean id="dpsArchive"
 		class="org.webcurator.core.archive.dps.DPSArchive"
-		scope="singleton" lazy-init="default" autowire="default"
- 		dependency-check="default">
+		scope="singleton" lazy-init="default" autowire="default">
 
  		<property name="pdsUrl">
  			<value>${dpsArchive.pdsUrl}</value>
@@ -325,7 +321,7 @@
 	-->
 	<bean name="CustomDepositFormFieldMappings" class="nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositFormMapping"
 		  scope="singleton" lazy-init="default"
-		  autowire="default" dependency-check="default">
+		  autowire="default">
 
 		<property name="customDepositFormFieldMaps">
 			<map>
