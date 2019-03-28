@@ -18,13 +18,11 @@ package org.webcurator.core.harvester.agent;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.archive.crawler.admin.CrawlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.webcurator.core.common.Constants;
+import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.agent.exception.HarvestAgentException;
 import org.webcurator.core.harvester.agent.schedule.SchedulerUtil;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;

@@ -19,7 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.archive.util.FileUtils;
 import org.netarchivesuite.heritrix3wrapper.ScriptResult;
-import org.webcurator.core.common.Constants;
+import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.exception.HarvestAgentException;
 import org.webcurator.core.harvester.agent.filter.*;

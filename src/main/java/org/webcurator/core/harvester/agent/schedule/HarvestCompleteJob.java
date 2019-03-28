@@ -22,7 +22,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.context.ApplicationContext;
-import org.webcurator.core.common.Constants;
+import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.exception.HarvestAgentException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;

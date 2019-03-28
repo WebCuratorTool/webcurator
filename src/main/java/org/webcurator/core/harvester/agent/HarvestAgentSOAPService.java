@@ -16,7 +16,7 @@
 package org.webcurator.core.harvester.agent;
 
 import org.springframework.remoting.jaxrpc.ServletEndpointSupport;
-import org.webcurator.core.common.Constants;
+import org.webcurator.core.harvester.Constants;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.util.List;

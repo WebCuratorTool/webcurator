@@ -24,7 +24,7 @@ import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.springframework.context.ApplicationContext;
-import org.webcurator.core.common.Constants;
+import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.util.ApplicationContextFactory;
 
 /**

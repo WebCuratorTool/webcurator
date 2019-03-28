@@ -24,7 +24,7 @@ import org.netarchivesuite.heritrix3wrapper.jaxb.Engine;
 import org.netarchivesuite.heritrix3wrapper.jaxb.Job;
 import org.netarchivesuite.heritrix3wrapper.jaxb.JobShort;
 import org.springframework.context.ApplicationContext;
-import org.webcurator.core.common.Constants;
+import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.agent.exception.HarvesterException;
 import org.webcurator.core.harvester.util.AlertLogger;
 import org.webcurator.core.util.ApplicationContextFactory;
@@ -33,7 +33,6 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 import org.netarchivesuite.heritrix3wrapper.*;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 /**

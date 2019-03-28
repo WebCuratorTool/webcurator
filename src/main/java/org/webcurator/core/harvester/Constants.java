@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.webcurator.core.common;
+package org.webcurator.core.harvester;
 
 /** 
  * The Constants class contains global constants used in the harvest agent. 
