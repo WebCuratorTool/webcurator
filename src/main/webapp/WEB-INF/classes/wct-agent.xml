@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-<beans default-autowire="no" default-lazy-init="false" default-dependency-check="none">
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"
+	default-autowire="no" default-lazy-init="false" default-dependency-check="none">
 
     <bean id="WCTHarvestAgentConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
@@ -13,7 +15,7 @@
         <property name="order" value="150"/>
     </bean>
 
-	<bean id="harvestAgent" class="org.webcurator.core.harvester.agent.HarvestAgentHeritrix" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="harvestAgent" class="org.webcurator.core.harvester.agent.HarvestAgentHeritrix" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<!-- name of the directory where the temporary harvest data is stored -->
 		<property name="baseHarvestDirectory" value="${harvestAgent.baseHarvestDirectory}"/>
 		<!-- agent host name or ip address that the core knows about -->
@@ -43,7 +45,7 @@
 			<ref bean="harvestCoordinatorNotifier"></ref>
 		</property>
 	</bean>
-	<bean id="harvestCoordinatorNotifier" class="org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="harvestCoordinatorNotifier" class="org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<!-- the name of the core harvest agent listener web service -->
 		<property name="service" value="${harvestCoordinatorNotifier.service}"/>
 		<!-- the host name or ip address of the core -->
@@ -52,7 +54,7 @@
 		<property name="port" value="${harvestCoordinatorNotifier.port}"/>
 		<property name="agent" ref="harvestAgent"/>
 	</bean>	
-	<bean id="digitalAssetStore" class="org.webcurator.core.store.DigitalAssetStoreSOAPClient" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="digitalAssetStore" class="org.webcurator.core.store.DigitalAssetStoreSOAPClient" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<!-- the name of the digital asset store web service -->
 		<property name="service" value="${digitalAssetStore.service}" />
 		<!-- the host name or ip address of the digital asset store -->
@@ -80,7 +82,7 @@
 		<!-- repeat every xx milliseconds -->
 		<property name="repeatInterval" value="${heartbeatTrigger.repeatInterval}"/>
 	</bean>
-	<bean id="schedulerFactory" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" abstract="false" singleton="true" lazy-init="default" autowire="default" dependency-check="default">
+	<bean id="schedulerFactory" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" scope="singleton" lazy-init="default" autowire="default" dependency-check="default">
 		<property name="triggers">
 			<list>
 		    	<ref bean="heartbeatTrigger"/>
@@ -89,8 +91,8 @@
 		</property>
 	</bean>
 	<bean id="logReader"
-		class="org.webcurator.core.reader.LogReaderImpl" abstract="false"
-		singleton="true" lazy-init="default" autowire="default"
+		class="org.webcurator.core.reader.LogReaderImpl"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<property name="logProvider">
 			<ref bean="harvestAgent" />
@@ -98,7 +100,7 @@
 	</bean>
 	<bean id="harvestCompleteConfig"
 		class="org.webcurator.core.harvester.agent.schedule.HarvestCompleteConfig"
-		abstract="false" singleton="true" lazy-init="default"
+		scope="singleton" lazy-init="default"
 		autowire="default" dependency-check="default">
 		<!-- number of retries before increasing the wait time for level 1 to level 2 -->
 		<property name="levelRetryBand" value="${harvestCompleteConfig.levelRetryBand}" />
@@ -110,8 +112,8 @@
 		<property name="waitOnCompleteSeconds" value="${harvestCompleteConfig.waitOnCompleteSeconds}" />
 	</bean>
 	<bean id="memoryChecker"
-		class="org.webcurator.core.check.MemoryChecker" abstract="false"
-		singleton="true" lazy-init="default" autowire="default"
+		class="org.webcurator.core.check.MemoryChecker"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<!-- The amount of memory in KB that can be used before a warning notification is sent  -->
 		<property name="warnThreshold" value="${memoryChecker.warnThreshold}"/>
@@ -126,8 +128,8 @@
 	<!-- the following memory checker replaces the one above where Harvest Agents are to stop processing new harvests 
 	     when memory exceeds the warning level, and restart processing new harvests when memory drops below the warning level -->
 	<!-- bean id="memoryChecker"
-		class="org.webcurator.core.check.HarvestAgentMemoryChecker" abstract="false"
-		singleton="true" lazy-init="default" autowire="default"
+		class="org.webcurator.core.check.HarvestAgentMemoryChecker"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<property name="warnThreshold" value="${memoryChecker.warnThreshold}"/>
 		<property name="errorThreshold" value="${memoryChecker.errorThreshold}"/>
@@ -141,8 +143,8 @@
 		</property>
 	</bean -->
 	<bean id="processorCheck"
-		class="org.webcurator.core.check.ProcessorCheck" abstract="false"
-		singleton="true" lazy-init="default" autowire="default"
+		class="org.webcurator.core.check.ProcessorCheck"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">		
 		<!-- the pattern and command properties can be set the default setup is for linux sar -u -->
 		<!--  for a solaris box use this pattern to get the processor data for linux remove this line -->
@@ -158,8 +160,8 @@
 		</property>
 	</bean>
 	<bean id="diskSpaceChecker"
-		class="org.webcurator.core.check.DiskSpaceChecker" abstract="false"
-		singleton="true" lazy-init="default" autowire="default"
+		class="org.webcurator.core.check.DiskSpaceChecker"
+		scope="singleton" lazy-init="default" autowire="default"
 		dependency-check="default">
 		<!-- the percentage of disk used before a warning notification is sent -->
 		<constructor-arg index="0" value="${diskSpaceChecker.warnThreshold}"/>
@@ -178,8 +180,8 @@
 		</constructor-arg>
 	</bean>
 	<bean id="checkProcessor"
-			class="org.webcurator.core.check.CheckProcessor" abstract="false"
-			singleton="true" lazy-init="default" autowire="default"
+			class="org.webcurator.core.check.CheckProcessor"
+			scope="singleton" lazy-init="default" autowire="default"
 			dependency-check="default">
 			<property name="checks">
 				<list>
