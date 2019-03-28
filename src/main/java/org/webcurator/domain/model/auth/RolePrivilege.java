@@ -31,7 +31,7 @@ import java.io.Serializable;
  * 
  * @author bprice
  * @hibernate.class table="ROLE_PRIVILEGE" lazy="true" 
- * @hibernate.query name="org.webcurator.domain.model.auth.RolePrivilege.getUserPrivileges" query="SELECT distinct rolpriv FROM RolePrivilege rolpriv WHERE rolpriv.role.users.username=? "
+ * @hibernate.query name="org.webcurator.domain.model.auth.RolePrivilege.getUserPrivileges" query="SELECT distinct rolpriv FROM RolePrivilege rolpriv JOIN rolpriv.role AS rolePrivRole JOIN rolePrivRole.users AS rolePrivRoleUsers WHERE rolePrivRoleUsers.username=?"
  */
 public class RolePrivilege implements Serializable {
 

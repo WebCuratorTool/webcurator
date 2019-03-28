@@ -192,7 +192,7 @@
 					<dependency>
 						<groupId>org.hibernate</groupId>
 						<artifactId>hibernate</artifactId>
-						<version>3.1.3</version>
+						<version>3.2.7.ga</version>
 					</dependency>
 					<dependency>
 						<groupId>javax.transaction</groupId>
@@ -260,7 +260,7 @@
 				<dependency>
 					<groupId>com.h2database</groupId>
 					<artifactId>h2</artifactId>
-					<version>1.3.172</version>
+					<version>1.4.199</version>
 				</dependency>
 			</dependencies>
 			<build>
@@ -355,7 +355,7 @@
 			<scope>compile</scope>
 			<exclusions>
 				<!-- brings in spring-core, spring-remoting and spring-support 1.2.9, which have been superseded by
-					spring-core 2.5.6, spring-context 2.5.6 and spring-context-support 2.5.6 -->
+					spring-core 3.2.18.RELEASE, spring-context 3.2.18.RELEASE and spring-context-support 3.2.18.RELEASE -->
 				<exclusion>
 					<groupId>org.springframework</groupId>
 					<artifactId>spring-core</artifactId>
@@ -443,7 +443,7 @@
 			<scope>compile</scope>
 			<!-- Note that the drools-compiler brings in, as a dependency, com.thoughtworks.xstream:xstream:1.4.10,
 				 which brings in xmlpull:xmlpull:1.1.3.1 which brings in xpp3:xpp3_min:1.1.4c.xmlpull and xpp3_min
-				 have some classes in common, which jetty may complain about. -->
+				 have some classes in common, which Jetty may complain about. -->
 		</dependency>
 		<dependency>
 			<groupId>org.drools</groupId>
@@ -464,7 +464,14 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate</artifactId>
-			<version>3.1.3</version>
+			<version>3.2.7.ga</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- hibernate brings in 2.7.6, which is missing getLine() -->
+		<dependency>
+			<groupId>antlr</groupId>
+			<artifactId>antlr</artifactId>
+			<version>2.7.7</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -567,55 +574,55 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<!-- Not sure yet if this is required here or in webcurator-webapp
@@ -624,7 +631,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc-struts</artifactId>
-			<version>2.5.6</version>
+			<version>3.2.18.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		-->

@@ -151,7 +151,7 @@ public class AbstractTargetGroupTypeView {
     /**
      * Retrieves the profile overrides of the AbstractTarget.
 	 * @return Returns the overrides.
-	 * @hibernate.many-to-one column="AT_PROF_OVERRIDE_OID" cascade="save-update" class="org.webcurator.domain.model.core.ProfileOverrides" foreign-key="FK_T_PROF_OVERRIDE_OID" 
+	 * @hibernate.many-to-one column="AT_PROF_OVERRIDE_OID" cascade="save-update" class="org.webcurator.domain.model.core.ProfileOverrides"
 	 */
 	public ProfileOverrides getOverrides() {
 		return overrides;
@@ -314,7 +314,7 @@ public class AbstractTargetGroupTypeView {
 		
 	/**
 	 * @return the dublinCoreMetaData
-	 * @hibernate.many-to-one column="AT_DUBLIN_CORE_OID" cascade="all" class="org.webcurator.domain.model.core.DublinCore" foreign-key="FK_AT_DUBLIN_CORE_OID"
+	 * @hibernate.many-to-one column="AT_DUBLIN_CORE_OID" cascade="all" class="org.webcurator.domain.model.core.DublinCore"
 	 */
 	public DublinCore getDublinCoreMetaData() {
 		return dublinCoreMetaData;

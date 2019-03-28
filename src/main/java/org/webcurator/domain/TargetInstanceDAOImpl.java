@@ -678,7 +678,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 					query.setDate("ed", new Date());
 					query.setLong("toid", targetOid);
 					
-					return ((Integer)query.list().get(0)).longValue();
+					return query.list().get(0);
 				}
 			}
 		);				   

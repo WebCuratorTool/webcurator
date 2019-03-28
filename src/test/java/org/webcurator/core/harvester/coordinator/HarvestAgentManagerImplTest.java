@@ -59,7 +59,7 @@ public class HarvestAgentManagerImplTest {
 		HarvestAgentManagerImpl.targetInstanceLocks.clear();
 
 		WebApplicationContext context = mock(WebApplicationContext.class);
-		when(context.getBean("environment")).thenReturn(mockEnvironment);
+		when(context.getBean("environmentWCT")).thenReturn(mockEnvironment);
 		ApplicationContextFactory.setWebApplicationContext(context);
 	}
 

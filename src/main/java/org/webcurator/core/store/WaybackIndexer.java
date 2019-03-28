@@ -94,7 +94,9 @@ public class WaybackIndexer extends IndexerBase {
 	        	}
 	        }
         }
-        
+
+		MonitoredFile lastFileNotIndexed = null;
+
 		//Watch the Wayback merged/failed folders until the files appear
         long maxloops = timeout/waittime;
 		for(long count = 0; count < maxloops && !allIndexed && !failed; count++)
@@ -117,13 +119,16 @@ public class WaybackIndexer extends IndexerBase {
 	        			failed = true;
 	        			log.warn("Archive file failed Wayback indexing: "+f.getPath());
 	        		}
-	        		
+	        		lastFileNotIndexed = f;
+	        		if (log.isDebugEnabled()) {
+						log.debug("Found at least one archive file not indexed: " + f.getPath() +
+								" (this will mean that indexing will fail to complete in a timely manner).");
+					}
 	            	allIndexed = false;
 	        		break; //out of for MonitoredFile loop
 	        	}
 	        }
 		}
-		
 		if(allIndexed)
 		{
 			log.info("Completed indexing for job " + getResult().getTargetInstanceOid());
@@ -131,6 +136,9 @@ public class WaybackIndexer extends IndexerBase {
 		else
 		{
 	    	log.warn("Job " + getResult().getTargetInstanceOid() + " failed to complete indexing in a timely manner.");
+	    	if (lastFileNotIndexed != null) {
+				log.warn("Job " + getResult().getTargetInstanceOid() + " last file not indexed: " + lastFileNotIndexed.getPath());
+			}
 		}
 	}
 	

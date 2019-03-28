@@ -3,7 +3,6 @@ package org.springframework.web.context;
 import javax.servlet.ServletContext;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.ui.context.*;
 import org.springframework.ui.context.support.DelegatingThemeSource;
 import org.springframework.mock.web.MockServletContext;
@@ -33,7 +32,7 @@ public class MockWebApplicationContext extends GenericApplicationContext impleme
     {
     	Object retObj = null;
     	
-    	if(beanName.equals("environment"))
+        if(beanName.equals("environmentWCT"))
     	{
     		EnvironmentImpl env = new EnvironmentImpl();
     		
