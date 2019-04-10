@@ -16,7 +16,7 @@ import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 
-class WCTIndexer extends IndexerBase 
+public class WCTIndexer extends IndexerBase
 {
 	private static Log log = LogFactory.getLog(WCTIndexer.class);
 	
