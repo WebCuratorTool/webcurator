@@ -191,8 +191,8 @@
 				<dependencies>
 					<dependency>
 						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate</artifactId>
-						<version>3.2.7.ga</version>
+						<artifactId>hibernate-core</artifactId>
+						<version>3.3.2.GA</version>
 					</dependency>
 					<dependency>
 						<groupId>javax.transaction</groupId>
@@ -463,11 +463,23 @@
 		-->
 		<dependency>
 			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate</artifactId>
-			<version>3.2.7.ga</version>
+			<artifactId>hibernate-core</artifactId>
+			<version>3.3.2.GA</version>
 			<scope>compile</scope>
 		</dependency>
-		<!-- hibernate brings in 2.7.6, which is missing getLine() -->
+		<!-- Hibernate's second-level cache -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+			<version>3.3.2.GA</version>
+		</dependency>
+		<!-- Hibernate's ConnectionProvider connection pool -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-c3p0</artifactId>
+			<version>3.3.2.GA</version>
+		</dependency>
+		<!-- hibernate-core 3.3.2.GA brings in 2.7.6, which is missing getLine() -->
 		<dependency>
 			<groupId>antlr</groupId>
 			<artifactId>antlr</artifactId>
