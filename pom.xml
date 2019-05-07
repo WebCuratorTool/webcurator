@@ -50,7 +50,7 @@
 	</repositories>
 	<dependencies>
 
-		<!-- Execute the install-libs.bat file in order to make sure all required 
+		<!-- Execute the install-libs.bat file in order to make sure all required
 			artifacts are installed into the maven repository from the lib directory. -->
 
 		<dependency>
