@@ -200,7 +200,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 			}
 		}
 
-		if (targetInstanceDao.countActiveTIsForTarget(tiTarget.getOid()) == 0 && !bActiveSchedules) {
+		if (targetInstanceDao.countActiveTIsForTarget(tiTarget.getOid()) == 0L && !bActiveSchedules) {
 			Target t = targetManager.load(tiTarget.getOid(), true);
 			t.changeState(Target.STATE_COMPLETED);
 			targetManager.save(t);

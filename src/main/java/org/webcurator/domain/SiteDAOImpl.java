@@ -322,15 +322,15 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 	
 	
 	
-	public int countSites() {
-		return (Integer) getHibernateTemplate().execute(
+	public long countSites() {
+		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {
 						Criteria query = session.createCriteria(Site.class);
 						query.setProjection(Projections.rowCount());						
 						query.add(Restrictions.eq("active", true));
-						
-						Integer count = (Integer) query.uniqueResult();
+
+						Long count = (Long) query.uniqueResult();
 		                
 		                return count;
 					}
@@ -349,8 +349,8 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 	 * @param aPermissionOid The permission oid
 	 * @return The number of seeds linked to the permission
 	 */
-	public int countLinkedSeeds(final Long aPermissionOid) {
-		return (Integer) getHibernateTemplate().execute(
+	public long countLinkedSeeds(final Long aPermissionOid) {
+		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {
 						return session.createCriteria(Seed.class)
@@ -370,7 +370,7 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 	 * @return True if unique; otherwise false.
 	 */
     public boolean isAuthAgencyNameUnique(final Long oid, final String name) {
-		int count = (Integer) getHibernateTemplate().execute(
+		long count = (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {
 						Criteria query = session.createCriteria(AuthorisingAgent.class);
@@ -387,7 +387,7 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 				}
 			);
 		
-		return count == 0;
+		return count == 0L;
     }	
 	
 	

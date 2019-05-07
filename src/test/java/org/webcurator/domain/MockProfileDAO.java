@@ -66,8 +66,8 @@ public class MockProfileDAO implements ProfileDAO {
 	    }
 	}
 	
-	public int countProfileUsage(Profile profile) {
-		int counter = 0;
+	public long countProfileUsage(Profile profile) {
+		long counter = 0L;
 		
     	NodeList pNodes = theFile.getElementsByTagName("profile");
     	for (int i = 0; i < pNodes.getLength(); i++)
@@ -87,8 +87,8 @@ public class MockProfileDAO implements ProfileDAO {
 		return counter;
 	}
 
-	public int countProfileActiveTargets(Profile profile) {
-		return 1;
+	public long countProfileActiveTargets(Profile profile) {
+		return 1L;
 	}
 
 	public List<ProfileDTO> getAllDTOs() {

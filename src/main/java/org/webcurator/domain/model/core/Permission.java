@@ -308,7 +308,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Returns the authorising agency's response notes associated with approving the permission.
 	 * @return Returns the authResponse.
-     * @hibernate.property column="PE_NOTES" type="text" 
+     * @hibernate.property column="PE_NOTES" type="materialized_clob"
 	 */
 	public String getAuthResponse() {
 		return authResponse;

@@ -81,8 +81,8 @@ public class ProfileManager {
 		}
 		
 		if (aProfile.getStatus() == Profile.STATUS_INACTIVE && originalProfile.getStatus() == Profile.STATUS_ACTIVE) {
-			int countActivetargets = profileDao.countProfileActiveTargets(aProfile);
-			if (countActivetargets > 0 ) {
+			long countActivetargets = profileDao.countProfileActiveTargets(aProfile);
+			if (countActivetargets > 0L) {
 				throw new WCTInvalidStateRuntimeException("Profile " + aProfile.getOid() + " cannot be set inactive because it is used by active targets.");
 			}
 		}
@@ -135,7 +135,7 @@ public class ProfileManager {
 	 * @return true if the profile is being used; otherwise false.
 	 */
 	public boolean isProfileInUse(Profile aProfile) {
-		return profileDao.countProfileUsage(aProfile) > 0;
+		return profileDao.countProfileUsage(aProfile) > 0L;
 	}
 	
 	

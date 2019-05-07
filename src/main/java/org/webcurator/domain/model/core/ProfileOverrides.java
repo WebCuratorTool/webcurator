@@ -1174,7 +1174,7 @@ public class ProfileOverrides {
 
 	/**
 	 *
-	 * @hibernate.property column="PO_H3_RAW_PROFILE" type="text"
+	 * @hibernate.property column="PO_H3_RAW_PROFILE" type="materialized_clob"
 	 */
 	public String getH3RawProfile() {
 		return h3RawProfile;

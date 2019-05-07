@@ -108,7 +108,7 @@ public class PermissionTemplate {
     /**
      * gets the specified template text
      * @return the template text
-     * @hibernate.property column="PRT_TEMPLATE_TEXT" type="text" not-null="true" length="10000"
+     * @hibernate.property column="PRT_TEMPLATE_TEXT" type="materialized_clob" not-null="true" length="10000"
      */
     public String getTemplate() {
         return template;

@@ -216,21 +216,21 @@ public interface TargetInstanceDAO {
 	 * @param aStates the states to count target instances for
 	 * @return the count of target instances
 	 */
-	int countTargetInstances(final String aUsername, final ArrayList<String> aStates);
+	long countTargetInstances(final String aUsername, final ArrayList<String> aStates);
 	
 	/**
 	 * Counts the number of active target instances for a give target oid.
 	 * @param targetOid the target's oid to count target instances for
 	 * @return the count of active target instances
 	 */
-    int countActiveTIsForTarget(final Long targetOid);
+    long countActiveTIsForTarget(final Long targetOid);
 
 	/**
 	 * Counts the number of target instances for a give target oid.
 	 * @param targetOid the target's oid to count target instances for
 	 * @return the count of active target instances
 	 */
-    int countTargetInstancesByTarget(final Long targetOid);
+    long countTargetInstancesByTarget(final Long targetOid);
 
     /**
 	 * Return the DTO for the specified Target Instance.

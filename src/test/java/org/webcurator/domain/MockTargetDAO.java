@@ -105,8 +105,8 @@ public class MockTargetDAO implements TargetDAO {
 	    }
 	}
 
-	public int countTargetGroups(String username) {
-		int counter = 0;
+	public long countTargetGroups(String username) {
+		long counter = 0L;
 		Iterator<TargetGroup> it = gOids.values().iterator();
 		while(it.hasNext())
 		{
@@ -119,9 +119,9 @@ public class MockTargetDAO implements TargetDAO {
 		return counter;
 	}
 
-	public int countTargets(String username) 
+	public long countTargets(String username)
 	{
-		int counter = 0;
+		long counter = 0L;
 		Iterator<Target> it = tOids.values().iterator();
 		while(it.hasNext())
 		{

@@ -100,9 +100,9 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 	    }
 	}
 
-	public int countTargetInstances(String username, ArrayList<String> states) 
+	public long countTargetInstances(String username, ArrayList<String> states)
 	{
-		int counter = 0;
+		long counter = 0L;
 		Iterator<TargetInstance> it = tiOids.values().iterator();
 		while(it.hasNext())
 		{
@@ -123,14 +123,14 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 		return counter;
 	}
 
-	public int countActiveTIsForTarget(Long targetOid) 
+	public long countActiveTIsForTarget(Long targetOid)
 	{
-		return 1;
+		return 1L;
 	}
 	
-	public int countTargetInstancesByTarget(Long targetOid) 
+	public long countTargetInstancesByTarget(Long targetOid)
 	{
-		return 1;
+		return 1L;
 	}
 
 	public void delete(Object object) 

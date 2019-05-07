@@ -178,14 +178,14 @@ public interface TargetInstanceManager {
      * @param aStates the list of states to count
      * @return the count of target instances
      */
-    int countTargetInstances(User aUser, ArrayList<String> aStates);    
+    long countTargetInstances(User aUser, ArrayList<String> aStates);
     
     /**
      * Return a count of target instances 'owned' by the specified Target
      * @param Oid the oid of the target record from which the TI was derived
      * @return the count of target instances 'owned'
      */
-    int countTargetInstancesByTarget(Long Oid);    
+    long countTargetInstancesByTarget(Long Oid);
 
     /** 
      * Get the HarvestHistory of a taget.

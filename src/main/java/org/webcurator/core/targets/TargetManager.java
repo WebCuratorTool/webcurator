@@ -415,14 +415,14 @@ public interface TargetManager {
 	 * @param aUser the user to count targets for
 	 * @return the number of targets owned by the user
 	 */
-	int countTargets(User aUser);
+	long countTargets(User aUser);
 	
 	/**
 	 * Count the number of Targets Groups owned by the specified user. 
 	 * @param aUser the user to count target groups for
 	 * @return the number of target groups owned by the user
 	 */
-	int countTargetGroups(User aUser);
+	long countTargetGroups(User aUser);
 	
 	/**
 	 * Return a list of all immediate parents of the specified target.

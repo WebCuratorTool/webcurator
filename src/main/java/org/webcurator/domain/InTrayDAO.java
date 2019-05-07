@@ -47,7 +47,7 @@ public interface InTrayDAO {
      * @param userOid the oid of the user to count the Notifications for
      * @return a count of Notification objects
      */
-    int countNotifications(final Long userOid);
+    long countNotifications(final Long userOid);
     
     /**
      * loads a generic object, this could be a Notification or
@@ -90,7 +90,7 @@ public interface InTrayDAO {
      * @param privs a List of RolePrivileges
      * @return the count of tasks
      */
-    int countTasks(final User user, final List<RolePrivilege> privs);
+    long countTasks(final User user, final List<RolePrivilege> privs);
     
     /**
      * Return the Task that matches the specified criteria. 
@@ -132,7 +132,7 @@ public interface InTrayDAO {
      * @param wctResource The intray resource the task is related to.
      * @return The number of tasks.
      */
-    int countTasks(String messageType, InTrayResource wctResource);
+    long countTasks(String messageType, InTrayResource wctResource);
     
     /**
      * Deletes all notifications for the specified user.

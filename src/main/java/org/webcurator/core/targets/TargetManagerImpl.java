@@ -145,7 +145,7 @@ public class TargetManagerImpl implements TargetManager {
 			aTarget.setSelectionDate(new Date());
 		}
 
-		int numActiveTIsPrevious = targetInstanceDao.countActiveTIsForTarget(aTarget.getOid());
+		long numActiveTIsPrevious = targetInstanceDao.countActiveTIsForTarget(aTarget.getOid());
 
 		// Deal with removed schedules
 		for (Schedule schedule : aTarget.getRemovedSchedules()) {
@@ -320,7 +320,7 @@ public class TargetManagerImpl implements TargetManager {
 		// queued, running, paused, stopping) and updates to the schedules have
 		// caused the removal of all scheduled TIs for this target then set the
 		// status of the target to 'complete'.
-		if (numActiveTIsPrevious > 0 && targetInstanceDao.countActiveTIsForTarget(aTarget.getOid()) == 0
+		if (numActiveTIsPrevious > 0 && targetInstanceDao.countActiveTIsForTarget(aTarget.getOid()) == 0L
 				&& aTarget.getOriginalState() == Target.STATE_APPROVED && aTarget.getState() == Target.STATE_APPROVED) {
 			aTarget.changeState(Target.STATE_COMPLETED);
 		}
@@ -1346,7 +1346,7 @@ public class TargetManagerImpl implements TargetManager {
 
 			// if this is the first TargetInstance ever to be created for
 			// a particular target then set the firstFromTarget flag on the TI.
-			if (!firstForTarget && instanceManager.countTargetInstancesByTarget(aTarget.getOid()) == 0) {
+			if (!firstForTarget && instanceManager.countTargetInstancesByTarget(aTarget.getOid()) == 0L) {
 				ti.setFirstFromTarget(true);
 				firstForTarget = true;
 			}
@@ -1531,14 +1531,14 @@ public class TargetManagerImpl implements TargetManager {
 	/**
 	 * @see org.webcurator.core.targets.TargetManager#countTargets(org.webcurator.domain.model.auth.User)
 	 */
-	public int countTargets(User aUser) {
+	public long countTargets(User aUser) {
 		return targetDao.countTargets(aUser.getUsername());
 	}
 
 	/**
 	 * @see org.webcurator.core.targets.TargetManager#countTargetGroups(org.webcurator.domain.model.auth.User)
 	 */
-	public int countTargetGroups(User aUser) {
+	public long countTargetGroups(User aUser) {
 		return targetDao.countTargetGroups(aUser.getUsername());
 	}
 

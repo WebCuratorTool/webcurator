@@ -169,7 +169,7 @@ public class MockSiteDAO implements SiteDAO {
 	 * Count the number of sites in the persistent store.
 	 * @return the number of sites
 	 */
-	public int countSites() {
+	public long countSites() {
 		return siteOids.size();
 	}
 	
@@ -189,10 +189,10 @@ public class MockSiteDAO implements SiteDAO {
 	 * @param aPermissionOid The permission oid
 	 * @return The number of seeds linked to the permission
 	 */
-	public int countLinkedSeeds(Long aPermissionOid) {
+	public long countLinkedSeeds(Long aPermissionOid) {
 		Permission p = pOids.get(aPermissionOid);
 		//TODO: use MockTargetDAO to link back to seeds
-		return 0;
+		return 0L;
 	}
 	
 	/**

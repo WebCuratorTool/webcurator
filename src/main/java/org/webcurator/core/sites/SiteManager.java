@@ -98,13 +98,13 @@ public interface SiteManager {
 	 * @param aPermissionOid The permission oid
 	 * @return The number of seeds linked to the permission
 	 */
-	public int countLinkedSeeds(Long aPermissionOid);    
+	long countLinkedSeeds(Long aPermissionOid);
 	
     /**
      * Return a count of all the active sites.
      * @return a count of active sites
      */
-    int countSites();
+    long countSites();
     
 	/**
 	 * Search for existing Authorising Agencies by name.

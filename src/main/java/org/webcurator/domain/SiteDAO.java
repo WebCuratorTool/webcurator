@@ -83,7 +83,7 @@ public interface SiteDAO {
 	 * Count the number of sites in the persistent store.
 	 * @return the number of sites
 	 */
-	int countSites();
+	long countSites();
 	
 	/**
 	 * Find permissions by Site
@@ -99,7 +99,7 @@ public interface SiteDAO {
 	 * @param aPermissionOid The permission oid
 	 * @return The number of seeds linked to the permission
 	 */
-	public int countLinkedSeeds(Long aPermissionOid); 	
+	public long countLinkedSeeds(Long aPermissionOid);
 	
 	/**
 	 * Search for existing Authorising Agencies by name.

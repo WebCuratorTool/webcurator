@@ -199,7 +199,7 @@ public class SitePermissionHandler extends AbstractSiteHandler {
 			}
 			permission.getUrls().clear();
 			
-			if(!permission.isNew() && siteManager.countLinkedSeeds(permission.getOid()) > 0) {
+			if(!permission.isNew() && siteManager.countLinkedSeeds(permission.getOid()) > 0L) {
 				errors.reject("site.permission.delete.linked_seeds", "There are still seeds linked to this permission. Either unlink the seeds, or transfer them to another permission.");
 				// Raise error because seeds are still attached.
 			}

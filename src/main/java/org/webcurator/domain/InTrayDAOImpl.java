@@ -93,14 +93,14 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
         return new Pagination(Notification.QRY_CNT_USER_NOTIFICATIONS, Notification.QRY_GET_USER_NOTIFICATIONS, params, pageNum, pageSize, true, aSessionFactory);
     }
 
-    public int countNotifications(final Long userOid) {
-    	return (Integer) getHibernateTemplate().execute(new HibernateCallback() {
+    public long countNotifications(final Long userOid) {
+        return (Long) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session session) throws HibernateException, SQLException {
 				
 				Query query = session.createQuery("select count(*) from Notification n where n.recipientOid = :userOid ");
 				query.setLong("userOid", userOid);
 				
-				return ((Number) query.uniqueResult()).intValue();
+				return ((Number) query.uniqueResult()).longValue();
 			}
     	});
     }
@@ -178,7 +178,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
         });
     }
     
-    public int countTasks(final User user, final List<RolePrivilege> privs) {
+    public long countTasks(final User user, final List<RolePrivilege> privs) {
     	return (Integer) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session session) throws HibernateException, SQLException {
 				
@@ -194,7 +194,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
                 query.add(dis);
                 query.createCriteria("agency").add(Restrictions.eq("oid", user.getAgency().getOid()));
                                 
-                Integer count = (Integer) query.uniqueResult();
+                Long count = (Long) query.uniqueResult();
                 
                 return count;
 			}
@@ -294,10 +294,10 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
         
     }
     
-    public int countTasks(final String messageType, final InTrayResource wctResource) {
-    	return (Integer) getHibernateTemplate().execute(new HibernateCallback() {
+    public long countTasks(final String messageType, final InTrayResource wctResource) {
+        return (Long) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session session) throws HibernateException, SQLException {
-				return (Integer) session.createCriteria(Task.class)
+				return (Long) session.createCriteria(Task.class)
 					.setProjection(Projections.rowCount())
 					.add(Restrictions.eq("messageType", messageType))
 					.add(Restrictions.eq("resourceOid", wctResource.getOid()))

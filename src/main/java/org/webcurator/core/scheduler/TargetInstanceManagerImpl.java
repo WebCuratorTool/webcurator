@@ -238,12 +238,12 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
 	}
 		
 	/** @see TargetInstanceManager#countTargetInstances(User, ArrayList). */
-	public int countTargetInstances(User aUser, ArrayList<String> aStates) {
+	public long countTargetInstances(User aUser, ArrayList<String> aStates) {
 		return targetInstanceDao.countTargetInstances(aUser.getUsername(), aStates);
 	}
 	
 	/** @see TargetInstanceManager#countTargetInstancesByTarget(Long Oid). */
-	public int countTargetInstancesByTarget(Long Oid) {
+	public long countTargetInstancesByTarget(Long Oid) {
 		return targetInstanceDao.countTargetInstancesByTarget(Oid);
 	}
 

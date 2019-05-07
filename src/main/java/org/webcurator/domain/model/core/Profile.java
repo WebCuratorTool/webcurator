@@ -214,7 +214,7 @@ public class Profile implements AgencyOwnable {
 	/**
 	 * Get the Profile XML settings.
 	 * @return Returns the profile.
-     * @hibernate.property column="P_PROFILE_STRING" type="text" 
+     * @hibernate.property column="P_PROFILE_STRING" type="materialized_clob"
 	 */
 	public String getProfile() {
 		return profile;

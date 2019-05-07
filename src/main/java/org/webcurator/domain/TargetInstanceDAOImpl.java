@@ -927,8 +927,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
     	);    	
     }    
     
-    public int countTargetInstances(final String aUsername, final ArrayList<String> aStates) {
-		return (Integer) getHibernateTemplate().execute(
+    public long countTargetInstances(final String aUsername, final ArrayList<String> aStates) {
+		return (Long) getHibernateTemplate().execute(
 			new HibernateCallback() {
 				public Object doInHibernate(Session session) {					
 					Criteria query = session.createCriteria(TargetInstance.class);
@@ -945,7 +945,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 					query.createCriteria("owner").add(Restrictions.eq("username", aUsername));
 					
 										
-					Integer count = (Integer) query.uniqueResult();
+					Long count = (Long) query.uniqueResult();
 	                
 	                return count;
 				}
@@ -953,8 +953,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		);	
 	}
     
-    public int countActiveTIsForTarget(final Long targetOid) {
-		return (Integer) getHibernateTemplate().execute(
+    public long countActiveTIsForTarget(final Long targetOid) {
+		return (Long) getHibernateTemplate().execute(
 			new HibernateCallback() {
 				public Object doInHibernate(Session session) {					
 					Criteria query = session.createCriteria(TargetInstance.class);
@@ -973,7 +973,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 					//query.createAlias("target", "t");
 					query.createCriteria("target").add(Restrictions.eq("oid", targetOid));
 
-					Integer count = (Integer) query.uniqueResult();
+					Long count = (Long) query.uniqueResult();
 	                
 	                return count;
 				}
@@ -981,8 +981,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		);	
 	}
 
-    public int countTargetInstancesByTarget(final Long targetOid) {
-		return (Integer) getHibernateTemplate().execute(
+    public long countTargetInstancesByTarget(final Long targetOid) {
+		return (Long) getHibernateTemplate().execute(
 			new HibernateCallback() {
 				public Object doInHibernate(Session session) {					
 					Criteria query = session.createCriteria(TargetInstance.class);
@@ -990,7 +990,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 										
 					query.createCriteria("target").add(Restrictions.eq("oid", targetOid));
 
-					Integer count = (Integer) query.uniqueResult();
+					Long count = (Long) query.uniqueResult();
 	                
 	                return count;
 				}

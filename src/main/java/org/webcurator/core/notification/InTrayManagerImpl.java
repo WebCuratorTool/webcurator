@@ -163,12 +163,12 @@ public class InTrayManagerImpl implements InTrayManager{
         return inTrayDAO.getNotifications(user.getOid(), pageNum, pageSize);
     }
 
-    public int countNotifications(User user) {
+    public long countNotifications(User user) {
     	return inTrayDAO.countNotifications(user.getOid());
     }
     
     @SuppressWarnings("unchecked")
-	public int countTasks(User user) {
+	public long countTasks(User user) {
     	return inTrayDAO.countTasks(user, userRoleDAO.getUserPrivileges(user.getUsername()));
     }
     
@@ -186,12 +186,12 @@ public class InTrayManagerImpl implements InTrayManager{
     
     
     public void generateUniqueTask(String privilege, String messageType, InTrayResource wctResource) {
-    	if( countTasks(messageType, wctResource) == 0) {
+        if( countTasks(messageType, wctResource) == 0L) {
     		generateTask(privilege, messageType, wctResource);
     	}
     }
     
-    public int countTasks(String messageType, InTrayResource wctResource) {
+    public long countTasks(String messageType, InTrayResource wctResource) {
     	return inTrayDAO.countTasks(messageType, wctResource);
     }
     

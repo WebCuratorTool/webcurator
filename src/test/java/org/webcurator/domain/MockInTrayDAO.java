@@ -23,19 +23,19 @@ public class MockInTrayDAO implements InTrayDAO {
 
 	}
 
-	public int countNotifications(Long userOid) {
+	public long countNotifications(Long userOid) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 0L;
 	}
 
-	public int countTasks(User user, List<RolePrivilege> privs) {
+	public long countTasks(User user, List<RolePrivilege> privs) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 0L;
 	}
 
-	public int countTasks(String messageType, InTrayResource wctResource) {
+	public long countTasks(String messageType, InTrayResource wctResource) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 0L;
 	}
 
 	public void delete(Object obj) {

@@ -885,7 +885,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	 * @return the parts
 	 * 
 	 * @hibernate.map table="SIP_PART_ELEMENT" cascade="all" lazy="true"
-	 * @hibernate.collection-element column="SPE_VALUE" type="text"
+	 * @hibernate.collection-element column="SPE_VALUE" type="materialized_clob"
 	 * @hibernate.collection-key column="SPE_TARGET_INSTANCE_OID"
 	 * @hibernate.collection-index column="SPE_KEY" type="java.lang.String"
 	 */

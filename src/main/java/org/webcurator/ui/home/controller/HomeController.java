@@ -63,27 +63,27 @@ public class HomeController extends AbstractController {
         
         User user = AuthUtil.getRemoteUserObject();
         
-        int notificationCount = inTrayManager.countNotifications(user);
-        int taskCount = inTrayManager.countTasks(user);        
-        int siteCount = siteManager.countSites();
-        int targetCount = targetManager.countTargets(user);
-        int groupCount = targetManager.countTargetGroups(user);
+        long notificationCount = inTrayManager.countNotifications(user);
+        long taskCount = inTrayManager.countTasks(user);
+        long siteCount = siteManager.countSites();
+        long targetCount = targetManager.countTargets(user);
+        long groupCount = targetManager.countTargetGroups(user);
         
         ArrayList<String> states = new ArrayList<String>();
         states.add(TargetInstance.STATE_SCHEDULED);
-        int schedCount = targetInstanceManager.countTargetInstances(user, states);
+        long schedCount = targetInstanceManager.countTargetInstances(user, states);
         
         states.clear();
         states.add(TargetInstance.STATE_HARVESTED);
-        int qaCount = targetInstanceManager.countTargetInstances(user, states);
+        long qaCount = targetInstanceManager.countTargetInstances(user, states);
 
-        mav.addObject(MDL_CNT_NOTIFICATION, new Integer(notificationCount));
-        mav.addObject(MDL_CNT_TASK, new Integer(taskCount));
-        mav.addObject(MDL_CNT_SITE, new Integer(siteCount));
-        mav.addObject(MDL_CNT_TARGET, new Integer(targetCount));
-        mav.addObject(MDL_CNT_GROUPS, new Integer(groupCount));
-        mav.addObject(MDL_CNT_SCHEDULED, new Integer(schedCount));
-        mav.addObject(MDL_CNT_QR, new Integer(qaCount));
+        mav.addObject(MDL_CNT_NOTIFICATION, notificationCount);
+        mav.addObject(MDL_CNT_TASK, taskCount);
+        mav.addObject(MDL_CNT_SITE, siteCount);
+        mav.addObject(MDL_CNT_TARGET, targetCount);
+        mav.addObject(MDL_CNT_GROUPS, groupCount);
+        mav.addObject(MDL_CNT_SCHEDULED, schedCount);
+        mav.addObject(MDL_CNT_QR, qaCount);
         if (!enableQaModule) {
         	mav.setViewName(Constants.VIEW_HOME);
         } else {

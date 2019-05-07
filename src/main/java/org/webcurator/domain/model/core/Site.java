@@ -166,7 +166,7 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
     /**
      * Gets the notes for the site.
      * @return The notes for the site.
-     * @hibernate.property column="ST_NOTES" type="text"
+     * @hibernate.property column="ST_NOTES" type="materialized_clob"
      */
     public String getNotes() {
         return notes;

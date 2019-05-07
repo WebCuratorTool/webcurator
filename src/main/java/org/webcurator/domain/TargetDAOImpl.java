@@ -541,8 +541,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 			);	
 	}
 
-	public int countTargets(final String username) {
-		return (Integer) getHibernateTemplate().execute(
+	public long countTargets(final String username) {
+		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {						
 						Criteria query = session.createCriteria(Target.class);
@@ -552,7 +552,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 							ownerCriteria = query.createCriteria("owner").add(Restrictions.eq("username", username));
 						}
 						
-						Integer count = (Integer) query.uniqueResult();
+						Long count = (Long) query.uniqueResult();
 		                
 		                return count;
 					}
@@ -560,8 +560,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 			);	
 	}
 	
-	public int countTargetGroups(final String username) {
-		return (Integer) getHibernateTemplate().execute(
+	public long countTargetGroups(final String username) {
+		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {						
 						Criteria query = session.createCriteria(TargetGroup.class);
@@ -571,8 +571,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 							if(ownerCriteria == null) { ownerCriteria = query.createCriteria("owner"); }
 							ownerCriteria.add(Restrictions.eq("username", username));
 						}
-						
-						Integer count = (Integer) query.uniqueResult();
+
+						Long count = (Long) query.uniqueResult();
 		                
 		                return count;
 					}
@@ -601,9 +601,9 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 			criteria.add(Restrictions.ne("oid", aTarget.getOid()));
 		}
 		
-		Integer count = (Integer) criteria.uniqueResult();
+		Long count = (Long) criteria.uniqueResult();
 		
-		return count.intValue() == 0;
+		return count == 0L;
 	}
 
 	public Pagination getAbstractTargetDTOs(final String name, final int pageNumber, final int pageSize) {
@@ -1145,10 +1145,10 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
                             	.add(Restrictions.eq("oid", aTargetGroup.getOid()))
                             	.setProjection(Projections.rowCount());
                             
-                            Integer count = (Integer) criteria.uniqueResult();
+                            Long count = (Long) criteria.uniqueResult();
                                                         
                             // If there are instances, we can't delete the object.
-                            if(count.intValue() > 0) { 
+                            if(count > 0L) {
                             	log.debug("Delete failed due to target instances existing");
                             	return false;
                             }

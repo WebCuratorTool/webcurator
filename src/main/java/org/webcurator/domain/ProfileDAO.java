@@ -97,7 +97,7 @@ public interface ProfileDAO extends BaseDAO {
 	 * @param aProfile The profile to count.
 	 * @return The number of targets or groups using that profile.
 	 */
-	public int countProfileUsage(Profile aProfile);
+	long countProfileUsage(Profile aProfile);
 	
 	/**
 	 * Counts the number of Active Targets 
@@ -105,7 +105,7 @@ public interface ProfileDAO extends BaseDAO {
 	 * @param aProfile The profile to count.
 	 * @return The number of active targets using that profile.
 	 */
-	public int countProfileActiveTargets(Profile aProfile);
+	long countProfileActiveTargets(Profile aProfile);
 
 	/**
 	 * Set the profile as the default for this agency.

@@ -89,7 +89,7 @@ public interface InTrayManager {
      * @param user the user to count the notifications for
      * @return a count of notifications
      */
-    int countNotifications(User user);
+    long countNotifications(User user);
     
     /**
      * gets the List of Tasks appropriate for the user
@@ -104,7 +104,7 @@ public interface InTrayManager {
      * @param user the user to count tasks for
      * @return the count of tasks
      */
-    int countTasks(User user);
+    long countTasks(User user);
     
     /**
      *  generates a Task in the System for all Users within an Agnecy with a particular privilege
@@ -133,7 +133,7 @@ public interface InTrayManager {
      * @param wctResource The related resource.
      * @return The number of tasks.
      */
-    public int countTasks(String messageType, InTrayResource wctResource);
+    public long countTasks(String messageType, InTrayResource wctResource);
     
     
     /**

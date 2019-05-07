@@ -374,7 +374,7 @@ public interface TargetDAO extends BaseDAO {
 	 * @param username the name of the owner to count targets for
 	 * @return the count of targets
 	 */
-	int countTargets(final String username);
+	long countTargets(final String username);
 	
 	/**
 	 * Return a count of all the target groups that are owned by the 
@@ -382,5 +382,5 @@ public interface TargetDAO extends BaseDAO {
 	 * @param username the name of the owner to count target groups for
 	 * @return the count of target groups
 	 */
-	int countTargetGroups(final String username);
+	long countTargetGroups(final String username);
 }

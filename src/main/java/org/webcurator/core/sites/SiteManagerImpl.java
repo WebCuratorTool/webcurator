@@ -308,7 +308,7 @@ public class SiteManagerImpl implements SiteManager {
 	
     
     
-	public int countSites() {
+	public long countSites() {
 		return siteDao.countSites();
 	}
 	
@@ -338,7 +338,7 @@ public class SiteManagerImpl implements SiteManager {
 	 * @param aPermissionOid The permission oid
 	 * @return The number of seeds linked to the permission
 	 */
-	public int countLinkedSeeds(Long aPermissionOid) {
+	public long countLinkedSeeds(Long aPermissionOid) {
 		return siteDao.countLinkedSeeds(aPermissionOid);
 	}
 

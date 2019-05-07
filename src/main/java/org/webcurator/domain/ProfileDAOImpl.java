@@ -172,11 +172,11 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 	 * @param aProfile The profile to count.
 	 * @return The number of targets or groups using that profile.
 	 */
-	public int countProfileUsage(final Profile aProfile) {
-		return (Integer) getHibernateTemplate().execute(
+	public long countProfileUsage(final Profile aProfile) {
+		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {						
-						int targetCount = (Integer) session.createCriteria(AbstractTarget.class)
+						long targetCount = (Long) session.createCriteria(AbstractTarget.class)
 										.setProjection(Projections.rowCount())
 										.createCriteria("profile")
 										.add(Restrictions.eq("oid", aProfile.getOid()))
@@ -202,11 +202,11 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 	 * @param aProfile The profile to count.
 	 * @return The number of active targets using that profile.
 	 */
-	public int countProfileActiveTargets(final Profile aProfile) {
-		return (Integer) getHibernateTemplate().execute(
+	public long countProfileActiveTargets(final Profile aProfile) {
+		return (Long) getHibernateTemplate().execute(
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {						
-						int targetCount = (Integer) session.createCriteria(AbstractTarget.class)
+						long targetCount = (Long) session.createCriteria(AbstractTarget.class)
 										.setProjection(Projections.rowCount())
 										.add(Restrictions.eq("objectType", AbstractTarget.TYPE_TARGET))
 										.add(Restrictions.eq("state", Target.STATE_APPROVED))
