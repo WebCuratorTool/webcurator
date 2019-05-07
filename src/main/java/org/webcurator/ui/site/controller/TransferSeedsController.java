@@ -149,7 +149,7 @@ public class TransferSeedsController extends AbstractCommandController {
 		Pagination results = targetManager.searchPermissions(aCriteria);
 		updateCommand(aCommand, aCriteria);
 
-		int numberOfSeeds = siteManager.countLinkedSeeds(aCommand.getFromPermissionOid());
+		long numberOfSeeds = siteManager.countLinkedSeeds(aCommand.getFromPermissionOid());
 
 		ModelAndView mav = new ModelAndView("permission-search");
 		mav.addObject("page", results);
