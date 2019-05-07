@@ -155,7 +155,7 @@
 					<execution>
 						<phase>prepare-package</phase>
 						<configuration>
-							<!-- The maven plugin is not compatible with the way hibernate files 
+							<!-- The maven plugin is not compatible with the way hibernate files
 								are generated. Perhaps this will change if/when WCT uses JPA -->
 							<target name="generate_sql">
 								<taskdef name="schemaexport" classname="org.hibernate.tool.hbm2ddl.SchemaExportTask" classpathref="maven.plugin.classpath" />
@@ -209,7 +209,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
+				<!--This plugin's configuration is used to store Eclipse m2e settings
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
@@ -311,7 +311,7 @@
 			</dependencies>
 		</profile>
 		<profile>
-			<!-- Note for running Oracle in Jetty you need to include the oracle driver 
+			<!-- Note for running Oracle in Jetty you need to include the oracle driver
 				in the war -->
 			<id>oracle</id>
 			<properties>
