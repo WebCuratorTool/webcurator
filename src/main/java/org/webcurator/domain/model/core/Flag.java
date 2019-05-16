@@ -1,17 +1,27 @@
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
+
+import javax.persistence.*;
 
 /**
  * An <code>Flag</code> represents an arbitrary grouping of <code>TargetInstance</code>s
  * 
  * @author twoods
  *
- * @hibernate.class table="FLAG" lazy="true" 
- * @hibernate.query name="org.webcurator.domain.model.core.Flag.getFlags" query="SELECT f FROM Flag f ORDER BY f_agc_oid, f.name"
- * @hibernate.query name="org.webcurator.domain.model.core.Flag.getFlagsByAgency" query="SELECT f FROM Flag f WHERE f.agency.oid=? ORDER BY f.name"
- * @hibernate.query name="org.webcurator.domain.model.core.Flag.getFlagByOid" query="SELECT f FROM Flag f WHERE f_oid=?"
 */
+// lazy="true"
+@Entity
+@Table(name = "FLAG")
+@NamedQueries({
+        @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlags",
+                query = "SELECT f FROM Flag f ORDER BY f_agc_oid, f.name"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagsByAgency",
+                query = "SELECT f FROM Flag f WHERE f.agency.oid=? ORDER BY f.name"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagByOid",
+                query = "SELECT f FROM Flag f WHERE f_oid=?")
+})
 public class Flag {
 		
 	/** Query key for retrieving all flag objects */
@@ -22,29 +32,40 @@ public class Flag {
     public static final String QRY_GET_FLAGS_BY_AGENCY = "org.webcurator.domain.model.core.Flag.getFlagsByAgency";
 
 	/** unique identifier **/
+    @Id
+    @Column(name="F_OID", nullable =  false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+    @GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+            strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+            parameters = {
+                    @Parameter(name = "table", value = "ID_GENERATOR"),
+                    @Parameter(name = "primary_key_column", value = "IG_TYPE"),
+                    @Parameter(name = "value_column", value = "IG_VALUE"),
+                    @Parameter(name = "primary_key_value", value = "General")
+            })
 	private Long oid;
 	
 	/** The name of the <code>Flag</code> that will be displayed **/
+	@Column(name = "F_NAME", nullable = false)
 	private String name;
 	
 	/** The colour components for the flag **/
+	@Column(name = "F_RGB", nullable = false)
 	private String rgb;
 	
 	/** The complement colour components for the flag (used for a contrasting font colour) **/
+	@Column(name = "F_COMPLEMENT_RGB", nullable = false)
 	private String complementRgb;
 
     /** The agency the <code>Flag</code> belongs to */
+    @ManyToOne
+    @JoinColumn(name = "F_AGC_OID", foreignKey = @ForeignKey(name = "FK_F_AGENCY_OID"), nullable = false)
     private Agency agency;
 	
 	/**
 	 * Get the database OID of the <code>Flag</code>.
 	 * @return the primary key
-     * @hibernate.id column="F_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
-	 */	
+	 */
 	public Long getOid() {
 		return oid;
 	}
@@ -60,7 +81,6 @@ public class Flag {
     /**
      * Gets the name of the <code>Flag</code>.
      * @return Returns the name.
-     * @hibernate.property column="F_NAME" not-null="true" 
      */
     public String getName() {
         return name;
@@ -77,7 +97,6 @@ public class Flag {
     /**
      * Gets the value of the colour components for the <code>Flag</code>.
      * @return Returns the floating point value.
-     * @hibernate.property column="F_RGB" not-null="true" 
      */
     public String getRgb() {
         return rgb;
@@ -94,7 +113,6 @@ public class Flag {
     /**
      * Gets the value of the complement colour components for the <code>Flag</code>.
      * @return Returns the floating point value.
-     * @hibernate.property column="F_COMPLEMENT_RGB" not-null="true" 
      */
     public String getComplementRgb() {
         return complementRgb;
@@ -111,7 +129,6 @@ public class Flag {
     /**
      * gets the Agency to which this <code>Flag</code> belongs. 
      * @return the Agency object
-     * @hibernate.many-to-one not-null="true" class="org.webcurator.domain.model.auth.Agency" column="F_AGC_OID" foreign-key="FK_F_AGENCY_OID"
      */
     public Agency getAgency() {
         return agency;

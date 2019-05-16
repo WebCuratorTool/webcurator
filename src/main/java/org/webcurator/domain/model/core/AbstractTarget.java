@@ -22,26 +22,40 @@ import java.util.List;
 import java.util.Set;
 import java.util.Collections;
 
+import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.core.util.Utils;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.RejReason;
+
+import javax.persistence.*;
 
 /**
  * Base Target object to capture the common behaviour between groups and 
  * targets.
  * 
  * @author bbeaumont
- * @hibernate.class table="ABSTRACT_TARGET" lazy="true"
- * @hibernate.query name="org.webcurator.domain.model.core.AbstractTarget.getAllDTOsByName" query="SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where lower(t.name) like lower(?) ORDER BY UPPER(t.name), t.objectType"
- * @hibernate.query name="org.webcurator.domain.model.core.AbstractTarget.cntAllDTOsByName" query="SELECT count(*) FROM AbstractTarget t where lower(t.name) like lower(?)"
- * @hibernate.query name="org.webcurator.domain.model.core.AbstractTarget.getGroupDTOsByName" query="SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?) ORDER BY UPPER(t.name), t.objectType"
- * @hibernate.query name="org.webcurator.domain.model.core.AbstractTarget.cntGroupDTOsByName" query="SELECT count(*) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?)"
- * @hibernate.query name="org.webcurator.domain.model.core.AbstractTarget.getDTOByOid" query="SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where t.oid=:oid"
- * @hibernate.query name="org.webcurator.domain.model.core.AbstractTarget.getTargetDTOsByProfileOid" query="SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.creationDate, t.profile.oid, t.objectType) FROM AbstractTarget t where t.objectType = 1 and t.profile.oid=:profileoid ORDER BY UPPER(t.name)"
- * @hibernate.query name="org.webcurator.domain.model.core.AbstractTarget.cntTargetDTOsByProfileOid" query="SELECT count(*) FROM AbstractTarget t where t.objectType = 1 and t.profile.oid=:profileoid"
  */
+// lazy="true"
+@Entity
+@Table(name = "ABSTRACT_TARGET")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getAllDTOsByName",
+				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where lower(t.name) like lower(?) ORDER BY UPPER(t.name), t.objectType"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.cntAllDTOsByName",
+				query = "SELECT count(*) FROM AbstractTarget t where lower(t.name) like lower(?)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getGroupDTOsByName",
+				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?) ORDER BY UPPER(t.name), t.objectType"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.cntGroupDTOsByName",
+				query = "SELECT count(*) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getDTOByOid",
+				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where t.oid=:oid"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getTargetDTOsByProfileOid",
+				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.creationDate, t.profile.oid, t.objectType) FROM AbstractTarget t where t.objectType = 1 and t.profile.oid=:profileoid ORDER BY UPPER(t.name)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.cntTargetDTOsByProfileOid",
+				query = "SELECT count(*) FROM AbstractTarget t where t.objectType = 1 and t.profile.oid=:profileoid")
+})
 public abstract class AbstractTarget extends AbstractIdentityObject implements UserOwnable, Annotatable, Overrideable, UserInTrayResource {
 	/** Query identifier for retrieving AbstractTargetDTOs by name */
 	public static final String QUERY_DTO_BY_NAME = "org.webcurator.domain.model.core.AbstractTarget.getAllDTOsByName";
@@ -78,20 +92,40 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	public static final int TYPE_TARGET = 1;
 
     /** the primary key of the Target. */
+	@Id
+	@Column(name="AT_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
     private Long oid;
     /** The targets name. */
+    @Column(name = "AT_NAME", length = 255, unique = true)
     private String name;
     /** the targets description. */
+    @Column(name = "AT_DESC", length = 4000)
     private String description;
     /** The schedules related to the target. */
+	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
+	@JoinColumn(name = "S_ABSTRACT_TARGET_ID")
     private Set<Schedule> schedules = new HashSet<Schedule>();
     /** Owner of the target **/
-    private User owner;    
+    @ManyToOne
+    @JoinColumn(name = "AT_OWNER_ID")
+    private User owner;
     /** Profile Overrides */
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH }) // WAS cascade="save-update"
+    @JoinColumn(name = "AT_PROF_OVERRIDE_OID", foreignKey = @ForeignKey(name = "FK_T_PROF_OVERRIDE_OID"))
     private ProfileOverrides overrides = new ProfileOverrides();
     /** The loaded state of the target **/
     private int originalState = -1;    
     /** The state of the target **/
+    @Column(name = "AT_STATE")
     private int state; 
     /** The list of annotations. */
     private List<Annotation> annotations = new LinkedList<Annotation>();
@@ -106,48 +140,68 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /** Removed Schedules */
     private Set<Schedule> removedSchedules = new HashSet<Schedule>();    
     /** The target's base profile. */
+    @ManyToOne
+    @JoinColumn(name = "T_PROFILE_ID")
     private Profile profile;
     /** The date the Target was created */
+    @Column(name = "AT_CREATION_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
     /** The parents of this group */
-    private Set<GroupMember> parents = new HashSet<GroupMember>(); 
+    @OneToMany // default fetch type is LAZY
+    @JoinColumn(name = "GM_CHILD_ID")
+    private Set<GroupMember> parents = new HashSet<GroupMember>();
     /** Flag to state if the object is "dirty" */
     private boolean dirty = false;    
-     /** 
+    /**
      * Identifies whether this is a target or group without needing to use
      * the instanceof operator, which can be important if the object is not
      * fully initialised by Hibernate.
      */
+    @Column(name = "AT_OBJECT_TYPE")
     protected int objectType;
     /** reference number to use when storing instances to the SIP.*/
+    @Column(name = "AT_REFERENCE", length = 255)
     private String referenceNumber;
     /** A cross-domain information resource description of the target.*/
-    private DublinCore dublinCoreMetaData;    
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "AT_DUBLIN_CORE_OID", foreignKey = @ForeignKey(name = "FK_AT_DUBLIN_CORE_OID"))
+    private DublinCore dublinCoreMetaData;
     /** The Profile Note */
+    @Column(name = "AT_PROFILE_NOTE", length = 255)
     private String profileNote = null;
     
     
     private List<GroupMember> newParents = new LinkedList<GroupMember>();
     private Set<Long> removedParents = new HashSet<Long>();
-    
+
+    @Column(name = "AT_DISPLAY_TARGET")
     private boolean displayTarget = true;
 
 	/** Why this target was rejected */
+    @ManyToOne
+    @JoinColumn(name = "AT_RR_OID", foreignKey = @ForeignKey(name = "FK_AT_RR_OID"))
 	protected RejReason rejReason;
 	
     /** The total number of crawls (<code>TargetInstance</code>s) associated with the Target **/
+    @Column(name = "AT_CRAWLS")
+	@Formula("(SELECT COUNT(*) FROM DB_WCT.TARGET_INSTANCE TI WHERE TI.TI_TARGET_ID=AT_OID)")
     private int crawls = 0;
     
     /** The oid of the <code>TargetInstance</code> denoted as the <code>Target</code>s reference crawl **/
+    @Column(name = "AT_REFERENCE_CRAWL_OID")
     private Long referenceCrawlOid = null;
     
     /** Determines if the any new target instances should be auto-pruned **/
+    @Column(name = "AT_AUTO_PRUNE")
     private boolean autoPrune = false;
     
     /** Determines if a target instance should be denoted as a reference crawl when it is archived **/
+    @Column(name = "AT_AUTO_DENOTE_REFERENCE_CRAWL")
     private boolean autoDenoteReferenceCrawl = false;
     
     /** Any information that should be given to the Archivists **/
+    @Column(name = "AT_REQUEST_TO_ARCHIVISTS", length = 4000)
     private String requestToArchivists;
     
     /** The access zone of the target **/
@@ -165,13 +219,16 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
         	return "";
         }
     }
-    
+
+    @Column(name = "AT_ACCESS_ZONE")
     private int accessZone; 
 
     /** The Display Note */
+    @Column(name = "AT_DISPLAY_NOTE", length = 4000)
     private String displayNote = null;
     
     /** The Display Change Reason */
+    @Column(name = "AT_DISPLAY_CHG_REASON", length = 1000)
     private String displayChangeReason = null;
 
     /**
@@ -192,11 +249,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /**
      * Returns the OID of the AbstractTarget.
      * @return Returns the oid.
-     * @hibernate.id column="AT_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
      */
     public Long getOid() {
         return oid;
@@ -213,7 +265,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /**
      * Returns the description of the AbstractTarget.
      * @return Returns the description.
-     * @hibernate.property column="AT_DESC" length="4000"
      */
     public String getDescription() {
         return description;
@@ -231,7 +282,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /**
      * Returns the name of the AbstractTarget.
      * @return the name of the AbstractTarget.
-     * @hibernate.property column="AT_NAME" length="255" unique="true"
      */
     public String getName() {
         return name;
@@ -374,7 +424,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/**
 	 * Returns the owner of the AbstractTarget.
 	 * @return Returns the owner.
-	 * @hibernate.many-to-one column="AT_OWNER_ID"
 	 */
 	public User getOwner() {
 		return owner;
@@ -399,7 +448,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /**
      * Retrieves the profile overrides of the AbstractTarget.
 	 * @return Returns the overrides.
-	 * @hibernate.many-to-one column="AT_PROF_OVERRIDE_OID" cascade="save-update" class="org.webcurator.domain.model.core.ProfileOverrides" foreign-key="FK_T_PROF_OVERRIDE_OID" 
 	 */
 	public ProfileOverrides getOverrides() {
 		return overrides;
@@ -424,9 +472,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/**
 	 * Gets the schedules of the AbstractTarget.
      * @return Returns the schedules.
-     * @hibernate.set cascade="all-delete-orphan"
-     * @hibernate.collection-key column="S_ABSTRACT_TARGET_ID"
-     * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.Schedule"
      */
     public Set<Schedule> getSchedules() {
         return schedules;
@@ -454,7 +499,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/**
 	 * Returns the state of the AbstractTarget.
 	 * @return Returns the state.
-	 * @hibernate.property column="AT_STATE"
 	 */
 	public int getState() {
 		return state;
@@ -524,7 +568,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/**
 	 * Gets the associated harvest profile for this AbstractTarget.
 	 * @return Returns the harvest profile associated with this AbstractTarget.
-	 * @hibernate.many-to-one column="T_PROFILE_ID"
 	 */
 	public Profile getProfile() {
 		return profile;
@@ -534,10 +577,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	 * Returns the set of groups to which this AbstractTarget belongs.
 	 * @return Returns a Set of GroupMember objects that identify child/parent
 	 * 		   relationships.
-     * @hibernate.set cascade="none"
-     * @hibernate.collection-key column="GM_CHILD_ID"
-     * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.GroupMember"
-     */	
+     */
 	public Set<GroupMember> getParents() {
 		return parents;
 	}
@@ -579,7 +619,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	 * instead of instanceof, which is useful if the object isn't fully 
 	 * initialised by Hibernate.
 	 * @return Either TYPE_TARGET or TYPE_GROUP.
-	 * @hibernate.property column="AT_OBJECT_TYPE"
 	 */
 	public int getObjectType() {
 		return objectType;
@@ -620,8 +659,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/**
 	 * Get the date that the AbstractTarget was created.
 	 * @return Returns the creation date.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="AT_CREATION_DATE" sql-type="TIMESTAMP(9)"   
 	 */
 	public Date getCreationDate() {
 		return creationDate;
@@ -637,7 +674,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 
 	/**
 	 * @return the referenceNumber used for the instances stored in the archive.
-	 * @hibernate.property column="AT_REFERENCE" length="255"
 	 */
 	public String getReferenceNumber() {
 		return referenceNumber;
@@ -653,7 +689,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 
 	/**
 	 * @return Returns the profileNote.
-	 * @hibernate.property column="AT_PROFILE_NOTE" length="255"
 	 */
 	public String getProfileNote() {
 		return profileNote;
@@ -671,7 +706,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 		
 	/**
 	 * @return the dublinCoreMetaData
-	 * @hibernate.many-to-one column="AT_DUBLIN_CORE_OID" cascade="all" class="org.webcurator.domain.model.core.DublinCore" foreign-key="FK_AT_DUBLIN_CORE_OID"
 	 */
 	public DublinCore getDublinCoreMetaData() {
 		return dublinCoreMetaData;
@@ -688,7 +722,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	 * Get the Rejection Reason of this target (if any).
 	 * @return The RejReason object corresponding to the reason specified when a
 	 * target is rejected.
-	 * @hibernate.many-to-one column="AT_RR_OID" foreign-key="FK_AT_RR_OID"
 	 */
 	public RejReason getRejReason() {
 		return rejReason;
@@ -704,7 +737,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 
 	/**
 	 * @return Returns the displayTarget boolean.
-     * @hibernate.property column="AT_DISPLAY_TARGET" 
 	 */
 	public boolean isDisplayTarget() {
 		return displayTarget;
@@ -727,7 +759,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/**
 	 * Returns the access zone of the AbstractTarget.
 	 * @return Returns the access zone.
-	 * @hibernate.property column="AT_ACCESS_ZONE"
 	 */
 	public int getAccessZone() {
 		return accessZone;
@@ -754,7 +785,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	
 	/**
 	 * @return Returns the displayNote.
-	 * @hibernate.property column="AT_DISPLAY_NOTE" length="4000"
 	 */
 	public String getDisplayNote() {
 		return displayNote;
@@ -770,7 +800,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	
 	/**
 	 * @return Returns the displayChangeReason.
-	 * @hibernate.property column="AT_DISPLAY_CHG_REASON" length="1000"
 	 */
 	public String getDisplayChangeReason() {
 		return displayChangeReason;
@@ -795,8 +824,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/**
 	 * Get the number of previous crawls for the <code>Target</code>
 	 * @return The total number of previous crawls
-	 * @hibernate.property column="AT_CRAWLS"
-	 * @hibernate.property formula="(SELECT COUNT(*) FROM DB_WCT.TARGET_INSTANCE TI WHERE TI.TI_TARGET_ID=AT_OID)" type="int"  
 	 */
 	public int getCrawls() {
 		return this.crawls;
@@ -812,7 +839,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	
 	/**
 	 * @return The oid of the <code>TargetInstance</code> that has been denoted as this <code>Target</code>s a reference crawl, null otherwise
-	 * @hibernate.property column="AT_REFERENCE_CRAWL_OID"
 	 */
 	public Long getReferenceCrawlOid() {
 		return this.referenceCrawlOid;
@@ -828,7 +854,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	
 	/**
 	 * @return true if new <code>TargetInstance</code>s should be autopruned, false otherwise
-	 * @hibernate.property column="AT_AUTO_PRUNE"
 	 */
 	public Boolean isAutoPrune() {
 		return this.autoPrune;
@@ -844,7 +869,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	
 	/**
 	 * @return true if new <code>TargetInstance</code>s should be automatically denoted as a reference crawl, false otherwise
-	 * @hibernate.property column="AT_AUTO_DENOTE_REFERENCE_CRAWL"
 	 */
 	public Boolean isAutoDenoteReferenceCrawl() {
 		return this.autoDenoteReferenceCrawl;
@@ -861,7 +885,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /**
      * Returns the descriptive request for the Archivists.
      * @return Returns the request.
-     * @hibernate.property column="AT_REQUEST_TO_ARCHIVISTS" length="4000"
      */
 	public String getRequestToArchivists() {
 		return requestToArchivists;

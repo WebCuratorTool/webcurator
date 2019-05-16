@@ -17,6 +17,7 @@ package org.webcurator.domain.model.core;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.persistence.*;
 
 import org.webcurator.core.profiles.DuplicateNameException;
 import org.webcurator.core.profiles.HeritrixProfile;
@@ -25,17 +26,19 @@ import org.webcurator.core.profiles.HeritrixProfile;
  * Profile override credentials for HTTP BASIC authentication.
  * 
  * @author bbeaumont
- * @hibernate.joined-subclass table="PROFILE_BASIC_CREDENTIALS"
- * @hibernate.joined-subclass-key column="PBC_PC_OID"
  */
+@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
+@Table(name = "PROFILE_BASIC_CREDENTIALS")
+@DiscriminatorColumn(name = "PBC_PC_OID")
 public class ProfileBasicCredentials extends ProfileCredentials {
 	/** The realm to which the credentials apply */
+	@Column(name = "PBC_REALM", length = 255)
 	private String realm = null;
 
 	/**
 	 * Gets the realm the credentials apply to.
 	 * @return Returns the realm.
-	 * @hibernate.property column="PBC_REALM" length="255"
 	 */
 	public String getRealm() {
 		return realm;

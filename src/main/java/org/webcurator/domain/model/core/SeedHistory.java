@@ -1,5 +1,9 @@
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+
 /**
  * Defines a seed that was historically used by the Target Instance. Similar
  * to the 'originalSeeds' collection but not constrained by implementation
@@ -7,16 +11,32 @@ package org.webcurator.domain.model.core;
  * to the application
  * 
  * @author kurwin
- * @hibernate.class table="SEED_HISTORY" lazy="false"
  */
+// lazy="false"
+@Entity
+@Table(name = "SEED_HISTORY")
 public class SeedHistory extends AbstractIdentityObject {
 	/** The unique ID of the seed **/
+	@Id
+	@Column(name="SH_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
 	private Long oid;
 	/** The seed itself **/
+	@Column(name = "SH_SEED", length = 1024)
 	private String seed;
 	/** The seed's target instance**/
+	@Column(name = "SH_TI_OID")
 	private Long targetInstanceOid;
 	/** Sets if the seed is primary or secondary. */
+	@Column(name = "SH_PRIMARY")
 	private boolean primary; 
 	
 	/**
@@ -40,11 +60,6 @@ public class SeedHistory extends AbstractIdentityObject {
     /**
      * Returns the database OID of the seed.
      * @return Returns the oid.
-     * @hibernate.id column="SH_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
      */
     public Long getOid() {
         return oid;
@@ -61,7 +76,6 @@ public class SeedHistory extends AbstractIdentityObject {
 	/**
 	 * Gets the seed URL.
 	 * @return Returns the seed.
-     * @hibernate.property column="SH_SEED" length="1024" 
 	 */
 	public String getSeed() {
 		return seed;
@@ -78,7 +92,6 @@ public class SeedHistory extends AbstractIdentityObject {
 	/**
 	 * Get the Target Instance to which this seed belongs.
 	 * @return Returns the Target Instance Oid.
-     * @hibernate.property column="SH_TI_OID" 
 	 */
 	public Long getTargetInstanceOid() {
 		return targetInstanceOid;
@@ -95,7 +108,6 @@ public class SeedHistory extends AbstractIdentityObject {
 	/**
 	 * Checks if the seed is defined as a primary seed.
 	 * @return true if primary; otherwise false.
-	 * @hibernate.property column="SH_PRIMARY"
 	 */
 	public boolean isPrimary() {
 		return primary;

@@ -1,10 +1,8 @@
 package org.webcurator.domain.model.core;
 
-import java.util.Date;
+import org.hibernate.annotations.GenericGenerator;
 
-import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
-import org.webcurator.core.util.ConverterUtil;
-import org.webcurator.domain.model.auth.Agency;
+import javax.persistence.*;
 
 /**
  * An <code>Indicator</code> represents a metric used to measure the
@@ -12,11 +10,18 @@ import org.webcurator.domain.model.auth.Agency;
  * 
  * @author twoods
  *
- * @hibernate.class table="INDICATOR_REPORT_LINE" lazy="true" 
- * @hibernate.query name="org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLines" query="SELECT irl FROM IndicatorReportLine irl ORDER BY irl.line"
- * @hibernate.query name="org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLinesByIndicator" query="SELECT irl FROM IndicatorReportLine irl WHERE irl_i_oid=? ORDER BY irl.line"
- * @hibernate.query name="org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLineByOid" query="SELECT irl FROM IndicatorReportLine irl WHERE irl_oid=?"
 */
+// lazy="true"
+@Entity
+@Table(name = "INDICATOR_REPORT_LINE")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLines",
+				query = "SELECT irl FROM IndicatorReportLine irl ORDER BY irl.line"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLinesByIndicator",
+				query = "SELECT irl FROM IndicatorReportLine irl WHERE irl_i_oid=? ORDER BY irl.line"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLineByOid",
+				query = "SELECT irl FROM IndicatorReportLine irl WHERE irl_oid=?")
+})
 public class IndicatorReportLine {
 		
 	/** Query key for retrieving all IndicatorReportLine objects */
@@ -27,23 +32,32 @@ public class IndicatorReportLine {
     public static final String QRY_GET_INDICATOR_REPORT_LINE_BY_OID = "org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLineByOid";
 
 	/** unique identifier **/
+	@Id
+	@Column(name="IRL_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
 	private Long oid = null;
 	
 	/** The <code>Indicator</code> on which this <code>IndicatorReportLine</code> is based.**/
+	@ManyToOne
+	@JoinColumn(name = "IRL_I_OID", foreignKey = @ForeignKey(name = "FK_IRL_I_OID"))
 	private Indicator indicator = null;
 	
 	/** The report line (resource name etc) for this <code>IndicatorReportLine</code> **/
+	@Column(name = "IRL_LINE")
 	private String line = null;
 	
 	/**
 	 * Get the database OID of the <code>IndicatorReportLine</code>.
 	 * @return the primary key
-     * @hibernate.id column="IRL_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
-	 */	
+	 */
 	public Long getOid() {
 		return oid;
 	}
@@ -59,7 +73,6 @@ public class IndicatorReportLine {
     /**
      * Gets the <code>Indicator</code> for the associated <code>Indicator</code>.
      * @return Returns the value.
-     * @hibernate.many-to-one column="IRL_I_OID" foreign-key="FK_IRL_I_OID"
      */
     public Indicator getIndicator() {
         return indicator;
@@ -76,7 +89,6 @@ public class IndicatorReportLine {
     /**
      * Gets the report line of the <code>IndicatorReportLine</code>.
      * @return Returns the line value.
-     * @hibernate.property column="IRL_LINE" 
      */
     public String getLine() {
         return line;

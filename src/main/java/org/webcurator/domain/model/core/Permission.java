@@ -23,17 +23,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.AgencyInTrayResource;
 import org.webcurator.core.notification.InTrayResource;
 import org.webcurator.core.util.Utils;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.persistence.*;
+
 /**
  * Represents a Permission.
  * 
- * @hibernate.class table="PERMISSION" lazy="false"
  */
+// lazy="false"
+@Entity
+@Table(name = "PERMISSION")
 public class Permission extends AbstractIdentityObject implements Annotatable, AgencyOwnable, InTrayResource, AgencyInTrayResource {
 	/** Maximum length for the File Reference */
 	public static int MAX_FILE_REF_LENGTH = 255;
@@ -61,49 +66,95 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	
 	
 	/** The database id of the permission. */
+	@Id
+	@Column(name="PE_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
 	private Long oid;
 	/** The agent granting the permission. */
+	@ManyToOne
+	@JoinColumn(name = "PE_AUTH_AGENT_ID")
 	private AuthorisingAgent authorisingAgent;
 	/** The set of UrlPatterns covered by this permission. */
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
+	@JoinTable(name = "PERMISSION_URLPATTERN",
+			joinColumns = { @JoinColumn(name = "PU_URLPATTERN_ID") },
+			inverseJoinColumns = { @JoinColumn(name = "PU_PERMISSION_ID") },
+			foreignKey = @ForeignKey(name = "PU_FK_1"))
 	private Set<UrlPattern> urls;
 	/** The date this permission starts. */
+	@Column(name = "PE_START_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date startDate;
 	/** The date this permission ends. */
+	@Column(name = "PE_END_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date endDate;
 	/** Whether this permission is approved. */
 	//TODO Check what this means.
+	@Column(name = "PE_APPROVED_YN")
 	private boolean approved;
 	/** The status of the permission. One of the STATUS_ constants */
+	@Column(name = "PE_STATUS")
 	private int status;
 	/** Any authorising agency acceptance notes attached to the permission. */
+	@Column(name = "PE_NOTES")
+	@Lob // type="materialized_clob"
 	private String authResponse;
 	/** The access status */
+	@Column(name = "PE_ACCESS_STATUS", length = 255)
 	private String accessStatus;
 	/** The date at which this permission will be open access */
+	@Column(name = "PE_OPEN_ACCESS_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date openAccessDate;
 	/** Whether this permission is publicly available */
+	@Column(name = "PE_AVAILABLE_YN")
 	private boolean availableFlag;
 	/** Any special requirements attached to this permission. */
+	@Column(name = "PE_SPECIAL_REQUIREMENTS", length = 2048)
 	private String specialRequirements;
 	/** The creation date of this permission. */
+	@Column(name = "PE_CREATION_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationDate;
 	/** The copyright URL to use during the access component. */
+	@Column(name = "PE_COPYRIGHT_URL", length = 2048)
 	private String copyrightUrl;
 	/** The copyright statement to display in the access system. */
+	@Column(name = "PE_COPYRIGHT_STATEMENT", length = 2048)
 	private String copyrightStatement;
 	/** The date that a permission requested was sent to the authorising agent. */
+	@Column(name = "PE_PERMISSION_REQUESTED_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date permissionSentDate;
 	/** The date that permission was granted/refused. */
+	@Column(name = "PE_PERMISSION_GRANTED_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date permissionGrantedDate;
 	/** The site that this permission belongs to. */
+	@ManyToOne
+	@JoinColumn(name = "PE_SITE_ID", foreignKey = @ForeignKey(name = "FK_PE_SITE_ID"))
 	private Site site;
 	/** Whether the permission is marked as a quick pick. */
+	@Column(name = "PE_QUICK_PICK")
 	private boolean quickPick;
 	/** Quick Pick Display Name */
+	@Column(name = "PE_DISPLAY_NAME", length = 32)
 	private String displayName;
 	/** The agency that owns this permission. */
+	@ManyToOne
+	@JoinColumn(name = "PE_OWNING_AGENCY_ID")
 	private Agency owningAgency;
 	/** A file reference */
+	@Column(name = "PE_FILE_REFERENCE", length = 255)
 	private String fileReference;
 	/** A dirty flag to track if this permission has been updated. This is 
 	 * managed by the SiteController, not self-managed. */
@@ -117,6 +168,9 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/** Flag to determine if a "Seek Permission" task should be created. */
 	private boolean createSeekPermissionTask = false;
 	/** List of excluded URLs */
+	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
+	@JoinColumn(name = "PEX_PERMISSION_OID")
+	// TODO @hibernate.collection-index column="PEX_INDEX"
 	private List<PermissionExclusion> exclusions = new LinkedList<PermissionExclusion>();
 	
 
@@ -142,11 +196,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Get the database OID of this object.
 	 * @return Returns the oid.
-     * @hibernate.id column="PE_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General"  
 	 */
 	public Long getOid() {
 		return oid;
@@ -164,7 +213,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Get the string that describes the general access status for this permission.
 	 * @return Returns the accessStatus.
-     * @hibernate.property column="PE_ACCESS_STATUS" length="255"
 	 */
 	public String getAccessStatus() {
 		return accessStatus;
@@ -180,7 +228,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Returns whether this permission is approved.
 	 * @return true if approved; otherwise false.
-     * @hibernate.property column="PE_APPROVED_YN"  
 	 */
 	public boolean isApproved() {
 		return approved;
@@ -197,7 +244,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Returns true if the site is available.
 	 * @return true if available; otherwise false.
-     * @hibernate.property column="PE_AVAILABLE_YN" 
 	 */
 	public boolean isAvailableFlag() {
 		return availableFlag;
@@ -215,7 +261,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	 * Retrieves the copyright statement that should be used in the access
 	 * layer.
 	 * @return Returns the copyrightStatement.
-     * @hibernate.property column="PE_COPYRIGHT_STATEMENT" length="2048" 
 	 */
 	public String getCopyrightStatement() {
 		return copyrightStatement;
@@ -233,7 +278,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	 * Returns the URL that the access layer should point to for the full
 	 * copyright statement.
 	 * @return Returns the copyrightUrl.
-     * @hibernate.property column="PE_COPYRIGHT_URL" length="2048" 
 	 */
 	public String getCopyrightUrl() {
 		return copyrightUrl;
@@ -251,8 +295,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Gets the creation date of this permission record.
 	 * @return Returns the creationDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="PE_CREATION_DATE" sql-type="TIMESTAMP(9)"   
 	 */
 	public Date getCreationDate() {
 		return creationDate;
@@ -268,8 +310,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Return the date that the permission ends.
 	 * @return Returns the endDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="PE_END_DATE" sql-type="TIMESTAMP(9)"  
 	 */
 	public Date getEndDate() {
 		return endDate;
@@ -308,7 +348,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Returns the authorising agency's response notes associated with approving the permission.
 	 * @return Returns the authResponse.
-     * @hibernate.property column="PE_NOTES" type="materialized_clob"
 	 */
 	public String getAuthResponse() {
 		return authResponse;
@@ -324,8 +363,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Get the date when the permission access becomes open.
 	 * @return Returns the openAccessDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="PE_OPEN_ACCESS_DATE" sql-type="TIMESTAMP(9)"  
      */
 	public Date getOpenAccessDate() {
 		return openAccessDate;
@@ -340,8 +377,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Get the date the permission was granted.
 	 * @return Returns the permissionGrantedDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="PE_PERMISSION_GRANTED_DATE" sql-type="TIMESTAMP(9)"  
 	 */
 	public Date getPermissionGrantedDate() {
 		return permissionGrantedDate;
@@ -358,8 +393,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Return the date the permission was sent.
 	 * @return Returns the permissionSentDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="PE_PERMISSION_REQUESTED_DATE" sql-type="TIMESTAMP(9)"  
 	 */
 	public Date getPermissionSentDate() {
 		return permissionSentDate;
@@ -374,7 +407,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Get the free-text special requirements associated with the permission.
 	 * @return Returns the specialRequirements.
-     * @hibernate.property column="PE_SPECIAL_REQUIREMENTS" length="2048" 
 	 */
 	public String getSpecialRequirements() {
 		return specialRequirements;
@@ -400,8 +432,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Return the state date of the permission.
 	 * @return Returns the startDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="PE_START_DATE" sql-type="TIMESTAMP(9)" 
 	 */
 	public Date getStartDate() {
 		return startDate;
@@ -417,7 +447,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Get the status of the permission.
 	 * @return Returns the status.
-     * @hibernate.property column="PE_STATUS"  
 	 */
 	public int getStatus() {
 		return status;
@@ -460,7 +489,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	 * Get the authorising agent that has approved (or is to approve) this 
 	 * permission.
 	 * @return Returns the authorisingAgent.
-	 * @hibernate.many-to-one column="PE_AUTH_AGENT_ID" 
 	 */
 	public AuthorisingAgent getAuthorisingAgent() {
 		return authorisingAgent;
@@ -478,10 +506,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Return the Set of URL Patterns that this permission applies to.
 	 * @return The Set of URL Patterns that this permission applies to.
-	 * 
-	 * @hibernate.set table="PERMISSION_URLPATTERN" cascade="save-update" inverse="true"
-     * @hibernate.collection-key column="PU_PERMISSION_ID"
-     * @hibernate.collection-many-to-many class="org.webcurator.domain.model.core.UrlPattern" column="PU_URLPATTERN_ID" foreign-key="PU_FK_1"
 	 */
 	public Set<UrlPattern> getUrls() {
 		return urls;
@@ -498,7 +522,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Gets the site that owns this permission.
      * @return Returns the site.
-     * @hibernate.many-to-one column="PE_SITE_ID" foreign-key="FK_PE_SITE_ID"
      */
     public Site getSite() {
         return site;
@@ -656,7 +679,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	 * to a new seed.
 	 * 
 	 * @return true if this is a quick pick permission; otherwise false.
-	 * @hibernate.property column="PE_QUICK_PICK"
 	 */
 	public boolean isQuickPick() {
 		return quickPick;
@@ -676,7 +698,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	 * Returns the display name of the permission. The display name is used
 	 * in the quick-pick drop-down for associating seeds with permissions.
 	 * @return Returns the displayName.
-	 * @hibernate.property column="PE_DISPLAY_NAME" length="32"
 	 */
 	public String getDisplayName() {
 		return displayName;
@@ -695,7 +716,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/**
 	 * Returns the agency to which this permission belongs.
 	 * @return Returns the owner.
-	 * @hibernate.many-to-one column="PE_OWNING_AGENCY_ID"
 	 */
 	public Agency getOwningAgency() {
 		return owningAgency;
@@ -772,10 +792,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 
 	/**
 	 * @return Returns the exclusions.
-	 * @hibernate.list cascade="all-delete-orphan" lazy="false"
-	 * @hibernate.collection-key column="PEX_PERMISSION_OID" 
-	 * @hibernate.collection-index column="PEX_INDEX"
-	 * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.PermissionExclusion" 
 	 */
 	public List<PermissionExclusion> getExclusions() {
 		return exclusions;
@@ -792,7 +808,6 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 
 	/**
 	 * @return Returns the fileReference.
-     * @hibernate.property column="PE_FILE_REFERENCE" length="255"
 	 */
 	public String getFileReference() {
 		return fileReference;

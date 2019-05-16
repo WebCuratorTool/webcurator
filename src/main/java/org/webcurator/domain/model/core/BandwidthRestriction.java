@@ -20,15 +20,24 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+
+import javax.persistence.*;
 
 /**
  * The hibernate object for persisting bandwidth restrictions for the WCT.
  * @author nwaight
- * @hibernate.class table="BANDWIDTH_RESTRICTIONS" lazy="false"
- * @hibernate.query name="org.webcurator.domain.model.core.BandwidthRestriction.all" query="from org.webcurator.domain.model.core.BandwidthRestriction br order by br.dayOfWeek, br.startTime"
- * @hibernate.query name="org.webcurator.domain.model.core.BandwidthRestriction.dayTime" query="from org.webcurator.domain.model.core.BandwidthRestriction br where br.dayOfWeek = :dow and br.startTime <= :start and br.endTime > :end"
  */
+// lazy="false"
+@Entity
+@Table(name = "BANDWIDTH_RESTRICTIONS")
+@NamedQueries({
+        @NamedQuery(name = "org.webcurator.domain.model.core.BandwidthRestriction.all",
+                query = "from org.webcurator.domain.model.core.BandwidthRestriction br order by br.dayOfWeek, br.startTime"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.BandwidthRestriction.dayTime",
+                query = "from org.webcurator.domain.model.core.BandwidthRestriction br where br.dayOfWeek = :dow and br.startTime <= :start and br.endTime > :end")
+})
 public class BandwidthRestriction {
     /** name of the all bandwidth restrictions query. */
     public static final String QUERY_ALL = "org.webcurator.domain.model.core.BandwidthRestriction.all";
@@ -66,25 +75,38 @@ public class BandwidthRestriction {
     public static final String DEFAULT_DATE = "09/11/1972 ";
     
     /** The primary key. */
+    @Id
+    @Column(name="BR_OID", nullable =  false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+    @GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+            strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+            parameters = {
+                    @Parameter(name = "table", value = "ID_GENERATOR"),
+                    @Parameter(name = "primary_key_column", value = "IG_TYPE"),
+                    @Parameter(name = "value_column", value = "IG_VALUE"),
+                    @Parameter(name = "primary_key_value", value = "Bandwidth")
+            })
     private Long oid;
     /** the day of the week. */
+    @Column(name = "BR_DAY", length = 9, nullable = false)
     private String dayOfWeek;
-    /** the start time of restriction. */ 
+    /** the start time of restriction. */
+    @Column(name = "BR_START_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
     /** the end time of  the restriction. */
+    @Column(name = "BR_END_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
     /** the bandwidth. */
+    @Column(name = "BR_BANDWIDTH", nullable = false)
     private long bandwidth;
+    @Column(name = "BR_OPTIMIZATION_ALLOWED")
     private boolean allowOptimize = true;
     
     /**
      * Get the OID of the object.
      * @return Returns the oid.
-     * @hibernate.id column="BR_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="Bandwidth"
      */
     public Long getOid() {
         return oid;
@@ -101,7 +123,6 @@ public class BandwidthRestriction {
     /**
      * Get the maximum bandwdith for this restriciton.
      * @return Returns the bandwidth.
-     * @hibernate.property column="BR_BANDWIDTH" not-null="true"
      */
     public long getBandwidth() {
         return bandwidth;
@@ -118,7 +139,6 @@ public class BandwidthRestriction {
      * Get the day of the week that this bandwidth restrcition applies.
      * See DOW_xxx contants.
      * @return Returns the dayOfWeek.
-     * @hibernate.property column="BR_DAY" not-null="true" length="9"
      */
     public String getDayOfWeek() {
         return dayOfWeek;
@@ -135,7 +155,6 @@ public class BandwidthRestriction {
     /**
      * Get the end time of the bandwidth restrction.
      * @return Returns the endTime.
-     * @hibernate.property column="BR_END_TIME" type="timestamp" not-null="true"
      */
     public Date getEndTime() {
         return endTime;
@@ -181,7 +200,6 @@ public class BandwidthRestriction {
     /**
      * Get the start time for this bandwidth restriction.
      * @return Returns the startTime.
-     * @hibernate.property column="BR_START_TIME" type="timestamp" not-null="true"
      */
     public Date getStartTime() {
         return startTime;
@@ -253,7 +271,6 @@ public class BandwidthRestriction {
      * Flag to indicate whether harvest optimization is permitted during this bandwidth
      * restriction period
      * @return true if harvest optimization is allowed, false otherwise.
-     * @hibernate.property column="BR_OPTIMIZATION_ALLOWED"
      */
 	public boolean isAllowOptimize() {
 		return allowOptimize;

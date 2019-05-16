@@ -5,9 +5,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.util.ConverterUtil;
 import org.webcurator.domain.model.auth.Agency;
+
+import javax.persistence.*;
 
 /**
  * An <code>Indicator</code> represents a metric used to measure the
@@ -15,11 +18,18 @@ import org.webcurator.domain.model.auth.Agency;
  * 
  * @author twoods
  *
- * @hibernate.class table="INDICATOR" lazy="true" 
- * @hibernate.query name="org.webcurator.domain.model.core.Indicator.getIndicators" query="SELECT i FROM Indicator i ORDER BY i_agc_oid, i.name"
- * @hibernate.query name="org.webcurator.domain.model.core.Indicator.getIndicatorsByTargetInstance" query="SELECT i FROM Indicator i WHERE i_ti_oid=? ORDER BY i.name"
- * @hibernate.query name="org.webcurator.domain.model.core.Indicator.getIndicatorByOid" query="SELECT i FROM Indicator i WHERE i_oid=?"
 */
+// lazy="true"
+@Entity
+@Table(name = "INDICATOR")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.core.Indicator.getIndicators",
+				query = "SELECT i FROM Indicator i ORDER BY i_agc_oid, i.name"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.Indicator.getIndicatorsByTargetInstance",
+				query = "SELECT i FROM Indicator i WHERE i_ti_oid=? ORDER BY i.name"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.Indicator.getIndicatorByOid",
+				query = "SELECT i FROM Indicator i WHERE i_oid=?")
+})
 public class Indicator {
 		
 	/** Query key for retrieving all reason objects */
@@ -30,71 +40,97 @@ public class Indicator {
     public static final String QRY_GET_INDICATOR_BY_OID = "org.webcurator.domain.model.core.Indicator.getIndicatorByOid";
 
 	/** unique identifier **/
+	@Id
+	@Column(name="I_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
 	private Long oid;
 	
 	/** The <code>Indicator</code> on which this <code>Indicator</code> is based.**/
+	@ManyToOne
+	@JoinColumn(name = "I_IC_OID", foreignKey = @ForeignKey(name = "FK_I_IC_OID"), nullable = false)
 	private IndicatorCriteria indicatorCriteria;
 	
 	/** The <code>TargetInstance</code> oid associated with this <code>Indicator</code> */
+	@Column(name = "I_TI_OID")
 	private Long targetInstanceOid;
 	
 	/** The name of the <code>Indicator</code> that will be displayed **/
+	@Column(name = "I_NAME", nullable = false)
 	private String name;
 	
 	/** The floating point value calculated for this <code>Indicator</code> by the rules engine **/
+	@Column(name = "I_FLOAT_VALUE", nullable = false)
 	private Float floatValue;
 	
 	/** The upper limit set for this <code>Indicator</code> as a percentage (eg: +10%) **/
+	@Column(name = "I_UPPER_LIMIT_PERCENTAGE")
 	private Float upperLimitPercentage;
 
 	/** The lower limit set for this <code>Indicator</code> as a percentage (eg: -10%) **/
+	@Column(name = "I_LOWER_LIMIT_PERCENTAGE")
 	private Float lowerLimitPercentage;
 	
 	/** The upper limit set for this <code>Indicator</code> as a floating point number (some <code>Indicators</code> do not have associated percentage limits) **/
+	@Column(name = "I_UPPER_LIMIT")
 	private Float upperLimit;
 
 	/** The lower limit set for this <code>Indicator</code> as a floating point number (some <code>Indicators</code> do not have associated percentage limits) **/
+	@Column(name = "I_LOWER_LIMIT")
 	private Float lowerLimit;
 	
 	/** The advice issued for this <code>Indicator</code>
 	 * based on the supporting facts established by the rules engine.
 	**/
+	@Column(name = "I_ADVICE")
 	private String advice = null;
 	
 	/**
 	 * The unit of measurement used for the <code>Indicator</code>.
 	 */
+	@Column(name = "I_UNIT", nullable = false)
 	private String unit = null;
 	
 	/**
 	 * Display the delta between the reference crawl and the <code>TargetInstance</code> in the UI
 	 */
+	@Column(name = "I_SHOW_DELTA", nullable = false)
 	private Boolean showDelta = false;
 	
 	/**
 	 * The advice justification for this <code>Indicator</code>
 	 * based on the supporting facts established by the rules engine.
 	 */
+	@Column(name = "I_JUSTIFICATION")
 	private String justification = null;
-	
+
     /** The agency the <code>Indicator</code> belongs to */
+    @ManyToOne
+    @JoinColumn(name = "I_AGC_OID", foreignKey = @ForeignKey(name = "FK_I_AGENCY_OID"), nullable = false)
     private Agency agency;
     
     /** The date and time on which this <code>Indicator</code> was created or updated **/
+	@Column(name = "I_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
     private Date dateTime = null;
     
     /** The report lines that are generated for this <code>Indicator</code>s report **/
+	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
+	@JoinColumn(name = "IRL_I_OID")
+	// TODO @hibernate.collection-index column="IRL_INDEX"
 	public List<IndicatorReportLine> indicatorReportLines = new LinkedList<IndicatorReportLine>();
     
 	/**
 	 * Get the database OID of the <code>Indicator</code>.
 	 * @return the primary key
-     * @hibernate.id column="I_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
-	 */	
+	 */
 	public Long getOid() {
 		return oid;
 	}
@@ -110,7 +146,6 @@ public class Indicator {
     /**
      * Get the <code>IndicatorCriteria</code> that this <code>Indicator</code> is associated with.
      * @return Returns the <code>IndicatorCriteria</code>.
-     * @hibernate.many-to-one not-null="true" column="I_IC_OID" foreign-key="FK_I_IC_OID"
       */
     public IndicatorCriteria getIndicatorCriteria() {
         return indicatorCriteria;
@@ -128,7 +163,6 @@ public class Indicator {
     /**
      * Gets the name of the <code>Indicator</code>.
      * @return Returns the name.
-     * @hibernate.property column="I_NAME" not-null="true" 
      */
     public String getName() {
         return name;
@@ -137,7 +171,6 @@ public class Indicator {
     /**
      * Get the <code>TargetInstance</code> oid that this <code>Indicator</code> is associated with.
      * @return Returns the <code>TargetInstance</code>.
-     * @hibernate.property column="I_TI_OID" 
      */
     public Long getTargetInstanceOid() {
         return targetInstanceOid;
@@ -162,7 +195,6 @@ public class Indicator {
     /**
      * Gets the value of the <code>Indicator</code>.
      * @return Returns the floating point value.
-     * @hibernate.property column="I_FLOAT_VALUE" not-null="true" 
      */
     public Float getFloatValue() {
         return floatValue;
@@ -179,7 +211,6 @@ public class Indicator {
     /**
      * Gets the upper limit percentage value of the <code>Indicator</code>.
      * @return Returns the upper limit percentage value.
-     * @hibernate.property column="I_UPPER_LIMIT_PERCENTAGE"
      */
     public Float getUpperLimitPercentage() {
         return upperLimitPercentage;
@@ -196,7 +227,6 @@ public class Indicator {
     /**
      * Gets the lower limit percentage value of the <code>Indicator</code>.
      * @return Returns the lower limit percentage value.
-     * @hibernate.property column="I_LOWER_LIMIT_PERCENTAGE" 
      */
     public Float getLowerLimitPercentage() {
         return lowerLimitPercentage;
@@ -213,7 +243,6 @@ public class Indicator {
     /**
      * Gets the upper limit value of the <code>Indicator</code>.
      * @return Returns the upper limit value.
-     * @hibernate.property column="I_UPPER_LIMIT"
      */
     public Float getUpperLimit() {
         return upperLimit;
@@ -230,7 +259,6 @@ public class Indicator {
     /**
      * Gets the lower limit value of the <code>Indicator</code>.
      * @return Returns the lower limit value.
-     * @hibernate.property column="I_LOWER_LIMIT" 
      */
     public Float getLowerLimit() {
         return lowerLimit;
@@ -246,7 +274,6 @@ public class Indicator {
 
 	/**
 	 * Fetches the advice set by the QA recommendation service
-	 * @hibernate.property column="I_ADVICE" 
 	 * @return the advised action
 	 */
 	public String getAdvice() {
@@ -263,7 +290,6 @@ public class Indicator {
 	
 	/**
 	 * Fetches the justification set by the QA recommendation service
-     * @hibernate.property column="I_JUSTIFICATION"
 	 * @return the rationale for the advice
 	 */
 	public String getJustification() {
@@ -281,7 +307,6 @@ public class Indicator {
     /**
      * gets the Agency to which this <code>Indicator</code> belongs. 
      * @return the Agency object
-     * @hibernate.many-to-one not-null="true" class="org.webcurator.domain.model.auth.Agency" column="I_AGC_OID" foreign-key="FK_I_AGENCY_OID"
      */
     public Agency getAgency() {
         return agency;
@@ -297,7 +322,6 @@ public class Indicator {
     
     /**
      * fetches the <code>Indicator</code>s unit of measurement
-     * @hibernate.property column="I_UNIT" not-null="true"
      * @return the unit of measurement (eg: integer, millisecond, byte)
      */
     public String getUnit() {
@@ -313,7 +337,6 @@ public class Indicator {
     
     /**
      * fetches the <code>Indicator</code>s delta visibility
-     * @hibernate.property column="I_SHOW_DELTA" not-null="true"
      * @return true if the delta for the <code>Indicator</code> should be displayed in the UI, false otherwise
      */
     public Boolean getShowDelta() {
@@ -330,8 +353,6 @@ public class Indicator {
 	/**
 	 * Get time that the <code>Indicator<code> was generated 
 	 * @return Date created
-	 * @hibernate.property type="timestamp"
-     * @hibernate.column name="I_DATE" not-null="true" sql-type="TIMESTAMP(9)"
 	 */
 	public Date getDateTime() {
 		return dateTime;
@@ -347,11 +368,7 @@ public class Indicator {
     
 	/**
 	 * Fetch the <code>IndicatorReportLine</code>s for this <code>Indicator</code> 
-	 * @hibernate.list cascade="all-delete-orphan" lazy="true"
-	 * @hibernate.collection-key column="IRL_I_OID"
-	 * @hibernate.collection-index column="IRL_INDEX"
-	 * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.IndicatorReportLine"
-	 * @return A <code>List</code> of <code>IndicatorReportLine</code>s for the specified <code>Indicator</code> 
+	 * @return A <code>List</code> of <code>IndicatorReportLine</code>s for the specified <code>Indicator</code>
 	 */
 	public List<IndicatorReportLine> getIndicatorReportLines() {
 		return indicatorReportLines;

@@ -62,55 +62,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<!-- This plugin should eventually be replaced by Hibernate or JPA annotations -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>xdoclet-maven-plugin</artifactId>
-				<version>1.0</version>
-				<dependencies>
-					<dependency>
-						<groupId>xdoclet</groupId>
-						<artifactId>xdoclet</artifactId>
-						<version>1.2.3-updated</version>
-					</dependency>
-					<dependency>
-						<groupId>xdoclet</groupId>
-						<artifactId>xjavadoc</artifactId>
-						<version>1.5-snapshot050611</version>
-					</dependency>
-					<dependency>
-						<groupId>xdoclet</groupId>
-						<artifactId>xdoclet-hibernate-module</artifactId>
-						<version>1.2.3</version>
-					</dependency>
-					<dependency>
-						<groupId>dom4j</groupId>
-						<artifactId>dom4j</artifactId>
-						<version>1.6.1</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>xdoclet</goal>
-						</goals>
-						<configuration>
-							<tasks>
-								<hibernatedoclet destdir="${project.build.directory}/classes" mergedir="${project.build.directory}/merge" force="true" verbose="true">
-									<fileset dir="${project.build.sourceDirectory}">
-										<include name="org/webcurator/domain/model/**/*.java" />
-										<include name="org/webcurator/core/permissionmapping/Mapping.java" />
-										<include name="org/webcurator/core/permissionmapping/MappingView.java" />
-									</fileset>
-									<hibernate version="3.0" />
-								</hibernatedoclet>
-
-							</tasks>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.6</version>
 				<executions>
@@ -147,64 +98,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<phase>prepare-package</phase>
-						<configuration>
-							<!-- The maven plugin is not compatible with the way hibernate files
-								are generated. Perhaps this will change if/when WCT uses JPA -->
-							<target name="generate_sql">
-								<taskdef name="schemaexport" classname="org.hibernate.tool.hbm2ddl.SchemaExportTask" classpathref="maven.plugin.classpath" />
-
-								<schemaexport properties="build/hib_mysql.properties" quiet="no" text="yes" drop="no" delimiter=";" output="target/wct-schema-mysql.sql">
-									<fileset dir="${project.build.directory}/classes">
-										<include name="**/*.hbm.xml" />
-									</fileset>
-								</schemaexport>
-								<replace file="target/wct-schema-mysql.sql" token="TIMESTAMP(9)," value="TIMESTAMP(9) NULL," />
-
-								<schemaexport properties="build/hib_postgres.properties" quiet="no" text="yes" drop="no" delimiter=";" output="target/wct-schema-postgres.sql">
-									<fileset dir="${project.build.directory}/classes">
-										<include name="**/*.hbm.xml" />
-									</fileset>
-								</schemaexport>
-								<replace file="target/wct-schema-postgres.sql" token="TIMESTAMP(9)," value="TIMESTAMP(9) NULL," />
-
-								<schemaexport properties="build/hib_oracle.properties" quiet="no" text="yes" drop="no" delimiter=";" output="target/wct-schema-oracle.sql">
-									<fileset dir="${project.build.directory}/classes">
-										<include name="**/*.hbm.xml" />
-									</fileset>
-								</schemaexport>
-								<replace file="target/wct-schema-oracle.sql" token="TIMESTAMP(9)," value="TIMESTAMP(9) NULL," />
-
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.hibernate</groupId>
-						<artifactId>hibernate-core</artifactId>
-						<version>3.5.6-Final</version>
-					</dependency>
-					<dependency>
-						<groupId>javax.transaction</groupId>
-						<artifactId>jta</artifactId>
-						<version>1.1</version>
-					</dependency>
-					<dependency>
-						<groupId>commons-collections</groupId>
-						<artifactId>commons-collections</artifactId>
-						<version>3.2.2</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 		</plugins>
 		<pluginManagement>
@@ -464,22 +357,22 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>3.5.6-Final</version>
+			<version>3.6.10.Final</version>
 			<scope>compile</scope>
 		</dependency>
 		<!-- Hibernate's second-level cache -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
-			<version>3.5.6-Final</version>
+			<version>3.6.10.Final</version>
 		</dependency>
 		<!-- Hibernate's ConnectionProvider connection pool -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-c3p0</artifactId>
-			<version>3.5.6-Final</version>
+			<version>3.6.10.Final</version>
 		</dependency>
-		<!-- hibernate-core 3.5.6-Final brings in 2.7.6, which is missing getLine() -->
+		<!-- hibernate-core 3.6.10.Final brings in 2.7.6, which is missing getLine() -->
 		<dependency>
 			<groupId>antlr</groupId>
 			<artifactId>antlr</artifactId>

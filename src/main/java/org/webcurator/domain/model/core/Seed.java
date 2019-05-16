@@ -15,6 +15,9 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,18 +28,40 @@ import java.util.Set;
  * Defines a seed that is within the Target.
  * 
  * @author bbeaumont
- * @hibernate.class table="SEED" lazy="false"
  */
+// lazy="false"
+@Entity
+@Table(name = "SEED")
 public class Seed extends AbstractIdentityObject {
 	/** The unique ID of the seed **/
+	@Id
+	@Column(name="S_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
 	private Long oid;
 	/** The seed itself **/
+	@Column(name = "S_SEED", length = 1024)
 	private String seed;
 	/** The seed's target **/
+	@ManyToOne
+	@JoinColumn(name = "S_TARGET_ID", foreignKey = @ForeignKey(name = "FK_SEED_TARGET_ID"))
 	private Target target;
 	/** The set of related permissions */
+	@ManyToMany
+	@JoinTable(name = "SEED_PERMISSION",
+			joinColumns = { @JoinColumn(name = "SP_PERMISSION_ID") },
+			inverseJoinColumns = { @JoinColumn(name = "SP_SEED_ID") },
+			foreignKey = @ForeignKey(name = "FK_SP_PERMISSION_ID"))
 	private Set<Permission> permissions = new HashSet<Permission>();
 	/** Sets if the seed is primary or secondary. */
+	@Column(name = "S_PRIMARY")
 	private boolean primary; 
 	
 	/**
@@ -50,11 +75,6 @@ public class Seed extends AbstractIdentityObject {
     /**
      * Returns the database OID of the seed.
      * @return Returns the oid.
-     * @hibernate.id column="S_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
      */
     public Long getOid() {
         return oid;
@@ -71,7 +91,6 @@ public class Seed extends AbstractIdentityObject {
 	/**
 	 * Gets the seed URL.
 	 * @return Returns the seed.
-     * @hibernate.property column="S_SEED" length="1024" 
 	 */
 	public String getSeed() {
 		return seed;
@@ -88,7 +107,6 @@ public class Seed extends AbstractIdentityObject {
 	/**
 	 * Get the Target to which this seed belongs.
 	 * @return Returns the target.
-	 * @hibernate.many-to-one column="S_TARGET_ID" foreign-key="FK_SEED_TARGET_ID" 
 	 */
 	public Target getTarget() {
 		return target;
@@ -104,11 +122,6 @@ public class Seed extends AbstractIdentityObject {
 	
 	/**
 	 * Get the set of permissions associated with this seed.
-	 * 
-	 * @return Returns the permissions.
-	 * @hibernate.set table="SEED_PERMISSION"
-     * @hibernate.collection-key column="SP_SEED_ID"
-     * @hibernate.collection-many-to-many class="org.webcurator.domain.model.core.Permission" column="SP_PERMISSION_ID" foreign-key="FK_SP_PERMISSION_ID"
 	 */
 	public Set<Permission> getPermissions() {
 		return permissions;
@@ -180,7 +193,6 @@ public class Seed extends AbstractIdentityObject {
 	/**
 	 * Checks if the seed is defined as a primary seed.
 	 * @return true if primary; otherwise false.
-	 * @hibernate.property column="S_PRIMARY"
 	 */
 	public boolean isPrimary() {
 		return primary;

@@ -19,10 +19,13 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Set;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.quartz.CronExpression;
 import org.webcurator.core.util.DateUtils;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
+
+import javax.persistence.*;
 
 /**
  * A schedule determines how often a Target or TargetGroup will be harvested.
@@ -34,8 +37,10 @@ import org.webcurator.domain.model.auth.User;
  * @see org.webcurator.domain.model.core.SchedulePattern
  * 
  * @author Brett Beaumont
- * @hibernate.class table="SCHEDULE" lazy="false"
  */
+// lazy="false"
+@Entity
+@Table(name = "SCHEDULE")
 public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	
 	/** Constant for a custom schedule */
@@ -50,24 +55,52 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	public static final int TYPE_ANNUALLY = -7;
 	
     /** The primary key. */
-    private Long oid;
+	@Id
+	@Column(name="S_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
+	private Long oid;
     /** The start date and time of the schedule. */
-    private Date startDate;
+    @Column(name = "S_START", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+	private Date startDate;
     /** the end date of the schedule. */
+    @Column(name = "S_END", columnDefinition = "TIMESTAMP(9)")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
     /** The pattern for deciding how often to run the schedule. */
+    @Column(name = "S_CRON", length = 255, nullable = false)
     private String cronPattern;
     /** the target the schedule is related to. */
+    @ManyToOne
+    @JoinColumn(name = "S_TARGET_ID", foreignKey = @ForeignKey(name = "FK_S_TARGET_ID"))
     private AbstractTarget target;
     /** Set of related target instances */
+    // cascade="save-update"
+	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
+	@JoinColumn(name = "TI_SCHEDULE_ID")
     private Set<TargetInstance> targetInstances;
     /** Type Identifier for quick schedules. */
+    @Column(name = "S_TYPE", nullable = false)
     private int scheduleType = CUSTOM_SCHEDULE; 
     /** The owner of the schedule */
+	@ManyToOne
+	@JoinColumn(name = "S_OWNER_OID", foreignKey = @ForeignKey(name = "FK_S_OWNER_OID"))
     private User owner;
     /** The first date after the currently assigned period on which this schedule should run */
+	@Column(name = "S_NEXT_SCHEDULE_TIME", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
     private Date nextScheduleAfterPeriod;
     /**  */
+	@Column(name = "S_LAST_PROCESSED_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
     private Date lastProcessedDate;
     /** The first date after the currently assigned period on which this schedule should run */
     private boolean savedInThisSession = false;
@@ -81,11 +114,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     /**
      * Gets the database OID of the schedule.
      * @return Returns the oid.
-     * @hibernate.id column="S_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
      */
     public Long getOid() {
         return oid;
@@ -102,7 +130,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     /**
      * Gets the Cron Pattern string.
      * @return Returns the cronPattern.
-     * @hibernate.property column="S_CRON" length="255" not-null="true"
      */
     public String getCronPattern() {
         return cronPattern;
@@ -129,8 +156,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     /**
      * Returns the date at which scheduling will start.
      * @return Returns the start date.
-     * @hibernate.property type="timestamp" 
-     * @hibernate.column name="S_START" not-null="true" sql-type="TIMESTAMP(9)"
      */
     public Date getStartDate() {
         return startDate;
@@ -147,8 +172,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     /**
      * Gets the date to end scheduling. 
 	 * @return Returns the end date of the schedule.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="S_END" sql-type="TIMESTAMP(9)"
 	 */
 	public Date getEndDate() {
 		return endDate;
@@ -165,7 +188,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	/**
 	 * Get the target that this schedule belongs to.
      * @return Returns the target.
-     * @hibernate.many-to-one column="S_TARGET_ID" foreign-key="FK_S_TARGET_ID"
      */
     public AbstractTarget getTarget() {
         return target;
@@ -182,10 +204,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     /**
      * Get the list of target instances associated with this schedule.
 	 * @return Returns the targetInstances.
-     * @hibernate.set cascade="save-update"
-     * @hibernate.collection-key column="TI_SCHEDULE_ID"
-     * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.TargetInstance"
-  
 	 */
 	public Set<TargetInstance> getTargetInstances() {
 		return targetInstances;
@@ -263,7 +281,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	/**
 	 * Gets the type of the schedule (custom or predefined).
 	 * @return Returns the scheduleType.
-     * @hibernate.property column="S_TYPE" not-null="true"
      * @see org.webcurator.domain.model.core.SchedulePattern
 	 */
 	public int getScheduleType() {
@@ -290,8 +307,7 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	/**
 	 * Gets the user that owns the schedule.
 	 * @return Returns the owner.
-	 * @hibernate.many-to-one column="S_OWNER_OID" foreign-key="FK_S_OWNER_OID"
-	 */	
+	 */
 	public User getOwningUser() {
 		return owner;
 	}
@@ -303,8 +319,6 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	 * for general use. 
 	 * 
 	 * @return Returns the nextScheduleAfterPeriod.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="S_NEXT_SCHEDULE_TIME" sql-type="TIMESTAMP(9)"
 	 */
 	public Date getNextScheduleAfterPeriod() {
 		return nextScheduleAfterPeriod;
@@ -323,20 +337,11 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 
 	/**
 	 * @return Returns the lastProcessedDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="S_LAST_PROCESSED_DATE" sql-type="TIMESTAMP(9)"
 	 */
 	public Date getLastProcessedDate() {
 		return lastProcessedDate;
 	}
 
-	/**
-	 * Sets the next scheduled time after the "number of days to schedule" 
-	 * setting. This is a management piece of information used to identify 
-	 * when the scheduling next needs to consider this schedule. It is not
-	 * for general use. 
-	 * @param nextScheduleAfterPeriod The nextScheduleAfterPeriod to set.
-	 */
 	public void setLastProcessedDate(Date lastProcessedDate) {
 		this.lastProcessedDate = lastProcessedDate;
 	}

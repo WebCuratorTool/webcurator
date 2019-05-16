@@ -17,15 +17,18 @@ package org.webcurator.domain.model.core;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.persistence.*;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.profiles.DuplicateNameException;
 import org.webcurator.core.profiles.HeritrixProfile;
 
 /**
  * 
  * @author bbeaumont
- * @hibernate.class table="PROFILE_CREDENTIALS"
  */
+@Entity
+@Table(name = "PROFILE_CREDENTIALS")
 public abstract class ProfileCredentials {
 	
 	/** The position in the Heritrix Profile where the credentials must be placed */
@@ -37,26 +40,36 @@ public abstract class ProfileCredentials {
 	public static final String TYPE_BASIC_CREDENTIALS = "org.archive.crawler.datamodel.credential.Rfc2617Credential";
 	
 	/** The domain to which these credentials apply. */
+	@Column(name = "PC_DOMAIN", length = 255)
 	protected String credentialsDomain = null;
 	/** The username */
+	@Column(name = "PC_USERNAME", length = 255)
 	protected String username          = null;
 	/** The password */
+	@Column(name = "PC_PASSWORD", length = 255)
 	protected String password          = null;
 	
 	
 	
 	/** The unique database ID of the profile. */
+	@Id
+	@Column(name="PC_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "Profile Security Credential")
+			})
+
 	private Long oid;
 	
     /**
      * Gets the database OID of the credentials object.
      * @return Returns the oid.
-     * @hibernate.id column="PC_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="Profile Security Credential" 
-     */	
+     */
 	public Long getOid() {
 		return oid;
 	}
@@ -73,7 +86,6 @@ public abstract class ProfileCredentials {
 	/**
 	 * Gets the domain to which the credentials apply.
 	 * @return Returns the credentialsDomain.
-	 * @hibernate.property column="PC_DOMAIN" length="255"
 	 */
 	public String getCredentialsDomain() {
 		return credentialsDomain;
@@ -89,7 +101,6 @@ public abstract class ProfileCredentials {
 	/**
 	 * Returns the password
 	 * @return Returns the password.
-	 * @hibernate.property column="PC_PASSWORD" length="255"
 	 */
 	public String getPassword() {
 		return password;
@@ -105,7 +116,6 @@ public abstract class ProfileCredentials {
 	/**
 	 * Gets the username for the credentials.
 	 * @return Returns the username.
-	 * @hibernate.property column="PC_USERNAME" length="255"
 	 */
 	public String getUsername() {
 		return username;

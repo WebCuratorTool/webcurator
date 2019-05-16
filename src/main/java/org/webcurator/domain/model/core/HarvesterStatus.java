@@ -15,42 +15,62 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.Formula;
 import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
+
+import javax.persistence.*;
 
 /**
  * The status of a harvest.
  * @author nwaight
- * @hibernate.class table="HARVEST_STATUS"
  */
+@Entity
+@Table(name = "HARVEST_STATUS")
 public class HarvesterStatus {
     /** the primary key. */
+    @Id
+    @Column(name = "HS_OID")
+    // TODO      * @hibernate.id column="HS_OID" generator-class="assigned" --> implies the application assigns the id
     private Long oid;
     /** The name of the harvest job. */
+    @Column(name = "HS_JOB_NAME", length = 500)
     private String jobName = "";
     /** the average number of URI's processed per second. */
+    @Column(name = "HS_AVG_URI")
     private double averageURIs = 0;
     /** The average rate of data downloaded. */
+    @Column(name = "HS_AVG_KB")
     private double averageKBs = 0;
     /** The number of urls that have been downloaded. */
+    @Column(name = "HS_URLS_DOWN")
     private long urlsDownloaded = 0;
     /** The number of urls failed to download.*/
+    @Column(name = "HS_URLS_FAILED")
     private long urlsFailed = 0;
     /** The uncompressed amount of data downloaded. */
+    @Column(name = "HS_DATA_AMOUNT")
     private long dataDownloaded = 0;
     /** The status of the harvest job. */
+    @Column(name = "HS_STATUS", length = 255)
     private String status;
-    /** The amount of elapsed time for the job. */    
+    /** The amount of elapsed time for the job. */
+    @Column(name = "HS_ELAPSED_TIME")
     private long elapsedTime = 0; 
     /** the number of alerts that occurred during the harvest. */
+    @Column(name = "HS_ALERTS")
     private int alertCount = 0;
     /** the WCT version. */
+    @Column(name = "HS_APP_VERSION")
     private String applicationVersion;
     /** the Heritrix version. */
+    @Column(name = "HS_HRTX_VERSION")
     private String heritrixVersion;
     /** the URLs downloaded successfully (derived field needed for sorting) **/
+    @Formula("HS_URLS_DOWN-HS_URLS_FAILED")
     private transient long urlsSucceeded;
     /** the percentage of URLs that failed to download successfully (derived field needed for sorting) **/
+    @Formula("HS_URLS_FAILED/((HS_URLS_DOWN+0.00001)/100)")
     private transient float percentageUrlsFailed;
     
     /** 
@@ -115,7 +135,6 @@ public class HarvesterStatus {
     /**
      * Return the average kilobytes per second being downloaded.
      * @return Returns the averageKBs.
-     * @hibernate.property column="HS_AVG_KB"
      */
     public double getAverageKBs() {
         return averageKBs;
@@ -132,7 +151,6 @@ public class HarvesterStatus {
     /**
      * Return the average number URIs being downloaded per second.
      * @return Returns the averageURIs.
-     * @hibernate.property column="HS_AVG_URI"
      */
     public double getAverageURIs() {
         return averageURIs;
@@ -158,7 +176,6 @@ public class HarvesterStatus {
     /**
      * Get the amount of data downloaded as bytes.
      * @return Returns the dataDownloaded.
-     * @hibernate.property column="HS_DATA_AMOUNT"
      */
     public long getDataDownloaded() {
         return dataDownloaded;
@@ -184,7 +201,6 @@ public class HarvesterStatus {
     /**
      * Get the number of milli-seconds elapsed since the start of the harvest.
      * @return Returns the elapsedTime.
-     * @hibernate.property column="HS_ELAPSED_TIME"
      */
     public long getElapsedTime() {
         return elapsedTime;
@@ -201,7 +217,6 @@ public class HarvesterStatus {
     /**
      * Get the name of the job being harvested.
      * @return Returns the jobName.
-     * @hibernate.property column="HS_JOB_NAME" length="500"
      */
     public String getJobName() {
         return jobName;
@@ -218,7 +233,6 @@ public class HarvesterStatus {
     /**
      * Get the status of the harvest.
      * @return Returns the status.
-     * @hibernate.property column="HS_STATUS" length="255"
      */
     public String getStatus() {
         return status;
@@ -235,7 +249,6 @@ public class HarvesterStatus {
     /**
      * Get the number of URLs downloaded.
      * @return Returns the urlsDownloaded.
-     * @hibernate.property column="HS_URLS_DOWN"
      */
     public long getUrlsDownloaded() {
         return urlsDownloaded;
@@ -252,7 +265,6 @@ public class HarvesterStatus {
     /**
      * Get the number of URLs that failed to download.
      * @return Returns the urlsFailed.
-     * @hibernate.property column="HS_URLS_FAILED"
      */
     public long getUrlsFailed() {
         return urlsFailed;
@@ -268,7 +280,6 @@ public class HarvesterStatus {
     /**
      * Get tthe OID of the HarvesterStatus.
      * @return Returns the oid.
-     * @hibernate.id column="HS_OID" generator-class="assigned" 
      */
     public Long getOid() {
         return oid;
@@ -285,7 +296,6 @@ public class HarvesterStatus {
 	/**
 	 * Get the number of alerts raised by the harvest.
 	 * @return the alertCount
-	 * @hibernate.property column="HS_ALERTS"
 	 */
 	public int getAlertCount() {
 		return alertCount;
@@ -310,7 +320,6 @@ public class HarvesterStatus {
 	/**
 	 * Get the application version for the harvest.
 	 * @return the applicationVersion
-	 * @hibernate.property column="HS_APP_VERSION"
 	 */
 	public String getApplicationVersion() {
 		return applicationVersion;
@@ -327,7 +336,6 @@ public class HarvesterStatus {
 	/**
 	 * Get the heritrix version for the harvest.
 	 * @return the heritrixVersion
-	 * @hibernate.property column="HS_HRTX_VERSION"
 	 */
 	public String getHeritrixVersion() {
 		return heritrixVersion;
@@ -335,8 +343,6 @@ public class HarvesterStatus {
 	
 	/**
 	 * Get the number of URLs that were downloaded successfully (derived from getUrlsDownloaded() - this.getUrlsFailed()).
-	* @hibernate.property name="urlsSucceeded" 
-	* formula="HS_URLS_DOWN-HS_URLS_FAILED" type="long"  
 	 * @return the number of URLs downloaded successfully
 	 */
 	public long getUrlsSucceeded() {
@@ -357,8 +363,6 @@ public class HarvesterStatus {
 	/**
 	 * Get the percentage of URLs that failed to download successfully accurate to 2 decimal places
 	 * NOTE: The +0.00001 term removes the singularity when urls downloaded is 0.
-	* @hibernate.property name="urlsSucceeded" 
-	* formula="HS_URLS_FAILED/((HS_URLS_DOWN+0.00001)/100)" type="float"  
 	 * @return the percentage of URLs that failed to download successfully
 	 */
 	public float getPercentageUrlsFailed() {

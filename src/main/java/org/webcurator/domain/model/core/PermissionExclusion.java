@@ -15,19 +15,38 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+
 /**
  * Represents a URL excluded from a permission.
  * 
- * @hibernate.class table="PERMISSION_EXCLUSION" lazy="false"
  */
+// lazy="false"
+@Entity
+@Table(name = "PERMISSION_EXCLUSION")
 public class PermissionExclusion {
 	/** The URL excluded */
+	@Column(name = "PEX_URL", length = 1024)
 	private String url;
 	
 	/** The reason for exclusion */
+	@Column(name = "PEX_REASON", length = 255)
 	private String reason;
 	
 	/** The OID of the object */
+	@Id
+	@Column(name="PEX_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "PermExclusion")
+			})
 	private Long oid = null;
 
 	/**
@@ -49,7 +68,6 @@ public class PermissionExclusion {
 	
 	/**
 	 * @return Returns the reason.
-     * @hibernate.property column="PEX_REASON" length="255"
 	 */
 	public String getReason() {
 		return reason;
@@ -64,7 +82,6 @@ public class PermissionExclusion {
 
 	/**
 	 * @return Returns the url.
-     * @hibernate.property column="PEX_URL" length="1024"
 	 */
 	public String getUrl() {
 		return url;
@@ -79,11 +96,6 @@ public class PermissionExclusion {
 
 	/**
 	 * @return Returns the oid.
-     * @hibernate.id column="PEX_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="PermExclusion"  
 	 */
 	public Long getOid() {
 		return oid;

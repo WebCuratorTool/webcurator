@@ -28,22 +28,32 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
+
+import javax.persistence.*;
 
 /**
  * A TargetInstance represents a particular harvest at a given date and 
  * time. It takes its initial details from a Target, but may be modified
  * to change its profile overrides, etc. 
- * 
- * 
- * @hibernate.class table="TARGET_INSTANCE" lazy="false"  
- * @hibernate.query name="org.webcurator.domain.model.core.TargetInstance.GET_LATEST_FOR_TARGET" query="select max(scheduledTime) from TargetInstance where target.oid=:targetOid and schedule.oid=:scheduleOid" 
- * @hibernate.query name="org.webcurator.domain.model.core.TargetInstance.getPurgeable" query="from TargetInstance ti where ti.purged = false and ti.archivedTime < :purgeTime and (ti.state = :archivedState or ti.state = :rejectedState)"
- * @hibernate.query name="org.webcurator.domain.model.core.TargetInstance.getPurgeableAborted" query="from TargetInstance ti where ti.purged = false and ti.actualStartTime < :purgeTime and ti.state = :abortedState"
- * @hibernate.query name="org.webcurator.domain.model.core.TargetInstance.get_harvest_history" query="select new org.webcurator.domain.model.dto.HarvestHistoryDTO(ti.oid, ti.actualStartTime, ti.state, ti.status.dataDownloaded, ti.status.urlsDownloaded, ti.status.urlsFailed, ti.status.elapsedTime, ti.status.averageKBs, ti.status.status) from TargetInstance ti where ti.target.oid=? order by ti.actualStartTime desc"
  **/
+// lazy="false"
+@Entity
+@Table(name = "TARGET_INSTANCE")
+@NamedQueries({
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.GET_LATEST_FOR_TARGET",
+                query = "select max(scheduledTime) from TargetInstance where target.oid=:targetOid and schedule.oid=:scheduleOid"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.getPurgeable",
+                query = "from TargetInstance ti where ti.purged = false and ti.archivedTime < :purgeTime and (ti.state = :archivedState or ti.state = :rejectedState)"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.getPurgeableAborted",
+                query = "from TargetInstance ti where ti.purged = false and ti.actualStartTime < :purgeTime and ti.state = :abortedState"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.get_harvest_history",
+                query = "select new org.webcurator.domain.model.dto.HarvestHistoryDTO(ti.oid, ti.actualStartTime, ti.state, ti.status.dataDownloaded, ti.status.urlsDownloaded, ti.status.urlsFailed, ti.status.elapsedTime, ti.status.averageKBs, ti.status.status) from TargetInstance ti where ti.target.oid=? order by ti.actualStartTime desc")
+})
 public class TargetInstance implements Annotatable, Overrideable, UserInTrayResource {
 	
 	/** The name of the query to retrieve the latest date for a TargetInstance related to a given Target and Schedule. */
@@ -104,38 +114,73 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 
     /** unique identifier. */
+    @Id
+    @Column(name="TI_OID", nullable =  false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+    @GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+            strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+            parameters = {
+                    @Parameter(name = "table", value = "ID_GENERATOR"),
+                    @Parameter(name = "primary_key_column", value = "IG_TYPE"),
+                    @Parameter(name = "value_column", value = "IG_VALUE"),
+                    @Parameter(name = "primary_key_value", value = "General")
+            })
 	private Long oid = -1L;
 	/** list of harvest results. */
+    @OneToMany() // default fetch type is LAZY
+    @JoinColumn(name = "HR_TARGET_INSTANCE_ID")
+    // TODO @hibernate.collection-index column="HR_INDEX"
 	private List<HarvestResult> harvestResults = new LinkedList<HarvestResult>();
 	/** the target or group that this instance belongs to. */
+    @ManyToOne
+    @JoinColumn(name = "TI_TARGET_ID", foreignKey = @ForeignKey(name = "FK_TI_TARGET_ID"))
     private AbstractTarget target;
     /** the schedule that this target instance belongs to. */
+    @ManyToOne
+    @JoinColumn(name = "TI_SCHEDULE_ID", foreignKey = @ForeignKey(name = "FK_TI_SCHEDULE_ID"))
     private Schedule schedule;
-    /** the scheduled time of the harvest. */ 
+    /** the scheduled time of the harvest. */
+    @Column(name = "TI_SCHEDULED_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date scheduledTime;
     /** the time the harvest actually started. */
-    private Date actualStartTime;    
+    @Column(name = "TI_START_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date actualStartTime;
     /** the time the target instance was archived. */
-    private Date archivedTime;    
+    @Column(name = "TI_ARCHIVED_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date archivedTime;
     /** the priority of the target instance. */
+    @Column(name = "TI_PRIORITY", nullable = false)
     private int priority = PRI_NRML;
     /** The state of the target instance. */
+    @Column(name = "TI_STATE", length = 50, nullable = false)
     private String state = STATE_SCHEDULED; 
     /** the minimum percentage of the bandwidth to allocate this harvest. */
+    @Column(name = "TI_BANDWIDTH_PERCENT")
     private Integer bandwidthPercent;
     /** The last amount of bandwidth actually allocated. */
+    @Column(name = "TI_ALLOCATED_BANDWIDTH")
     private Long allocatedBandwidth;
     /** the status of the current or complete harvest. */
+    @OneToOne(cascade = {CascadeType.ALL})
     private HarvesterStatus status;
     /** the owner of this target instance. */
+    @ManyToOne
+    @JoinColumn(name = "TI_OWNER_ID", foreignKey = @ForeignKey(name = "FK_TI_USER_ID"))
     private User owner;
     /** the value for ordering the target instance on the queue and ti view. */
+    @Column(name = "TI_DISPLAY_ORDER")
     private int displayOrder = 40;   
     /** the list of annotations for this target instance. */
     private List<Annotation> annotations = new LinkedList<Annotation>();
     /** the list of deleted annotations for this target instance. */
     private List<Annotation> deletedAnnotations = new LinkedList<Annotation>();
     /** the list of indicators for this target instance. */
+    @OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY
+    @JoinColumn(name = "I_TI_OID")
+    // TODO @hibernate.collection-index column="I_INDEX"
     private List<Indicator> indicators = new LinkedList<Indicator>();
     /** the list of deleted indicators for this target instance. */
     private List<Indicator> deletedIndicators = new LinkedList<Indicator>();
@@ -144,31 +189,57 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /** Flag to state if the annotations contain any flagged as alertable, making the whole target instance alertable */
     private boolean alertable = false;        
     /** The version number of this object */
+    @Version
+    @Column(name = "TI_VERSION")
     private int version;
     /** The reference number from the archive. */
+    @Column(name = "TI_REFERENCE", length = 255)
     private String referenceNumber;
     /** The server that performed this harvest. */
+    @Column(name = "TI_HARVEST_SERVER", length = 255)
     private String harvestServer;
     /** The parts of the SIP generated at time of harvest. */
+    // TODO where do you specify cascade="all"
+    @ElementCollection
+    @JoinTable(name="SIP_PART_ELEMENT", joinColumns=@JoinColumn(name="ID"))
+    @MapKeyColumn (name="SPE_TARGET_INSTANCE_OID")
+    @Column(name="SPE_VALUE")
+    @Lob // column="SPE_VALUE" type="materialized_clob"
+    // TODO @hibernate.collection-index column="SPE_KEY" type="java.lang.String"
     private Map<String,String> sipParts = new HashMap<String, String>();
     /** The original seeds */
+    // TODO cascade="all"
+    @ElementCollection
+    @CollectionTable(name = "TARGET_INSTANCE_ORIG_SEED", joinColumns = @JoinColumn(name = "TIOS_TI_OID"))
+    @Column(name = "TIOS_SEED")
     private Set<String> originalSeeds = new HashSet<String>();
     /** The display status */
+    @Column(name = "TI_DISPLAY_TARGET_INSTANCE")
     private boolean display = true;
     /** The display note */
+    @Column(name = "TI_DISPLAY_NOTE", length = 4000, nullable = true)
     private String displayNote = "";
     /** The display change reason */
+    @Column(name = "TI_DISPLAY_CHG_REASON", length = 1000, nullable = true)
     private String displayChangeReason = "";
     /** Is this target instance flagged*/
+    @Column(name = "TI_FLAGGED")
     private boolean flagged = false;
     /** The flag group (a coloured flag) **/
+    @ManyToOne
+    @JoinColumn(name = "TI_FLAG_OID", foreignKey = @ForeignKey(name = "FK_F_OID"), nullable = true)
     private Flag flag = null;
     /** The QA recommendation derived from this target instance's indicators **/
+    @Column(name = "TI_RECOMMENDATION")
     private String recommendation;
     /** profile for this target instance (if harvested)*/
+    @ManyToOne
+    @JoinColumn(name = "TI_PROFILE_ID")
     private Profile lockedProfile = null;
     
     /** The seed history **/
+    @OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY
+    @JoinColumn(name = "SH_TI_OID")
     private Set<SeedHistory> seedHistory = new HashSet<SeedHistory>();
     
     /** 
@@ -177,17 +248,24 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     private boolean annotationsSet = false;
     /** The profile overrides for this target instance. */
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH }) // WAS cascade="save-update"
+    @JoinColumn(name = "TI_PROF_OVERRIDE_OID", foreignKey = @ForeignKey(name = "FK_TI_PROF_OVERRIDE_OID"))
     private ProfileOverrides overrides;
+    @Column(name = "TI_ARCHIVE_ID", length = 40, unique = true, nullable = true)
     private String archiveIdentifier; 
     /** Flag to indicate that this instances digital assets have been purged from the store. */
+    @Column(name = "TI_PURGED", nullable = false)
     private boolean purged = false;
 	
     /** Flag to indicate that this target instance is the first to be scheduled from its owning Target. */
+    @Column(name = "TI_FIRST_FROM_TARGET")
     private boolean firstFromTarget = false;
 
     /** Use Automated Quality Assurance on Harvests derived from this Target Instance */
+    @Column(name = "TI_USE_AQA")
     private boolean useAQA = false;
 
+    @Column(name = "TI_ALLOW_OPTIMIZE")
 	private boolean allowOptimize;
     
     /**
@@ -201,12 +279,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	/**
 	 * Get the database OID of the TargetInstance.
 	 * @return the primary key
-     * @hibernate.id column="TI_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
-	 */	
+	 */
 	public Long getOid() {
 		return oid;
 	}
@@ -222,10 +295,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	/**
 	 * Get the list of harvest results (completed harvests) associated with 
 	 * this target instance.
-	 * @hibernate.list cascade="none" lazy="true"
-	 * @hibernate.collection-key column="HR_TARGET_INSTANCE_ID"
-	 * @hibernate.collection-index column="HR_INDEX"
-	 * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.HarvestResult"
 	 * @return The HarvestResults
 	 */
 	public List<HarvestResult> getHarvestResults() {
@@ -242,11 +311,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	
 	/**
 	 * Fetch the <code>Indicator</code>s for this <code>TargetInstance</code> 
-	 * @hibernate.list cascade="all" lazy="true"
-	 * @hibernate.collection-key column="I_TI_OID"
-	 * @hibernate.collection-index column="I_INDEX"
-	 * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.Indicator"
-	 * @return A <code>List</code> of <code>Indicator</code>s for the specified <code>TargetInstance</code> 
+	 * @return A <code>List</code> of <code>Indicator</code>s for the specified <code>TargetInstance</code>
 	 */
 	public List<Indicator> getIndicators() {
 		return indicators;
@@ -283,7 +348,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Gets the schedule that created this target instance.
      * @return Returns the schedule.
-     * @hibernate.many-to-one column="TI_SCHEDULE_ID" foreign-key="FK_TI_SCHEDULE_ID" 
      */
     public Schedule getSchedule() {
         return schedule;
@@ -300,7 +364,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Returns the AbstractTarget that this target instance was created by.
      * @return Returns the target.
-     * @hibernate.many-to-one column="TI_TARGET_ID" foreign-key="FK_TI_TARGET_ID"
      */
     public AbstractTarget getTarget() {
         return target;
@@ -317,7 +380,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Gets the priority of the target instance.
      * @return Returns the priority.
-     * @hibernate.property column="TI_PRIORITY" not-null="true" 
      */
     public int getPriority() {
         return priority;
@@ -347,8 +409,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * Get the time at which the instance is scheduled to run. This may not be
      * the same as the actual start time due to delays or advance harvesting.
      * @return Returns the scheduledTime.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="TI_SCHEDULED_TIME" not-null="true" sql-type="TIMESTAMP(9)"   
      */
     public Date getScheduledTime() {
         return scheduledTime;
@@ -365,7 +425,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Get the state of the Target Instance.
      * @return Returns the state.
-     * @hibernate.property length="50" not-null="true" column="TI_STATE"
      */
     public String getState() {
         return state;
@@ -385,7 +444,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Get the percentage of bandwidth that this instance should attempt to use.
      * @return Returns the bandwidthPercent.
-     * @hibernate.property column="TI_BANDWIDTH_PERCENT"
      */
     public Integer getBandwidthPercent() {
         return bandwidthPercent;
@@ -402,7 +460,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Returns the bandwidth allocated to this instance.
      * @return Returns the allocatedBandwidth.
-     * @hibernate.property column="TI_ALLOCATED_BANDWIDTH"
      */
     public Long getAllocatedBandwidth() {
         return allocatedBandwidth;
@@ -419,8 +476,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Get the time the harvest started.
      * @return Returns the actualStartTime.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="TI_START_TIME"
      */
     public Date getActualStartTime() {
         return actualStartTime;
@@ -437,8 +492,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Get the time the target instance was archived.
      * @return Returns the archivedTime.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="TI_ARCHIVED_TIME"
      */
     public Date getArchivedTime() {
         return archivedTime;
@@ -455,7 +508,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Get the status of the harvest.
      * @return Returns the status.
-     * @hibernate.one-to-one cascade="all"
      */
     public HarvesterStatus getStatus() {
         return status;
@@ -599,7 +651,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	}
 	/**
 	 * @return the owner
-	 * @hibernate.many-to-one column="TI_OWNER_ID" foreign-key="FK_TI_USER_ID"  
 	 */
 	public User getOwner() {
 		return owner;
@@ -613,7 +664,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	}
 	/**
 	 * @return the displayOrder
-	 * @hibernate.property column="TI_DISPLAY_ORDER" 
 	 */
 	public int getDisplayOrder() {
 		return displayOrder;
@@ -721,8 +771,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	 * KU 10-01-2008: because the TargetInstance does not "own" the profile overrides (they are notionally owned by the Target) there are problems when the 
 	 * target instance is deleted (the override may still be referenced). I have therefore changed the cascade
 	 * option for hibernate from "all" to "save-update"
-
-	 * @hibernate.many-to-one column="TI_PROF_OVERRIDE_OID" cascade="save-update" class="org.webcurator.domain.model.core.ProfileOverrides" foreign-key="FK_TI_PROF_OVERRIDE_OID" 
 	 */
 	public ProfileOverrides getOverrides() {		
 		return overrides;
@@ -751,7 +799,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	}
 	
 	/** Hibernate only - get the locked profile.
-	 * @hibernate.many-to-one column="TI_PROFILE_ID"
 	*/
 	public Profile getLockedProfile() {
 		return lockedProfile;
@@ -768,7 +815,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	/**
 	 * Checks if the associated harvest results have been purged.
 	 * @return true if the harvest results have been purged; otherwise false.
-	 * @hibernate.property column="TI_PURGED" not-null="true"
 	 */
 	public boolean isPurged() {
 		return purged;
@@ -800,7 +846,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * gets the unique Identifier provided by the Archive system when this
      * TargetInstance was submitted
      * @return the Unique Archive Identifier
-     * @hibernate.property column="TI_ARCHIVE_ID" length="40" unique="true" not-null="false"
      */
     public String getArchiveIdentifier() {
         return archiveIdentifier;
@@ -819,7 +864,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	/**
 	 * Hibernate version tracking for optimistic locking.
 	 * @return the version
-	 * @hibernate.version column="TI_VERSION"
 	 */
 	public int getVersion() {
 		return version;
@@ -837,8 +881,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	 * Get the date by which items should be sorted.
 	 * @return If the Target Instance has started (or later), then the start 
 	 * 	       time; otherwise the scheduled time.
-	 * @hibernate.property formula="(case when ti_start_time is null then ti_scheduled_time else ti_start_time end)"
 	 */
+	@Formula("(case when ti_start_time is null then ti_scheduled_time else ti_start_time end)")
 	public Date getSortOrderDate() {
 		return actualStartTime == null ? scheduledTime : actualStartTime;
 	}
@@ -853,7 +897,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	/**
 	 * @return the referenceNumber
-	 * @hibernate.property length="255" column="TI_REFERENCE"
 	 */
 	public String getReferenceNumber() {
 		return referenceNumber;
@@ -869,7 +912,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	/**
 	 * 
 	 * @return the server that performed this harvest.
-	 * @hibernate.property length="255" column="TI_HARVEST_SERVER"
 	 */
 	public String getHarvestServer() {
 		return harvestServer;
@@ -883,11 +925,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	
 	/**
 	 * @return the parts
-	 * 
-	 * @hibernate.map table="SIP_PART_ELEMENT" cascade="all" lazy="true"
-	 * @hibernate.collection-element column="SPE_VALUE" type="materialized_clob"
-	 * @hibernate.collection-key column="SPE_TARGET_INSTANCE_OID"
-	 * @hibernate.collection-index column="SPE_KEY" type="java.lang.String"
 	 */
 	public Map<String, String> getSipParts() {
 		return sipParts;
@@ -902,9 +939,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	/**
 	 * @return the originalSeeds
-	 * @hibernate.set table="TARGET_INSTANCE_ORIG_SEED" cascade="all"
-	 * @hibernate.collection-key column="TIOS_TI_OID"
-	 * @hibernate.collection-element type="string" column="TIOS_SEED"
 	 */
 	public Set<String> getOriginalSeeds() {
 		return originalSeeds;
@@ -932,7 +966,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	
 	/**
 	 * @return Returns the display target instance flag
-	 * @hibernate.property column="TI_DISPLAY_TARGET_INSTANCE"
 	 */
 	public boolean getDisplay()
 	{
@@ -950,7 +983,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Get the display note the Target Instance.
      * @return Returns the display note.
-     * @hibernate.property length="4000" not-null="false" column="TI_DISPLAY_NOTE"
      */
 	public String getDisplayNote()
 	{
@@ -968,7 +1000,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Get the display change reason for the Target Instance.
      * @return Returns the display change reason.
-     * @hibernate.property length="1000" not-null="false" column="TI_DISPLAY_CHG_REASON"
      */
 	public String getDisplayChangeReason()
 	{
@@ -985,7 +1016,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	
 	/**
 	 * @return Returns the flagged flag
-	 * @hibernate.property column="TI_FLAGGED"
 	 */
 	public boolean getFlagged()
 	{
@@ -1002,7 +1032,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	
 	/**
 	 * @return the Flag
-	 * @hibernate.many-to-one column="TI_FLAG_OID" foreign-key="FK_F_OID" not-null="false"  
 	 */
 	public Flag getFlag() {
 		return flag;
@@ -1017,7 +1046,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	/**
 	 * @return Returns the useAQA.
-     * @hibernate.property column="TI_USE_AQA" 
 	 */
 	public boolean isUseAQA() {
 		return useAQA;
@@ -1034,9 +1062,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * Return the Set of SeedHistory objects attached to this target instance.
 	 * @return Returns the seed history.
-     * @hibernate.set cascade="all" 
-     * @hibernate.collection-key column="SH_TI_OID" 
-     * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.SeedHistory"
 	 */
 	public Set<SeedHistory> getSeedHistory() {
 		return seedHistory;
@@ -1059,7 +1084,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	/**
 	 * @return Returns the 'first from target' flag
-	 * @hibernate.property column="TI_FIRST_FROM_TARGET"
 	 */
 	public boolean getFirstFromTarget()
 	{
@@ -1076,7 +1100,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	/**
 	 * @return Returns the QA recommendation derived from the target instance's indicators
-	 * @hibernate.property column="TI_RECOMMENDATION"
 	 */
 	public String getRecommendation() {
 		return recommendation;
@@ -1088,7 +1111,6 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	/**
 	 * @return Flag to indicate if harvest optimization is permitted for this target instance
-	 * @hibernate.property column="TI_ALLOW_OPTIMIZE"
 	 */
 	public boolean isAllowOptimize() {
 		return allowOptimize;

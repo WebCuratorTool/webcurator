@@ -15,47 +15,74 @@
  */
 package org.webcurator.domain.model.audit;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 import java.util.Date;
 
 /**
  * Audit object holds a single Audit action 
  * and can persist this to the database
  * @author bprice
- * @hibernate.class table="WCTAUDIT" lazy="false"
- * @hibernate.query name="org.webcurator.domain.model.audit.Audit.getAllByPeriodByAgencyByUser" query="SELECT au FROM Audit au, org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.auth.Agency ag WHERE au.userOid=u.oid AND u.agency.oid=ag.oid AND au.dateTime>=? AND au.dateTime<=? AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = u.agency.name) ) AND ( ?='All users' OR ( ? !='All users' AND au.userOid=u.oid AND ? = u.username) ) ORDER BY au.dateTime"
  */
+// lazy="false"
+@Entity
+@Table(name = "WCTAUDIT")
+@NamedQuery(name = "org.webcurator.domain.model.audit.Audit.getAllByPeriodByAgencyByUser",
+        query = "SELECT au FROM Audit au, org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.auth.Agency ag WHERE au.userOid=u.oid AND u.agency.oid=ag.oid AND au.dateTime>=? AND au.dateTime<=? AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = u.agency.name) ) AND ( ?='All users' OR ( ? !='All users' AND au.userOid=u.oid AND ? = u.username) ) ORDER BY au.dateTime")
 public class Audit {
-		
+
 	/** Query to retrieve Audit messages for a given user. */
 	public static final String QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER = "org.webcurator.domain.model.audit.Audit.getAllByPeriodByAgencyByUser";
 
 	/** The database OID of the audit message */
+    @Id
+    @Column(name="AUD_OID", nullable =  false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+    @GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+            strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+            parameters = {
+                    @Parameter(name = "table", value = "ID_GENERATOR"),
+                    @Parameter(name = "primary_key_column", value = "IG_TYPE"),
+                    @Parameter(name = "value_column", value = "IG_VALUE"),
+                    @Parameter(name = "primary_key_value", value = "Audit")
+            })
     private Long oid;
     /** The date/time at which the event took place */
+    @Column(name = "AUD_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date dateTime;
     /** The OID of the user that performed this action */
+    @Column(name = "AUD_USER_OID", nullable = true)
     private Long userOid;
     /** The OID of the agency that performed this action */
+    @Column(name = "AUD_AGENCY_OID", nullable = true)
     private Long agencyOid;
     /** The username of the user that performed this action */
+    @Column(name = "AUD_USERNAME", length = 80, nullable = true)
     private String userName;
     /** The first name of the user that performed this action */
+    @Column(name = "AUD_FIRSTNAME", length = 50, nullable = true)
     private String firstname;
     /** The last name ofthe user that performed this action */
+    @Column(name = "AUD_LASTNAME", length = 50, nullable = true)
     private String lastname;
     /** The action that was performed */
+    @Column(name = "AUD_ACTION", length = 40, nullable = false)
     private String action;
     /** The type of object this event acted on */
+    @Column(name = "AUD_SUBJECT_TYPE", length = 255, nullable = false)
     private String subjectType;
     /** The OID of the object that was affected */
+    @Column(name = "AUD_SUBJECT_OID", nullable = true)
     private Long subjectOid;
     /** The message string to go with the audit log */
+    @Column(name = "AUD_MESSAGE", length = 2000, nullable = false)
     private String message;
     
     /**
      * gets the Audit Action 
      * @return the Audit Action
-     * @hibernate.property column="AUD_ACTION" not-null="true" length="40"
      */
     public String getAction() {
         return action;
@@ -72,8 +99,6 @@ public class Audit {
     /**
      * gets the Date and Time of the Audit entry
      * @return the DateTime
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="AUD_DATE" not-null="true" sql-type="TIMESTAMP(9)"
      */
     public Date getDateTime() {
         return dateTime;
@@ -90,7 +115,6 @@ public class Audit {
     /**
      * gets the Users firstname
      * @return the users firstname
-     * @hibernate.property column="AUD_FIRSTNAME" not-null="false" length="50"
      */
     public String getFirstname() {
         return firstname;
@@ -107,7 +131,6 @@ public class Audit {
     /**
      * gets the Users lastname
      * @return the users lastname
-     * @hibernate.property column="AUD_LASTNAME" not-null="false" length="50"
      */
     public String getLastname() {
         return lastname;
@@ -124,7 +147,6 @@ public class Audit {
     /**
      * gets the Audit messgae
      * @return the message
-     * @hibernate.property column="AUD_MESSAGE" not-null="true" length="2000"
      */
     public String getMessage() {
         return message;
@@ -141,7 +163,6 @@ public class Audit {
     /**
      * gets the affected subjectType type, this is most likely a class
      * @return the subjectType type
-     * @hibernate.property column="AUD_SUBJECT_TYPE" not-null="true" length="255"
      */
     public String getSubjectType() {
         return subjectType;
@@ -159,7 +180,6 @@ public class Audit {
     /**
      * gets the Username of the user who issued the action
      * @return the Username
-     * @hibernate.property column="AUD_USERNAME" not-null="false" length="80"
      */
     public String getUserName() {
         return userName;
@@ -176,7 +196,6 @@ public class Audit {
     /**
      * gets the User oid of the user who issued this action
      * @return the User Oid
-     * @hibernate.property column="AUD_USER_OID" not-null="false"
      */
     public Long getUserOid() {
         return userOid;
@@ -194,7 +213,6 @@ public class Audit {
      * gets the affected Subject Oid, this can be used in conjunction with
      * the subject type to reconstruct the affected object at a later stage
      * @return the subject oid
-     * @hibernate.property column="AUD_SUBJECT_OID" not-null="false"
      */
     public Long getSubjectOid() {
         return subjectOid;
@@ -211,11 +229,6 @@ public class Audit {
     /**
      * gets the Audit message oid, this is its primary key
      * @return the Audit oid
-     * @hibernate.id column="AUD_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="Audit"
      */
     public Long getOid() {
         return oid;
@@ -232,7 +245,6 @@ public class Audit {
     /**
      * gets the Agency oid of the user who issued this action
      * @return the Agency Oid
-     * @hibernate.property column="AUD_AGENCY_OID" not-null="false"
      */
     public Long getAgencyOid() {
         return agencyOid;

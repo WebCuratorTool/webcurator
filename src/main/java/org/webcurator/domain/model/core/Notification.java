@@ -15,6 +15,9 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 import java.util.Date;
 
 /**
@@ -22,26 +25,49 @@ import java.util.Date;
  * sent to an individual to inform them of what has happened. A Notification 
  * requires no direct action.
  * @author bprice
- * @hibernate.class table="NOTIFICATION" lazy="false"
- * @hibernate.query name="org.webcurator.domain.model.core.Notification.getUserNotifications" query="from Notification ntfy where ntfy.recipientOid=:recipientOid order by ntfy.sentDate desc"
- * @hibernate.query name="org.webcurator.domain.model.core.Notification.cntUserNotifications" query="select count(*) from Notification ntfy where ntfy.recipientOid=:recipientOid" 
  */
+// lazy="false"
+@Entity
+@Table(name = "NOTIFICATION")
+@NamedQueries({
+        @NamedQuery(name = "org.webcurator.domain.model.core.Notification.getUserNotifications",
+                query = "from Notification ntfy where ntfy.recipientOid=:recipientOid order by ntfy.sentDate desc"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.Notification.cntUserNotifications",
+                query = "select count(*) from Notification ntfy where ntfy.recipientOid=:recipientOid")
+})
 public class Notification {
     /** Query identifier to retrieve notifications for a given user */
     public static final String QRY_GET_USER_NOTIFICATIONS = "org.webcurator.domain.model.core.Notification.getUserNotifications";
     public static final String QRY_CNT_USER_NOTIFICATIONS = "org.webcurator.domain.model.core.Notification.cntUserNotifications";
     
     /** The database OID of the notification */
+    @Id
+    @Column(name="NOT_OID", nullable =  false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+    @GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+            strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+            parameters = {
+                    @Parameter(name = "table", value = "ID_GENERATOR"),
+                    @Parameter(name = "primary_key_column", value = "IG_TYPE"),
+                    @Parameter(name = "value_column", value = "IG_VALUE"),
+                    @Parameter(name = "primary_key_value", value = "Notification")
+            })
     private Long oid;
     /** The sender of the notification */
+    @Column(name = "NOT_SENDER", length = 80, nullable = false)
     private String sender;
     /** The recipient of the notification */
+    @Column(name = "NOT_USR_OID", nullable = false)
     private Long recipientOid;
     /** The date the notification was sent */
+    @Column(name = "NOT_SENT_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date sentDate;
     /** The subject of the notification */
+    @Column(name = "NOT_SUBJECT", length = 255, nullable = false)
     private String subject;
     /** The message of the notification */
+    @Column(name = "NOT_MESSAGE", length = 2000)
     private String message;
     /** The name of the recipient */
     private transient String recipientName;
@@ -56,7 +82,6 @@ public class Notification {
     /**
      * gets the Message to display
      * @return the Message
-     * @hibernate.property column="NOT_MESSAGE" length="2000" 
      */
     public String getMessage() {
         return message;
@@ -73,7 +98,6 @@ public class Notification {
     /**
      * gets the Recipient of this Notification
      * @return the Recipient of the Notification
-     * @hibernate.property column="NOT_USR_OID" not-null="true"
      */
     public Long getRecipientOid() {
         return recipientOid;
@@ -90,7 +114,6 @@ public class Notification {
     /**
      * gets the Sender of the Notification, this can be a User or a System component
      * @return the Sender name as a String
-     * @hibernate.property column="NOT_SENDER" not-null="true" length="80"
      */
     public String getSender() {
         return sender;
@@ -107,8 +130,6 @@ public class Notification {
     /**
      * gets the Date and Time this Notification was sent
      * @return the Date/Time of the Notification
-     * @hibernate.property type="timestamp" not-null="true"
-     * @hibernate.column name="NOT_SENT_DATE" sql-type="timestamp(9)"
      */
     public Date getSentDate() {
         return sentDate;
@@ -126,7 +147,6 @@ public class Notification {
      * gets the Subject line of the Notification, this is a summary of the
      * Notification event. For full details refer to the getMessage() method.
      * @return the Notification subject
-     * @hibernate.property column="NOT_SUBJECT" length="255" not-null="true"
      */
     public String getSubject() {
         return subject;
@@ -143,11 +163,6 @@ public class Notification {
     /**
      * Return the database OID of this notification.
      * @return Returns the oid.
-     * @hibernate.id column="NOT_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="Notification" 
      */
     public Long getOid() {
         return oid;

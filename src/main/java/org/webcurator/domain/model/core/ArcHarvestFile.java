@@ -25,25 +25,45 @@ import org.apache.commons.httpclient.Header;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 
 /**
  * This class stores information about an ARC file that forms part of a 
  * harvest. 
  * 
- * @hibernate.class table="ARC_HARVEST_FILE" lazy="true"
  **/
+// lazy="true"
+@Entity
+@Table(name = "ARC_HARVEST_FILE")
 public class ArcHarvestFile {
 	/** An OID for the Harvest File */
+	@Id
+	@Column(name="AHF_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "ArcHarvestFile")
+			})
 	private Long oid;
 	/** The name of the ARC File */
+	@Column(name = "AHF_NAME", length = 100, nullable = false, unique = true)
 	private String name;
 	/** true if the ARC file is compressed; otherwise false */
+	@Column(name = "AHF_COMPRESSED", nullable = false)
 	private boolean compressed;
 	/** The base directory in which the ARC file exists. */
 	private String baseDir;
 	/** The ArcHarvestResult that this file belong to. */
+	@ManyToOne
+	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID", foreignKey = @ForeignKey(name = "FK_AHR_ARC_HARVEST_RESULT_ID"))
 	private ArcHarvestResult harvestResult;
-    
+
 	/**
 	 * No-arg constructor.
 	 */
@@ -65,7 +85,6 @@ public class ArcHarvestFile {
 	/**
 	 * True if the ARC file is compressed; otherwise false.
 	 * 
-	 * @hibernate.property not-null="true" column="AHF_COMPRESSED"
 	 * @return true if the ARC file is compressed; otherwise false.
 	 */
 	public boolean isCompressed() {
@@ -83,12 +102,7 @@ public class ArcHarvestFile {
 	/**
 	 * Returns the primary key of the database object.
 	 * @return the primary key
-     * @hibernate.id column="AHF_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="ArcHarvestFile"  
-	 */		
+	 */
 	public Long getOid() {
 		return oid;
 	}
@@ -104,8 +118,7 @@ public class ArcHarvestFile {
 	/**
 	 * Gets the name of the ARC file.
 	 * @return the name of the ARC file.
-	 * @hibernate.property length="100" not-null="true" column="AHF_NAME" unique="true"
-	 */		
+	 */
 	public String getName() {
 		return name;
 	}
@@ -120,7 +133,6 @@ public class ArcHarvestFile {
 
 	/**
 	 * Returns the ArcHarvestResult that this ARC file belongs to.
-	 * @hibernate.many-to-one column="AHF_ARC_HARVEST_RESULT_ID" foreign-key="FK_AHR_ARC_HARVEST_RESULT_ID"
 	 * @return the ArcHarvestResult that this ARC file belongs to
 	 */	
 	public ArcHarvestResult getHarvestResult() {

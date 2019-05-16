@@ -21,19 +21,26 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.graalvm.compiler.lir.LIRInstruction;
 import org.webcurator.core.util.Utils;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
+import javax.persistence.*;
+
 /**
  * A TargetGroup contains a number of child targets or target groups.
- * 
- * @hibernate.joined-subclass table="TARGET_GROUP" lazy="true"
- * @hibernate.joined-subclass-key column="TG_AT_OID"
- * @hibernate.query name="org.webcurator.domain.model.core.TargetGroup.getGroupDTOsByNameAndType" query="SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType, t.type) FROM TargetGroup t where lower(t.name) like lower(:name) and t.type IN (:types) ORDER BY UPPER(t.name), t.type"
- * @hibernate.query name="org.webcurator.domain.model.core.TargetGroup.cntGroupDTOsByNameAndType" query="SELECT count(*) FROM TargetGroup t where lower(t.name) like lower(:name) and t.type IN (:types)"
- * 
  */
-		 
+// TODO lazy="true"
+@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
+@Table(name = "TARGET_GROUP")
+@DiscriminatorColumn(name = "TG_AT_OID")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.core.TargetGroup.getGroupDTOsByNameAndType",
+				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType, t.type) FROM TargetGroup t where lower(t.name) like lower(:name) and t.type IN (:types) ORDER BY UPPER(t.name), t.type"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.TargetGroup.cntGroupDTOsByNameAndType",
+				query = "SELECT count(*) FROM TargetGroup t where lower(t.name) like lower(:name) and t.type IN (:types)")
+})
 public class TargetGroup extends AbstractTarget {
 	
 	/** The maximum length of the type field. */
@@ -57,14 +64,22 @@ public class TargetGroup extends AbstractTarget {
 	public static final int MANY_SIP = 2;
 	
 	/** The type of the Group; one sip or many sip */
+	@Column(name = "TG_SIP_TYPE")
 	private int sipType = ONE_SIP;
 	/** Date at which the Group's membership starts for meta-data purposes. */
+	@Column(name = "TG_START_DATE")
+	@Temporal(TemporalType.DATE)
 	private Date fromDate = null;
 	/** Date at which the Group's membership ends for meta-data purposes. */
+	@Column(name = "TG_END_DATE")
+	@Temporal(TemporalType.DATE)
 	private Date toDate   = null;
 	/** The ownership meta data. */
+	@Column(name = "TG_OWNERSHIP_METADATA", length = 255)
 	private String ownershipMetaData = null;
 	/** Children */
+	@OneToMany // default fetch type is LAZY
+	@JoinColumn(name = "GM_PARENT_ID")
 	private Set<GroupMember> children = new HashSet<GroupMember>();
 	
 	/** Unpersisted - List of new children */
@@ -72,6 +87,7 @@ public class TargetGroup extends AbstractTarget {
 	/** Set of children that have been removed */
 	private Set<Long> removedChildren = new HashSet<Long>();
 	/** The type of the group */
+	@Column(name = "TG_TYPE", length = 255)
 	private String type;
 
 	/**
@@ -94,7 +110,6 @@ public class TargetGroup extends AbstractTarget {
 	/**
 	 * Gets whether the TargetGroup is one SIP or many SIP.
 	 * @return Returns the type - either ONE_SIP or MANY_SIP.
-	 * @hibernate.property column="TG_SIP_TYPE"
 	 */
 	public int getSipType() {
 		return sipType;
@@ -111,8 +126,6 @@ public class TargetGroup extends AbstractTarget {
 	/**
 	 * Get the date that the group becomes active.
 	 * @return Returns the fromDate.
-     * @hibernate.property type="date" 
-     * @hibernate.column name="TG_START_DATE" sql-type="DATE"
 	 */
 	public Date getFromDate() {
 		return fromDate;
@@ -134,8 +147,6 @@ public class TargetGroup extends AbstractTarget {
 	/**
 	 * Get the date the group becomes inactive.
 	 * @return Returns the toDate.
-     * @hibernate.property type="date" 
-     * @hibernate.column name="TG_END_DATE" sql-type="DATE"
 	 */
 	public Date getToDate() {
 		return toDate;
@@ -160,7 +171,6 @@ public class TargetGroup extends AbstractTarget {
 	 * since a group can only have a single owner.
 	 * 
 	 * @return Returns the ownerhsipMetaData.
-	 * @hibernate.property column="TG_OWNERSHIP_METADATA" length="255"
 	 */
 	public String getOwnershipMetaData() {
 		return ownershipMetaData;
@@ -190,10 +200,7 @@ public class TargetGroup extends AbstractTarget {
 	/**
 	 * Gets a set of all the children.
 	 * @return Returns the children.
-     * @hibernate.set cascade="none"
-     * @hibernate.collection-key column="GM_PARENT_ID"
-     * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.GroupMember"
-     */	
+     */
 	public Set<GroupMember> getChildren() {
 		return children;
 	}
@@ -225,7 +232,6 @@ public class TargetGroup extends AbstractTarget {
 
 	/**
 	 * @return Returns the type.
-	 * @hibernate.property column="TG_TYPE" length="255"
 	 */
 	public String getType() {
 		return type;

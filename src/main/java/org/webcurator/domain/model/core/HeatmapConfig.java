@@ -15,12 +15,22 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+
 /**
  * @author mclean
- * @hibernate.class table="HEATMAP_CONFIG" lazy="false"
- * @hibernate.query name="org.webcurator.domain.model.core.HeatmapConfig.all" query="from org.webcurator.domain.model.core.HeatmapConfig hm order by hm.thresholdLowest"
- * @hibernate.query name="org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid" query="SELECT hm FROM HeatmapConfig hm WHERE hm_oid=?"
  */
+// lazy="false"
+@Entity
+@Table(name = "HEATMAP_CONFIG")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.all",
+				query = "from org.webcurator.domain.model.core.HeatmapConfig hm order by hm.thresholdLowest"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid",
+				query = "SELECT hm FROM HeatmapConfig hm WHERE hm_oid=?")
+})
 public class HeatmapConfig {
 	public static final String QUERY_ALL = "org.webcurator.domain.model.core.HeatmapConfig.all";
 	/** name if the Day and Time bandwidth restrictions query. */
@@ -33,28 +43,37 @@ public class HeatmapConfig {
     public static final String QRY_GET_CONFIG_BY_OID = "org.webcurator.domain.model.core.HeatmapConfig.getConfigByOid";
 
 	/** The primary key. */
+	@Id
+	@Column(name="HM_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
 	private Long oid;
+	@Column(name = "HM_NAME", nullable = false)
 	private String name;
+	@Column(name = "HM_DISPLAY_NAME", nullable = false)
 	private String displayName;
 	/** Hexadecimal string representing the RGB color, e.g. 8FBC8F **/
+	@Column(name = "HM_COLOR", nullable = false)
 	private String color;
 	/**
 	 * lowest value to display this color. The upper limit is set by other
 	 * configurations, if any e.g. low=1, medium=7, high=12 - low=1 to 6,
 	 * medium=7 to 11, high=above 12. 0 in this example will be uncolored
 	 **/
+	@Column(name = "HM_THRESHOLD_LOWEST", nullable = false)
 	private int thresholdLowest;
 
 	/**
 	 * Get the OID of the object.
 	 * 
 	 * @return Returns the oid.
-	 * @hibernate.id column="HM_OID"
-	 *               generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-	 * @hibernate.generator-param name="table" value="ID_GENERATOR"
-	 * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-	 * @hibernate.generator-param name="value_column" value="IG_VALUE"
-	 * @hibernate.generator-param name="primary_key_value" value="General"
 	 */
 	public Long getOid() {
 		return oid;
@@ -65,7 +84,6 @@ public class HeatmapConfig {
 	}
 
 	/**
-	 * @hibernate.property column="HM_NAME" not-null="true"
 	 */
 	public String getName() {
 		return name;
@@ -76,7 +94,6 @@ public class HeatmapConfig {
 	}
 
 	/**
-	 * @hibernate.property column="HM_COLOR" not-null="true"
 	 */
 	public String getColor() {
 		return color;
@@ -87,7 +104,6 @@ public class HeatmapConfig {
 	}
 
 	/**
-	 * @hibernate.property column="HM_THRESHOLD_LOWEST" not-null="true"
 	 */
 	public int getThresholdLowest() {
 		return thresholdLowest;
@@ -98,7 +114,6 @@ public class HeatmapConfig {
 	}
 
 	/**
-	 * @hibernate.property column="HM_DISPLAY_NAME" not-null="true"
 	 */
 	public String getDisplayName() {
 		return displayName;

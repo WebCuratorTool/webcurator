@@ -17,6 +17,7 @@ package org.webcurator.domain.model.core;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.persistence.*;
 
 import org.webcurator.core.profiles.DuplicateNameException;
 import org.webcurator.core.profiles.HeritrixProfile;
@@ -25,10 +26,11 @@ import org.webcurator.core.profiles.HeritrixProfile;
  * Represents Heritrix form-based credentials.
  * 
  * @author bbeaumont
- * @hibernate.joined-subclass table="PROFILE_FORM_CREDENTIALS"
- * @hibernate.joined-subclass-key column="PRC_PC_OID" 
- *
  */
+@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
+@Table(name = "PROFILE_FORM_CREDENTIALS")
+@DiscriminatorColumn(name = "PRC_PC_OID")
 public class ProfileFormCredentials extends ProfileCredentials {
 	/** Constant for POST requests */
 	public static final String METHOD_POST = "POST";
@@ -36,18 +38,21 @@ public class ProfileFormCredentials extends ProfileCredentials {
 	public static final String METHOD_GET  = "GET";
 	
 	/** The URL of the login form */
+	@Column(name = "PFC_LOGIN_URI", length = 255)
 	private String loginUri      = null;
 	/** The HTTP method to use - POST or GET */
+	@Column(name = "PFC_METHOD", length = 4)
 	private String httpMethod    = null;
 	/** The name of the username field */
+	@Column(name = "PFC_USERNAME_FIELD", length = 255)
 	private String usernameField = null;
 	/** The name of the password field */
+	@Column(name = "PFC_PASSWORD_FIELD", length = 255)
 	private String passwordField = null;
 	
 	/**
 	 * Returns the HTTP method to be used for submitting the login form.
 	 * @return Returns the httpMethod.
-	 * @hibernate.property column="PFC_METHOD" length="4"
 	 */
 	public String getHttpMethod() {
 		return httpMethod;
@@ -64,7 +69,6 @@ public class ProfileFormCredentials extends ProfileCredentials {
 	/**
 	 * Returns the URL of the login form.
 	 * @return Returns the loginUri.
-	 * @hibernate.property column="PFC_LOGIN_URI" length="255"
 	 */
 	public String getLoginUri() {
 		return loginUri;
@@ -81,7 +85,6 @@ public class ProfileFormCredentials extends ProfileCredentials {
 	/**
 	 * Gets the name of the password field on the login page.
 	 * @return Returns the passwordField.
-	 * @hibernate.property column="PFC_PASSWORD_FIELD" length="255"
 	 */
 	public String getPasswordField() {
 		return passwordField;
@@ -98,7 +101,6 @@ public class ProfileFormCredentials extends ProfileCredentials {
 	/**
 	 * Gets the name of the username field on the login page.
 	 * @return Returns the usernameField.
-	 * @hibernate.property column="PFC_USERNAME_FIELD" length="255"
 	 */
 	public String getUsernameField() {
 		return usernameField;

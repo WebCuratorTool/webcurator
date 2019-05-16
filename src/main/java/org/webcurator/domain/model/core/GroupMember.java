@@ -15,7 +15,9 @@
  */
 package org.webcurator.domain.model.core;
 
-import java.util.Comparator;
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 
 
 /**
@@ -23,13 +25,21 @@ import java.util.Comparator;
  * TargetGroup.
  * 
  * @author bbeaumont
- * @hibernate.class table="GROUP_MEMBER"
- * @hibernate.query name="org.webcurator.domain.model.core.GroupMember.getMembers" query="select new org.webcurator.domain.model.dto.GroupMemberDTO(gm.oid, gm.parent.oid, gm.parent.name, gm.parent.owner.username, gm.parent.owner.agency.name, gm.child.oid, gm.child.name, gm.child.objectType, gm.child.owner.username, gm.child.owner.agency.name) from GroupMember gm where gm.parent.oid = :parentOid ORDER BY UPPER(gm.child.name)"
- * @hibernate.query name="org.webcurator.domain.model.core.GroupMember.cntMembers" query="select count(*) from GroupMember gm where gm.parent.oid = :parentOid"
- * @hibernate.query name="org.webcurator.domain.model.core.GroupMember.getParents" query="select new org.webcurator.domain.model.dto.GroupMemberDTO(gm.oid, gm.parent.oid, gm.parent.name, gm.parent.owner.username, gm.parent.owner.agency.name, gm.child.oid, gm.child.name, gm.child.objectType, gm.child.owner.username, gm.child.owner.agency.name) from GroupMember gm where gm.child.oid = :childOid ORDER BY UPPER(gm.parent.name)"
- * @hibernate.query name="org.webcurator.domain.model.core.GroupMember.cntParents" query="select count(*) from GroupMember gm where gm.child.oid = :childOid"
- * @hibernate.query name="org.webcurator.domain.model.core.GroupMember.getMemberStates" query="select gm.child.state from GroupMember gm where gm.parent.oid = :parentOid"
  */
+@Entity
+@Table(name = "GROUP_MEMBER")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.core.GroupMember.getMembers",
+				query = "select new org.webcurator.domain.model.dto.GroupMemberDTO(gm.oid, gm.parent.oid, gm.parent.name, gm.parent.owner.username, gm.parent.owner.agency.name, gm.child.oid, gm.child.name, gm.child.objectType, gm.child.owner.username, gm.child.owner.agency.name) from GroupMember gm where gm.parent.oid = :parentOid ORDER BY UPPER(gm.child.name)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.GroupMember.cntMembers",
+				query = "select count(*) from GroupMember gm where gm.parent.oid = :parentOid"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.GroupMember.getParents",
+				query = "select new org.webcurator.domain.model.dto.GroupMemberDTO(gm.oid, gm.parent.oid, gm.parent.name, gm.parent.owner.username, gm.parent.owner.agency.name, gm.child.oid, gm.child.name, gm.child.objectType, gm.child.owner.username, gm.child.owner.agency.name) from GroupMember gm where gm.child.oid = :childOid ORDER BY UPPER(gm.parent.name)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.GroupMember.cntParents",
+				query = "select count(*) from GroupMember gm where gm.child.oid = :childOid"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.GroupMember.getMemberStates",
+				query = "select gm.child.state from GroupMember gm where gm.parent.oid = :parentOid")
+})
 public class GroupMember {
 	/** The query identifier to get the GroupMemberDTO child objects */
 	public static final String QUERY_GET_MEMBERS = "org.webcurator.domain.model.core.GroupMember.getMembers";
@@ -43,21 +53,31 @@ public class GroupMember {
 	public static final String QUERY_GET_MEMBERSTATES = "org.webcurator.domain.model.core.GroupMember.getMemberStates";
 	
 	/** The database oid */
-	private Long oid = null;	
+	@Id
+	@Column(name="AT_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "General")
+			})
+	private Long oid = null;
 	/** The parent of the member */
+	@ManyToOne
+	@JoinColumn(name = "GM_PARENT_ID", foreignKey = @ForeignKey(name = "FK_GM_PARENT_ID"))
 	private TargetGroup parent = null;
 	/** The child */
+	@ManyToOne
+	@JoinColumn(name = "GM_CHILD_ID", foreignKey = @ForeignKey(name = "FK_GM_CHILD_ID"))
 	private AbstractTarget child = null;
 
 	
     /**
      * Get the OID of the GroupMember.
      * @return Returns the oid.
-     * @hibernate.id column="AT_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
      */
     public Long getOid() {
         return oid;
@@ -74,7 +94,6 @@ public class GroupMember {
 	/**
 	 * Get the child of the relationship.
 	 * @return Returns the child.
-     * @hibernate.many-to-one column="GM_CHILD_ID" foreign-key="FK_GM_CHILD_ID" 
 	 */
 	public AbstractTarget getChild() {
 		return child;
@@ -90,7 +109,6 @@ public class GroupMember {
 	/**
 	 * Get the parent of the relationship.
 	 * @return Returns the parent.
-     * @hibernate.many-to-one column="GM_PARENT_ID" foreign-key="FK_GM_PARENT_ID"
 	 */
 	public TargetGroup getParent() {
 		return parent;

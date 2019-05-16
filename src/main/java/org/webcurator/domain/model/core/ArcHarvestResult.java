@@ -15,6 +15,7 @@
  */
 package org.webcurator.domain.model.core;
 
+import javax.persistence.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -29,12 +30,16 @@ import java.util.Set;
  * and prune use case.
  * 
  * @author bbeaumont
- * 
- * @hibernate.joined-subclass table="ARC_HARVEST_RESULT"
- * @hibernate.joined-subclass-key column="AHRS_HARVEST_RESULT_OID"
  */
+@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
+@Table(name = "ARC_HARVEST_RESULT")
+@DiscriminatorColumn(name = "AHRS_HARVEST_RESULT_OID")
 public class ArcHarvestResult extends HarvestResult {
 	/** The set of ARC files that make up this HarvestResult */
+	// cascade="save-update"
+	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
+	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID")
 	private Set<ArcHarvestFile> arcFiles;
 	
 	/**
@@ -95,9 +100,6 @@ public class ArcHarvestResult extends HarvestResult {
     
 	/**
 	 * Get the set of ARC files that make up this HarvestResult. 
-	 * @hibernate.set cascade="save-update"
-	 * @hibernate.collection-key column="AHF_ARC_HARVEST_RESULT_ID"
-	 * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.ArcHarvestFile"
 	 * @return the set of ARC files that make up this HarvestResult
 	 */
 	public Set<ArcHarvestFile> getArcFiles() {

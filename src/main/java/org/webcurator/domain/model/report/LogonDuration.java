@@ -15,29 +15,57 @@
  */
 package org.webcurator.domain.model.report;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
 import java.util.Date;
 
 /**
  * Logon duration of Users
  * @author MDubos
- * @hibernate.class table="WCT_LOGON_DURATION" lazy="false"
- * @hibernate.query name="org.webcurator.domain.model.report.LogonDuration.getDurationBySession" query="SELECT ld FROM LogonDuration ld WHERE ld.sessionId = ? "
- * @hibernate.query name="org.webcurator.domain.model.report.LogonDuration.getLoggedUsersByPeriodByAgency" query="SELECT new org.webcurator.core.report.dto.LogonUserDTO(u.oid, u.username, u.firstname, u.lastname, u.active, u.deactivateDate, ld.logonTime, ld.duration) FROM org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.report.LogonDuration ld, org.webcurator.domain.model.auth.Agency ag WHERE u.oid = ld.userOid AND u.agency.oid = ag.oid AND ld.logonTime >= ? AND ld.logonTime < ? AND ( (ld.logoutTime is null AND ? < ?) OR (ld.logoutTime is not null AND ld.logoutTime <= ?) ) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = u.agency.name) )"
- * @hibernate.query name="org.webcurator.domain.model.report.LogonDuration.UnproperLoggedoutSessionsForCurrentUser" query="SELECT ld FROM LogonDuration ld, org.webcurator.domain.model.auth.User u WHERE u.oid = ld.userOid AND u.oid = ? AND ld.sessionId != ? AND ld.duration is null"
  */
+// lazy="false"
+@Entity
+@Table(name = "WCT_LOGON_DURATION")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.report.LogonDuration.getDurationBySession",
+				query = "SELECT ld FROM LogonDuration ld WHERE ld.sessionId = ? "),
+		@NamedQuery(name = "org.webcurator.domain.model.report.LogonDuration.getLoggedUsersByPeriodByAgency",
+				query = "SELECT new org.webcurator.core.report.dto.LogonUserDTO(u.oid, u.username, u.firstname, u.lastname, u.active, u.deactivateDate, ld.logonTime, ld.duration) FROM org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.report.LogonDuration ld, org.webcurator.domain.model.auth.Agency ag WHERE u.oid = ld.userOid AND u.agency.oid = ag.oid AND ld.logonTime >= ? AND ld.logonTime < ? AND ( (ld.logoutTime is null AND ? < ?) OR (ld.logoutTime is not null AND ld.logoutTime <= ?) ) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = u.agency.name) )"),
+		@NamedQuery(name = "org.webcurator.domain.model.report.LogonDuration.UnproperLoggedoutSessionsForCurrentUser",
+				query = "SELECT ld FROM LogonDuration ld, org.webcurator.domain.model.auth.User u WHERE u.oid = ld.userOid AND u.oid = ? AND ld.sessionId != ? AND ld.duration is null")
+})
 public class LogonDuration {
 	
 	public static final String QRY_LOGON_DURATION_BY_SESSION = "org.webcurator.domain.model.report.LogonDuration.getDurationBySession";
 	public static final String QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY = "org.webcurator.domain.model.report.LogonDuration.getLoggedUsersByPeriodByAgency";
 	public static final String QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER = "org.webcurator.domain.model.report.LogonDuration.UnproperLoggedoutSessionsForCurrentUser";
-	
-		
+
+	@Id
+	@Column(name="LOGDUR_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "LogonDuration")
+			})
 	private Long oid;
+	@Column(name = "LOGDUR_USER_OID", nullable = false)
     private Long userOid;
+	@Column(name = "LOGDUR_USERNAME", length = 80, nullable = true)
 	private String userName;
+	@Column(name = "LOGDUR_USER_REALNAME", length = 100, nullable = true)
     private String userRealName;
+	@Column(name = "LOGDUR_SESSION_ID", length = 32, nullable = false)
     private String sessionId;
-    private Date logonTime;
+	@Column(name = "LOGDUR_LOGON_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date logonTime;
+	@Column(name = "LOGDUR_LOGOUT_TIME", columnDefinition = "TIMESTAMP(9)", nullable = true)
+	@Temporal(TemporalType.TIMESTAMP)
     private Date logoutTime;
     private Long duration;
     
@@ -46,8 +74,8 @@ public class LogonDuration {
      * Get the logon duration of the user. Accuracy cannot be expected
      * if session is not closed manually by the user
      * @return Logon duration (in seconds)
-     * @hibernate.property column="LOGDUR_DURATION" not-null="false"
      */
+    @Column(name = "LOGDUR_DURATION", nullable = true)
 	public Long getDuration() {
 		return duration;
 	}
@@ -86,8 +114,6 @@ public class LogonDuration {
 	/**
 	 * Get time of logon 
 	 * @return Date of logon
-	 * @hibernate.property type="timestamp"
-     * @hibernate.column name="LOGDUR_LOGON_TIME" not-null="true" sql-type="TIMESTAMP(9)"
 	 */
 	public Date getLogonTime() {
 		return logonTime;
@@ -100,8 +126,6 @@ public class LogonDuration {
 	/**
 	 * Get time of logout (manual or timeout logout)
 	 * @return Date of logout
-	 * @hibernate.property type="timestamp"
-     * @hibernate.column name="LOGDUR_LOGOUT_TIME" not-null="false" sql-type="TIMESTAMP(9)"
 	 */
 	public Date getLogoutTime() {
 			return logoutTime;
@@ -114,7 +138,6 @@ public class LogonDuration {
     /**
      * Get the Username of the user who log on / log out
      * @return the Username
-     * @hibernate.property column="LOGDUR_USERNAME" not-null="false" length="80"
      */
 	public String getUserName() {
 		return userName;
@@ -126,7 +149,6 @@ public class LogonDuration {
     /**
      * Get the User oid of the user who issued this action
      * @return the User Oid
-     * @hibernate.property column="LOGDUR_USER_OID" not-null="true"
      */
 	public Long getUserOid() {
 		return userOid;
@@ -139,7 +161,6 @@ public class LogonDuration {
     /**
      * Get the Users first name plus last name
      * @return Users first name plus last name
-     * @hibernate.property column="LOGDUR_USER_REALNAME" not-null="false" length="100"
      */
 	public String getUserRealName() {
 		return userRealName;
@@ -152,7 +173,6 @@ public class LogonDuration {
     /**
      * Unique session identifier
      * @return ID of the session
-     * @hibernate.property column="LOGDUR_SESSION_ID" not-null="true" length="32"
      */
 	public String getSessionId() {
 		return sessionId;
@@ -165,11 +185,6 @@ public class LogonDuration {
     /**
      * Get the LogonDuration oid, this is its primary key
      * @return The LogonDuration OID
-     * @hibernate.id column="LOGDUR_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="LogonDuration"
      */
 	public Long getOid() {
 		return oid;

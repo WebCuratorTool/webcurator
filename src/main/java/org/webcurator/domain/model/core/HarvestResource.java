@@ -16,6 +16,10 @@
 package org.webcurator.domain.model.core;
 
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+
 /**
  * A HarvestResource is a resource that has been harvested. It may be 
  * subclassed to provide additional functionality such as that required to
@@ -24,18 +28,36 @@ package org.webcurator.domain.model.core;
  * All Quality Review tools should ideally work with HarvestResource objects 
  * rather than their subclasses, though this may not always be possible.
  * 
- * @hibernate.class table="HARVEST_RESOURCE" lazy="false"
  **/
+// lazy="false"
+@Entity
+@Table(name = "HARVEST_RESOURCE")
 public class HarvestResource {
 	/** The name of the resource */
+	@Column(name = "HRC_NAME", length = 1020, nullable = false)
 	protected String name;
 	/** The length of the resource */
+	@Column(name = "HRC_LENGTH")
 	protected long length;
 	/** The status code of the resource */
+	@Column(name = "HRC_STATUS_CODE", nullable = false)
 	protected int statusCode;
 	/** The database OID of the object */
+	@Id
+	@Column(name="HRC_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "HarvestResource")
+			})
 	protected Long oid;
 	/** The HarvestResult that this resource belongs to */
+	@ManyToOne
+	@JoinColumn(name = "HRC_HARVEST_RESULT_OID")
 	protected HarvestResult result;
 
 	
@@ -62,12 +84,7 @@ public class HarvestResource {
 	/**
 	 * Get the primary key of the HarvestResource.
 	 * @return the primary key
-     * @hibernate.id column="HRC_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="HarvestResource"  
-	 */		
+	 */
 	public Long getOid() {
 		return oid;
 	}
@@ -83,8 +100,7 @@ public class HarvestResource {
 	/**
 	 * Get the length of the resource in bytes.
 	 * @return The length of the resource in bytes.
-	 * @hibernate.property column="HRC_LENGTH"
-	 */		
+	 */
 	public long getLength() {
 		return length;
 	}
@@ -104,8 +120,7 @@ public class HarvestResource {
 	 * Hibernate attribute, but also in ArcHarvestFileDTO.MAX_URL_LENGTH.
 	 * 
 	 * @return The name of the resource.
-	 * @hibernate.property length="1020" not-null="true" column="HRC_NAME"
-	 */	
+	 */
 	public String getName() {
 		return name;
 	}
@@ -121,7 +136,6 @@ public class HarvestResource {
 	/**
 	 * Get the harvest result that this resource belongs to.
 	 * @return The HarvestResult that this resource belongs to.
-	 * @hibernate.many-to-one column="HRC_HARVEST_RESULT_OID"
 	 */
 	public HarvestResult getResult() {
 		return result;
@@ -137,7 +151,6 @@ public class HarvestResource {
 	
 	/**
 	 * @return the statusCode
-	 * @hibernate.property not-null="true" column="HRC_STATUS_CODE"
 	 */
 	public int getStatusCode() {
 		return statusCode;

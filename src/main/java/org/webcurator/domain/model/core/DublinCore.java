@@ -15,6 +15,10 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+
 /**
  * The DublinCore class contains the basic meta data description fields to be associated with an
  * object.
@@ -25,8 +29,10 @@ package org.webcurator.domain.model.core;
  * Dublin Core metadata can be assigned.
  * 
  * @author nwaight
- * @hibernate.class table="DUBLIN_CORE" lazy="false"
  */
+// lazy="false"
+@Entity
+@Table(name = "DUBLIN_CORE")
 public class DublinCore {
 	/** max length of the title field. */
 	public static final int MAX_LEN_TITLE = 255;
@@ -60,41 +66,66 @@ public class DublinCore {
 	public static final int MAX_LEN_ISBN = 13;
 	
 	/** the unique id of this meta data set. */
+	@Id
+	@Column(name="DC_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "DublinCore")
+			})
 	private Long oid;
 	/** A name given to the resource. */
+	@Column(name = "DC_TITLE", length = 255)
 	private String title;
 	/** An entity primarily responsible for making the content of the resource. */
+	@Column(name = "DC_CREATOR", length = 255)
 	private String creator;
 	/** A topic of the content of the resource. */
+	@Column(name = "DC_SUBJECT", length = 2000)
 	private String subject;
 	/** An account of the content of the resource. */
+	@Column(name = "DC_DESCRIPTION", length = 2000)
 	private String description;
 	/** An entity responsible for making the resource available. */
+	@Column(name = "DC_PUBLISHER", length = 255)
 	private String publisher;
 	/** An entity responsible for making contributions to the content of the resource. */
+	@Column(name = "DC_CONTRIBUTOR", length = 255)
 	private String contributor;
 	/** The nature or genre of the content of the resource. */
+	@Column(name = "DC_TYPE", length = 50)
 	private String type;
 	/** The physical or digital manifestation of the resource. */
+	@Column(name = "DC_FORMAT", length = 255)
 	private String format;
 	/** An unambiguous reference to the resource within a given context. */
+	@Column(name = "DC_IDENTIFIER", length = 255)
 	private String identifier;
 	/** A Reference to a resource from which the present resource is derived. */
+	@Column(name = "DC_SOURCE", length = 255)
 	private String source;
 	/** A language of the intellectual content of the resource. */
+	@Column(name = "DC_LANGUAGE", length = 255)
 	private String language;
 	/** A reference to a related resource. */
+	@Column(name = "DC_RELATION", length = 255)
 	private String relation;
 	/** The extent or scope of the content of the resource. */
+	@Column(name = "DC_COVERAGE", length = 255)
 	private String coverage;
 	/** International Standard Serial Number. */
+	@Column(name = "DC_IDENTIFIER_ISSN", length = 9)
 	private String issn;
 	/** International Standard Book Number. */
+	@Column(name = "DC_IDENTIFIER_ISBN", length = 13)
 	private String isbn;
 	
 	/**
 	 * @return the contributor
-	 * @hibernate.property column="DC_CONTRIBUTOR" length="255"
 	 */
 	public String getContributor() {
 		return contributor;
@@ -107,7 +138,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the coverage
-	 * @hibernate.property column="DC_COVERAGE" length="255"
 	 */
 	public String getCoverage() {
 		return coverage;
@@ -120,7 +150,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the creator
-	 * @hibernate.property column="DC_CREATOR" length="255"
 	 */
 	public String getCreator() {
 		return creator;
@@ -133,7 +162,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the description
-	 * @hibernate.property column="DC_DESCRIPTION" length="2000"
 	 */
 	public String getDescription() {
 		return description;
@@ -146,7 +174,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the format
-	 * @hibernate.property column="DC_FORMAT" length="255"
 	 */
 	public String getFormat() {
 		return format;
@@ -159,7 +186,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the identifier
-	 * @hibernate.property column="DC_IDENTIFIER" length="255"
 	 */
 	public String getIdentifier() {
 		return identifier;
@@ -172,7 +198,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the isbn
-	 * @hibernate.property column="DC_IDENTIFIER_ISBN" length="13"
 	 */
 	public String getIsbn() {
 		return isbn;
@@ -185,7 +210,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the issn
-	 * @hibernate.property column="DC_IDENTIFIER_ISSN" length="9"
 	 */
 	public String getIssn() {
 		return issn;
@@ -198,7 +222,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the language
-	 * @hibernate.property column="DC_LANGUAGE" length="255"
 	 */
 	public String getLanguage() {
 		return language;
@@ -211,11 +234,7 @@ public class DublinCore {
 	}
 	/**
 	 * @return the oid
-	 * @hibernate.id column="DC_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="DublinCore" 
+
 	 */
 	public Long getOid() {
 		return oid;
@@ -228,7 +247,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the publisher
-	 * @hibernate.property column="DC_PUBLISHER" length="255"
 	 */
 	public String getPublisher() {
 		return publisher;
@@ -241,7 +259,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the relation
-	 * @hibernate.property column="DC_RELATION" length="255"
 	 */
 	public String getRelation() {
 		return relation;
@@ -254,7 +271,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the source
-	 * @hibernate.property column="DC_SOURCE" length="255"
 	 */
 	public String getSource() {
 		return source;
@@ -267,7 +283,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the subject
-	 * @hibernate.property column="DC_SUBJECT" length="2000"
 	 */
 	public String getSubject() {
 		return subject;
@@ -280,7 +295,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the title
-	 * @hibernate.property column="DC_TITLE" length="255"
 	 */
 	public String getTitle() {
 		return title;
@@ -293,7 +307,6 @@ public class DublinCore {
 	}
 	/**
 	 * @return the type
-	 * @hibernate.property column="DC_TYPE" length="50"
 	 */
 	public String getType() {
 		return type;

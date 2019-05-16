@@ -16,7 +16,11 @@
 package org.webcurator.domain.model.core;
 
 import java.io.Serializable;
+
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
+
+import javax.persistence.*;
 
 /**
  * A Rejection Reason represents the justification a user specified when setting a Target's 
@@ -24,11 +28,18 @@ import org.webcurator.domain.model.auth.Agency;
  * Agencies can maintain their own lists of Rejection Reasons.
  * An administrator can specify if a Rejection Reason applies to Targets or Target Instances, both or neither.
  * @author oakleigh_sk
- * @hibernate.class table="REJECTION_REASON" lazy="false"
- * @hibernate.query name="org.webcurator.domain.model.core.RejReason.getReasons" query="SELECT rr FROM RejReason rr ORDER BY rr_agc_oid, rr.name"
- * @hibernate.query name="org.webcurator.domain.model.core.RejReason.getReasonByOid" query="SELECT rr FROM RejReason rr WHERE rr_oid=?"
- * @hibernate.query name="org.webcurator.domain.model.core.RejReason.getReasonsByAgency" query="SELECT rr FROM RejReason rr WHERE rr.agency.oid=? ORDER BY rr.name"
  */
+// lazy="false"
+@Entity
+@Table(name = "REJECTION_REASON")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.core.RejReason.getReasons",
+				query = "SELECT rr FROM RejReason rr ORDER BY rr_agc_oid, rr.name"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.RejReason.getReasonByOid",
+				query = "SELECT rr FROM RejReason rr WHERE rr_oid=?"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.RejReason.getReasonsByAgency",
+				query = "SELECT rr FROM RejReason rr WHERE rr.agency.oid=? ORDER BY rr.name")
+})
 public class RejReason implements Serializable {
     
    	/** Version ID for serialization */
@@ -43,14 +54,30 @@ public class RejReason implements Serializable {
 	
 	
 	/** The database OID of the reason */
-    private Long oid;
+	@Id
+	@Column(name="RR_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "RejectionReason")
+			})
+	private Long oid;
     /** The name of the reason */
+    @Column(name = "RR_NAME", length = 100, nullable = false)
     private String name;
     /** The agency the reason belongs to */
+	@ManyToOne
+	@JoinColumn(name = "RR_AGC_OID", foreignKey = @ForeignKey(name = "FK_RR_AGENCY_OID"), nullable = false)
     private Agency agency;
 	/** Determines if the rejection reason is applicable to Targets. */
+	@Column(name = "RR_AVAILABLE_FOR_TARGET")
 	private boolean availableForTargets; 
 	/** Determines if the rejection reason is applicable to Targets. */
+	@Column(name = "RR_AVAILABLE_FOR_TI")
 	private boolean availableForTIs; 
     
     /**
@@ -63,11 +90,6 @@ public class RejReason implements Serializable {
     /**
      * Gets the database OID of the reason.
      * @return Returns the oid.
-     * @hibernate.id column="RR_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="RejectionReason" 
      */
     public Long getOid() {
         return oid;
@@ -86,7 +108,6 @@ public class RejReason implements Serializable {
      * gets the name of the reason, this is a description of the reason.
      * Task. For full details refer to the getMessage() method.
      * @return the name
-     * @hibernate.property column="RR_NAME" length="100" not-null="true"
      */
     public String getName() {
         return name;
@@ -103,7 +124,6 @@ public class RejReason implements Serializable {
     /**
      * gets the Agency to which this reason belongs. 
      * @return the Agency object
-     * @hibernate.many-to-one not-null="true" class="org.webcurator.domain.model.auth.Agency" column="RR_AGC_OID" foreign-key="FK_RR_AGENCY_OID"
      */
     public Agency getAgency() {
         return agency;
@@ -120,7 +140,6 @@ public class RejReason implements Serializable {
 	/**
 	 * Checks if the reason is available as a Target rejection reason.
 	 * @return true if available; otherwise false.
-	 * @hibernate.property column="RR_AVAILABLE_FOR_TARGET"
 	 */
 	public boolean isAvailableForTargets() {
 		return availableForTargets;
@@ -137,7 +156,6 @@ public class RejReason implements Serializable {
 	/**
 	 * Checks if the reason is available as a TI (Target Instance) rejection reason.
 	 * @return true if available; otherwise false.
-	 * @hibernate.property column="RR_AVAILABLE_FOR_TI"
 	 */
 	public boolean isAvailableForTIs() {
 		return availableForTIs;

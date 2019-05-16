@@ -16,16 +16,22 @@
 package org.webcurator.domain.model.core;
 
 import java.util.Date;
-import java.lang.Comparable; 
+import java.lang.Comparable;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.User;
+
+import javax.persistence.*;
 
 /**
  * An audited note attached to an object.  
  * @author nwaight 
- * @hibernate.class table="ANNOTATIONS" lazy="false"
- * @hibernate.query name="org.webcurator.domain.model.core.Annotation.getNotesForObject" query="from org.webcurator.domain.model.core.Annotation an where an.objectType = :type and an.objectOid = :oid"
  */
+// lazy="false"
+@Entity
+@Table(name = "ANNOTATIONS")
+@NamedQuery(name = "org.webcurator.domain.model.core.Annotation.getNotesForObject",
+		query="from org.webcurator.domain.model.core.Annotation an where an.objectType = :type and an.objectOid = :oid")
 public class Annotation implements Comparable {
 	/** The name of the get annotations for object query. */
 	public static final String QRY_GET_NOTES = "org.webcurator.domain.model.core.Annotation.getNotesForObject";
@@ -34,19 +40,38 @@ public class Annotation implements Comparable {
 	/** name of the object oid query parameter. */
 	public static final String PARAM_OID = "oid";
 	
-	/** the primary key for the annotation. */ 
+	/** the primary key for the annotation. */
+	@Id
+	@Column(name="AN_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "Annotation")
+			})
 	private Long oid;
 	/** The date for the annotation was created. */
+	@Column(name = "AN_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 	/** the annotation text. */
+	@Column(name = "AN_NOTE", length = 1000, nullable = false)
 	private String note;
 	/** the user that added the annotation. */
-	private User user;	
+	@ManyToOne
+	@JoinColumn(name = "AN_USER_OID", foreignKey = @ForeignKey(name = "FK_NOTE_USER_OID"), nullable = false)
+	private User user;
 	/** the type of the annotations parent object. */
+	@Column(name = "AN_OBJ_TYPE", length = 500, nullable = false)
 	private String objectType;
-	/** the oid of the annotations parent object. */ 
+	/** the oid of the annotations parent object. */
+	@Column(name = "AN_OBJ_OID", nullable = false)
 	private Long objectOid;
 	/** Is this annotation alertable */
+	@Column(name = "AN_ALERTABLE")
 	private boolean alertable;
 	
 	/**
@@ -71,8 +96,7 @@ public class Annotation implements Comparable {
 	 * @param aNote The message string.
 	 * @param aUser The user that created the annotation.
 	 * @param aObjectOid The OID of the associated object.
-	 * @param aObjectType
-	 * @param alertable 
+	 * @param alertable
 	 */
 	public Annotation(Date aDate, String aNote, User aUser, Long aObjectOid, String aObjectType, boolean alertable) { 
 		this.date = aDate;
@@ -85,7 +109,6 @@ public class Annotation implements Comparable {
 	
 	/** 
 	 * @return the date the annotation was created.
-	 * @hibernate.property column="AN_DATE" not-null="true" type="timestamp" 
 	 */
 	public Date getDate() {
 		return date;
@@ -97,7 +120,6 @@ public class Annotation implements Comparable {
 
 	/**
 	 * 
-	 * @hibernate.property column="AN_NOTE" not-null="true" length="1000"
 	 */
 	public String getNote() {
 		return note;
@@ -109,7 +131,6 @@ public class Annotation implements Comparable {
 
 	/**
 	 * @return the user
-	 * @hibernate.many-to-one not-null="true" class="org.webcurator.domain.model.auth.User" column="AN_USER_OID" foreign-key="FK_NOTE_USER_OID"
 	 */
 	public User getUser() {
 		return user;
@@ -124,7 +145,6 @@ public class Annotation implements Comparable {
 
 	/**
 	 * @return the objectOid
-	 * @hibernate.property column="AN_OBJ_OID" not-null="true"
 	 */
 	public Long getObjectOid() {
 		return objectOid;
@@ -139,7 +159,6 @@ public class Annotation implements Comparable {
 
 	/**
 	 * @return the objectType
-	 * @hibernate.property column="AN_OBJ_TYPE" not-null="true" length="500"
 	 */
 	public String getObjectType() {
 		return objectType;
@@ -157,7 +176,6 @@ public class Annotation implements Comparable {
 	/**
 	 * Returns true if this annotation is alertable.
 	 * @return true if alertable; otherwise false.
-	 * @hibernate.property column="AN_ALERTABLE"
 	 */
 	public boolean isAlertable() {
 		return alertable;
@@ -174,11 +192,6 @@ public class Annotation implements Comparable {
 	/**
 	 * Retrieve the OID of the Annotation.
 	 * @return the oid
-	 * @hibernate.id column="AN_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="Annotation"
 	 */
 	public Long getOid() {
 		return oid;

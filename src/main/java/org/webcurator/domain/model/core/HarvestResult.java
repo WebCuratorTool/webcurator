@@ -22,16 +22,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.RejReason;
+
+import javax.persistence.*;
 
 /**
  * The <code>HarvestResult</code> class describes the result of a harvest. It
  * contains and manages the resources. 
  * 
- * @hibernate.class table="HARVEST_RESULT" lazy="false"
  **/
+// lazy="false"
+@Entity
+@Table(name = "HARVEST_RESULT")
 public class HarvestResult implements UserInTrayResource {
 	private static final int MAX_MOD_NOTE_LENGTH = 2000;
 	
@@ -47,28 +52,61 @@ public class HarvestResult implements UserInTrayResource {
 	public static final int STATE_ABORTED = 4;
 	
 	/** The TargetInstance that this belongs to */
+	@ManyToOne
+	@JoinColumn(name = "HR_TARGET_INSTANCE_ID", foreignKey = @ForeignKey(name = "FK_HRC_TARGET_INSTANCE_ID"))
 	protected TargetInstance targetInstance;
 	/** The Harvest number; the original harvest is always number 1, the prune tool can created additional harvest results */
+	@Column(name = "HR_HARVEST_NO")
 	protected int harvestNumber = 1;
 	/** The primary key of the harvest result */
+	@Id
+	@Column(name="HR_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "HarvestResource") // TODO Should this not be 'HarvestResult'?
+			})
 	protected Long oid = null;
 	/** An index of the resources within this harvest */
+	// cascade="save-update"
+	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
+	@JoinColumn(name = "HRC_HARVEST_RESULT_OID")
+	// TODO @hibernate.collection-index column="HRC_NAME" (might be solved by MapKeyJoinColumn)
+	@MapKeyJoinColumn(name = "HRC_NAME")
 	protected Map<String,HarvestResource> resources = new HashMap<String,HarvestResource>();
 	/** The provenance note (how this harvest result was created */
+	@Column(name = "HR_PROVENANCE_NOTE", length = 1024, nullable = false)
 	protected String provenanceNote;
 	/** The creation date of this harvest result */
+	@Column(name = "HR_CREATED_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	protected Date creationDate;
 	/** Who created this harvest result */
+	@ManyToOne
+	@JoinColumn(name = "HR_CREATED_BY_ID", foreignKey = @ForeignKey(name = "FK_HR_CREATED_BY_ID"))
 	protected User createdBy;
 	/** The state of the HarvestResult - see the STATE_xxx constants */
+	@Column(name = "HR_STATE")
 	protected int state = 0;
 	/** A list of Harvest Modification Notes */
+	// TODO @hibernate.list table="HR_MODIFICATION_NOTE" cascade="all-delete-orphan" --> not sure if can do cascade
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "HR_MODIFICATION_NOTE", joinColumns = @JoinColumn(name = "HMN_HR_OID"))
+	@Column(name = "HMN_NOTE", length = 2000)
+	// TODO @hibernate.collection-index column="HMN_INDEX"
 	protected List<String> modificationNotes = new LinkedList<String>();
 	/** The Harvest ID that this harvest was derived from */
+	@Column(name = "HR_DERIVED_FROM")
 	private Integer derivedFrom;
 	/** Why this harvest result was rejected */
+	@ManyToOne
+	@JoinColumn(name = "HR_RR_OID", foreignKey = @ForeignKey(name = "FK_HR_RR_OID"))
 	protected RejReason rejReason;
-	
+
 	/**
 	 * Construct a new HarvestResult.
 	 */
@@ -107,8 +145,7 @@ public class HarvestResult implements UserInTrayResource {
 	 * Get the number of the harvest result. This is 1 for the original harvest.
 	 * Additional harvests may be created by the quality review tools.
 	 * @return the number of the harvest  result.
-	 * @hibernate.property column="HR_HARVEST_NO"
-	 */		
+	 */
 	public int getHarvestNumber() {
 		return harvestNumber;
 	}
@@ -124,12 +161,7 @@ public class HarvestResult implements UserInTrayResource {
 	/**
 	 * Get the primary key of the HarvestResult object.
 	 * @return the primary key
-     * @hibernate.id column="HR_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="HarvestResource" 
-	 */		
+	 */
 	public Long getOid() {
 		return oid;
 	}
@@ -145,7 +177,6 @@ public class HarvestResult implements UserInTrayResource {
 	/**
 	 * Get the target instance that this object belongs to.
 	 * @return The target instance that this object belongs to.	  
-	 * @hibernate.many-to-one column="HR_TARGET_INSTANCE_ID" foreign-key="FK_HRC_TARGET_INSTANCE_ID"
 	 */
 	public TargetInstance getTargetInstance() {
 		return targetInstance;
@@ -166,10 +197,6 @@ public class HarvestResult implements UserInTrayResource {
 	 * result.
 	 *
 	 * @return the map of resource names to HarvestResource objects.
-	 * @hibernate.map cascade="save-update" lazy="true"
-	 * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.HarvestResource"
-	 * @hibernate.collection-key column="HRC_HARVEST_RESULT_OID"
-	 * @hibernate.collection-index column="HRC_NAME" type="java.lang.String"
 	 */
 	public Map<String, HarvestResource> getResources() {
 		return resources;
@@ -186,8 +213,7 @@ public class HarvestResult implements UserInTrayResource {
 	/**
 	 * Get the provenance note that explains why this harvest was created.
 	 * @return the note that explains why this harvest was created.
-	 * @hibernate.property length="1024" not-null="true" column="HR_PROVENANCE_NOTE"
-	 */	
+	 */
 	public String getProvenanceNote() {
 		return provenanceNote;
 	}
@@ -203,7 +229,6 @@ public class HarvestResult implements UserInTrayResource {
     /**
      * Get the date the result was created.
      * @return the date the record was created
-     * @hibernate.property column="HR_CREATED_DATE" type="timestamp"
      */
 	public Date getCreationDate() {
 		return creationDate;
@@ -220,7 +245,6 @@ public class HarvestResult implements UserInTrayResource {
 	/**
 	 * Get the User that created the harvest result.
 	 * @return The User object for the user that created this object.
-	 * @hibernate.many-to-one column="HR_CREATED_BY_ID" foreign-key="FK_HR_CREATED_BY_ID"
 	 */
 	public User getCreatedBy() {
 		return createdBy;
@@ -238,7 +262,6 @@ public class HarvestResult implements UserInTrayResource {
 	 * Get the Rejection Reason of this harvest result (if any).
 	 * @return The RejReason object corresponding to the reason specified when a
 	 * harvest is rejected.
-	 * @hibernate.many-to-one column="HR_RR_OID" foreign-key="FK_HR_RR_OID"
 	 */
 	public RejReason getRejReason() {
 		return rejReason;
@@ -255,7 +278,6 @@ public class HarvestResult implements UserInTrayResource {
 	/**
 	 * Get the state of this Harvest Result.
 	 * @return the state
-	 * @hibernate.property column="HR_STATE"
 	 */
 	public int getState() {
 		return state;
@@ -297,10 +319,6 @@ public class HarvestResult implements UserInTrayResource {
 	/**
 	 * Get the list of modification notes. 
 	 * @return The list of modification notes.
-	 * @hibernate.list table="HR_MODIFICATION_NOTE" cascade="all-delete-orphan"  lazy="false"
-	 * @hibernate.collection-key column="HMN_HR_OID"
-	 * @hibernate.collection-index column="HMN_INDEX"
-	 * @hibernate.collection-element type="string" column="HMN_NOTE" length="2000"
 	 */
 	public List<String> getModificationNotes() {
 		return modificationNotes;
@@ -314,7 +332,6 @@ public class HarvestResult implements UserInTrayResource {
 	 * Get the Harvest Number that this harvest was derived from.
 	 * @return The harvest number that this harvest was derived from. If original, then
 	 *         this will be null.
-	 * @hibernate.property column="HR_DERIVED_FROM"
 	 */
 	public Integer getDerivedFrom() {
 		return derivedFrom;

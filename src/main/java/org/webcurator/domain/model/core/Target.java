@@ -16,6 +16,7 @@
 
 package org.webcurator.domain.model.core;
 
+import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,9 +27,12 @@ import java.util.Set;
  * what to harvest, at what times, and what harvest profile to use.  
  * 
  * @author nwaight
- * @hibernate.joined-subclass table="TARGET" lazy="false" 
- * @hibernate.joined-subclass-key column="T_AT_OID"
  */
+// TODO lazy="false"
+@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
+@Table(name = "TARGET")
+@DiscriminatorColumn(name = "T_AT_OID")
 public class Target extends AbstractTarget implements Optimizable {
 	/** The maximum length of the name string */
 	public static final int MAX_NAME_LENGTH = 255;
@@ -59,26 +63,37 @@ public class Target extends AbstractTarget implements Optimizable {
 	/** The state constant for Completed - A target whose schedules have all reached their end dates */
 	public static final int STATE_COMPLETED = 7;
 	/** Date at which the target was first nominated or approved */
+	@Column(name = "T_SELECTION_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date selectionDate;
 	/** The type of the selection */
+	@Column(name = "T_SELECTION_TYPE", length = 255)
 	private String selectionType;
 	/** A selection note */
+	@Column(name = "T_SELECTION_NOTE", length = 255)
 	private String selectionNote;
 	/** An evaluation note */
+	@Column(name = "T_EVALUATION_NOTE", length = 255)
 	private String evaluationNote;
 	/** The type of harvest */
+	@Column(name = "T_HARVEST_TYPE", length = 255)
 	private String harvestType;
     /** The seeds. **/
+	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
+	@JoinColumn(name = "S_TARGET_ID")
     private Set<Seed> seeds = new HashSet<Seed>();
     
     /** Run the target as soon as approved */
+    @Column(name = "T_RUN_ON_APPROVAL")
     private boolean runOnApproval = false;
     
     /** Use Automated Quality Assurance on Harvests derived from this Target */
+    @Column(name = "T_USE_AQA")
     private boolean useAQA = false;
 
     /** Run the target in five minutes */
     private boolean harvestNow = false;
+    @Column(name = "T_ALLOW_OPTIMIZE")
 	private boolean allowOptimize;
 
     /**
@@ -92,9 +107,6 @@ public class Target extends AbstractTarget implements Optimizable {
     /**
      * Return the Set of Seeds attached to this target.
 	 * @return Returns the seeds.
-     * @hibernate.set cascade="all-delete-orphan" 
-     * @hibernate.collection-key column="S_TARGET_ID" 
-     * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.Seed" 
 	 */
 	public Set<Seed> getSeeds() {
 		return seeds;
@@ -204,7 +216,6 @@ public class Target extends AbstractTarget implements Optimizable {
 
 	/**
 	 * @return Returns the runOnApproval.
-     * @hibernate.property column="T_RUN_ON_APPROVAL" 
 	 */
 	public boolean isRunOnApproval() {
 		return runOnApproval;
@@ -220,7 +231,6 @@ public class Target extends AbstractTarget implements Optimizable {
 
 	/**
 	 * @return Returns the useAQA.
-     * @hibernate.property column="T_USE_AQA" 
 	 */
 	public boolean isUseAQA() {
 		return useAQA;
@@ -237,7 +247,6 @@ public class Target extends AbstractTarget implements Optimizable {
 	
 	/**
 	 * @return Returns the evaluationNote.
-     * @hibernate.property column="T_EVALUATION_NOTE" length="255"
 	 */
 	public String getEvaluationNote() {
 		return evaluationNote;
@@ -254,8 +263,6 @@ public class Target extends AbstractTarget implements Optimizable {
 
 	/**
 	 * @return Returns the selectionDate.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="T_SELECTION_DATE" sql-type="TIMESTAMP(9)"   
 	 */
 	public Date getSelectionDate() {
 		return selectionDate;
@@ -272,7 +279,6 @@ public class Target extends AbstractTarget implements Optimizable {
 
 	/**
 	 * @return Returns the selectionNote.
-     * @hibernate.property column="T_SELECTION_NOTE" length="255"
 	 */
 	public String getSelectionNote() {
 		return selectionNote;
@@ -289,7 +295,6 @@ public class Target extends AbstractTarget implements Optimizable {
 
 	/**
 	 * @return Returns the selectionType.
-     * @hibernate.property column="T_SELECTION_TYPE" length="255"
 	 */
 	public String getSelectionType() {
 		return selectionType;
@@ -305,7 +310,6 @@ public class Target extends AbstractTarget implements Optimizable {
 
 	/**
 	 * @return Returns the harvestType.
-	 * @hibernate.property column="T_HARVEST_TYPE" length="255"
 	 */
 	public String getHarvestType() {
 		return harvestType;
@@ -335,7 +339,6 @@ public class Target extends AbstractTarget implements Optimizable {
 
 	/**
 	 * @return Returns the harvestType.
-	 * @hibernate.property column="T_ALLOW_OPTIMIZE"
 	 */
 	public boolean isAllowOptimize() {
 		return allowOptimize;

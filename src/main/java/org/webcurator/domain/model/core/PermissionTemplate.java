@@ -15,15 +15,20 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
+
+import javax.persistence.*;
 
 /**
  * Models the permission request template used to generate
  * letters and emails to Authorisation Agents.
  * @author bprice
- * @hibernate.class table="PERMISSION_TEMPLATE" lazy="false"
- * @hibernate.query name="org.webcurator.domain.core.PermissionTemplate.getTemplatesByAgencyOid" query="from PermissionTemplate tem where tem.agency.oid=?"
  */
+// lazy="false"
+@Entity
+@Table(name = "PERMISSION_TEMPLATE")
+@NamedQuery(name = "org.webcurator.domain.core.PermissionTemplate.getTemplatesByAgencyOid", query = "from PermissionTemplate tem where tem.agency.oid=?")
 public class PermissionTemplate {
 	/** Query identifier to get permission request templates by Agency OID */
     public static final String QRY_GET_TEMPLATES_BY_AGENCY = "org.webcurator.domain.core.PermissionTemplate.getTemplatesByAgencyOid";
@@ -33,30 +38,56 @@ public class PermissionTemplate {
     public static final String PRINT_TYPE_TEMPLATE = "Print Template";
     
     /** The database OID of the template */
+    @Id
+    @Column(name="PRT_OID", nullable =  false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+    @GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+            strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+            parameters = {
+                    @Parameter(name = "table", value = "ID_GENERATOR"),
+                    @Parameter(name = "primary_key_column", value = "IG_TYPE"),
+                    @Parameter(name = "value_column", value = "IG_VALUE"),
+                    @Parameter(name = "primary_key_value", value = "PermissionTemplate"),
+                    @Parameter(name = "max-lo", value = "16")
+            })
+
     private Long oid;
     /** The name of the template */
+    @Column(name = "PRT_TEMPLATE_NAME", length = 80, nullable = false)
     private String templateName;
     /** The description of the template */
+    @Column(name = "PRT_TEMPLATE_DESC", length = 255, nullable = true)
     private String templateDescription;
     /** The agency to which this template belongs */
+    @ManyToOne
+    @JoinColumn(name = "PRT_AGC_OID", foreignKey = @ForeignKey(name = "FK_TEMPLATE_AGENCY_OID"), nullable = false)
     private Agency agency;
     /** The template text itself */
+    @Column(name = "PRT_TEMPLATE_TEXT", length = 10000, nullable = false)
+    @Lob // type="materialized_clob"
     private String template;
     /** The type of template. One of EMAIL_TYPE_TEMPLATE or PRINT_TYPE_TEMPLATE */
+    @Column(name = "PRT_TEMPLATE_TYPE", length = 40, nullable = false)
     private String templateType;
     /** The template text after place-holder substitution */
     private String parsedText;
     /** The subject of the Email*/
+    @Column(name = "PRT_TEMPLATE_SUBJECT", length = 255, nullable = true)
     private String templateSubject;
     /** A flag used to control if the from field of the email is overwritten by the templateOverwriteFrom*/
+    @Column(name = "PRT_TEMPLATE_OVERWRITE_FROM", nullable = false)
     private boolean templateOverwriteFrom;
     /** The email address used in the sent from field*/
+    @Column(name = "PRT_TEMPLATE_FROM", length = 255, nullable = true)
     private String templateFrom;
     /** the email address(s) the email's are cc'd to*/
+    @Column(name = "PRT_TEMPLATE_CC", length = 2048, nullable = true)
     private String templateCc;
     /** the email address(s) the email's are bcc'd to*/
+    @Column(name = "PRT_TEMPLATE_BCC", length = 2048, nullable = true)
     private String templateBcc;
     /** the replyto email address*/
+    @Column(name = "PRT_TEMPLATE_REPLY_TO", length = 255, nullable = true)
 	private String replyTo;
     
     /**
@@ -69,7 +100,6 @@ public class PermissionTemplate {
     /**
      * gets the Agency this template belongs to
      * @return the owning Agency of the PermissionTemplate
-     * @hibernate.many-to-one not-null="true" class="org.webcurator.domain.model.auth.Agency" column="PRT_AGC_OID" foreign-key="FK_TEMPLATE_AGENCY_OID"
      */
     public Agency getAgency() {
         return agency;
@@ -86,12 +116,6 @@ public class PermissionTemplate {
     /**
      * gets the Primary key of the PermissionTemplate
      * @return the PermissionTemplate oid
-     * @hibernate.id column="PRT_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="PermissionTemplate"
-     * @hibernate.generator-param name="max-lo" value="16"
      */
     public Long getOid() {
         return oid;
@@ -108,7 +132,6 @@ public class PermissionTemplate {
     /**
      * gets the specified template text
      * @return the template text
-     * @hibernate.property column="PRT_TEMPLATE_TEXT" type="materialized_clob" not-null="true" length="10000"
      */
     public String getTemplate() {
         return template;
@@ -125,7 +148,6 @@ public class PermissionTemplate {
     /**
      * gets the template name
      * @return the name of the template
-     * @hibernate.property column="PRT_TEMPLATE_NAME" not-null="true" length="80"
      */
     public String getTemplateName() {
         return templateName;
@@ -142,7 +164,6 @@ public class PermissionTemplate {
     /**
      * gets the Template Type
      * @return the TemplateType
-     * @hibernate.property column="PRT_TEMPLATE_TYPE" not-null="true" length="40"
      */
     public String getTemplateType() {
         return templateType;
@@ -159,7 +180,6 @@ public class PermissionTemplate {
     /**
      * gets the Template Description
      * @return the Template description text, describing what the template should be used for
-     * @hibernate.property column="PRT_TEMPLATE_DESC" not-null="false" length="255"
      */
     public String getTemplateDescription() {
         return templateDescription;
@@ -192,7 +212,6 @@ public class PermissionTemplate {
     /**
      * gets the Template Subject
      * @return the Template Subject text, describing The subject of the Email
-     * @hibernate.property column="PRT_TEMPLATE_SUBJECT" not-null="false" length="255"
      */
     public String getTemplateSubject() {
         return templateSubject;
@@ -209,7 +228,6 @@ public class PermissionTemplate {
     /**
      * gets the templateOverwriteFrom
      * @return the templateOverwriteFrom text, a flag used to control if the from field of the email is overwritten by the templateOverwriteFrom
-     * @hibernate.property column="PRT_TEMPLATE_OVERWRITE_FROM" not-null="true"
      */
     public boolean getTemplateOverwriteFrom() {
         return templateOverwriteFrom;
@@ -226,7 +244,6 @@ public class PermissionTemplate {
     /**
      * gets the templateFrom
      * @return the templateFrom text, describing the email address used in the sent from field
-     * @hibernate.property column="PRT_TEMPLATE_FROM" not-null="false" length="255"
      */
     public String getTemplateFrom() {
         return templateFrom;
@@ -243,7 +260,6 @@ public class PermissionTemplate {
     /**
      * gets the templateCc
      * @return the templateCc text, describing the email address(s) the emails are cc'd to
-     * @hibernate.property column="PRT_TEMPLATE_CC" not-null="false" length="2048"
      */
     public String getTemplateCc() {
         return templateCc;
@@ -261,7 +277,6 @@ public class PermissionTemplate {
     /**
      * gets the templateBcc
      * @return the templateBcc text, describing the email address(s) the emails are bcc'd to
-     * @hibernate.property column="PRT_TEMPLATE_BCC" not-null="false" length="2048"
      */
     public String getTemplateBcc() {
         return templateBcc;
@@ -278,7 +293,6 @@ public class PermissionTemplate {
     /**
      * gets the reply-to address
      * @return the reply-to address
-     * @hibernate.property column="PRT_TEMPLATE_REPLY_TO" not-null="false" length="255"
      */
 	public String getReplyTo() {
 		return replyTo;

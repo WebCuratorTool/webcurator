@@ -21,9 +21,11 @@ import java.util.List;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.persistence.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.profiles.*;
 
@@ -35,8 +37,10 @@ import java.util.LinkedList;
  * the overrides to override something in the default profile with an empty
  * setting.
  * 
- * @hibernate.class table="PROFILE_OVERRIDES" lazy="false"
  */
+// lazy="false"
+@Entity
+@Table(name = "PROFILE_OVERRIDES")
 public class ProfileOverrides {
 	/** The logger for this class */
 	private static Log log = LogFactory.getLog(ProfileOverrides.class);
@@ -67,131 +71,199 @@ public class ProfileOverrides {
 	public static final String ELEM_WRITE_PROCESSORS_DECIDE_RULES = "/crawl-order/write-processors/Archiver/Archiver#decide-rules/rules";
 	
 	/** The unique database ID of the profile. */
+	@Id
+	@Column(name="PO_OID", nullable =  false)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
+	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
+			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
+			parameters = {
+					@Parameter(name = "table", value = "ID_GENERATOR"),
+					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
+					@Parameter(name = "value_column", value = "IG_VALUE"),
+					@Parameter(name = "primary_key_value", value = "PROFILE_OVERRIDE")
+			})
 	private Long oid;
 	
 	/** The robots honouring policy override */
+	@Column(name = "PO_ROBOTS_POLICY", length = 10)
 	private String robotsHonouringPolicy = null;
 	/** True to override the robots policy; otherwise false */
+	@Column(name = "PO_OR_ROBOTS_POLICY")
 	private boolean overrideRobotsHonouringPolicy = false;
 	
 	/** The maximum seconds to run the harvest */
+	@Column(name = "PO_MAX_TIME_SEC")
 	private Long maxTimeSec = null;
 	/** True to override the maximum seconds; otherwise false */
+	@Column(name = "PO_OR_MAX_TIME_SEC")
 	private boolean overrideMaxTimeSec = false;
 	
 	/** The maximum numbers of bytes to download */
+	@Column(name = "PO_MAX_BYES")
 	private Long maxBytesDownload = null;
 	/** True to override the maximum download size; otherwise false */
+	@Column(name = "PO_OR_MAX_BYTES")
 	private boolean overrideMaxBytesDownload = false;
 	
 	/** The maximum number of documents to harvest */
+	@Column(name = "PO_MAX_DOCS")
 	private Long maxHarvestDocuments = null;
 	/** True to override the maximum number of documents; otherwise false */
+	@Column(name = "PO_OR_MAX_DOCS")
 	private boolean overrideMaxHarvestDocuments = false;
 	
 	/** The maximum path depth to consider for the harvest */
+	@Column(name = "PO_MAX_PATH_DEPTH")
 	private Integer maxPathDepth = null;
 	/** True to override the maximum path depth setting; otherwise false */
+	@Column(name = "PO_OR_MAX_PATH_DEPTH")
 	private boolean overrideMaxPathDepth = false;
 	
 	/** The maximum hops to travel in the harvest */
+	@Column(name = "PO_MAX_HOPS")
 	private Integer maxLinkHops = null;
 	/** True of override the hops maximum; otherwise false */
+	@Column(name = "PO_OR_MAX_HOPS")
 	private boolean overrideMaxLinkHops = false;
 	
 	/** The list of URIs to exclude */
+	@ElementCollection
+	@CollectionTable(name = "PO_EXCLUSION_URI", joinColumns = @JoinColumn(name = "PEU_PROF_OVER_OID"))
+	@Column(name = "PEU_FILTER")
+	// TODO @hibernate.collection-index column="PEU_IX"
 	private List<String> excludeUriFilters = new LinkedList<String>();
 	/** True to override the exclude filters; otherwise false */
+	@Column(name = "PO_OR_EXCLUSION_URI")
 	private boolean overrideExcludeUriFilters = false;
 	
 	/** The list of URIs to forcefully include */
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "PO_INCLUSION_URI", joinColumns = @JoinColumn(name = "PEU_PROF_OVER_OID"))
+	@Column(name = "PEU_FILTER")
+	// TODO @hibernate.collection-index column="PEU_IX"
 	private List<String> includeUriFilters = new LinkedList<String>();
 	/** True to override the include filters; otherwise false */
+	@Column(name = "PO_OR_INCLUSION_URI")
 	private boolean overrideIncludeUriFilters = false;
 	
 	/** The list of MIME types to exclude */
+	@Column(name = "PO_EXCL_MIME_TYPES")
 	private String excludedMimeTypes = null;
 	/** True to override the MIME type filters; otherwise false */
+	@Column(name = "PO_OR_EXCL_MIME_TYPES")
 	private boolean overrideExcludedMimeTypes = false;
 	
 	/** The list of credentials to add to the profile */
+	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
+	// TODO verify correct: @hibernate.collection-key column="PC_PROFILE_OVERIDE_OID"
+	@JoinColumn(name = "PC_PROFILE_OVERIDE_OID")
+	// TODO @hibernate.collection-index column="PC_INDEX"
 	private List<ProfileCredentials> credentials = new LinkedList<ProfileCredentials>();
 	/** True to override the credentials; otherwise false */
+	@Column(name = "PO_OR_CREDENTIALS")
 	private boolean overrideCredentials = false;
 
 	/** The H3 document limit */
+	@Column(name = "PO_H3_DOC_LIMIT")
 	private Long h3DocumentLimit = null;
 	/** True to override the H3 document limit; otherwise false */
+	@Column(name = "PO_H3_OR_DOC_LIMIT")
 	private boolean overrideH3DocumentLimit = false;
 
 	/** The H3 data limit */
+	@Column(name = "PO_H3_DATA_LIMIT")
 	private Double h3DataLimit = null;
 	/** True to override the H3 data limit; otherwise false */
+	@Column(name = "PO_H3_OR_DATA_LIMIT")
 	private boolean overrideH3DataLimit = false;
 
 	/** The H3 data limit unit */
+	@Column(name = "PO_H3_DATA_LIMIT_UNIT")
 	private String h3DataLimitUnit = null;
 
 	/** The H3 time limit */
+	@Column(name = "PO_H3_TIME_LIMIT")
 	private Double h3TimeLimit = null;
 	/** True to override the H3 time limit; otherwise false */
+	@Column(name = "PO_H3_OR_TIME_LIMIT")
 	private boolean overrideH3TimeLimit = false;
 
 	/** The H3 time limit unit */
+	@Column(name = "PO_H3_TIME_LIMIT_UNIT")
 	private String h3TimeLimitUnit = null;
 
 	/** The H3 max path depth */
+	@Column(name = "PO_H3_MAX_PATH_DEPTH")
 	private Long h3MaxPathDepth = null;
 	/** True to override the H3 max path depth; otherwise false */
+	@Column(name = "PO_H3_OR_MAX_PATH_DEPTH")
 	private boolean overrideH3MaxPathDepth = false;
 
 	/** The H3 max hops */
+	@Column(name = "PO_H3_MAX_HOPS")
 	private Long h3MaxHops = null;
 	/** True to override the H3 max hops; otherwise false */
+	@Column(name = "PO_H3_OR_MAX_HOPS")
 	private boolean overrideH3MaxHops = false;
 
 	/** The H3 max transitive hops */
+	@Column(name = "PO_H3_MAX_TRANS_HOPS")
 	private Long h3MaxTransitiveHops = null;
 	/** True to override the H3 max transitive hops; otherwise false */
+	@Column(name = "PO_H3_OR_MAX_TRANS_HOPS")
 	private boolean overrideH3MaxTransitiveHops = false;
 
 	/** The H3 ignore robots */
+	@Column(name = "PO_H3_IGNORE_ROBOTS")
 	private boolean h3IgnoreRobots = false;
 	/** True to override the H3 ignore robots; otherwise false */
+	@Column(name = "PO_H3_OR_IGNORE_ROBOTS")
 	private boolean overrideH3IgnoreRobots = false;
 
 	/** The H3 extract js */
+	@Column(name = "PO_H3_EXTRACT_JS")
 	private boolean h3ExtractJs = false;
 	/** True to override the H3 extract js; otherwise false */
+	@Column(name = "PO_H3_OR_EXTRACT_JS")
 	private boolean overrideH3ExtractJs = false;
 
 	/** The H3 ignore cookies */
+	@Column(name = "PO_H3_IGNORE_COOKIES")
 	private boolean h3IgnoreCookies = false;
 	/** True to override the H3 ignore cookies; otherwise false */
+	@Column(name = "PO_H3_OR_IGNORE_COOKIES")
 	private boolean overrideH3IgnoreCookies = false;
 
 	/** The list of blocked H3 URLs */
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "PO_H3_BLOCK_URL", joinColumns = @JoinColumn(name = "PBU_PROF_OVER_OID"))
+	@Column(name = "PBU_FILTER")
+	// TODO @hibernate.collection-index column="PBU_IX"
 	private List<String> h3BlockedUrls = new LinkedList<String>();
 	/** True to override the blocked urls; otherwise false */
+	@Column(name = "PO_H3_OR_BLOCK_URL")
 	private boolean overrideH3BlockedUrls = false;
 
 	/** The list of included H3 URLs */
+	@ElementCollection(fetch = FetchType.EAGER)
+	@CollectionTable(name = "PO_H3_INCLUDE_URL", joinColumns = @JoinColumn(name = "PIU_PROF_OVER_OID"))
+	@Column(name = "PIU_FILTER")
+	// TODO @hibernate.collection-index column="PIU_IX"
 	private List<String> h3IncludedUrls = new LinkedList<String>();
 	/** True to override the included urls; otherwise false */
+	@Column(name = "PO_H3_OR_INCL_URL")
 	private boolean overrideH3IncludedUrls = false;
 
+	@Column(name = "PO_H3_RAW_PROFILE")
+	@Lob // type="materialized_clob"
 	private String h3RawProfile;
+	@Column(name = "PO_H3_OR_RAW_PROFILE")
 	private boolean overrideH3RawProfile = false;
 
 	/**
      * Gets the database OID of the object.
      * @return Returns the oid.
-     * @hibernate.id column="PO_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="PROFILE_OVERRIDE" 
-     */	
+     */
 	public Long getOid() {
 		return oid;
 	}
@@ -503,7 +575,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the contentTypeRegexp.
-	 * @hibernate.property column="PO_EXCL_MIME_TYPES"
 	 */
 	public String getExcludedMimeTypes() {
 		return excludedMimeTypes;
@@ -519,7 +590,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the maxBytesDownload.
-	 * @hibernate.property column="PO_MAX_BYES" 
 	 */
 	public Long getMaxBytesDownload() {
 		return maxBytesDownload;
@@ -534,7 +604,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the maxHarvestDocuments.
-	 * @hibernate.property column="PO_MAX_DOCS"
 	 */
 	public Long getMaxHarvestDocuments() {
 		return maxHarvestDocuments;
@@ -549,7 +618,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the maxLinkHops.
-	 * @hibernate.property column="PO_MAX_HOPS"
 	 */
 	public Integer getMaxLinkHops() {
 		return maxLinkHops;
@@ -564,7 +632,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the maxPathDepth.
-	 * @hibernate.property column="PO_MAX_PATH_DEPTH"
 	 */
 	public Integer getMaxPathDepth() {
 		return maxPathDepth;
@@ -579,7 +646,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the maxTimeSec.
-	 * @hibernate.property column="PO_MAX_TIME_SEC" 
 	 */
 	public Long getMaxTimeSec() {
 		return maxTimeSec;
@@ -594,10 +660,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the uriFilters.
-	 * @hibernate.list table="PO_EXCLUSION_URI"
-	 * @hibernate.collection-key column="PEU_PROF_OVER_OID"
-	 * @hibernate.collection-index column="PEU_IX"
-	 * @hibernate.collection-element type="string" column="PEU_FILTER"
 	 */
 	public List<String> getExcludeUriFilters() {
 		return excludeUriFilters;
@@ -611,10 +673,6 @@ public class ProfileOverrides {
 	}
 	/**
 	 * @return Returns the includeUriFilters.
-	 * @hibernate.list table="PO_INCLUSION_URI" lazy="false" 
-	 * @hibernate.collection-key column="PEU_PROF_OVER_OID"
-	 * @hibernate.collection-index column="PEU_IX"
-	 * @hibernate.collection-element type="string" column="PEU_FILTER"
 	 */
 	public List<String> getIncludeUriFilters() {
 		return includeUriFilters;
@@ -629,7 +687,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the robotsHonouringPolicy.
-	 * @hibernate.property column="PO_ROBOTS_POLICY" length="10"
 	 */
 	public String getRobotsHonouringPolicy() {
 		return robotsHonouringPolicy;
@@ -644,10 +701,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the credentials.
-	 * @hibernate.list cascade="all-delete-orphan"
-	 * @hibernate.collection-key column="PC_PROFILE_OVERIDE_OID" 
-	 * @hibernate.collection-index column="PC_INDEX"
-	 * @hibernate.collection-one-to-many class="org.webcurator.domain.model.core.ProfileCredentials" 
 	 */
 	public List<ProfileCredentials> getCredentials() {
 		return credentials;
@@ -665,7 +718,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideCredentials.
-	 * @hibernate.property column="PO_OR_CREDENTIALS"
 	 */
 	public boolean isOverrideCredentials() {
 		return overrideCredentials;
@@ -680,7 +732,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideExcludedMimeTypes.
-	 * @hibernate.property column="PO_OR_EXCL_MIME_TYPES"
 	 */
 	public boolean isOverrideExcludedMimeTypes() {
 		return overrideExcludedMimeTypes;
@@ -695,7 +746,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideExcludeUriFilters.
-	 * @hibernate.property column="PO_OR_EXCLUSION_URI"
 	 */
 	public boolean isOverrideExcludeUriFilters() {
 		return overrideExcludeUriFilters;
@@ -710,7 +760,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideIncludeUriFilters.
-	 * @hibernate.property column="PO_OR_INCLUSION_URI"
 	 */
 	public boolean isOverrideIncludeUriFilters() {
 		return overrideIncludeUriFilters;
@@ -725,7 +774,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideMaxBytesDownload.
-	 * @hibernate.property column="PO_OR_MAX_BYTES"
 	 */
 	public boolean isOverrideMaxBytesDownload() {
 		return overrideMaxBytesDownload;
@@ -740,7 +788,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideMaxHarvestDocuments.
-	 * @hibernate.property column="PO_OR_MAX_DOCS"
 	 */
 	public boolean isOverrideMaxHarvestDocuments() {
 		return overrideMaxHarvestDocuments;
@@ -755,7 +802,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideMaxLinkHops.
-	 * @hibernate.property column="PO_OR_MAX_HOPS"
 	 */
 	public boolean isOverrideMaxLinkHops() {
 		return overrideMaxLinkHops;
@@ -770,7 +816,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideMaxPathDepth.
-	 * @hibernate.property column="PO_OR_MAX_PATH_DEPTH"
 	 */
 	public boolean isOverrideMaxPathDepth() {
 		return overrideMaxPathDepth;
@@ -785,7 +830,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideMaxTimeSec.
-	 * @hibernate.property column="PO_OR_MAX_TIME_SEC"
 	 */
 	public boolean isOverrideMaxTimeSec() {
 		return overrideMaxTimeSec;
@@ -800,7 +844,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideRobotsHonouringPolicy.
-	 * @hibernate.property column="PO_OR_ROBOTS_POLICY"
 	 */
 	public boolean isOverrideRobotsHonouringPolicy() {
 		return overrideRobotsHonouringPolicy;
@@ -816,7 +859,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3DocumentLimit.
-	 * @hibernate.property column="PO_H3_DOC_LIMIT"
 	 */
 	public Long getH3DocumentLimit() {
 		return h3DocumentLimit;
@@ -831,7 +873,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3DocumentLimit.
-	 * @hibernate.property column="PO_H3_OR_DOC_LIMIT"
 	 */
 	public boolean isOverrideH3DocumentLimit() {
 		return overrideH3DocumentLimit;
@@ -846,7 +887,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3DataLimit.
-	 * @hibernate.property column="PO_H3_DATA_LIMIT"
 	 */
 	public Double getH3DataLimit() {
 		return h3DataLimit;
@@ -861,7 +901,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3DataLimit.
-	 * @hibernate.property column="PO_H3_OR_DATA_LIMIT"
 	 */
 	public boolean isOverrideH3DataLimit() {
 		return overrideH3DataLimit;
@@ -876,7 +915,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3DataLimitUnit.
-	 * @hibernate.property column="PO_H3_DATA_LIMIT_UNIT"
 	 */
 	public String getH3DataLimitUnit() {
 		return h3DataLimitUnit;
@@ -891,7 +929,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3TimeLimit.
-	 * @hibernate.property column="PO_H3_TIME_LIMIT"
 	 */
 	public Double getH3TimeLimit() {
 		return h3TimeLimit;
@@ -906,7 +943,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3TimeLimit.
-	 * @hibernate.property column="PO_H3_OR_TIME_LIMIT"
 	 */
 	public boolean isOverrideH3TimeLimit() {
 		return overrideH3TimeLimit;
@@ -921,7 +957,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3TimeLimitUnit.
-	 * @hibernate.property column="PO_H3_TIME_LIMIT_UNIT"
 	 */
 	public String getH3TimeLimitUnit() {
 		return h3TimeLimitUnit;
@@ -936,7 +971,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3MaxPathDepth.
-	 * @hibernate.property column="PO_H3_MAX_PATH_DEPTH"
 	 */
 	public Long getH3MaxPathDepth() {
 		return h3MaxPathDepth;
@@ -951,7 +985,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3MaxPathDepth.
-	 * @hibernate.property column="PO_H3_OR_MAX_PATH_DEPTH"
 	 */
 	public boolean isOverrideH3MaxPathDepth() {
 		return overrideH3MaxPathDepth;
@@ -966,7 +999,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3MaxHops.
-	 * @hibernate.property column="PO_H3_MAX_HOPS"
 	 */
 	public Long getH3MaxHops() {
 		return h3MaxHops;
@@ -981,7 +1013,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3MaxHops.
-	 * @hibernate.property column="PO_H3_OR_MAX_HOPS"
 	 */
 	public boolean isOverrideH3MaxHops() {
 		return overrideH3MaxHops;
@@ -996,7 +1027,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3MaxTransitiveHops.
-	 * @hibernate.property column="PO_H3_MAX_TRANS_HOPS"
 	 */
 	public Long getH3MaxTransitiveHops() {
 		return h3MaxTransitiveHops;
@@ -1011,7 +1041,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3MaxTransitiveHops.
-	 * @hibernate.property column="PO_H3_OR_MAX_TRANS_HOPS"
 	 */
 	public boolean isOverrideH3MaxTransitiveHops() {
 		return overrideH3MaxTransitiveHops;
@@ -1026,7 +1055,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3IgnoreRobots.
-	 * @hibernate.property column="PO_H3_IGNORE_ROBOTS"
 	 */
 	public boolean isH3IgnoreRobots() {
 		return h3IgnoreRobots;
@@ -1041,7 +1069,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3IgnoreRobots.
-	 * @hibernate.property column="PO_H3_OR_IGNORE_ROBOTS"
 	 */
 	public boolean isOverrideH3IgnoreRobots() {
 		return overrideH3IgnoreRobots;
@@ -1055,7 +1082,6 @@ public class ProfileOverrides {
 	}
 
 	/**
-	 * @hibernate.property column="PO_H3_EXTRACT_JS"
 	 */
 	public boolean isH3ExtractJs() {
 		return h3ExtractJs;
@@ -1066,7 +1092,6 @@ public class ProfileOverrides {
 	}
 
 	/**
-	 * @hibernate.property column="PO_H3_OR_EXTRACT_JS"
 	 */
 	public boolean isOverrideH3ExtractJs() {
 		return overrideH3ExtractJs;
@@ -1078,7 +1103,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3IgnoreCookies.
-	 * @hibernate.property column="PO_H3_IGNORE_COOKIES"
 	 */
 	public boolean isH3IgnoreCookies() {
 		return h3IgnoreCookies;
@@ -1093,7 +1117,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3IgnoreCookies.
-	 * @hibernate.property column="PO_H3_OR_IGNORE_COOKIES"
 	 */
 	public boolean isOverrideH3IgnoreCookies() {
 		return overrideH3IgnoreCookies;
@@ -1108,10 +1131,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3BlockedUrls.
-	 * @hibernate.list table="PO_H3_BLOCK_URL" lazy="false"
-	 * @hibernate.collection-key column="PBU_PROF_OVER_OID"
-	 * @hibernate.collection-index column="PBU_IX"
-	 * @hibernate.collection-element type="string" column="PBU_FILTER"
 	 */
 	public List<String> getH3BlockedUrls() {
 		return h3BlockedUrls;
@@ -1126,7 +1145,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3BlockedUrls.
-	 * @hibernate.property column="PO_H3_OR_BLOCK_URL"
 	 */
 	public boolean isOverrideH3BlockedUrls() {
 		return overrideH3BlockedUrls;
@@ -1141,10 +1159,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the h3IncludedUrls.
-	 * @hibernate.list table="PO_H3_INCLUDE_URL" lazy="false"
-	 * @hibernate.collection-key column="PIU_PROF_OVER_OID"
-	 * @hibernate.collection-index column="PIU_IX"
-	 * @hibernate.collection-element type="string" column="PIU_FILTER"
 	 */
 	public List<String> getH3IncludedUrls() {
 		return h3IncludedUrls;
@@ -1159,7 +1173,6 @@ public class ProfileOverrides {
 
 	/**
 	 * @return Returns the overrideH3IncludedUrls.
-	 * @hibernate.property column="PO_H3_OR_INCL_URL"
 	 */
 	public boolean isOverrideH3IncludedUrls() {
 		return overrideH3IncludedUrls;
@@ -1172,10 +1185,6 @@ public class ProfileOverrides {
 		this.overrideH3IncludedUrls = overrideH3IncludedUrls;
 	}
 
-	/**
-	 *
-	 * @hibernate.property column="PO_H3_RAW_PROFILE" type="materialized_clob"
-	 */
 	public String getH3RawProfile() {
 		return h3RawProfile;
 	}
@@ -1184,10 +1193,6 @@ public class ProfileOverrides {
 		this.h3RawProfile = h3RawProfile;
 	}
 
-	/**
-	 *
-	 * @hibernate.property column="PO_H3_OR_RAW_PROFILE"
-	 */
 	public boolean isOverrideH3RawProfile() {
 		return overrideH3RawProfile;
 	}

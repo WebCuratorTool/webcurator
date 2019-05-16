@@ -15,6 +15,7 @@
  */
 package org.webcurator.domain.model.report;
 
+import javax.persistence.*;
 import java.util.Date;
 
 
@@ -23,10 +24,16 @@ import java.util.Date;
  * fast lookups for the TargetGroupSchedulesReport report class.
  * 
  * @author oakleigh_sk
- * @hibernate.class table="ABSTRACT_TARGET_SCHEDULE_VIEW" lazy="true" readonly="true"
- * @hibernate.query name="org.webcurator.domain.model.report.AbstractTargetScheduleView.getAllByUserByAgencyByType" query="SELECT t FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?='All users' OR ( ? !='All users' AND ? = t.ownerName ) ) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = t.agencyName) ) AND ( ?='All target types' OR ( ?!='All target types' AND ? = t.objectTypeDesc) )"
- * @hibernate.query name="org.webcurator.domain.model.report.AbstractTargetScheduleView.getSummaryStatsByAgency" query="SELECT t.agencyName, CASE t.scheduleType WHEN 1 THEN 'Mondays at 9:00pm' WHEN 0 THEN 'Custom' WHEN -1 THEN 'Daily' WHEN -2 THEN 'Weekly' WHEN -3 THEN 'Monthly' WHEN -4 THEN 'Bi-Monthly' WHEN -5 THEN 'Quarterly' WHEN -6 THEN 'Half-Yearly' WHEN -7 THEN 'Annually' END as scheduleDesc, COUNT(t.scheduleType) FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = t.agencyName) ) GROUP BY t.agencyName, t.scheduleType ORDER BY t.agencyName"
 */
+// lazy="true" readonly="true"
+@Entity
+@Table(name = "ABSTRACT_TARGET_SCHEDULE_VIEW")
+@NamedQueries({
+		@NamedQuery(name = "org.webcurator.domain.model.report.AbstractTargetScheduleView.getAllByUserByAgencyByType",
+				query = "SELECT t FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?='All users' OR ( ? !='All users' AND ? = t.ownerName ) ) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = t.agencyName) ) AND ( ?='All target types' OR ( ?!='All target types' AND ? = t.objectTypeDesc) )"),
+		@NamedQuery(name = "org.webcurator.domain.model.report.AbstractTargetScheduleView.getSummaryStatsByAgency",
+				query = "SELECT t.agencyName, CASE t.scheduleType WHEN 1 THEN 'Mondays at 9:00pm' WHEN 0 THEN 'Custom' WHEN -1 THEN 'Daily' WHEN -2 THEN 'Weekly' WHEN -3 THEN 'Monthly' WHEN -4 THEN 'Bi-Monthly' WHEN -5 THEN 'Quarterly' WHEN -6 THEN 'Half-Yearly' WHEN -7 THEN 'Annually' END as scheduleDesc, COUNT(t.scheduleType) FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = t.agencyName) ) GROUP BY t.agencyName, t.scheduleType ORDER BY t.agencyName")
+})
 public class AbstractTargetScheduleView {
 	
 	/** Query identifier for listing all records */
@@ -34,6 +41,13 @@ public class AbstractTargetScheduleView {
 	public static final String QRY_GET_SUMMARY_STATS_BY_AGENCY = "org.webcurator.domain.model.report.AbstractTargetScheduleView.getSummaryStatsByAgency";
 	
 	/** The composite primary key. The abstract_target oid and the schedule oid strung together with a comma */
+	@Id
+	@Column(name = "THEKEY")
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	// Prior to version 5.0, using the strategy AUTO was the equivalent of using native in a mapping.
+	// This used the LegacyFallbackInterpreter.
+	// TODO Since Hibernate 5.0, the default interpreter is the FallbackInterpeter which will either use a SEQUENCE
+	// generator or TABLE generator depending on the underlying database.
 	private String theKey;
 
 	///** The database OID of the record */
@@ -42,33 +56,45 @@ public class AbstractTargetScheduleView {
     /** 
      * Identifies whether this is a Target or Group.
      */
+    @Column(name = "AT_OBJECT_TYPE_DESC")
     private String objectTypeDesc;
 
     /** The target (or group) name. */
+    @Column(name = "AT_NAME", length = 255, unique = true)
     private String name;
 
     /** The state of the target (or group) */
+    @Column(name = "AT_STATE")
     private int state; 
     
     /** The target (or group) owner name. */
+    @Column(name = "USR_USERNAME", length = 80)
     private String ownerName;
 
     /** The target (or group) owning agency name. */
+    @Column(name = "AGC_NAME", length = 80)
     private String agencyName;
 
 	/** The oid of the schedule record. */
+	@Column(name = "S_OID")
 	private Long scheduleOid;
 
 	/** The schedule start date*/
+	@Column(name = "S_END", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date scheduleStartDate;
 
 	/** The schedule end date*/
+	@Column(name = "S_START", columnDefinition = "TIMESTAMP(9)")
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date scheduleEndDate;
 
     /** Type Identifier for schedules. */
+    @Column(name = "S_TYPE")
     private int scheduleType; 
 	
 	/** The schedule cron pattern*/
+	@Column(name = "S_CRON", length = 255)
 	private String scheduleCronPattern;
 
 	
@@ -93,7 +119,6 @@ public class AbstractTargetScheduleView {
     /**
      * Get the primary key of the AbstractTargetScheduleView record.
      * @return Returns the key.
-     * @hibernate.id column="THEKEY" generator-class="native"
      */
 	public String getTheKey() {
         return theKey;
@@ -107,36 +132,9 @@ public class AbstractTargetScheduleView {
 		theKey = aKey;
     }
 
-    /*
-     * Get the OID of the AbstractTargetScheduleView record.
-     * @return Returns the oid.
-     * @hibernate.column unique="false"
-     * @hibernate.id column="AT_OID" generator-class="org.hibernate.id.MultipleHiLoPerTableGenerator"
-     * @hibernate.generator-param name="table" value="ID_GENERATOR"
-     * @hibernate.generator-param name="primary_key_column" value="IG_TYPE"
-     * @hibernate.generator-param name="value_column" value="IG_VALUE"
-     * @hibernate.generator-param name="primary_key_value" value="General" 
-     */
-    /*
-	public Long getOid() {
-        return oid;
-    }
-    */
-
-    /*
-     * Hibernate method to set the OID.
-     * @param aOid The oid to set.
-     */
-    /*
-	public void setOid(Long aOid) {
-        this.oid = aOid;
-    }
-    */	
-
 	/**
 	 * Returns the object type description ('Target' or 'Group').
 	 * @return The object type description.
-	 * @hibernate.property column="AT_OBJECT_TYPE_DESC"
 	 */
 	public String getObjectTypeDesc() {
 		return objectTypeDesc;
@@ -155,7 +153,6 @@ public class AbstractTargetScheduleView {
     /**
      * Returns the name of the AbstractTarget.
      * @return the name of the AbstractTarget.
-     * @hibernate.property column="AT_NAME" length="255" unique="true"
      */
     public String getName() {
         return name;
@@ -174,7 +171,6 @@ public class AbstractTargetScheduleView {
 	 * instead of instanceof, which is useful if the object isn't fully 
 	 * initialised by Hibernate.
 	 * @return STATE_APPROVED, STATE_REJECTED etc
-	 * @hibernate.property column="AT_STATE"
 	 */
 	public int getState() {
 		return state;
@@ -193,7 +189,6 @@ public class AbstractTargetScheduleView {
     /**
      * Returns the name of the owner of the AbstractTarget.
      * @return the name of the owner of the AbstractTarget.
-     * @hibernate.property column="USR_USERNAME" length="80"
      */
     public String getOwnerName() {
         return ownerName;
@@ -210,7 +205,6 @@ public class AbstractTargetScheduleView {
     /**
      * Returns the name of the agency of the owner of the AbstractTarget.
      * @return the name of the agency of the owner of the AbstractTarget.
-     * @hibernate.property column="AGC_NAME" length="80"
      */
     public String getAgencyName() {
         return agencyName;
@@ -227,7 +221,6 @@ public class AbstractTargetScheduleView {
 	/**
 	 * Returns the schedule oid.
 	 * @return the schedule oid.
-	 * @hibernate.property column="S_OID"
 	 */
 	public Long getScheduleOid() {
 		return scheduleOid;
@@ -247,8 +240,6 @@ public class AbstractTargetScheduleView {
     /**
      * Returns the date at which scheduling will start.
      * @return Returns the start date.
-     * @hibernate.property type="timestamp" 
-     * @hibernate.column name="S_START" not-null="true" sql-type="TIMESTAMP(9)"
      */
     public Date getScheduleStartDate() {
         return scheduleStartDate;
@@ -265,8 +256,6 @@ public class AbstractTargetScheduleView {
     /**
      * Gets the date to end scheduling. 
 	 * @return Returns the end date of the schedule.
-     * @hibernate.property type="timestamp"
-     * @hibernate.column name="S_END" sql-type="TIMESTAMP(9)"
 	 */
 	public Date getScheduleEndDate() {
 		return scheduleEndDate;
@@ -283,7 +272,6 @@ public class AbstractTargetScheduleView {
 	/**
 	 * Returns the schedule type (CUSTOM_SCHEDULE, TYPE_DAILY, etc).
 	 * @return the schedule type (CUSTOM_SCHEDULE, TYPE_DAILY, etc) a positive or negative integer.
-	 * @hibernate.property column="S_TYPE"
 	 */
 	public int getScheduleType() {
 		return scheduleType;
@@ -302,7 +290,6 @@ public class AbstractTargetScheduleView {
 	/**
 	 * Returns the schedules cron pattern
 	 * @return Returns the schedules cron pattern.
-	 * @hibernate.property column="S_CRON" length="255"
 	 */
 	public String getScheduleCronPattern() {
 		return scheduleCronPattern;

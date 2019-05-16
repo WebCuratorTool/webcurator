@@ -16,18 +16,24 @@
 package org.webcurator.domain.model.core;
 
 
-/**
- * @hibernate.joined-subclass table="ARC_HARVEST_RESOURCE"
- * @hibernate.joined-subclass-key column="AHRC_HARVEST_RESOURCE_OID"
- */
+import javax.persistence.*;
+
+@Inheritance(strategy = InheritanceType.JOINED)
+@Entity
+@Table(name = "ARC_HARVEST_RESOURCE")
+@DiscriminatorColumn(name = "AHRC_HARVEST_RESOURCE_OID")
 public class ArcHarvestResource extends HarvestResource {
 	/** The offset into the ARC file where this resource starts */
+	@Column(name = "AHRC_RESOURCE_OFFSET", length = 100, nullable = false)
 	private long resourceOffset;
 	/** The length of the resource in the ARC file. */
+	@Column(name = "AHRC_RESOURCE_LENGTH", length = 100, nullable = false)
 	private long resourceLength;
 	/** The name of the ARC file this resource is in. */
+	@Column(name = "AHRC_ARC_FILE_NAME", length = 100, nullable = false)
 	private String arcFileName;
 	/** Whether the resource (and ARC file) are compressed */
+	@Column(name = "AHRC_COMPRESSED_YN", length = 100, nullable = false)
 	private boolean compressed;
 	
 	/** 
@@ -53,8 +59,7 @@ public class ArcHarvestResource extends HarvestResource {
 	/**
 	 * Gets the length of the resource in the ARC file.
 	 * @return The length of the resource in the ARC file.
-	 * @hibernate.property length="100" not-null="true" column="AHRC_RESOURCE_LENGTH"
-	 */		
+	 */
 	public long getResourceLength() {
 		return resourceLength;
 	}
@@ -70,8 +75,7 @@ public class ArcHarvestResource extends HarvestResource {
 	/**
 	 * Gets the offset into the ARC file where this resource resides.
 	 * @return the offset into the ARC file where this resource resides.
-	 * @hibernate.property length="100" not-null="true" column="AHRC_RESOURCE_OFFSET"
-	 */		
+	 */
 	public long getResourceOffset() {
 		return resourceOffset;
 	}
@@ -87,7 +91,6 @@ public class ArcHarvestResource extends HarvestResource {
 	/**
 	 * Gets the name of the ARC file in which this resource resides.
 	 * @return The name of the ARC file.
-	 * @hibernate.property length="100" not-null="true" column="AHRC_ARC_FILE_NAME"
 	 */
 	public String getArcFileName() {
 		return this.arcFileName;
@@ -106,8 +109,7 @@ public class ArcHarvestResource extends HarvestResource {
 	 * compressed.
 	 * 
 	 * @return True if the ARC resource is compressed; otherwise false.
-	 * @hibernate.property length="100" not-null="true" column="AHRC_COMPRESSED_YN"
-	 */		
+	 */
 	public boolean isCompressed() {
 		return compressed;
 	}
