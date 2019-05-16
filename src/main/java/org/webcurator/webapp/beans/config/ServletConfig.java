@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.orm.hibernate3.support.OpenSessionInViewInterceptor;
+import org.springframework.orm.hibernate4.support.OpenSessionInViewInterceptor;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
@@ -262,7 +262,7 @@ public class ServletConfig {
         bean.setDefaultErrorView("Error");
 
         Properties exceptionMappings = new Properties();
-        exceptionMappings.setProperty("org.springframework.orm.hibernate3.HibernateObjectRetrievalFailureException",
+        exceptionMappings.setProperty("org.springframework.orm.hibernate4.HibernateObjectRetrievalFailureException",
                 "NoObjectFound");
         exceptionMappings.setProperty("org.springframework.web.multipart.MaxUploadSizeExceededException",
                 "max-file-size-exceeeded");
