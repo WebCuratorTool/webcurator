@@ -603,7 +603,7 @@ public class QueueController extends AbstractFormController {
 					}
 				}
 			}
-		} catch (org.springframework.orm.hibernate3.HibernateObjectRetrievalFailureException e) {
+		} catch (org.springframework.orm.hibernate4.HibernateObjectRetrievalFailureException e) {
 			e.printStackTrace();
 			throw e;
 		}

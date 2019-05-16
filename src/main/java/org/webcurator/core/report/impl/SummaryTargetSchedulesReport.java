@@ -23,7 +23,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
