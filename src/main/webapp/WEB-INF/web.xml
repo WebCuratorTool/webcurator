@@ -6,16 +6,29 @@
     version="2.4">
 
   	<display-name>WCT Core</display-name>
-    
+
+	<context-param>
+		<param-name>contextClass</param-name>
+		<param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+	</context-param>
+
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>/WEB-INF/classes/wct-core.xml, /WEB-INF/classes/wct-core-security.xml, /WEB-INF/classes/wct-core-report.xml, /WEB-INF/classes/wct-core-lists.xml</param-value>		
+		<param-value>org.webcurator.webapp.beans.config.BaseConfig,org.webcurator.webapp.beans.config.ListsConfig,
+			org.webcurator.webapp.beans.config.ReportConfig,org.webcurator.webapp.beans.config.SecurityConfig</param-value>
 	</context-param>
 
 	<context-param>
 		<param-name>org.apache.tiles.factory.AbstractTilesContainerFactory</param-name>
 		<param-value>org.apache.tiles.factory.BasicTilesContainerFactory</param-value>
 	</context-param>
+
+	<resource-ref>
+		<description>JDBC wctDatasource</description>
+		<res-ref-name>jdbc/wctDatasource</res-ref-name>
+		<res-type>javax.sql.DataSource</res-type>
+		<res-auth>Container</res-auth>
+	</resource-ref>
 
 	<filter>
         <filter-name>encoding-filter</filter-name>
