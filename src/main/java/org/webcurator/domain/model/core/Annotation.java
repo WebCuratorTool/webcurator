@@ -43,15 +43,16 @@ public class Annotation implements Comparable {
 	/** the primary key for the annotation. */
 	@Id
 	@Column(name="AN_OID", nullable =  false)
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
-	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
-			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
-			parameters = {
-					@Parameter(name = "table", value = "ID_GENERATOR"),
-					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
-					@Parameter(name = "value_column", value = "IG_VALUE"),
-					@Parameter(name = "primary_key_value", value = "Annotation")
-			})
+	// Note: From the Hibernate 4.2 documentation:
+	// The Hibernate team has always felt such a construct as fundamentally wrong.
+	// Try hard to fix your data model before using this feature.
+	@TableGenerator(name = "SharedTableIdGenerator",
+			table = "ID_GENERATOR",
+			pkColumnName = "IG_TYPE",
+			valueColumnName = "IG_VALUE",
+			pkColumnValue = "Annotation",
+			allocationSize = 1) // 50 is the default
+	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
 	/** The date for the annotation was created. */
 	@Column(name = "AN_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)

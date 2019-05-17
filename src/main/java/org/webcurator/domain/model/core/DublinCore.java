@@ -68,15 +68,16 @@ public class DublinCore {
 	/** the unique id of this meta data set. */
 	@Id
 	@Column(name="DC_OID", nullable =  false)
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
-	@GenericGenerator(name = "MultipleHiLoPerTableGenerator",
-			strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
-			parameters = {
-					@Parameter(name = "table", value = "ID_GENERATOR"),
-					@Parameter(name = "primary_key_column", value = "IG_TYPE"),
-					@Parameter(name = "value_column", value = "IG_VALUE"),
-					@Parameter(name = "primary_key_value", value = "DublinCore")
-			})
+	// Note: From the Hibernate 4.2 documentation:
+	// The Hibernate team has always felt such a construct as fundamentally wrong.
+	// Try hard to fix your data model before using this feature.
+	@TableGenerator(name = "SharedTableIdGenerator",
+			table = "ID_GENERATOR",
+			pkColumnName = "IG_TYPE",
+			valueColumnName = "IG_VALUE",
+			pkColumnValue = "DublinCore",
+			allocationSize = 1) // 50 is the default
+	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
 	/** A name given to the resource. */
 	@Column(name = "DC_TITLE", length = 255)

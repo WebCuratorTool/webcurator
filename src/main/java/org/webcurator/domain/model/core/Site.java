@@ -46,15 +46,16 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
     /** The database oid of the site */
     @Id
     @Column(name="ST_OID", nullable =  false)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "MultipleHiLoPerTableGenerator")
-    @GenericGenerator(name = "MultipleHiLoPerTableGenerator",
-            strategy = "org.hibernate.id.MultipleHiLoPerTableGenerator",
-            parameters = {
-                    @Parameter(name = "table", value = "ID_GENERATOR"),
-                    @Parameter(name = "primary_key_column", value = "IG_TYPE"),
-                    @Parameter(name = "value_column", value = "IG_VALUE"),
-                    @Parameter(name = "primary_key_value", value = "General")
-            })
+    // Note: From the Hibernate 4.2 documentation:
+    // The Hibernate team has always felt such a construct as fundamentally wrong.
+    // Try hard to fix your data model before using this feature.
+    @TableGenerator(name = "SharedTableIdGenerator",
+            table = "ID_GENERATOR",
+            pkColumnName = "IG_TYPE",
+            valueColumnName = "IG_VALUE",
+            pkColumnValue = "General",
+            allocationSize = 1) // 50 is the default
+    @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The title of the site */
     @Column(name = "ST_TITLE", length = 255, unique = true, nullable = false)

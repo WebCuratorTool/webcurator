@@ -357,20 +357,20 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>4.3.11.Final</version>
+			<version>5.4.2.Final</version>
 			<scope>compile</scope>
 		</dependency>
 		<!-- Hibernate's second-level cache -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-ehcache</artifactId>
-			<version>4.3.11.Final</version>
+			<version>5.4.2.Final</version>
 		</dependency>
 		<!-- Hibernate's ConnectionProvider connection pool -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-c3p0</artifactId>
-			<version>4.3.11.Final</version>
+			<version>5.4.2.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>com.ibm</groupId>
