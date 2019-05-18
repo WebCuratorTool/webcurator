@@ -72,17 +72,16 @@ public class HarvestCompleteJob implements Job {
             
             int failedOn = ha.completeHarvest(jobName, failureStep);
             if (failedOn != HarvestAgent.NO_FAILURES) {
-            	if (!msgSent.booleanValue()) {
-            		// Send the failure notification.
-            		HarvestCoordinatorNotifier harvestCoordinatorNotifier = (HarvestCoordinatorNotifier) context.getBean(Constants.BEAN_NOTIFIER);
-            		harvestCoordinatorNotifier.notification(new Long(jobName), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_PROCESSING_ERROR);
-            		msgSent = new Boolean(true);
-            	}            	            
-            	
-            	try {
-            		SchedulerUtil.scheduleHarvestCompleteJob(jobName, failedOn, msgSent, retries.intValue()+ 1);
-                }
-                catch (Exception e) {
+                if (!msgSent.booleanValue()) {
+                    // Send the failure notification.
+                    HarvestCoordinatorNotifier harvestCoordinatorNotifier = (HarvestCoordinatorNotifier) context.getBean(Constants.BEAN_NOTIFIER);
+                    harvestCoordinatorNotifier.notification(new Long(jobName), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_PROCESSING_ERROR);
+                    msgSent = new Boolean(true);
+                }                            
+
+                try {
+                    SchedulerUtil.scheduleHarvestCompleteJob(jobName, failedOn, msgSent, retries.intValue()+ 1);
+                } catch (Exception e) {
                     throw new HarvestAgentException("Failed to start harvest complete job : " + e.getMessage(), e);
                 }
             }            

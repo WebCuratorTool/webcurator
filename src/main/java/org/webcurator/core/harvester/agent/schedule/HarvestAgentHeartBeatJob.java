@@ -18,10 +18,8 @@ package org.webcurator.core.harvester.agent.schedule;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.netarchivesuite.heritrix3wrapper.Heritrix3Wrapper;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.ObjectAlreadyExistsException;
-import org.quartz.SchedulerException;
+import org.quartz.*;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
@@ -36,13 +34,15 @@ import java.util.Map;
  * @author nwaight
  */
 public class HarvestAgentHeartBeatJob extends QuartzJobBean {
+    public static final String HEART_BEAT_TRIGGER_GROUP = "HeartBeatTriggerGroup";
+
     /** The harvest agent to use to get status information. */
     HarvestAgent harvestAgent;
     /** The notifier to use to send data to the WCT. */
     HarvestCoordinatorNotifier notifier;
     /** the logger. */
     private Log log = LogFactory.getLog(getClass());
-    
+
     /** Default Constructor. */
     public HarvestAgentHeartBeatJob() {
         super();
@@ -50,14 +50,16 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext aJobContext) throws JobExecutionException {
-    	int triggerState = -2;
-    	try {
-			triggerState = aJobContext.getScheduler().getTriggerState(null, "HeartBeatTriggerGroup");
-			aJobContext.getScheduler().pauseTriggerGroup("HeartBeatTriggerGroup");
+        Trigger.TriggerState triggerState = Trigger.TriggerState.NONE;
+        TriggerKey triggerKey = TriggerKey.triggerKey(null, HEART_BEAT_TRIGGER_GROUP);
+        GroupMatcher<TriggerKey> triggerMatcher = GroupMatcher.triggerGroupEquals(HEART_BEAT_TRIGGER_GROUP);
+        try {
+            triggerState = aJobContext.getScheduler().getTriggerState(triggerKey);
+            aJobContext.getScheduler().pauseTriggers(triggerMatcher);
 
             log.info("HarvestAgentHeartBeatJob executing");
-			HarvestAgentStatusDTO status = harvestAgent.getStatus();
-			notifier.heartbeat(status);
+            HarvestAgentStatusDTO status = harvestAgent.getStatus();
+            notifier.heartbeat(status);
 
             notifier.requestRecovery(status.getHost(), status.getPort(), status.getService());
 
@@ -90,27 +92,27 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
             }
 
             /* H3 polling end*/
-			
-			aJobContext.getScheduler().resumeTriggerGroup("HeartBeatTriggerGroup");
-		}
+
+            aJobContext.getScheduler().resumeTriggers(triggerMatcher);
+        }
         catch (ObjectAlreadyExistsException ex){
             log.error("Failed to start harvest complete job: " + ex.getMessage());
             // Resume trigger group, other thread will suspend forever
             try {
-                aJobContext.getScheduler().resumeTriggerGroup("HeartBeatTriggerGroup");
+                aJobContext.getScheduler().resumeTriggers(triggerMatcher);
             } catch (SchedulerException e) {
                 e.printStackTrace();
                 log.error("Failed to resume Trigger Group - HeartBeatTriggerGroup: " + e.getMessage());
                 throw new JobExecutionException("Failed to resume Trigger Group - HeartBeatTriggerGroup: " + e.getMessage());
             }
         }
-    	catch (SchedulerException e) {
-    		e.printStackTrace();
-    		if (e.getCause() != null)
-    			e.getCause().printStackTrace();
+        catch (SchedulerException e) {
+            e.printStackTrace();
+            if (e.getCause() != null)
+                e.getCause().printStackTrace();
             log.error("Heartbeat failed controlling the scheduler. (triggerState is: " + triggerState + ")");
-			throw new JobExecutionException("Heartbeat failed controlling the scheduler. (triggerState is: " + triggerState + ")");
-		}
+            throw new JobExecutionException("Heartbeat failed controlling the scheduler. (triggerState is: " + triggerState + ")");
+        }
         catch (Exception e){
             e.printStackTrace();
             if (e.getCause() != null)

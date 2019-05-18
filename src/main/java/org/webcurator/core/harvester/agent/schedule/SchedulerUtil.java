@@ -17,12 +17,7 @@ package org.webcurator.core.harvester.agent.schedule;
 
 import java.util.Calendar;
 
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SimpleTrigger;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.springframework.context.ApplicationContext;
 import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.util.ApplicationContextFactory;
@@ -33,7 +28,7 @@ import org.webcurator.core.util.ApplicationContextFactory;
  * @author nwaight
  */
 public final class SchedulerUtil {
-	/** The name of the harvest agent complete job. */
+    /** The name of the harvest agent complete job. */
     private static final String JOB_NAME_COMPLETE = "Complete";    
     /** The name of the harvest agent job complete group. */
     private static final String JOB_GROUP_COMPLETE = "CompleteGroup";    
@@ -42,54 +37,63 @@ public final class SchedulerUtil {
     /** The name of the harvest agent complete trigger group. */
     private static final String TRG_GROUP_COMPLETE = "CompleteTriggerGroup";
     /** the serperator between the object name and the job name. */
-    private static final String SEPERATOR = "-";	
-	
+    private static final String SEPARATOR = "-";
+
     /**
      * Schedule the harvest completion to run after a specified delay to allow the 
      * harvester to release all its resources
      * @param aHarvestName the name of the harvest job
      * @throws SchedulerException thrown if there is an error
      */
-	public static final void scheduleHarvestCompleteJob(String aHarvestName) throws SchedulerException {
-		scheduleHarvestCompleteJob(aHarvestName, 0, false, 0);
-	}
-	
-	/**
-	 * Schedule the harvest completion to run after a specified delay to allow the 
+    public static final void scheduleHarvestCompleteJob(String aHarvestName) throws SchedulerException {
+        scheduleHarvestCompleteJob(aHarvestName, 0, false, 0);
+    }
+
+    /**
+     * Schedule the harvest completion to run after a specified delay to allow the
      * harvester to release all its resources or after a failure to contace the 
      * core or the digital asset store
-	 * @param aHarvestName the name of the harvest job
-	 * @param aFailueStep the step that the completion failed at
-	 * @param aMessageSent a flag to indicated that the failure notification has been sent
-	 * @param aRetries the number of retries attempted
-	 * @throws SchedulerException thrown if there is a problem scheduling the quartz job
-	 */
-	public static final void scheduleHarvestCompleteJob(String aHarvestName, int aFailueStep, boolean aMessageSent, int aRetries) throws SchedulerException {
-		ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-		Scheduler scheduler = (Scheduler) context.getBean(Constants.BEAN_SCHEDULER_FACTORY);
-		HarvestCompleteConfig hcc = (HarvestCompleteConfig) context.getBean(Constants.BEAN_HARVEST_COMPLETE_CONFIG);
-	    
-        JobDetail job = new JobDetail(JOB_NAME_COMPLETE + SEPERATOR + aHarvestName + SEPERATOR + aRetries, JOB_GROUP_COMPLETE + SEPERATOR + aHarvestName, HarvestCompleteJob.class);
+     * @param aHarvestName the name of the harvest job
+     * @param aFailueStep the step that the completion failed at
+     * @param aMessageSent a flag to indicated that the failure notification has been sent
+     * @param aRetries the number of retries attempted
+     * @throws SchedulerException thrown if there is a problem scheduling the quartz job
+     */
+    public static final void scheduleHarvestCompleteJob(String aHarvestName, int aFailueStep, boolean aMessageSent, int aRetries) throws SchedulerException {
+        ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
+        Scheduler scheduler = (Scheduler) context.getBean(Constants.BEAN_SCHEDULER_FACTORY);
+        HarvestCompleteConfig hcc = (HarvestCompleteConfig) context.getBean(Constants.BEAN_HARVEST_COMPLETE_CONFIG);
+
         JobDataMap jdm = new JobDataMap();
         jdm.put(HarvestCompleteJob.PARAM_JOB_NAME, aHarvestName);
         jdm.put(HarvestCompleteJob.PARAM_FAILURE_STEP, new Integer(aFailueStep));
         jdm.put(HarvestCompleteJob.PARAM_MSG_SENT, new Boolean(aMessageSent));
         jdm.put(HarvestCompleteJob.PARAM_RETRIES, new Integer(aRetries));
-        job.setJobDataMap(jdm);
+
+        JobDetail job = JobBuilder.newJob(HarvestCompleteJob.class)
+                .withIdentity(JOB_NAME_COMPLETE + SEPARATOR + aHarvestName + SEPARATOR + aRetries,
+                        JOB_GROUP_COMPLETE + SEPARATOR + aHarvestName)
+                .setJobData(jdm)
+                .build();
 
         // Set the complete job to run xx seconds after we get the notification
         Calendar cal = Calendar.getInstance();
         if (aRetries == 0) {
-        	cal.add(Calendar.SECOND, hcc.getWaitOnCompleteSeconds());
+            cal.add(Calendar.SECOND, hcc.getWaitOnCompleteSeconds());
         }
         else if (aRetries < hcc.getLevelRetryBand()) {
-        	cal.add(Calendar.SECOND, hcc.getWaitOnFailureLevelOneSecs());
+            cal.add(Calendar.SECOND, hcc.getWaitOnFailureLevelOneSecs());
         }
         else {
-        	cal.add(Calendar.SECOND, hcc.getWaitOnFailureLevelTwoSecs());
+            cal.add(Calendar.SECOND, hcc.getWaitOnFailureLevelTwoSecs());
         }
-                
-        Trigger trigger = new SimpleTrigger(TRG_NAME_COMPLETE + SEPERATOR + aHarvestName + SEPERATOR + aRetries, TRG_GROUP_COMPLETE + SEPERATOR + aHarvestName, cal.getTime());                       
+
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(TRG_NAME_COMPLETE + SEPARATOR + aHarvestName + SEPARATOR + aRetries,
+                        TRG_GROUP_COMPLETE + SEPARATOR + aHarvestName)
+                .startAt(cal.getTime())
+                .build();
+
         scheduler.scheduleJob(job, trigger);
-	}	
+    }
 }
