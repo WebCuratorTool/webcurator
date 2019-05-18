@@ -248,7 +248,7 @@
 			<scope>compile</scope>
 			<exclusions>
 				<!-- brings in spring-core, spring-remoting and spring-support 1.2.9, which have been superseded by
-					spring-core 4.3.24.RELEASE, spring-context 4.3.24.RELEASE and spring-context-support 4.3.24.RELEASE -->
+					spring-core 5.1.7.RELEASE, spring-context 5.1.7.RELEASE and spring-context-support 5.1.7.RELEASE -->
 				<exclusion>
 					<groupId>org.springframework</groupId>
 					<artifactId>spring-core</artifactId>
@@ -472,55 +472,55 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<!-- Not sure yet if this is required here or in webcurator-webapp
@@ -529,7 +529,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc-struts</artifactId>
-			<version>4.3.24.RELEASE</version>
+			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		-->
