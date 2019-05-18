@@ -18,8 +18,9 @@ package org.webcurator.core.scheduler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
+import org.quartz.TriggerKey;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 
@@ -38,9 +39,10 @@ public class ScheduleJob extends QuartzJobBean {
 	 * @see org.springframework.scheduling.quartz.QuartzJobBean#executeInternal(org.quartz.JobExecutionContext)
 	 */
 	@Override
-	protected void executeInternal(JobExecutionContext aContext) throws JobExecutionException {
+	protected void executeInternal(JobExecutionContext aContext) {
+		GroupMatcher<TriggerKey> triggerMatcher = GroupMatcher.triggerGroupEquals("ProcessScheduleTriggerGroup");
 		try {
-			aContext.getScheduler().pauseTriggerGroup("ProcessScheduleTriggerGroup");
+			aContext.getScheduler().pauseTriggers(triggerMatcher);
 
 			log.info("Starting processSchedule");
 			harvestCoordinator.processSchedule();
@@ -53,8 +55,8 @@ public class ScheduleJob extends QuartzJobBean {
 		}
 		finally {
 			try {
-				aContext.getScheduler().resumeTriggerGroup("ProcessScheduleTriggerGroup");
-			} 
+				aContext.getScheduler().resumeTriggers(triggerMatcher);
+			}
 			catch (SchedulerException e) {
 				if (log.isErrorEnabled()) {
 					log.error("Failed to resume the trigger for processing the schedule.");

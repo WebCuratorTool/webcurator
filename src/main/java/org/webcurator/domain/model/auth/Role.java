@@ -36,7 +36,7 @@ import javax.persistence.*;
         @NamedQuery(name = "org.webcurator.domain.model.auth.Role.getRoles",
                 query = "FROM Role rol order by rol.agency.name, rol.name"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.Role.getAssociatedRolesByUser",
-                query = "SELECT rol FROM Role rol, User usr JOIN usr.roles usrRoles WHERE usrRoles.oid = rol.oid AND usr.oid=? order by rol.name")
+                query = "SELECT rol FROM Role rol, User usr JOIN usr.roles usrRoles WHERE usrRoles.oid = rol.oid AND usr.oid=? order by rol.name"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.Role.getRolesByAgency",
                 query = "SELECT rol FROM Role rol WHERE rol.agency.oid = ?")
 })

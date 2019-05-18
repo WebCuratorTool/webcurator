@@ -19,7 +19,6 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Set;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.quartz.CronExpression;
 import org.webcurator.core.util.DateUtils;
 import org.webcurator.domain.UserOwnable;
