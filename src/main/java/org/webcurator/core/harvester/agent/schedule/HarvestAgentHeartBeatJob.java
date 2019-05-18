@@ -16,9 +16,8 @@
  */
 package org.webcurator.core.harvester.agent.schedule;
 
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
+import org.quartz.*;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
@@ -30,6 +29,8 @@ import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
  * @author nwaight
  */
 public class HarvestAgentHeartBeatJob extends QuartzJobBean {
+    public static final String HEART_BEAT_TRIGGER_GROUP = "HeartBeatTriggerGroup";
+
     /** The harvest agent to use to get status information. */
     HarvestAgent harvestAgent;
     /** The notifier to use to send data to the WCT. */
@@ -42,15 +43,18 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext aJobContext) throws JobExecutionException {
-        int triggerState = -2;
+        Trigger.TriggerState triggerState = Trigger.TriggerState.NONE;
+        TriggerKey triggerKey = TriggerKey.triggerKey(null, HEART_BEAT_TRIGGER_GROUP);
+        GroupMatcher<TriggerKey> triggerMatcher = GroupMatcher.triggerGroupEquals(HEART_BEAT_TRIGGER_GROUP);
+
         try {
-            triggerState = aJobContext.getScheduler().getTriggerState(null, "HeartBeatTriggerGroup");
-            aJobContext.getScheduler().pauseTriggerGroup("HeartBeatTriggerGroup");
+            triggerState = aJobContext.getScheduler().getTriggerState(triggerKey);
+            aJobContext.getScheduler().pauseTriggers(triggerMatcher);
 
             HarvestAgentStatusDTO status = harvestAgent.getStatus();
             notifier.heartbeat(status);
 
-            aJobContext.getScheduler().resumeTriggerGroup("HeartBeatTriggerGroup");
+            aJobContext.getScheduler().resumeTriggers(triggerMatcher);
         }
         catch (SchedulerException e) {
             e.printStackTrace();

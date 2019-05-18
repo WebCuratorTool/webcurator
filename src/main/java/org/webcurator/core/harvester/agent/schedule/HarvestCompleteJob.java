@@ -45,7 +45,7 @@ public class HarvestCompleteJob implements Job {
 
     /** the logger. */
     private Log log;
-    
+
     /** Default Constructor. */
     public HarvestCompleteJob() {
         super();
@@ -62,30 +62,30 @@ public class HarvestCompleteJob implements Job {
             Integer failureStep = (Integer) jdm.get(PARAM_FAILURE_STEP);
             Boolean msgSent = (Boolean) jdm.get(PARAM_MSG_SENT);
             Integer retries = (Integer) jdm.get(PARAM_RETRIES);
-                                    
+
             if (log.isInfoEnabled()) {
                 log.info("Processing job completion for " + jobName);
             }
-            
+
             ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
             HarvestAgent ha = (HarvestAgent) context.getBean(Constants.BEAN_HARVEST_AGENT);                               
-            
+
             int failedOn = ha.completeHarvest(jobName, failureStep);
             if (failedOn != HarvestAgent.NO_FAILURES) {
-            	if (!msgSent.booleanValue()) {
-            		// Send the failure notification.
-            		HarvestCoordinatorNotifier harvestCoordinatorNotifier = (HarvestCoordinatorNotifier) context.getBean(Constants.BEAN_NOTIFIER);
-            		harvestCoordinatorNotifier.notification(new Long(jobName), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_PROCESSING_ERROR);
-            		msgSent = new Boolean(true);
-            	}            	            
-            	
-            	try {
-            		SchedulerUtil.scheduleHarvestCompleteJob(jobName, failedOn, msgSent, retries.intValue()+ 1);
+                if (!msgSent.booleanValue()) {
+                    // Send the failure notification.
+                    HarvestCoordinatorNotifier harvestCoordinatorNotifier = (HarvestCoordinatorNotifier) context.getBean(Constants.BEAN_NOTIFIER);
+                    harvestCoordinatorNotifier.notification(new Long(jobName), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_PROCESSING_ERROR);
+                    msgSent = new Boolean(true);
+                }
+
+                try {
+                    SchedulerUtil.scheduleHarvestCompleteJob(jobName, failedOn, msgSent, retries.intValue()+ 1);
                 }
                 catch (Exception e) {
                     throw new HarvestAgentException("Failed to start harvest complete job : " + e.getMessage(), e);
                 }
-            }            
+            }
         }
     }
 }

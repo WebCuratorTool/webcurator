@@ -17,12 +17,7 @@ package org.webcurator.core.harvester.agent.schedule;
 
 import java.util.Calendar;
 
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SimpleTrigger;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.springframework.context.ApplicationContext;
 import org.webcurator.core.common.Constants;
 import org.webcurator.core.util.ApplicationContextFactory;
@@ -42,7 +37,7 @@ public final class SchedulerUtil {
     /** The name of the harvest agent complete trigger group. */
     private static final String TRG_GROUP_COMPLETE = "CompleteTriggerGroup";
     /** the serperator between the object name and the job name. */
-    private static final String SEPERATOR = "-";	
+    private static final String SEPARATOR = "-";
 	
     /**
      * Schedule the harvest completion to run after a specified delay to allow the 
@@ -68,14 +63,18 @@ public final class SchedulerUtil {
 		ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
 		Scheduler scheduler = (Scheduler) context.getBean(Constants.BEAN_SCHEDULER_FACTORY);
 		HarvestCompleteConfig hcc = (HarvestCompleteConfig) context.getBean(Constants.BEAN_HARVEST_COMPLETE_CONFIG);
-	    
-        JobDetail job = new JobDetail(JOB_NAME_COMPLETE + SEPERATOR + aHarvestName + SEPERATOR + aRetries, JOB_GROUP_COMPLETE + SEPERATOR + aHarvestName, HarvestCompleteJob.class);
+
         JobDataMap jdm = new JobDataMap();
         jdm.put(HarvestCompleteJob.PARAM_JOB_NAME, aHarvestName);
         jdm.put(HarvestCompleteJob.PARAM_FAILURE_STEP, new Integer(aFailueStep));
         jdm.put(HarvestCompleteJob.PARAM_MSG_SENT, new Boolean(aMessageSent));
         jdm.put(HarvestCompleteJob.PARAM_RETRIES, new Integer(aRetries));
-        job.setJobDataMap(jdm);
+
+        JobDetail job = JobBuilder.newJob(HarvestCompleteJob.class)
+                .withIdentity(JOB_NAME_COMPLETE + SEPARATOR + aHarvestName + SEPARATOR + aRetries,
+                        JOB_GROUP_COMPLETE + SEPARATOR + aHarvestName)
+                .setJobData(jdm)
+                .build();
 
         // Set the complete job to run xx seconds after we get the notification
         Calendar cal = Calendar.getInstance();
@@ -88,8 +87,13 @@ public final class SchedulerUtil {
         else {
         	cal.add(Calendar.SECOND, hcc.getWaitOnFailureLevelTwoSecs());
         }
-                
-        Trigger trigger = new SimpleTrigger(TRG_NAME_COMPLETE + SEPERATOR + aHarvestName + SEPERATOR + aRetries, TRG_GROUP_COMPLETE + SEPERATOR + aHarvestName, cal.getTime());                       
+
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(TRG_NAME_COMPLETE + SEPARATOR + aHarvestName + SEPARATOR + aRetries,
+                        TRG_GROUP_COMPLETE + SEPARATOR + aHarvestName)
+                .startAt(cal.getTime())
+                .build();
+
         scheduler.scheduleJob(job, trigger);
-	}	
+	}
 }
