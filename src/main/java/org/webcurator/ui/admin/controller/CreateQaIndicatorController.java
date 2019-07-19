@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -43,7 +42,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.ui.admin.command.CreateQaIndicatorCommand;
 import org.webcurator.ui.admin.command.QaIndicatorCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 /**
  * Manages the creation flow for a QA Indicator within WCT

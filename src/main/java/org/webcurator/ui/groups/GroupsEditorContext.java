@@ -19,7 +19,7 @@ import java.util.List;
 
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
-import org.webcurator.ui.target.AbstractTargetEditorContext;
+import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 
 /**
  * The editor context for target groups.

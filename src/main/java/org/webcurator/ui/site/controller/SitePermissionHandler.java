@@ -36,15 +36,14 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.SitePermissionCommand;
 import org.webcurator.ui.site.editor.EditorContextObjectEditor;
 import org.webcurator.ui.site.editor.UrlPatternCollectionEditor;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;
-import org.webcurator.ui.util.Utils;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
 /**

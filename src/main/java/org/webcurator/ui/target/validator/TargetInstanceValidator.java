@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.common.validation.ValidatorUtil;
 import org.webcurator.ui.target.command.TargetAnnotationCommand;
@@ -58,7 +59,7 @@ public class TargetInstanceValidator extends AbstractBaseValidator {
 
 		if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_EDIT) && cmd.get_tab_current_page().equals("GENERAL")) {
 			ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_OWNER, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_OWNER), "Owner is a required field.");
-            ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_OID, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_OID), "Target Instance Id is a required field.");
+            ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID, "required", getObjectArrayForLabel(CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID), "Target Instance Id is a required field.");
             ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_TIME, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_TIME), "Scheduled Time is a required field.");
 
             if (!aErrors.hasErrors()) {
@@ -69,7 +70,7 @@ public class TargetInstanceValidator extends AbstractBaseValidator {
 		}
 		else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ADD_NOTE) ||
 				 cmd.getCmd().equals(TargetInstanceCommand.ACTION_MODIFY_NOTE)) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_OID, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_OID), "Target Instance Id is a required field.");
+            ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID, "required", getObjectArrayForLabel(CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID), "Target Instance Id is a required field.");
             ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_NOTE, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_NOTE), "Annotation is a required field.");
             ValidatorUtil.validateStringMaxLength(aErrors, cmd.getNote(), TargetAnnotationCommand.CNST_MAX_NOTE_LENGTH, "string.maxlength", getObjectArrayForLabelAndInt(TargetAnnotationCommand.PARAM_NOTE, TargetAnnotationCommand.CNST_MAX_NOTE_LENGTH), "Annotation is too long");
 		}

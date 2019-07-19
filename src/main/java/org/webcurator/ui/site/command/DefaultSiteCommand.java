@@ -20,8 +20,6 @@ package org.webcurator.ui.site.command;
  * @author bbeaumont
  */
 public class DefaultSiteCommand {
-	public static final String PARAM_SITE_OID = "siteOid";
-	public static final String PARAM_EDIT_MODE = "editMode";
 	public static final String PARAM_COPY_MODE = "copyMode";
 
 	/** the oid of the site to operate on. */

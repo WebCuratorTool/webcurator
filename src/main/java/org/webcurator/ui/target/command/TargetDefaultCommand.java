@@ -15,14 +15,13 @@
  */
 package org.webcurator.ui.target.command;
 
+import org.webcurator.common.ui.CommandConstants;
 /**
  * The default target command.
  * @author bbeaumont
  */
 public class TargetDefaultCommand {
-	public static final String MODE_EDIT = "edit";
 	public static final String MODE_VIEW = "view";
-	public static final String PARAM_OID = "targetOid";
 
 	private Long targetOid;
 	private String mode;
@@ -43,7 +42,7 @@ public class TargetDefaultCommand {
 	}
 
 	public boolean isEditMode() {
-		return MODE_EDIT.equals(mode);
+		return CommandConstants.TARGET_DEFAULT_COMMAND_MODE_EDIT.equals(mode);
 	}
 
 	/**

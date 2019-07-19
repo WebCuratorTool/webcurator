@@ -7,8 +7,8 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.report.command.ReportCommand;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.ui.command.ReportCommand;
+import org.webcurator.common.util.DateUtils;
 
 import java.util.*;
 

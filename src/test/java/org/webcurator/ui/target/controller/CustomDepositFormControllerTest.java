@@ -9,7 +9,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.archive.ArchiveCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 public class CustomDepositFormControllerTest extends BaseWCTTest<CustomDepositFormController>{
 

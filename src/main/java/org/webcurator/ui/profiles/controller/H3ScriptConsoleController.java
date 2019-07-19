@@ -28,7 +28,7 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.common.CommonViews;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.profiles.command.H3ScriptConsoleCommand;
 import org.webcurator.ui.util.HarvestAgentUtil;
 

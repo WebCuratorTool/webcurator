@@ -33,7 +33,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.profiles.command.ProfileTargetsCommand;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.core.Target;

@@ -33,6 +33,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.archive.MockSipBuilder;
@@ -61,10 +62,10 @@ import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -248,7 +249,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		command.setName("test");
 		command.setSearchOid(123L);
 		command.setFlagged(true);
-		command.setSortorder(TargetInstanceCommand.SORT_DATE_DESC);
+		command.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC);
 		command.setFlagOid(124L);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE);
@@ -261,7 +262,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		assertEquals("", command.getName());
 		assertNull("", command.getSearchOid());
 		assertFalse(command.getFlagged());
-		assertEquals(TargetInstanceCommand.SORT_DEFAULT, command.getSortorder());
+		assertEquals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT, command.getSortorder());
 		assertNull("", command.getRecommendationFilter());
 	}
 

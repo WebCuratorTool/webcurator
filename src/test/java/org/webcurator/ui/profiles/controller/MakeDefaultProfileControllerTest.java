@@ -14,7 +14,7 @@ import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.profiles.*;
 import org.webcurator.domain.model.auth.Privilege;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.profiles.command.ViewCommand;
 

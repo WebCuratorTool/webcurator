@@ -27,7 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.credentials.command.ResetPasswordCommand;
 
 /**

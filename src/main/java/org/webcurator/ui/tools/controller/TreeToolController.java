@@ -53,7 +53,6 @@ import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.tools.HarvestResourceNodeTreeBuilder;
@@ -65,7 +64,7 @@ import org.webcurator.domain.model.core.HarvestResource;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.tools.command.TreeToolCommand;
 import org.xml.sax.SAXException;
 

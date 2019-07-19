@@ -24,7 +24,6 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.targets.MockTargetManager;
-import org.webcurator.domain.MockHarvestCoordinatorDAO;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -33,7 +32,7 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.groups.command.SearchCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> {
 

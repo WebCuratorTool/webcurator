@@ -9,7 +9,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.ui.archive.ArchiveCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 public class CustomDepositFormController extends AbstractCommandController {
     /** the logger. */

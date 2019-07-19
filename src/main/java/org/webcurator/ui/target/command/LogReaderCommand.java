@@ -28,10 +28,6 @@ public class LogReaderCommand {
 	public static final String MDL_FILTER_NAMES = "filterNames";
 	public static final String MDL_FILTER_TYPES = "filterTypes";
 
-	/** The name of the primary key field. */
-	public static final String PARAM_OID = "targetInstanceOid";
-	/** The name of the log file name field. */
-	public static final String PARAM_LOGFILE = "logFileName";
 	/** the name of the number of noOfLines to display field. */
 	public static final String PARAM_LINES = "noOfLines";
 	/** The name of the filter field. */

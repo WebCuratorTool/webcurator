@@ -18,7 +18,7 @@ import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
 
 public class AQAReaderControllerTest extends BaseWCTTest<AQAReaderController>{

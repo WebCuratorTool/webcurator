@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.webcurator.common.ui.site.EditorContext;
 import org.webcurator.domain.model.core.AuthorisingAgent;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;

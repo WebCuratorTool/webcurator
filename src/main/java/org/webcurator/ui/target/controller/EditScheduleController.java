@@ -51,15 +51,15 @@ import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HeatmapConfigDTO;
 import org.webcurator.ui.common.CommonViews;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.target.AbstractTargetEditorContext;
+import org.webcurator.common.Constants;
+import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.command.Time;
 import org.webcurator.ui.target.command.TimeEditor;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
-import org.webcurator.ui.util.Utils;
+import org.webcurator.common.util.Utils;
 
 /**
  * The controller for editing a schedule.
@@ -87,7 +87,7 @@ public class EditScheduleController extends AbstractCommandController {
         // Register the binders.
         binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, nf, true));
         binder.registerCustomEditor(Integer.class, "scheduleType", new CustomNumberEditor(Integer.class, nf, true));
-        binder.registerCustomEditor(java.util.Date.class, org.webcurator.ui.util.DateUtils.get().getFullDateEditor(true));
+        binder.registerCustomEditor(java.util.Date.class, org.webcurator.common.util.DateUtils.get().getFullDateEditor(true));
         binder.registerCustomEditor(Time.class, new TimeEditor(false));
     }
 

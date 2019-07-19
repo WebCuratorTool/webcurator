@@ -29,7 +29,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.DefaultCommand;
 import org.webcurator.ui.util.Tab;

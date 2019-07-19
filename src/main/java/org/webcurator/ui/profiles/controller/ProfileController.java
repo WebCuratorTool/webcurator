@@ -15,9 +15,7 @@
  */
 package org.webcurator.ui.profiles.controller;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +43,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.ui.common.CommonViews;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.profiles.command.DefaultCommand;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.util.Tab;

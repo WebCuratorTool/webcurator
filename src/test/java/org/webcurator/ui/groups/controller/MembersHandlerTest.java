@@ -24,7 +24,7 @@ import org.webcurator.ui.groups.command.GeneralCommand;
 import org.webcurator.ui.groups.command.MembersCommand;
 import org.webcurator.ui.groups.command.MoveTargetsCommand;
 import org.webcurator.ui.groups.validator.GeneralValidator;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;

@@ -25,9 +25,8 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.BaseCommandController;
 import org.springframework.web.util.WebUtils;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
-import org.webcurator.ui.target.command.TargetGeneralCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 /**

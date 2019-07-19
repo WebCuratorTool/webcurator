@@ -2,22 +2,14 @@ package org.webcurator.ui.target.controller;
 
 import static org.junit.Assert.*;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.common.Constants;
 import org.webcurator.ui.target.command.LiveContentRetrieverCommand;
-import org.webcurator.ui.target.command.LogReaderCommand;
 
 public class LiveContentRetrieverControllerTest extends BaseWCTTest<LiveContentRetrieverController>{
 

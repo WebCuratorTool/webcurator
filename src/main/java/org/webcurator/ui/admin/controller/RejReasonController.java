@@ -38,7 +38,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.RejReason;
 import org.webcurator.ui.admin.command.RejReasonCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 /**
  * Manages the Rejection Reason Administration view and the actions associated with a Rejection Reason
  * @author oakleigh_sk

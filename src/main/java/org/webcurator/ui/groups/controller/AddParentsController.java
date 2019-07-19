@@ -30,7 +30,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddParentsCommand;
 import org.webcurator.ui.util.Tab;

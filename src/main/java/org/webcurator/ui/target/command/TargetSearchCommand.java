@@ -26,11 +26,6 @@ public class TargetSearchCommand {
 	public static final String ACTION_DELETE = "delete";
 	public static final String ACTION_RESET = "reset";
 
-	public static final String SORT_NAME_ASC = "nameasc";
-	public static final String SORT_NAME_DESC = "namedesc";
-	public static final String SORT_DATE_ASC = "dateasc";
-	public static final String SORT_DATE_DESC = "datedesc";
-
 	private int pageNumber = 0;
 	private String selectedPageSize;
 	private String name;

@@ -138,26 +138,6 @@ public class TargetInstanceCommand {
     /** Name of the multi-delist action for target instances **/
     public static final String ACTION_MULTI_DELIST = "multi-delist";
 
-	public static final String SORT_DEFAULT = "default";
-	public static final String SORT_NAME_ASC = "nameasc";
-	public static final String SORT_NAME_DESC = "namedesc";
-	public static final String SORT_DATE_ASC = "dateasc";
-	public static final String SORT_DATE_DESC = "datedesc";
-	public static final String SORT_STATE_ASC = "stateasc";
-	public static final String SORT_STATE_DESC = "statedesc";
-	public static final String SORT_ELAPSEDTIME_ASC = "elapsedtimeasc";
-	public static final String SORT_ELAPSEDTIME_DESC = "elapsedtimedesc";
-	public static final String SORT_DATADOWNLOADED_ASC = "datadownloadedasc";
-	public static final String SORT_DATADOWNLOADED_DESC = "datadownloadeddesc";
-	public static final String SORT_URLSSUCCEEDED_ASC = "urlssucceededasc";
-	public static final String SORT_URLSSUCCEEDED_DESC = "urlssucceededdesc";
-	public static final String SORT_PERCENTAGEURLSFAILED_ASC = "percentageurlsfailedasc";
-	public static final String SORT_PERCENTAGEURLSFAILED_DESC = "percentageurlsfaileddesc";
-	public static final String SORT_CRAWLS_ASC = "crawlsasc";
-	public static final String SORT_CRAWLS_DESC = "crawlsdesc";
-	public static final String SORT_DATE_DESC_BY_TARGET_OID = "datedescbytargetoid";
-
-    public static final String PARAM_OID = "targetInstanceId";
     public static final String PARAM_CMD = "cmd";
     public static final String PARAM_TIME = "scheduledTime";
     public static final String PARAM_PRI = "priority";

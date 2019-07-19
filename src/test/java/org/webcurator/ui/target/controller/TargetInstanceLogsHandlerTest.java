@@ -13,6 +13,7 @@ import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
@@ -22,7 +23,6 @@ import org.webcurator.core.scheduler.*;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
-import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.*;
 
 public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLogsHandler> {

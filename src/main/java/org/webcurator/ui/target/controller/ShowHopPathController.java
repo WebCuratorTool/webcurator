@@ -26,7 +26,7 @@ import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.ShowHopPathCommand;
 import org.webcurator.ui.target.validator.ShowHopPathValidator;
 

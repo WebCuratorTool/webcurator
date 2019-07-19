@@ -24,7 +24,7 @@ import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.core.AuthorisingAgent;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.AgencySearchCommand;
 import org.webcurator.ui.util.Tab;

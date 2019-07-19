@@ -15,13 +15,11 @@
  */
 package org.webcurator.ui.admin.validator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
+import org.webcurator.common.ui.validation.TemplateValidatorHelper;
 import org.webcurator.ui.admin.command.AgencyCommand;
 import org.webcurator.ui.admin.command.TemplateCommand;
-import org.webcurator.ui.admin.controller.TemplateController;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.common.validation.ValidatorUtil;
 import org.webcurator.domain.model.core.PermissionTemplate;

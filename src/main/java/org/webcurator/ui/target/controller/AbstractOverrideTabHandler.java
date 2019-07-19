@@ -35,7 +35,7 @@ import org.webcurator.domain.model.core.AbstractTarget;
 import org.webcurator.domain.model.core.Overrideable;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.ProfileDTO;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.ProfileCommand;
 import org.webcurator.ui.target.command.TargetInstanceProfileCommand;
 import org.webcurator.ui.util.OverrideGetter;

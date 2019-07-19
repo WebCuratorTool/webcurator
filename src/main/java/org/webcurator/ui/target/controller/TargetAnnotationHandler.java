@@ -32,15 +32,12 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.Annotation;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetAnnotationCommand;
-import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;
-import org.webcurator.ui.util.Utils;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
 /**

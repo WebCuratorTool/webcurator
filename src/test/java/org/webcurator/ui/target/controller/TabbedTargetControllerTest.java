@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.mvel2.sh.Command;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.profiles.MockProfileManager;
 import org.webcurator.test.*;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.groups.command.DefaultCommand;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.site.command.*;
-import org.webcurator.ui.site.validator.SiteValidator;
 import org.webcurator.auth.*;
 import org.webcurator.domain.MockTargetDAO;
 import org.webcurator.domain.model.auth.Privilege;
@@ -22,15 +22,12 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
-import org.webcurator.core.sites.*;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.ui.util.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
-import org.webcurator.core.util.*;
 import org.webcurator.core.agency.*;
 
 
@@ -117,7 +114,7 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 			MockHttpServletRequest request = new MockHttpServletRequest();
 			MockHttpServletResponse response = new MockHttpServletResponse();
 			TargetDefaultCommand comm = new TargetDefaultCommand();
-			comm.setMode(TargetDefaultCommand.MODE_EDIT);
+			comm.setMode(CommandConstants.TARGET_DEFAULT_COMMAND_MODE_EDIT);
 			comm.setTargetOid(null);
 
 			BindException aError = new BindException(new DefaultSiteCommand(), null);
@@ -148,7 +145,7 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 			request.getSession().setAttribute(TabbedTargetController.EDITOR_CONTEXT, context);
 
 			TargetDefaultCommand comm = new TargetDefaultCommand();
-			comm.setMode(TargetDefaultCommand.MODE_EDIT);
+			comm.setMode(CommandConstants.TARGET_DEFAULT_COMMAND_MODE_EDIT);
 			comm.setTargetOid(4000L);
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);

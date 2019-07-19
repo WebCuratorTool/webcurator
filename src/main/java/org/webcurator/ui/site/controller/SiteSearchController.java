@@ -28,6 +28,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractFormController;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.core.util.AuthUtil;
@@ -35,7 +36,7 @@ import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.SiteCriteria;
 import org.webcurator.domain.model.auth.Agency;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.common.editor.CustomIntegerCollectionEditor;
 import org.webcurator.ui.site.command.SiteSearchCommand;
 
@@ -117,7 +118,7 @@ public class SiteSearchController extends AbstractFormController {
 			command.setPermsFileRef("");
 			command.setUrlPattern("");
 			command.setStates(new HashSet<Integer>());
-			command.setSortorder(SiteSearchCommand.SORT_NAME_ASC);
+			command.setSortorder(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_ASC);
 		}
 
 		SiteCriteria criteria = new SiteCriteria();

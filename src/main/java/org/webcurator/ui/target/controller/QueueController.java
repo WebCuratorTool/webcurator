@@ -39,6 +39,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractFormController;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -61,10 +62,10 @@ import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 /**
  * The controller for displaying a list of target instances and processing
@@ -155,7 +156,7 @@ public class QueueController extends AbstractFormController {
 			command.setStates(new HashSet<String>());
 			command.setSearchOid(null);
 			command.setFlagged(false);
-			command.setSortorder(TargetInstanceCommand.SORT_DEFAULT);
+			command.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
 			command.setFlagOid(null);
 			command.setRecommendationFilter(null);
 			return processFilter(aReq, aResp, command, aErrors);
@@ -464,7 +465,7 @@ public class QueueController extends AbstractFormController {
 			criteria.setName(name);
 			aCmd.setName(name);
 			aCmd.setStates(states);
-			aCmd.setSortorder(TargetInstanceCommand.SORT_DEFAULT);
+			aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
 		} else if (TargetInstanceCommand.TYPE_HARVESTED.equals(reqType)) {
 			User user = AuthUtil.getRemoteUserObject();
 			criteria.setOwner(user.getUsername());
@@ -474,7 +475,7 @@ public class QueueController extends AbstractFormController {
 
 			states.add(TargetInstance.STATE_HARVESTED);
 			aCmd.setStates(states);
-			aCmd.setSortorder(TargetInstanceCommand.SORT_DEFAULT);
+			aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
 		} else {
 			Calendar cal = Calendar.getInstance();
 			cal.add(Calendar.DATE, environment.getDaysToSchedule() + 1);
@@ -483,7 +484,7 @@ public class QueueController extends AbstractFormController {
 			cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND));
 			criteria.setTo(cal.getTime());
 			aCmd.setTo(cal.getTime());
-			aCmd.setSortorder(TargetInstanceCommand.SORT_DEFAULT);
+			aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
 
 			if (TargetInstanceCommand.TYPE_QUEUE.equals(reqType)) {
 				states.add(TargetInstance.STATE_SCHEDULED);

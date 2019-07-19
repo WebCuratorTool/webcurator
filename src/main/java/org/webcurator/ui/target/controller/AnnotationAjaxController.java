@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractFormController;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
@@ -21,7 +22,7 @@ import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 public class AnnotationAjaxController extends AbstractFormController {
@@ -62,7 +63,7 @@ public class AnnotationAjaxController extends AbstractFormController {
 		if (searchCommand == null) return null;
 
         TargetInstanceCriteria criteria = new TargetInstanceCriteria();
-        criteria.setSortorder(TargetInstanceCommand.SORT_DATE_DESC_BY_TARGET_OID);
+        criteria.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID);
         criteria.setTargetSearchOid(new Long(request.getParameter("targetOid")));
         criteria.setSearchOid(new Long(request.getParameter("targetInstanceOid")));
 		User user = AuthUtil.getRemoteUserObject();

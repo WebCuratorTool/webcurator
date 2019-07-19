@@ -33,7 +33,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetAnnotationCommand;
 import org.webcurator.ui.target.command.TargetDefaultCommand;

@@ -40,14 +40,14 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Schedule;
 import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.target.AbstractTargetEditorContext;
+import org.webcurator.common.Constants;
+import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;
 import org.webcurator.ui.util.TabbedController;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
-import org.webcurator.ui.util.Utils;
+import org.webcurator.common.util.Utils;
 
 /**
  * The handler for the target schedules tab.
@@ -88,7 +88,7 @@ public class TargetSchedulesHandler extends TabHandler {
         // Register the binders.
         binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, nf, true));
         binder.registerCustomEditor(Integer.class, "scheduleType", new CustomNumberEditor(Integer.class, nf, true));
-        binder.registerCustomEditor(java.util.Date.class, org.webcurator.ui.util.DateUtils.get().getFullDateEditor(true));
+        binder.registerCustomEditor(java.util.Date.class, org.webcurator.common.util.DateUtils.get().getFullDateEditor(true));
     }
 
 	/* (non-Javadoc)

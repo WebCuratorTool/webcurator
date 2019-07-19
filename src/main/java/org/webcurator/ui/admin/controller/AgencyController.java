@@ -34,7 +34,7 @@ import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.ui.admin.command.AgencyCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 /**
  * Manages the Agency Administration view and the actions associated with a Agency

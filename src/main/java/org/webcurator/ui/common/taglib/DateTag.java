@@ -6,8 +6,7 @@ import java.util.Date;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
-import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 public class DateTag extends TagSupport {
 

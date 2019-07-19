@@ -33,13 +33,12 @@ import org.webcurator.domain.model.core.HarvesterStatus;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;
 import org.webcurator.ui.util.TabbedController;
-import org.webcurator.ui.util.Utils;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
 /**

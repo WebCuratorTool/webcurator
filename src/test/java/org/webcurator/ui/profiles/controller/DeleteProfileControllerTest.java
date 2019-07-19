@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.Constants;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.*;
@@ -17,7 +18,6 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.profiles.command.ViewCommand;
 import org.springframework.context.MockMessageSource;
-import org.webcurator.ui.common.*;
 
 public class DeleteProfileControllerTest extends BaseWCTTest<DeleteProfileController> {
 

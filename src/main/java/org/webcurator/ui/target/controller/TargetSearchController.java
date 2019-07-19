@@ -29,6 +29,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractFormController;
 
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
@@ -36,11 +37,9 @@ import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.auth.Agency;
-import org.webcurator.domain.model.core.Annotation;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.common.editor.CustomIntegerCollectionEditor;
-import org.webcurator.ui.groups.command.SearchCommand;
 import org.webcurator.ui.target.command.TargetSearchCommand;
 
 /**
@@ -81,7 +80,7 @@ public class TargetSearchController extends AbstractFormController {
 		command.setAgency(usersAgency.getName());
 		command.setOwner(AuthUtil.getRemoteUserObject().getUsername());
 		command.setSearchOid(null);
-		command.setSortorder(TargetSearchCommand.SORT_NAME_ASC);
+		command.setSortorder(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC);
 
 		return command;
 	}
@@ -185,7 +184,7 @@ public class TargetSearchController extends AbstractFormController {
 			command.setStates(new HashSet<Integer>());
 			command.setMemberOf("");
 			command.setSearchOid(null);
-			command.setSortorder(TargetSearchCommand.SORT_NAME_ASC);
+			command.setSortorder(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC);
 			command.setDescription("");
 
 			return prepareSearchView(request, response, command, errors);

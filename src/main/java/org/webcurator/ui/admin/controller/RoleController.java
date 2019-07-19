@@ -45,8 +45,7 @@ import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.RoleCommand;
-import org.webcurator.ui.admin.command.UserCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 /**
  * The Controller for creation and management of Roles within the

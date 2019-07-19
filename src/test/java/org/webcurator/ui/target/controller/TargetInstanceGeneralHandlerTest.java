@@ -26,7 +26,7 @@ import org.webcurator.test.*;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.target.validator.TargetInstanceValidator;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;

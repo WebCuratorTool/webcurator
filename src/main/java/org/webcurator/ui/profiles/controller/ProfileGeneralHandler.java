@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.profiles.command.GeneralCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;

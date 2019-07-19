@@ -2,33 +2,20 @@ package org.webcurator.ui.target.controller;
 
 import static org.junit.Assert.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
-import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.admin.command.CreateUserCommand;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.groups.command.SearchCommand;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.util.DateUtils;
-import org.webcurator.core.common.*;
-import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
-import org.webcurator.core.notification.MockInTrayManager;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.scheduler.*;
 import org.webcurator.core.targets.MockTargetManager;
-import org.webcurator.core.agency.*;
-import org.webcurator.core.archive.MockSipBuilder;
-import org.webcurator.domain.MockHarvestCoordinatorDAO;
 import org.webcurator.domain.MockTargetInstanceDAO;
-import org.webcurator.core.util.AuthUtil;
-import org.webcurator.domain.model.core.TargetInstance;
 
 public class AnnotationAjaxControllerTest extends BaseWCTTest<AnnotationAjaxController> {
 

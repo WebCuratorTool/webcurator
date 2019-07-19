@@ -36,9 +36,8 @@ import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.groups.command.SearchCommand;
-import org.webcurator.ui.target.command.TargetSearchCommand;
 
 /**
  * The controller for processing target group searches.

@@ -16,7 +16,6 @@
 package org.webcurator.ui.groups.controller;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,12 +31,9 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.domain.model.dto.GroupMemberDTO;
-import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.MoveTargetsCommand;
-import org.webcurator.ui.groups.controller.AddMembersController.MemberSelection;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 

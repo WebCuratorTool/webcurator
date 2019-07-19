@@ -16,7 +16,6 @@
 package org.webcurator.ui.admin.controller;
 
 import java.awt.Color;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,6 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.tagext.TagSupport;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,7 +43,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Flag;
 import org.webcurator.ui.admin.command.CreateFlagCommand;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 /**
  * Manages the creation flow for a Rejection Reason within WCT

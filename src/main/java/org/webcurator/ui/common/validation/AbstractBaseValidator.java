@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.Validator;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 /**
  * Abstract base class to be extended by all WCT Validators.

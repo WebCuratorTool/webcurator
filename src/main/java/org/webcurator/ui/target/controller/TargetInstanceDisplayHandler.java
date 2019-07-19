@@ -16,7 +16,6 @@
 package org.webcurator.ui.target.controller;
 
 import java.text.NumberFormat;
-import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,21 +26,14 @@ import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.util.AuthUtil;
-import org.webcurator.domain.model.core.Annotation;
-import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.groups.command.GroupAnnotationCommand;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.target.command.TargetInstanceProfileCommand;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;
 import org.webcurator.ui.util.TabbedController;
-import org.webcurator.ui.util.Utils;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
 /**

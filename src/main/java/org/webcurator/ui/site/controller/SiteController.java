@@ -42,7 +42,7 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.DefaultSiteCommand;
 import org.webcurator.ui.site.command.SiteCommand;

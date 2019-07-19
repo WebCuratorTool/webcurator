@@ -42,7 +42,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.admin.command.UserCommand;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 /**
  * Manages the creation flow for a User within WCT

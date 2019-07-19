@@ -41,7 +41,7 @@ import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 /**

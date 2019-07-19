@@ -72,15 +72,14 @@ import org.webcurator.domain.model.core.Schedule;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.common.validation.ValidatorUtil;
 import org.webcurator.ui.target.command.ProfileCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.target.command.TargetInstanceSummaryCommand;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.command.Time;
-import org.webcurator.ui.util.DateUtils;
-import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
+import org.webcurator.common.util.DateUtils;
 
 /**
  * The controller for displaying the Target Instance QA Summary Page.

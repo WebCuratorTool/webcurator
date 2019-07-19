@@ -18,7 +18,7 @@ package org.webcurator.ui.site.editor;
 import java.beans.PropertyEditorSupport;
 
 import org.webcurator.domain.model.core.AuthorisingAgent;
-import org.webcurator.ui.site.EditorContext;
+import org.webcurator.common.ui.site.EditorContext;
 
 /**
  * Converts a agents idenity (oid) into an Authorising Agent object.

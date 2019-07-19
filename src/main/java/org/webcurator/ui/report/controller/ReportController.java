@@ -33,8 +33,8 @@ import org.webcurator.core.report.ReportManager;
 import org.webcurator.core.report.parameter.Parameter;
 import org.webcurator.core.report.parameter.ParameterFactory;
 import org.webcurator.core.report.parameter.ReportCommandParsing;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.report.command.ReportCommand;
+import org.webcurator.common.Constants;
+import org.webcurator.common.ui.command.ReportCommand;
 
 /**
  * ReportController

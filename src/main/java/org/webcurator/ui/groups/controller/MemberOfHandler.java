@@ -17,7 +17,6 @@ package org.webcurator.ui.groups.controller;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,14 +30,12 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
-import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.MemberOfCommand;
-import org.webcurator.ui.target.TargetEditorContext;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;

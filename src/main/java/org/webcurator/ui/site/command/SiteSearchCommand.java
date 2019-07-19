@@ -37,11 +37,6 @@ public class SiteSearchCommand {
 	public static final String PARAM_SHOW_DISABLED = "showDisabled";
 	public static final String PARAM_SEARCH_OID = "searchOid";
 
-	public static final String SORT_NAME_ASC = "nameasc";
-	public static final String SORT_NAME_DESC = "namedesc";
-	public static final String SORT_DATE_ASC = "dateasc";
-	public static final String SORT_DATE_DESC = "datedesc";
-
 	private String title;
 	private Set<Integer> states;
 	private String orderNo;

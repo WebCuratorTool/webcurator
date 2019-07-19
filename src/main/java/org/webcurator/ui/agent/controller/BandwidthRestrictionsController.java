@@ -46,8 +46,8 @@ import org.webcurator.domain.model.core.BandwidthRestriction;
 import org.webcurator.domain.model.core.HeatmapConfig;
 import org.webcurator.domain.model.dto.HeatmapConfigDTO;
 import org.webcurator.ui.agent.command.BandwidthRestrictionsCommand;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.Constants;
+import org.webcurator.common.util.DateUtils;
 
 /**
  * The controller for managing the creation, modification and deletion of

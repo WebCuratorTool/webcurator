@@ -4,31 +4,20 @@ import static org.junit.Assert.*;
 
 import java.util.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.util.WebUtils;
 
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.groups.command.GeneralCommand;
-import org.webcurator.ui.groups.command.GroupAnnotationCommand;
-import org.webcurator.ui.groups.controller.GeneralHandler;
-import org.webcurator.ui.groups.controller.GroupAnnotationHandler;
-import org.webcurator.ui.groups.validator.GeneralValidator;
-import org.webcurator.ui.groups.validator.GroupAnnotationValidator;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.*;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
-import org.webcurator.auth.AuthorityManagerImpl;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.sites.*;
-import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.core.*;
 
 public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{

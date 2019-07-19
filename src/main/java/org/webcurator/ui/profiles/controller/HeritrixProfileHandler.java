@@ -27,7 +27,7 @@ import org.webcurator.core.profiles.ComplexProfileElement;
 import org.webcurator.core.profiles.DuplicateNameException;
 import org.webcurator.core.profiles.HeritrixProfile;
 import org.webcurator.core.profiles.ProfileElement;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 import org.webcurator.ui.profiles.renderers.AcceptAllRendererFilter;
 import org.webcurator.ui.profiles.renderers.RendererFilter;
 import org.webcurator.ui.util.Tab;
