@@ -23,7 +23,7 @@ import java.util.List;
 import org.webcurator.core.report.ResultSet;
 import org.webcurator.core.report.dto.LogonUserDTO;
 import org.webcurator.core.util.Utils;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 
 /**

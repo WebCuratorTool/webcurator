@@ -34,7 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.ui.common.Constants;
+import org.webcurator.common.Constants;
 
 /**
  * This filter is used by the Acegi security framework.  

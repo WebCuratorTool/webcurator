@@ -7,7 +7,7 @@ import java.util.HashMap;
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.store.MockDigitalAssetStore;

@@ -31,7 +31,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 /**
  * Implementation of the ArchiveAdapter interface.

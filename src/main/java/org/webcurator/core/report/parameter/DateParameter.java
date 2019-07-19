@@ -23,7 +23,7 @@ import java.util.Date;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.validation.Errors;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 
 /**

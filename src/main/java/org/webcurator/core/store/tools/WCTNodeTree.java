@@ -23,12 +23,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.store.tools.tree.Node;
 import org.webcurator.core.store.tools.tree.NodeTree;
 import org.webcurator.domain.model.core.HarvestResource;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.ui.common.Constants;
 
 /**
  * A Node Tree for HarvestResource objects.

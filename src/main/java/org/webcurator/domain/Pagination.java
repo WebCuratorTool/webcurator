@@ -16,7 +16,6 @@
 package org.webcurator.domain;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -30,10 +29,8 @@ import org.hibernate.HibernateException;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Projections;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
-import org.webcurator.ui.common.Constants;
 
 /**
  * Pagination object makes all the decisions about the pagination of result sets, 

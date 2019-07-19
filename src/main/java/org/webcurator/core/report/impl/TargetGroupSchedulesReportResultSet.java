@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.webcurator.core.report.ResultSet;
-import org.webcurator.ui.util.DateUtils;
+import org.webcurator.common.util.DateUtils;
 
 /**
  * ResultSet for a Target/Groups Schedules Report.

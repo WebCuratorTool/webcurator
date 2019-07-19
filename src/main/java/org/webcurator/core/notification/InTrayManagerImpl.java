@@ -27,6 +27,7 @@ import javax.mail.MessagingException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.MessageSource;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.NotOwnerRuntimeException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -44,11 +45,7 @@ import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.Task;
 import org.webcurator.domain.model.dto.UserDTO;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.site.command.DefaultSiteCommand;
-import org.webcurator.ui.target.command.LogReaderCommand;
-import org.webcurator.ui.target.command.TargetDefaultCommand;
-import org.webcurator.ui.target.command.TargetInstanceCommand;
+import org.webcurator.common.Constants;
 
 /**
  * The implementation of the InTrayManager interface.
@@ -472,10 +469,10 @@ public class InTrayManagerImpl implements InTrayManager{
     private String lookupLink(InTrayResource wctResource, boolean editMode) { 
     	if(wctResource instanceof TargetInstance) {
     		if(editMode) { 
-    			return wctBaseUrl + Constants.CNTRL_TI+"?"+TargetInstanceCommand.PARAM_OID+"="+wctResource.getOid()+"&cmd=edit";
+    			return wctBaseUrl + Constants.CNTRL_TI+"?"+ CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+wctResource.getOid()+"&cmd=edit";
     		}
     		else {
-    			return wctBaseUrl + Constants.CNTRL_TI+"?"+TargetInstanceCommand.PARAM_OID+"="+wctResource.getOid();
+    			return wctBaseUrl + Constants.CNTRL_TI+"?"+CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+wctResource.getOid();
     		}
     	}
     	else {
@@ -491,17 +488,17 @@ public class InTrayManagerImpl implements InTrayManager{
         if (TargetInstance.class.getName().equals(resourceType)) {
             //Create TargetInstance hyperlink
         	if (MessageType.TARGET_INSTANCE_QUEUED.equals(messageType)) {
-                return wctBaseUrl + Constants.CNTRL_TI_QUEUE+"?"+TargetInstanceCommand.PARAM_OID+"="+oid;
+                return wctBaseUrl + Constants.CNTRL_TI_QUEUE+"?"+CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+oid;
             } else {
-                return wctBaseUrl + Constants.CNTRL_TI+"?"+TargetInstanceCommand.PARAM_OID+"="+oid+"&cmd=edit";
+                return wctBaseUrl + Constants.CNTRL_TI+"?"+CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+oid+"&cmd=edit";
             }
         } 
         if(Target.class.getName().equals(resourceType)) {
         	if (MessageType.TARGET_SCHEDULE_ADDED.equals(messageType)) {
-        		return wctBaseUrl + Constants.CNTRL_TARGET+"?"+ TargetDefaultCommand.PARAM_OID +"="+oid;
+        		return wctBaseUrl + Constants.CNTRL_TARGET+"?"+ CommandConstants.TARGET_DEFAULT_COMMAND_PARAM_OID +"="+oid;
         	}
         	if (MessageType.TASK_APPROVE_TARGET.equals(messageType) || MessageType.DELEGATE_TARGET.equals(messageType)) {
-        		return wctBaseUrl + Constants.CNTRL_TARGET+"?"+ TargetDefaultCommand.PARAM_OID + "=" + oid + "&mode=" + TargetDefaultCommand.MODE_EDIT;
+        		return wctBaseUrl + Constants.CNTRL_TARGET+"?"+ CommandConstants.TARGET_DEFAULT_COMMAND_PARAM_OID + "=" + oid + "&mode=" + CommandConstants.TARGET_DEFAULT_COMMAND_MODE_EDIT;
         	}
         }
         
@@ -510,14 +507,14 @@ public class InTrayManagerImpl implements InTrayManager{
         		MessageType.NOTIFICATION_PERMISSION_APPROVED.equals(messageType) ||
         		MessageType.NOTIFICATION_PERMISSION_DENIED.equals(messageType)) {
         		long siteOid = ((Permission) wctResource).getSite().getOid();
-        		return wctBaseUrl + Constants.CNTRL_SITE + "?" + DefaultSiteCommand.PARAM_SITE_OID +"=" + siteOid + "&" + DefaultSiteCommand.PARAM_EDIT_MODE + "=true"; 
+        		return wctBaseUrl + Constants.CNTRL_SITE + "?" + CommandConstants.DEFAULT_SITE_COMMAND_PARAM_SITE_OID +"=" + siteOid + "&" + CommandConstants.DEFAULT_SITE_COMMAND_PARAM_EDIT_MODE + "=true";
         	}
         }
         
     	if(wctResource instanceof HarvestResult)
     	{
     		HarvestResult result = (HarvestResult)wctResource;
-			return wctBaseUrl + Constants.CNTRL_AQA+"?"+LogReaderCommand.PARAM_OID+"="+result.getTargetInstance().getOid()+"&"+LogReaderCommand.PARAM_LOGFILE+"=aqa-report("+result.getHarvestNumber()+").xml";
+			return wctBaseUrl + Constants.CNTRL_AQA+"?"+CommandConstants.LOG_READER_COMMAND_PARAM_OID+"="+result.getTargetInstance().getOid()+"&"+CommandConstants.LOG_READER_COMMAND_PARAM_LOGFILE+"=aqa-report("+result.getHarvestNumber()+").xml";
     	}
         
         return "";

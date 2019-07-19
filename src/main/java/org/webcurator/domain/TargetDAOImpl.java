@@ -43,6 +43,7 @@ import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.targets.PermissionCriteria;
@@ -58,9 +59,8 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.AbstractTargetDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.target.command.TargetSearchCommand;
-import org.webcurator.ui.util.Utils;
+import org.webcurator.common.Constants;
+import org.webcurator.common.util.Utils;
 
 /**
  * The implementation of the TargetDAO interface.
@@ -459,13 +459,13 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 							cntQuery.add(Restrictions.eq("displayTarget", false));
 						}
 						
-						if(sortorder == null || sortorder.equals(TargetSearchCommand.SORT_NAME_ASC)) {
+						if(sortorder == null || sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC)) {
 							query.addOrder(Order.asc("name"));
-						} else if (sortorder.equals(TargetSearchCommand.SORT_NAME_DESC)) {
+						} else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC)) {
 							query.addOrder(Order.desc("name"));
-						} else if (sortorder.equals(TargetSearchCommand.SORT_DATE_ASC)) {
+						} else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC)) {
 							query.addOrder(Order.asc("creationDate"));
-						} else if (sortorder.equals(TargetSearchCommand.SORT_DATE_DESC)) {
+						} else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC)) {
 							query.addOrder(Order.desc("creationDate"));
 						}
 						cntQuery.setProjection(Projections.rowCount());

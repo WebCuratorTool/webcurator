@@ -20,7 +20,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.validation.Errors;
-import org.webcurator.ui.report.command.ReportCommand;
+import org.webcurator.common.ui.command.ReportCommand;
 
 /**
  * Utility class containing the algorithm for parsing a <code>ReportCommand</code>.<br>

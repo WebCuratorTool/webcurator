@@ -19,6 +19,7 @@ package org.webcurator.core.report.parameter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.validation.Errors;
+import org.webcurator.common.ui.command.ReportCommand;
 
 /**
  * Utility method for building a Parameter from
@@ -36,7 +37,7 @@ public class ParameterFactory {
 	
 	/**
 	 * Create a {@link Parameter} from the parameters 
-	 * extracted from the {@link org.webcurator.ui.report.command.ReportCommand}
+	 * extracted from the {@link ReportCommand}
 	 * 
 	 * @param params Properties for building a Parameter.<br> They 
 	 * are: name/value/type/description/optional and can be accessed 
@@ -53,7 +54,7 @@ public class ParameterFactory {
 	
 	/**
 	 * Create a {@link Parameter} from the parameters 
-	 * extracted from the {@link org.webcurator.ui.report.command.ReportCommand} indicating errors
+	 * extracted from the {@link ReportCommand} indicating errors
 	 * of some properties are not valid
 	 * 
 	 * @param params Properties for building a Parameter.<br> They 

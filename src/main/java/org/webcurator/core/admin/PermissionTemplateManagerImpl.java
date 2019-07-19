@@ -29,7 +29,7 @@ import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionTemplate;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;
-import org.webcurator.ui.admin.validator.TemplateValidatorHelper;
+import org.webcurator.common.ui.validation.TemplateValidatorHelper;
 
 /**
  * Implementation of the PermissionTemplateManager interface.

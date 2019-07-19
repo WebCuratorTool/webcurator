@@ -35,6 +35,7 @@ import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.AuthorisingAgent;
@@ -42,8 +43,7 @@ import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.site.command.SiteSearchCommand;
+import org.webcurator.common.Constants;
 
 /**
  * The implementation of the SiteDAO interface.
@@ -276,13 +276,13 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 
 						
 						if( aCriteria.getSortorder() == null || 
-							aCriteria.getSortorder().equals(SiteSearchCommand.SORT_NAME_ASC)) {
+							aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_ASC)) {
 							query.addOrder(Order.asc("title"));
-						} else if (aCriteria.getSortorder().equals(SiteSearchCommand.SORT_NAME_DESC)) {
+						} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_DESC)) {
 							query.addOrder(Order.desc("title"));
-						} else if (aCriteria.getSortorder().equals(SiteSearchCommand.SORT_DATE_ASC)) {
+						} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_ASC)) {
 							query.addOrder(Order.asc("creationDate"));
-						} else if (aCriteria.getSortorder().equals(SiteSearchCommand.SORT_DATE_DESC)) {
+						} else if (aCriteria.getSortorder().equals(CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_DESC)) {
 							query.addOrder(Order.desc("creationDate"));
 						}
 						

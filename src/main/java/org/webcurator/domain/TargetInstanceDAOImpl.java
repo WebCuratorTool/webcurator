@@ -32,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
-import org.hibernate.LockMode;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Disjunction;
@@ -43,10 +42,10 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.model.core.AbstractTarget;
@@ -60,8 +59,6 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
-import org.webcurator.ui.common.Constants;
-import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 /**
  * The implementation of the TargetInstanceDAO interface.
@@ -416,57 +413,57 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 					}
 
 					if ( aCriteria.getSortorder() == null ||
-						 aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_DEFAULT)) {
+						 aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT)) {
 						// use defaults
 						query.addOrder(Order.asc("displayOrder"));
 						query.addOrder(Order.asc("sortOrderDate"));
 						query.addOrder(Order.asc("priority"));
 						query.addOrder(Order.asc("oid"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_NAME_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_ASC)) {
 						query.createAlias("target", "t");
 						query.addOrder(Order.asc("t.name"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_NAME_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_DESC)) {
 						query.createAlias("target", "t");
 						query.addOrder(Order.desc("t.name"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_DATE_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_ASC)) {
 						query.addOrder(Order.asc("sortOrderDate"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_DATE_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC)) {
 						query.addOrder(Order.desc("sortOrderDate"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_STATE_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_STATE_ASC)) {
 						query.addOrder(Order.asc("state"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_STATE_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_STATE_DESC)) {
 						query.addOrder(Order.desc("state"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_ELAPSEDTIME_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_ELAPSEDTIME_ASC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.asc("hs.elapsedTime"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_ELAPSEDTIME_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_ELAPSEDTIME_DESC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.desc("hs.elapsedTime"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_DATADOWNLOADED_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATADOWNLOADED_ASC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.asc("hs.dataDownloaded"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_DATADOWNLOADED_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATADOWNLOADED_DESC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.desc("hs.dataDownloaded"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_URLSSUCCEEDED_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_URLSSUCCEEDED_ASC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.asc("hs.urlsSucceeded"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_URLSSUCCEEDED_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_URLSSUCCEEDED_DESC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.desc("hs.urlsSucceeded"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_PERCENTAGEURLSFAILED_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_ASC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.asc("hs.percentageUrlsFailed"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_PERCENTAGEURLSFAILED_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_PERCENTAGEURLSFAILED_DESC)) {
 						query.createAlias("status", "hs");
 						query.addOrder(Order.desc("hs.percentageUrlsFailed"));	
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_CRAWLS_ASC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_CRAWLS_ASC)) {
 						query.createAlias("target", "t");
 						query.addOrder(Order.asc("t.crawls"));
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_CRAWLS_DESC)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_CRAWLS_DESC)) {
 						query.createAlias("target", "t");
 						query.addOrder(Order.desc("t.crawls"));	
-					} else if (aCriteria.getSortorder().equals(TargetInstanceCommand.SORT_DATE_DESC_BY_TARGET_OID)) {
+					} else if (aCriteria.getSortorder().equals(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID)) {
 						query.addOrder(Order.desc("sortOrderDate"));	
 					}
 			

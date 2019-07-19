@@ -20,17 +20,17 @@ import org.archive.crawler.settings.ComplexType;
 import org.archive.crawler.settings.ListType;
 import org.archive.crawler.settings.MapType;
 import org.archive.crawler.settings.TextField;
-import org.webcurator.ui.profiles.renderers.BooleanRenderer;
-import org.webcurator.ui.profiles.renderers.ComplexTypeRenderer;
-import org.webcurator.ui.profiles.renderers.ListTypeRenderer;
-import org.webcurator.ui.profiles.renderers.MapRenderer;
-import org.webcurator.ui.profiles.renderers.OptionRenderer;
-import org.webcurator.ui.profiles.renderers.ProcessorMapRenderer;
-import org.webcurator.ui.profiles.renderers.Renderer;
-import org.webcurator.ui.profiles.renderers.ScopeRenderer;
-import org.webcurator.ui.profiles.renderers.SimpleMapRenderer;
-import org.webcurator.ui.profiles.renderers.TextFieldRenderer;
-import org.webcurator.ui.profiles.renderers.TextRenderer;
+import org.webcurator.common.ui.profiles.renderers.BooleanRenderer;
+import org.webcurator.common.ui.profiles.renderers.ComplexTypeRenderer;
+import org.webcurator.common.ui.profiles.renderers.ListTypeRenderer;
+import org.webcurator.common.ui.profiles.renderers.MapRenderer;
+import org.webcurator.common.ui.profiles.renderers.OptionRenderer;
+import org.webcurator.common.ui.profiles.renderers.ProcessorMapRenderer;
+import org.webcurator.common.ui.profiles.renderers.Renderer;
+import org.webcurator.common.ui.profiles.renderers.ScopeRenderer;
+import org.webcurator.common.ui.profiles.renderers.SimpleMapRenderer;
+import org.webcurator.common.ui.profiles.renderers.TextFieldRenderer;
+import org.webcurator.common.ui.profiles.renderers.TextRenderer;
 
 /**
  * The <code>RendererManager</code> is responsible for working out which
