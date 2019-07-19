@@ -3,6 +3,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page import="org.webcurator.ui.common.Constants" %>
 <%@ page import="org.webcurator.ui.target.command.LogReaderCommand" %>
+<%@ page import="org.webcurator.common.ui.CommandConstants" %>
 <style>
 	.hidden { display:none; }
 	.logView {font-family: courier new;	font-size: 9pt; width: 100%; }
@@ -63,8 +64,8 @@ function doFilterKeyUp()
 	<tr>
 		<td align="right" width="25%">Number of lines to display</td>
 		<td align="left">
-		<input type="hidden" name="<%=LogReaderCommand.PARAM_OID%>" value="<c:out value="${command.targetInstanceOid}"/>" />
-		<input type="hidden" name="<%=LogReaderCommand.PARAM_LOGFILE%>" value="<c:out value="${command.logFileName}"/>" />		
+		<input type="hidden" name="<%=CommandConstants.LOG_READER_COMMAND_PARAM_OID%>" value="<c:out value="${command.targetInstanceOid}"/>" />
+		<input type="hidden" name="<%=CommandConstants.LOG_READER_COMMAND_PARAM_LOGFILE%>" value="<c:out value="${command.logFileName}"/>" />
 		<input type="hidden" name="<%=LogReaderCommand.PARAM_NUM_LINES%>" value="<c:out value="${command.numLines}"/>" />		
 		<input type="text" name="<%=LogReaderCommand.PARAM_LINES%>" size="5" maxlength="5" value="<c:out value="${command.noOfLines}"/>" />
 		</td>

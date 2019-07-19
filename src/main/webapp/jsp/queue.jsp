@@ -7,6 +7,7 @@
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
 <%@page import="org.webcurator.domain.model.core.TargetInstance" %>
 <%@page import="org.webcurator.ui.common.Constants" %>
+<%@page import="org.webcurator.common.ui.CommandConstants"%>
 <%@page import="org.webcurator.domain.model.auth.Privilege" %>
 
 <link rel="stylesheet" href="styles/blitzer/jquery-ui-1.10.2.custom.min.css" />
@@ -123,11 +124,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<td class="searchBoxLabel">
 				Sort Order:<br />
 				<select name="sortorder" id="sortorder">
-					<option value="<%= TargetInstanceCommand.SORT_DEFAULT %>" ${command.sortorder eq 'default' ? 'SELECTED' : ''}>Default Ordering</option>
-					<option value="<%= TargetInstanceCommand.SORT_NAME_ASC %>" ${command.sortorder eq 'nameasc' ? 'SELECTED' : ''}>Name (ascending)</option>
-					<option value="<%= TargetInstanceCommand.SORT_NAME_DESC %>" ${command.sortorder eq 'namedesc' ? 'SELECTED' : ''}>Name (descending)</option>
-					<option value="<%= TargetInstanceCommand.SORT_DATE_DESC %>" ${command.sortorder eq 'datedesc' ? 'SELECTED' : ''}>Most Recent First</option>
-					<option value="<%= TargetInstanceCommand.SORT_DATE_ASC %>" ${command.sortorder eq 'dateasc' ? 'SELECTED' : ''}>Oldest First</option>
+					<option value="<%= CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT %>" ${command.sortorder eq 'default' ? 'SELECTED' : ''}>Default Ordering</option>
+					<option value="<%= CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_ASC %>" ${command.sortorder eq 'nameasc' ? 'SELECTED' : ''}>Name (ascending)</option>
+					<option value="<%= CommandConstants.TARGET_INSTANCE_COMMAND_SORT_NAME_DESC %>" ${command.sortorder eq 'namedesc' ? 'SELECTED' : ''}>Name (descending)</option>
+					<option value="<%= CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC %>" ${command.sortorder eq 'datedesc' ? 'SELECTED' : ''}>Most Recent First</option>
+					<option value="<%= CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_ASC %>" ${command.sortorder eq 'dateasc' ? 'SELECTED' : ''}>Oldest First</option>
 				</select>
 			</td>
 			<td class="searchBoxLabel">

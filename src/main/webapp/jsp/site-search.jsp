@@ -3,6 +3,7 @@
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct"%>
 <%@taglib prefix="authority" uri="http://www.webcurator.org/authority"%>
 <%@page import="org.webcurator.ui.site.command.SiteSearchCommand"%>
+<%@page import="org.webcurator.common.ui.CommandConstants"%>
 <%@page import="org.webcurator.domain.model.auth.Privilege"%>
 
 <script>
@@ -88,10 +89,10 @@ String getStatus(int pending, int requested, int approved, int denied)
 			<td class="searchBoxLabel">
 				Sort Order:<br />
 				<select name="sortorder" id="sortorder">
-					<option value="<%= SiteSearchCommand.SORT_NAME_ASC %>" ${command.sortorder eq 'nameasc' ? 'SELECTED' : ''}>Name (ascending)</option>
-					<option value="<%= SiteSearchCommand.SORT_NAME_DESC %>" ${command.sortorder eq 'namedesc' ? 'SELECTED' : ''}>Name (descending)</option>
-					<option value="<%= SiteSearchCommand.SORT_DATE_DESC %>" ${command.sortorder eq 'datedesc' ? 'SELECTED' : ''}>Most Recent First</option>
-					<option value="<%= SiteSearchCommand.SORT_DATE_ASC %>" ${command.sortorder eq 'dateasc' ? 'SELECTED' : ''}>Oldest First</option>
+					<option value="<%= CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_ASC %>" ${command.sortorder eq 'nameasc' ? 'SELECTED' : ''}>Name (ascending)</option>
+					<option value="<%= CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_DESC %>" ${command.sortorder eq 'namedesc' ? 'SELECTED' : ''}>Name (descending)</option>
+					<option value="<%= CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_DESC %>" ${command.sortorder eq 'datedesc' ? 'SELECTED' : ''}>Most Recent First</option>
+					<option value="<%= CommandConstants.SITE_SEARCH_COMMAND_SORT_DATE_ASC %>" ${command.sortorder eq 'dateasc' ? 'SELECTED' : ''}>Oldest First</option>
 				</select>
 			</td>
 			<td class="searchBoxLabel" valign="top">

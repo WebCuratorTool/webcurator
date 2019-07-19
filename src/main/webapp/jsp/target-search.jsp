@@ -4,6 +4,7 @@
 <%@taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>
 <%@page import="org.webcurator.domain.model.auth.Privilege"%>
 <%@ page import="org.webcurator.ui.target.command.TargetSearchCommand" %>
+<%@ page import="org.webcurator.common.ui.CommandConstants" %>
 <jsp:include page="include/useragencyfilter.jsp"/>
 <script language="javascript">
 <!-- 
@@ -86,10 +87,10 @@
 					<td class="searchBoxLabel">
 						Sort Order:<br />
 						<select name="sortorder" id="sortorder">
-							<option value="<%= TargetSearchCommand.SORT_NAME_ASC %>" ${command.sortorder eq 'nameasc' ? 'SELECTED' : ''}>Name (ascending)</option>
-							<option value="<%= TargetSearchCommand.SORT_NAME_DESC %>" ${command.sortorder eq 'namedesc' ? 'SELECTED' : ''}>Name (descending)</option>
-							<option value="<%= TargetSearchCommand.SORT_DATE_DESC %>" ${command.sortorder eq 'datedesc' ? 'SELECTED' : ''}>Most Recent First</option>
-							<option value="<%= TargetSearchCommand.SORT_DATE_ASC %>" ${command.sortorder eq 'dateasc' ? 'SELECTED' : ''}>Oldest First</option>
+							<option value="<%= CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC %>" ${command.sortorder eq 'nameasc' ? 'SELECTED' : ''}>Name (ascending)</option>
+							<option value="<%= CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC %>" ${command.sortorder eq 'namedesc' ? 'SELECTED' : ''}>Name (descending)</option>
+							<option value="<%= CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC %>" ${command.sortorder eq 'datedesc' ? 'SELECTED' : ''}>Most Recent First</option>
+							<option value="<%= CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC %>" ${command.sortorder eq 'dateasc' ? 'SELECTED' : ''}>Oldest First</option>
 						</select>
 					</td>
 				</tr>
