@@ -11,7 +11,7 @@ import org.springframework.validation.BindException;
 
 import org.junit.Test;
 import org.webcurator.test.*;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.*;
 import org.webcurator.ui.target.validator.*;
 import org.webcurator.ui.util.*;

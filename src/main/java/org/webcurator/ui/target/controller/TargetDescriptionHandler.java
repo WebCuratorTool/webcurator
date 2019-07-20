@@ -26,7 +26,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.DublinCore;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.common.Constants;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.DescriptionCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;

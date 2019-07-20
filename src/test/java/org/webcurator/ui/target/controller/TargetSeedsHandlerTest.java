@@ -22,7 +22,7 @@ import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.SeedsCommand;
 import org.webcurator.ui.target.command.TargetGeneralCommand;
 import org.webcurator.ui.target.validator.TargetGeneralValidator;

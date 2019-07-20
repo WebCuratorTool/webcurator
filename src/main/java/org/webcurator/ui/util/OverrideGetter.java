@@ -23,7 +23,7 @@ import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.controller.TabbedGroupController;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.target.controller.TabbedTargetController;
 

@@ -52,7 +52,7 @@ import org.webcurator.domain.model.core.PermissionExclusion;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.common.Constants;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.SeedsCommand;
 import org.webcurator.ui.target.validator.TargetSeedsValidator;
 import org.webcurator.ui.util.Tab;

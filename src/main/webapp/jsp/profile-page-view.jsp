@@ -5,7 +5,7 @@
 <%@page import="org.archive.crawler.deciderules.DecidingFilter"%>
 <%@page import="org.archive.crawler.fetcher.FetchDNS"%>
 <%@page import="org.archive.crawler.settings.MapType"%>
-<%@page import="org.webcurator.ui.profiles.renderers.*"%>
+<%@page import="org.webcurator.common.ui.profiles.renderers.*"%>
 
 
   <input type="hidden" id="action" name="action">

@@ -15,7 +15,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.core.targets.*;
 import org.webcurator.ui.util.*;
 import org.webcurator.auth.AuthorityManagerImpl;

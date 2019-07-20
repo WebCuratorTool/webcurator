@@ -22,7 +22,7 @@ import org.springframework.validation.BindException;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.ProfileCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;

@@ -17,7 +17,7 @@ package org.webcurator.ui.target.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.util.TabHandler;
 
 /**

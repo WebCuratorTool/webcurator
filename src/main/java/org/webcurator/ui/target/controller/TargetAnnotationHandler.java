@@ -33,7 +33,7 @@ import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.Annotation;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.common.Constants;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetAnnotationCommand;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;

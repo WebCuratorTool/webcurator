@@ -26,7 +26,7 @@ import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.ui.util.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.core.agency.*;
 

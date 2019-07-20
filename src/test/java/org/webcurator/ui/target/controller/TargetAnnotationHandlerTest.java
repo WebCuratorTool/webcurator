@@ -30,7 +30,7 @@ import org.webcurator.domain.MockUserRoleDAO;
 import org.webcurator.domain.model.core.Annotation;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetAnnotationCommand;
 import org.webcurator.ui.target.command.TargetGeneralCommand;
 import org.webcurator.ui.util.Tab;

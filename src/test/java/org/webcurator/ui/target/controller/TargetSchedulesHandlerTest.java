@@ -13,7 +13,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.servlet.*;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.target.command.*;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 import org.webcurator.domain.*;
 import org.webcurator.core.targets.*;
