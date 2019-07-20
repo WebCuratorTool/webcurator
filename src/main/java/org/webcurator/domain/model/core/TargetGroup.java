@@ -21,7 +21,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.graalvm.compiler.lir.LIRInstruction;
 import org.webcurator.core.util.Utils;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
