@@ -27,7 +27,6 @@ import org.webcurator.core.profiles.ComplexProfileElement;
 import org.webcurator.core.profiles.HeritrixProfile;
 import org.webcurator.core.profiles.ProfileElement;
 import org.webcurator.core.profiles.RendererManager;
-import org.webcurator.ui.profiles.renderers.RendererFilter;
 
 /**
  * Renders a Map element.
@@ -36,7 +35,7 @@ import org.webcurator.ui.profiles.renderers.RendererFilter;
 public class MapRenderer extends Renderer {
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.ui.profiles.renderers.RendererFilter)
+	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.common.ui.profiles.renderers.RendererFilter)
 	 */
 	public void render(ProfileElement element, PageContext context, RendererFilter filter) throws IOException {
 		// Get the writer.

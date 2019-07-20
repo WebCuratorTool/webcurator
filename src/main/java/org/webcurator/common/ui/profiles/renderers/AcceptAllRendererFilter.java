@@ -15,32 +15,22 @@
  */
 package org.webcurator.common.ui.profiles.renderers;
 
-import java.io.IOException;
-
-import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.PageContext;
-
 import org.webcurator.core.profiles.ProfileElement;
 
 /**
- * Renders a text area input value.
+ * A filter that doesn't actually filter anything out. This filter
+ * allows the rendering API to require a filter, even if that filter
+ * doesn't actually do anything.
  * @author bbeaumont
  *
  */
-public class TextFieldRenderer extends Renderer {
+public class AcceptAllRendererFilter implements RendererFilter {
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.common.ui.profiles.renderers.RendererFilter)
+	 * @see org.webcurator.common.ui.profiles.renderers.RendererFilter#accepts(org.webcurator.core.profiles.ProfileElement)
 	 */
-	public void render(ProfileElement element, PageContext context, RendererFilter filter)
-			throws IOException {
-		JspWriter out = context.getOut();
-
-		out.print("<textarea name=\"");
-		out.print(element.getAbsoluteName());
-		out.print("\">");
-		out.print(element.getValue());
-		out.print("</textarea><br/>");
+	public boolean accepts(ProfileElement anElement) {
+		return true;
 	}
 
 }

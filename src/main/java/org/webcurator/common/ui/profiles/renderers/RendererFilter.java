@@ -15,32 +15,21 @@
  */
 package org.webcurator.common.ui.profiles.renderers;
 
-import java.io.IOException;
-
-import javax.servlet.jsp.JspWriter;
-import javax.servlet.jsp.PageContext;
-
 import org.webcurator.core.profiles.ProfileElement;
 
 /**
- * Renders a text area input value.
+ * A <code>RendererFilter</code> is used to filter out components
+ * that should not be rendered. This can be used to ignore nested
+ * elements that you want to display on a different page.
+ * 
  * @author bbeaumont
  *
  */
-public class TextFieldRenderer extends Renderer {
-
-	/* (non-Javadoc)
-	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.common.ui.profiles.renderers.RendererFilter)
+public interface RendererFilter {
+	/**
+	 * The element to test for acceptance.
+	 * @param anElement The element to test for acceptance. 
+	 * @return true if the element is accepted; otherwise false.
 	 */
-	public void render(ProfileElement element, PageContext context, RendererFilter filter)
-			throws IOException {
-		JspWriter out = context.getOut();
-
-		out.print("<textarea name=\"");
-		out.print(element.getAbsoluteName());
-		out.print("\">");
-		out.print(element.getValue());
-		out.print("</textarea><br/>");
-	}
-
+	public boolean accepts(ProfileElement anElement);
 }

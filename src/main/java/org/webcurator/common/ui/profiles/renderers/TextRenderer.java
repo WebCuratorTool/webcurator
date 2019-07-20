@@ -21,7 +21,6 @@ import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.PageContext;
 
 import org.webcurator.core.profiles.ProfileElement;
-import org.webcurator.ui.profiles.renderers.RendererFilter;
 
 /**
  * Renders a text input field for a Profile Element.
@@ -31,7 +30,7 @@ import org.webcurator.ui.profiles.renderers.RendererFilter;
 public class TextRenderer extends Renderer {
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.ui.profiles.renderers.RendererFilter)
+	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.common.ui.profiles.renderers.RendererFilter)
 	 */
 	public void render(ProfileElement element, PageContext context, RendererFilter filter) throws IOException {
 		JspWriter out = context.getOut();

@@ -20,8 +20,6 @@ import java.io.IOException;
 import javax.servlet.jsp.PageContext;
 
 import org.webcurator.core.profiles.ProfileElement;
-import org.webcurator.ui.profiles.renderers.AcceptAllRendererFilter;
-import org.webcurator.ui.profiles.renderers.RendererFilter;
 
 
 /**

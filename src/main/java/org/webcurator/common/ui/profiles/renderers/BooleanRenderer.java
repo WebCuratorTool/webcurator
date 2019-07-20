@@ -21,7 +21,6 @@ import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.PageContext;
 
 import org.webcurator.core.profiles.ProfileElement;
-import org.webcurator.ui.profiles.renderers.RendererFilter;
 
 /**
  * Renders a boolean Profile Element with a true/false drop-down.

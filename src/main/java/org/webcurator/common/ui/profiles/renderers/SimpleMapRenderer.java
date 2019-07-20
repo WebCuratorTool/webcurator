@@ -22,7 +22,6 @@ import javax.servlet.jsp.PageContext;
 
 import org.webcurator.core.profiles.ComplexProfileElement;
 import org.webcurator.core.profiles.ProfileElement;
-import org.webcurator.ui.profiles.renderers.RendererFilter;
 
 /**
  * Renders a map with simple values.
@@ -31,7 +30,7 @@ import org.webcurator.ui.profiles.renderers.RendererFilter;
 public class SimpleMapRenderer extends Renderer {
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.ui.profiles.renderers.RendererFilter)
+	 * @see org.webcurator.common.ui.profiles.renderers.Renderer#render(org.webcurator.core.profiles.ProfileElement, javax.servlet.jsp.PageContext, org.webcurator.common.ui.profiles.renderers.RendererFilter)
 	 */
 	public void render(ProfileElement element, PageContext context, RendererFilter filter) throws IOException {
 		// Get the writer.
