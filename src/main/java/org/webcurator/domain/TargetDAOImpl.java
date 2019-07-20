@@ -15,7 +15,6 @@
  */
 package org.webcurator.domain;
 
-import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,6 +61,12 @@ import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.common.Constants;
 import org.webcurator.common.util.Utils;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 /**
  * The implementation of the TargetDAO interface.
  * @see TargetDAO
@@ -82,7 +87,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							log.debug("Before Saving of Target");
-							getSession().saveOrUpdate(aTarget);
+							currentSession().saveOrUpdate(aTarget);
 							
 							if(parents != null) {
 								for(GroupMemberDTO parent : parents) {
@@ -94,13 +99,13 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 										member.setChild(aTarget);
 										grp.getChildren().add(member);
 										aTarget.getParents().add(member);
-										getSession().save(member);									
+										currentSession().save(member);
 										break;
 										
 									case DELETED:
-										getSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
-						   				.setLong("childOid", aTarget.getOid())
-						   				.setLong("parentOid", parent.getParentOid())
+										currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+										.setParameter("childOid", aTarget.getOid())
+										.setParameter("parentOid", parent.getParentOid())
 						   				.executeUpdate();									
 										break;
 									}								
@@ -128,7 +133,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							log.debug("Before Saving of Schedule");
-							getSession().saveOrUpdate(aSchedule);
+							currentSession().saveOrUpdate(aSchedule);
 							log.debug("After Saving Schedule");
 						}
 						catch(Exception ex) {
@@ -148,8 +153,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							log.debug("Before Saving of TargetGroup");
-						
-							getSession().saveOrUpdate(aTargetGroup);
+
+							currentSession().saveOrUpdate(aTargetGroup);
 							
 							// Save all the new children.
 							if(withChildren) {
@@ -162,15 +167,15 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 										member.setParent(aTargetGroup);
 										AbstractTarget child = loadAbstractTarget(dto.getChildOid());
 										member.setChild(child);
-										getSession().save(member);
+										currentSession().save(member);
 									}
 								}
 								
 								// Delete all the removed children.
 								for(Long childOid : aTargetGroup.getRemovedChildren()) {
-									getSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
-									   				.setLong("childOid", childOid)
-									   				.setLong("parentOid", aTargetGroup.getOid())
+									currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+													.setParameter("childOid", childOid)
+													.setParameter("parentOid", aTargetGroup.getOid())
 									   				.executeUpdate();
 								}
 							}
@@ -185,13 +190,13 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 										member.setChild(aTargetGroup);
 										grp.getChildren().add(member);
 										aTargetGroup.getParents().add(member);
-										getSession().save(member);									
+										currentSession().save(member);
 										break;
 										
 									case DELETED:
-										getSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
-						   				.setLong("childOid", aTargetGroup.getOid())
-						   				.setLong("parentOid", parent.getParentOid())
+										currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+										.setParameter("childOid", aTargetGroup.getOid())
+										.setParameter("parentOid", parent.getParentOid())
 						   				.executeUpdate();									
 										break;
 									}								
@@ -219,7 +224,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 		
 		return (Target) getHibernateTemplate().execute(new HibernateCallback() {
 
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+			public Object doInHibernate(Session aSession) throws HibernateException {
 				if(!fullyInitialise) {
 					Target aTarget = (Target) aSession.load(Target.class, targetOid);
 					aTarget.setDirty(false);
@@ -261,8 +266,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 						public Object doInHibernate(Session session) {
 							Query query = session.getNamedQuery(GroupMember.QUERY_GET_MEMBERS);
 							Query cntQuery = session.getNamedQuery(GroupMember.QUERY_CNT_MEMBERS);
-							query.setLong("parentOid", aTargetGroup.getOid());
-							cntQuery.setLong("parentOid", aTargetGroup.getOid());
+							query.setParameter("parentOid", aTargetGroup.getOid());
+							cntQuery.setParameter("parentOid", aTargetGroup.getOid());
 							Pagination pagination = new Pagination(aTargetGroup.getNewChildren(), cntQuery, query, pageNum, pageSize);
 							return pagination;
 						}
@@ -282,7 +287,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 						@SuppressWarnings("unchecked")
 						public Object doInHibernate(Session session) {
 							Query q = session.getNamedQuery(GroupMember.QUERY_GET_MEMBERSTATES);
-							q.setLong("parentOid", aTargetGroup.getOid());
+							q.setParameter("parentOid", aTargetGroup.getOid());
 							List<Integer> states = q.list();
 							
 							return states;
@@ -304,7 +309,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 						@SuppressWarnings("unchecked")
 						public Object doInHibernate(Session session) {
 							Query q = session.getNamedQuery(GroupMember.QUERY_GET_PARENTS);
-							q.setLong("childOid", aTarget.getOid());
+							q.setParameter("childOid", aTarget.getOid());
 							List<GroupMemberDTO> dtos = q.list();
 							
 							for(GroupMemberDTO dto: dtos) {
@@ -329,8 +334,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 						public Object doInHibernate(Session session) {
 							Query query = session.getNamedQuery(GroupMember.QUERY_GET_PARENTS);
 							Query cntQuery = session.getNamedQuery(GroupMember.QUERY_CNT_PARENTS);
-							query.setLong("childOid", aTarget.getOid());
-							cntQuery.setLong("childOid", aTarget.getOid());
+							query.setParameter("childOid", aTarget.getOid());
+							cntQuery.setParameter("childOid", aTarget.getOid());
 							//FIXME Need to get the new parent groups.
 							Pagination pagination = new Pagination(aTarget.getNewParents(), cntQuery, query, pageNum, pageSize);
 							return pagination;
@@ -381,8 +386,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 						
 						Query q = session.getNamedQuery(AbstractTarget.QUERY_TARGET_DTOS_BY_PROFILE);
 						Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_TARGET_DTOS_BY_PROFILE);
-						q.setLong("profileoid", profileOid);
-						cq.setLong("profileoid", profileOid);
+						q.setParameter("profileoid", profileOid);
+						cq.setParameter("profileoid", profileOid);
 
 						return new Pagination(cq, q, pageNumber, pageSize);
 					}
@@ -588,7 +593,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 	}
 
 	public boolean isNameOk(AbstractTarget aTarget) {
-		Criteria criteria = getSession().createCriteria(AbstractTarget.class);
+		Criteria criteria = currentSession().createCriteria(AbstractTarget.class);
 		criteria.setProjection(Projections.rowCount());
 		criteria.add(Restrictions.eq("name", aTarget.getName()));
 		if (aTarget instanceof TargetGroup) {
@@ -613,8 +618,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 						
 						Query q = session.getNamedQuery(AbstractTarget.QUERY_DTO_BY_NAME);
 						Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_DTO_BY_NAME);
-						q.setString(0, name);
-						cq.setString(0, name);
+						q.setParameter(0, name);
+						cq.setParameter(0, name);
 
 						return new Pagination(cq, q, pageNumber, pageSize);
 					}
@@ -629,8 +634,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 						
 						Query q = session.getNamedQuery(AbstractTarget.QUERY_GROUP_DTOS_BY_NAME);
 						Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_GROUP_DTOS_BY_NAME);
-						q.setString(0, name);
-						cq.setString(0, name);
+						q.setParameter(0, name);
+						cq.setParameter(0, name);
 
 						return new Pagination(cq, q, pageNumber, pageSize);
 					}
@@ -679,7 +684,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 				new HibernateCallback() {
 					public Object doInHibernate(Session session) {
 						return session.getNamedQuery(AbstractTarget.QUERY_DTO_BY_OID)
-									.setLong("oid", oid)
+									.setParameter("oid", oid)
 									.uniqueResult();
 					}
 				}
@@ -693,7 +698,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 	public TargetGroup loadGroup(final long targetGroupOid, final boolean fullyInitialise) {
 		return (TargetGroup) getHibernateTemplate().execute(new HibernateCallback() {
 
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+			public Object doInHibernate(Session aSession) throws HibernateException {
 				if(!fullyInitialise) {
 					TargetGroup aTargetGroup = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
 					aTargetGroup.setDirty(false);
@@ -726,19 +731,19 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 	}
 	
 	public void refresh(Object anObject) {
-		getSession().refresh(anObject);
+		currentSession().refresh(anObject);
 	}
 	
 	public TargetGroup reloadTargetGroup(Long oid) {
 		// Evict the group from the session and reload.		
-		getSession().evict(getHibernateTemplate().load(TargetGroup.class, oid));
+		currentSession().evict(getHibernateTemplate().load(TargetGroup.class, oid));
 		
 		return (TargetGroup) getHibernateTemplate().load(TargetGroup.class, oid);		
 	}
 	
 	public Target reloadTarget(Long oid) {
 		// Evict the group from the session and reload.		
-		getSession().evict(getHibernateTemplate().load(Target.class, oid));
+		currentSession().evict(getHibernateTemplate().load(Target.class, oid));
 		
 		return (Target) getHibernateTemplate().load(Target.class, oid);		
 	}
@@ -747,8 +752,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 		return (Date) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) {
 				Query query = aSession.getNamedQuery(TargetInstance.QUERY_GET_LATEST_FOR_TARGET);
-				query.setLong("targetOid", aTarget.getOid());
-				query.setLong("scheduleOid", aSchedule.getOid());
+				query.setParameter("targetOid", aTarget.getOid());
+				query.setParameter("scheduleOid", aSchedule.getOid());
 				
 				Date dt = (Date) query.uniqueResult();
 				return dt;
@@ -872,18 +877,12 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
     	}
     	else {
 	    	Set<Long> parentOids = new HashSet<Long>();
-	    	
-	    	List<Long> immediateParents = getHibernateTemplate().executeFind(new HibernateCallback() {
-	
-				public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
-					//Criteria q = aSession.createCriteria("new java.lang.Long(oid) FROM TargetGroup").createCriteria("children").add(Restrictions.eq("oid", childOid));
-					Query q = aSession.createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid");
-					q.setLong("childOid", childOid);
-					return q.list();
-				}
-	    		
-	    	});
-	    	
+
+			List<Long> immediateParents = getHibernateTemplate().execute(session ->
+					session.createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
+							.setParameter("childOid", childOid)
+							.list());
+
 	    	for(Long parentOid: immediateParents) {
 	    		parentOids.add(parentOid);
 	    		parentOids.addAll(getAncestorOids(parentOid));
@@ -902,21 +901,12 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
     	}
     	else {
 	    	Set<AbstractTargetDTO> parents = new HashSet<AbstractTargetDTO>();
-	    	
-	    	List<AbstractTargetDTO> immediateParents = getHibernateTemplate().executeFind(new HibernateCallback() {
-	
-				public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
-//					Criteria c = aSession.createCriteria("new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType)", "TargetGroup");
-//					c.createCriteria("children").createCriteria("child").add(Restrictions.eq("oid", childOid));
-//					return c.list();
-					
-					Query q = aSession.createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid");
-					q.setLong("childOid", childOid);
-					return q.list();
-				}
-	    		
-	    	});
-	    	
+
+			List<AbstractTargetDTO> immediateParents = getHibernateTemplate().execute(session ->
+					session.createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
+							.setParameter("childOid", childOid)
+							.list());
+
 	    	for(AbstractTargetDTO parent: immediateParents) {
 	    		parents.add(parent);
 	    		parents.addAll(getAncestorDTOs(parent.getOid()));
@@ -934,15 +924,11 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
     		return Collections.EMPTY_SET;
     	}
     	else {
-	    	List<Long> immediateChildren = getHibernateTemplate().executeFind(new HibernateCallback() {
-				public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
-					//Criteria q = aSession.createCriteria("new java.lang.Long(oid) FROM TargetGroup").createCriteria("children").add(Restrictions.eq("oid", childOid));
-					Query q = aSession.createQuery("SELECT new java.lang.Long(gm.child.oid) FROM GroupMember gm where gm.parent.oid = :parentOid");
-					q.setLong("parentOid", parentOid);
-					return q.list();
-				}
-	    	});
-    	
+			List<Long> immediateChildren = getHibernateTemplate().execute(session ->
+					session.createQuery("SELECT new java.lang.Long(gm.child.oid) FROM GroupMember gm where gm.parent.oid = :parentOid")
+							.setParameter("parentOid", parentOid)
+							.list());
+
 	    	Set<Long> retval = new HashSet<Long>();
 	    	retval.addAll(immediateChildren);
 	    	return retval;
@@ -955,21 +941,23 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 	 */
 	@SuppressWarnings("unchecked")
 	public List<TargetGroup> findEndedGroups() {
-		return getHibernateTemplate().executeFind(new HibernateCallback() {
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
-				List<TargetGroup> results = aSession.createCriteria(TargetGroup.class)
-					.add(Restrictions.ne("state", TargetGroup.STATE_ACTIVE))
-					.add(Restrictions.lt("toDate", new Date()))
-					.setFetchMode("schedules", FetchMode.JOIN)
-					.setFetchMode("parents", FetchMode.JOIN)
-					.setFetchMode("children", FetchMode.JOIN)
-					.list();
-				
-				log.debug("Found " + results.size() + " groups that need to be unscheduled");
-				
-				return results;
-			}
-		});
+		// TODO HIBERNATE Note the previous version. This is an attempt to convert to JPA 2.0 notation using lambdas.
+		// TODO HIBERNATE The joins and query may not be set up correctly and will need to be verified.
+		List<TargetGroup> results = getHibernateTemplate().execute(session -> {
+				CriteriaBuilder builder = session.getCriteriaBuilder();
+				CriteriaQuery<TargetGroup> criteriaQuery = builder.createQuery(TargetGroup.class);
+				Root<TargetGroup> root = criteriaQuery.from(TargetGroup.class);
+				Predicate notEqual = builder.notEqual(root.get("state"), TargetGroup.STATE_ACTIVE);
+				Predicate lessThan = builder.lessThan(root.get("toDate"), new Date());
+				root.fetch("schedules", JoinType.LEFT);
+				root.fetch("parents", JoinType.LEFT);
+				root.fetch("parents", JoinType.LEFT);
+				criteriaQuery.select(root).where(builder.and(notEqual, lessThan));
+				return session.createQuery(criteriaQuery).list();
+			});
+		log.debug("Found " + results.size() + " groups that need to be unscheduled");
+
+		return results;
 	}
 
 	
@@ -978,21 +966,20 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 	 * @return oid The OID of the TargetGroup.
 	 */
 	public Integer loadPersistedGroupSipType(final Long oid) {
-		return (Integer) getHibernateTemplate().execute(new HibernateCallback() {
-
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
-				return (Integer) aSession.createQuery("SELECT new java.lang.Integer(sipType) FROM TargetGroup WHERE oid=:groupOid")
-					.setLong("groupOid", oid)
-					.uniqueResult();
-			}
-		});
+		return (Integer) getHibernateTemplate().execute(session ->
+				session.createQuery("SELECT new java.lang.Integer(sipType) FROM TargetGroup WHERE oid=:groupOid")
+						.setParameter("groupOid", oid)
+						.uniqueResult());
 	}
 	
 	
 	
 	@SuppressWarnings("unchecked")
 	public List<Seed> getLinkedSeeds(final Permission aPermission) {
-		return getHibernateTemplate().find("FROM Seed WHERE permissions.oid = ?", aPermission.getOid());
+		return getHibernateTemplate().execute(session ->
+				session.createQuery("FROM Seed WHERE permissions.oid = ?")
+					.setParameter(1, aPermission.getOid())
+					.list());
 	}
 	
 	
@@ -1008,9 +995,9 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 			new TransactionCallback() {
 				public Object doInTransaction(TransactionStatus ts) {
 					try {
-						return getSession().createQuery("UPDATE SEED_PERMISSION SET SP_PERMISSION_ID = :toPermissionOid WHERE SP_PERMISSION_ID = :fromPermissionOid")
-							.setLong("toPermissionOid", toPermissionOid)
-							.setLong("fromPermissionOid", fromPermissionOid)
+						return currentSession().createQuery("UPDATE SEED_PERMISSION SET SP_PERMISSION_ID = :toPermissionOid WHERE SP_PERMISSION_ID = :fromPermissionOid")
+							.setParameter("toPermissionOid", toPermissionOid)
+							.setParameter("fromPermissionOid", fromPermissionOid)
 							.executeUpdate();
 						
 					}
@@ -1038,7 +1025,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
                         try { 
                             log.debug("Before Saving Object");
                             for(Object o: collection) {
-                            	getSession().saveOrUpdate(o);
+								currentSession().saveOrUpdate(o);
                             }
                             log.debug("After Saving Object");
                         }
@@ -1110,7 +1097,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Deleting Object");
-                            getSession().delete(aTarget);
+							currentSession().delete(aTarget);
                             log.debug("Object deleted successfully");
                         }
                         catch(Exception ex) {
@@ -1138,7 +1125,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
                             
                             // Step one - check that the target group has 
                             // no target instances.
-                            Criteria criteria = getSession()
+                            Criteria criteria = currentSession()
                             	.createCriteria(TargetInstance.class)
                             	.createCriteria("schedule")
                             	.createCriteria("target")
@@ -1156,13 +1143,13 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
                             // There are no instances, so delete away.
                             else {
                             	// Delete all links to parents and children.
-                                getSession()
+								currentSession()
                                 	.createQuery("delete from GroupMember g where g.child.oid = :groupOid or g.parent.oid = :groupOid")
-                                	.setLong("groupOid", aTargetGroup.getOid())
+									.setParameter("groupOid", aTargetGroup.getOid())
                                 	.executeUpdate();
                                 
                                 // Finally delete the group.
-                                getSession().delete(aTargetGroup);
+								currentSession().delete(aTargetGroup);
                                 
                                 log.debug("Delete Successful");
                                 

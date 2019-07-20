@@ -15,7 +15,6 @@
  */
 package org.webcurator.core.report.impl;
 
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -84,7 +83,7 @@ public class CrawlerActivityReport extends HibernateDaoSupport implements Report
 		List results = (List) getHibernateTemplate().execute(new HibernateCallback() {
 
 			@SuppressWarnings("unchecked")
-			public Object doInHibernate(Session session) throws HibernateException, SQLException {
+			public Object doInHibernate(Session session) throws HibernateException {
 				Criteria query = session.createCriteria(TargetInstance.class);
 				Criteria owner = null;
 				if (userName != null && !userName.equals("All users")) {

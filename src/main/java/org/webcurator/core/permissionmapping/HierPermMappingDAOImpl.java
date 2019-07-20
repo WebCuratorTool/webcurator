@@ -58,7 +58,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							//log.debug("Before Saving of Target");
-							getSession().save(aMapping);
+							currentSession().save(aMapping);
 							//log.debug("After Saving Target");
 						}
 						catch(Exception ex) {
@@ -88,9 +88,9 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							
-							Query q = getSession().getNamedQuery(Mapping.DELETE);
-							q.setLong("urlPatternOid", aMapping.getUrlPattern().getOid());
-							q.setLong("permissionOid", aMapping.getPermission().getOid());
+							Query q = currentSession().getNamedQuery(Mapping.DELETE);
+							q.setParameter("urlPatternOid", aMapping.getUrlPattern().getOid());
+							q.setParameter("permissionOid", aMapping.getPermission().getOid());
 							
 							//log.debug("Before Deleting Mappings");
 							
@@ -114,7 +114,10 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 	 */
 	@SuppressWarnings("unchecked")
 	public List<Mapping> getMapping(Long mappingOid) {
-		return getHibernateTemplate().findByNamedQuery(Mapping.QUERY_BY_OID, mappingOid);
+		return getHibernateTemplate().execute(session ->
+				session.getNamedQuery(Mapping.QUERY_BY_OID)
+						.setParameter(1, mappingOid)
+						.list());
 	}
 
 	/* (non-Javadoc)
@@ -122,7 +125,10 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 	 */
 	@SuppressWarnings("unchecked")
 	public List<Mapping> getMappings(String domain) {
-		return getHibernateTemplate().findByNamedQuery(Mapping.QUERY_BY_DOMAIN, domain);
+		return getHibernateTemplate().execute(session ->
+				session.getNamedQuery(Mapping.QUERY_BY_DOMAIN)
+						.setParameter(1, domain)
+						.list());
 	}
 
 	/* (non-Javadoc)
@@ -130,7 +136,10 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 	 */
 	@SuppressWarnings("unchecked")
 	public List<MappingView> getMappingsView(String domain) {
-		return getHibernateTemplate().findByNamedQuery(MappingView.QUERY_BY_DOMAIN, domain);
+		return getHibernateTemplate().execute(session ->
+				session.getNamedQuery(MappingView.QUERY_BY_DOMAIN)
+						.setParameter(1, domain)
+						.list());
 	}
 
 	/* (non-Javadoc)
@@ -145,7 +154,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							
-							Criteria query = getSession().createCriteria(Mapping.class);
+							Criteria query = currentSession().createCriteria(Mapping.class);
 							query.createCriteria("permission")
 							     .createCriteria("site")
 							     .add(Restrictions.eq("oid", aSite.getOid()));
@@ -155,7 +164,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 							for(Mapping m: mappings) {
 								if(!newMappings.contains(m)) {
 									log.debug("Deleting: " + m.getOid());
-									getSession().delete(m);
+									currentSession().delete(m);
 								}
 								else {
 									log.debug("Keeping: " + m.getOid());
@@ -164,7 +173,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 							}
 							
 							for(Mapping m: newMappings) {
-								getSession().save(m);
+								currentSession().save(m);
 							}
 						}
 						catch(Exception ex) {
@@ -187,14 +196,14 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 					@SuppressWarnings("unchecked")
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
-							Criteria query = getSession().createCriteria(Mapping.class);
+							Criteria query = currentSession().createCriteria(Mapping.class);
 							query.createCriteria("permission")
 							     .createCriteria("site")
 							     .add(Restrictions.eq("oid", aSite.getOid()));
 							
 							List<Mapping> mappings = query.list();
 							for(Mapping m: mappings) {
-								getSession().delete(m);
+								currentSession().delete(m);
 							}
 						}
 						catch(Exception ex) {
@@ -208,7 +217,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 		
 		// Clear the session to evict anything
 		// that we don't want hanging around.	
-		getSession().clear();
+		currentSession().clear();
 		
 	}
 
@@ -225,7 +234,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 						try { 
 							
 							for(Mapping m: mappings) {
-								getSession().save(m);
+								currentSession().save(m);
 							}
 						}
 						catch(Exception ex) {
@@ -239,7 +248,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 		
 		// Clear the session to evict anything
 		// that we don't want hanging around.	
-		getSession().clear();
+		currentSession().clear();
 		
 	}
 	

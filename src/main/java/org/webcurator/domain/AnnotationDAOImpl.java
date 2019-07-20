@@ -15,7 +15,6 @@
  */
 package org.webcurator.domain;
 
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public class AnnotationDAOImpl extends HibernateDaoSupport implements Annotation
 			log.debug("Load annotations for " + aType + " " + aOid);
 		}
 		Object obj = getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+			public Object doInHibernate(Session aSession) throws HibernateException {
 				Query q = aSession.getNamedQuery(Annotation.QRY_GET_NOTES);
 				q.setString(Annotation.PARAM_TYPE, aType);
 				q.setLong(Annotation.PARAM_OID, aOid);
@@ -76,7 +75,7 @@ public class AnnotationDAOImpl extends HibernateDaoSupport implements Annotation
 							if (log.isDebugEnabled()) {
 								log.debug("Saving annotation " + a.getNote());
 							}
-							getSession().saveOrUpdate(a);
+							currentSession().saveOrUpdate(a);
 						}                    	                       
                     }
                     catch(Exception ex) {
@@ -106,7 +105,7 @@ public class AnnotationDAOImpl extends HibernateDaoSupport implements Annotation
 							if (log.isDebugEnabled()) {
 								log.debug("Deleting annotation " + a.getNote());
 							}
-							getSession().delete(a);
+							currentSession().delete(a);
 						}                    	                       
                     }
                     catch(Exception ex) {

@@ -86,9 +86,11 @@ public class LogonDurationDAOImpl extends HibernateDaoSupport implements LogonDu
 	public void setLoggedOut(String sessionId, Date loggedOutTime){
 		
 		// Find associated login record
-		Object[] params = new Object[] { sessionId };
-		List results = getHibernateTemplate().findByNamedQuery(LogonDuration.QRY_LOGON_DURATION_BY_SESSION, params);
-		
+		List results = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(LogonDuration.QRY_LOGON_DURATION_BY_SESSION)
+					.setParameter(1, sessionId)
+					.list());
+
 		log.debug("setLoggedOut sId=" + sessionId + " found " + (results == null ? "null" : results.size()) );
 		
 		if(results.size() > 0){
@@ -129,9 +131,12 @@ public class LogonDurationDAOImpl extends HibernateDaoSupport implements LogonDu
 	 */
 	@SuppressWarnings("unchecked")
 	public void setProperLoggedoutForCurrentUser(Long currentUserOid, String currentUserSessionId){
-		Object[] params = new Object[]{currentUserOid.longValue(), currentUserSessionId};
-		List<LogonDuration> results = getHibernateTemplate().findByNamedQuery(LogonDuration.QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER, params);
-		
+		List<LogonDuration> results = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(LogonDuration.QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER)
+				.setParameter(1, currentUserOid.longValue())
+				.setParameter(2, currentUserSessionId)
+				.list());
+
 		for(LogonDuration ld : results){
 			log.warn("closing logonDuration: " + ld.getOid().longValue() + " (session: " + ld.getSessionId() + ")..." );
 						

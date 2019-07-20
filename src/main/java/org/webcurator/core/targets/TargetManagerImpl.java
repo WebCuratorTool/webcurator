@@ -67,7 +67,7 @@ import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.domain.model.dto.PermissionSeedDTO;
 import org.webcurator.common.Constants;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 
 /**
  * The implementation of the TargetManager interface.
@@ -824,7 +824,7 @@ public class TargetManagerImpl implements TargetManager {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see org.webcurator.core.targets.TargetManager#loadPermission(org.webcurator.ui.target.TargetEditorContext, java.lang.String)
+	 * @see org.webcurator.core.targets.TargetManager#loadPermission(org.webcurator.common.ui.target.TargetEditorContext, java.lang.String)
 	 */
 	public Permission loadPermission(TargetEditorContext ctx, String identity) {
 		Permission p = (Permission) ctx.getObject(Permission.class, identity);

@@ -46,8 +46,10 @@ public class PermissionTemplateDAOImpl extends HibernateDaoSupport implements Pe
     }
 
     public List getTemplates(Long agencyOid) {
-        Object[] params = new Object[] {agencyOid};
-        return getHibernateTemplate().findByNamedQuery(PermissionTemplate.QRY_GET_TEMPLATES_BY_AGENCY, params);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(PermissionTemplate.QRY_GET_TEMPLATES_BY_AGENCY)
+                    .setParameter(1, agencyOid)
+                    .list());
     }
 
     public List getAllTemplates() {
@@ -64,7 +66,7 @@ public class PermissionTemplateDAOImpl extends HibernateDaoSupport implements Pe
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {

@@ -46,7 +46,7 @@ public class FlagDAOImpl extends HibernateDaoSupport implements FlagDAO{
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -84,7 +84,7 @@ public class FlagDAOImpl extends HibernateDaoSupport implements FlagDAO{
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(Flag.QRY_GET_FLAG_BY_OID);
-                        query.setLong(0,FlagOid);
+                        query.setParameter(0,FlagOid);
                         return query.uniqueResult();
                     }
                 }
@@ -93,12 +93,16 @@ public class FlagDAOImpl extends HibernateDaoSupport implements FlagDAO{
     }
     
     public List<Flag> getFlags() {
-        return getHibernateTemplate().findByNamedQuery(Flag.QRY_GET_FLAGS);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Flag.QRY_GET_FLAGS)
+                    .list());
     }
 
     public List<Flag> getFlagsByAgencyOid(Long agencyOid) {
-        Object[] params = new Object[] {agencyOid};   
-        List<Flag> results = getHibernateTemplate().findByNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY, params);
+        List<Flag> results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY)
+                    .setParameter(1, agencyOid)
+                    .list());
         return results;
     }
 

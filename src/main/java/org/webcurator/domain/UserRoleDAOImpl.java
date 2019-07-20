@@ -48,14 +48,17 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
     private TransactionTemplate txTemplate = null;
     
     public List getUserDTOs(Long agencyOid) {
-        Object[] params = new Object[] {agencyOid};   
-        List results = getHibernateTemplate().findByNamedQuery(User.QRY_GET_ALL_USER_DTOS_BY_AGENCY, params);
+        List results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(User.QRY_GET_ALL_USER_DTOS_BY_AGENCY)
+                    .setParameter(1, agencyOid)
+                    .list());
         return results;
     }
 
     public List getUserDTOs() {
-        
-        List results = getHibernateTemplate().findByNamedQuery(User.QRY_GET_ALL_USER_DTOS);
+        List results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(User.QRY_GET_ALL_USER_DTOS)
+                    .list());
         return results;
     }
 
@@ -64,7 +67,7 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(User.QRY_GET_USER_DTO_BY_OID);
-                        query.setLong(0,userOid);
+                        query.setParameter(0,userOid);
                         return query.uniqueResult();
                     }
                 }
@@ -73,12 +76,16 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
     }
 
     public List getRoles() {
-        return getHibernateTemplate().findByNamedQuery(Role.QRY_GET_ROLES);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Role.QRY_GET_ROLES)
+                        .list());
     }
 
     public List getRoles(Long agencyOid) {
-        Object[] params = new Object[] {agencyOid};
-        return getHibernateTemplate().findByNamedQuery(Role.QRY_GET_ROLES_BY_AGENCY,params);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Role.QRY_GET_ROLES_BY_AGENCY)
+                        .setParameter(1, agencyOid)
+                        .list());
     }
 
     public User getUserByOid(Long oid) {
@@ -86,9 +93,11 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
     }
 
     public User getUserByName(String username) {
-        Object[] params = new Object[] {username};   
-        List results = getHibernateTemplate().findByNamedQuery(User.QRY_GET_USER_BY_NAME,params);
-        
+        List results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(User.QRY_GET_USER_BY_NAME)
+                        .setParameter(1, username)
+                        .list());
+
         if(results.size() == 1) {
             return (User) results.get(0);
         }
@@ -102,8 +111,10 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
     }
     
     public List getUserPrivileges(String username) {
-        Object[] params = new Object[] {username};
-        return getHibernateTemplate().findByNamedQuery(RolePrivilege.QRY_GET_USER_PRIVILEGES,params);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(RolePrivilege.QRY_GET_USER_PRIVILEGES)
+                        .setParameter(1, username)
+                        .list());
     }
 
     public void saveOrUpdate(final Object aObject) {
@@ -112,7 +123,7 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -164,8 +175,10 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
     }
     
     public List getUsers(Long agencyOid) {
-        Object[] params = new Object[] {agencyOid};
-        return getHibernateTemplate().findByNamedQuery(User.QRY_GET_USERS_BY_AGENCY,params);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(User.QRY_GET_USERS_BY_AGENCY)
+                        .setParameter(1, agencyOid)
+                        .list());
     }
 
     public void setTxTemplate(TransactionTemplate txTemplate) {
@@ -173,12 +186,16 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
     }
 
     public List getAgencies() {
-        return getHibernateTemplate().findByNamedQuery(Agency.QRY_GET_ALL_AGENCIES);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Agency.QRY_GET_ALL_AGENCIES)
+                        .list());
     }
 
     public List getAssociatedRolesForUser(Long userOid) {
-        Object[] params = new Object[] {userOid};
-        return getHibernateTemplate().findByNamedQuery(Role.QRY_GET_ASSOCIATED_ROLES_BY_USER,params);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Role.QRY_GET_ASSOCIATED_ROLES_BY_USER)
+                        .setParameter(1, userOid)
+                        .list());
     }
 
     public Role getRoleByOid(Long oid) {
@@ -213,8 +230,10 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
 
     @SuppressWarnings("unchecked")
     public List<UserDTO> getUserDTOsByPrivilege(String privilege) {
-        Object[] params = new Object[] {privilege};
-        return getHibernateTemplate().findByNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE,params);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE)
+                        .setParameter(1, privilege)
+                        .list());
     }
 
     /**
@@ -222,8 +241,11 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
      */
     @SuppressWarnings("unchecked")
     public List<UserDTO> getUserDTOsByPrivilege(String privilege, Long agencyOid) {
-        Object[] params = new Object[] {privilege, agencyOid};
-        return getHibernateTemplate().findByNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY,params);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY)
+                        .setParameter(1, privilege)
+                        .setParameter(2, agencyOid)
+                        .list());
     }
     
     /**
@@ -231,6 +253,9 @@ public class UserRoleDAOImpl extends HibernateDaoSupport implements UserRoleDAO{
      */
     @SuppressWarnings("unchecked")
 	public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
-    	return getHibernateTemplate().findByNamedQuery(User.QRY_GET_USER_DTOS_BY_TARGET_PERMISSION, permissionOid);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(User.QRY_GET_USER_DTOS_BY_TARGET_PERMISSION)
+                        .setParameter(1, permissionOid)
+                        .list());
     }
 }

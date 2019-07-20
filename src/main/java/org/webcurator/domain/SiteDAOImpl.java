@@ -69,9 +69,9 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 							
 						try {
 							for(AuthorisingAgent agent: aSite.getAuthorisingAgents()) {
-								getSession().saveOrUpdate(agent);
+								currentSession().saveOrUpdate(agent);
 							}
-							getSession().saveOrUpdate(aSite);
+							currentSession().saveOrUpdate(aSite);
 						}
 						catch(Exception ex) {
 							ts.setRollbackOnly();
@@ -126,7 +126,7 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 
 	@SuppressWarnings("unchecked")
 	public List<Permission> getQuickPickPermissions(Agency anAgency) {
-		Criteria criteria = getSession().createCriteria(Permission.class);
+		Criteria criteria = currentSession().createCriteria(Permission.class);
 		criteria.add(Restrictions.disjunction().add(Restrictions.isNull("endDate")).add(Restrictions.ge("endDate", new Date())));
 		criteria.add(Restrictions.eq("quickPick", true));
 		criteria.add(Restrictions.eq("owningAgency", anAgency));
@@ -339,7 +339,7 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 	}
 	
 	public Permission loadPermission(long permOid) {
-		Permission perm = (Permission) getSession().load(Permission.class, permOid);
+		Permission perm = (Permission) currentSession().load(Permission.class, permOid);
 		Hibernate.initialize(perm.getUrls());
 		return perm;
 	}	

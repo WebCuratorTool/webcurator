@@ -15,7 +15,6 @@
  */
 package org.webcurator.domain;
 
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +71,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -95,7 +94,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
 
     public long countNotifications(final Long userOid) {
         return (Long) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException, SQLException {
+			public Object doInHibernate(Session session) throws HibernateException {
 				
 				Query query = session.createQuery("select count(*) from Notification n where n.recipientOid = :userOid ");
 				query.setLong("userOid", userOid);
@@ -132,7 +131,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
     public InTrayResource populateOwner(final InTrayResource wctResource) {
         return (InTrayResource)getHibernateTemplate().execute(new HibernateCallback(){
 
-            public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+            public Object doInHibernate(Session aSession) throws HibernateException {
                 Object object = aSession.load(wctResource.getResourceType(),wctResource.getOid());
                 if (wctResource instanceof UserInTrayResource) {
                     UserInTrayResource uitr = (UserInTrayResource) object;
@@ -154,7 +153,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
     public Pagination getTasks(final User user, final List<RolePrivilege> privs, final int pageNum, final int pageSize) {
         return (Pagination) getHibernateTemplate().execute(new HibernateCallback() {
   
-            public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+            public Object doInHibernate(Session aSession) throws HibernateException {
                 Criteria query = aSession.createCriteria(Task.class);
                 
                 Disjunction dis = Restrictions.disjunction();
@@ -180,7 +179,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
     
     public long countTasks(final User user, final List<RolePrivilege> privs) {
     	return (Integer) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException, SQLException {
+			public Object doInHibernate(Session session) throws HibernateException {
 				
 				Criteria query = session.createCriteria(Task.class);
 				query.setProjection(Projections.rowCount());
@@ -205,7 +204,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
     public Task getTask(final Long aResourceOid, final String aResourceType, final String aTaskType) {
         return (Task) getHibernateTemplate().execute(new HibernateCallback() {
   
-            public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+            public Object doInHibernate(Session aSession) throws HibernateException {
                 Criteria query = aSession.createCriteria(Task.class);
 
                 query.add(Restrictions.eq("resourceOid", aResourceOid));                
@@ -222,7 +221,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
     public List<Task> getTasks(final Long aResourceOid, final String aResourceType, final String aTaskType) {
         return (List<Task>) getHibernateTemplate().execute(new HibernateCallback() {
   
-            public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+            public Object doInHibernate(Session aSession) throws HibernateException {
                 Criteria query = aSession.createCriteria(Task.class);
 
                 query.add(Restrictions.eq("resourceOid", aResourceOid));                
@@ -296,7 +295,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
     
     public long countTasks(final String messageType, final InTrayResource wctResource) {
         return (Long) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session session) throws HibernateException, SQLException {
+			public Object doInHibernate(Session session) throws HibernateException {
 				return (Long) session.createCriteria(Task.class)
 					.setProjection(Projections.rowCount())
 					.add(Restrictions.eq("messageType", messageType))
@@ -315,7 +314,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
                             log.debug("Before Deleting all Notifications");
                             
                             String hqlDelete = "delete Notification n where n.recipientOid = :recipientOid";
-                            int deletedEntities = getSession().createQuery( hqlDelete )
+                            int deletedEntities = currentSession().createQuery( hqlDelete )
                                     .setLong( "recipientOid", userOid )
                                     .executeUpdate();
                             
@@ -342,7 +341,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
                             log.debug("Before Deleting all Tasks");
                             
                             String hqlDelete = "delete Task t";
-                            int deletedEntities = getSession().createQuery( hqlDelete )
+                            int deletedEntities = currentSession().createQuery( hqlDelete )
                                     .executeUpdate();
                             
                             //getHibernateTemplate().delete(obj);

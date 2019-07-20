@@ -66,14 +66,14 @@ public class SummaryTargetSchedulesReport extends HibernateDaoSupport implements
 	 */
 	@SuppressWarnings("unchecked")
 	protected List<ResultSet> runReport(final String agencyName) {
+		// Get the results
+		List results = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(AbstractTargetScheduleView.QRY_GET_SUMMARY_STATS_BY_AGENCY)
+					.setParameter(1, agencyName)
+					.setParameter(2, agencyName)
+					.setParameter(3, agencyName)
+					.list());
 
-		String query = AbstractTargetScheduleView.QRY_GET_SUMMARY_STATS_BY_AGENCY;
-		Object[] params = new Object[] { agencyName, agencyName, agencyName };
-		
-		
-		// Get the results 		
-		List results = getHibernateTemplate().findByNamedQuery(query, params);
-		
 		// Iterate over results identifying the number of distinct 
 		// agencies. Store them in agencies list.
 		List<String> agencies = new ArrayList<String>();

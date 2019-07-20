@@ -46,7 +46,7 @@ public class RejReasonDAOImpl extends HibernateDaoSupport implements RejReasonDA
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -84,7 +84,7 @@ public class RejReasonDAOImpl extends HibernateDaoSupport implements RejReasonDA
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(RejReason.QRY_GET_REASON_BY_OID);
-                        query.setLong(0,reasonOid);
+                        query.setParameter(1,reasonOid);
                         return query.uniqueResult();
                     }
                 }
@@ -93,12 +93,16 @@ public class RejReasonDAOImpl extends HibernateDaoSupport implements RejReasonDA
     }
     
     public List getRejReasons() {
-        return getHibernateTemplate().findByNamedQuery(RejReason.QRY_GET_REASONS);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(RejReason.QRY_GET_REASONS)
+                    .list());
     }
 
     public List getRejReasons(Long agencyOid) {
-        Object[] params = new Object[] {agencyOid};   
-        List results = getHibernateTemplate().findByNamedQuery(RejReason.QRY_GET_REASONS_BY_AGENCY, params);
+        List results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(RejReason.QRY_GET_REASONS_BY_AGENCY)
+                    .setParameter(1, agencyOid)
+                    .list());
         return results;
     }
 

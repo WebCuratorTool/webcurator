@@ -79,19 +79,20 @@ public class SystemUsageReportGeneratorImpl extends HibernateDaoSupport
 	protected List<ResultSet> getSystemUsageReport(Date startDate, Date endDate, String agencyName){
 		
 		Calendar now = Calendar.getInstance();
-		String query = LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY;
-		Object[] params = new Object[] { 
-				startDate, 
-				endDate,
-				now.getTime(),
-				endDate,
-				endDate,
-				agencyName, agencyName, agencyName };
-		
-		
-		// Get all logged users 		
-		List results = getHibernateTemplate().findByNamedQuery(query, params);
-		
+
+		// Get all logged users
+		List results = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY)
+						.setParameter(1, startDate)
+						.setParameter(2, endDate)
+						.setParameter(3, now.getTime())
+						.setParameter(4, endDate)
+						.setParameter(5, endDate)
+						.setParameter(6, agencyName)
+						.setParameter(7, agencyName)
+						.setParameter(8, agencyName)
+						.list());
+
 		log.debug("results=" + results.size());
 		
 		ArrayList<ResultSet> resultSets = new ArrayList<ResultSet>();

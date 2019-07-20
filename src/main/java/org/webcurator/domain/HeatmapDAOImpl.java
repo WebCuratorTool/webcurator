@@ -22,8 +22,9 @@ public class HeatmapDAOImpl extends HibernateDaoSupport implements HeatmapDAO {
 
 	public Map<String, HeatmapConfig> getHeatmapConfigurations() {
 		Map<String, HeatmapConfig> result = new HashMap<String, HeatmapConfig>();
-		List<HeatmapConfig> configurations = getHibernateTemplate()
-				.findByNamedQuery(HeatmapConfig.QUERY_ALL);
+		List<HeatmapConfig> configurations = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(HeatmapConfig.QUERY_ALL)
+					.list());
 		for (HeatmapConfig config : configurations) {
 			result.put(config.getName(), config);
 		}
@@ -37,7 +38,7 @@ public class HeatmapDAOImpl extends HibernateDaoSupport implements HeatmapDAO {
 		txTemplate.execute(new TransactionCallback() {
 			public Object doInTransaction(TransactionStatus ts) {
 				try {
-					getSession().saveOrUpdate(config);
+					currentSession().saveOrUpdate(config);
 				} catch (Exception ex) {
 					ts.setRollbackOnly();
 				}

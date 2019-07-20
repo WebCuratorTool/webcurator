@@ -15,7 +15,6 @@
  */
 package org.webcurator.domain;
 
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -95,7 +94,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving Object");
-                            getSession().saveOrUpdate(aObj);
+							currentSession().saveOrUpdate(aObj);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -135,7 +134,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                 public Object doInTransaction(TransactionStatus ts) {
                     try { 
                         log.debug("Before Delete Object");
-                        getSession().delete(aObject);
+						currentSession().delete(aObject);
                         log.debug("After Delete Object");
                     }
                     catch(Exception ex) {
@@ -180,7 +179,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before deleting harvest result resources");
-                            getSession().createQuery("DELETE HarvestResource WHERE result.oid=:hrOid").setLong("hrOid", harvestResultId).executeUpdate();
+							currentSession().createQuery("DELETE HarvestResource WHERE result.oid=:hrOid").setLong("hrOid", harvestResultId)
+									.executeUpdate();
                             log.debug("After deleting harvest result resources");
                         }
                         catch(Exception ex) {
@@ -203,7 +203,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before deleting harvest result files");
-                            getSession().createQuery("DELETE ArcHarvestFile WHERE harvestResult.oid=:hrOid").setLong("hrOid", harvestResultId).executeUpdate();
+							currentSession().createQuery("DELETE ArcHarvestFile WHERE harvestResult.oid=:hrOid").setLong("hrOid", harvestResultId)
+									.executeUpdate();
                             log.debug("After deleting harvest result files");
                         }
                         catch(Exception ex) {
@@ -224,7 +225,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                         try { 
                             log.debug("Before Saving Object");
                             for(Object o: coll) {
-                            	getSession().saveOrUpdate(o);
+								currentSession().saveOrUpdate(o);
                             }
                             log.debug("After Saving Object");
                         }
@@ -684,7 +685,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	
 	public TargetInstance populate(final TargetInstance aTargetInstance) {
 		TargetInstance ti = (TargetInstance) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {				
+			public Object doInHibernate(Session aSession) throws HibernateException {
 				TargetInstance ati = (TargetInstance) aSession.load(TargetInstance.class, aTargetInstance.getOid());
 				if(ati != null)
 				{
@@ -761,7 +762,10 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before deleting scheduled instances");
-                            getSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid").setString("state", TargetInstance.STATE_SCHEDULED).setLong("scheduleOid", aSchedule.getOid()).executeUpdate();
+							currentSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid")
+									.setParameter("state", TargetInstance.STATE_SCHEDULED)
+									.setParameter("scheduleOid", aSchedule.getOid())
+									.executeUpdate();
                             log.debug("After deleting scheduled instances");
                         }
                         catch(Exception ex) {
@@ -801,7 +805,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		
 		getHibernateTemplate().execute(new HibernateCallback() {
 			@SuppressWarnings("unchecked")
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+			public Object doInHibernate(Session aSession) throws HibernateException {
 				List<TargetGroup> groupsToEnd = aSession.createCriteria(TargetGroup.class)
 					.add(Restrictions.ne("state", TargetGroup.STATE_INACTIVE))
 					.add(Restrictions.lt("toDate", new Date()))
@@ -849,10 +853,10 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 			getHibernateTemplate().execute(new HibernateCallback() {
 				public Object doInHibernate(Session aSession) {
 					for(Schedule aSchedule: schedules) {
-		    			getSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
-		            	.setString("state", TargetInstance.STATE_SCHEDULED)
-		            	.setLong("scheduleOid", aSchedule.getOid())
-		            	.setLong("targetOid", aTarget.getOid())
+						currentSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
+						.setParameter("state", TargetInstance.STATE_SCHEDULED)
+						.setParameter("scheduleOid", aSchedule.getOid())
+						.setParameter("targetOid", aTarget.getOid())
 		            	.executeUpdate();				
 					}
 					
@@ -907,10 +911,10 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                 public Object doInTransaction(TransactionStatus ts) {
                     try { 
                         log.debug("Before deleting scheduled instance for " + targetOid + " " + scheduleOid);
-                        getSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
-                        	.setString("state", TargetInstance.STATE_SCHEDULED)
-                        	.setLong("scheduleOid", scheduleOid)
-                        	.setLong("targetOid", targetOid)
+						currentSession().createQuery("DELETE TargetInstance WHERE state=:state AND schedule.oid=:scheduleOid AND target.oid=:targetOid")
+							.setParameter("state", TargetInstance.STATE_SCHEDULED)
+							.setParameter("scheduleOid", scheduleOid)
+							.setParameter("targetOid", targetOid)
                         	.executeUpdate();
                         log.debug("After deleting scheduled instance for " + targetOid + " " + scheduleOid);
                     }
@@ -1015,7 +1019,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 					
 					Query query = session.createQuery(q.toString());
 					
-					query.setLong("oid", aOid);
+					query.setParameter("oid", aOid);
 					query.setReadOnly(true);
 					
 					return query.uniqueResult();
@@ -1032,6 +1036,9 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	}
 	
 	public List<HarvestHistoryDTO> getHarvestHistory(final Long targetOid) {
-		return (List<HarvestHistoryDTO>) getHibernateTemplate().findByNamedQuery(TargetInstance.QRY_GET_HARVEST_HISTORY, targetOid);
+		return (List<HarvestHistoryDTO>) getHibernateTemplate().execute(session ->
+				session.getNamedQuery(TargetInstance.QRY_GET_HARVEST_HISTORY)
+					.setParameter(1, targetOid)
+					.list());
 	}
 }

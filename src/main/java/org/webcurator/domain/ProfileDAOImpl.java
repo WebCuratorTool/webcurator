@@ -58,7 +58,7 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							log.debug("Before Saving of Profile: " + aProfile.getName());
-							getSession().saveOrUpdate(aProfile);
+							currentSession().saveOrUpdate(aProfile);
 							log.debug("After Saving Profile: " + aProfile.getName());
 						}
 						catch(Exception ex) {
@@ -74,8 +74,10 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 
 	@SuppressWarnings("unchecked")
 	public List<ProfileDTO> getAllDTOs() {
-		return getHibernateTemplate().findByNamedQuery(Profile.QRY_GET_ALL_DTOS);
-	}		
+		return getHibernateTemplate().execute(session ->
+				session.getNamedQuery(Profile.QRY_GET_ALL_DTOS)
+					.list());
+	}
 
 	@SuppressWarnings("unchecked")
 	public List<ProfileDTO> getDTOs(boolean showInactive, String type) {
@@ -83,14 +85,22 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 		    if (StringUtils.isEmpty(type)) {
 				return getAllDTOs();
 			} else {
-				return getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_DTOS_BY_TYPE, "harvesterType", type);
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_DTOS_BY_TYPE)
+							.setParameter("harvesterType", type)
+							.list());
 			}
 		}
 		else {
 			if (StringUtils.isEmpty(type)) {
-				return getHibernateTemplate().findByNamedQuery(Profile.QRY_GET_ACTIVE_DTOS);
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_ACTIVE_DTOS)
+							.list());
 			} else {
-				return getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_ACTIVE_DTOS_BY_TYPE, "harvesterType", type);
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_ACTIVE_DTOS_BY_TYPE)
+							.setParameter("harvesterType", type)
+							.list());
 			}
 		}
 	}
@@ -100,36 +110,51 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 	public List<ProfileDTO> getAgencyDTOs(Agency agency, boolean showInactive, String type) {
 		if(showInactive) {
 		    if (StringUtils.isEmpty(type)) {
-				return getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_AGENCY_DTOS, "agencyOid", agency.getOid());
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_AGENCY_DTOS)
+							.setParameter("agencyOid", agency.getOid())
+							.list());
 			} else {
-				String[] names = {"agencyOid", "harvesterType"};
-				Object[] values = {agency.getOid(), type};
-				return getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_AGENCY_DTOS_BY_TYPE, names, values);
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_AGENCY_DTOS_BY_TYPE)
+								.setParameter("agencyOid", agency.getOid())
+								.setParameter("harvesterType", type)
+								.list());
 			}
 		}
 		else {
 		    if (StringUtils.isEmpty(type)) {
-				return getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_ACTIVE_AGENCY_DTOS, "agencyOid", agency.getOid());
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_ACTIVE_AGENCY_DTOS)
+								.setParameter("agencyOid", agency.getOid())
+								.list());
 			} else {
-		    	String[] names = {"agencyOid", "harvesterType"};
-		    	Object[] values = {agency.getOid(), type};
-				return getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_ACTIVE_AGENCY_DTOS_BY_TYPE, names, values);
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_ACTIVE_AGENCY_DTOS_BY_TYPE)
+								.setParameter("agencyOid", agency.getOid())
+								.setParameter("harvesterType", type)
+								.list());
 			}
 		}
 	}		
 	
 	@SuppressWarnings("unchecked")
 	public ProfileDTO getDTO(final Long aOid) {
-		List dtos = getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_DTO, "oid", aOid);		
-		return (ProfileDTO) dtos.iterator().next();		
+		List dtos = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(Profile.QRY_GET_DTO)
+						.setParameter("oid", aOid)
+						.list());
+		return (ProfileDTO) dtos.iterator().next();
 	}	
 	
 	@SuppressWarnings("unchecked")
 	public ProfileDTO getLockedDTO(final Long aOrigOid, final Integer aVersion) {
 		ProfileDTO theDTO = null;
-		String[] paramNames = {"origOid", "version"};
-		Object[] paramValues = {aOrigOid, aVersion};
-		List dtos = getHibernateTemplate().findByNamedQueryAndNamedParam(Profile.QRY_GET_LOCKED_DTO, paramNames, paramValues);
+		List dtos = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(Profile.QRY_GET_LOCKED_DTO)
+						.setParameter("origOid", aOrigOid)
+						.setParameter("version", aVersion)
+						.list());
 		if(dtos.iterator().hasNext())
 		{
 			theDTO = (ProfileDTO) dtos.iterator().next();
@@ -141,7 +166,7 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 	 * @see org.webcurator.domain.ProfileDAO#getDefaultProfile(org.webcurator.domain.model.auth.Agency)
 	 */
 	public Profile getDefaultProfile(Agency anAgency) {
-		Criteria query = getSession().createCriteria(Profile.class);
+		Criteria query = currentSession().createCriteria(Profile.class);
 		query.createCriteria("owningAgency").add(Restrictions.eq("oid", anAgency.getOid()));
 		query.add(Restrictions.eq("defaultProfile", true));
 		query.add(Restrictions.eq("status", Profile.STATUS_ACTIVE));
@@ -156,12 +181,12 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 	public List<ProfileDTO> getAvailableProfiles(final Agency anAgency, final int level, final Long currentProfileOid) {
 		return (List<ProfileDTO>) getHibernateTemplate().execute(new HibernateCallback() {
 
-			public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+			public Object doInHibernate(Session aSession) throws HibernateException {
 				Query query = aSession.getNamedQuery(Profile.QRY_GET_AVAIL_DTOS);
-				query.setLong("agencyOid", anAgency.getOid());
-				query.setInteger("requiredLevel", level);
-				query.setBoolean("default", true);
-				query.setLong("currentProfileOid", currentProfileOid);
+				query.setParameter("agencyOid", anAgency.getOid());
+				query.setParameter("requiredLevel", level);
+				query.setParameter("default", true);
+				query.setParameter("currentProfileOid", currentProfileOid);
 				return query.list();
 			} 			
 		});		
@@ -228,8 +253,8 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 		txTemplate.execute(
 				new TransactionCallback() {
 					public Object doInTransaction(TransactionStatus ts) {
-						Query q = getSession().createQuery("select p.status from Profile p where p.oid = :oid");
-						q.setLong("oid", aProfile.getOid());
+						Query q = currentSession().createQuery("select p.status from Profile p where p.oid = :oid");
+						q.setParameter("oid", aProfile.getOid());
 						
 						Integer status = (Integer) q.uniqueResult();
 						if (status.intValue() == Profile.STATUS_INACTIVE) {
@@ -239,17 +264,17 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 							throw new WCTInvalidStateRuntimeException("Profile " + aProfile.getOid() + " is locked and cannot be set to be the default profile.");
 						}
 						
-						try { 
-							getSession().createQuery("UPDATE Profile p SET p.defaultProfile = :def, p.version = p.version + 1 WHERE p.owningAgency.oid = :agencyOid AND p.oid <> :newDefault")
-								.setBoolean("def", false)
-								.setLong("agencyOid", aProfile.getOwningAgency().getOid())
-								.setLong("newDefault", aProfile.getOid())
+						try {
+							currentSession().createQuery("UPDATE Profile p SET p.defaultProfile = :def, p.version = p.version + 1 WHERE p.owningAgency.oid = :agencyOid AND p.oid <> :newDefault")
+								.setParameter("def", false)
+								.setParameter("agencyOid", aProfile.getOwningAgency().getOid())
+								.setParameter("newDefault", aProfile.getOid())
 								.executeUpdate();
-							
-							getSession().createQuery("UPDATE Profile p SET p.defaultProfile = :def, p.version = p.version + 1 WHERE p.owningAgency.oid = :agencyOid AND p.oid = :newDefault")
-								.setBoolean("def", true)
-								.setLong("agencyOid", aProfile.getOwningAgency().getOid())
-								.setLong("newDefault", aProfile.getOid())
+
+							currentSession().createQuery("UPDATE Profile p SET p.defaultProfile = :def, p.version = p.version + 1 WHERE p.owningAgency.oid = :agencyOid AND p.oid = :newDefault")
+								.setParameter("def", true)
+								.setParameter("agencyOid", aProfile.getOwningAgency().getOid())
+								.setParameter("newDefault", aProfile.getOid())
 								.executeUpdate();
 							
 						}

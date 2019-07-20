@@ -82,18 +82,19 @@ public class SystemActivityReportGeneratorImpl extends HibernateDaoSupport
 	 * @param username Username<br><code>null</code> value is accepted
 	 * @return A <code>List</code> of <code>SystemActivityReportResultSet</code>
 	 */
-	protected List<ResultSet> getSystemActivityReport(
-    		Date startDate, Date endDate, String agencyName, String username){
-    	
-    	String query = Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER;
-		Object[] params = new Object[] { 
-				startDate, 
-				endDate,
-				agencyName, agencyName, agencyName,
-				username, username, username }; 
+	protected List<ResultSet> getSystemActivityReport(Date startDate, Date endDate, String agencyName, String username) {
+        List results = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER)
+					.setParameter(1, startDate)
+					.setParameter(2, endDate)
+					.setParameter(3, agencyName)
+					.setParameter(4, agencyName)
+					.setParameter(5, agencyName)
+					.setParameter(6, username)
+					.setParameter(7, username)
+					.setParameter(8, username)
+					.list());
 
-		List results = getHibernateTemplate().findByNamedQuery(query, params);
-    	
     	log.debug("results=" + results.size() );
     	
     	// Wrap into a SystemActivityResultSet

@@ -15,7 +15,6 @@
  */
 package org.webcurator.domain;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,9 +46,11 @@ public class HarvestCoordinatorDAOImpl extends HibernateDaoSupport implements Ha
     /** @see org.webcurator.domain.HarvestCoordinatorDAO#getBandwidthRestrictions(). */
     public HashMap<String, List<BandwidthRestriction>> getBandwidthRestrictions() {
         HashMap<String, List<BandwidthRestriction>> allRestrictions = new HashMap<String, List<BandwidthRestriction>>();
-        
-        List restrictions = getHibernateTemplate().findByNamedQuery(BandwidthRestriction.QUERY_ALL);                      
-        
+
+        List restrictions = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(BandwidthRestriction.QUERY_ALL)
+                    .list());
+
         List<BandwidthRestriction> daysRestrictions = null;
         BandwidthRestriction br = null;
         Iterator it = restrictions.iterator();
@@ -75,11 +76,11 @@ public class HarvestCoordinatorDAOImpl extends HibernateDaoSupport implements Ha
     /** @see org.webcurator.domain.HarvestCoordinatorDAO#getBandwidthRestriction(String, Date). */
     public BandwidthRestriction getBandwidthRestriction(final String aDay, final Date aTime) {
         Object obj = getHibernateTemplate().execute(new HibernateCallback() {
-            public Object doInHibernate(Session aSession) throws HibernateException, SQLException {
+            public Object doInHibernate(Session aSession) throws HibernateException {
                 Query q = aSession.getNamedQuery(BandwidthRestriction.QUERY_DAY_TIME).setReadOnly(true);
-                q.setString(BandwidthRestriction.PARAM_DOW, aDay);
-                q.setTimestamp(BandwidthRestriction.PARAM_START, aTime);
-                q.setTimestamp(BandwidthRestriction.PARAM_END, aTime);
+                q.setParameter(BandwidthRestriction.PARAM_DOW, aDay);
+                q.setParameter(BandwidthRestriction.PARAM_START, aTime);
+                q.setParameter(BandwidthRestriction.PARAM_END, aTime);
 
                 return q.uniqueResult();
             }            
@@ -92,7 +93,7 @@ public class HarvestCoordinatorDAOImpl extends HibernateDaoSupport implements Ha
         return null;
     }
 
-    /** @see org.webcurator.domain.HarvestCoordinatorDAO#saveOrUpdate(Object). */
+    /** @see org.webcurator.domain.HarvestCoordinatorDAO#saveOrUpdate(BandwidthRestriction). */
     public void saveOrUpdate(final BandwidthRestriction aBandwidthRestriction) {
         if (log.isDebugEnabled()) {
             log.debug("Saving " + aBandwidthRestriction.getClass().getName());
@@ -100,8 +101,8 @@ public class HarvestCoordinatorDAOImpl extends HibernateDaoSupport implements Ha
         txTemplate.execute(
             new TransactionCallback() {
                 public Object doInTransaction(TransactionStatus ts) {
-                    try { 
-                        getSession().saveOrUpdate(aBandwidthRestriction);
+                    try {
+                        currentSession().saveOrUpdate(aBandwidthRestriction);
                     }
                     catch(Exception ex) {
                         ts.setRollbackOnly();
@@ -117,8 +118,8 @@ public class HarvestCoordinatorDAOImpl extends HibernateDaoSupport implements Ha
     	txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
-                        try { 
-                            getSession().delete(aBandwidthRestriction);
+                        try {
+                            currentSession().delete(aBandwidthRestriction);
                         }
                         catch(Exception ex) {
                             ts.setRollbackOnly();

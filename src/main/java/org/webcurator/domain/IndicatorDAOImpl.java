@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.HibernateException;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.dao.DataAccessException;
@@ -47,7 +48,7 @@ public class IndicatorDAOImpl extends HibernateDaoSupport implements IndicatorDA
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -80,12 +81,12 @@ public class IndicatorDAOImpl extends HibernateDaoSupport implements IndicatorDA
         );    
     }
 
-    public Indicator getIndicatorByOid(final Long IndicatorOid) {
+    public Indicator getIndicatorByOid(final Long indicatorOid) {
         return (Indicator)getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(Indicator.QRY_GET_INDICATOR_BY_OID);
-                        query.setLong(0,IndicatorOid);
+                        query.setParameter(1, indicatorOid);
                         return query.uniqueResult();
                     }
                 }
@@ -94,8 +95,11 @@ public class IndicatorDAOImpl extends HibernateDaoSupport implements IndicatorDA
     }
 
     public List<Indicator> getIndicatorsByTargetInstanceOid(Long targetInstanceOid) {
-        Object[] params = new Object[] {targetInstanceOid};   
-        List<Indicator> results = getHibernateTemplate().findByNamedQuery(Indicator.QRY_GET_INDICATORS_BY_TI_OID, params);
+        List<Indicator> results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Indicator.QRY_GET_INDICATORS_BY_TI_OID)
+                        .setParameter(1, targetInstanceOid)
+                        .list());
+
         return results;
     }
 

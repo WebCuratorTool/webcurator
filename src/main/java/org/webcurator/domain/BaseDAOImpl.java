@@ -52,7 +52,7 @@ public class BaseDAOImpl extends HibernateDaoSupport implements BaseDAO {
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							log.debug("Before Delete");
-							getSession().delete(anObject);
+							currentSession().delete(anObject);
 							log.debug("After Delete");
 						}
 						catch(Exception ex) {
@@ -77,7 +77,7 @@ public class BaseDAOImpl extends HibernateDaoSupport implements BaseDAO {
 						try { 
 							log.debug("Before Delete");
 							for(Object anObject: aCollection) {
-								getSession().delete(anObject);
+								currentSession().delete(anObject);
 							}
 							log.debug("After Delete");
 						}

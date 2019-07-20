@@ -34,7 +34,7 @@ import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.PermissionSeedDTO;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 
 /**
  * The manager for accessing Target and Target Group data.

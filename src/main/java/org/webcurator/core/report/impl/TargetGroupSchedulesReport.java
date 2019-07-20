@@ -15,7 +15,6 @@
  */
 package org.webcurator.core.report.impl;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -86,7 +85,7 @@ public class TargetGroupSchedulesReport extends HibernateDaoSupport implements R
 		List results = (List) getHibernateTemplate().execute(new HibernateCallback() {
 
 			@SuppressWarnings("unchecked")
-			public Object doInHibernate(Session session) throws HibernateException, SQLException {
+			public Object doInHibernate(Session session) throws HibernateException {
 				
 				Criteria query = session.createCriteria(AbstractTargetScheduleView.class);
 

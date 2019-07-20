@@ -46,7 +46,7 @@ public class IndicatorCriteriaDAOImpl extends HibernateDaoSupport implements Ind
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -93,12 +93,16 @@ public class IndicatorCriteriaDAOImpl extends HibernateDaoSupport implements Ind
     }
     
     public List<IndicatorCriteria> getIndicatorCriterias() {
-        return getHibernateTemplate().findByNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS);
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS)
+                    .list());
     }
 
     public List<IndicatorCriteria> getIndicatorCriteriasByAgencyOid(Long agencyOid) {
-        Object[] params = new Object[] {agencyOid};   
-        List<IndicatorCriteria> results = getHibernateTemplate().findByNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS_BY_AGENCY, params);
+        List<IndicatorCriteria> results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIAS_BY_AGENCY)
+                    .setParameter(1, agencyOid)
+                    .list());
         return results;
     }
 

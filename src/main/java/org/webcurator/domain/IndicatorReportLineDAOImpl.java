@@ -47,7 +47,7 @@ public class IndicatorReportLineDAOImpl extends HibernateDaoSupport implements I
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before Saving of Object");
-                            getSession().saveOrUpdate(aObject);
+                            currentSession().saveOrUpdate(aObject);
                             log.debug("After Saving Object");
                         }
                         catch(Exception ex) {
@@ -94,8 +94,10 @@ public class IndicatorReportLineDAOImpl extends HibernateDaoSupport implements I
     }
 
     public List<IndicatorReportLine> getIndicatorReportLinesByIndicatorOid(Long indicatorOid) {
-        Object[] params = new Object[] {indicatorOid};   
-        List<IndicatorReportLine> results = getHibernateTemplate().findByNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINES_BY_I_OID, params);
+        List<IndicatorReportLine> results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(IndicatorReportLine.QRY_GET_INDICATOR_REPORT_LINES_BY_I_OID)
+                    .setParameter(1, indicatorOid)
+                    .list());
         return results;
     }
 
