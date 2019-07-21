@@ -15,8 +15,6 @@
  */
 package org.webcurator.domain.model.core;
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 
 /**
