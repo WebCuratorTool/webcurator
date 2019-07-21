@@ -58,12 +58,6 @@
         <parameter name="className" value="org.webcurator.core.harvester.coordinator.HarvestAgentListenerSOAPService"/>
   
     </service>
-    
-	 <service name="urn:TargetAPI" provider="java:MSG">
-	  <parameter name="className" value="org.webcurator.bl.TargetAPISOAPService"/>
-	  <parameter name="allowedMethods" value="processTargetXML" />
-	 </service>
-    
 
  <transport name="http">
   <requestFlow>
