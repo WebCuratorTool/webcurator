@@ -18,6 +18,7 @@ package org.webcurator.core.store.tools;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
@@ -88,7 +89,7 @@ public class QualityReviewFacade {
 	 * @return The resource.
 	 * @throws DigitalAssetStoreException if there are any errors.
 	 */
-	public File getResource(String targetInstanceName, int harvestResultNumber, HarvestResource resource) throws DigitalAssetStoreException {
+	public Path getResource(String targetInstanceName, int harvestResultNumber, HarvestResource resource) throws DigitalAssetStoreException {
 		return digialAssetStore.getResource(targetInstanceName, harvestResultNumber, resource.buildDTO());
 	}
 	
@@ -98,7 +99,7 @@ public class QualityReviewFacade {
 	 * @return The resource.
 	 * @throws DigitalAssetStoreException if there are any errors.
 	 */
-	public File getResource(HarvestResourceDTO dto) throws DigitalAssetStoreException {
+	public Path getResource(HarvestResourceDTO dto) throws DigitalAssetStoreException {
 		return digialAssetStore.getResource(dto.buildJobName(), dto.getHarvestResultNumber(), dto);
 	}	
 	
@@ -157,7 +158,7 @@ public class QualityReviewFacade {
 	 * @return The headers.
 	 * @throws DigitalAssetStoreException if there are any errors.
 	 */
-	public Header[] getHttpHeaders(String targetInstanceName, int harvestResultNumber, HarvestResource resource) throws DigitalAssetStoreException {
+	public List<Header> getHttpHeaders(String targetInstanceName, int harvestResultNumber, HarvestResource resource) throws DigitalAssetStoreException {
 		return digialAssetStore.getHeaders(targetInstanceName, harvestResultNumber, resource.buildDTO());
 	}
 	
@@ -167,7 +168,7 @@ public class QualityReviewFacade {
 	 * @return The HTTP headers.
 	 * @throws DigitalAssetStoreException if there are any errors.
 	 */
-	public Header[] getHttpHeaders(HarvestResourceDTO dto) throws DigitalAssetStoreException {
+	public List<Header> getHttpHeaders(HarvestResourceDTO dto) throws DigitalAssetStoreException {
 		return digialAssetStore.getHeaders(dto.buildJobName(), dto.getHarvestResultNumber(), dto);
 	}
 	
@@ -184,7 +185,7 @@ public class QualityReviewFacade {
 	
 	/**
 	 * Get the Harvest Resource DTOs for a resource
-	 * @param harvestResultNumber The OID of harvest result to get the resource from.
+	 * @param harvestResultOid The OID of harvest result to get the resource from.
 	 * @return a <code>List</code> of <code>HarvestResourceDTO</code>.
 	 * @throws IOException if there are any errors.
 	 */

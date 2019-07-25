@@ -87,21 +87,21 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		return new HashMap<String, HarvestAgentStatusDTO>();
 	}
 
-	public String[] getLog(TargetInstance targetInstance, String fileName,
+	public List<String> getLog(TargetInstance targetInstance, String fileName,
 			int startLine, int noOfLines) {
 		return logReader.get(targetInstance.getOid().toString(), fileName, startLine, 
 				noOfLines);
 	}
 
-	public String[] getHopPath(TargetInstance targetInstance, String fileName,
+	public List<String> getHopPath(TargetInstance targetInstance, String fileName,
 			String url) {
 		return logReader.getHopPath(targetInstance.getOid().toString(), "1234", fileName, url);
 	}
 
-	public String[] getLogLinesByRegex(TargetInstance targetInstance,
+	public List<String> getLogLinesByRegex(TargetInstance targetInstance,
 			String fileName, int noOfLines, String regex,
 			boolean prependLineNumbers) {
-		return logReader.getByRegExpr(targetInstance.getOid().toString(), fileName, 
+		return logReader.getByRegularExpression(targetInstance.getOid().toString(), fileName,
 				regex, "zzzzzzzzz", prependLineNumbers, 0, noOfLines);
 	}
 
@@ -125,7 +125,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 
 	}
 
-	public String[] headLog(TargetInstance targetInstance, String fileName,
+	public List<String> headLog(TargetInstance targetInstance, String fileName,
 			int noOfLines) {
 		return logReader.get(targetInstance.getOid().toString(), fileName, 1, 
 				noOfLines);
@@ -139,7 +139,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		return queuePaused;
 	}
 
-	public LogFilePropertiesDTO[] listLogFileAttributes(
+	public List<LogFilePropertiesDTO> listLogFileAttributes(
 			TargetInstance targetInstance) {
 		return logReader.listLogFileAttributes(targetInstance.getOid().toString());
 	}
@@ -188,7 +188,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		// TODO Auto-generated method stub
 	}
 
-	public String[] tailLog(TargetInstance targetInstance, String fileName,
+	public List<String> tailLog(TargetInstance targetInstance, String fileName,
 			int noOfLines) {
 		return logReader.tail(targetInstance.getOid().toString(), fileName, noOfLines);
 	}

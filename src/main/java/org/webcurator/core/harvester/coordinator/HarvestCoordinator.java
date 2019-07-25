@@ -176,7 +176,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param aTargetInstance the TargetInstance to return the file list for 
      * @return the array of log file objects.
      */
-    LogFilePropertiesDTO[] listLogFileAttributes(TargetInstance aTargetInstance);
+    List<LogFilePropertiesDTO> listLogFileAttributes(TargetInstance aTargetInstance);
 
     /**
      * Return a count of lines from the specified file for the specified TargetInstance.
@@ -193,7 +193,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param aNoOfLines the number of lines to return
      * @return the lines for the log file
      */
-    String[] headLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines);
+    List<String> headLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines);
 
     /**
      * Return a the first x lines from the specified file for the specified TargetInstance.
@@ -203,7 +203,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param aNoOfLines the number of lines to return
      * @return the lines for the log file
      */
-    String[] getLog(TargetInstance aTargetInstance, String aFileName, int aStartLine, int aNoOfLines);
+    List<String> getLog(TargetInstance aTargetInstance, String aFileName, int aStartLine, int aNoOfLines);
 
     /**
      * Return a the last x lines from the specified file for the specified TargetInstance.
@@ -212,7 +212,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param aNoOfLines the number of lines to return
      * @return the lines for the log file
      */
-    String[] tailLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines);
+    List<String> tailLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines);
     
     /**
      * Return the line number from the specified log file starting with the specified match
@@ -249,7 +249,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param aRegex the regular expression to use to filter the lines
      * @return the lines for the log file
      */
-    String[] getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex, boolean prependLineNumbers);
+    List<String> getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex, boolean prependLineNumbers);
     
     /**
      * Retrieves a log file from the server.
@@ -293,7 +293,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param aUrl the Url to search for the hop path with
      * @return the lines for the hop path
      */
-    String[] getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl);
+    List<String> getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl);
     
     public void runQaRecommentationService(TargetInstance ti);
 

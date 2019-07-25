@@ -31,21 +31,21 @@ public class LogReaderImpl implements LogReader {
 	private LogProvider logProvider;
 	
 	/** @see LogReader#listLogFiles(String). */
-	public List<String> listLogFiles(String aJob) {
-		return logProvider.getLogFileNames(aJob);
+	public List<String> listLogFiles(String job) {
+		return logProvider.getLogFileNames(job);
 	}
 
 	/** @see LogReader#listLogFileAttributes(String). */
-	public LogFilePropertiesDTO[] listLogFileAttributes(String aJob) {
-		return logProvider.getLogFileAttributes(aJob);
+	public List<LogFilePropertiesDTO> listLogFileAttributes(String job) {
+		return logProvider.getLogFileAttributes(job);
 	}
 
 	/** @see LogReader#countLines(String, String). */
-	public Integer countLines(String aJob, String aFileName)
+	public Integer countLines(String job, String filename)
 	{
 		Integer count = 0;
 
-		File logFile = logProvider.getLogFile(aJob, aFileName);
+		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
 	        try{
 	            BufferedReader bf = new BufferedReader(new FileReader(logFile), 8192);
@@ -63,52 +63,44 @@ public class LogReaderImpl implements LogReader {
 	}
 	
 	/** @see LogReader#tail(String, String, int). */
-	public String[] tail(String aJob, String aFileName, int noOfLines) {
-		String[] theTail = {""};
+	public List<String> tail(String job, String filename, int numberOfLines) {
+		List<String> theTail;
 
-		File logFile = logProvider.getLogFile(aJob, aFileName);
+		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
-			theTail = Utils.tail(logFile.toString(), noOfLines);
-		}
+			theTail = Utils.tail(logFile.toString(), numberOfLines);
+		} else {
+		    theTail = Arrays.asList("");
+        }
 		
 		return theTail;
 	}
 
 	/** @see LogReader#get(String, String, int, int). */
-	public String[] get(String aJob, String aFileName, int startLine, int noOfLines) {
-		String[] theLines = {""};
+	public List<String> get(String job, String filename, int startLine, int numberOfLines) {
+		List<String> theLines;
 
-		File logFile = logProvider.getLogFile(aJob, aFileName);
+		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
-			theLines = Utils.get(logFile.toString(), startLine, noOfLines);
-		}
+			theLines = Utils.get(logFile.toString(), startLine, numberOfLines);
+		} else {
+		    theLines = Arrays.asList("");
+        }
 		
 		return theLines;
 	}
 
 	/** @see LogReader#getHopPath(String, String, String, String). */
-	public String[] getHopPath(String aJob, String aResultOid, String aFileName, String aUrl) {
+	public List<String> getHopPath(String job, String resultOid, String filename, String url) {
 		
-		File logFile = logProvider.getLogFile(aJob, aFileName);
-		List<String> hopPaths = new ArrayList<String>();
+		File logFile = logProvider.getLogFile(job, filename);
+		List<String> hopPaths = new ArrayList<>();
 
-		searchForUrl(logFile, aResultOid, aUrl, hopPaths);
-		
-		String[] theLines = new String[hopPaths.size()];
-		int count = hopPaths.size();
-		
-		ListIterator<String> it = hopPaths.listIterator();
-		// iterate in forward direction to get to the end..
-		while(it.hasNext()) {
-			it.next();
-		}
-		// iterate in reverse direction to extract the items in reverse order..
-		while(it.hasPrevious()) {
-			theLines[count-1] = it.previous();
-			count--;
-		}
+		searchForUrl(logFile, resultOid, url, hopPaths);
 
-		return theLines;
+		Collections.reverse(hopPaths);
+
+		return hopPaths;
 	}
 
 	private void searchForUrl(File theFile, String resultOid, String theUrl, List<String> resultsList) {
@@ -138,8 +130,10 @@ public class LogReaderImpl implements LogReader {
             		String paths = columns[4];
             		String lastPathChar = paths.substring(paths.length()-1);
             		String liveSite = "<a href='" + url + "' target='_blank'><b><u>Live Site</u></b></a>";
-            		String browseTool = "<a href='curator/tools/browse/" + resultOid + "/" + url + "' target='_blank'><b><u>Browse Tool</u></b></a>";
-            		resultsList.add(browseTool + " " + liveSite + " " + dateTime.substring(0, 10) + " " + dateTime.substring(11, 16) + " " + lastPathChar + " " + url + "\r");
+                    String browseTool = "<a href='curator/tools/browse/" + resultOid + "/" + url +
+                            "' target='_blank'><b><u>Browse Tool</u></b></a>";
+                    resultsList.add(browseTool + " " + liveSite + " " + dateTime.substring(0, 10) + " " +
+                            dateTime.substring(11, 16) + " " + lastPathChar + " " + url + "\r");
             		if (lastPathChar.equals("-")) {
             			foundLast = true;
             			break;
@@ -168,25 +162,28 @@ public class LogReaderImpl implements LogReader {
 		}
 	}
 
-	/** @see LogReader#getByRegExpr(String, String, String, String, boolean, int, int). */
-	public String[] getByRegExpr(String aJob, String aFileName, String regExpr, String addLines, boolean prependLineNumbers, int skipFirstMatches, int numberOfMatches) {
-		String[] lines = {""};
-		
-		File logFile = logProvider.getLogFile(aJob, aFileName);
+	/** @see LogReader#getByRegularExpression(String, String, String, String, boolean, int, int). */
+	public List<String> getByRegularExpression(String job, String filename, String regularExpression, String addLines,
+                                               boolean prependLineNumbers, int skipFirstMatches, int numberOfMatches) {
+		List<String> lines;
+
+		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
-			lines = Utils.getByRegExpr(logFile.toString(), regExpr, addLines, prependLineNumbers, skipFirstMatches, numberOfMatches);
-		}
-		
+			lines = Utils.getByRegularExpression(logFile.toString(), regularExpression, addLines, prependLineNumbers, skipFirstMatches, numberOfMatches);
+		} else {
+		    lines = Arrays.asList("");
+        }
+
 		return lines;
 	}
 
 	/** @see LogReader#findFirstLineBeginning(String, String, String). */
-	public Integer findFirstLineBeginning(String aJob, String aFileName, String match) {
+	public Integer findFirstLineBeginning(String job, String filename, String match) {
 		Integer line = 0;
 		
 		try
 		{
-			File logFile = logProvider.getLogFile(aJob, aFileName);
+			File logFile = logProvider.getLogFile(job, filename);
 			if (logFile != null) {
 				line = Utils.findFirstLineBeginning(new FileReader(logFile), match);
 			}
@@ -201,12 +198,12 @@ public class LogReaderImpl implements LogReader {
 	}
 
 	/** @see LogReader#findFirstLineContaining(String, String, String). */
-	public Integer findFirstLineContaining(String aJob, String aFileName, String match) {
+	public Integer findFirstLineContaining(String job, String filename, String match) {
 		Integer line = 0;
 		
 		try
 		{
-			File logFile = logProvider.getLogFile(aJob, aFileName);
+			File logFile = logProvider.getLogFile(job, filename);
 			if (logFile != null) {
 				line = Utils.findFirstLineContaining(new FileReader(logFile), match);
 			}
@@ -221,12 +218,12 @@ public class LogReaderImpl implements LogReader {
 	}
 	
 	/** @see LogReader#findFirstLineAfterTimeStamp(String, String, Long). */
-	public Integer findFirstLineAfterTimeStamp(String aJob, String aFileName, Long timestamp) {
+	public Integer findFirstLineAfterTimeStamp(String job, String filename, Long timestamp) {
 		Integer line = 0;
 		
 		try
 		{
-			File logFile = logProvider.getLogFile(aJob, aFileName);
+			File logFile = logProvider.getLogFile(job, filename);
 			if (logFile != null) {
 				line = findFirstLineAfterTimeStamp(new FileReader(logFile), timestamp);
 			}
@@ -247,8 +244,8 @@ public class LogReaderImpl implements LogReader {
 		this.logProvider = logProvider;
 	}
 
-	public File retrieveLogfile(String aJob, String aFilename) {
-		File logFile = logProvider.getLogFile(aJob, aFilename);
+	public File retrieveLogfile(String job, String filename) {
+		File logFile = logProvider.getLogFile(job, filename);
 		return logFile;
 	}
 	
@@ -263,9 +260,7 @@ public class LogReaderImpl implements LogReader {
      *         line matches the regular expression. -1 also is returned if 
      *         errors occur (file not found, io exception etc.)
      */
-	private int findFirstLineAfterTimeStamp(InputStreamReader reader, 
-                                              Long timestamp)
-    {
+	private int findFirstLineAfterTimeStamp(InputStreamReader reader, Long timestamp) {
 
         try{
         	Pattern logPattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*");
@@ -308,7 +303,5 @@ public class LogReaderImpl implements LogReader {
         }
         return -1;
     }
-
-
 
 }

@@ -727,7 +727,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
 		when(mockTiDao.findPurgeableTargetInstances(any(Date.class))).thenReturn(purgeableTargetInstances);
 		testInstance.purgeDigitalAssets();
 		verify(mockTargetInstanceManager).purgeTargetInstance(mockTargetInstance);
-		verify(mockDas).purge(any(String[].class));
+		verify(mockDas).purge(any(List.class));
 	}
 
 	@Test
@@ -748,7 +748,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
 		testInstance.purgeDigitalAssets();
 		verify(mockTargetInstanceManager).purgeTargetInstance(mockTargetInstance1);
 		verify(mockTargetInstanceManager).purgeTargetInstance(mockTargetInstance2);
-		verify(mockDas).purge(any(String[].class));
+		verify(mockDas).purge(any(List.class));
 	}
 
 	@Test
@@ -787,8 +787,8 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
 		List<TargetInstance> purgeableTargetInstances = Arrays.asList(mockTargetInstance1, mockTargetInstance2);
 		when(mockTiDao.findPurgeableAbortedTargetInstances(any(Date.class))).thenReturn(purgeableTargetInstances);
 		testInstance.purgeAbortedTargetInstances();
-		verify(mockHarvestAgentManager).purgeAbortedTargetInstances(any(String[].class));
-		verify(mockDas).purgeAbortedTargetInstances(any(String[].class));
+		verify(mockHarvestAgentManager).purgeAbortedTargetInstances(any(List.class));
+		verify(mockDas).purgeAbortedTargetInstances(any(List.class));
 		verify(mockTargetInstanceManager).purgeTargetInstance(mockTargetInstance1);
 		verify(mockTargetInstanceManager).purgeTargetInstance(mockTargetInstance2);
 	}

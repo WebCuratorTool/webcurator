@@ -7,17 +7,16 @@ import org.junit.Test;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.test.BaseWCTTest;
 
-public class DigitalAssetStoreSOAPClientTest  extends BaseWCTTest<DigitalAssetStoreSOAPClient>{
+public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreClient>{
 
-	public DigitalAssetStoreSOAPClientTest() {
-		super(DigitalAssetStoreSOAPClient.class, "");
+	public DigitalAssetStoreClientTest() {
+		super(DigitalAssetStoreClient.class, "", false);
 	}
 	
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-		testInstance.setHost("wctstore.natlib.govt.nz");
-		testInstance.setPort(19090);
+        testInstance = new DigitalAssetStoreClient("wctstore.natlib.govt.nz", 19090);
 	}
 
 	@Test

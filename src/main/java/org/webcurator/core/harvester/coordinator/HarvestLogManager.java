@@ -10,9 +10,9 @@ public interface HarvestLogManager {
 
 	File getLogfile(TargetInstance aTargetInstance, String aFilename);
 
-	String[] getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl);
+	List<String> getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl);
 
-	String[] getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex,
+	List<String> getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex,
 			boolean prependLineNumbers);
 
 	Integer getFirstLogLineAfterTimeStamp(TargetInstance aTargetInstance, String aFileName, Long timestamp);
@@ -21,16 +21,16 @@ public interface HarvestLogManager {
 
 	Integer getFirstLogLineBeginning(TargetInstance aTargetInstance, String aFileName, String match);
 
-	String[] getLog(TargetInstance aTargetInstance, String aFileName, int aStartLine, int aNoOfLines);
+	List<String> getLog(TargetInstance aTargetInstance, String aFileName, int aStartLine, int aNoOfLines);
 
 	Integer countLogLines(TargetInstance aTargetInstance, String aFileName);
 
-	String[] headLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines);
+	List<String> headLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines);
 
-	LogFilePropertiesDTO[] listLogFileAttributes(TargetInstance aTargetInstance);
+	List<LogFilePropertiesDTO> listLogFileAttributes(TargetInstance aTargetInstance);
 
 	List<String> listLogFiles(TargetInstance aTargetInstance);
 
-	String[] tailLog(TargetInstance targetInstance, String aFileName, int aNoOfLines);
+	List<String> tailLog(TargetInstance targetInstance, String aFileName, int aNoOfLines);
 
 }

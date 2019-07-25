@@ -523,16 +523,6 @@
 			<version>5.1.7.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
-		<!-- Not sure yet if this is required here or in webcurator-webapp
-		-->
-		<!--
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc-struts</artifactId>
-			<version>5.1.7.RELEASE</version>
-			<scope>compile</scope>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.archive.wayback</groupId>
 			<artifactId>wayback-core</artifactId>

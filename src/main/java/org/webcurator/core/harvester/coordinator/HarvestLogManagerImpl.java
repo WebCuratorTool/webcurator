@@ -2,6 +2,8 @@ package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -39,27 +41,25 @@ public class HarvestLogManagerImpl implements HarvestLogManager {
 	}
 
 	@Override
-	public LogFilePropertiesDTO[] listLogFileAttributes(TargetInstance targetInstance) {
+	public List<LogFilePropertiesDTO> listLogFileAttributes(TargetInstance targetInstance) {
 		checkNotNull(targetInstance);
 
 		LogReader logReader = getLogReader(targetInstance);
 		if (logReader == null) {
 			log.warn("listLogFileAttributes Failed. Failed to find the Log Reader for the Job {}.", targetInstance.getJobName());
-			LogFilePropertiesDTO[] empty = new LogFilePropertiesDTO[0];
-			return empty;
+			return new ArrayList<>();
 		}
 		return logReader.listLogFileAttributes(targetInstance.getJobName());
 	}
 
 	@Override
-	public String[] tailLog(TargetInstance targetInstance, String aFileName, int aNoOfLines) {
+	public List<String> tailLog(TargetInstance targetInstance, String aFileName, int aNoOfLines) {
 		checkNotNull(targetInstance);
 
-		String[] data = { "" };
 		LogReader logReader = getLogReader(targetInstance);
 		if (logReader == null) {
 			log.warn("Tail Log Files Failed. Failed to find the log Reader for the Job {}.", targetInstance.getJobName());
-			return data;
+			return Collections.singletonList("");
 		}
 		return logReader.tail(targetInstance.getJobName(), aFileName, aNoOfLines);
 	}
@@ -78,27 +78,25 @@ public class HarvestLogManagerImpl implements HarvestLogManager {
 	}
 
 	@Override
-	public String[] headLog(TargetInstance targetInstance, String aFileName, int aNoOfLines) {
+	public List<String> headLog(TargetInstance targetInstance, String aFileName, int aNoOfLines) {
 		checkNotNull(targetInstance);
 
-		String[] data = { "" };
 		LogReader logReader = getLogReader(targetInstance);
 		if (logReader == null) {
 			log.warn("Head Log Files Failed. Failed to find the log Reader for the Job {}.", targetInstance.getJobName());
-			return data;
+			return Collections.singletonList("");
 		}
 		return logReader.get(targetInstance.getJobName(), aFileName, 1, aNoOfLines);
 	}
 
 	@Override
-	public String[] getLog(TargetInstance targetInstance, String aFileName, int aStartLine, int aNoOfLines) {
+	public List<String> getLog(TargetInstance targetInstance, String aFileName, int aStartLine, int aNoOfLines) {
 		checkNotNull(targetInstance);
 
-		String[] data = { "" };
 		LogReader logReader = getLogReader(targetInstance);
 		if (logReader == null) {
 			log.warn("Get Log Files Failed. Failed to find the log Reader for the Job {}.", targetInstance.getJobName());
-			return data;
+			return Collections.singletonList("");
 		}
 		return logReader.get(targetInstance.getJobName(), aFileName, aStartLine, aNoOfLines);
 	}
@@ -111,7 +109,7 @@ public class HarvestLogManagerImpl implements HarvestLogManager {
 		if (logReader == null) {
 			log.warn("Get First Log Line Beginning failed. Failed to find the log Reader for the Job {}.",
 					targetInstance.getJobName());
-			return new Integer(0);
+			return 0;
 		}
 		return logReader.findFirstLineBeginning(targetInstance.getJobName(), aFileName, match);
 	}
@@ -124,7 +122,7 @@ public class HarvestLogManagerImpl implements HarvestLogManager {
 		if (logReader == null) {
 			log.warn("Get First Log Line Containing failed. Failed to find the log Reader for the Job {}.",
 					targetInstance.getJobName());
-			return new Integer(0);
+			return 0;
 		}
 		return logReader.findFirstLineContaining(targetInstance.getJobName(), aFileName, match);
 	}
@@ -137,35 +135,33 @@ public class HarvestLogManagerImpl implements HarvestLogManager {
 		if (logReader == null) {
 			log.warn("Get First Log Line After Timestamp failed. Failed to find the log Reader for the Job {}.",
 					targetInstance.getJobName());
-			return new Integer(0);
+			return 0;
 		}
 		return logReader.findFirstLineAfterTimeStamp(targetInstance.getJobName(), aFileName, timestamp);
 	}
 
 	@Override
-	public String[] getLogLinesByRegex(TargetInstance targetInstance, String aFileName, int aNoOfLines, String aRegex,
+	public List<String> getLogLinesByRegex(TargetInstance targetInstance, String aFileName, int aNoOfLines, String aRegex,
 			boolean prependLineNumbers) {
 		checkNotNull(targetInstance);
 
-		String[] data = { "" };
 		LogReader logReader = getLogReader(targetInstance);
 		if (logReader == null) {
 			log.warn("Get log lines by regex failed. Failed to find the log Reader for the Job {}.", targetInstance.getJobName());
-			return data;
+			return Collections.singletonList("");
 		}
-		return logReader.getByRegExpr(targetInstance.getJobName(), aFileName, aRegex, "zzzzzzzzz", prependLineNumbers, 0,
+		return logReader.getByRegularExpression(targetInstance.getJobName(), aFileName, aRegex, "zzzzzzzzz", prependLineNumbers, 0,
 				aNoOfLines);
 	}
 
 	@Override
-	public String[] getHopPath(TargetInstance targetInstance, String aFileName, String aUrl) {
+	public List<String> getHopPath(TargetInstance targetInstance, String aFileName, String aUrl) {
 		checkNotNull(targetInstance);
 
-		String[] data = { "" };
 		LogReader logReader = getLogReader(targetInstance);
 		if (logReader == null) {
 			log.warn("Get Log Files Failed. Failed to find the log Reader for the Job {}.", targetInstance.getJobName());
-			return data;
+			return Collections.singletonList("");
 		}
 		return logReader.getHopPath(targetInstance.getJobName(), targetInstance.getHarvestResult(1).getOid().toString(), aFileName,
 				aUrl);

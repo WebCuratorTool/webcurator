@@ -54,14 +54,13 @@ public class MockLogProvider implements LogProvider{
 		return filenames;
 	}
 
-	public LogFilePropertiesDTO[] getLogFileAttributes(String aJob)
+	public List<LogFilePropertiesDTO> getLogFileAttributes(String aJob)
 	{
-		LogFilePropertiesDTO[] arProps = null;		
+		List<LogFilePropertiesDTO> arProps = new ArrayList<>();
 		File dir = new File(basePath);
 		if(dir.isDirectory())
 		{
 			File[] files = dir.listFiles(new LogFileFilter());
-			arProps = new LogFilePropertiesDTO[files.length];
 			for(int i = 0; i < files.length; i++)
 			{
 				File f = files[i];
@@ -81,7 +80,7 @@ public class MockLogProvider implements LogProvider{
         			props.setViewer("aqa-viewer.html");
         		}
         		
-				arProps[i] = props;
+				arProps.add(props);
 			}
 		}
 

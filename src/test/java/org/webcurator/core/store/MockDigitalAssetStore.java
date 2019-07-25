@@ -1,6 +1,7 @@
 package org.webcurator.core.store;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,21 +27,21 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 	}
 
 	public HarvestResultDTO copyAndPrune(String targetInstanceName,
-			int orgHarvestResultNum, int newHarvestResultNum,
-			List<String> urisToDelete, List<HarvestResourceDTO> hrsToDelete) throws DigitalAssetStoreException {
+                                         int originalHarvestResultNumber, int newHarvestResultNumber,
+                                         List<String> urisToDelete, List<HarvestResourceDTO> harvestResourcesToImport) throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public Header[] getHeaders(String targetInstanceName,
+	public List<Header> getHeaders(String targetInstanceName,
 			int harvestResultNumber, HarvestResourceDTO resource)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
-		return null;
+		return new ArrayList<>();
 	}
 
-	public File getResource(String targetInstanceName, int harvestResultNumber,
-			HarvestResourceDTO resource) throws DigitalAssetStoreException {
+	public Path getResource(String targetInstanceName, int harvestResultNumber,
+                            HarvestResourceDTO resource) throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -64,37 +65,37 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 		removedIndexes.add(harvestResult);
 	}
 
-	public void purge(String[] targetInstanceNames)
+	public void purge(List<String> targetInstanceNames)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 
 	}
 
-	public void purgeAbortedTargetInstances(String[] targetInstanceNames)
+	public void purgeAbortedTargetInstances(List<String> targetInstanceNames)
 	throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 
 }
 
-	public void save(String targetInstanceName, File[] files)
+	public void save(String targetInstanceName, List<Path> paths)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 
 	}
 
-	public void save(String targetInstanceName, File file)
+	public void save(String targetInstanceName, Path path)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 
 	}
 
-	public void save(String targetInstanceName, String directory, File[] files)
+	public void save(String targetInstanceName, String directory, List<Path> paths)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 
 	}
 
-	public void save(String targetInstanceName, String directory, File file)
+	public void save(String targetInstanceName, String directory, Path path)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 

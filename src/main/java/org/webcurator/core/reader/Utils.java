@@ -4,6 +4,9 @@ package org.webcurator.core.reader;
 import org.archive.util.ArchiveUtils;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -29,12 +32,12 @@ public class Utils {
      *         segment of the file is being returned.
      *         Null is returned if errors occur (file not found or io exception)
      */
-    public static String[] tail(String aFileName, int n) {
+    public static List<String> tail(String aFileName, int n) {
         try {
             return tail(new RandomAccessFile(new File(aFileName),"r"),n);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }
     }
 
@@ -49,7 +52,7 @@ public class Utils {
      *         segment of the file is being returned.
      *         Null is returned if errors occur (file not found or io exception)
      */
-    public static String[] tail(RandomAccessFile raf, int n) {
+    public static List<String> tail(RandomAccessFile raf, int n) {
         int BUFFERSIZE = 1024;
         long pos;
         long endPos;
@@ -129,14 +132,12 @@ public class Utils {
             }
         }
         if(sb==null){
-            return null;
+            return new ArrayList<>();
         }
-        String[] tmp = {sb.toString(),info};
-        return tmp;
+        return Arrays.asList(sb.toString(), info);
     }
 
-    public static String buildDisplayingHeader(int len, long logsize)
-    {
+    public static String buildDisplayingHeader(int len, long logsize) {
         double percent = 0.0;
         if (logsize != 0) {
             percent = ((double) len/logsize) * 100;
@@ -157,21 +158,20 @@ public class Utils {
      *                   lineNumber). If smaller then 1 then an empty string
      *                   will be returned.
      *
-     * @return An array of two strings is returned. At index 0 a portion of the
+     * @return An list of two strings is returned. At index 0 a portion of the
      *         file starting at lineNumber and reaching lineNumber+n is located.
      *         At index 1 there is an informational string about how large a
      *         segment of the file is being returned.
      *         Null is returned if errors occur (file not found or io exception)
      */
-    public static String[] get(String aFileName, int lineNumber, int n)
-    {
+    public static List<String> get(String aFileName, int lineNumber, int n) {
         File f = new File(aFileName);
         long logsize = f.length();
         try {
             return get(new FileReader(aFileName),lineNumber,n,logsize);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }
     }
 
@@ -188,17 +188,16 @@ public class Utils {
      *                   will be returned.
      *
      * @param logsize total size of source
-     * @return An array of two strings is returned. At index 0 a portion of the
+     * @return An list of two strings is returned. At index 0 a portion of the
      *         file starting at lineNumber and reaching lineNumber+n is located.
      *         At index 1 there is an informational string about how large a
      *         segment of the file is being returned.
      *         Null is returned if errors occur (file not found or io exception)
      */
-    public static String[] get(InputStreamReader reader,
+    public static List<String> get(InputStreamReader reader,
                                int lineNumber,
                                int n,
-                               long logsize)
-    {
+                               long logsize) {
         StringBuffer ret = new StringBuffer();
         String info = null;
         try{
@@ -219,10 +218,9 @@ public class Utils {
             info = buildDisplayingHeader(ret.length(), logsize);
         }catch(IOException e){
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }
-        String[] tmp = {ret.toString(),info};
-        return tmp;
+        return Arrays.asList(ret.toString(), info);
     }
 
     /**
@@ -230,8 +228,8 @@ public class Utils {
      * Possible to get lines immediately following the matched line.  Also
      * possible to have each line prepended by it's line number.
      *
-     * @param aFileName The filename of the log/file
-     * @param regExpr The regular expression that is to be used
+     * @param filename The filename of the log/file
+     * @param regularExpression The regular expression that is to be used
      * @param addLines Any lines following a match that <b>begin</b> with this
      *                 string will also be included. We will stop including new
      *                 lines once we hit the first that does not match.
@@ -243,7 +241,7 @@ public class Utils {
      *                        matches will be added to the return value. A
      *                        value of 0 will cause all matching lines to be
      *                        included.
-     * @return An array of two strings is returned. At index 0 tall lines in a
+     * @return An list of two strings is returned. At index 0 tall lines in a
      *         log/file matching a given regular expression is located.
      *         At index 1 there is an informational string about how large a
      *         segment of the file is being returned.
@@ -251,17 +249,17 @@ public class Utils {
      *         If a PatternSyntaxException occurs, it's error message will be
      *         returned and the informational string will be empty (not null).
      */
-    public static String[] getByRegExpr(String aFileName,
-                                        String regExpr,
-                                        String addLines,
-                                        boolean prependLineNumbers,
-                                        int skipFirstMatches,
-                                        int numberOfMatches){
+    public static List<String> getByRegularExpression(String filename,
+                                                      String regularExpression,
+                                                      String addLines,
+                                                      boolean prependLineNumbers,
+                                                      int skipFirstMatches,
+                                                      int numberOfMatches) {
         try {
-            File f = new File(aFileName);
-            return getByRegExpr(
+            File f = new File(filename);
+            return getByRegularExpression(
                     new FileReader(f),
-                    regExpr,
+                    regularExpression,
                     addLines,
                     prependLineNumbers,
                     skipFirstMatches,
@@ -269,7 +267,7 @@ public class Utils {
                     f.length());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }
     }
 
@@ -279,7 +277,7 @@ public class Utils {
      * possible to have each line prepended by it's line number.
      *
      * @param reader The reader of the log/file
-     * @param regExpr The regular expression that is to be used
+     * @param regularExpression The regular expression that is to be used
      * @param addLines Any lines following a match that <b>begin</b> with this
      *                 string will also be included. We will stop including new
      *                 lines once we hit the first that does not match.
@@ -291,8 +289,8 @@ public class Utils {
      *                        matches will be added to the return value. A
      *                        value of 0 will cause all matching lines to be
      *                        included.
-     * @param logsize Size of the log in bytes
-     * @return An array of two strings is returned. At index 0 tall lines in a
+     * @param logSize Size of the log in bytes
+     * @return An list of two strings is returned. At index 0 tall lines in a
      *         log/file matching a given regular expression is located.
      *         At index 1 there is an informational string about how large a
      *         segment of the file is being returned.
@@ -300,17 +298,17 @@ public class Utils {
      *         If a PatternSyntaxException occurs, it's error message will be
      *         returned and the informational string will be empty (not null).
      */
-    public static String[] getByRegExpr(InputStreamReader reader,
-                                        String regExpr,
-                                        String addLines,
-                                        boolean prependLineNumbers,
-                                        int skipFirstMatches,
-                                        int numberOfMatches,
-                                        long logsize) {
+    public static List<String> getByRegularExpression(InputStreamReader reader,
+                                                      String regularExpression,
+                                                      String addLines,
+                                                      boolean prependLineNumbers,
+                                                      int skipFirstMatches,
+                                                      int numberOfMatches,
+                                                      long logSize) {
         StringBuffer ret = new StringBuffer();
         String info = "";
         try{
-            Matcher m = Pattern.compile(regExpr).matcher("");
+            Matcher m = Pattern.compile(regularExpression).matcher("");
             BufferedReader bf = new BufferedReader(reader, 8192);
 
             String line = null;
@@ -352,17 +350,16 @@ public class Utils {
                 }
                 i++;
             }
-            info = buildDisplayingHeader(ret.length(), logsize);
+            info = buildDisplayingHeader(ret.length(), logSize);
         }catch(FileNotFoundException e){
-            return null;
+            return new ArrayList<>();
         }catch(IOException e){
             e.printStackTrace();
-            return null;
+            return new ArrayList<>();
         }catch(PatternSyntaxException e){
             ret = new StringBuffer(e.getMessage());
         }
-        String[] tmp = {ret.toString(),info};
-        return tmp;
+        return Arrays.asList(ret.toString(), info);
     }
 
     /**
@@ -370,16 +367,15 @@ public class Utils {
      * log/file that matches a given regular expression.
      *
      * @param reader The reader of the log/file
-     * @param regExpr The regular expression that is to be used
+     * @param regularExpression The regular expression that is to be used
      * @return The line number (counting from 1, not zero) of the first line
      *         that matches the given regular expression. -1 is returned if no
      *         line matches the regular expression. -1 also is returned if
      *         errors occur (file not found, io exception etc.)
      */
     public static int findFirstLineContaining(InputStreamReader reader,
-                                              String regExpr)
-    {
-        Pattern p = Pattern.compile(regExpr);
+                                              String regularExpression) {
+        Pattern p = Pattern.compile(regularExpression);
 
         try{
             BufferedReader bf = new BufferedReader(reader, 8192);
@@ -411,8 +407,7 @@ public class Utils {
      *         errors occur (file not found, io exception etc.)
      */
     public static int findFirstLineBeginning(InputStreamReader reader,
-                                             String prefix)
-    {
+                                             String prefix) {
 
         try{
             BufferedReader bf = new BufferedReader(reader, 8192);

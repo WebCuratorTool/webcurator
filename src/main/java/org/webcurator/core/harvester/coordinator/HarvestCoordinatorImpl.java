@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -912,14 +913,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	/**
 	 * @see HarvestCoordinator#listLogFileAttributes(TargetInstance)
 	 */
-	public LogFilePropertiesDTO[] listLogFileAttributes(TargetInstance aTargetInstance) {
+	public List<LogFilePropertiesDTO> listLogFileAttributes(TargetInstance aTargetInstance) {
 		return harvestLogManager.listLogFileAttributes(aTargetInstance);
 	}
 
 	/**
 	 * @see HarvestCoordinator#tailLog(TargetInstance, String, int)
 	 */
-	public String[] tailLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines) {
+	public List<String> tailLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines) {
 		return harvestLogManager.tailLog(aTargetInstance, aFileName, aNoOfLines);
 	}
 
@@ -933,14 +934,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	/**
 	 * @see HarvestCoordinator#headLog(TargetInstance, String, int)
 	 */
-	public String[] headLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines) {
+	public List<String> headLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines) {
 		return harvestLogManager.headLog(aTargetInstance, aFileName, aNoOfLines);
 	}
 
 	/**
 	 * @see HarvestCoordinator#getLog(TargetInstance, String, int, int)
 	 */
-	public String[] getLog(TargetInstance aTargetInstance, String aFileName, int aStartLine, int aNoOfLines) {
+	public List<String> getLog(TargetInstance aTargetInstance, String aFileName, int aStartLine, int aNoOfLines) {
 		return harvestLogManager.getLog(aTargetInstance, aFileName, aStartLine, aNoOfLines);
 	}
 
@@ -971,7 +972,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	/**
 	 * @see HarvestCoordinator#getLogLinesByRegex(TargetInstance, String, int, String, boolean)
 	 */
-	public String[] getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex,
+	public List<String> getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex,
 			boolean prependLineNumbers) {
 		return harvestLogManager.getLogLinesByRegex(aTargetInstance, aFileName, aNoOfLines, aRegex, prependLineNumbers);
 	}
@@ -979,7 +980,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	/**
 	 * @see HarvestCoordinator#getHopPath(TargetInstance, String, String)
 	 */
-	public String[] getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl) {
+	public List<String> getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl) {
 		return harvestLogManager.getHopPath(aTargetInstance, aFileName, aUrl);
 	}
 
@@ -997,13 +998,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		List<TargetInstance> tis = targetInstanceDao.findPurgeableTargetInstances(cal.getTime());
 		log.debug("Attempting to purge {} harvests from the digital asset store.", tis.size());
 
-		if (tis != null && !tis.isEmpty()) {
-			int index = 0;
-			String[] tiNames = new String[tis.size()];
-			for (TargetInstance ti : tis) {
-				tiNames[index++] = ti.getJobName();
-			}
-
+        List<String> tiNames = tis.stream().map(TargetInstance::getJobName).collect(Collectors.toList());
+		if (!tiNames.isEmpty()) {
 			try {
 				digitalAssetStoreFactory.getDAS().purge(tiNames);
 				for (TargetInstance ti : tis) {
@@ -1026,12 +1022,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		List<TargetInstance> tis = targetInstanceDao.findPurgeableAbortedTargetInstances(cal.getTime());
 		log.debug("Attempting to purge {} aborted harvests from the system.", tis.size());
 
-		if (tis != null && !tis.isEmpty()) {
-			int index = 0;
-			String[] tiNames = new String[tis.size()];
-			for (TargetInstance ti : tis) {
-				tiNames[index++] = ti.getJobName();
-			}
+		List<String> tiNames = tis.stream().map(TargetInstance::getJobName).collect(Collectors.toList());
+		if (!tiNames.isEmpty()) {
 
 			harvestAgentManager.purgeAbortedTargetInstances(tiNames);
 

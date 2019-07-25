@@ -71,7 +71,7 @@ public interface HarvestAgent {
 	 * specified in the list of **aborted** target instance names.
 	 * @param targetInstanceNames the target instances to purge
      */
-    void purgeAbortedTargetInstances(String [] targetInstanceNames);
+    void purgeAbortedTargetInstances(List<String> targetInstanceNames);
 
     /**
      * Set the bandwidth limit for the specified Harvest job.

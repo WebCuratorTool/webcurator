@@ -46,5 +46,5 @@ public interface LogProvider {
 	 * @param aJob the job to return the list of file names for
 	 * @return the list of available files
 	 */
-	LogFilePropertiesDTO[] getLogFileAttributes(String aJob);
+	List<LogFilePropertiesDTO> getLogFileAttributes(String aJob);
 }

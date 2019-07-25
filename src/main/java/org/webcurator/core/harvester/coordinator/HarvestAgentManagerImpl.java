@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.harvester.agent.HarvestAgent;
-import org.webcurator.core.harvester.agent.HarvestAgentConfig;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
-import org.webcurator.core.harvester.agent.HarvestAgentSOAPClient;
 import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.TargetInstanceDAO;
@@ -398,7 +396,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	}
 
 	@Override
-	public void purgeAbortedTargetInstances(String[] tiNames) {
+	public void purgeAbortedTargetInstances(List<String> tiNames) {
 		for(HarvestAgentStatusDTO statusDto:harvestAgents.values()) {
 			HarvestAgent ha = harvestAgentFactory.getHarvestAgent(statusDto.getHost(), statusDto.getPort(), statusDto.getService());
 			try {

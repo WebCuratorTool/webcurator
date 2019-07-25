@@ -48,7 +48,7 @@ public interface HarvestAgentManager {
 
 	HashMap<String, HarvestAgentStatusDTO> getHarvestAgents();
 
-	void purgeAbortedTargetInstances(String[] tiNames);
+	void purgeAbortedTargetInstances(List<String> tiNames);
 
 	List<HarvestAgentStatusDTO> getAvailableHarvesters(String agencyName);
 

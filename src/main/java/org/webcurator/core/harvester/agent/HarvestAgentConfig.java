@@ -31,17 +31,4 @@ public interface HarvestAgentConfig {
 	 * @return the port number
 	 */
 	int getPort();
-	
-	/**
-	 * Return the name of the asset store service.
-	 * @return the service name
-	 */
-	String getHarvestAgentServiceName();
-	
-	/**
-	 * Return the asset stores log reader service name
-	 * @return the service name
-	 */
-	String getLogReaderServiceName();
-	
 }

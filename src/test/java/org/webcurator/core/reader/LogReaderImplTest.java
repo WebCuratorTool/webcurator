@@ -3,13 +3,9 @@ package org.webcurator.core.reader;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.webcurator.core.archive.MockSipBuilder;
-import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
-import org.webcurator.core.notification.MockInTrayManager;
-import org.webcurator.core.scheduler.MockTargetInstanceManager;
-import org.webcurator.core.targets.MockTargetManager;
-import org.webcurator.domain.MockHarvestCoordinatorDAO;
 import org.webcurator.test.*;
+
+import java.util.List;
 
 public class LogReaderImplTest extends BaseWCTTest<LogReaderImpl>{
 
@@ -36,38 +32,38 @@ public class LogReaderImplTest extends BaseWCTTest<LogReaderImpl>{
 
 	@Test
 	public final void testTail() {
-		String[] results = testInstance.tail("Dummy", "crawl.log", 50);
+		List<String> results = testInstance.tail("Dummy", "crawl.log", 50);
 		assertNotNull(results);
-		assertTrue(results.length == 2);
-		String[] lines = results[0].split("\n");
+		assertTrue(results.size() == 2);
+		String[] lines = results.get(0).split("\n");
 		assertTrue(lines.length == 50);
 	}
 
 	@Test
 	public final void testGet() {
-		String[] results = testInstance.get("Dummy", "crawl.log", 1, 50);
+		List<String> results = testInstance.get("Dummy", "crawl.log", 1, 50);
 		assertNotNull(results);
-		assertTrue(results.length == 2);
-		String[] lines = results[0].split("\n");
+		assertTrue(results.size() == 2);
+		String[] lines = results.get(0).split("\n");
 		assertTrue(lines.length == 50);
 	}
 
 	@Test
 	public final void testGet2() {
-		String[] results = testInstance.get("Dummy", "crawl.log", 5300, 50);
+		List<String> results = testInstance.get("Dummy", "crawl.log", 5300, 50);
 		assertNotNull(results);
-		assertTrue(results.length == 2);
-		String[] lines = results[0].split("\n");
+		assertTrue(results.size() == 2);
+		String[] lines = results.get(0).split("\n");
 		assertTrue(lines.length == 2);
 	}
 
 	@Test
 	public final void testGetByRegExpr() {
 		String regex = ".*.http://us.geocities.com/quasi_chick/meon.jpg.*";
-		String[] results = testInstance.getByRegExpr("Dummy", "crawl.log", regex, "zzzzzzzzz", true, 0, 50);
+		List<String> results = testInstance.getByRegularExpression("Dummy", "crawl.log", regex, "zzzzzzzzz", true, 0, 50);
 		assertNotNull(results);
-		assertTrue(results.length == 2);
-		String[] lines = results[0].split("\n");
+		assertTrue(results.size() == 2);
+		String[] lines = results.get(0).split("\n");
 		assertTrue(lines.length == 1);
 	}
 

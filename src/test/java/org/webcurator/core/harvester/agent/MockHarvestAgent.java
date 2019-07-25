@@ -55,11 +55,8 @@ public class MockHarvestAgent implements HarvestAgent {
 		log.debug("pause all");
 	}
 
-	public void purgeAbortedTargetInstances(String[] targetInstanceNames) {
-		for(int i = 0; i < targetInstanceNames.length; i++)
-		{
-			log.debug("purge aboted ti - "+targetInstanceNames[i]);
-		}
+	public void purgeAbortedTargetInstances(List<String> targetInstanceNames) {
+	    targetInstanceNames.forEach(name -> log.debug("purge aborted ti - " + name));
 	}
 
 	public void restrictBandwidth(String job, int bandwidthLimit) 

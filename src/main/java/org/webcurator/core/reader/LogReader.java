@@ -16,6 +16,7 @@
 package org.webcurator.core.reader;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
@@ -28,93 +29,93 @@ public interface LogReader {
 	
 	/**
      * List of names of all the log files currently available for the specified job.
-     * @param aJob the job to return the list of files for
+     * @param job the job to return the list of files for
      * @return the list of Log file names
      */
-    List<String> listLogFiles(String aJob);
+    List<String> listLogFiles(String job);
         
 	/**
      * List all the the log files currently available for the specified job.
-     * @param aJob the job to return the list of files for
+     * @param job the job to return the list of files for
      * @return the array of 'log file objects'
      */
-    LogFilePropertiesDTO[] listLogFileAttributes(String aJob);
+    List<LogFilePropertiesDTO> listLogFileAttributes(String job);
 
 	/**
      * Count the number of lines in the specified log file.
-     * @param aJob the job to return the log data for
-     * @param aFileName the name of the file
+     * @param job the job to return the log data for
+     * @param filename the name of the file
      * @return the count of lines
      */
-	Integer countLines(String aJob, String aFileName);
+	Integer countLines(String job, String filename);
     
     /**
      * Return a String containing the specified number of lines from the end
      * of the specified log file for the specified job.
-     * @param aJob the job to return the log data for
-     * @param aFileName the name of the file
-     * @param noOfLines the number of lines to return
+     * @param job the job to return the log data for
+     * @param filename the name of the file
+     * @param numberOfLines the number of lines to return
      * @return the lines from the jobs log file
      */
-    String[] tail(String aJob, String aFileName, int noOfLines);    
+    List<String> tail(String job, String filename, int numberOfLines);
 
     /**
      * Return a String containing the specified number of lines from the beginning
      * of the specified log file for the specified job.
-     * @param aJob the job to return the log data for
-     * @param aFileName the name of the file
+     * @param job the job to return the log data for
+     * @param filename the name of the file
      * @param startLine the the line to start from
-     * @param noOfLines the number of lines to return
+     * @param numberOfLines the number of lines to return
      * @return the lines from the jobs log file
      */
-    String[] get(String aJob, String aFileName, int startLine, int noOfLines);    
+    List<String> get(String job, String filename, int startLine, int numberOfLines);
         
     /**
      * Return a String array containing the hop path to the given Url 
      * extracted from the sorted crawl.log file for the specified job.
-     * @param aJob the job to return the log data for
-     * @param aResultOid the harvest result oid of the crawl
-     * @param aFileName the name of the sorted crawl.log file
-     * @param aUrl the Url to derive the hop path for
+     * @param job the job to return the log data for
+     * @param resultOid the harvest result oid of the crawl
+     * @param filename the name of the sorted crawl.log file
+     * @param url the Url to derive the hop path for
      * @return the lines representing the hop path
      */
-    String[] getHopPath(String aJob, String aResultOid, String aFileName, String aUrl);    
+    List<String> getHopPath(String job, String resultOid, String filename, String url);
 
     /**
      * Return an Integer containing the first line beginning with match
-     * @param aJob the job to return the log data for
-     * @param aFileName the name of the file
+     * @param job the job to return the log data for
+     * @param filename the name of the file
      * @param match the regex to match
      * @return the line index
      */
-	Integer findFirstLineBeginning(String aJob, String aFileName, String match);
+	Integer findFirstLineBeginning(String job, String filename, String match);
     
     /**
      * Return an Integer containing the first line containing match
-     * @param aJob the job to return the log data for
-     * @param aFileName the name of the file
+     * @param job the job to return the log data for
+     * @param filename the name of the file
      * @param match the regex to match
      * @return the line index
      */
-	Integer findFirstLineContaining(String aJob, String aFileName, String match);
+	Integer findFirstLineContaining(String job, String filename, String match);
     
     /**
      * Return an Integer containing the first line beginning with timestamp
-     * @param aJob the job to return the log data for
-     * @param aFileName the name of the file
+     * @param job the job to return the log data for
+     * @param filename the name of the file
      * @param timestamp the timestamp to match
      * @return the line index
      */
-	Integer findFirstLineAfterTimeStamp(String aJob, String aFileName, Long timestamp);
+	Integer findFirstLineAfterTimeStamp(String job, String filename, Long timestamp);
     
     /**
      * Returns all lines in a jobs log/file matching a given regular expression.  
      * Possible to get lines immediately following the matched line.  Also 
      * possible to have each line prepended by it's line number.
      *
-     * @param aJob the job to return the log data for
-     * @param aFileName The filename of the log/file
-     * @param regExpr The regular expression that is to be used
+     * @param job the job to return the log data for
+     * @param filename The filename of the log/file
+     * @param regularExpression The regular expression that is to be used
      * @param addLines Any lines following a match that <b>begin</b> with this 
      *                 string will also be included. We will stop including new 
      *                 lines once we hit the first that does not match.
@@ -134,19 +135,19 @@ public interface LogReader {
      *         If a PatternSyntaxException occurs, it's error message will be
      *         returned and the informational string will be empty (not null).
      */
-    String[] getByRegExpr(String aJob, String aFileName, 
-                        String regExpr, 
-                        String addLines, 
-                        boolean prependLineNumbers,
-                        int skipFirstMatches,
-                        int numberOfMatches);    
+    List<String> getByRegularExpression(String job, String filename,
+                                        String regularExpression,
+                                        String addLines,
+                                        boolean prependLineNumbers,
+                                        int skipFirstMatches,
+                                        int numberOfMatches);
     
     /**
      * Retrieve a file for download.
-     * @param aJob The name of the job to get the log file for.
-     * @param aFilename The name of the log file.
+     * @param job The name of the job to get the log file for.
+     * @param filename The name of the log file.
      * @return
      */
-    File retrieveLogfile(String aJob, String aFilename);
+    File retrieveLogfile(String job, String filename);
 
 }
