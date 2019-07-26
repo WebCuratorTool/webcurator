@@ -124,6 +124,19 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 
 		<pluginManagement>
@@ -179,20 +192,6 @@
 			<artifactId>webarchive-commons</artifactId>
 			<version>1.1.8</version>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<!-- Note that this dependency also brings in org.apache.axis:axis-jaxrpc:1.4, which has 1 class in common with
-				 stax:stax-api:1.0.1, which is javax.xml.namespace.QName. We leave the conflict in place. -->
-			<groupId>axis</groupId>
-			<artifactId>axis</artifactId>
-			<version>1.4</version>
-			<scope>compile</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>axis-wsdl4j</artifactId>
-					<groupId>axis</groupId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>

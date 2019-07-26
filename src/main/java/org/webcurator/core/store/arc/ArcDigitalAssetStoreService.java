@@ -34,17 +34,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.httpclient.Header;
@@ -93,8 +86,7 @@ import org.webcurator.domain.model.core.LogFilePropertiesDTO;
  *
  * @author bbeaumont
  */
-public class ArcDigitalAssetStoreService implements DigitalAssetStore,
-        LogProvider {
+public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvider {
     /**
      * The logger.
      */
@@ -141,15 +133,15 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
         writerDF.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
-    public void save(String targetInstanceName, String directory, File file)
+    public void save(String targetInstanceName, String directory, Path path)
             throws DigitalAssetStoreException {
-        save(targetInstanceName, directory, new File[]{file});
+        save(targetInstanceName, directory, Collections.singletonList(path));
     }
 
     /**
-     * @see DigitalAssetStore#save(String, String, File[]).
+     * @see DigitalAssetStore#save(String, String, List<java.nio.file.Path>).
      */
-    public void save(String targetInstanceName, String directory, File[] files)
+    public void save(String targetInstanceName, String directory, List<Path> paths)
             throws DigitalAssetStoreException {
         // Target destination is always baseDir plus targetInstanceName.
         File targetDir = new File(baseDir, targetInstanceName);
@@ -167,18 +159,18 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
         Exception failureException = null;
 
         // Loop through all the files, but stop if any of them fail.
-        for (int i = 0; success && i < files.length; i++) {
+        for (Path path : paths) {
             File destination = new File(targetDir, "/" + dir
-                    + files[i].getName());
-            log.debug("Moving File to Store: " + files[i].getAbsolutePath()
+                    + path.getFileName());
+            log.debug("Moving File to Store: " + path.toString()
                     + " -> " + destination.getAbsolutePath());
 
             try {
                 // FileUtils.copyFile(files[i], destination);
                 // DasFileMover fileMover = new InputStreamDasFileMover();
-                dasFileMover.moveFile(files[i], destination);
+                dasFileMover.moveFile(path.toFile(), destination);
             } catch (IOException ex) {
-                log.error("Failed to move file " + files[i].getAbsolutePath()
+                log.error("Failed to move file " + path.toString()
                         + " to " + destination.getAbsolutePath(), ex);
                 failureException = ex;
                 success = false;
@@ -195,23 +187,23 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
 
 
     /**
-     * @see DigitalAssetStore#save(String, File[]).
+     * @see DigitalAssetStore#save(String, List<Path>).
      */
-    public void save(String targetInstanceName, File[] files)
+    public void save(String targetInstanceName, List<Path> paths)
             throws DigitalAssetStoreException {
-        save(targetInstanceName, "1", files);
+        save(targetInstanceName, "1", paths);
     }
 
-    public void save(String targetInstanceName, File file)
+    public void save(String targetInstanceName, Path path)
             throws DigitalAssetStoreException {
-        save(targetInstanceName, "1", new File[]{file});
+        save(targetInstanceName, "1", Collections.singletonList(path));
     }
 
     /**
      * @see DigitalAssetStore#getResource(String, int, HarvestResourceDTO).
      */
     @SuppressWarnings("finally")
-    public File getResource(String targetInstanceName, int harvestResultNumber,
+    public Path getResource(String targetInstanceName, int harvestResultNumber,
                             HarvestResourceDTO resourcex) throws DigitalAssetStoreException {
         FileOutputStream fos = null;
         ArchiveReader reader = null;
@@ -308,7 +300,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
             }
         }
 
-        return dest;
+        return dest.toPath();
     }
 
     /**
@@ -396,15 +388,14 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
     /**
      * @see DigitalAssetStore#getHeaders(String, int, HarvestResourceDTO).
      */
-    public Header[] getHeaders(String targetInstanceName,
-                               int harvestResultNumber, HarvestResourceDTO resourcex)
+    public List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resourcex)
             throws DigitalAssetStoreException {
         if (log.isDebugEnabled()) {
             log.debug("Start of getHeaders()");
             log.debug("Casting the DTO to ArcHarvestResult");
         }
 
-        Header[] headers = new Header[0];
+        List<Header> headers;
         ArchiveRecord record = null;
         ArchiveReader reader = null;
         ArcHarvestResourceDTO resource = (ArcHarvestResourceDTO) resourcex;
@@ -445,12 +436,14 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
             if (record instanceof ARCRecord) {
                 log.debug("Reading the headers");
                 ((ARCRecord) record).skipHttpHeader();
-                headers = ((ARCRecord) record).getHttpHeaders();
+                Header[] headersArray = ((ARCRecord) record).getHttpHeaders();
+                headers = Arrays.asList(headersArray);
             } else {
                 log.debug("Reading the headers");
                 skipStatusLine(record);
-                headers = HttpParser.parseHeaders(record,
+                Header[] headersArray = HttpParser.parseHeaders(record,
                         WARCConstants.DEFAULT_ENCODING);
+                headers = Arrays.asList(headersArray);
             }
 
             return headers;
@@ -1014,7 +1007,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
     /**
      * @see org.webcurator.core.reader.LogProvider#getLogFileAttributes(java.lang.String)
      */
-    public LogFilePropertiesDTO[] getLogFileAttributes(String aJob) {
+    public List<LogFilePropertiesDTO> getLogFileAttributes(String aJob) {
 
         List<LogFilePropertiesDTO> logFiles = new ArrayList<LogFilePropertiesDTO>();
 
@@ -1055,22 +1048,19 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
             }
         }
 
-        LogFilePropertiesDTO[] result = new LogFilePropertiesDTO[logFiles
-                .size()];
-        int i = 0;
+        List<LogFilePropertiesDTO> result = new ArrayList<>();
         for (LogFilePropertiesDTO r : logFiles) {
-            result[i] = r;
-            i++;
+            result.add(r);
         }
         return result;
     }
 
     /**
-     * @see DigitalAssetStore#purge(String[]).
+     * @see DigitalAssetStore#purge(List<String>).
      */
-    public void purge(String[] targetInstanceNames)
+    public void purge(List<String> targetInstanceNames)
             throws DigitalAssetStoreException {
-        if (null == targetInstanceNames || targetInstanceNames.length == 0) {
+        if (null == targetInstanceNames || targetInstanceNames.size() == 0) {
             return;
         }
 
@@ -1095,11 +1085,11 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore,
     }
 
     /**
-     * @see DigitalAssetStore#purgeAbortedTargetInstances(String[]).
+     * @see DigitalAssetStore#purgeAbortedTargetInstances(List<String>).
      */
-    public void purgeAbortedTargetInstances(String[] targetInstanceNames)
+    public void purgeAbortedTargetInstances(List<String> targetInstanceNames)
             throws DigitalAssetStoreException {
-        if (null == targetInstanceNames || targetInstanceNames.length == 0) {
+        if (null == targetInstanceNames || targetInstanceNames.size() == 0) {
             return;
         }
 

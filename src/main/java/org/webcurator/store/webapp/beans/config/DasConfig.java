@@ -341,7 +341,8 @@ public class DasConfig {
         ListFactoryBean runnableIndexers = runnableIndexers();
 
         try {
-            bean.setIndexers(runnableIndexers.getObject());
+            List<RunnableIndex> list = (List<RunnableIndex>)(List<?>) runnableIndexers.getObject();
+            bean.setIndexers(list);
         } catch (Exception e) {
             // This is to avoid an 'throws Exception' in the method signature, which would percolate to all related
             // beans. If the bean cannot be instantiated/populated properly, the application should not be able to start.
@@ -356,7 +357,7 @@ public class DasConfig {
     public ListFactoryBean runnableIndexers() {
         ListFactoryBean bean = new ListFactoryBean();
 
-        List sourceList = new ArrayList();
+        List<RunnableIndex> sourceList = new ArrayList<>();
         sourceList.add(wctIndexer());
         sourceList.add(waybackIndexer());
         sourceList.add(crawlLogIndexer());
