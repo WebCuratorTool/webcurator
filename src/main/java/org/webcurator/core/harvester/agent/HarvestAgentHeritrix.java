@@ -18,6 +18,7 @@ package org.webcurator.core.harvester.agent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -268,7 +269,8 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
 	            
 	            for(int i=0; i<numberOfFiles; i++) {
 	            	log.debug("Sending ARC " + (i+1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
-	            	digitalAssetStore.save(aJob, fileList[i]);
+                    Path savePath = fileList[i].toPath();
+                    digitalAssetStore.save(aJob, savePath);
 	            	log.debug("Finished sending ARC " + (i+1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
 	            }
 	        }
@@ -284,7 +286,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
 	            File[] fileList = getFileArray(harvester.getHarvestLogDir(), NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_LOGS)));
                 log.debug("Sending harvest logs to digital asset store for job " + aJob);
                 for(int i=0;i<fileList.length;i++) { 
-                	digitalAssetStore.save(aJob, Constants.DIR_LOGS, fileList[i]);
+                    digitalAssetStore.save(aJob, Constants.DIR_LOGS, fileList[i].toPath());
                 }
 	        }
 	        catch (Exception e) {
@@ -301,7 +303,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
 	        	File[] fileList = getFileArray(harvester.getHarvestDir(), NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_REPORTS)), NotEmptyFileFilter.notEmpty(new ExactNameFilter(PROFILE_NAME)));
                 log.debug("Sending harvest reports to digital asset store for job " + aJob);
                 for(int i=0;i<fileList.length;i++) { 
-                	digitalAssetStore.save(aJob, Constants.DIR_REPORTS, fileList[i]);
+                    digitalAssetStore.save(aJob, Constants.DIR_REPORTS, fileList[i].toPath());
                 }                
 	        }
 	        catch (Exception e) {
@@ -420,7 +422,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
 		return file;
 	}
 
-    /** @see LogProvider#getAQAFile(String, String) */
+	// TODO Is this no longer supported?
 	public File getAQAFile(String aJob, String aFileName) {
 		return null;
 	}
@@ -450,7 +452,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
 	}
     
 	/** @see LogProvider#getLogFileAttributes(String) */
-	public LogFilePropertiesDTO[] getLogFileAttributes(String aJob) {
+	public List<LogFilePropertiesDTO> getLogFileAttributes(String aJob) {
 		List<LogFilePropertiesDTO> logFiles = new ArrayList<LogFilePropertiesDTO>();
 		
 		Harvester harvester = getHarvester(aJob);
@@ -478,11 +480,10 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         		lf.setLastModifiedDate(new Date(f.lastModified()));
         		logFiles.add(lf); 
             }                    
-        }		
-        LogFilePropertiesDTO[] result = new LogFilePropertiesDTO[logFiles.size()];
-        int i = 0;
+        }
+        List<LogFilePropertiesDTO> result = new ArrayList<>();
         for(LogFilePropertiesDTO r: logFiles) {
-        	result[i] = r; i++;
+            result.add(r);
         }
 		return result;
 	}
@@ -753,11 +754,11 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
 	}
 
 	/**
-	 * @see org.webcurator.core.harvester.agent.HarvestAgent#purgeAbortedTargetInstances(String[]).
+	 * @see org.webcurator.core.harvester.agent.HarvestAgent#purgeAbortedTargetInstances(List<String>).
 	 */
-	public void purgeAbortedTargetInstances(String[] targetInstanceNames) {
+	public void purgeAbortedTargetInstances(List<String> targetInstanceNames) {
 		
-		if (null == targetInstanceNames || targetInstanceNames.length == 0) {
+		if (null == targetInstanceNames || targetInstanceNames.size() == 0) {
 			return;
 		}
 		
@@ -774,7 +775,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
             if (log.isDebugEnabled()) {
                 log.debug("Failed to complete purge of aborted instance data: " + e.getMessage());
             }
-		}				
+		}
 	}
 
 	public boolean isValidProfile(String profile) {

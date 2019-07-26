@@ -1,5 +1,11 @@
 package org.webcurator.harvestagent.h1.webapp.beans.config;
 
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,23 +17,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.scheduling.quartz.JobDetailBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.springframework.scheduling.quartz.SimpleTriggerBean;
 import org.webcurator.core.check.*;
 import org.webcurator.core.harvester.agent.HarvestAgentHeritrix;
 import org.webcurator.core.harvester.agent.schedule.HarvestAgentHeartBeatJob;
 import org.webcurator.core.harvester.agent.schedule.HarvestCompleteConfig;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.core.reader.LogReaderImpl;
-import org.webcurator.core.store.DigitalAssetStoreSOAPClient;
+import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.DigitalAssetStoreClient;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Contains configuration that used to be found in {@code wct-agent.xml}. This
@@ -214,39 +218,36 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     @Autowired(required = false) // autowire="default" and default-autowire="no"
-    public DigitalAssetStoreSOAPClient digitalAssetStore() {
-        DigitalAssetStoreSOAPClient bean = new DigitalAssetStoreSOAPClient();
-        bean.setService(digitalAssetStoreService);
-        bean.setHost(digitalAssetStoreHost);
-        bean.setPort(digitalAssetStorePort);
+    public DigitalAssetStore digitalAssetStore() {
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort);
 
         return bean;
     }
 
     @Bean
-    public JobDetailBean heartbeatJob() {
-        JobDetailBean bean = new JobDetailBean();
-        bean.setGroup("HeartBeatGroup");
-        bean.setName("HeartBeat");
-        bean.setJobClass(HarvestAgentHeartBeatJob.class);
-
-        Map<String, Object> jobDataMap = new HashMap<>();
+    public JobDetail heartbeatJob() {
+        JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("harvestAgent", harvestAgent());
         jobDataMap.put("notifier", harvestCoordinatorNotifier());
 
-        bean.setJobDataAsMap(jobDataMap);
+        JobDetail bean = JobBuilder.newJob(HarvestAgentHeartBeatJob.class)
+                .withIdentity("HeartBeat", "HeartBeatGroup")
+                .usingJobData(jobDataMap)
+                .build();
 
         return bean;
     }
 
     @Bean
-    public SimpleTriggerBean heartbeatTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("HeartBeatTriggerGroup");
-        bean.setName("HeartBeatTrigger");
-        bean.setJobDetail(heartbeatJob());
-        bean.setStartDelay(heartbeatTriggerStartDelay);
-        bean.setRepeatInterval(heartbeatTriggerRepeatInterval);
+    public Trigger heartbeatTrigger() {
+        Date startTime = new Date(System.currentTimeMillis() + heartbeatTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("HeartBeatTrigger", "HeartBeatTriggerGroup")
+                .forJob(heartbeatJob())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInMilliseconds(heartbeatTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -383,13 +384,15 @@ public class AgentConfig {
     }
 
     @Bean
-    public SimpleTriggerBean checkProcessorTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("CheckProcessorTriggerGroup");
-        bean.setName("CheckProcessorTrigger");
-        bean.setJobDetail(checkProcessorJob().getObject());
-        bean.setStartDelay(checkProcessorTriggerStartDelay);
-        bean.setRepeatInterval(checkProcessorTriggerRepeatInterval);
+    public Trigger checkProcessorTrigger() {
+        Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("CheckProcessorTrigger", "CheckProcessorTriggerGroup")
+                .forJob(checkProcessorJob().getObject())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
