@@ -364,7 +364,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
                 for (int i = 0; i < numberOfFiles; i++) {
                     log.debug("Sending ARC " + (i + 1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
-                    digitalAssetStore.save(aJob, fileList[i]);
+                    digitalAssetStore.save(aJob, fileList[i].toPath());
                     log.debug("Finished sending ARC " + (i + 1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
                 }
 
@@ -385,7 +385,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
                 File[] fileList = getFileArray(harvester.getHarvestLogDir(), NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_LOGS)));
                 log.info("Sending harvest logs to digital asset store for job " + aJob);
                 for (int i = 0; i < fileList.length; i++) {
-                    digitalAssetStore.save(aJob, Constants.DIR_LOGS, fileList[i]);
+                    digitalAssetStore.save(aJob, Constants.DIR_LOGS, fileList[i].toPath());
                 }
             } catch (Exception e) {
                 if (log.isErrorEnabled()) {
@@ -403,7 +403,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
                 File[] fileList = getFileArray(reportsDir, NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_REPORTS)), NotEmptyFileFilter.notEmpty(new ExactNameFilter(PROFILE_NAME)));
                 log.info("Sending harvest reports to digital asset store for job " + aJob);
                 for (int i = 0; i < fileList.length; i++) {
-                    digitalAssetStore.save(aJob, Constants.DIR_REPORTS, fileList[i]);
+                    digitalAssetStore.save(aJob, Constants.DIR_REPORTS, fileList[i].toPath());
                 }
             } catch (Exception e) {
                 if (log.isErrorEnabled()) {
@@ -561,7 +561,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     /**
      * @see LogProvider#getLogFileAttributes(String)
      */
-    public LogFilePropertiesDTO[] getLogFileAttributes(String aJob) {
+    public List<LogFilePropertiesDTO> getLogFileAttributes(String aJob) {
         List<LogFilePropertiesDTO> logFiles = new ArrayList<LogFilePropertiesDTO>();
 
         Harvester harvester = getHarvester(aJob);
@@ -594,11 +594,9 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             }
         }
 
-        LogFilePropertiesDTO[] result = new LogFilePropertiesDTO[logFiles.size()];
-        int i = 0;
+        List<LogFilePropertiesDTO> result = new ArrayList<>();
         for (LogFilePropertiesDTO r : logFiles) {
-            result[i] = r;
-            i++;
+            result.add(r);
         }
         return result;
     }
@@ -875,11 +873,11 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     }
 
     /**
-     * @see HarvestAgent#purgeAbortedTargetInstances(String[]).
+     * @see HarvestAgent#purgeAbortedTargetInstances(List<String>).
      */
-    public void purgeAbortedTargetInstances(String[] targetInstanceNames) {
+    public void purgeAbortedTargetInstances(List<String> targetInstanceNames) {
 
-        if (null == targetInstanceNames || targetInstanceNames.length == 0) {
+        if (null == targetInstanceNames || targetInstanceNames.size() == 0) {
             return;
         }
 
