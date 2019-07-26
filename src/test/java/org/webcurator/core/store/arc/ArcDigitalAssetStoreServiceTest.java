@@ -3,6 +3,7 @@ package org.webcurator.core.store.arc;
 import static org.junit.Assert.*;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.*;
 
 import org.junit.BeforeClass;
@@ -66,9 +67,9 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 		HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
 				TestCARC, 200, true);
 
-		File res = testInstance.getResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
+		Path res = testInstance.getResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
 		assertTrue(res != null);
-		assertTrue(res.length() == length);
+		assertTrue(res.toFile().length() == length);
 	}
 
 	@Test
@@ -80,9 +81,9 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 		HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
 				TestCWARC, 200, true);
 
-		File res = testInstance.getResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
+		Path res = testInstance.getResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
 		assertTrue(res != null);
-		assertTrue(res.length() == reslength);
+		assertTrue(res.toFile().length() == reslength);
 	}
 
 	@Test
@@ -120,9 +121,9 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 		HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
 				TestCARC, 200, true);
 
-		Header[] headers = testInstance.getHeaders(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
+		List<Header> headers = testInstance.getHeaders(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
 		assertTrue(headers != null);
-		assertTrue(headers.length == 4);
+		assertTrue(headers.size() == 4);
 	}
 
 	@Test
@@ -133,9 +134,9 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 		HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
 				TestCWARC, 200, true);
 
-		Header[] headers = testInstance.getHeaders(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
+		List<Header> headers = testInstance.getHeaders(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
 		assertTrue(headers != null);
-		assertTrue(headers.length == 4);
+		assertTrue(headers.size() == 4);
 	}
 
 	/**
