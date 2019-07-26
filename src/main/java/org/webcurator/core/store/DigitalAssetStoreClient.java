@@ -103,7 +103,7 @@ public class DigitalAssetStoreClient implements DigitalAssetStore {
             throws DigitalAssetStoreException {
         RestTemplate restTemplate = new RestTemplate();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.GET_RESOURCE))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.RESOURCE))
                 .queryParam("harvest-result-number", harvestResultNumber)
                 .queryParam("resource", resource);
 
@@ -138,7 +138,7 @@ public class DigitalAssetStoreClient implements DigitalAssetStore {
         RestTemplate restTemplate = new RestTemplate();
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.GET_HEADERS))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.HEADERS))
                 .queryParam("harvest-result-number", harvestResultNumber)
                 .queryParam("resource", resource);
 
@@ -196,13 +196,14 @@ public class DigitalAssetStoreClient implements DigitalAssetStore {
                 null, Boolean.class);
     }
 
-    public void submitToArchive(String targetInstanceOid, String SIP, Map xAttributes, int harvestNumber)
+    public void submitToArchive(String targetInstanceOid, String sip, Map xAttributes, int harvestNumber)
             throws DigitalAssetStoreException {
         RestTemplate restTemplate = new RestTemplate();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SUBMIT_TO_ARCHIVE))
-                .queryParam("sip", SIP)
-                .queryParam("x-attributes", xAttributes);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.ARCHIVE))
+                .queryParam("sip", sip)
+                .queryParam("x-attributes", xAttributes)
+                .queryParam("harvest-number", harvestNumber);
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
@@ -213,7 +214,7 @@ public class DigitalAssetStoreClient implements DigitalAssetStore {
     public byte[] getSmallResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException {
         RestTemplate restTemplate = new RestTemplate();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.GET_SMALL_RESOURCE))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SMALL_RESOURCE))
                 .queryParam("harvest-result-number", harvestResultNumber)
                 .queryParam("resource", resource);
 

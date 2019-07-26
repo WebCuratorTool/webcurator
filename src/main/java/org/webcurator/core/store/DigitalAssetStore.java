@@ -151,14 +151,14 @@ public interface DigitalAssetStore {
 	 * send the unique identifier returned from the archive. 
 	 * 
 	 * @param targetInstanceOid	The OID of the target instance.
-	 * @param SIP				The XML SIP file.		
+	 * @param sip				The XML SIP file.
 	 * @param xAttributes		A Map of indexed attributes. This map may or 
 	 * 							may not be used by the archive adapter 
 	 * 							implementation.
 	 * @param harvestNumber     The number of the harvest result to submit.
 	 * @throws DigitalAssetStoreException if any errors occur.
 	 */
-	void submitToArchive(String targetInstanceOid, String SIP, Map xAttributes, int harvestNumber)
+	void submitToArchive(String targetInstanceOid, String sip, Map xAttributes, int harvestNumber)
             throws DigitalAssetStoreException;
 
 	/**

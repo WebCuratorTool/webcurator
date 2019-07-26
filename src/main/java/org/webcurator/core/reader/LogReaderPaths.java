@@ -6,7 +6,7 @@ public class LogReaderPaths {
     public static final String LOG_FILE_PROPERTIES = ROOT_PATH + "/{job}/properties";
     public static final String LOG_FILE_LINE_COUNT = ROOT_PATH + "/{job}/line-count";
     public static final String LOG_FILE_TAIL = ROOT_PATH + "/{job}/tail";
-    public static final String LOG_FILE_GET = ROOT_PATH + "/{job}";
+    public static final String LOG_FILE_JOB = ROOT_PATH + "/{job}";
     public static final String LOG_FILE_FIRST_LINE_BEGINNING = ROOT_PATH + "/{job}/first-line-beginning";
     public static final String LOG_FILE_FIRST_LINE_CONTAINING_MATCH = ROOT_PATH + "/{job}/first-line-containing-match";
     public static final String LOG_FILE_FIRST_LINE_AFTER_TIMESTAMP = ROOT_PATH + "/{job}/first-line-containing-timestamp";

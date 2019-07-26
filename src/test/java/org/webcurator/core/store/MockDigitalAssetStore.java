@@ -101,7 +101,7 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 
 	}
 
-	public void submitToArchive(String targetInstanceOid, String SIP,
+	public void submitToArchive(String targetInstanceOid, String sip,
 			Map attributes, int harvestNumber)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub

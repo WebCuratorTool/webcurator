@@ -62,7 +62,7 @@ public class LogReaderController {
     /* (non-Javadoc)
      * @see org.webcurator.core.reader.LogReader#get(java.lang.String, java.lang.String, int, int)
      */
-    @GetMapping(path = LogReaderPaths.LOG_FILE_GET)
+    @GetMapping(path = LogReaderPaths.LOG_FILE_JOB)
     public List<String> get(@PathVariable(value = "job") String job,
                             @RequestParam("filename") String aFileName,
                             @RequestParam(value = "start-line") int startLine,

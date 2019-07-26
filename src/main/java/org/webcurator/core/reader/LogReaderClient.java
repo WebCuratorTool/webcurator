@@ -127,7 +127,7 @@ public class LogReaderClient implements LogReader {
      */
     public List<String> get(String job, String filename, int startLine, int numberOfLines) {
         RestTemplate restTemplate = new RestTemplate();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_GET))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_JOB))
                 .queryParam("start-line", startLine)
                 .queryParam("number-of-lines", numberOfLines);
 
