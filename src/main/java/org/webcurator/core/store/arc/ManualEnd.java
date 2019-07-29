@@ -16,15 +16,20 @@
 package org.webcurator.core.store.arc;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import org.webcurator.core.util.WCTSoapCall;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class ManualEnd {
 	
@@ -92,9 +97,7 @@ public class ManualEnd {
 	        System.out.println("finished.");
 	    	
 	        System.out.print("Sending to WCT Core... ");
-			WCTSoapCall call = new WCTSoapCall(host, port, service, "harvestComplete");
-	        call.regTypes(ArcHarvestResultDTO.class, ArcHarvestResourceDTO.class, ArcHarvestFileDTO.class);
-	        call.invoke(ahr);
+	        harvestComplete(host, port, ahr);
 	        System.out.println("finished.");
 		}
 		catch(NumberFormatException ex) { 
@@ -104,10 +107,32 @@ public class ManualEnd {
 			t.printStackTrace();
 		}
 	}
-	
-	private static void syntax() {
+
+    private static void harvestComplete(String host, int port, HarvestResultDTO harvestResultDTO) {
+        RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
+        restTemplateBuilder.errorHandler(new RestClientResponseHandler())
+                .setConnectTimeout(Duration.ofSeconds(15L));
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(host, port, HarvestCoordinatorPaths.HARVEST_COMPLETE))
+                .queryParam("harvest-result", harvestResultDTO);
+
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                null, Void.class);
+    }
+
+    private static void syntax() {
     	System.out.println("Syntax: ");
     	System.out.println(" -ti tiOid -hrnum 1 -host hostname -port portnumber -compressed [true|false] -baseDir basedir -ext extension");
     	System.exit(1);
 	}
+
+    public static String baseUrl(String host, int port) {
+        return host + ":" + port;
+    }
+
+    public static String getUrl(String host, int port, String appendUrl) {
+        return baseUrl(host, port) + appendUrl;
+    }
 }

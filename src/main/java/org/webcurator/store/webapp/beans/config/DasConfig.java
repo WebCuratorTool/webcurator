@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ListFactoryBean;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -274,7 +275,6 @@ public class DasConfig {
         WebServiceEndPoint bean = new WebServiceEndPoint();
         bean.setHost(wctCoreWsEndpointHost);
         bean.setPort(wctCoreWsEndpointPort);
-        bean.setService(wctCoreWsEndpointService);
 
         return bean;
     }
@@ -284,7 +284,7 @@ public class DasConfig {
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService();
+        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(new RestTemplateBuilder());
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         bean.setArchive(createArcDigitalAssetStoreServiceArchive());
         bean.setIndexer(indexer());

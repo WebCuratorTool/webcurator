@@ -20,7 +20,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.webcurator.core.archive.ArchiveFile;
-import org.webcurator.core.util.WCTSoapCall;
 import org.webcurator.test.BaseWCTStoreTest;
 
 public class FileArchiveTest extends BaseWCTStoreTest<FileArchive> {

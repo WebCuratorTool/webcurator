@@ -30,12 +30,7 @@
 	<level value="FATAL" />	
 	<appender-ref ref="GeneralLog"/>	  	
   </logger>
-  
-  <logger name="org.apache.axis">
-	<level value="INFO" />	
-	<appender-ref ref="GeneralLog"/>	  	
-  </logger>
-    
+
   <logger name="org.crawler">
 	<level value="INFO" />	
 	<appender-ref ref="GeneralLog"/>	  	
