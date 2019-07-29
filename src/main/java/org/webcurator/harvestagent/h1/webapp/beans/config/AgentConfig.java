@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -206,7 +207,6 @@ public class AgentConfig {
     @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
         HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier();
-        bean.setService(harvestCoordinatorNotifierService);
         bean.setHost(harvestCoordinatorNotifierHost);
         bean.setPort(harvestCoordinatorNotifierPort);
         //bean.setAgent(harvestAgent());
@@ -219,7 +219,8 @@ public class AgentConfig {
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     @Autowired(required = false) // autowire="default" and default-autowire="no"
     public DigitalAssetStore digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort);
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort,
+                new RestTemplateBuilder());
 
         return bean;
     }

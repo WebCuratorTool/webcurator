@@ -116,7 +116,7 @@ public class HarvestAgentController implements HarvestAgent {
 
     @Override
     @PostMapping(path = HarvestAgentPaths.MEMORY_WARNING)
-    public void setMemoryWarning( @RequestParam(value = "memory-warning") boolean memoryWarning) {
+    public void setMemoryWarning(@RequestParam(value = "memory-warning") boolean memoryWarning) {
         harvestAgent.setMemoryWarning(memoryWarning);
     }
 
@@ -128,7 +128,7 @@ public class HarvestAgentController implements HarvestAgent {
 
     @Override
     @GetMapping(path = HarvestAgentPaths.IS_VALID_PROFILE)
-    public boolean isValidProfile( @RequestParam(value = "profile") String profile) {
+    public boolean isValidProfile(@PathVariable(value = "profile") String profile) {
         return harvestAgent.isValidProfile(profile);
     }
 
