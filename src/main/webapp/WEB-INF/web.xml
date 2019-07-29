@@ -83,11 +83,7 @@
 	<listener>
 		<listener-class>org.webcurator.ui.listener.AcegiLogoutListener</listener-class>
 	</listener>
-	
-    <listener>
-        <listener-class>org.apache.axis.transport.http.AxisHTTPSessionListener</listener-class>
-    </listener>	
-		  
+
 	<servlet>
 		<servlet-name>SchedulerServlet</servlet-name>
 		<servlet-class>org.webcurator.core.common.StartupServlet</servlet-class>
@@ -113,21 +109,7 @@
 		</init-param>
 		<load-on-startup>2</load-on-startup>
 	</servlet>	
-	
-	<servlet>
-	<display-name>Apache-Axis Servlet</display-name>
-		<servlet-name>AxisServlet</servlet-name>
-		<servlet-class>
-		    org.apache.axis.transport.http.AxisServlet
-		</servlet-class>
-		<load-on-startup>3</load-on-startup>
-	</servlet>	
-	
-	<servlet-mapping>
-		<servlet-name>AxisServlet</servlet-name>
-		<url-pattern>/services/*</url-pattern>
-	</servlet-mapping>	
-	
+
 	<servlet-mapping>
 		<servlet-name>wct</servlet-name>
 		<url-pattern>*.html</url-pattern>
