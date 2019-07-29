@@ -26,9 +26,7 @@ public class WebServiceEndPoint {
 	private String host = null;
 	/** The port number */
 	private int port = 0;
-	/** The name of the service */
-	private String service = null;
-	
+
 	/**
 	 * No-arg constructor to allow Spring method-based injection.
 	 */
@@ -38,12 +36,10 @@ public class WebServiceEndPoint {
 	 * Complete constructor for the WebServiceEndPoint.
 	 * @param host    The WS host.
 	 * @param port    The WS port.
-	 * @param service The WS service name.
 	 */
-	public WebServiceEndPoint(String host, int port, String service) {
+	public WebServiceEndPoint(String host, int port) {
 		this.host = host;
 		this.port = port;
-		this.service = service;
 	}
 	/**
 	 * @return the host
@@ -69,17 +65,4 @@ public class WebServiceEndPoint {
 	public void setPort(int port) {
 		this.port = port;
 	}
-	/**
-	 * @return the service
-	 */
-	public String getService() {
-		return service;
-	}
-	/**
-	 * @param service the service to set
-	 */
-	public void setService(String service) {
-		this.service = service;
-	}
-	
 }

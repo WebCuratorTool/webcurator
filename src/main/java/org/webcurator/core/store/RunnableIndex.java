@@ -2,8 +2,6 @@ package org.webcurator.core.store;
 
 import java.io.File;
 
-import javax.xml.rpc.ServiceException;
-
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 
 public interface RunnableIndex extends Runnable {
@@ -13,9 +11,9 @@ public interface RunnableIndex extends Runnable {
 	RunnableIndex getCopy();
 	void setMode(Mode mode);
 	void initialise(ArcHarvestResultDTO result, File directory);
-	Long begin() throws ServiceException;
-	void indexFiles(Long harvestResultOid) throws ServiceException;
-	void markComplete(Long harvestResultOid) throws ServiceException;
+	Long begin();
+	void indexFiles(Long harvestResultOid);
+	void markComplete(Long harvestResultOid);
 	void removeIndex(Long harvestResultOid);
 	boolean isEnabled();
 }

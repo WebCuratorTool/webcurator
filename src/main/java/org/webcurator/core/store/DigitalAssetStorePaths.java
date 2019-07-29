@@ -13,7 +13,7 @@ public class DigitalAssetStorePaths {
     public static final String INITIATE_INDEXING = ROOT_PATH + "/initiate-index";
     public static final String INITIATE_REMOVE_INDEXES = ROOT_PATH + "/initiate-index-remove";
     public static final String CHECK_INDEXING = ROOT_PATH + "/check-indexing";
-    public static final String GET_CUSTOM_DEPOSIT_FORM_DETAILS = ROOT_PATH + "/custom-deposit-form-details";
+    public static final String CUSTOM_DEPOSIT_FORM_DETAILS = ROOT_PATH + "/custom-deposit-form-details";
 
     private DigitalAssetStorePaths() {
     }

@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.test.BaseWCTTest;
 
@@ -16,7 +17,7 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-        testInstance = new DigitalAssetStoreClient("wctstore.natlib.govt.nz", 19090);
+        testInstance = new DigitalAssetStoreClient("wctstore.natlib.govt.nz", 19090, new RestTemplateBuilder());
 	}
 
 	@Test

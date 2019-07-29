@@ -1,5 +1,6 @@
 package org.webcurator.core.store;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.reader.LogReaderClient;
 import org.webcurator.core.reader.LogReader;
 
@@ -12,7 +13,9 @@ public class DigitalAssetStoreFactoryImpl implements DigitalAssetStoreFactory {
 	private DigitalAssetStoreConfig digitalAssetStoreConfig;
 
     public DigitalAssetStore getDAS() {
-        DigitalAssetStoreClient store = new DigitalAssetStoreClient(digitalAssetStoreConfig.getHost(), digitalAssetStoreConfig.getPort());
+        DigitalAssetStoreClient store = new DigitalAssetStoreClient(digitalAssetStoreConfig.getHost(),
+                digitalAssetStoreConfig.getPort(),
+                new RestTemplateBuilder());
 
         return store;
     }

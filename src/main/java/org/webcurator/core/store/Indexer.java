@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.RunnableIndex.Mode;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
@@ -217,8 +218,7 @@ public class Indexer {
 			
 			String host = cl.getArg("host");
 			int port = Integer.parseInt(cl.getArg("port"));
-			String service = "/wct/services/urn:WebCuratorTool";
-			WebServiceEndPoint wsEndPoint = new WebServiceEndPoint(host, port, service);
+			WebServiceEndPoint wsEndPoint = new WebServiceEndPoint(host, port);
 			Long targetInstanceOid = Long.parseLong(cl.getArg("ti"));
 			int hrnum = Integer.parseInt(cl.getArg("hrnum"));
 			
@@ -242,7 +242,7 @@ public class Indexer {
 	        dto.setCreationDate(new Date());
 	        
 	        Indexer indexer = new Indexer(true);
-	        WCTIndexer wctIndexer = new WCTIndexer();
+	        WCTIndexer wctIndexer = new WCTIndexer(new RestTemplateBuilder());
 	        wctIndexer.setDoCreate(true);
 	        wctIndexer.setWsEndPoint(wsEndPoint);
 	        List<RunnableIndex> indexers = new ArrayList<RunnableIndex>();

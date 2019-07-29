@@ -18,12 +18,15 @@ package org.webcurator.core.reader;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
 import javax.activation.DataHandler;
@@ -44,7 +47,8 @@ public class LogReaderClient implements LogReader {
     private String host;
     /** the port to communicate on. */
     private int port;
-
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
 
     /**
      * Constructor to initialise the host, port and service.
@@ -54,6 +58,7 @@ public class LogReaderClient implements LogReader {
     public LogReaderClient(String host, int port) {
         this.host = host;
         this.port = port;
+        restTemplateBuilder.errorHandler(new RestClientResponseHandler());
     }
 
     public String baseUrl() {
@@ -68,8 +73,7 @@ public class LogReaderClient implements LogReader {
      * @see org.webcurator.core.reader.LogReader#listLogFiles(java.lang.String)
      */
     public List<String> listLogFiles(String job) {
-        RestTemplate restTemplate = new RestTemplate();
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
+        RestTemplate restTemplate = restTemplateBuilder.build();
         ResponseEntity<List<String>> listResponse = restTemplate.exchange(getUrl(LogReaderPaths.LOG_FILE),
                 HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() { });
         List<String> logFiles = listResponse.getBody();
@@ -81,8 +85,7 @@ public class LogReaderClient implements LogReader {
      * @see org.webcurator.core.reader.LogReader#listLogFileAttributes(java.lang.String)
      */
     public List<LogFilePropertiesDTO> listLogFileAttributes(String job) {
-        RestTemplate restTemplate = new RestTemplate();
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         ResponseEntity<List<LogFilePropertiesDTO>> listResponse = restTemplate.exchange(
@@ -101,7 +104,6 @@ public class LogReaderClient implements LogReader {
                 .queryParam("filename", filename)
                 .queryParam("number-of-lines", numberOfLines);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         return getStringList(job, uriComponentsBuilder);
     }
 
@@ -109,12 +111,11 @@ public class LogReaderClient implements LogReader {
      * @see org.webcurator.core.reader.LogReader#countLines(java.lang.String, java.lang.String)
      */
     public Integer countLines(String job, String filename) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_LINE_COUNT))
                 .queryParam("filename", filename);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         Integer lineCount = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 Integer.class);
@@ -126,12 +127,12 @@ public class LogReaderClient implements LogReader {
      * @see org.webcurator.core.reader.LogReader#get(java.lang.String, java.lang.String, int, int)
      */
     public List<String> get(String job, String filename, int startLine, int numberOfLines) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_JOB))
+                .queryParam("filename", filename)
                 .queryParam("start-line", startLine)
                 .queryParam("number-of-lines", numberOfLines);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         ResponseEntity<List<String>> listResponse = restTemplate.exchange(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
@@ -150,7 +151,6 @@ public class LogReaderClient implements LogReader {
                 .queryParam("result-oid", resultOid)
                 .queryParam("url", url);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         return getStringList(job, uriComponentsBuilder);
     }
 
@@ -158,13 +158,12 @@ public class LogReaderClient implements LogReader {
      * @see LogReader#findFirstLineBeginning(String, String, String). 
      */
     public Integer findFirstLineBeginning(String job, String filename, String match) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_FIRST_LINE_BEGINNING))
                 .queryParam("filename", filename)
                 .queryParam("match", match);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         Integer firstLine = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 Integer.class);
@@ -176,13 +175,12 @@ public class LogReaderClient implements LogReader {
      * @see LogReader#findFirstLineContaining(String, String, String). 
      */
     public Integer findFirstLineContaining(String job, String filename, String match) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_FIRST_LINE_CONTAINING_MATCH))
                 .queryParam("filename", filename)
                 .queryParam("match", match);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         Integer firstLine = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 Integer.class);
@@ -194,13 +192,12 @@ public class LogReaderClient implements LogReader {
      * @see LogReader#findFirstLineAfterTimeStamp(String, String, Long). 
      */
     public Integer findFirstLineAfterTimeStamp(String job, String filename, Long timestamp) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_FIRST_LINE_AFTER_TIMESTAMP))
                 .queryParam("filename", filename)
                 .queryParam("timestamp", timestamp);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         Integer firstLine = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 Integer.class);
@@ -221,12 +218,11 @@ public class LogReaderClient implements LogReader {
                 .queryParam("skip-first-matches", skipFirstMatches)
                 .queryParam("number-of-matches", numberOfMatches);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         return getStringList(job, uriComponentsBuilder);
     }
 
     private List<String> getStringList(String job, UriComponentsBuilder uriComponentsBuilder) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         ResponseEntity<List<String>> listResponse = restTemplate.exchange(
@@ -238,12 +234,11 @@ public class LogReaderClient implements LogReader {
     }
 
     public File retrieveLogfile(String job, String filename) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_RETRIEVE_LOG_FILE))
                 .queryParam("filename", filename);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         ResponseEntity<DataHandler> listResponse = restTemplate.exchange(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),

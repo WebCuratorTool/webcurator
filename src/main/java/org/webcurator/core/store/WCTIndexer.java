@@ -6,16 +6,20 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.xml.rpc.ServiceException;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.webcurator.core.util.WCTSoapCall;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 
+// TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public class WCTIndexer extends IndexerBase
 {
 	private static Log log = LogFactory.getLog(WCTIndexer.class);
@@ -24,30 +28,38 @@ public class WCTIndexer extends IndexerBase
 	private File directory;
 	private boolean doCreate = false;
 
-	public WCTIndexer()
-	{
-	}
-	
-	protected WCTIndexer(WCTIndexer original)
+    public WCTIndexer() {
+        super();
+    }
+
+    public WCTIndexer(RestTemplateBuilder restTemplateBuilder) {
+        super(restTemplateBuilder);
+    }
+
+    protected WCTIndexer(WCTIndexer original)
 	{
 		super(original);
 	}
-	
-	protected Long createIndex() throws ServiceException {
+
+    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
+    protected Long createIndex() {
 		// Step 1. Save the Harvest Result to the database.
 		log.info("Initialising index for job " + getResult().getTargetInstanceOid());
-        
-        WCTSoapCall call = getCall("createHarvestResult");
-        call.regTypes(ArcHarvestResultDTO.class);
-        Long harvestResultOid = (Long) call.infiniteRetryingInvoke(30000l, getResult());
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.CREATE_HARVEST_RESULT))
+                .queryParam("harvest-result", getResult());
+
+        Long harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null,
+                Long.class);
         log.info("Initialised index for job " + getResult().getTargetInstanceOid());
-        
+
         return harvestResultOid;
 	}
 	
 	@Override
-	public Long begin() throws ServiceException
-	{
+	public Long begin() {
     	Long harvestResultOid = null;
     	if(doCreate) { 
     		harvestResultOid = this.createIndex();
@@ -62,7 +74,7 @@ public class WCTIndexer extends IndexerBase
 	}
 	
 	@Override
-	public void indexFiles(Long harvestResultOid) throws ServiceException {
+	public void indexFiles(Long harvestResultOid) {
 		// Step 2. Save the Index for each file.
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
         File[] fileList = directory.listFiles(new ARCFilter());
@@ -81,18 +93,12 @@ public class WCTIndexer extends IndexerBase
                 	log.info("Indexing " + ahf.getName());
                     Map<String, HarvestResourceDTO> resources = ahf.index();
                     Collection<HarvestResourceDTO> dtos = resources.values();
-                    
-                    // Submit to the server.
-                    log.info("Sending Arc Harvest File " + ahf.getName());
-                    WCTSoapCall call2 = getCall("addToHarvestResult");
-                    call2.regTypes(ArcHarvestFileDTO.class);
-                    call2.infiniteRetryingInvoke(30000l, harvestResultOid, ahf);
-                   
+
+                    addToHarvestResult(harvestResultOid, ahf);
+
                     log.info("Sending Resources for " + ahf.getName());
-                    WCTSoapCall call3 = getCall("addHarvestResources");
-                    call3.regTypes(ArcHarvestResourceDTO.class);
-                    call3.infiniteRetryingInvoke(30000l, harvestResultOid, dtos);
-                   
+                    addHarvestResources(harvestResultOid, dtos);
+
                     log.info("Completed indexing of " + ahf.getName());
                 }
                 catch(IOException ex) { 
@@ -106,7 +112,34 @@ public class WCTIndexer extends IndexerBase
         log.info("Completed indexing for job " + getResult().getTargetInstanceOid());		
 	}
 
-	@Override
+    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
+    protected void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO arcHarvestFileDTO) {
+        // Submit to the server.
+        log.info("Sending Arc Harvest File " + arcHarvestFileDTO.getName());
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESULT))
+                .queryParam("harvest-file", arcHarvestFileDTO);
+
+        Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+                null, Void.class);
+    }
+
+    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
+    protected void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> harvestResourceDTOS) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES))
+                .queryParam("harvest-resources", harvestResourceDTOS);
+
+        Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+                null, Void.class);
+    }
+
+    @Override
 	public String getName() {
 		return getClass().getCanonicalName();
 	}

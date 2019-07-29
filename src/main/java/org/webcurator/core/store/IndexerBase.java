@@ -2,22 +2,29 @@ package org.webcurator.core.store;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Map;
 
-import javax.xml.rpc.ServiceException;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.util.WCTSoapCall;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 
+// TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public abstract class IndexerBase implements RunnableIndex {
 	private static Log log = LogFactory.getLog(IndexerBase.class);
 
 	private WebServiceEndPoint wsEndPoint;
 	private boolean defaultIndexer = false;
 	private Mode mode = Mode.INDEX;
+    protected final RestTemplateBuilder restTemplateBuilder;
 
 	public class ARCFilter implements FilenameFilter {
 	    public boolean accept(File dir, String name) {
@@ -28,22 +35,34 @@ public abstract class IndexerBase implements RunnableIndex {
 	    }
 	}
 
-	protected WCTSoapCall getCall(String method) throws ServiceException
-	{
-		return new WCTSoapCall(wsEndPoint.getHost(), wsEndPoint.getPort(), wsEndPoint.getService(), method);
-	}
-	
-	public IndexerBase()
-	{
-	}
-	
-	protected IndexerBase(IndexerBase original)
+    public IndexerBase()
+    {
+        this(new RestTemplateBuilder());
+    }
+
+    public IndexerBase(RestTemplateBuilder restTemplateBuilder)
+    {
+        this.restTemplateBuilder = restTemplateBuilder;
+        restTemplateBuilder.errorHandler(new RestClientResponseHandler());
+    }
+
+
+    protected IndexerBase(IndexerBase original)
 	{
 		this.defaultIndexer = original.defaultIndexer;
 		this.wsEndPoint = original.wsEndPoint;
+        this.restTemplateBuilder = original.restTemplateBuilder;
 	}
-	
-	protected abstract ArcHarvestResultDTO getResult(); 
+
+    public String baseUrl() {
+        return wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+    }
+
+    public String getUrl(String appendUrl) {
+        return baseUrl() + appendUrl;
+    }
+
+    protected abstract ArcHarvestResultDTO getResult();
 	
 	@Override
 	public void setMode(Mode mode)
@@ -66,12 +85,7 @@ public abstract class IndexerBase implements RunnableIndex {
 				markComplete(harvestResultOid);
         		
         	}
-        }
-        catch(ServiceException ex) { 
-        	throw new WCTRuntimeException("Service Exception");
-        }
-        finally
-        {
+        } finally {
     		synchronized(Indexer.lock)
     		{
     			Indexer.removeRunningIndex(getName(), harvestResultOid);
@@ -80,17 +94,15 @@ public abstract class IndexerBase implements RunnableIndex {
 	}
 
 	@Override
-	public final void markComplete(Long harvestResultOid) throws ServiceException { 
-		
+	public final void markComplete(Long harvestResultOid) {
+
 		synchronized(Indexer.lock)
 		{
 			if(Indexer.lastRunningIndex(this.getName(), harvestResultOid))
 			{
 		        log.info("Marking harvest result for job " + getResult().getTargetInstanceOid() + " as ready");
-		        
-		        WCTSoapCall call3 = getCall("finaliseIndex");
-		        call3.infiniteRetryingInvoke(30000l, harvestResultOid);
-				
+                finaliseIndex(harvestResultOid);
+
 				log.info("Index for job " + getResult().getTargetInstanceOid() + " is now ready");
 			}
 
@@ -98,7 +110,18 @@ public abstract class IndexerBase implements RunnableIndex {
 		}
 	}
 
-	@Override
+    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
+    protected void finaliseIndex(Long harvestResultOid) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.FINALISE_INDEX));
+
+        Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+                null, Void.class);
+    }
+
+    @Override
 	public void removeIndex(Long harvestResultOid) { 
 		//Default implementation is to do nothing
 	}

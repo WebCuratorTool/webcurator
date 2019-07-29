@@ -3,9 +3,12 @@ package org.webcurator.core.harvester.agent;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.util.List;
@@ -32,6 +35,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      */
     private int port = 8080;
 
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
+
     /**
      * Constructor to initialise the host, port and service.
      *
@@ -41,6 +47,7 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
     public HarvestAgentClient(String host, int port) {
         this.host = host;
         this.port = port;
+        restTemplateBuilder.errorHandler(new RestClientResponseHandler());
     }
 
     public String baseUrl() {
@@ -55,23 +62,21 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#initiateHarvest(String, String, String)
      */
     public void initiateHarvest(String job, String profile, String seeds) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.INITIATE_HARVEST))
                 .queryParam("profile", profile)
                 .queryParam("seeds", seeds);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
 
     public void recoverHarvests(List<String> activeJobs) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RECOVER_HARVESTS))
                 .queryParam("active-jobs", activeJobs);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 null, Void.class);
     }
@@ -80,11 +85,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#restrictBandwidth(String, int)
      */
     public void restrictBandwidth(String job, int bandwidthLimit) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RESTRICT_BANDWIDTH))
                 .queryParam("bandwidth-limit", bandwidthLimit);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
@@ -94,10 +98,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#pause(String)
      */
     public void pause(String job) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PAUSE));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
@@ -107,10 +110,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#resume(String)
      */
     public void resume(String job) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RESUME));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
@@ -120,10 +122,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#abort(String)
      */
     public void abort(String job) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.ABORT));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
@@ -133,10 +134,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#stop(String)
      */
     public void stop(String job) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.STOP));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
@@ -153,10 +153,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#loadSettings(String)
      */
     public void loadSettings(String job) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.LOAD_SETTINGS));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
@@ -166,10 +165,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#pauseAll()
      */
     public void pauseAll() {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PAUSE_ALL));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 null, Void.class);
     }
@@ -178,10 +176,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#resumeAll()
      */
     public void resumeAll() {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RESUME_ALL));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 null, Void.class);
     }
@@ -190,11 +187,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#getStatus()
      */
     public HarvestAgentStatusDTO getStatus() {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.STATUS));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         HarvestAgentStatusDTO harvestAgentStatusDTO = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 HarvestAgentStatusDTO.class);
 
@@ -205,10 +201,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#getName()
      */
     public String getName() {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.NAME));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         String name = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand().toUri(), String.class);
 
         return name;
@@ -218,27 +213,36 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#getMemoryWarning()
      */
     public boolean getMemoryWarning() {
-        return getStatus().getMemoryWarning();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.MEMORY_WARNING));
+
+        Boolean memoryWarning = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand().toUri(), Boolean.class);
+
+        return memoryWarning;
     }
 
     /**
      * @see HarvestAgent#setMemoryWarning(boolean memoryWarning)
      */
     public void setMemoryWarning(boolean memoryWarning) {
-        if (log.isErrorEnabled()) {
-            log.error("Attempt to call unsupported method setMemoryWarning()");
-        }
+        RestTemplate restTemplate = restTemplateBuilder.build();;
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.MEMORY_WARNING))
+                .queryParam("memory-warning", memoryWarning);
+
+        // The service itself should throw the error if the call is unsupported (whereas it originally would throw the
+        // exception on the client.
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                null, Void.class);
     }
 
     /**
      * @see HarvestAgent#updateProfileOverrides(String, String)
      */
     public void updateProfileOverrides(String job, String profile) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.UPDATE_PROFILE_OVERRIDES))
                 .queryParam("profile", profile);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
@@ -248,23 +252,21 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#purgeAbortedTargetInstances(List<String>)
      */
     public void purgeAbortedTargetInstances(List<String> targetInstanceNames) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PURGE_ABORTED_TARGET_INSTANCES))
                 .queryParam("target-instance-names", targetInstanceNames);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 null, Void.class);
     }
 
     public boolean isValidProfile(String profile) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.IS_VALID_PROFILE));
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("profile", profile);
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Boolean.class);
+        Boolean result = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+                Boolean.class);
 
         return result;
     }
@@ -278,17 +280,16 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @return the script result
      */
     public HarvestAgentScriptResult executeShellScript(String jobName, String engine, String shellScript) {
-        RestTemplate restTemplate = new RestTemplate();
+        RestTemplate restTemplate = restTemplateBuilder.build();;
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.EXECUTE_SHELL_SCRIPT))
                 .queryParam("engine", engine)
                 .queryParam("shell-script", shellScript);
 
-        // TODO Process any exceptions or 404s, etc. as WCTRuntimeException
         Map<String, String> pathVariables = ImmutableMap.of("job-name", jobName);
-        HarvestAgentScriptResult harvestAgentScriptResult = restTemplate.getForObject(
+        HarvestAgentScriptResult harvestAgentScriptResult = restTemplate.postForObject(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                HarvestAgentScriptResult.class);
+                null, HarvestAgentScriptResult.class);
 
         return harvestAgentScriptResult;
     }

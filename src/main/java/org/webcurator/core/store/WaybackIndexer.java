@@ -11,10 +11,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.rpc.ServiceException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 
 public class WaybackIndexer extends IndexerBase {
@@ -39,11 +38,15 @@ public class WaybackIndexer extends IndexerBase {
 	private List<MonitoredFile> indexFiles = new ArrayList<MonitoredFile>();
 	private boolean allIndexed = false;
 
-	public WaybackIndexer()
-	{
-	}
-	
-	protected WaybackIndexer(WaybackIndexer original)
+    public WaybackIndexer() {
+        super();
+    }
+
+    public WaybackIndexer(RestTemplateBuilder restTemplateBuilder) {
+        super(restTemplateBuilder);
+    }
+
+    protected WaybackIndexer(WaybackIndexer original)
 	{
 		super(original);
 		waybackInputFolder = original.waybackInputFolder;
@@ -64,7 +67,7 @@ public class WaybackIndexer extends IndexerBase {
 	}
 
 	@Override
-	public Long begin() throws ServiceException {
+	public Long begin() {
         buildIndexFileList();
 		return getResult().getOid();
 	}
@@ -75,7 +78,7 @@ public class WaybackIndexer extends IndexerBase {
 	}
 
 	@Override
-	public void indexFiles(Long harvestResultOid) throws ServiceException {
+	public void indexFiles(Long harvestResultOid) {
 		//Copy the Archive files to the Wayback input folder
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
         boolean failed = false;

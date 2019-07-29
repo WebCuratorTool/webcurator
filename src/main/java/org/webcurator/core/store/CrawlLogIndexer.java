@@ -10,10 +10,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.xml.rpc.ServiceException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 
 public class CrawlLogIndexer extends IndexerBase {
@@ -32,12 +31,16 @@ public class CrawlLogIndexer extends IndexerBase {
 	private String logsSubFolder;
 
 	private boolean enabled = false;
-	
-	public CrawlLogIndexer()
-	{
-	}
-	
-	protected CrawlLogIndexer(CrawlLogIndexer original)
+
+    public CrawlLogIndexer() {
+        super();
+    }
+
+    public CrawlLogIndexer(RestTemplateBuilder restTemplateBuilder) {
+        super(restTemplateBuilder);
+    }
+
+    protected CrawlLogIndexer(CrawlLogIndexer original)
 	{
 		super(original);
 		crawlLogFileName = original.crawlLogFileName;
@@ -58,7 +61,7 @@ public class CrawlLogIndexer extends IndexerBase {
 	}
 
 	@Override
-	public Long begin() throws ServiceException {
+	public Long begin() {
 		return getResult().getOid();
 	}
 
@@ -68,7 +71,7 @@ public class CrawlLogIndexer extends IndexerBase {
 	}
 
 	@Override
-	public void indexFiles(Long harvestResultOid) throws ServiceException {
+	public void indexFiles(Long harvestResultOid) {
 		
 		// sort the crawl.log file to create a sortedcrawl.log file in the same
 		// directory.

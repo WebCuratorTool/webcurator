@@ -3,10 +3,9 @@ package org.archive.io;
 import java.io.File;
 import java.io.IOException;
 
-import javax.xml.rpc.ServiceException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.IndexerBase;
 import org.webcurator.core.store.RunnableIndex;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
@@ -17,13 +16,16 @@ public class CDXIndexer extends IndexerBase{
 	private ArcHarvestResultDTO result;
 	private File directory;
 	private boolean enabled = false;
-	
 
-	public CDXIndexer()
-	{
-	}
-	
-	protected CDXIndexer(CDXIndexer original)
+    public CDXIndexer() {
+        super();
+    }
+
+    public CDXIndexer(RestTemplateBuilder restTemplateBuilder) {
+        super(restTemplateBuilder);
+    }
+
+    protected CDXIndexer(CDXIndexer original)
 	{
 		super(original);
 		enabled = original.enabled;
@@ -64,7 +66,7 @@ public class CDXIndexer extends IndexerBase{
 	}
 
 	@Override
-	public Long begin() throws ServiceException {
+	public Long begin() {
 		return getResult().getOid();
 	}
 
