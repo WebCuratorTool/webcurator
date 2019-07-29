@@ -20,6 +20,7 @@ import static org.webcurator.core.archive.Constants.LOG_FILE;
 import static org.webcurator.core.archive.Constants.REPORT_FILE;
 import static org.webcurator.core.archive.Constants.ROOT_FILE;
 
+import com.google.common.collect.ImmutableMap;
 import it.unipi.di.util.ExternalSort;
 
 import java.io.BufferedReader;
@@ -37,6 +38,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -60,16 +62,20 @@ import org.archive.io.warc.WARCWriterPoolSettings;
 import org.archive.io.warc.WARCWriterPoolSettingsData;
 import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
-import org.webcurator.core.util.WCTSoapCall;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
@@ -127,6 +133,25 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
 
+    private final RestTemplateBuilder restTemplateBuilder;
+
+    public ArcDigitalAssetStoreService() {
+        this(new RestTemplateBuilder());
+    }
+
+    public ArcDigitalAssetStoreService(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplateBuilder = restTemplateBuilder;
+        restTemplateBuilder.errorHandler(new RestClientResponseHandler())
+                .setConnectTimeout(Duration.ofSeconds(15L));
+    }
+
+    public String baseUrl() {
+        return wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+    }
+
+    public String getUrl(String appendUrl) {
+        return baseUrl() + appendUrl;
+    }
 
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -1247,25 +1272,39 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                 String archiveIID = archive.submitToArchive(targetInstanceOid,
                         SIP, xAttributes, fileList);
 
-                WCTSoapCall call = new WCTSoapCall(wsEndPoint,
-                        "completeArchiving");
-                call.invoke(Long.parseLong(targetInstanceOid), archiveIID);
+                completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
             } catch (Throwable t) {
                 log.error("Could not archive " + targetInstanceOid, t);
 
                 try {
-                    WCTSoapCall call = new WCTSoapCall(wsEndPoint,
-                            "failedArchiving");
-                    call.invoke(Long.parseLong(targetInstanceOid),
-                            t.getMessage());
+                    failedArchiving(Long.parseLong(targetInstanceOid), t.getMessage());
                 } catch (Exception ex) {
-                    log.error(
-                            "Got error trying to send \"failedArchiving\" to server",
-                            ex);
+                    log.error("Got error trying to send \"failedArchiving\" to server", ex);
                 }
             }
         }
+    }
 
+    private void completeArchiving(Long targetInstanceOid, String archiveIID) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.COMPLETE_ARCHIVING))
+                .queryParam("archive-id", archiveIID);
+
+        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+                null, Void.class);
+    }
+
+    private void failedArchiving(Long targetInstanceOid, String message) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.FAILED_ARCHIVING))
+                .queryParam("message", message);
+
+        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+                null, Void.class);
     }
 
     public CustomDepositFormResultDTO getCustomDepositFormDetails(

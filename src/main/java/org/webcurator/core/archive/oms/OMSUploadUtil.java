@@ -26,9 +26,9 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 
-import org.apache.axis.encoding.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -349,7 +349,7 @@ public class OMSUploadUtil {
 				res = (HttpURLConnection)url.openConnection();
 				
 			    String val = user + ":" + password;
-			    String encoding = Base64.encode(val.getBytes());
+			    String encoding = Base64.getEncoder().encodeToString(val.getBytes());
 			    res.setRequestProperty ("Authorization", "Basic " + encoding);				
 				
 				break;

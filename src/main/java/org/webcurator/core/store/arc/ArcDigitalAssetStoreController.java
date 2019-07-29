@@ -133,7 +133,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     }
 
     @Override
-    @GetMapping(path = DigitalAssetStorePaths.GET_CUSTOM_DEPOSIT_FORM_DETAILS)
+    @GetMapping(path = DigitalAssetStorePaths.CUSTOM_DEPOSIT_FORM_DETAILS)
     public CustomDepositFormResultDTO getCustomDepositFormDetails(@RequestParam(value = "custom-deposit-form-criteria") CustomDepositFormCriteriaDTO criteria)
             throws DigitalAssetStoreException {
         return arcDigitalAssetStoreService.getCustomDepositFormDetails(criteria);
