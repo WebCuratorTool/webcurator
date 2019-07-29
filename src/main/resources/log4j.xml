@@ -31,11 +31,6 @@
 		<appender-ref ref="GeneralLog" />
 	</logger>
 
-	<logger name="org.apache.axis">
-		<level value="WARN" />
-		<appender-ref ref="GeneralLog" />
-	</logger>
-
 	<logger name="org.crawler">
 		<level value="WARN" />
 		<appender-ref ref="GeneralLog" />

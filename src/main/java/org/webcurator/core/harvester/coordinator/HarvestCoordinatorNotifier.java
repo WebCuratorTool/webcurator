@@ -17,13 +17,13 @@ package org.webcurator.core.harvester.coordinator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.agent.HarvestAgent;
-import org.webcurator.core.util.WCTSoapCall;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
@@ -40,13 +40,22 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
     private String host = "localhost";
     /** the port number for the wct. */
     private int port = 8080;
-    /** the name of the soap call for the harvest agent listener. */
-    private String service = WCTSoapCall.WCT_HARVEST_LISTENER;
     /** Flag used to control a harvest recovery attempt on startup. */
     public String attemptRecovery = "false";
     /** the logger. */
     private static Log log = LogFactory.getLog(HarvestCoordinatorNotifier.class);
-    
+
+    @Autowired
+    protected RestTemplateBuilder restTemplateBuilder;
+
+    public String baseUrl() {
+        return host + ":" + port;
+    }
+
+    public String getUrl(String appendUrl) {
+        return baseUrl() + appendUrl;
+    }
+
     /* (non-Javadoc)
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(org.webcurator.core.harvester.agent.HarvestAgentStatus)
      */
@@ -55,14 +64,19 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             if (log.isDebugEnabled()) {
                 log.debug("WCT: Start of heartbeat");
             }
+            log.info("WCT: Start of heartbeat");
 
-            WCTSoapCall call = new WCTSoapCall(host, port, service, "heartbeat");
-            call.regTypes(HarvestAgentStatusDTO.class, HarvesterStatusDTO.class);
-            call.invoke(aStatus);
-            
+            RestTemplate restTemplate = restTemplateBuilder.build();
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HEARTBEAT))
+                    .queryParam("harvest-agent-status", aStatus);
+
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                    null, Void.class);
+
             if (log.isDebugEnabled()) {
                 log.debug("WCT: End of heartbeat");
             }
+            log.info("WCT: End of heartbeat");
         }
         catch(Exception ex) {
             if (log.isErrorEnabled()) {
@@ -81,9 +95,14 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
                     log.debug("WCT: Start of requestRecovery");
                 }
 
-                WCTSoapCall call = new WCTSoapCall(host, port, service, "requestRecovery");
-                Object[] data = {haHost, haPort, haService};
-                call.invoke(data);
+                RestTemplate restTemplate = restTemplateBuilder.build();
+                UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.RECOVERY))
+                        .queryParam("host", haHost)
+                        .queryParam("port", haPort)
+                        .queryParam("service", haService);
+
+                restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                        null, Void.class);
 
                 if (log.isDebugEnabled()) {
                     log.debug("WCT: End of requestRecovery");
@@ -106,11 +125,14 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             if (log.isDebugEnabled()) {
                 log.debug("WCT: Start of harvestComplete");
             }
-            
-            WCTSoapCall call = new WCTSoapCall(host, port, service, "harvestComplete");
-            call.regTypes(ArcHarvestResultDTO.class, ArcHarvestResourceDTO.class, ArcHarvestFileDTO.class);
-            call.invoke(aResult);
-            
+
+            RestTemplate restTemplate = restTemplateBuilder.build();
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HARVEST_COMPLETE))
+                    .queryParam("harvest-result", aResult);
+
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                    null, Void.class);
+
             if (log.isDebugEnabled()) {
                 log.debug("WCT: End of HarvestComplete");
             }
@@ -131,10 +153,16 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             if (log.isDebugEnabled()) {
                 log.debug("WCT: Start of notification");
             }
-            
-            WCTSoapCall call = new WCTSoapCall(host, port, service, "notification");
-            call.invoke(aTargetInstanceOid, notificationCategory, aMessageType);
-            
+
+            RestTemplate restTemplate = restTemplateBuilder.build();
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION))
+                    .queryParam("target-instance-oid", aTargetInstanceOid)
+                    .queryParam("notification-category", notificationCategory)
+                    .queryParam("message-type", aMessageType);
+
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                    null, Void.class);
+
             if (log.isDebugEnabled()) {
                 log.debug("WCT: End of notification");
             }
@@ -154,9 +182,12 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             if (log.isDebugEnabled()) {
                 log.debug("WCT: Start of notification");
             }
-            
-            WCTSoapCall call = new WCTSoapCall(host, port, service, "notification");
-            call.invoke(agent.getName() + " " + aSubject, notificationCategory, aMessage);
+
+            RestTemplate restTemplate = restTemplateBuilder.build();
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION))
+                    .queryParam("subject", agent.getName() + " " + aSubject)
+                    .queryParam("notification-category", notificationCategory)
+                    .queryParam("message", aMessage);
 
             if (log.isDebugEnabled()) {
                 log.debug("WCT: End of notification");
@@ -181,13 +212,6 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
      */
     public void setPort(int aPort) {
         this.port = aPort;
-    }
-
-    /**
-     * @param aService The service to set.
-     */
-    public void setService(String aService) {
-        this.service = aService;
     }
 
 	/**
