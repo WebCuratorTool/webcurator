@@ -120,7 +120,8 @@ public class ProfileController extends TabbedController {
 				ProfileListCommand command = new ProfileListCommand();
 
 				// TODO This looks fishy... Should this really be ProfileListCommand.ACTION_FILTER?
-		        String defaultAgency = (String)req.getSession().getAttribute(ProfileListCommand.ACTION_FILTER);
+                // Removing the reference to ProfileListCommand.ACTION_FILTER
+		        String defaultAgency = (String)req.getSession().getAttribute("filter");
 		        if(defaultAgency == null)
 		        {
 		        	defaultAgency = AuthUtil.getRemoteUserObject().getAgency().getName();
