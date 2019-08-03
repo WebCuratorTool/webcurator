@@ -29,9 +29,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -48,7 +47,7 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  * The Controller for managing the archiving of target instances.
  * @author aparker
  */
-public class ArchiveController extends AbstractCommandController {
+public class ArchiveController {
 	/** The archive adapter to use to archive the target instance. */
 	private ArchiveAdapter archiveAdapter = null;
 	/** the target instance mamager used to access the target instance. */
@@ -65,7 +64,6 @@ public class ArchiveController extends AbstractCommandController {
 
 	/** Default Constructor. */
 	public ArchiveController() {
-		setCommandClass(ArchiveCommand.class);
 	}
 
 	protected String buildSip(HttpServletRequest request, HttpServletResponse response, int harvestNumber) throws ServletException, IOException {
@@ -148,8 +146,8 @@ public class ArchiveController extends AbstractCommandController {
 		return customDepositFormElements;
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 
 		// fetch the list of target instance ids to archive from the request (includes multi-select)
 		String[] targetInstanceOids = request.getParameterValues("instanceID");
@@ -197,13 +195,13 @@ public class ArchiveController extends AbstractCommandController {
 			}
 			catch(Exception e){
 				e.printStackTrace();
-				errors.reject("archive.failure", new Object[]{e.getMessage()}, "Failed to submit to archive");
+				bindingResult.reject("archive.failure", new Object[]{e.getMessage()}, "Failed to submit to archive");
 				ArchiveCommand command = (ArchiveCommand) comm;
 				ModelAndView mav = new ModelAndView("submit-to-archive2");
 				mav.addObject("instance", instance);
 				mav.addObject(Constants.GBL_CMD_DATA, command);
-				mav.addObject("hasErrors", errors.hasErrors());
-				mav.addObject(Constants.GBL_ERRORS, errors);
+				mav.addObject("hasErrors", bindingResult.hasErrors());
+				mav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return mav;
 			}
 

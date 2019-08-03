@@ -20,16 +20,14 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.admin.PermissionTemplateManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
@@ -43,7 +41,7 @@ import org.webcurator.common.Constants;
  * The Controller for managing the creation and modification of permission templates.
  * @author bprice
  */
-public class TemplateController extends AbstractFormController {
+public class TemplateController {
 	/** the logger. */
     private Log log = LogFactory.getLog(TemplateController.class);
     /** the permission template manager. */
@@ -58,29 +56,25 @@ public class TemplateController extends AbstractFormController {
     /** Default Constructor. */
     public TemplateController() {
         super();
-        this.setCommandClass(TemplateCommand.class);
     }
 
-    @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aRes, BindException aError) throws Exception {
+    protected ModelAndView showForm() throws Exception {
         return getDefaultView();
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd, BindException aError) throws Exception {
+    protected ModelAndView processFormSubmission(Object aCmd, BindingResult bindingResult) throws Exception {
         ModelAndView mav = null;
         TemplateCommand templateCmd = (TemplateCommand) aCmd;
         if (templateCmd != null) {
-            if (aError.hasErrors()) {
+            if (bindingResult.hasErrors()) {
                 mav = getNewTemplateView(templateCmd);
-                mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aError);
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
 
             } else if (TemplateCommand.ACTION_NEW.equals(templateCmd.getAction())) {
                 log.debug("New Action on TemplateController");

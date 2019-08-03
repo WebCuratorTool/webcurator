@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.util.*;
 
 import javax.servlet.http.*;
+
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.*;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
@@ -105,7 +107,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddParentsCommand");
+            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
@@ -116,13 +118,13 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(command, bindingResult, request, response);
 			assertNotNull(mav);
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
 			assertEquals(mav.getViewName(), "target-add-parents");
-			assertTrue(errors.getErrorCount() == 1);
-			assertTrue(errors.getMessage().indexOf("This target is already in this group") > 0);
+			assertTrue(bindingResult.getErrorCount() == 1);
+			assertTrue(((BindException) bindingResult).getMessage().indexOf("This target is already in this group") > 0);
 		}
 		catch(Exception e)
 		{
@@ -142,7 +144,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddParentsCommand");
+            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
@@ -152,7 +154,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(command, bindingResult, request, response);
 			assertNotNull(mav);
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 2);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -176,7 +178,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddParentsCommand");
+            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
@@ -188,7 +190,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
 			List<GroupMemberDTO> selections = (List<GroupMemberDTO>)request.getSession().getAttribute(AddParentsCommand.SESSION_SELECTIONS);
 			assertNull(selections);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(command, bindingResult, request, response);
 			assertNotNull(mav);
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -198,13 +200,13 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			assertTrue(selections.size() == 2);
 
 			command = new AddParentsCommand();
-			errors = new BindException(command, "AddParentsCommand");
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
 			command.setActionCmd(AddParentsCommand.ACTION_CANCEL);
 
-			mav = testInstance.handle(request, response, command, errors);
+			mav = testInstance.handle(command, bindingResult, request, response);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "target");
 			selections = (List<GroupMemberDTO>)request.getSession().getAttribute(AddParentsCommand.SESSION_SELECTIONS);
@@ -228,7 +230,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddParentsCommand");
+            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
@@ -240,7 +242,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
 			List<GroupMemberDTO> selections = (List<GroupMemberDTO>)request.getSession().getAttribute(AddParentsCommand.SESSION_SELECTIONS);
 			assertNull(selections);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(command, bindingResult, request, response);
 			assertNotNull(mav);
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -267,7 +269,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddParentsCommand");
+            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
@@ -279,7 +281,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
 			List<GroupMemberDTO> selections = (List<GroupMemberDTO>)request.getSession().getAttribute(AddParentsCommand.SESSION_SELECTIONS);
 			assertNull(selections);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(command, bindingResult, request, response);
 			assertNotNull(mav);
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -289,14 +291,14 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			assertTrue(selections.size() == 2);
 
 			command = new AddParentsCommand();
-			errors = new BindException(command, "AddParentsCommand");
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
 			command.setActionCmd(AddParentsCommand.ACTION_REMOVE);
 			command.setParentIndex(1);
 
-			mav = testInstance.handle(request, response, command, errors);
+			mav = testInstance.handle(command, bindingResult, request, response);
 			assertNotNull(mav);
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);

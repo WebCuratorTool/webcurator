@@ -18,7 +18,7 @@ package org.webcurator.ui.target.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Profile;
@@ -47,9 +47,9 @@ public class TargetProfileHandler extends AbstractOverrideTabHandler {
 
 	public void processTab(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                           BindingResult bindingResult) {
 
-		super.processTab(tc, currentTab, req, res, comm, errors);
+		super.processTab(tc, currentTab, req, res, comm, bindingResult);
 
 		ProfileCommand command = (ProfileCommand) comm;
 		if(command.getProfileOid() != null && overrideGetter.isOverrideableEditable(req)) {
@@ -68,14 +68,14 @@ public class TargetProfileHandler extends AbstractOverrideTabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 
-		TabbedModelAndView tmav = super.preProcessNextTab(tc, nextTabID, req, res, comm, errors);
+		TabbedModelAndView tmav = super.preProcessNextTab(tc, nextTabID, req, res, comm, bindingResult);
 
 		// Add the objects to the model.
 		tmav.addObject("ownable", getEditorContext(req).getTarget());

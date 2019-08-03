@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.targets.TargetManager;
@@ -59,16 +59,14 @@ public class MembersHandler extends AbstractGroupTabHandler {
 	}
 
 	@Override
-	public void processTab(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                           Object comm, BindingResult bindingResult) {
 		// Not supported.
 	}
 
 	@Override
-	public TabbedModelAndView preProcessNextTab(TabbedController tc,
-			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(req);
@@ -90,9 +88,8 @@ public class MembersHandler extends AbstractGroupTabHandler {
 	}
 
 	@Override
-	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		MembersCommand command = (MembersCommand) comm;
 
@@ -103,7 +100,7 @@ public class MembersHandler extends AbstractGroupTabHandler {
 			getEditorContext(req).getTargetGroup().getRemovedChildren().add(command.getChildOid());
 		}
 
-		if(!errors.hasErrors() && MembersCommand.ACTION_MOVE_TARGETS.equals(command.getActionCmd())) {
+		if(!bindingResult.hasErrors() && MembersCommand.ACTION_MOVE_TARGETS.equals(command.getActionCmd())) {
 
 			long[] targetOids = command.getTargetOids();
 			List<Long> targetsToMove = new ArrayList<Long>();

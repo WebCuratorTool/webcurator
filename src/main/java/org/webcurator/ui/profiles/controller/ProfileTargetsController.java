@@ -21,9 +21,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.targets.TargetManager;
@@ -44,7 +42,7 @@ import org.webcurator.domain.model.dto.ProfileDTO;
  * @author oakleigh_sk
  *
  */
-public class ProfileTargetsController extends AbstractFormController {
+public class ProfileTargetsController {
 
 	private TargetManager targetManager = null;
 	private TargetDAO targetDao = null;
@@ -57,11 +55,9 @@ public class ProfileTargetsController extends AbstractFormController {
 	 * Construct a new ProfileTargetsController.
 	 */
 	public ProfileTargetsController() {
-		setCommandClass(ProfileTargetsCommand.class);
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response, BindException errors) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// fetch command object (if any) from session..
 		ProfileTargetsCommand command = (ProfileTargetsCommand) request.getSession().getAttribute("profileTargetsCommand");
@@ -126,10 +122,8 @@ public class ProfileTargetsController extends AbstractFormController {
 		return mav;
 	}
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object comm, BindException errors)
-			throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, Object comm)
+            throws Exception {
 
 		ProfileTargetsCommand command = (ProfileTargetsCommand) comm;
 

@@ -27,16 +27,14 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -58,7 +56,7 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  *
  * @author twoods
  */
-public class QaIndicatorReportController extends AbstractFormController {
+public class QaIndicatorReportController {
 	/** the logger. */
 	private Log log = null;
     /** The manager to use to access the target instance. */
@@ -83,10 +81,8 @@ public class QaIndicatorReportController extends AbstractFormController {
 	/** Default Constructor. */
 	public QaIndicatorReportController() {
 		log = LogFactory.getLog(QaIndicatorReportController.class);
-		setCommandClass(QaIndicatorCommand.class);
 	}
 
-	@Override
 	protected void initBinder(HttpServletRequest request,
 			ServletRequestDataBinder binder) {
 		// enable null values for long and float fields
@@ -98,9 +94,7 @@ public class QaIndicatorReportController extends AbstractFormController {
 				new CustomNumberEditor(java.lang.Float.class, nf, true));
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request,
-			HttpServletResponse response, BindException errors)
+	protected ModelAndView showForm(HttpServletRequest request)
 			throws Exception {
 
 		ModelAndView mav = new ModelAndView();
@@ -187,14 +181,11 @@ public class QaIndicatorReportController extends AbstractFormController {
 
 	}
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object command, BindException errors)
-			throws Exception {
+	protected ModelAndView processFormSubmission(@RequestParam(value = "sortorder") String requestSortOrder,
+                                                 HttpServletRequest request) throws Exception {
+		sortOrder = requestSortOrder;
 
-		sortOrder=request.getParameter("sortorder");
-
-		return showForm(request, response, errors);
+		return showForm(request);
 	}
 
 	/**

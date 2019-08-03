@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
@@ -20,7 +21,6 @@ import org.acegisecurity.providers.encoding.PasswordEncoder;
 import org.acegisecurity.providers.encoding.ShaPasswordEncoder;
 
 import java.util.List;
-import org.webcurator.core.util.AuthUtil;
 
 public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 
@@ -55,12 +55,9 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 	public final void testShowForm() {
 		try
 		{
-			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
 			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
 			testInstance.setAgencyUserManager(manager);
-			testInstance.showForm(request, response, aError);
+			testInstance.showForm();
 		}
 		catch (Exception e)
 		{
@@ -75,8 +72,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
+			BindingResult bindingResult = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
 			testSetAgencyUserManager();
 			testSetAuthorityManager();
 			testSetMessageSource();
@@ -85,14 +81,14 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 
 			CreateUserCommand aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_NEW);
-			ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newUser"));
 
 			aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_VIEW);
 			aCommand.setOid(new Long(1000));
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newUser"));
 			CreateUserCommand newCommand = (CreateUserCommand)mav.getModel().get("command");
@@ -102,7 +98,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 			aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_EDIT);
 			aCommand.setOid(new Long(1000));
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newUser"));
 			newCommand = (CreateUserCommand)mav.getModel().get("command");
@@ -115,7 +111,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 			aCommand.setFirstname("Test");
 			aCommand.setLastname("User");
 			aCommand.setUsername("TestUserName");
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUsers"));
 			List<Agency> agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -131,7 +127,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 			aCommand.setLastname("User");
 			aCommand.setUsername("TestUserName");
 			aCommand.setPassword("Password");
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUsers"));
 			agencies = (List<Agency>)mav.getModel().get("agencies");

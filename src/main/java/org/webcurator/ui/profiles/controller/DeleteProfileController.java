@@ -18,10 +18,9 @@ package org.webcurator.ui.profiles.controller;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.AuthUtil;
@@ -46,14 +45,9 @@ public class DeleteProfileController extends ProfileListController {
 	 * Standard constructor.
 	 */
 	public DeleteProfileController() {
-		setCommandClass(ViewCommand.class);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
 		ViewCommand command = (ViewCommand) comm;
 		Profile profile = profileManager.load(command.getProfileOid());
 		if(authorityManager.hasPrivilege(profile, Privilege.MANAGE_PROFILES)) {
@@ -68,9 +62,9 @@ public class DeleteProfileController extends ProfileListController {
 	        pcomm.setDefaultAgency(defaultAgency);
 
 			if(profileManager.isProfileInUse(profile)) {
-				errors.reject("profile.errors.delete.inuse", new Object[] { profile.getName() }, "Profile '" + profile.getName() + "' is in use");
+				bindingResult.reject("profile.bindingResult.delete.inuse", new Object[] { profile.getName() }, "Profile '" + profile.getName() + "' is in use");
 				ModelAndView mav = getView(pcomm);
-				mav.addObject(Constants.GBL_ERRORS, errors);
+				mav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return mav;
 			}
 			else {

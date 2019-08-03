@@ -20,16 +20,15 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.util.AuthUtil;
@@ -42,7 +41,7 @@ import org.webcurator.common.Constants;
  * Manages the User Administration view and the actions associated with a User
  * @author bprice
  */
-public class UserController extends AbstractFormController {
+public class UserController {
 	/** the logger. */
     private Log log = null;
     /** the agency user manager. */
@@ -54,12 +53,9 @@ public class UserController extends AbstractFormController {
     /** Default Constructor. */
     public UserController() {
         log = LogFactory.getLog(UserController.class);
-        setCommandClass(UserCommand.class);
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aRes, BindException aError) throws Exception {
+    protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         ModelAndView mav = new ModelAndView();
         String agencyFilter = (String)aReq.getSession().getAttribute(UserCommand.MDL_AGENCYFILTER);
         if(agencyFilter == null)
@@ -71,9 +67,7 @@ public class UserController extends AbstractFormController {
         return mav;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCommand, BindException aError)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = new ModelAndView();
@@ -101,11 +95,11 @@ public class UserController extends AbstractFormController {
                     String[] codes = {"user.delete.fail"};
                     Object[] args = new Object[1];
                     args[0] = user.getUsername();
-                    if (aError == null) {
-                        aError = new BindException(userCmd, "command");
+                    if (bindingResult == null) {
+                        bindingResult = new BindException(userCmd, "command");
                     }
-                    aError.addError(new ObjectError("command",codes,args,"User owns objects in the system and can't be deleted."));
-                    mav.addObject(Constants.GBL_ERRORS, aError);
+                    bindingResult.addError(new ObjectError("command",codes,args,"User owns objects in the system and can't be deleted."));
+                    mav.addObject(Constants.GBL_ERRORS, bindingResult);
                     populateUserList(mav);
                     return mav;
                 }

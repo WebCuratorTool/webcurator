@@ -16,15 +16,12 @@
 package org.webcurator.ui.report.controller;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.notification.MailServer;
 import org.webcurator.core.notification.Mailable;
 import org.webcurator.core.report.FileFactory;
@@ -38,7 +35,7 @@ import org.webcurator.ui.report.command.ReportEmailCommand;
  * @author MDubos
  *
  */
-public class ReportEmailController extends AbstractFormController {
+public class ReportEmailController {
 
 	public static final String ACTION_EMAIL = "Email";
 	public static final String ACTION_CANCEL = "Cancel";
@@ -53,21 +50,14 @@ public class ReportEmailController extends AbstractFormController {
 	 *
 	 */
 	public ReportEmailController() {
-        setCommandClass(ReportEmailController.class);
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse resp, BindException exc) throws Exception {
-
+	protected ModelAndView showForm() throws Exception {
 		return null;
 	}
 
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest req,
-			HttpServletResponse resp, Object comm, BindException exc)
-			throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest req, Object comm) throws Exception {
 
 		ReportEmailCommand com = (ReportEmailCommand) comm;
 		ModelAndView mav = new ModelAndView();

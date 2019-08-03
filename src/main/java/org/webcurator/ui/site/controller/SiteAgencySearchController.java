@@ -18,9 +18,8 @@ package org.webcurator.ui.site.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.core.AuthorisingAgent;
@@ -34,14 +33,13 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * The controller for managing searching for authorising agents.
  * @author bbeaumont
  */
-public class SiteAgencySearchController extends AbstractCommandController {
+public class SiteAgencySearchController {
 
 	private SiteManager siteManager = null;
 
 	private SiteController siteController = null;
 
 	public SiteAgencySearchController() {
-		setCommandClass(AgencySearchCommand.class);
 	}
 
 	/**
@@ -59,14 +57,14 @@ public class SiteAgencySearchController extends AbstractCommandController {
 	}
 
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 		AgencySearchCommand command = (AgencySearchCommand) comm;
 
 		if(AgencySearchCommand.ACTION_ADD.equals(command.getActionCmd())) {
 
-			if(errors.hasErrors()) {
-				return getSearchView(request, response, comm, errors);
+			if(bindingResult.hasErrors()) {
+				return getSearchView(comm, bindingResult);
 			}
 			else {
 				long[] newAuthAgents = command.getSelectedOids();
@@ -82,25 +80,25 @@ public class SiteAgencySearchController extends AbstractCommandController {
 					}
 
 					// Go back to the main view.
-					return getAgencyTab(request, response, comm, errors);
+					return getAgencyTab(request, response, comm, bindingResult);
 				}
 				else {
 					// Shouldn't ever reach this code, as newAuthAgents being
 					// null or empty should cause a validation failure.
-					return getSearchView(request, response, comm, errors);
+					return getSearchView(comm, bindingResult);
 				}
 			}
 		}
 		else if(AgencySearchCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
 			// Go back to the main view.
-			return getAgencyTab(request, response, comm, errors);
+			return getAgencyTab(request, response, comm, bindingResult);
 		}
 		else {
-			return getSearchView(request, response, comm, errors);
+			return getSearchView(comm, bindingResult);
 		}
 	}
 
-	private ModelAndView getSearchView(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) {
+	private ModelAndView getSearchView(Object comm, BindingResult bindingResult) {
 		AgencySearchCommand command = (AgencySearchCommand) comm;
 		Pagination results = siteManager.searchAuthAgents(command.getName(), command.getPageNumber());
 
@@ -108,17 +106,18 @@ public class SiteAgencySearchController extends AbstractCommandController {
 		mav.addObject("results", results);
 		mav.addObject(Constants.GBL_CMD_DATA, command);
 
-		if(errors.hasErrors()) {
-			mav.addObject(Constants.GBL_ERRORS, errors);
+		if(bindingResult.hasErrors()) {
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 		}
 
 		return mav;
 	}
 
-	private ModelAndView getAgencyTab(HttpServletRequest request, HttpServletResponse response, Object command, BindException errors) {
+	private ModelAndView getAgencyTab(HttpServletRequest request, HttpServletResponse response, Object command,
+                                      BindingResult bindingResult) {
 		// Go back to the Members tab on the groups controller.
 		Tab authAgentTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
-		TabbedModelAndView tmav = authAgentTab.getTabHandler().preProcessNextTab(siteController, authAgentTab, request, response, command, errors);
+		TabbedModelAndView tmav = authAgentTab.getTabHandler().preProcessNextTab(siteController, authAgentTab, request, response, command, bindingResult);
 		tmav.getTabStatus().setCurrentTab(authAgentTab);
 		return tmav;
 	}

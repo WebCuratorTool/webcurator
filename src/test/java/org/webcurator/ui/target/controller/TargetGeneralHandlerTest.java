@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
@@ -87,24 +88,24 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 		Tab currentTab = tabs.get(0);
 		aCmd.setName("TestName");
 
-		BindException aErrors = new BindException(aCmd, "TargetGeneralCommand");
+        BindingResult bindingResult = new BindException(aCmd, "TargetGeneralCommand");
 
 		assertTrue(target.getDublinCoreMetaData() != null);
 		assertTrue(target.getDublinCoreMetaData().getTitle().isEmpty());
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(target.getName().equals("TestName"));
 		assertTrue(target.getDublinCoreMetaData() != null);
 		assertEquals(target.getDublinCoreMetaData().getTitle(),"TestName");
 
 		aCmd.setName("TestName2");
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(target.getName().equals("TestName2"));
 		assertTrue(target.getDublinCoreMetaData() != null);
 		assertEquals(target.getDublinCoreMetaData().getTitle(),"TestName2");
 
 		target.getDublinCoreMetaData().setTitle("TestName4");
 		aCmd.setName("TestName3");
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(target.getName().equals("TestName3"));
 		assertTrue(target.getDublinCoreMetaData() != null);
 		assertEquals(target.getDublinCoreMetaData().getTitle(),"TestName4");
@@ -154,8 +155,8 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 
 		Tab currentTab = tabs.get(0);
 		target.setRunOnApproval(true);
-		BindException aErrors = new BindException(aCmd, "TargetGeneralCommand");
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "TargetGeneralCommand");
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 	}
 
@@ -184,8 +185,8 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
 		Tab currentTab = tabs.get(0);
-		BindException aErrors = new BindException(aCmd, "TargetGeneralCommand");
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "TargetGeneralCommand");
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNull(mav);
 	}
 

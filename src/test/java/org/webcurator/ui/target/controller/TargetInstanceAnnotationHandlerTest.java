@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
@@ -155,9 +156,9 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 
 			Tab currentTab = tabs.get(1);
 			aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-			BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-			ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertNotNull(mav);
 			assertTrue(checkSortedList(((TargetInstance)mav.getModel().get(TargetInstanceCommand.MDL_INSTANCE)).getAnnotations()));
 		}
@@ -195,11 +196,11 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 			Tab currentTab = tabs.get(1);
 			aCmd.setCmd(TargetInstanceCommand.ACTION_ADD_NOTE);
 			aCmd.setNote("A note");
-			BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
 			int numAnnotations = targetInstance.getAnnotations().size();
 
-			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("targetInstance"));
 			assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("ANNOTATIONS"));
@@ -212,9 +213,9 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 			aCmd.setCmd(TargetInstanceCommand.ACTION_MODIFY_NOTE);
 			aCmd.setNote("A new note");
 			aCmd.setNoteIndex(noteIndex);
-			aErrors = new BindException(aCmd, aCmd.getCmd());
+			bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("targetInstance"));
 			assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("ANNOTATIONS"));
@@ -229,9 +230,9 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 			currentTab = tabs.get(1);
 			aCmd.setCmd(TargetInstanceCommand.ACTION_DELETE_NOTE);
 			aCmd.setNoteIndex(noteIndex);
-			aErrors = new BindException(aCmd, aCmd.getCmd());
+			bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("targetInstance"));
 			assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("ANNOTATIONS"));
@@ -279,12 +280,12 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_ADD_NOTE);
 		aCmd.setNote("A note");
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
 		List<Annotation> resultAnnotations = targetInstance.getAnnotations();
 		int numAnnotations = resultAnnotations.size();
 
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertEquals(resultAnnotations.size(), numAnnotations+1);
 		Annotation resultAnnotation = resultAnnotations.get(resultAnnotations.size()-1);
 		assertEquals("A note", resultAnnotation.getNote());

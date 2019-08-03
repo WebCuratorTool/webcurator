@@ -18,11 +18,8 @@ package org.webcurator.ui.tools.controller;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
@@ -33,17 +30,15 @@ import org.webcurator.ui.tools.command.HarvestHistoryCommand;
  * Controller for the HarvestHistory QR tool.
  * @author beaumontb
  */
-public class HarvestHistoryController  extends AbstractCommandController {
+public class HarvestHistoryController {
 
 	private TargetInstanceManager targetInstanceManager;
 
 
 	public HarvestHistoryController() {
-		setCommandClass(HarvestHistoryCommand.class);
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object command, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, Object command) throws Exception {
 		HarvestHistoryCommand cmd = (HarvestHistoryCommand) command;
 		TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
 		List<HarvestHistoryDTO> history = targetInstanceManager.getHarvestHistory(ti.getTarget().getOid());

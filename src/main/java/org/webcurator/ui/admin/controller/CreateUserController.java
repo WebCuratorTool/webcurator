@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
 import org.acegisecurity.providers.encoding.PasswordEncoder;
@@ -30,10 +29,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
@@ -48,7 +46,7 @@ import org.webcurator.common.Constants;
  * Manages the creation flow for a User within WCT
  * @author bprice
  */
-public class CreateUserController extends AbstractFormController {
+public class CreateUserController {
 	/** the logger. */
     private Log log = null;
     /** the system wide salt. */
@@ -65,25 +63,19 @@ public class CreateUserController extends AbstractFormController {
     /** Default Constructor. */
     public CreateUserController() {
         log = LogFactory.getLog(CreateUserController.class);
-        setCommandClass(CreateUserCommand.class);
     }
 
-    @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest arg0,
-            HttpServletResponse arg1, BindException arg2) throws Exception {
+    protected ModelAndView showForm() throws Exception {
 
         return null;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCommand, BindException aError)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
             throws Exception {
 
         CreateUserCommand userCmd = (CreateUserCommand) aCommand;
@@ -91,7 +83,7 @@ public class CreateUserController extends AbstractFormController {
         ModelAndView mav = new ModelAndView();
         mav.addObject(UserCommand.MDL_LOGGED_IN_USER, AuthUtil.getRemoteUserObject());
         if (userCmd != null) {
-            if (aError.hasErrors()) {
+            if (bindingResult.hasErrors()) {
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
 
                 mav.addObject(CreateUserCommand.MDL_AGENCIES, agencies);
@@ -99,8 +91,8 @@ public class CreateUserController extends AbstractFormController {
                 if (CreateUserCommand.ACTION_EDIT.equals(mode)) {
                     mav.addObject(CreateUserCommand.ACTION_EDIT, mode);
                 }
-                mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aError);
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newUser");
 
             } else if (CreateUserCommand.ACTION_NEW.equals(userCmd.getAction())) {
@@ -220,9 +212,9 @@ public class CreateUserController extends AbstractFormController {
                         if (CreateUserCommand.ACTION_EDIT.equals(mode)) {
                             mav.addObject(CreateUserCommand.ACTION_EDIT, mode);
                         }
-                        aError.reject("user.duplicate");
-                        mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                        mav.addObject(Constants.GBL_ERRORS, aError);
+                        bindingResult.reject("user.duplicate");
+                        mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                        mav.addObject(Constants.GBL_ERRORS, bindingResult);
                         mav.setViewName("newUser");
                     }
 

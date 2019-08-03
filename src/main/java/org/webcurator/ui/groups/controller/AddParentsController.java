@@ -20,9 +20,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.CookieUtils;
@@ -40,7 +39,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * This controller manages the process of adding members to a Target Group.
  * @author bbeaumont
  */
-public class AddParentsController extends AbstractCommandController {
+public class AddParentsController {
 	/** the manager for Target and Group data. */
 	private TargetManager targetManager = null;
 	/** the parent controller for this handler. */
@@ -52,7 +51,6 @@ public class AddParentsController extends AbstractCommandController {
 
 	/** Default COnstructor. */
 	public AddParentsController() {
-		setCommandClass(AddParentsCommand.class);
 	}
 
 	/**
@@ -73,8 +71,8 @@ public class AddParentsController extends AbstractCommandController {
 		return targetManager.getParents(getEditorContext(req).getTargetGroup());
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 
 		AddParentsCommand command = (AddParentsCommand) comm;
 		TargetGroup target = getEditorContext(request).getTargetGroup();
@@ -92,20 +90,20 @@ public class AddParentsController extends AbstractCommandController {
 				{
 					// Trying to add a duplicate.
 					String name = newDTO.getParentName();
-					errors.reject("target.error.duplicate_parent", new Object[] { name }, "This target is already in this group");
+					bindingResult.reject("target.error.duplicate_parent", new Object[] { name }, "This target is already in this group");
 				}
 			}
 			else
 			{
-				errors.reject("groups.errors.addparents.must_select", null, "You must select a parent group");
+				bindingResult.reject("groups.bindingResult.addparents.must_select", null, "You must select a parent group");
 			}
 
-			if(errors.hasErrors()) {
-				return doSearch(request, response, comm, errors);
+			if(bindingResult.hasErrors()) {
+				return doSearch(request, response, comm, bindingResult);
 			}
 			else {
 				Tab generalTab = groupsController.getTabConfig().getTabByID("GENERAL");
-				TabbedModelAndView tmav = generalTab.getTabHandler().preProcessNextTab(groupsController, generalTab, request, response, command, errors);
+				TabbedModelAndView tmav = generalTab.getTabHandler().preProcessNextTab(groupsController, generalTab, request, response, command, bindingResult);
 				tmav.getTabStatus().setCurrentTab(generalTab);
 				return tmav;
 			}
@@ -113,20 +111,21 @@ public class AddParentsController extends AbstractCommandController {
 		else if( AddParentsCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
 			// Go back to the Members tab on the groups controller.
 			Tab generalTab = groupsController.getTabConfig().getTabByID("GENERAL");
-			TabbedModelAndView tmav = generalTab.getTabHandler().preProcessNextTab(groupsController, generalTab, request, response, command, errors);
+			TabbedModelAndView tmav = generalTab.getTabHandler().preProcessNextTab(groupsController, generalTab, request, response, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(generalTab);
 			return tmav;
 		}
 		else
 		{
-			return doSearch(request, response, comm, errors);
+			return doSearch(request, response, comm, bindingResult);
 		}
 	}
 
 	/**
 	 * Perform the search for Group members.
 	 */
-	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) {
 
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(request);
@@ -153,7 +152,7 @@ public class AddParentsController extends AbstractCommandController {
 		ModelAndView mav = new ModelAndView("group-add-parents");
 		mav.addObject("page", results);
 		mav.addObject(Constants.GBL_CMD_DATA, command);
-		if(errors.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, errors); }
+		if(bindingResult.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, bindingResult); }
 		return mav;
 	}
 

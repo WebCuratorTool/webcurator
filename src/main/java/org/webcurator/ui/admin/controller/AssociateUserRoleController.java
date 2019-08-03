@@ -25,14 +25,11 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.util.AuthUtil;
@@ -48,7 +45,7 @@ import org.webcurator.common.Constants;
  * Manage the view for associating Roles to a user.
  * @author bprice
  */
-public class AssociateUserRoleController extends AbstractFormController {
+public class AssociateUserRoleController {
 	/** the logger. */
     private Log log = null;
     /** the agency mananger. */
@@ -60,18 +57,16 @@ public class AssociateUserRoleController extends AbstractFormController {
     /** Default Constructor. */
     public AssociateUserRoleController() {
         log = LogFactory.getLog(AssociateUserRoleController.class);
-        setCommandClass(AssociateUserRoleCommand.class);
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd, BindException aErrors) throws Exception {
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCmd) throws Exception {
         AssociateUserRoleCommand command = (AssociateUserRoleCommand) aCmd;
         if (command != null && command.getActionCmd() != null) {
             if (AssociateUserRoleCommand.ACTION_ASSOCIATE_VIEW.equals(command.getActionCmd())) {
-                return processUserToRoleAssoc(aReq, aRes, command, aErrors);
+                return processUserToRoleAssoc(command);
             }
             else if (AssociateUserRoleCommand.ACTION_ASSOCIATE_SAVE.equals(command.getActionCmd())) {
-                return processSaveUserToRoleAssoc(aReq, aRes, command, aErrors);
+                return processSaveUserToRoleAssoc(aReq, command);
             }
             else {
                 throw new RuntimeException("Unknown action item " + command.getActionCmd());
@@ -80,15 +75,14 @@ public class AssociateUserRoleController extends AbstractFormController {
         throw new RuntimeException("Unknown command.");
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest arg0, HttpServletResponse arg1, BindException arg2) throws Exception {
+    protected ModelAndView showForm() throws Exception {
         return null;
     }
 
     /**
      * Process the command to associate roles to a user.
      */
-    private ModelAndView processUserToRoleAssoc(HttpServletRequest aReq, HttpServletResponse aRes, AssociateUserRoleCommand aCmd, BindException aErrors) {
+    private ModelAndView processUserToRoleAssoc(AssociateUserRoleCommand aCmd) {
         ModelAndView mav = new ModelAndView();
         if (aCmd.getChoosenUserOid() != null) {
             List assignedRoles = agencyUserManager.getAssociatedRolesForUser(aCmd.getChoosenUserOid());
@@ -127,7 +121,7 @@ public class AssociateUserRoleController extends AbstractFormController {
     /**
      * Process the command to save the user and role associations.
      */
-    private ModelAndView processSaveUserToRoleAssoc(HttpServletRequest aReq, HttpServletResponse aRes, AssociateUserRoleCommand aCmd, BindException aErrors) {
+    private ModelAndView processSaveUserToRoleAssoc(HttpServletRequest aReq, AssociateUserRoleCommand aCmd) {
         ModelAndView mav = new ModelAndView();
         log.debug("start of processSaveUserToRoleAssoc()");
         if (aCmd.getChoosenUserOid() != null) {

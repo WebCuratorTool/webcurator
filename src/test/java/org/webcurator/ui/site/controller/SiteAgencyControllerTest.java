@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import org.webcurator.test.BaseWCTTest;
@@ -50,7 +51,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 			aReq.addParameter("_cancel_auth_agent", "Save");
 			aReq.getSession().setAttribute(SiteController.EDITOR_CONTEXT, ctx);
 
-			BindException aErrors = new BindException(aCmd, aCmd.getCmdAction());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmdAction());
 
 			SiteController sc = new SiteController();
 			testInstance.setSiteController(sc);
@@ -61,7 +62,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 
 			sc.setTabConfig(tabConfig);
 
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 		}
@@ -99,7 +100,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 			aReq.addParameter("_save_auth_agent", "Save");
 			aReq.getSession().setAttribute(SiteController.EDITOR_CONTEXT, ctx);
 
-			BindException aErrors = new BindException(aCmd, aCmd.getCmdAction());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmdAction());
 
 			SiteController sc = new SiteController();
 			testInstance.setSiteController(sc);
@@ -110,7 +111,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 
 			sc.setTabConfig(tabConfig);
 
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(Constants.VIEW_SITE_AGENCIES));
 		}
@@ -128,7 +129,6 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 		tabAuthAgencies.setCommandClass(SiteAuthorisingAgencyCommand.class);
 		tabAuthAgencies.setJsp("../site-auth-agencies.jsp");
 		tabAuthAgencies.setPageId("AUTHORISING_AGENCIES");
-		//tabGeneral.setValidator(new GeneralValidator());
 
 		SiteAuthorisingAgencyHandler theHandler = new SiteAuthorisingAgencyHandler();
 		//theHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));

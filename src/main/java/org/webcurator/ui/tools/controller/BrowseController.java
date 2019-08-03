@@ -16,11 +16,13 @@
 package org.webcurator.ui.tools.controller;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,9 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
@@ -47,7 +47,7 @@ import org.webcurator.ui.tools.command.BrowseCommand;
  *
  * @author bbeaumont
  */
-public class BrowseController extends AbstractCommandController {
+public class BrowseController {
 	/** Logger for the BrowseController. **/
 	private static Log log = LogFactory.getLog(BrowseController.class);
 
@@ -103,10 +103,9 @@ public class BrowseController extends AbstractCommandController {
 	 * Default constructor.
 	 */
 	public BrowseController() {
-		this.setCommandClass(BrowseCommand.class);
 	}
 
-	private String getHeaderValue(Header[] headers, String key) {
+	private String getHeaderValue(List<Header> headers, String key) {
 		if (headers != null) {
 			for (Header h : headers) {
 				if (key.equalsIgnoreCase(h.getName())) {
@@ -135,10 +134,7 @@ public class BrowseController extends AbstractCommandController {
 	/**
 	 * The handle method is the entry method into the browse controller.
 	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors)
-			throws Exception {
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm) throws Exception {
 
 		// Cast the command to the correct command type.
 		BrowseCommand command = (BrowseCommand) comm;
@@ -185,7 +181,7 @@ public class BrowseController extends AbstractCommandController {
 			return new ModelAndView("browse-tool-not-found", "resourceName",
 					command.getResource());
 		} else {
-			Header[] headers = null;
+			List<Header> headers = new ArrayList<>();
 			// catch any DigitalAssetStoreException and log assumptions
 			try {
 				headers = qualityReviewFacade.getHttpHeaders(dto);
@@ -290,9 +286,9 @@ public class BrowseController extends AbstractCommandController {
 			else {
 				if (dto.getLength() > MAX_MEMORY_SIZE) {
 					Date dt = new Date();
-					File f = qualityReviewFacade.getResource(dto);
+					Path path = qualityReviewFacade.getResource(dto);
 					ModelAndView mav = new ModelAndView("browse-tool-other");
-					mav.addObject("file", f);
+					mav.addObject("file", path);
 					mav.addObject("contentType", realContentType);
 
 					log.info("TIME TO GET RESOURCE(old): "
@@ -347,7 +343,7 @@ public class BrowseController extends AbstractCommandController {
 			throws DigitalAssetStoreException {
 
 		// this is always a temp file - need to delete it before exiting
-		File f = qualityReviewFacade.getResource(dto);
+		Path path = qualityReviewFacade.getResource(dto);
 
 		StringBuilder content = new StringBuilder();
 		BufferedInputStream is = null;
@@ -356,7 +352,7 @@ public class BrowseController extends AbstractCommandController {
 			// Try to get the appropriate character set.
 			Charset cs = loadCharset(charset);
 
-			is = new BufferedInputStream(new FileInputStream(f));
+			is = new BufferedInputStream(new FileInputStream(path.toFile()));
 			byte[] buff = new byte[BYTE_BUFFER_SIZE];
 			int bytesRead = 0;
 
@@ -368,15 +364,15 @@ public class BrowseController extends AbstractCommandController {
 
 		} catch (Exception e) {
 			throw new DigitalAssetStoreException("Failed to read file : "
-					+ f.getAbsolutePath() + " : " + e.getMessage(), e);
+					+ path.toString() + " : " + e.getMessage(), e);
 		} finally {
 			try {
 				is.close();
 				// No point deleting it if it is already gone
-				if (f.exists()) {
-					if (!f.delete()) {
+				if (path.toFile().exists()) {
+					if (!path.toFile().delete()) {
 						log.error("Failed to delete temporary file: "
-								+ f.getAbsolutePath());
+								+ path.toString());
 					}
 				}
 			} catch (IOException e) {

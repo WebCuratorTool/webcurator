@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
@@ -94,28 +94,28 @@ public class TabbedGroupController extends TabbedController {
 	}
 
 	@Override
-	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                       BindingResult bindingResult) {
 		GroupsEditorContext ctx = getEditorContext(req);
 		TargetGroup group = ctx.getTargetGroup();
 
 		// Check that the group name is okay.
 		if(!targetManager.isNameOk(group)) {
-			errors.reject("target.errors.duplicatename");
+			bindingResult.reject("target.bindingResult.duplicatename");
 		}
 
-		if(errors.hasErrors()) {
-			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,errors);
+		if(bindingResult.hasErrors()) {
+			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,bindingResult);
 			tmav.getTabStatus().setCurrentTab(currentTab);
 			tmav.addObject(Constants.GBL_CMD_DATA, comm);
-			tmav.addObject(Constants.GBL_ERRORS, errors);
+			tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return tmav;
 		}
 		else {
 			try {
 				targetManager.save(ctx.getTargetGroup(), ctx.getParents());
 
-				ModelAndView mav = searchController.prepareSearchView(req, res, errors);
+				ModelAndView mav = searchController.prepareSearchView(req, res);
 				mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("group.saved", new Object[] { ctx.getTargetGroup().getName() }, Locale.getDefault()));
 
 				// Remove from the session and go back to search.
@@ -128,13 +128,13 @@ public class TabbedGroupController extends TabbedController {
 				// Probably due to an error with the name of the target. The
 				// name has already been checked, but concurrency problems
 				// could lead us back here.
-				errors.reject("target.errors.duplicatename");
+				bindingResult.reject("target.bindingResult.duplicatename");
 
 				// Redirect back to the general tab.
 				Tab tab = getTabConfig().getTabByID("GENERAL");
-				TabbedModelAndView tmav = tab.getTabHandler().preProcessNextTab(this, tab, req, res, comm ,errors);
+				TabbedModelAndView tmav = tab.getTabHandler().preProcessNextTab(this, tab, req, res, comm ,bindingResult);
 				tmav.getTabStatus().setCurrentTab(tab);
-				tmav.addObject(Constants.GBL_ERRORS, errors);
+				tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return tmav;
 			}
 
@@ -143,11 +143,10 @@ public class TabbedGroupController extends TabbedController {
 	}
 
 	@Override
-	protected ModelAndView processCancel(Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                         BindingResult bindingResult) {
 
-		searchController.prepareSearchView(req, res, errors);
+		searchController.prepareSearchView(req, res);
 
 		// Remove from the session and go back to search.
 		unbindEditorContext(req);
@@ -155,17 +154,17 @@ public class TabbedGroupController extends TabbedController {
 	}
 
 	@Override
-	protected ModelAndView processInitial(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                          BindingResult bindingResult) {
 		Tab general = getTabConfig().getTabByID("GENERAL");
-		TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, errors);
+		TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, bindingResult);
 		tmav.getTabStatus().setCurrentTab(general);
 		return tmav;
 	}
 
 	@Override
-	protected ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors)
+	protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                    BindingResult bindingResult)
 			throws Exception {
 
 		DefaultCommand command = (DefaultCommand) comm;
@@ -204,7 +203,7 @@ public class TabbedGroupController extends TabbedController {
 		}
 
 		Tab general = getTabConfig().getTabByID("GENERAL");
-		TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, errors);
+		TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, bindingResult);
 		tmav.getTabStatus().setCurrentTab(general);
 		return tmav;
 	}

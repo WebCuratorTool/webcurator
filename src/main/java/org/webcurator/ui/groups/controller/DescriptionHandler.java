@@ -18,7 +18,7 @@ package org.webcurator.ui.groups.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.common.WCTTreeSet;
@@ -43,9 +43,8 @@ public class DescriptionHandler extends AbstractGroupTabHandler {
 	private WCTTreeSet typeList = null;
 
 	@Override
-	public void processTab(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                           Object comm, BindingResult bindingResult) {
 
 		DescriptionCommand command = (DescriptionCommand) comm;
 		GroupsEditorContext ctx = getEditorContext(req);
@@ -65,9 +64,8 @@ public class DescriptionHandler extends AbstractGroupTabHandler {
 	}
 
 	@Override
-	public TabbedModelAndView preProcessNextTab(TabbedController tc,
-			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		TargetGroup aTargetGroup = getEditorContext(req).getTargetGroup();
 
@@ -85,9 +83,8 @@ public class DescriptionHandler extends AbstractGroupTabHandler {
 	}
 
 	@Override
-	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 		return null;
 	}
 

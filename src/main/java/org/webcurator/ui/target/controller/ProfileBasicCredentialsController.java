@@ -20,16 +20,23 @@ import java.text.NumberFormat;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.domain.model.core.Overrideable;
 import org.webcurator.domain.model.core.ProfileBasicCredentials;
 import org.webcurator.domain.model.core.ProfileOverrides;
 import org.webcurator.common.Constants;
+import org.webcurator.ui.groups.controller.TabbedGroupController;
 import org.webcurator.ui.target.command.BasicCredentialsCommand;
+import org.webcurator.ui.target.validator.ProfilesBasicCredentialsValidator;
 import org.webcurator.ui.util.OverrideGetter;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;
@@ -39,7 +46,8 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * The controller for handling the creation of basic form credential overrides.
  * @author nwaight
  */
-public class ProfileBasicCredentialsController extends AbstractCommandController {
+@Controller
+public class ProfileBasicCredentialsController {
 
 	private TabbedController tabbedController = null;
 
@@ -47,15 +55,57 @@ public class ProfileBasicCredentialsController extends AbstractCommandController
 
 	private String urlPrefix = "";
 
+	private Validator validator;
+
+	@Autowired
+	private ApplicationContext applicationContext;
+
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Integer.class, new CustomNumberEditor(java.lang.Integer.class, nf, true));
     }
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
-		BasicCredentialsCommand command = (BasicCredentialsCommand) comm;
-		Overrideable o = overrideGetter.getOverrideable(req);
+	@PostMapping(value = {
+			"/curator/target/target-basic-credentials.html",
+			"/curator/target/ti-basic-credentials.html",
+			"/curator/target/group-basic-credentials.html" })
+	protected ModelAndView handle(@RequestParam("listIndex") int listIndex,
+								  @RequestParam("actionCmd") String actionCmd,
+								  @RequestParam("credentialsDomain") String credentialsDomain,
+								  @RequestParam("realm") String realm,
+								  @RequestParam("username") String username,
+								  @RequestParam("password") String password,
+								  HttpServletRequest request, HttpServletResponse response,
+                                  BindingResult bindingResult) throws Exception {
+		BasicCredentialsCommand command = new BasicCredentialsCommand();
+		command.setListIndex(listIndex);
+		command.setActionCmd(actionCmd);
+		command.setCredentialsDomain(credentialsDomain);
+		command.setRealm(realm);
+		command.setUsername(username);
+		command.setPassword(password);
+
+		String servletPath = request.getServletPath();
+		if (servletPath.endsWith("target-basic-credentials.html")) {
+			setTabbedController(applicationContext.getBean("targetController", TabbedTargetController.class));
+			setOverrideGetter(applicationContext.getBean("targetOverrideGetter", OverrideGetter.class));
+			setUrlPrefix("target");
+			setValidator(new ProfilesBasicCredentialsValidator());
+		} else if (servletPath.endsWith("ti-basic-credentials.html")) {
+			setTabbedController(applicationContext.getBean("tabbedTargetInstanceController", TabbedTargetInstanceController.class));
+			setOverrideGetter(applicationContext.getBean("targetInstanceOverrideGetter", OverrideGetter.class));
+			setUrlPrefix("ti");
+			setValidator(applicationContext.getBean("basicCredentialsValidatorti", ProfilesBasicCredentialsValidator.class));
+		} else if (servletPath.endsWith("group-basic-credentials.html")) {
+			setTabbedController(applicationContext.getBean("groupsController", TabbedGroupController.class));
+			setOverrideGetter(applicationContext.getBean("groupOverrideGetter", OverrideGetter.class));
+			setUrlPrefix("group");
+			setValidator(applicationContext.getBean("basicCredentialsValidatorGroup", ProfilesBasicCredentialsValidator.class));
+		} else {
+			// There really should be an exception here
+		}
+
+		Overrideable o = overrideGetter.getOverrideable(request);
 		ProfileOverrides overrides = o.getProfileOverrides();
 
 		if(command.getActionCmd().equals(BasicCredentialsCommand.ACTION_NEW)) {
@@ -76,10 +126,10 @@ public class ProfileBasicCredentialsController extends AbstractCommandController
 		else if(command.getActionCmd().equals(BasicCredentialsCommand.ACTION_SAVE)) {
 			ProfileBasicCredentials creds = command.toModelObject();
 
-			if (errors.hasErrors()) {
+			if (bindingResult.hasErrors()) {
 				ModelAndView mav = new ModelAndView(urlPrefix + "-basic-credentials");
-				mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, errors);
+				mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
 				mav.addObject("urlPrefix", urlPrefix);
 				return mav;
 			}
@@ -95,7 +145,7 @@ public class ProfileBasicCredentialsController extends AbstractCommandController
 
 			Tab profileTab = tabbedController.getTabConfig().getTabByID("PROFILE");
 
-			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, req, res, command, errors);
+			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, request, response, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(profileTab);
 
 			return tmav;
@@ -103,13 +153,13 @@ public class ProfileBasicCredentialsController extends AbstractCommandController
 		else if(command.getActionCmd().equals(BasicCredentialsCommand.ACTION_CANCEL)) {
 			Tab profileTab = tabbedController.getTabConfig().getTabByID("PROFILE");
 
-			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, req, res, command, errors);
+			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, request, response, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(profileTab);
 
 			return tmav;
 		}
 		else {
-			errors.reject("Unknown command");
+			bindingResult.reject("Unknown command");
 			return new ModelAndView(urlPrefix + "-basic-credentials");
 		}
 	}
@@ -134,4 +184,13 @@ public class ProfileBasicCredentialsController extends AbstractCommandController
 	public void setUrlPrefix(String urlPrefix) {
 		this.urlPrefix = urlPrefix;
 	}
+
+	public Validator getValidator() {
+		return validator;
+	}
+
+	public void setValidator(Validator validator) {
+		this.validator = validator;
+	}
+
 }

@@ -7,14 +7,13 @@ import static org.junit.Assert.fail;
 import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.archive.MockSipBuilder;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
@@ -30,7 +29,6 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.groups.command.SearchCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.common.util.DateUtils;
 
@@ -81,14 +79,9 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 
 	@Test
 	public final void testShowForm() {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
-
-		BindException aErrors = new BindException(new SearchCommand(), null);
-
 		try
 		{
-			assertNull(testInstance.showForm(request, response, aErrors));
+			assertNull(testInstance.showForm());
 		}
 		catch(Exception e)
 		{
@@ -113,14 +106,13 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
-		HttpServletResponse aResp = new MockHttpServletResponse();
 		TargetInstanceCommand aCmd = new TargetInstanceCommand();
 		aCmd.setCmd(TargetInstanceCommand.ACTION_HARVEST);
 		aCmd.setAgent("Test Agent");
 		aCmd.setTargetInstanceId(5001L);
-		BindException aErrors = new BindException(aCmd, TargetInstanceCommand.ACTION_HARVEST);
+        BindingResult bindingResult = new BindException(aCmd, TargetInstanceCommand.ACTION_HARVEST);
 
-		ModelAndView mav = testInstance.processFormSubmission(aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult, aReq);
 		assertTrue(mav != null);
 		assertTrue(ti.getState().equals(TargetInstance.STATE_RUNNING));
 	}
@@ -144,16 +136,15 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
-		HttpServletResponse aResp = new MockHttpServletResponse();
 		TargetInstanceCommand aCmd = new TargetInstanceCommand();
 		aCmd.setCmd(TargetInstanceCommand.ACTION_HARVEST);
 		aCmd.setAgent("Test Agent");
 		aCmd.setTargetInstanceId(5001L);
-		BindException aErrors = new BindException(aCmd, TargetInstanceCommand.ACTION_HARVEST);
+        BindingResult bindingResult = new BindException(aCmd, TargetInstanceCommand.ACTION_HARVEST);
 
 		try
 		{
-			ModelAndView mav = testInstance.processFormSubmission(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult, aReq);
 			assertTrue(mav != null);
 			assertTrue(ti.getState().equals(TargetInstance.STATE_SCHEDULED));
 		}
@@ -183,14 +174,13 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
-		HttpServletResponse aResp = new MockHttpServletResponse();
 		TargetInstanceCommand aCmd = new TargetInstanceCommand();
 		aCmd.setCmd(TargetInstanceCommand.ACTION_HARVEST);
 		aCmd.setAgent("Test Agent");
 		aCmd.setTargetInstanceId(5001L);
-		BindException aErrors = new BindException(aCmd, TargetInstanceCommand.ACTION_HARVEST);
+        BindingResult bindingResult = new BindException(aCmd, TargetInstanceCommand.ACTION_HARVEST);
 
-		ModelAndView mav = testInstance.processFormSubmission(aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult, aReq);
 		assertTrue(mav != null);
 		assertTrue(ti.getState().equals(TargetInstance.STATE_SCHEDULED));
 	}

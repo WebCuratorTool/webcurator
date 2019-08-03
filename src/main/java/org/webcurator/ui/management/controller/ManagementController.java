@@ -15,31 +15,23 @@
  */
 package org.webcurator.ui.management.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.common.Constants;
-import org.webcurator.ui.management.command.ManagementCommand;
 
 /**
  * Controller to render the management "menu" tab.
  * @author bprice
  */
-public class ManagementController extends AbstractFormController {
+public class ManagementController {
 
 	/** enables the Management page (QA version) when true **/
 	private boolean enableQaModule = false;
 
     public ManagementController() {
         super();
-        setCommandClass(ManagementCommand.class);
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aRes, BindException aError) throws Exception {
+    protected ModelAndView showForm() throws Exception {
         ModelAndView mav = new ModelAndView();
 
         if (!enableQaModule) {
@@ -50,8 +42,7 @@ public class ManagementController extends AbstractFormController {
         return mav;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd, BindException aError) throws Exception {
+    protected ModelAndView processFormSubmission() throws Exception {
         // TODO Implement this if we require a POST version of the management screen
         return null;
     }

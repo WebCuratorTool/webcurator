@@ -21,10 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.domain.model.core.Overrideable;
 import org.webcurator.domain.model.core.ProfileFormCredentials;
 import org.webcurator.domain.model.core.ProfileOverrides;
@@ -39,7 +38,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * The controller for form credentials profile overrides.
  * @author nwaight
  */
-public class ProfileFormCredentialsController extends AbstractCommandController {
+public class ProfileFormCredentialsController {
 
 	private TabbedController tabbedController = null;
 
@@ -52,8 +51,7 @@ public class ProfileFormCredentialsController extends AbstractCommandController 
         binder.registerCustomEditor(java.lang.Integer.class, new CustomNumberEditor(java.lang.Integer.class, nf, true));
     }
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindingResult bindingResult) throws Exception {
 		FormCredentialsCommand command = (FormCredentialsCommand) comm;
 		Overrideable o = overrideGetter.getOverrideable(req);
 		ProfileOverrides overrides = o.getProfileOverrides();
@@ -76,10 +74,10 @@ public class ProfileFormCredentialsController extends AbstractCommandController 
 		else if(command.getActionCmd().equals(FormCredentialsCommand.ACTION_SAVE)) {
 			ProfileFormCredentials creds = command.toModelObject();
 
-			if (errors.hasErrors()) {
+			if (bindingResult.hasErrors()) {
 				ModelAndView mav = new ModelAndView(urlPrefix + "-form-credentials");
-				mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, errors);
+				mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
 				mav.addObject("urlPrefix", urlPrefix);
 				return mav;
 			}
@@ -95,7 +93,7 @@ public class ProfileFormCredentialsController extends AbstractCommandController 
 
 			Tab profileTab = tabbedController.getTabConfig().getTabByID("PROFILE");
 
-			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, req, res, command, errors);
+			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, req, res, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(profileTab);
 
 			return tmav;
@@ -103,13 +101,13 @@ public class ProfileFormCredentialsController extends AbstractCommandController 
 		else if(command.getActionCmd().equals(FormCredentialsCommand.ACTION_CANCEL)) {
 			Tab profileTab = tabbedController.getTabConfig().getTabByID("PROFILE");
 
-			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, req, res, command, errors);
+			TabbedModelAndView tmav = profileTab.getTabHandler().preProcessNextTab(tabbedController, profileTab, req, res, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(profileTab);
 
 			return tmav;
 		}
 		else {
-			errors.reject("Unknown command");
+			bindingResult.reject("Unknown command");
 			return new ModelAndView(urlPrefix + "-form-credentials");
 		}
 	}

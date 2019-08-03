@@ -3,8 +3,8 @@ package org.webcurator.ui.profiles.controller;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.Controller;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.auth.Privilege;
@@ -16,7 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class H3ScriptFileController implements Controller {
+@Controller
+public class H3ScriptFileController {
     /** The profile manager to load the profile */
     private TargetInstanceManager targetInstanceManager = null;
     /** The authority manager for checking permissions */
@@ -28,8 +29,7 @@ public class H3ScriptFileController implements Controller {
     /** Logger for the H3ScriptFileController. **/
     private static Log log = LogFactory.getLog(H3ScriptFileController.class);
 
-    @Override
-    public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+    public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         // get target instance oid and script file name
         String targetInstanceOid = httpServletRequest.getParameter("targetInstanceOid");
         String scriptFileName = httpServletRequest.getParameter("scriptFileName"); // includes file extension

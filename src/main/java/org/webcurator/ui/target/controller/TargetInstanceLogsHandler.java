@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
@@ -58,13 +58,13 @@ public class TargetInstanceLogsHandler extends TabHandler {
 
     public void processTab(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                           BindingResult bindingResult) {
         	// process the submit of the tab called on change tab or save
     }
 
     public TabbedModelAndView preProcessNextTab(TabbedController tc,
             Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindException errors) {
+            Object comm, BindingResult bindingResult) {
 
     	// build mav stuff b4 displaying the tab
         TabbedModelAndView tmav = tc.new TabbedModelAndView();
@@ -103,13 +103,7 @@ public class TargetInstanceLogsHandler extends TabHandler {
 			populatedCommand.setCmd(TargetInstanceCommand.ACTION_EDIT);
 		}
 
-		LogFilePropertiesDTO[] arrLogs = harvestCoordinator.listLogFileAttributes(ti);
-
-		List<LogFilePropertiesDTO> logs = new ArrayList<LogFilePropertiesDTO>();
-		for(int i = 0; i < arrLogs.length; i++)
-		{
-			logs.add(arrLogs[i]);
-		}
+		List<LogFilePropertiesDTO> logs = new ArrayList<>(harvestCoordinator.listLogFileAttributes(ti));
 
 		tmav.addObject(TargetInstanceCommand.MDL_LOG_LIST, logs);
 		tmav.addObject(Constants.GBL_CMD_DATA, populatedCommand);
@@ -120,7 +114,7 @@ public class TargetInstanceLogsHandler extends TabHandler {
 
     public ModelAndView processOther(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                                     BindingResult bindingResult) {
 
     	TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
 

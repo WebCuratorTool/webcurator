@@ -29,7 +29,6 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 	private TargetInstanceDAO tidao;
 	private QualityReviewFacade qrf;
 	private MockHttpServletRequest aReq;
-	private HttpServletResponse aResp;
 	private TreeToolCommand aCmd;
 	private BindException aErrors;
 	private String viewName = "TreeTool";
@@ -105,7 +104,6 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 
 	private final void setUpHandelParameters() {
 		// set up command:
-		aResp = new MockHttpServletResponse();
 		aCmd = new TreeToolCommand();
 		aErrors = new BindException(aCmd, aCmd.getActionCmd());
 	}
@@ -116,7 +114,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 			aCmd.setLoadTree((long) 111000);
 
 			// test handle:
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aCmd, aErrors);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:
@@ -147,7 +145,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 			Node<HarvestResource> node = tree.getNodeCache().get((long) 2);
 			Boolean isopen = node.isOpen();
 			// test handle
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aCmd, aErrors);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:
@@ -165,7 +163,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 			aCmd.setMarkForDelete((long) 21);
 			aCmd.setPropagateDelete(false);
 			// test handle
-			mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			mav = testInstance.handle(aReq, aCmd, aErrors);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:
@@ -184,7 +182,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 			aCmd.setMarkForDelete((long) 3);
 			aCmd.setPropagateDelete(true);
 			// test handle
-			mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			mav = testInstance.handle(aReq, aCmd, aErrors);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:
@@ -217,7 +215,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 			aCmd.setProvenanceNote("Test Provenance Note");
 			aCmd.setHrOid(((long) 111000));
 			// test handle
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aCmd, aErrors);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().startsWith(
 					"redirect:/curator/target/target-instance.html"));
@@ -256,7 +254,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 			aCmd.setHrOid(((long) 111000));
 
 			// test handle
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aCmd, aErrors);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().startsWith(
 					"redirect:/curator/target/quality-review-toc.html"));
@@ -291,7 +289,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 		aCmd.setHrOid(((long) 111000));
 
 		// test handle
-		ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.handle(aReq, aCmd, aErrors);
 		return mav;
 	}
 

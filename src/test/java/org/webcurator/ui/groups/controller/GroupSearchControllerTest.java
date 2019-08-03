@@ -63,8 +63,7 @@ public class GroupSearchControllerTest extends BaseWCTTest<GroupSearchController
 			this.testSetMessageSource();
 			this.testSetGroupTypesList();
 
-			BindException aError = new BindException(new SearchCommand(), null);
-			testInstance.showForm(request, response, aError);
+			testInstance.showForm(request, response);
 		}
 		catch (Exception e)
 		{
@@ -117,9 +116,8 @@ public class GroupSearchControllerTest extends BaseWCTTest<GroupSearchController
 		command.setSelectedPageSize("10");
 
 		request.getSession().setAttribute("groupsSearchCommand", command);
-		BindException errors = new BindException(command, command.getActionCmd());
 
-		ModelAndView mav = testInstance.prepareSearchView(request, response, (SearchCommand)command, errors);
+		ModelAndView mav = testInstance.prepareSearchView(request, response, command);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("groups-search"));
 		SearchCommand mavCommand = (SearchCommand)mav.getModel().get("command");
@@ -156,8 +154,7 @@ public class GroupSearchControllerTest extends BaseWCTTest<GroupSearchController
 				SearchCommand aCommand = testInstance.getDefaultCommand();
 				aCommand.setActionCmd(SearchCommand.ACTION_DELETE);
 				aCommand.setDeletedGroupOid(15000L);
-				BindException aError = new BindException(aCommand, aCommand.getActionCmd());
-				ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+				ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand);
 				fail("Insufficient Privileges to delete group");
 			}
 			catch(org.webcurator.core.exceptions.WCTRuntimeException wctre)
@@ -173,8 +170,7 @@ public class GroupSearchControllerTest extends BaseWCTTest<GroupSearchController
 				aCommand.setSelectedPageSize("10");
 				aCommand.setActionCmd(SearchCommand.ACTION_DELETE);
 				aCommand.setDeletedGroupOid(15000L);
-				BindException aError = new BindException(aCommand, aCommand.getActionCmd());
-				ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+				ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand);
 				assertTrue(mav != null);
 				assertFalse(tm.loadGroup(15000L) != null);
 			}
@@ -186,8 +182,7 @@ public class GroupSearchControllerTest extends BaseWCTTest<GroupSearchController
 			SearchCommand aCommand = testInstance.getDefaultCommand();
 			aCommand.setSelectedPageSize("10");
 			aCommand.setActionCmd(SearchCommand.ACTION_RESET);
-			BindException aError = new BindException(aCommand, aCommand.getActionCmd());
-			ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand);
 			assertTrue(mav != null);
 			SearchCommand command = (SearchCommand)mav.getModel().get("command");
 			assertTrue(command.getActionCmd().equals("reset"));

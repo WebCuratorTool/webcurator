@@ -24,10 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -46,7 +44,7 @@ import org.webcurator.ui.target.command.TargetSearchCommand;
  * The controller for searching for Targets.
  * @author bbeaumont
  */
-public class TargetSearchController extends AbstractFormController {
+public class TargetSearchController {
 
 	private TargetDAO targetDao = null;
 
@@ -55,9 +53,7 @@ public class TargetSearchController extends AbstractFormController {
 	private AgencyUserManager agencyUserManager = null;
 
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request,
-			HttpServletResponse response, BindException errors) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// fetch command object (if any) from session..
 		TargetSearchCommand command = (TargetSearchCommand) request.getSession().getAttribute("targetSearchCommand");
@@ -70,7 +66,7 @@ public class TargetSearchController extends AbstractFormController {
 		// and set page size preference..
 		command.setSelectedPageSize(currentPageSize);
 
-		return prepareSearchView(request, response, command, errors);
+		return prepareSearchView(request, response, command);
 	}
 
 	public TargetSearchCommand getDefaultCommand() {
@@ -89,9 +85,7 @@ public class TargetSearchController extends AbstractFormController {
 	 * @return The search view.
 	 */
 	@SuppressWarnings("unchecked")
-	public ModelAndView prepareSearchView(HttpServletRequest request,
-			                              HttpServletResponse response,
-			                              BindException errors) {
+	public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response) {
 
 		// fetch command object (if any) from session..
 		TargetSearchCommand command = (TargetSearchCommand) request.getSession().getAttribute("targetSearchCommand");
@@ -100,14 +94,12 @@ public class TargetSearchController extends AbstractFormController {
 		}
 		command.setSelectedPageSize(CookieUtils.getPageSize(request));
 
-		return prepareSearchView(request, response, command, errors);
+		return prepareSearchView(request, response, command);
 	}
 
 	@SuppressWarnings("unchecked")
-	public ModelAndView prepareSearchView(HttpServletRequest request,
-			                              HttpServletResponse response,
-			                              TargetSearchCommand command,
-			                              BindException errors) {
+	public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response,
+			                              TargetSearchCommand command) {
 
 		List<Agency> agencies = agencyUserManager.getAgencies();
 
@@ -164,16 +156,14 @@ public class TargetSearchController extends AbstractFormController {
 		return mav;
 	}
 
-
-	@Override
 	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object comm, BindException errors)
+			HttpServletResponse response, Object comm)
 			throws Exception {
 
 		TargetSearchCommand command = (TargetSearchCommand) comm;
 
 		if(TargetSearchCommand.ACTION_SEARCH.equals(command.getActionCmd())) {
-			return prepareSearchView(request, response, command, errors);
+			return prepareSearchView(request, response, command);
 		}
 		else if(TargetSearchCommand.ACTION_RESET.equals(command.getActionCmd())) {
 			command.setAgency("");
@@ -187,14 +177,14 @@ public class TargetSearchController extends AbstractFormController {
 			command.setSortorder(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC);
 			command.setDescription("");
 
-			return prepareSearchView(request, response, command, errors);
+			return prepareSearchView(request, response, command);
 		}
 		else if(TargetSearchCommand.ACTION_DELETE.equals(command.getActionCmd())){
 			// TODO Load target, check privileges, and delete the target.
 			// Then return to the search view.
 			Target aTarget = targetManager.load(command.getSelectedTargetOid());
 			targetManager.deleteTarget(aTarget);
-			return prepareSearchView(request, response, command, errors);
+			return prepareSearchView(request, response, command);
 		}
 		else {
 			return null;
@@ -206,10 +196,7 @@ public class TargetSearchController extends AbstractFormController {
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.BaseCommandController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)
 	 */
-	@Override
 	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-		// TODO Auto-generated method stub
-		super.initBinder(request, binder);
 		binder.registerCustomEditor(Set.class, "states", new CustomIntegerCollectionEditor(Set.class,true));
 		binder.registerCustomEditor(Long.class, "selectedTargetOid", new CustomNumberEditor(Long.class,true));
 		binder.registerCustomEditor(Long.class, "searchOid", new CustomNumberEditor(Long.class,true));

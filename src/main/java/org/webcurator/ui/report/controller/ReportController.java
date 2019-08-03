@@ -18,14 +18,12 @@ package org.webcurator.ui.report.controller;
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.Report;
 import org.webcurator.core.report.ReportGenerator;
@@ -41,7 +39,7 @@ import org.webcurator.common.ui.command.ReportCommand;
  * @author MDubos
  *
  */
-public class ReportController extends AbstractFormController {
+public class ReportController {
 
 	private Log log = LogFactory.getLog(ReportController.class);
 
@@ -52,12 +50,9 @@ public class ReportController extends AbstractFormController {
      *
      */
     public ReportController() {
-        setCommandClass(ReportController.class);
     }
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse resp, BindException exc) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest req) throws Exception {
 
 		// Initialise parameters selectValues
 		for(Report report : getReportMngr().getReports()){
@@ -77,10 +72,8 @@ public class ReportController extends AbstractFormController {
 	}
 
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object comm, BindException errors)
-			throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest request, Object comm, BindingResult bindingResult)
+            throws Exception {
 
 		ReportCommand com = (ReportCommand) comm;
 
@@ -91,9 +84,9 @@ public class ReportController extends AbstractFormController {
 
 		request.getSession().setAttribute("selectedRunReport", com.getSelectedReport());
 		ModelAndView mav = new ModelAndView();
-		if (errors.hasErrors()) {
+		if (bindingResult.hasErrors()) {
 
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("reports", getReportMngr().getReports());
 			mav.setViewName("reporting");
 

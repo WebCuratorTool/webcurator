@@ -1,11 +1,18 @@
 package org.webcurator.webapp.beans.config;
 
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.SimpleScheduleBuilder;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -15,12 +22,11 @@ import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.jndi.JndiObjectFactoryBean;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.scheduling.quartz.JobDetailBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.springframework.scheduling.quartz.SimpleTriggerBean;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.admin.PermissionTemplateManagerImpl;
 import org.webcurator.core.agency.AgencyUserManagerImpl;
 import org.webcurator.core.archive.ArchiveAdapterImpl;
@@ -45,8 +51,8 @@ import org.webcurator.core.scheduler.ScheduleJob;
 import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.sites.SiteManagerImpl;
 import org.webcurator.core.sites.SiteManagerListener;
+import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
-import org.webcurator.core.store.DigitalAssetStoreSOAPClient;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.AuditDAOUtil;
@@ -60,8 +66,6 @@ import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.ui.tools.controller.QualityReviewToolController;
 import org.webcurator.ui.tools.controller.TreeToolController;
 import org.webcurator.ui.tools.controller.TreeToolControllerAJAX;
-import org.webcurator.ui.tools.validator.TreeToolValidator;
-import org.webcurator.ui.util.DateUtils;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -321,10 +325,9 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public DigitalAssetStoreSOAPClient digitalAssetStore() {
-        DigitalAssetStoreSOAPClient bean = new DigitalAssetStoreSOAPClient();
-        bean.setHost(digitalAssetStoreHost);
-        bean.setPort(digitalAssetStorePort);
+    public DigitalAssetStoreClient digitalAssetStore() {
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort,
+                new RestTemplateBuilder());
 
         return bean;
     }
@@ -599,7 +602,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TargetInstanceManagerImpl targetInstanceManager() {
         TargetInstanceManagerImpl bean = new TargetInstanceManagerImpl();
         bean.setTargetInstanceDao(targetInstanceDao());
@@ -618,7 +620,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public LockManager lockManager() {
         return new LockManager();
     }
@@ -626,7 +627,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SiteManagerImpl siteManager() {
         SiteManagerImpl bean = new SiteManagerImpl();
         bean.setSiteDao(siteDao());
@@ -649,7 +649,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TargetManagerImpl targetManager() {
         TargetManagerImpl bean = new TargetManagerImpl();
         bean.setTargetDao(targetDao());
@@ -672,7 +671,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ProfileManager profileManager() {
         ProfileManager bean = new ProfileManager();
         bean.setProfileDao(profileDao());
@@ -703,7 +701,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public HarvestAgentFactoryImpl harvestAgentFactory() {
         return new HarvestAgentFactoryImpl();
     }
@@ -756,29 +753,30 @@ public class BaseConfig {
     }
 
     @Bean
-    public JobDetailBean processScheduleJob() {
-        JobDetailBean bean = new JobDetailBean();
-        bean.setGroup("ProcessScheduleGroup");
-        bean.setName("ProcessSchedule");
-
-        bean.setJobClass(ScheduleJob.class);
-        Map<String, Object> jobDataMap = new HashMap<>();
+    public JobDetail processScheduleJob() {
+        JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("harvestCoordinator", harvestCoordinator());
-        bean.setJobDataAsMap(jobDataMap);
+
+        JobDetail bean = JobBuilder.newJob(ScheduleJob.class)
+                .withIdentity("ProcessSchedule", "ProcessScheduleGroup")
+                .usingJobData(jobDataMap)
+                .build();
 
         return bean;
     }
 
     @Bean
-    public SimpleTriggerBean processScheduleTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("ProcessScheduleTriggerGroup");
-        bean.setName("ProcessScheduleTrigger");
-        bean.setJobDetail(processScheduleJob());
+    public Trigger processScheduleTrigger() {
         // delay before running the job measured in milliseconds
-        bean.setStartDelay(processScheduleTriggerStartDelay);
-        // repeat every xx milliseconds
-        bean.setRepeatInterval(processScheduleTriggerRepeatInterval);
+        Date startTime = new Date(System.currentTimeMillis() + processScheduleTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("ProcessScheduleTrigger", "ProcessScheduleTriggerGroup")
+                .forJob(processScheduleJob())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        // repeat every xx milliseconds
+                        .withIntervalInMilliseconds(processScheduleTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -793,15 +791,17 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean bandwidthCheckTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("BandwidthCheckTriggerGroup");
-        bean.setName("BandwidthCheckTrigger");
-        bean.setJobDetail(checkBandwidthTransitionsJob().getObject());
+    public Trigger bandwidthCheckTrigger() {
         // delay before running the job measured in milliseconds
-        bean.setStartDelay(bandwidthCheckTriggerStartDelay);
-        // repeat every xx milliseconds
-        bean.setRepeatInterval(bandwidthCheckTriggerRepeatInterval);
+        Date startTime = new Date(System.currentTimeMillis() + bandwidthCheckTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("BandwidthCheckTrigger", "BandwidthCheckTriggerGroup")
+                .forJob(checkBandwidthTransitionsJob().getObject())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        // repeat every xx milliseconds
+                        .withIntervalInMilliseconds(bandwidthCheckTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -809,7 +809,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SchedulerFactoryBean schedulerFactory() {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
         bean.setTriggers(processScheduleTrigger(), bandwidthCheckTrigger(), purgeDigitalAssetsTrigger(),
@@ -821,7 +820,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AgencyUserManagerImpl agencyUserManager() {
         AgencyUserManagerImpl bean = new AgencyUserManagerImpl();
         bean.setUserRoleDAO(userRoleDAO());
@@ -838,7 +836,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AuthorityManagerImpl authorityManager() {
         return new AuthorityManagerImpl();
     }
@@ -854,7 +851,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AnnotationDAOImpl annotationDao() {
         AnnotationDAOImpl bean = new AnnotationDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
@@ -866,7 +862,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public MailServerImpl mailServer() {
         Properties properties = new Properties();
         properties.put("mail.transport.protocol", mailProtocol);
@@ -881,7 +876,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public BandwidthChecker bandwidthChecker() {
         BandwidthChecker bean = new BandwidthChecker();
         bean.setWarnThreshold(bandwidthCheckerWarnThreshold);
@@ -897,7 +891,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CoreCheckNotifier checkNotifier() {
         CoreCheckNotifier bean = new CoreCheckNotifier();
         bean.setInTrayManager(inTrayManager());
@@ -908,7 +901,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CheckProcessor checkProcessor() {
         CheckProcessor bean = new CheckProcessor();
 
@@ -930,15 +922,17 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean checkProcessorTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("CheckProcessorTriggerGroup");
-        bean.setName("CheckProcessorTrigger");
-        bean.setJobDetail(checkProcessorJob().getObject());
+    public Trigger checkProcessorTrigger() {
         // delay before running the job measured in milliseconds
-        bean.setStartDelay(checkProcessorTriggerStartDelay);
-        // repeat every xx milliseconds
-        bean.setRepeatInterval(checkProcessorTriggerRepeatInterval);
+        Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("CheckProcessorTrigger", "CheckProcessorTriggerGroup")
+                .forJob(checkProcessorJob().getObject())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        // repeat every xx milliseconds
+                        .withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -953,13 +947,17 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean purgeDigitalAssetsTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("PurgeDigitalAssetsTriggerGroup");
-        bean.setName("PurgeDigitalAssetsTrigger");
-        bean.setJobDetail(purgeDigitalAssetsJob().getObject());
-        // interval in milliseconds.  trigger should run every x days
-        bean.setRepeatInterval(purgeDigitalAssetsTriggerRepeatInterval);
+    public Trigger purgeDigitalAssetsTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("PurgeDigitalAssetsTrigger", "PurgeDigitalAssetsTriggerGroup")
+                .forJob(purgeDigitalAssetsJob().getObject())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        // repeat every xx milliseconds
+                        .withIntervalInMilliseconds(purgeDigitalAssetsTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -974,12 +972,17 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean purgeAbortedTargetInstancesTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("PurgeAbortedTargetInstancesTriggerGroup");
-        bean.setName("PurgeAbortedTargetInstancesTrigger");
-        bean.setJobDetail(purgeAbortedTargetInstancesJob().getObject());
-        bean.setRepeatInterval(purgeAbortedTargetInstancesTriggerRepeatInterval);
+    public Trigger purgeAbortedTargetInstancesTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("PurgeAbortedTargetInstancesTrigger", "PurgeAbortedTargetInstancesTriggerGroup")
+                .forJob(purgeAbortedTargetInstancesJob().getObject())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        // repeat every xx milliseconds
+                        .withIntervalInMilliseconds(purgeAbortedTargetInstancesTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -987,7 +990,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public InTrayManagerImpl inTrayManager() {
         InTrayManagerImpl bean = new InTrayManagerImpl();
         bean.setInTrayDAO(inTrayDao());
@@ -1005,7 +1007,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PermissionTemplateManagerImpl permissionTemplateManager() {
         PermissionTemplateManagerImpl bean = new PermissionTemplateManagerImpl();
         bean.setPermissionTemplateDAO(permissionTemplateDao());
@@ -1024,15 +1025,17 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean groupExpiryJobTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("GroupExpiryJobGroup");
-        bean.setName("GroupExpiryJobTrigger");
-        bean.setJobDetail(groupExpiryJob().getObject());
-        // Delay before running the job measured in milliseconds
-        bean.setStartDelay(groupExpiryJobTriggerStartDelay);
-        // Repeat every xx milliseconds: this should run at most once a day (86,400,000 millseconds)
-        bean.setRepeatInterval(groupExpiryJobTriggerRepeatInterval);
+    public Trigger groupExpiryJobTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + groupExpiryJobTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("GroupExpiryJobTrigger", "GroupExpiryJobGroup")
+                .forJob(groupExpiryJob().getObject())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        // repeat every xx milliseconds
+                        .withIntervalInMilliseconds(groupExpiryJobTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -1047,15 +1050,17 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean createNewTargetInstancesTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("createNewTargetInstancesJobGroup");
-        bean.setName("createNewTargetInstancesTrigger");
-        bean.setJobDetail(createNewTargetInstancesJob().getObject());
-        // Delay before running the job measured in milliseconds
-        bean.setStartDelay(createNewTargetInstancesTriggerStartDelay);
-        // Repeat every xx milliseconds: this should run at most once a day (86,400,000 millseconds)
-        bean.setRepeatInterval(createNewTargetInstancesTriggerRepeatInterval);
+    public Trigger createNewTargetInstancesTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + createNewTargetInstancesTriggerStartDelay);
+        Trigger bean = TriggerBuilder.newTrigger()
+                .withIdentity("createNewTargetInstancesTrigger", "createNewTargetInstancesJobGroup")
+                .forJob(createNewTargetInstancesJob().getObject())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        // Repeat every xx milliseconds: this should run at most once a day (86,400,000 millseconds)
+                        .withIntervalInMilliseconds(createNewTargetInstancesTriggerRepeatInterval))
+                .startAt(startTime)
+                .build();
 
         return bean;
     }
@@ -1063,7 +1068,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ArchiveAdapterImpl archiveAdapter() {
         ArchiveAdapterImpl bean = new ArchiveAdapterImpl();
         bean.setDigitalAssetStore(digitalAssetStore());
@@ -1105,12 +1109,9 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TreeToolController treeToolController() {
         TreeToolController bean = new TreeToolController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setValidator(new TreeToolValidator());
         bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
         bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
         bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
@@ -1124,12 +1125,9 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TreeToolControllerAJAX treeToolControllerAJAX() {
         TreeToolControllerAJAX bean = new TreeToolControllerAJAX();
-        bean.setSupportedMethods("GET", "POST");
         bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setValidator(new TreeToolValidator());
         bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
 
         return bean;
@@ -1138,10 +1136,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public QualityReviewToolController qualityReviewToolController() {
         QualityReviewToolController bean = new QualityReviewToolController();
-        bean.setSupportedMethods("GET");
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetManager(targetManager());
         bean.setArchiveUrl(qualityReviewToolControllerArchiveUrl);
@@ -1160,10 +1156,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ShowHopPathController showHopPathController() {
         ShowHopPathController bean = new ShowHopPathController();
-        bean.setSupportedMethods("GET");
         bean.setHarvestLogManager(harvestLogManager());
         bean.setTargetInstanceManager(targetInstanceManager());
 
@@ -1173,7 +1167,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PolitenessOptions politePolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
@@ -1183,7 +1176,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PolitenessOptions mediumPolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
@@ -1193,7 +1185,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PolitenessOptions aggressivePolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec

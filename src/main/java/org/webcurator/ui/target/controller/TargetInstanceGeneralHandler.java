@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -85,7 +85,7 @@ public class TargetInstanceGeneralHandler extends TabHandler {
 
     public void processTab(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                           BindingResult bindingResult) {
 
     	// process the submit of the tab called on change tab or save
     	TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
@@ -122,7 +122,7 @@ public class TargetInstanceGeneralHandler extends TabHandler {
     @SuppressWarnings("unchecked")
     public TabbedModelAndView preProcessNextTab(TabbedController tc,
             Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindException errors) {
+            Object comm, BindingResult bindingResult) {
 
     	// build mav stuff before displaying the tab
         TabbedModelAndView tmav = tc.new TabbedModelAndView();
@@ -241,7 +241,7 @@ public class TargetInstanceGeneralHandler extends TabHandler {
 
     public ModelAndView processOther(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                                     BindingResult bindingResult) {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();

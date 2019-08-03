@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.quartz.CronExpression;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
@@ -92,20 +92,20 @@ public class TargetSchedulesHandler extends TabHandler {
     }
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public void processTab(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                           BindingResult bindingResult) {
 		// Do nothing
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 
         AbstractTargetEditorContext editorContext = getEditorContext(req);
 		AbstractTarget abstractTarget = editorContext.getAbstractTarget();
@@ -140,11 +140,11 @@ public class TargetSchedulesHandler extends TabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public ModelAndView processOther(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                                     BindingResult bindingResult) {
 		TargetSchedulesCommand command = (TargetSchedulesCommand) comm;
 		AbstractTargetEditorContext ctx = getEditorContext(req);
 
@@ -184,10 +184,10 @@ public class TargetSchedulesHandler extends TabHandler {
 			if(WebUtils.hasSubmitParameter(req, "_save")) {
 
 
-				if(errors.hasErrors()) {
+				if(bindingResult.hasErrors()) {
 					TabbedModelAndView tmav = getEditTabModel(tc);
-					tmav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-					tmav.addObject(Constants.GBL_ERRORS, errors);
+					tmav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+					tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 					tmav.addObject("patterns", patternFactory.getPatterns());
 					return tmav;
 				}
@@ -214,14 +214,14 @@ public class TargetSchedulesHandler extends TabHandler {
 					ctx.putObject(schedule);
 					ctx.getAbstractTarget().addSchedule(schedule);
 
-					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 					tmav.getTabStatus().setCurrentTab(currentTab);
 					return tmav;
 				}
 			}
 
 			if(WebUtils.hasSubmitParameter(req, "_cancel")) {
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
@@ -231,18 +231,18 @@ public class TargetSchedulesHandler extends TabHandler {
 				Schedule scheduleToRemove = (Schedule) ctx.getObject(Schedule.class, command.getSelectedItem());
 				ctx.getAbstractTarget().removeSchedule(scheduleToRemove);
 
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
 
 			if(WebUtils.hasSubmitParameter(req, "_test")) {
 
-				if(errors.hasErrors()) {
+				if(bindingResult.hasErrors()) {
 					TabbedModelAndView tmav = getEditTabModel(tc);
 					tmav.addObject("patterns", patternFactory.getPatterns());
-					tmav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-					tmav.addObject(Constants.GBL_ERRORS, errors);
+					tmav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+					tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 					return tmav;
 				}
 				else {
@@ -277,7 +277,7 @@ public class TargetSchedulesHandler extends TabHandler {
 			}
 		}
 
-		TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+		TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 		tmav.getTabStatus().setCurrentTab(currentTab);
 		return tmav;
 	}

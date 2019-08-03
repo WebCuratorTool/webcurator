@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.common.WCTTreeSet;
@@ -65,7 +65,7 @@ public class TargetAnnotationHandler extends AbstractTargetTabHandler {
 
     public void processTab(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                           BindingResult bindingResult) {
         TargetEditorContext ctx = getEditorContext(req);
         Target target = ctx.getTarget();
 
@@ -83,7 +83,7 @@ public class TargetAnnotationHandler extends AbstractTargetTabHandler {
     @SuppressWarnings("unchecked")
     public TabbedModelAndView preProcessNextTab(TabbedController tc,
             Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindException errors) {
+            Object comm, BindingResult bindingResult) {
         // build mav stuff b4 displaying the tab
         TabbedModelAndView tmav = tc.new TabbedModelAndView();
         TargetEditorContext ctx = getEditorContext(req);
@@ -127,15 +127,15 @@ public class TargetAnnotationHandler extends AbstractTargetTabHandler {
 
     public ModelAndView processOther(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                                     BindingResult bindingResult) {
         TargetAnnotationCommand cmd = (TargetAnnotationCommand) comm;
         TargetEditorContext ctx = getEditorContext(req);
 
         TabbedModelAndView nextView = null;
 
         if(ctx.isEditMode()) {
-        	if(errors.hasErrors()) {
-        		nextView = preProcessNextTab(tc, currentTab, req, res, cmd, errors);
+        	if(bindingResult.hasErrors()) {
+        		nextView = preProcessNextTab(tc, currentTab, req, res, cmd, bindingResult);
         		nextView.getTabStatus().setCurrentTab(currentTab);
         		nextView.addObject(Constants.GBL_CMD_DATA, cmd);
         	}
@@ -173,12 +173,12 @@ public class TargetAnnotationHandler extends AbstractTargetTabHandler {
 
 	        	updateModel(cmd, target);
 
-    	        nextView = preProcessNextTab(tc, currentTab, req, res, cmd, errors);
+    	        nextView = preProcessNextTab(tc, currentTab, req, res, cmd, bindingResult);
     	        nextView.getTabStatus().setCurrentTab(currentTab);
         	}
         }
         else {
-        	nextView = preProcessNextTab(tc, currentTab, req, res, cmd, errors);
+        	nextView = preProcessNextTab(tc, currentTab, req, res, cmd, bindingResult);
 	        nextView.getTabStatus().setCurrentTab(currentTab);
         }
 

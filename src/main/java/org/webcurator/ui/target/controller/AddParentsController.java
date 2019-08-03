@@ -22,9 +22,13 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.CookieUtils;
@@ -33,8 +37,9 @@ import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.common.Constants;
-import org.webcurator.ui.target.TargetEditorContext;
+import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.AddParentsCommand;
+import org.webcurator.ui.target.validator.AddParentsValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
@@ -42,7 +47,8 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * This controller manages the process of adding members to a Target Group.
  * @author bbeaumont
  */
-public class AddParentsController extends AbstractCommandController {
+@Controller
+public class AddParentsController {
 	/** the manager for Target and Group data. */
 	private TargetManager targetManager = null;
 	/** the parent controller for this handler. */
@@ -51,11 +57,11 @@ public class AddParentsController extends AbstractCommandController {
 	private AuthorityManager authorityManager = null;
 	private String subGroupSeparator;
 
-
+	@Autowired
+	private AddParentsValidator validator;
 
 	/** Default COnstructor. */
 	public AddParentsController() {
-		setCommandClass(AddParentsCommand.class);
 	}
 
 	/**
@@ -108,10 +114,11 @@ public class AddParentsController extends AbstractCommandController {
 		request.getSession().removeAttribute(AddParentsCommand.SESSION_SELECTIONS);
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception
-	{
-		AddParentsCommand command = (AddParentsCommand) comm;
+
+	@PostMapping(value = { "/curator/targets/add-parents.html", "/curator/groups/add-parents.html" })
+	protected ModelAndView handle(@Validated @ModelAttribute("addParentsCommand") AddParentsCommand command,
+                                  BindingResult bindingResult,
+								  HttpServletRequest request, HttpServletResponse response) throws Exception {
 		Target target = getEditorContext(request).getTarget();
 
 		if( AddParentsCommand.ACTION_ADD_PARENTS.equals(command.getActionCmd()))
@@ -134,18 +141,18 @@ public class AddParentsController extends AbstractCommandController {
 				if(parents.contains(selection)){
 						// Trying to add a duplicate.
 						String name = selection.getParentName();
-						errors.reject("target.error.duplicate_parent", new Object[] { name }, "This target is already in this group");
+						bindingResult.reject("target.error.duplicate_parent", new Object[] { name }, "This target is already in this group");
 				}
 			}
 
-			if(errors.hasErrors()) {
-				return doSearch(request, response, comm, errors);
+			if(bindingResult.hasErrors()) {
+				return doSearch(command, bindingResult, request, response);
 			}
 			else {
 				parents.addAll(getSelections(request));
 				clearSelections(request);
 				Tab membersTab = targetController.getTabConfig().getTabByID("GROUPS");
-				TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(targetController, membersTab, request, response, command, errors);
+				TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(targetController, membersTab, request, response, command, bindingResult);
 				tmav.getTabStatus().setCurrentTab(membersTab);
 				return tmav;
 			}
@@ -154,13 +161,13 @@ public class AddParentsController extends AbstractCommandController {
 			clearSelections(request);
 			// Go back to the Members tab on the groups controller.
 			Tab membersTab = targetController.getTabConfig().getTabByID("GROUPS");
-			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(targetController, membersTab, request, response, command, errors);
+			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(targetController, membersTab, request, response, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(membersTab);
 			return tmav;
 		}
 		else if( AddParentsCommand.ACTION_REMOVE.equals(command.getActionCmd())) {
 			getSelections(request).remove(command.getParentIndex());
-			return doSearch(request, response, comm, errors);
+			return doSearch(command, bindingResult, request, response);
 		}
 		else {
 			long[] parentOids = command.getParentOids();
@@ -170,19 +177,18 @@ public class AddParentsController extends AbstractCommandController {
 				newDTO.setSaveState(SAVE_STATE.NEW);
 				addSelection(request, newDTO);
 			}
-			return doSearch(request, response, comm, errors);
+			return doSearch(command, bindingResult, request, response);
 		}
 	}
 
 	/**
 	 * Perform the search for Group members.
 	 */
-	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	private ModelAndView doSearch(AddParentsCommand command, BindingResult bindingResult,
+                                  HttpServletRequest request, HttpServletResponse response) {
 
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(request);
-
-		AddParentsCommand command = (AddParentsCommand) comm;
 
 		if(command.getSearch() == null) {
 			command.setSearch("");
@@ -206,13 +212,13 @@ public class AddParentsController extends AbstractCommandController {
 		mav.addObject(Constants.GBL_CMD_DATA, command);
 		mav.addObject(AddParentsCommand.PARAM_SELECTIONS, getSelections(request));
 		mav.addObject("subGroupSeparator", subGroupSeparator);
-		if(errors.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, errors); }
+		if(bindingResult.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, bindingResult); }
 		return mav;
 	}
 
 
 	/**
-	 * @param groupsController The groupsController to set.
+	 * @param targetController The targetController to set.
 	 */
 	public void setTargetController(TabbedTargetController targetController) {
 		this.targetController = targetController;

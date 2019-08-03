@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -72,13 +73,13 @@ public class TargetInstanceResultHandler extends TabHandler {
 
     public void processTab(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                           BindingResult bindingResult) {
         // process the submit of the tab called on change tab or save
     }
 
     public TabbedModelAndView preProcessNextTab(TabbedController tc,
             Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindException errors) {
+            Object comm, BindingResult bindingResult) {
         // build mav stuff b4 displaying the tab
 
         Boolean editMode = false;
@@ -102,8 +103,8 @@ public class TargetInstanceResultHandler extends TabHandler {
     		editMode = (Boolean) req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE);
     	}
 
-        TabbedModelAndView tmav =  buildResultsModel(tc, ti, editMode, errors);
-        buildCustomDepositFormDetails(req, errors, ti, tmav);
+        TabbedModelAndView tmav =  buildResultsModel(tc, ti, editMode, bindingResult);
+        buildCustomDepositFormDetails(req, bindingResult, ti, tmav);
 
         // we also need to load the coloured flags since these are needed by the GENERAL tab
 		List<Flag> flags = agencyUserManager.getFlagForLoggedInUser();
@@ -113,7 +114,7 @@ public class TargetInstanceResultHandler extends TabHandler {
 
     }
 
-    public TabbedModelAndView buildResultsModel(TabbedController tc, TargetInstance ti, boolean editMode, BindException errors) {
+    public TabbedModelAndView buildResultsModel(TabbedController tc, TargetInstance ti, boolean editMode, BindingResult bindingResult) {
     	TabbedModelAndView tmav = tc.new TabbedModelAndView();
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(ti.getOid());
 		User user = org.webcurator.core.util.AuthUtil.getRemoteUserObject();
@@ -123,16 +124,16 @@ public class TargetInstanceResultHandler extends TabHandler {
         tmav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
         tmav.addObject("results", results);
         tmav.addObject("reasons", rejectionReasons);
-        if(errors.hasErrors())
+        if(bindingResult.hasErrors())
         {
-        	tmav.addObject(Constants.GBL_ERRORS, errors);
+        	tmav.addObject(Constants.GBL_ERRORS, bindingResult);
         }
         return tmav;
     }
 
     public ModelAndView processOther(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                                     BindingResult bindingResult) {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             ModelAndView mav = new ModelAndView();
@@ -167,10 +168,10 @@ public class TargetInstanceResultHandler extends TabHandler {
 
         	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-        	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, errors);
+        	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
         	tmav.getTabStatus().setCurrentTab(currentTab);
-        	buildCustomDepositFormDetails(req, errors, ti, tmav);
+        	buildCustomDepositFormDetails(req, bindingResult, ti, tmav);
 
         	return tmav;
         }
@@ -189,7 +190,7 @@ public class TargetInstanceResultHandler extends TabHandler {
 
         	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, errors);
+        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
         	tmav.getTabStatus().setCurrentTab(currentTab);
 
         	return tmav;
@@ -205,14 +206,14 @@ public class TargetInstanceResultHandler extends TabHandler {
 						if(rejReasonId==null) {
 			                String[] codes = {"result.rejection.missing"};
 			                Object[] args = new Object[0];
-			                if (errors == null) {
-			                    errors = new BindException(cmd, "command");
+			                if (bindingResult == null) {
+			                    bindingResult = new BindException(cmd, "command");
 			                }
-			                errors.addError(new ObjectError("command",codes,args,"Unable to reject harvest, no rejection reasons have been created."));
+			                bindingResult.addError(new ObjectError("command",codes,args,"Unable to reject harvest, no rejection reasons have been created."));
 			             	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-			            	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
-			            	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, errors);
+			            	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+			            	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
 			            	tmav.getTabStatus().setCurrentTab(currentTab);
 			            	return tmav;
 						}
@@ -243,8 +244,8 @@ public class TargetInstanceResultHandler extends TabHandler {
     		targetInstanceManager.save(ti);
          	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-        	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, errors);
+        	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
         	tmav.getTabStatus().setCurrentTab(currentTab);
 
         	return tmav;
@@ -268,14 +269,14 @@ public class TargetInstanceResultHandler extends TabHandler {
         	{
                 String[] codes = {"result.reindex.fail"};
                 Object[] args = new Object[0];
-                if (errors == null) {
-                    errors = new BindException(cmd, "command");
+                if (bindingResult == null) {
+                    bindingResult = new BindException(cmd, "command");
                 }
-                errors.addError(new ObjectError("command",codes,args,"Reindex did not occur as HarvestResult is still indexing"));
+                bindingResult.addError(new ObjectError("command",codes,args,"Reindex did not occur as HarvestResult is still indexing"));
         	}
 
          	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, errors);
+        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
         	tmav.getTabStatus().setCurrentTab(currentTab);
 
         	return tmav;
@@ -316,7 +317,7 @@ public class TargetInstanceResultHandler extends TabHandler {
 		this.agencyUserManager = agencyUserManager;
 	}
 
-	protected void buildCustomDepositFormDetails(HttpServletRequest req, BindException errors, TargetInstance ti, TabbedModelAndView tmav) {
+	protected void buildCustomDepositFormDetails(HttpServletRequest req, BindingResult bindingResult, TargetInstance ti, TabbedModelAndView tmav) {
 		boolean customDepositFormRequired = false;
 		if (TargetInstance.STATE_ENDORSED.equals(ti.getState())) {
 			try {

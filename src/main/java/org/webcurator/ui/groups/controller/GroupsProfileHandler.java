@@ -18,7 +18,7 @@ package org.webcurator.ui.groups.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.ui.groups.GroupsEditorContext;
@@ -33,14 +33,14 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  */
 public class GroupsProfileHandler extends AbstractOverrideTabHandler {
 	/**
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(TabbedController, Tab, HttpServletRequest, HttpServletResponse, Object, BindException).
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(TabbedController, Tab, HttpServletRequest, HttpServletResponse, Object, BindingResult).
 	 */
 	@Override
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 
-		TabbedModelAndView tmav = super.preProcessNextTab(tc, nextTabID, req, res, comm, errors);
+		TabbedModelAndView tmav = super.preProcessNextTab(tc, nextTabID, req, res, comm, bindingResult);
 
 		// Add the objects to the model.
 		GroupsEditorContext ctx = (GroupsEditorContext) req.getSession().getAttribute(TabbedGroupController.EDITOR_CONTEXT);

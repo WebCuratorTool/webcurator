@@ -120,8 +120,8 @@ public class QaTiSummaryController {
     @Autowired
 	private QaTiSummaryValidator validator;
 
-    private static Map<String,Integer> monthMap = new HashMap<String,Integer>(20);
-    private static Map<String,Integer> dayMap = new HashMap<String,Integer>(60);
+    private static Map<String,Integer> monthMap = new HashMap<>(20);
+    private static Map<String,Integer> dayMap = new HashMap<>(60);
 
     /** static Map of months used by the schedule panel **/
 	static {

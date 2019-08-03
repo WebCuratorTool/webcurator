@@ -22,9 +22,8 @@ import org.acegisecurity.context.SecurityContextHolder;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
 import org.acegisecurity.providers.encoding.PasswordEncoder;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.common.Constants;
@@ -34,7 +33,7 @@ import org.webcurator.ui.credentials.command.ResetPasswordCommand;
  * Controller for managing reseting a users password.
  * @author bprice
  */
-public class ResetPasswordController extends AbstractFormController {
+public class ResetPasswordController {
 	/** The data access object for authorisation data. */
     private UserRoleDAO authDAO;
     /** the password encoder. */
@@ -43,27 +42,23 @@ public class ResetPasswordController extends AbstractFormController {
     private SystemWideSaltSource salt;
     /** Default Constructor. */
     public ResetPasswordController() {
-        this.setCommandClass(ResetPasswordCommand.class);
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aRes, BindException aBindEx) throws Exception {
-        return createDefaultModelAndView(aReq);
+    protected ModelAndView showForm() throws Exception {
+        return createDefaultModelAndView();
     }
 
-    @Override
     protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCmd, BindException aBindEx)
+            HttpServletResponse aRes, Object aCmd, BindingResult bindingResult)
             throws Exception {
         ResetPasswordCommand aPwdCommand = (ResetPasswordCommand) aCmd;
-        return processPasswordChange(aReq, aRes, aPwdCommand, aBindEx);
+        return processPasswordChange(aPwdCommand, bindingResult);
     }
 
     /**
      * @return the default model and view for the password reset page.
      */
-    private ModelAndView createDefaultModelAndView(HttpServletRequest aReq) {
+    private ModelAndView createDefaultModelAndView() {
         ModelAndView mav = new ModelAndView();
         mav.setViewName(Constants.VIEW_RESET_PWD);
 
@@ -73,11 +68,11 @@ public class ResetPasswordController extends AbstractFormController {
     /**
      * Process the change password command.
      */
-    private ModelAndView processPasswordChange(HttpServletRequest aReq,HttpServletResponse aResp, ResetPasswordCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processPasswordChange(ResetPasswordCommand aCmd, BindingResult bindingResult) throws Exception {
         ModelAndView mav = new ModelAndView();
-        if (aErrors.hasErrors()) {
-            mav.addObject(Constants.GBL_CMD_DATA, aErrors.getTarget());
-            mav.addObject(Constants.GBL_ERRORS, aErrors);
+        if (bindingResult.hasErrors()) {
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
             mav.setViewName(Constants.VIEW_RESET_PWD);
 
             return mav;

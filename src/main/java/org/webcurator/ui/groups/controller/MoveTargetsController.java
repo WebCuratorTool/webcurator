@@ -21,9 +21,8 @@ import java.util.Iterator;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.CookieUtils;
@@ -41,7 +40,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * This controller manages the process of adding members to a Target Group.
  * @author bbeaumont
  */
-public class MoveTargetsController extends AbstractCommandController {
+public class MoveTargetsController {
 	/** the manager for Target and Group data. */
 	private TargetManager targetManager = null;
 	/** the parent controller for this handler. */
@@ -53,7 +52,6 @@ public class MoveTargetsController extends AbstractCommandController {
 
 	/** Default COnstructor. */
 	public MoveTargetsController() {
-		setCommandClass(MoveTargetsCommand.class);
 	}
 
 	/**
@@ -70,8 +68,8 @@ public class MoveTargetsController extends AbstractCommandController {
 		return ctx;
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 
 		MoveTargetsCommand command = (MoveTargetsCommand) comm;
 		GroupsEditorContext ctx = getEditorContext(request);
@@ -96,17 +94,17 @@ public class MoveTargetsController extends AbstractCommandController {
 							// Prevent the addition of duplicate members.
 							Target target = targetManager.load(targetToMove, false);
 							String name = target.getName();
-							errors.reject("groups.errors.duplicate", new Object[] { name }, "Already a member of this group");
+							bindingResult.reject("groups.bindingResult.duplicate", new Object[] { name }, "Already a member of this group");
 						}
 					}
 				}
 			}
 			else
 			{
-				errors.reject("groups.errors.movetargets.must_select", null, "You must select a destination group");
+				bindingResult.reject("groups.bindingResult.movetargets.must_select", null, "You must select a destination group");
 			}
 
-			if(!errors.hasErrors() && targetGroup != null) {
+			if(!bindingResult.hasErrors() && targetGroup != null) {
 
 				if(authorityManager.hasPrivilege(sourceGroup, Privilege.ADD_TARGET_TO_GROUP) &&
 						authorityManager.hasPrivilege(targetGroup, Privilege.ADD_TARGET_TO_GROUP))
@@ -115,31 +113,32 @@ public class MoveTargetsController extends AbstractCommandController {
 				}
 
 				Tab membersTab = groupsController.getTabConfig().getTabByID("MEMBERS");
-				TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, errors);
+				TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, bindingResult);
 				tmav.getTabStatus().setCurrentTab(membersTab);
 				return tmav;
 			}
 			else
 			{
-				return doSearch(request, response, comm, errors);
+				return doSearch(request, response, comm, bindingResult);
 			}
 		}
 		else if( MoveTargetsCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
 			// Go back to the Members tab on the groups controller.
 			Tab membersTab = groupsController.getTabConfig().getTabByID("MEMBERS");
-			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, errors);
+			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(membersTab);
 			return tmav;
 		}
 		else {
-			return doSearch(request, response, comm, errors);
+			return doSearch(request, response, comm, bindingResult);
 		}
 	}
 
 	/**
 	 * Perform the search for Group members.
 	 */
-	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) {
 
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(request);
@@ -166,7 +165,7 @@ public class MoveTargetsController extends AbstractCommandController {
 		ModelAndView mav = new ModelAndView("group-move-targets");
 		mav.addObject("page", results);
 		mav.addObject(Constants.GBL_CMD_DATA, command);
-		if(errors.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, errors); }
+		if(bindingResult.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, bindingResult); }
 		return mav;
 	}
 

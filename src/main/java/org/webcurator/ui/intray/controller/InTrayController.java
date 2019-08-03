@@ -20,9 +20,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.exceptions.NotOwnerRuntimeException;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.util.AuthUtil;
@@ -39,7 +38,7 @@ import org.webcurator.ui.intray.command.InTrayCommand;
  * The controller for managing the intray views.
  * @author bprice
  */
-public class InTrayController extends AbstractFormController {
+public class InTrayController {
 	/** the logger. */
     private Log log = null;
     /** the manager for manager tasks and notifications. */
@@ -47,11 +46,10 @@ public class InTrayController extends AbstractFormController {
     /** Default Constructor. */
     public InTrayController() {
         log = LogFactory.getLog(InTrayController.class);
-        setCommandClass(InTrayCommand.class);
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd, BindException aErrors) throws Exception {
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd,
+                                                 BindingResult bindingResult) throws Exception {
         InTrayCommand intrayCmd = (InTrayCommand) aCmd;
         ModelAndView mav = null;
 
@@ -78,7 +76,7 @@ public class InTrayController extends AbstractFormController {
             } else if (InTrayCommand.ACTION_VIEW_NOTIFICATION.equals(intrayCmd.getAction())) {
                 mav = viewNotification(intrayCmd, pageSize, showTasks);
             } else if (InTrayCommand.ACTION_DELETE_TASK.equals(intrayCmd.getAction())) {
-                mav = deleteTask(intrayCmd, pageSize, aErrors, showTasks);
+                mav = deleteTask(intrayCmd, pageSize, bindingResult, showTasks);
             } else if (InTrayCommand.ACTION_VIEW_TASK.equals(intrayCmd.getAction())) {
                 mav = viewTask(intrayCmd, pageSize, showTasks);
             } else if (InTrayCommand.ACTION_CLAIM_TASK.equals(intrayCmd.getAction())) {
@@ -95,13 +93,12 @@ public class InTrayController extends AbstractFormController {
         } else {
             //invalid action command so redirect to the view intray screen
             log.warn("A form was posted to the InTrayController without a valid action attribute, redirecting to the showForm flow.");
-            return showForm(aReq,aRes,aErrors);
+            return showForm(aReq);
         }
         return mav;
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aRes, BindException aErrors) throws Exception {
+    protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
 
     	// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(aReq);
@@ -139,22 +136,22 @@ public class InTrayController extends AbstractFormController {
         }
     }
 
-    private ModelAndView deleteTask(InTrayCommand intrayCmd, int pageSize, BindException aErrors, Boolean showTasks) {
+    private ModelAndView deleteTask(InTrayCommand intrayCmd, int pageSize, BindingResult bindingResult, Boolean showTasks) {
         Long taskOid = intrayCmd.getTaskOid();
         if (taskOid != null) {
             try {
 				inTrayManager.deleteTask(taskOid);
 			}
             catch (NotOwnerRuntimeException e) {
-            	aErrors.reject("task.error.delete.not.owner");
+            	bindingResult.reject("task.error.delete.not.owner");
 			}
         } else {
             log.warn("A form was posted to the InTrayController without a valid taskOid attribute, redirecting to the showForm flow.");
         }
 
         ModelAndView mav = defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
-        if (aErrors.hasErrors()) {
-        	mav.addObject(Constants.GBL_ERRORS, aErrors);
+        if (bindingResult.hasErrors()) {
+        	mav.addObject(Constants.GBL_ERRORS, bindingResult);
         }
 
         return mav;

@@ -25,7 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -72,11 +72,9 @@ public class TabbedTargetInstanceController extends TabbedController {
         req.getSession().setAttribute(Constants.GBL_SESS_EDIT_MODE, true);
 	};
 
-    /* (non-Javadoc)
-     * @see org.webcurator.ui.util.TabbedController#processSave(org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-     */
     @Override
-    protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+    protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                       BindingResult bindingResult) {
         TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
 
         try {
@@ -97,7 +95,7 @@ public class TabbedTargetInstanceController extends TabbedController {
         }
 
 		try {
-			ModelAndView mav = queueController.showForm(req ,res, errors);
+			ModelAndView mav = queueController.showForm(req ,res, bindingResult);
 			mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("targetInstance.saved", new Object[] { ti.getTarget().getName() + " ("+ ti.getOid().toString() + ")" }, Locale.getDefault()));
 	        return mav;
 		}
@@ -106,31 +104,25 @@ public class TabbedTargetInstanceController extends TabbedController {
 		}
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.ui.util.TabbedController#processCancel(org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-     */
     @Override
-    protected ModelAndView processCancel(Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+    protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                         BindingResult bindingResult) {
 
     	unbindContext(req);
 
         return new ModelAndView("redirect:/curator/target/queue.html");
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.ui.util.TabbedController#showForm(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.validation.BindException)
-     */
     @Override
-    protected ModelAndView showForm(HttpServletRequest req,
-            HttpServletResponse res, Object comm, BindException errors) throws Exception {
+    protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                    BindingResult bindingResult) throws Exception {
         // return std model and view to show form on a get.
-    	return processInitial(req, res, comm, errors);
+    	return processInitial(req, res, comm, bindingResult);
     }
 
     @Override
-    protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+    protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                          BindingResult bindingResult) {
         // Load the handler the first time
 
     	// Clear out the session attributes.
@@ -199,7 +191,7 @@ public class TabbedTargetInstanceController extends TabbedController {
 
         // Go to the first tab.
         Tab generalTab = getTabConfig().getTabByID(destTab);
-        TabbedModelAndView mav = generalTab.getTabHandler().preProcessNextTab(this, generalTab, req, res, populatedCommand, errors);
+        TabbedModelAndView mav = generalTab.getTabHandler().preProcessNextTab(this, generalTab, req, res, populatedCommand, bindingResult);
         mav.getTabStatus().setCurrentTab(generalTab);
         return mav;
     }

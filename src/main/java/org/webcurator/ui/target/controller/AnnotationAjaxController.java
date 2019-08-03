@@ -6,13 +6,15 @@ import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
@@ -25,7 +27,9 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
-public class AnnotationAjaxController extends AbstractFormController {
+@Controller
+@RequestMapping("/curator/target/annotation-ajax.html")
+public class AnnotationAjaxController {
 
     /** The manager to use to access the target instance. */
     private TargetInstanceManager targetInstanceManager;
@@ -37,25 +41,24 @@ public class AnnotationAjaxController extends AbstractFormController {
     /** Default constructor. */
     public AnnotationAjaxController() {
         super();
-        setCommandClass(TargetInstanceCommand.class);
         log = LogFactory.getLog(getClass());
     }
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, Object aCmd, BindException aErrors)
-			throws Exception {
-
+	@PostMapping
+	protected ModelAndView processFormSubmission(@RequestParam("targetOid") Long targetOid,
+												 @RequestParam("targetInstanceOid") Long targetInstanceOid,
+												 HttpServletRequest request) throws Exception {
 		String ajaxRequest = request.getParameter(Constants.AJAX_REQUEST_TYPE);
 		if (ajaxRequest.equals(Constants.AJAX_REQUEST_FOR_TI_ANNOTATIONS)) {
-			return processTargetInstanceRequest(request, response, aCmd, aErrors);
+			return processTargetInstanceRequest(request, targetOid, targetInstanceOid);
 		}
 		if (ajaxRequest.equals(Constants.AJAX_REQUEST_FOR_TARGET_ANNOTATIONS)) {
-			return processTargetRequest(request, response, aCmd, aErrors);
+			return processTargetRequest(targetOid);
 		}
 		return null;
 	}
 
-	private ModelAndView processTargetInstanceRequest(HttpServletRequest request, HttpServletResponse response, Object aCmd, BindException aErrors)
+	private ModelAndView processTargetInstanceRequest(HttpServletRequest request, Long targetOid, Long targetInstanceOid)
 			throws Exception {
 		TargetInstanceCommand searchCommand = (TargetInstanceCommand) request.getSession().getAttribute(TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA);
 
@@ -64,8 +67,8 @@ public class AnnotationAjaxController extends AbstractFormController {
 
         TargetInstanceCriteria criteria = new TargetInstanceCriteria();
         criteria.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID);
-        criteria.setTargetSearchOid(new Long(request.getParameter("targetOid")));
-        criteria.setSearchOid(new Long(request.getParameter("targetInstanceOid")));
+        criteria.setTargetSearchOid(targetOid);
+        criteria.setSearchOid(targetInstanceOid);
 		User user = AuthUtil.getRemoteUserObject();
     	criteria.setAgency(user.getAgency().getName());
     	searchCommand.setAgency(user.getAgency().getName());
@@ -99,9 +102,7 @@ public class AnnotationAjaxController extends AbstractFormController {
 
 	}
 
-	private ModelAndView processTargetRequest(HttpServletRequest request, HttpServletResponse response, Object aCmd, BindException aErrors)
-			throws Exception {
-		Long targetOid = new Long(request.getParameter("targetOid"));
+	private ModelAndView processTargetRequest(Long targetOid) throws Exception {
 		Target target = targetManager.load(targetOid, true);
 		// the annotations are not recovered by hibernate during the target fetch so we need to add them
 		target.setAnnotations(targetManager.getAnnotations(target));
@@ -110,16 +111,17 @@ public class AnnotationAjaxController extends AbstractFormController {
 		return mav;
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request,
-			HttpServletResponse response, BindException aErrors) throws Exception {
+	@GetMapping
+	protected ModelAndView showForm(@RequestParam("targetOid") Long targetOid,
+									@RequestParam("targetInstanceOid") Long targetInstanceOid,
+									HttpServletRequest request) throws Exception {
 
 		String ajaxRequest = request.getParameter(Constants.AJAX_REQUEST_TYPE);
 		if (ajaxRequest.equals(Constants.AJAX_REQUEST_FOR_TI_ANNOTATIONS)) {
-			return processTargetInstanceRequest(request, response, null, aErrors);
+			return processTargetInstanceRequest(request, targetOid, targetInstanceOid);
 		}
 		if (ajaxRequest.equals(Constants.AJAX_REQUEST_FOR_TARGET_ANNOTATIONS)) {
-			return processTargetRequest(request, response, null, aErrors);
+			return processTargetRequest(targetOid);
 		}
 		return null;
 

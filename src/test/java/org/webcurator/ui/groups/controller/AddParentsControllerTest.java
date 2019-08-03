@@ -12,13 +12,13 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
-import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddParentsCommand;
@@ -126,7 +126,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController> 
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddParentsCommand");
+            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request, 15002L);
 			testInstance.getEditorContext(request).getTargetGroup().setName("ParentGroup > ChildGroup");
@@ -135,7 +135,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController> 
 			long[]  oids = {15000L};
 			command.setParentOids(oids);
 
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 			assertTrue(((GeneralCommand)mav.getModel().get("command")).getParentOid().equals("15000"));
@@ -159,7 +159,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController> 
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddParentsCommand");
+            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request, 15002L);
 			testInstance.getEditorContext(request).getTargetGroup().setName("ParentGroup > ChildGroup");
@@ -168,7 +168,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController> 
 			long[]  oids = {15000L};
 			command.setParentOids(oids);
 
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 			assertTrue(((GeneralCommand)mav.getModel().get("command")).getParentOid().equals(""));
@@ -192,13 +192,13 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController> 
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindException errors = new BindException(command, "AddMembersCommand");
+			BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15002L);
 
 			command.setActionCmd(null);
 
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "group-add-parents");
 		}

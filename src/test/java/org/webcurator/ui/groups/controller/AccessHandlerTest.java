@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.*;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.webcurator.test.BaseWCTTest;
@@ -95,8 +96,8 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 		aCmd.setDisplayNote("Some Notes");
 		aCmd.setDisplayChangeReason("Some reason");
 		aCmd.setDisplayTarget(true);
-		BindException aErrors = new BindException(aCmd, "TargetAccessCommand");
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "TargetAccessCommand");
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetGroup.getAccessZone() == 0);
 		assertTrue(targetGroup.getDisplayNote().equals("Some Notes"));
 		assertTrue(targetGroup.getDisplayChangeReason().equals("Some reason"));
@@ -130,8 +131,8 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 		aCmd.setDisplayNote("Some notes");
 		aCmd.setDisplayChangeReason("Some reason");
 		aCmd.setDisplayTarget(true);
-		BindException aErrors = new BindException(aCmd, "TargetAccessCommand");
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "TargetAccessCommand");
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(((TargetAccessCommand)mav.getModel().get("command")).getAccessZone() == targetGroup.getAccessZone());
 		assertTrue(((TargetAccessCommand)mav.getModel().get("command")).getDisplayNote().equals(targetGroup.getDisplayNote()));
 		assertTrue(((TargetAccessCommand)mav.getModel().get("command")).getDisplayChangeReason().equals(targetGroup.getDisplayChangeReason()));
@@ -164,8 +165,8 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 		aCmd.setAccessZone(0);
 		aCmd.setDisplayNote("Some notes");
 		aCmd.setDisplayTarget(true);
-		BindException aErrors = new BindException(aCmd, "TargetAccessCommand");
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "TargetAccessCommand");
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav == null);
 	}
 

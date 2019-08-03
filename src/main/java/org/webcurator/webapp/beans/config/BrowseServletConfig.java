@@ -13,7 +13,7 @@ import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
-import org.springframework.web.servlet.view.tiles2.TilesConfigurer;
+import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
 import org.webcurator.ui.tools.controller.BrowseController;
 import org.webcurator.ui.tools.controller.BrowseHelper;
 import org.webcurator.ui.tools.controller.RegexReplacer;
@@ -55,7 +55,6 @@ public class BrowseServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
         OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
         bean.setSessionFactory(baseConfig.sessionFactory().getObject());
@@ -66,7 +65,6 @@ public class BrowseServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SimpleUrlHandlerMapping simpleUrlMapping() {
         SimpleUrlHandlerMapping bean = new SimpleUrlHandlerMapping();
         bean.setInterceptors(new Object[]{ openSessionInViewInterceptor() });
@@ -101,7 +99,6 @@ public class BrowseServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SimpleMappingExceptionResolver exceptionResolver() {
         SimpleMappingExceptionResolver bean = new SimpleMappingExceptionResolver();
         bean.setDefaultErrorView("browse-tool-error");
@@ -117,10 +114,8 @@ public class BrowseServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public BrowseController browseController() {
         BrowseController bean = new BrowseController();
-        bean.setSupportedMethods("GET");
         bean.setQualityReviewFacade(baseConfig.qualityReviewFacade());
         bean.setBrowseHelper(browseHelper());
 

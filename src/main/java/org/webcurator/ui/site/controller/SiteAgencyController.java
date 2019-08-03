@@ -18,9 +18,8 @@ package org.webcurator.ui.site.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.springframework.web.util.WebUtils;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.domain.model.core.AuthorisingAgent;
@@ -35,7 +34,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * The manager for Harvest Authorisation actions.
  * @author nwaight
  */
-public class SiteAgencyController extends AbstractCommandController {
+public class SiteAgencyController {
 
 	/** The site manager */
 	private SiteManager siteManager = null;
@@ -45,7 +44,6 @@ public class SiteAgencyController extends AbstractCommandController {
 	private BusinessObjectFactory busObjFactory = null;
 
 	public SiteAgencyController() {
-		setCommandClass(SiteAuthorisingAgencyCommand.class);
 	}
 
 	public SiteEditorContext getEditorContext(HttpServletRequest req) {
@@ -57,13 +55,8 @@ public class SiteAgencyController extends AbstractCommandController {
 		return ctx;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest aReq,
-			HttpServletResponse aResp, Object aCommand, BindException aErrors)
-			throws Exception {
+	protected ModelAndView handle(HttpServletRequest aReq, HttpServletResponse aResp, Object aCommand,
+                                  BindingResult bindingResult) throws Exception {
 
 		SiteAuthorisingAgencyCommand cmd = (SiteAuthorisingAgencyCommand) aCommand;
 		SiteEditorContext ctx = getEditorContext(aReq);
@@ -71,7 +64,7 @@ public class SiteAgencyController extends AbstractCommandController {
 		// Handle Cancel
 		if(WebUtils.hasSubmitParameter(aReq, "_cancel_auth_agent")) {
 			Tab membersTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
-			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, aErrors);
+			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, bindingResult);
 			tmav.getTabStatus().setCurrentTab(membersTab);
 			return tmav;
 		}
@@ -79,10 +72,10 @@ public class SiteAgencyController extends AbstractCommandController {
 		// Handle Save
 		if(WebUtils.hasSubmitParameter(aReq, "_save_auth_agent")) {
 
-			if (aErrors.hasErrors()) {
+			if (bindingResult.hasErrors()) {
 				ModelAndView mav = new ModelAndView();
-				mav.addObject(Constants.GBL_CMD_DATA, aErrors.getTarget());
-				mav.addObject(Constants.GBL_ERRORS, aErrors);
+				mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+				mav.addObject(Constants.GBL_ERRORS, bindingResult);
 				mav.setViewName(Constants.VIEW_SITE_AGENCIES);
 				mav.addObject("authAgencyEditMode", true);
 
@@ -103,14 +96,14 @@ public class SiteAgencyController extends AbstractCommandController {
 			}
 
 			Tab membersTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
-			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, aErrors);
+			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, bindingResult);
 			tmav.getTabStatus().setCurrentTab(membersTab);
 			return tmav;
 		}
 
 		ModelAndView mav = new ModelAndView();
 		mav.addObject(Constants.GBL_CMD_DATA, cmd);
-		mav.addObject(Constants.GBL_ERRORS, aErrors);
+		mav.addObject(Constants.GBL_ERRORS, bindingResult);
 		mav.setViewName(Constants.VIEW_SITE_AGENCIES);
 
 		return mav;

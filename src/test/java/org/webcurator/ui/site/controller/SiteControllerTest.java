@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.validation.BindingResult;
 import org.webcurator.core.profiles.MockProfileManager;
 import org.webcurator.test.*;
 import org.webcurator.common.Constants;
@@ -108,8 +109,8 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 			comm.setEditMode(true);
 			comm.setSiteOid(null);
 
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.processInitial(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.processInitial(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 			SiteEditorContext context = testInstance.getEditorContext(request);
@@ -133,8 +134,8 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 			comm.setEditMode(true);
 			comm.setSiteOid(null);
 
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 			SiteEditorContext context = testInstance.getEditorContext(request);
@@ -158,9 +159,9 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 			comm.setEditMode(false);
 			comm.setSiteOid(9001L);
 
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
 			this.addCurrentUserPrivilege(100, Privilege.MODIFY_SITE);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 		}
@@ -183,11 +184,11 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 			comm.setSiteOid(null);
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			testInstance.processInitial(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			testInstance.processInitial(request, response, comm, bindingResult);
 			SiteEditorContext context = testInstance.getEditorContext(request);
 			context.getSite().setTitle("Test Site");
-			ModelAndView mav = testInstance.processSave(currTab, request, response, comm, aError);
+			ModelAndView mav = testInstance.processSave(currTab, request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site-search"));
 			assertTrue(mav.getModel().get("page_message") != null);
@@ -212,8 +213,8 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 			comm.setSiteOid(null);
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.processCancel(currTab, request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.processCancel(currTab, request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("redirect:/curator/site/search.html"));
 		}
@@ -260,9 +261,8 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 
 			assertFalse(authorityManager.hasPrivilege(Privilege.MODIFY_SITE,Privilege.SCOPE_ALL));
 
-
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 
@@ -273,15 +273,11 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 			assertTrue(authorityManager.hasPrivilege(Privilege.MODIFY_SITE,Privilege.SCOPE_ALL));
 
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 
 			assertTrue((Boolean)request.getSession().getAttribute(Constants.GBL_SESS_CAN_EDIT));
-
-
-
-
 		}
 		catch (Exception e)
 		{
@@ -306,9 +302,8 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 
 			assertFalse(authorityManager.hasPrivilege(Privilege.MODIFY_SITE,Privilege.SCOPE_AGENCY));
 
-
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 
@@ -318,16 +313,11 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 
 			assertTrue(authorityManager.hasPrivilege(Privilege.MODIFY_SITE,Privilege.SCOPE_AGENCY));
 
-
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 
 			assertTrue((Boolean)request.getSession().getAttribute(Constants.GBL_SESS_CAN_EDIT));
-
-
-
-
 		}
 		catch (Exception e)
 		{
@@ -352,9 +342,8 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 
 			assertFalse(authorityManager.hasPrivilege(Privilege.MODIFY_SITE,Privilege.SCOPE_AGENCY));
 
-
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 
@@ -365,15 +354,11 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 			assertTrue(authorityManager.hasPrivilege(Privilege.MODIFY_SITE,Privilege.SCOPE_AGENCY));
 
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 
 			assertFalse((Boolean)request.getSession().getAttribute(Constants.GBL_SESS_CAN_EDIT));
-
-
-
-
 		}
 		catch (Exception e)
 		{

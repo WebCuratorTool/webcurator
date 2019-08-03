@@ -18,7 +18,7 @@ package org.webcurator.ui.util;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
@@ -44,9 +44,9 @@ public abstract class TabHandler {
 	 * @param req	     The HttpServletRequest object.
 	 * @param res		 The HttpServletResponse object.
 	 * @param comm 		 The Spring command object.
-	 * @param errors	 The Spring errors object.
+	 * @param bindingResult	 The Spring binding result.
 	 */
-	public abstract void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors);
+	public abstract void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindingResult bindingResult);
 
 	/**
 	 * Prepare the model for showing the tab. This method should create a new
@@ -58,10 +58,10 @@ public abstract class TabHandler {
 	 * @param req	     The HttpServletRequest object.
 	 * @param res		 The HttpServletResponse object.
 	 * @param comm 		 The Spring command object.
-	 * @param errors	 The Spring errors object.
+     * @param bindingResult	 The Spring binding result.
 	 * @return The model and view.
 	 */
-	public abstract TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors);
+	public abstract TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req, HttpServletResponse res, Object comm, BindingResult bindingResult);
 
 	/**
 	 * Process an action that the TabbedController cannot interpret. These actions
@@ -72,10 +72,10 @@ public abstract class TabHandler {
 	 * @param req	     The HttpServletRequest object.
 	 * @param res		 The HttpServletResponse object.
 	 * @param comm 		 The Spring command object.
-	 * @param errors	 The Spring errors object.
+     * @param bindingResult	 The Spring binding result.
 	 * @return The model and view.
 	 */
-	public abstract ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors);
+	public abstract ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindingResult bindingResult);
 
 	/**
 	 * Initialise the binder for this handler. It may be necessary for the

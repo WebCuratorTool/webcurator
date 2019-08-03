@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.ProfileOverrides;
@@ -53,15 +53,15 @@ public class TargetInstanceProfileHandler extends AbstractOverrideTabHandler {
     }
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 
 		log.debug("preProcessNextTab");
-		TabbedModelAndView tmav = super.preProcessNextTab(tc, nextTabID, req, res, comm, errors);
+		TabbedModelAndView tmav = super.preProcessNextTab(tc, nextTabID, req, res, comm, bindingResult);
 
 		// Add the objects to the model.
 		TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
@@ -78,7 +78,7 @@ public class TargetInstanceProfileHandler extends AbstractOverrideTabHandler {
 	@Override
 	public void processTab(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                           BindingResult bindingResult) {
 
 		TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
 		Boolean editMode = getEditMode(req);
@@ -108,12 +108,12 @@ public class TargetInstanceProfileHandler extends AbstractOverrideTabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
 	public ModelAndView processOther(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                                     BindingResult bindingResult) {
 
 		TargetInstanceProfileCommand command = (TargetInstanceProfileCommand) comm;
 		TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
@@ -127,12 +127,12 @@ public class TargetInstanceProfileHandler extends AbstractOverrideTabHandler {
 			}
 
 			// Process the main tab.
-			TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+			TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 			tmav.getTabStatus().setCurrentTab(currentTab);
 			return tmav;
 		}
 		else {
-			return super.processOther(tc, currentTab, req, res, comm, errors);
+			return super.processOther(tc, currentTab, req, res, comm, bindingResult);
 		}
 
 	}

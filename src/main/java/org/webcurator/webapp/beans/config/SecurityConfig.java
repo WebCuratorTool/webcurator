@@ -31,6 +31,7 @@ import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
 import org.webcurator.auth.dbms.WCTForcePasswordChange;
 import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
 
+import javax.servlet.ServletException;
 import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -271,7 +272,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public HttpSessionContextIntegrationFilter httpSessionContextIntegrationFilter() {
+    public HttpSessionContextIntegrationFilter httpSessionContextIntegrationFilter() throws ServletException {
         return new HttpSessionContextIntegrationFilter();
     }
 
@@ -352,7 +353,6 @@ public class SecurityConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AuthenticationProcessingFilterEntryPoint authenticationProcessingFilterEntryPoint() {
         AuthenticationProcessingFilterEntryPoint bean = new AuthenticationProcessingFilterEntryPoint();
         bean.setLoginFormUrl("/logon.jsp");

@@ -15,6 +15,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
@@ -101,12 +102,12 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "SeedsCommand");
+        BindingResult bindingResult = new BindException(aCmd, "SeedsCommand");
 
 		try
 		{
 			//This method doesn't currently do anything
-			testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		}
 		catch(Exception e)
 		{
@@ -142,9 +143,9 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "SeedsCommand");
+        BindingResult bindingResult = new BindException(aCmd, "SeedsCommand");
 
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 		assertEquals(((List<Seed>)mav.getModel().get("seeds")).size(), target.getSeeds().size());
 		assertTrue(target.getSeeds().size() > 0);
@@ -186,12 +187,12 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "SeedsCommand");
+        BindingResult bindingResult = new BindException(aCmd, "SeedsCommand");
 
 		targetManager.setAllowMultiplePrimarySeeds(true);
 		aCmd.setActionCmd(SeedsCommand.ACTION_TOGGLE_PRIMARY);
 		aCmd.setSelectedSeed("6001");
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 		List<Seed> seeds = (List<Seed>)mav.getModel().get("seeds");
 		Iterator<Seed> it = seeds.iterator();
@@ -208,7 +209,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		targetManager.setAllowMultiplePrimarySeeds(false);
 		aCmd.setActionCmd(SeedsCommand.ACTION_TOGGLE_PRIMARY);
 		aCmd.setSelectedSeed("6002");
-		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 		seeds = (List<Seed>)mav.getModel().get("seeds");
 		it = seeds.iterator();
@@ -229,7 +230,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		aCmd.setSeed(testSeed);
 		aCmd.setPermissionMappingOption(SeedsCommand.PERM_MAPPING_NONE);
 
-		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 		assertEquals(targetEditorContext.getTarget().getSeeds().size(), 1);
 		assertEquals(((Seed)targetEditorContext.getTarget().getSeeds().toArray()[0]).getSeed(),expectedSeed);
@@ -264,7 +265,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "SeedsCommand");
+        BindingResult bindingResult = new BindException(aCmd, "SeedsCommand");
 
 		assertEquals(3, target.getSeeds().size());
 
@@ -272,7 +273,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		aReq.addParameter("chkSelect6002", "on");
 		aCmd.setActionCmd(SeedsCommand.ACTION_REMOVE_SELECTED);
 
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 		List<Seed> seeds = (List<Seed>)mav.getModel().get("seeds");
 		assertEquals(1, seeds.size());
@@ -309,7 +310,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "SeedsCommand");
+        BindingResult bindingResult = new BindException(aCmd, "SeedsCommand");
 
 		assertEquals(3, target.getSeeds().size());
 		Iterator<Seed> it = target.getSeeds().iterator();
@@ -323,7 +324,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		aReq.addParameter("chkSelect6002", "on");
 		aCmd.setActionCmd(SeedsCommand.ACTION_UNLINK_SELECTED);
 
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 		List<Seed> seeds = (List<Seed>)mav.getModel().get("seeds");
 		assertEquals(3, seeds.size());
@@ -375,7 +376,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "SeedsCommand");
+        BindingResult bindingResult = new BindException(aCmd, "SeedsCommand");
 
 		assertEquals(3, target.getSeeds().size());
 		Iterator<Seed> it = target.getSeeds().iterator();
@@ -389,7 +390,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		aReq.addParameter("chkSelect6012", "on");
 		aCmd.setActionCmd(SeedsCommand.ACTION_LINK_SELECTED);
 
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertNotNull(mav);
 		String jsp = ((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getJsp();
 		assertEquals("../target-seeds-link.jsp", jsp);
@@ -401,7 +402,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		command.setActionCmd(SeedsCommand.ACTION_LINK_NEW_CONFIRM);
 		command.setLinkPermIdentity(new String[]{"7000"});
 
-		mav = testInstance.processOther(tc, currentTab, aReq, aResp, command, aErrors);
+		mav = testInstance.processOther(tc, currentTab, aReq, aResp, command, bindingResult);
 		assertNotNull(mav);
 		jsp = ((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getJsp();
 		assertEquals("../target-seeds.jsp", jsp);
@@ -467,11 +468,11 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 		tc.setTabConfig(tabConfig);
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetDefaultCommand.class);
 
-		BindException aErrors = new BindException(aCmd, "SeedsCommand");
+        BindingResult bindingResult = new BindException(aCmd, "SeedsCommand");
 
 		PermissionMappingStrategy.setStrategy(new HierarchicalPermissionMappingStrategy());
 		aCmd.setUrlSearchCriteria("www.oakleigh.co.uk/*");
-		ModelAndView mav = testInstance.processLinkSearch(tc, target, aCmd, false, aErrors);
+		ModelAndView mav = testInstance.processLinkSearch(tc, target, aCmd, false, bindingResult);
 		assertNotNull(mav);
 	}
 

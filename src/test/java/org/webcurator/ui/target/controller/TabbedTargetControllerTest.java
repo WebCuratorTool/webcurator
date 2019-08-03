@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.mvel2.sh.Command;
+import org.springframework.validation.BindingResult;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.profiles.MockProfileManager;
 import org.webcurator.test.*;
@@ -117,8 +118,8 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 			comm.setMode(CommandConstants.TARGET_DEFAULT_COMMAND_MODE_EDIT);
 			comm.setTargetOid(null);
 
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("target"));
 			//TargetEditorContext context = testInstance.getEditorContext(request);
@@ -149,12 +150,12 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 			comm.setTargetOid(4000L);
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new TargetDefaultCommand(), null);
-			testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new TargetDefaultCommand(), null);
+			testInstance.showForm(request, response, comm, bindingResult);
 			context = testInstance.getEditorContext(request);
 			context.getTarget().setName("Test Target");
 			context.setParents(new ArrayList<GroupMemberDTO>());
-			ModelAndView mav = testInstance.processSave(currTab, request, response, comm, aError);
+			ModelAndView mav = testInstance.processSave(currTab, request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("target-search"));
 			assertTrue(mav.getModel().get("page_message") != null);
@@ -179,8 +180,8 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 			comm.setSiteOid(null);
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.processCancel(currTab, request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.processCancel(currTab, request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("redirect:/curator/target/search.html"));
 		}
@@ -230,8 +231,8 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 			assertFalse(authorityManager.hasPrivilege(aTarget,Privilege.MODIFY_TARGET));
 
 
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 
 			assertFalse((Boolean)request.getSession().getAttribute(Constants.GBL_SESS_CAN_EDIT));
 
@@ -239,7 +240,7 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 
 			assertTrue(authorityManager.hasPrivilege(aTarget,Privilege.MODIFY_TARGET));
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 			//assertTrue(mav != null);
 			//assertTrue(mav.getViewName().equals("site"));
 
@@ -253,7 +254,7 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 
 			assertTrue(authorityManager.hasPrivilege(aTarget,Privilege.MODIFY_TARGET));
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 			//assertTrue(mav != null);
 			//assertTrue(mav.getViewName().equals("site"));
 

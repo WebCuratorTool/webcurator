@@ -6,10 +6,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.target.command.LiveContentRetrieverCommand;
 
 public class LiveContentRetrieverControllerTest extends BaseWCTTest<LiveContentRetrieverController>{
 
@@ -27,14 +25,8 @@ public class LiveContentRetrieverControllerTest extends BaseWCTTest<LiveContentR
 		{
 			MockHttpServletRequest aReq = new MockHttpServletRequest();
 			MockHttpServletResponse aResp = new MockHttpServletResponse();
-			LiveContentRetrieverCommand aCmd = new LiveContentRetrieverCommand();
 
-			aCmd.setUrl("http://www.bl.uk");
-			aCmd.setContentFileName("test.html");
-
-			BindException aErrors = new BindException(aCmd, "LiveContentRetrieverCommand");
-
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle("http://www.bl.uk", "test.html");
 			assertTrue(mav != null);
 			assertEquals(mav.getModel().size(), 0);
 			assertTrue(mav.getView() instanceof AttachmentView);
@@ -44,8 +36,6 @@ public class LiveContentRetrieverControllerTest extends BaseWCTTest<LiveContentR
 
 			assertTrue(aResp.getHeader("Content-Disposition").toString().endsWith("test.html"));
 			assertTrue(aResp.getContentAsString().contains("British Library"));
-
-			assertFalse(aErrors.hasErrors());
 		}
 		catch(Exception e)
 		{

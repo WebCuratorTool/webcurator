@@ -17,12 +17,12 @@ package org.webcurator.ui.target.controller;
 
 import java.io.File;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -35,30 +35,26 @@ import org.webcurator.ui.target.validator.LogReaderValidator;
  *
  * @author nwaight
  */
-public class ContentReaderController extends AbstractCommandController {
+@Controller
+@RequestMapping("/curator/target/content-viewer.html")
+public class ContentReaderController {
 
 	HarvestLogManager harvestLogManager;
 
 	TargetInstanceManager targetInstanceManager;
 
+	@Autowired
+	private LogReaderValidator validator;
+
 	public ContentReaderController() {
-		setCommandClass(LogReaderCommand.class);
-		setValidator(new LogReaderValidator());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * org.springframework.web.servlet.mvc.AbstractCommandController#handle(
-	 * javax.servlet.http.HttpServletRequest,
-	 * javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 * org.springframework.validation.BindException)
-	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest aReq, HttpServletResponse aResp, Object aCommand, BindException aErrors)
-			throws Exception {
-		LogReaderCommand cmd = (LogReaderCommand) aCommand;
+	@GetMapping
+	protected ModelAndView handle(@RequestParam("targetInstanceOid") Long targetInstanceOid,
+								  @RequestParam("logFileName") String logFileName) throws Exception {
+		LogReaderCommand cmd = new LogReaderCommand();
+		cmd.setTargetInstanceOid(targetInstanceOid);
+		cmd.setLogFileName(logFileName);
 
 		TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
 		File f = null;

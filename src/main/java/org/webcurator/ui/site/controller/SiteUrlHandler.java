@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
@@ -46,12 +46,11 @@ public class SiteUrlHandler extends AbstractSiteHandler {
 	private BusinessObjectFactory businessObjectFactory = null;
 
 	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+			HttpServletResponse res, Object comm, BindingResult bindingResult) {
 	}
 
-	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTab, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 
 		TabbedModelAndView tmav = tc.new TabbedModelAndView();
@@ -60,16 +59,16 @@ public class SiteUrlHandler extends AbstractSiteHandler {
 	}
 
 	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 		UrlCommand command = (UrlCommand) comm;
 
-		if(errors.hasErrors()) {
+		if(bindingResult.hasErrors()) {
 			Tab tab = tc.getTabConfig().getTabByID("URLS");
-			TabbedModelAndView tmav = tab.getTabHandler().preProcessNextTab(tc, tab, req, res, comm ,errors);
+			TabbedModelAndView tmav = tab.getTabHandler().preProcessNextTab(tc, tab, req, res, comm ,bindingResult);
 			tmav.getTabStatus().setCurrentTab(tab);
 			tmav.addObject(Constants.GBL_CMD_DATA, command);
-			tmav.addObject(Constants.GBL_ERRORS, errors);
+			tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return tmav;
 		}
 
@@ -78,13 +77,13 @@ public class SiteUrlHandler extends AbstractSiteHandler {
 
 			UrlPattern patternToRemove = (UrlPattern) ctx.getObject(UrlPattern.class, command.getUrlId());
 			if(patternToRemove.getPermissions().size() > 0) {
-				errors.reject("sitecontroller.error.url_in_use", new Object[] { patternToRemove.getPattern() }, "URL Pattern is linked to a permission.");
+				bindingResult.reject("sitecontroller.error.url_in_use", new Object[] { patternToRemove.getPattern() }, "URL Pattern is linked to a permission.");
 			}
 			else {
 				ctx.getSite().removeUrlPattern(patternToRemove);
 			}
 
-			TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+			TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 			tmav.getTabStatus().setCurrentTab(currentTab);
 			return tmav;
 		}
@@ -108,13 +107,13 @@ public class SiteUrlHandler extends AbstractSiteHandler {
 
 			}
 
-			TabbedModelAndView tmav = preProcessNextTab(tc, tc.getTabConfig().getTabByID("URLS"), req, res, comm, errors);
+			TabbedModelAndView tmav = preProcessNextTab(tc, tc.getTabConfig().getTabByID("URLS"), req, res, comm, bindingResult);
 			tmav.getTabStatus().setCurrentTab(tc.getTabConfig().getTabByID("URLS"));
 
 			return tmav;
 		}
 
-		TabbedModelAndView tmav = preProcessNextTab(tc, tc.getTabConfig().getTabByID("URLS"), req, res, comm, errors);
+		TabbedModelAndView tmav = preProcessNextTab(tc, tc.getTabConfig().getTabByID("URLS"), req, res, comm, bindingResult);
 		tmav.getTabStatus().setCurrentTab(tc.getTabConfig().getTabByID("URLS"));
 		return tmav;
 	}

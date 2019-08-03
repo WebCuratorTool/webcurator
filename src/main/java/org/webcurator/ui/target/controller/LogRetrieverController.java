@@ -17,12 +17,11 @@ package org.webcurator.ui.target.controller;
 
 import java.io.File;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -34,18 +33,22 @@ import org.webcurator.ui.target.command.LogRetrieverCommand;
  * @author beaumontb
  *
  */
-public class LogRetrieverController extends AbstractCommandController {
+@Controller
+@RequestMapping("/curator/target/log-retriever.html")
+public class LogRetrieverController {
 
 	private HarvestLogManager harvestLogManager = null;
 	private TargetInstanceManager targetInstanceManager = null;
 
 	public LogRetrieverController() {
-		setCommandClass(LogRetrieverCommand.class);
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
-		LogRetrieverCommand cmd = (LogRetrieverCommand) comm;
+	@GetMapping
+	protected ModelAndView handle(@RequestParam("targetInstanceOid") Long targetInstanceOid,
+								  @RequestParam("logFileName") String logFileName) throws Exception {
+		LogRetrieverCommand cmd = new LogRetrieverCommand();
+		cmd.setTargetInstanceOid(targetInstanceOid);
+		cmd.setLogFileName(logFileName);
 
 		TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
 

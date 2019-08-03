@@ -31,5 +31,5 @@ public class HarvestAgentUtil {
         if (has == null) {
             throw new RuntimeException("Could not find harvest agent of type " + HarvesterType.HERITRIX3);
         }
-        return harvestAgentFactory.getHarvestAgent(has.getHost(), has.getPort(), has.getService());
+        return harvestAgentFactory.getHarvestAgent(has.getHost(), has.getPort());
     }}

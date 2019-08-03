@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
@@ -82,20 +82,19 @@ public class SitePermissionHandler extends AbstractSiteHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public void processTab(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                           BindingResult bindingResult) {
 
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
-	public TabbedModelAndView preProcessNextTab(TabbedController tc,
-			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		SiteEditorContext ctx = getEditorContext(req);
 		List<Permission> permissions = new LinkedList<Permission>();
@@ -109,11 +108,10 @@ public class SitePermissionHandler extends AbstractSiteHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
-	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		SiteEditorContext ctx = getEditorContext(req);
 
@@ -199,15 +197,15 @@ public class SitePermissionHandler extends AbstractSiteHandler {
 			permission.getUrls().clear();
 
 			if(!permission.isNew() && siteManager.countLinkedSeeds(permission.getOid()) > 0L) {
-				errors.reject("site.permission.delete.linked_seeds", "There are still seeds linked to this permission. Either unlink the seeds, or transfer them to another permission.");
+				bindingResult.reject("site.permission.delete.linked_seeds", "There are still seeds linked to this permission. Either unlink the seeds, or transfer them to another permission.");
 				// Raise error because seeds are still attached.
 			}
 
-			if(errors.hasErrors()) {
+			if(bindingResult.hasErrors()) {
 				// Go back to the list of permissions
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
-				tmav.addObject(Constants.GBL_ERRORS, errors);
+				tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return tmav;
 
 			}
@@ -215,7 +213,7 @@ public class SitePermissionHandler extends AbstractSiteHandler {
 				site.removePermission(permission);
 
 				// Go back to the list of permissions
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}

@@ -20,7 +20,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.AbstractView;
 
@@ -33,11 +32,9 @@ public class TestArchiveController extends ArchiveController {
 
 	/** Default Constructor. */
 	public TestArchiveController() {
-		setCommandClass(ArchiveCommand.class);
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView(new XmlView());
 		int harvestNumber = 1;
 		String xmlData = buildSip(request, response, harvestNumber);

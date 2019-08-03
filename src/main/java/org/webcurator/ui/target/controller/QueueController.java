@@ -35,10 +35,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.Environment;
@@ -73,7 +72,7 @@ import org.webcurator.common.util.DateUtils;
  *
  * @author nwaight
  */
-public class QueueController extends AbstractFormController {
+public class QueueController {
 
 	private final List<String> PAGINATION_ACTIONS = Arrays.asList(TargetInstanceCommand.ACTION_NEXT,
 			TargetInstanceCommand.ACTION_PREV, TargetInstanceCommand.ACTION_SHOW_PAGE);
@@ -104,7 +103,6 @@ public class QueueController extends AbstractFormController {
 	/** Default constructor. */
 	public QueueController() {
 		super();
-		setCommandClass(TargetInstanceCommand.class);
 	}
 
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
@@ -114,10 +112,10 @@ public class QueueController extends AbstractFormController {
 		binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp, BindException aErrors) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp, BindingResult bindingResult)
+            throws Exception {
 		cleanSession(aReq);
-		return processFilter(aReq, aResp, null, aErrors);
+		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
 	/**
@@ -135,9 +133,8 @@ public class QueueController extends AbstractFormController {
 		session.removeAttribute(Constants.GBL_SESS_EDIT_MODE);
 	}
 
-	@Override
 	protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, Object aCmd,
-			BindException aErrors) throws Exception {
+			BindingResult bindingResult) throws Exception {
 		TargetInstanceCommand command = (TargetInstanceCommand) aCmd;
 		if (command == null || command.getCmd() == null) {
 			throw new WCTRuntimeException("Unknown command recieved.");
@@ -146,7 +143,7 @@ public class QueueController extends AbstractFormController {
 		String cmd = command.getCmd();
 		log.debug("process command {}", cmd);
 		if (cmd.equals(TargetInstanceCommand.ACTION_FILTER) || PAGINATION_ACTIONS.contains(cmd)) {
-			return processFilter(aReq, aResp, command, aErrors);
+			return processFilter(aReq, aResp, command, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_RESET)) {
 			command.setAgency("");
 			command.setOwner("");
@@ -159,30 +156,30 @@ public class QueueController extends AbstractFormController {
 			command.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
 			command.setFlagOid(null);
 			command.setRecommendationFilter(null);
-			return processFilter(aReq, aResp, command, aErrors);
+			return processFilter(aReq, aResp, command, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_PAUSE)) {
-			return processPause(aReq, aResp, command, aErrors);
+			return processPause(aReq, aResp, command, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_RESUME)) {
-			return processResume(aReq, aResp, command, aErrors);
+			return processResume(aReq, aResp, command, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_ABORT)) {
-			return processAbort(aReq, aResp, command, aErrors);
+			return processAbort(aReq, aResp, command, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_STOP)) {
-			return processStop(aReq, aResp, command, aErrors);
+			return processStop(aReq, aResp, command, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_DELETE)) {
-			processDelete(command.getTargetInstanceId(), aErrors);
-			return processFilter(aReq, aResp, null, aErrors);
+			processDelete(command.getTargetInstanceId(), bindingResult);
+			return processFilter(aReq, aResp, null, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_DELIST)) {
-			processDelist(command, aErrors);
-			return processFilter(aReq, aResp, null, aErrors);
+			processDelist(command, bindingResult);
+			return processFilter(aReq, aResp, null, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_DELETE)) {
-			processMultiDelete(command, aErrors);
-			return processFilter(aReq, aResp, null, aErrors);
+			processMultiDelete(command, bindingResult);
+			return processFilter(aReq, aResp, null, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_ENDORSE)) {
-			processMultiEndorse(aReq, aResp, command, aErrors);
-			return processFilter(aReq, aResp, null, aErrors);
+			processMultiEndorse(aReq, command);
+			return processFilter(aReq, aResp, null, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_REJECT)) {
-			processMultiReject(aReq, aResp, command, aErrors);
-			return processFilter(aReq, aResp, null, aErrors);
+			processMultiReject(aReq, command, bindingResult);
+			return processFilter(aReq, aResp, null, bindingResult);
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_ARCHIVE)) {
 			// build a list of target instance ids in a query string then
 			// redirect to the
@@ -199,8 +196,8 @@ public class QueueController extends AbstractFormController {
 			}
 			return new ModelAndView(queryString.toString());
 		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_DELIST)) {
-			processMultiDelist(command, aErrors);
-			return processFilter(aReq, aResp, null, aErrors);
+			processMultiDelist(command, bindingResult);
+			return processFilter(aReq, aResp, null, bindingResult);
 		} else {
 			throw new WCTRuntimeException("Unknown command " + cmd + " recieved.");
 		}
@@ -216,18 +213,14 @@ public class QueueController extends AbstractFormController {
 
 	/**
 	 * process the filter target instances action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
 	@SuppressWarnings("unchecked")
-	ModelAndView processFilter(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd, BindException aErrors)
-			throws Exception {
+	ModelAndView processFilter(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
+                               BindingResult bindingResult) {
 
 		ModelAndView mav = new ModelAndView();
-		if (aErrors.hasErrors()) {
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+		if (bindingResult.hasErrors()) {
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 		}
 
 		TargetInstanceCommand searchCommand = (TargetInstanceCommand) aReq.getSession().getAttribute(
@@ -274,9 +267,9 @@ public class QueueController extends AbstractFormController {
 			CookieUtils.setPageSize(aResp, aCmd.getSelectedPageSize());
 		}
 
-		HashMap<Long, Set<Indicator>> indicators = new HashMap<Long, Set<Indicator>>();
+		HashMap<Long, Set<Indicator>> indicators = new HashMap<>();
 		List<Long> targetList = new ArrayList<Long>();
-		HashMap<Long, String> browseUrls = new HashMap<Long, String>();
+		HashMap<Long, String> browseUrls = new HashMap<>();
 		// we need to populate annotations to determine if targets are
 		// alertable.
 		if (instances != null) {
@@ -336,7 +329,7 @@ public class QueueController extends AbstractFormController {
 		mav.addObject(TargetInstanceCommand.MDL_OWNERS, owners);
 
 		if (enableQaModule) {
-			addQaInformation(mav, aCmd, criteria);
+			addQaInformation(mav);
 			mav.setViewName(Constants.VIEW_TARGET_INSTANCE_QA_QUEUE);
 		} else {
 			mav.setViewName(Constants.VIEW_TARGET_INSTANCE_QUEUE);
@@ -345,7 +338,7 @@ public class QueueController extends AbstractFormController {
 		return mav;
 	}
 
-	private void addQaInformation(ModelAndView mav, TargetInstanceCommand aCmd, TargetInstanceCriteria criteria) {
+	private void addQaInformation(ModelAndView mav) {
 		// fetch the valid rejection reasons for targets
 		// (used to populate the rejection reason drop-down)
 		User user = AuthUtil.getRemoteUserObject();
@@ -571,12 +564,8 @@ public class QueueController extends AbstractFormController {
 
 	/**
 	 * process the delete target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private void processDelete(Long targetInstanceId, BindException aErrors) throws Exception {
+	private void processDelete(Long targetInstanceId, BindingResult bindingResult) {
 		TargetInstance ti = null;
 		try {
 			try {
@@ -593,13 +582,13 @@ public class QueueController extends AbstractFormController {
 			if (ti != null) {
 				if (ti.getState() != null && !ti.getState().equals(TargetInstance.STATE_SCHEDULED)
 						&& !ti.getState().equals(TargetInstance.STATE_QUEUED)) {
-					aErrors.reject("target.instance.not.deleteable", new Object[] { ti.getJobName() },
+					bindingResult.reject("target.instance.not.deleteable", new Object[] { ti.getJobName() },
 							"The target instance may not be deleted.");
 				} else {
 					if (ti.getStatus() == null) {
 						targetInstanceManager.delete(ti);
 					} else {
-						aErrors.reject("target.instance.not.deleteable", new Object[] { ti.getJobName() },
+						bindingResult.reject("target.instance.not.deleteable", new Object[] { ti.getJobName() },
 								"The target instance may not be deleted.");
 					}
 				}
@@ -612,29 +601,20 @@ public class QueueController extends AbstractFormController {
 
 	/**
 	 * process the multi-delete target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private void processMultiDelete(TargetInstanceCommand aCmd, BindException aErrors) throws Exception {
+	private void processMultiDelete(TargetInstanceCommand aCmd, BindingResult bindingResult) {
 		// the id of each TI to remove is passed in the multiselect attribute
 		// for a multi-delete operation
 		for (String targetInstanceOid : aCmd.getMultiselect()) {
 			// delete the ti
-			processDelete(Long.parseLong(targetInstanceOid), aErrors);
+			processDelete(Long.parseLong(targetInstanceOid), bindingResult);
 		}
 	}
 
 	/**
 	 * process the multi-endorse target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private void processMultiEndorse(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindException aErrors) throws Exception {
+	private void processMultiEndorse(HttpServletRequest aReq, TargetInstanceCommand aCmd) {
 		// the id of each TI to endorse is passed in the multiselect attribute
 		// for a multi-endorse operation
 		for (String selectedOid : aCmd.getMultiselect()) {
@@ -646,13 +626,8 @@ public class QueueController extends AbstractFormController {
 
 	/**
 	 * process the endorse target instance action.
-	 *
-	 * @return
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private TargetInstance processEndorse(Long targetInstanceOid, Long harvestResultId) throws Exception {
+	private TargetInstance processEndorse(Long targetInstanceOid, Long harvestResultId) {
 		// set the ti state and the hr states
 		TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceOid);
 		ti.setState(TargetInstance.STATE_ENDORSED);
@@ -674,13 +649,8 @@ public class QueueController extends AbstractFormController {
 
 	/**
 	 * process the reject target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private void processReject(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd, BindException aErrors)
-			throws Exception {
+	private void processReject(HttpServletRequest aReq, TargetInstanceCommand aCmd, BindingResult bindingResult) {
 		// set the ti state and the hr states
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		for (HarvestResult hr : ti.getHarvestResults()) {
@@ -689,7 +659,7 @@ public class QueueController extends AbstractFormController {
 					hr.setState(HarvestResult.STATE_REJECTED);
 					RejReason rejReason = agencyUserManager.getRejReasonByOid(aCmd.getRejReasonId());
 					if (rejReason == null) {
-						aErrors.reject("rejection.reason.missing", new Object[] { ti.getJobName() },
+						bindingResult.reject("rejection.reason.missing", new Object[] { ti.getJobName() },
 								"No rejection reason specified, but this is a required field.  Please create one if no rejection reasons are configured.");
 					} else {
 						hr.setRejReason(rejReason);
@@ -720,13 +690,8 @@ public class QueueController extends AbstractFormController {
 
 	/**
 	 * process the multi-reject target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private void processMultiReject(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindException aErrors) throws Exception {
+	private void processMultiReject(HttpServletRequest aReq, TargetInstanceCommand aCmd, BindingResult bindingResult) {
 		// the id of each TI to reject is passed in the multiselect attribute
 		// for a multi-reject operation
 		// NOTE: the reject reason will already have been set on the command (by
@@ -740,7 +705,7 @@ public class QueueController extends AbstractFormController {
 			for (HarvestResult harvestResult : harvestResults) {
 				aCmd.setHarvestResultId(harvestResult.getOid());
 				// set the harvest result to reject
-				processReject(aReq, aResp, aCmd, aErrors);
+				processReject(aReq, aCmd, bindingResult);
 			}
 		}
 	}
@@ -751,12 +716,12 @@ public class QueueController extends AbstractFormController {
 	 * @param command
 	 *            the command carrying the target instance id of the target
 	 *            instance whos target will have its schedule terminated
-	 * @param errors
-	 *            any errors encountered
+	 * @param bindingResult
+	 *            any bindingResult encountered
 	 * @throws Exception
 	 *             any unexpected exception
 	 */
-	private void processDelist(TargetInstanceCommand command, BindException errors) throws Exception {
+	private void processDelist(TargetInstanceCommand command, BindingResult bindingResult) {
 
 		TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceId());
 
@@ -785,7 +750,7 @@ public class QueueController extends AbstractFormController {
 		// use multi-delete functionality to delete the queued sublist
 		command.setMultiselect(tisToDelete);
 		command.setCmd(TargetInstanceCommand.ACTION_MULTI_DELETE);
-		processMultiDelete(command, errors);
+		processMultiDelete(command, bindingResult);
 	}
 
 	/**
@@ -794,19 +759,19 @@ public class QueueController extends AbstractFormController {
 	 * @param command
 	 *            the command carrying the list of target instance oid's whose
 	 *            target instance's target should have its schedule terminated
-	 * @param errors
-	 *            any errors encountered
+	 * @param bindingResult
+	 *            any bindingResult encountered
 	 * @throws Exception
 	 *             any unexpected exception
 	 */
-	private void processMultiDelist(TargetInstanceCommand command, BindException errors) throws Exception {
+	private void processMultiDelist(TargetInstanceCommand command, BindingResult bindingResult) {
 		// the id of each TI to reject is passed in the multi-select attribute
 		// for a multi-delist operation
 		for (String tIOid : command.getMultiselect()) {
 			Long targetInstanceOid = new Long(tIOid);
 			command.setTargetInstanceId(targetInstanceOid);
 			// terminate the schedule for the tis target
-			processDelist(command, errors);
+			processDelist(command, bindingResult);
 		}
 	}
 
@@ -828,62 +793,46 @@ public class QueueController extends AbstractFormController {
 
 	/**
 	 * process the pause target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
 	private ModelAndView processPause(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindException aErrors) throws Exception {
+			BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.pause(ti);
 
-		return processFilter(aReq, aResp, null, aErrors);
+		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
 	/**
 	 * process the resume target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
 	private ModelAndView processResume(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindException aErrors) throws Exception {
+			BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.resume(ti);
 
-		return processFilter(aReq, aResp, null, aErrors);
+		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
 	/**
 	 * process the abort target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
 	private ModelAndView processAbort(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindException aErrors) throws Exception {
+			BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.abort(ti);
 
-		return processFilter(aReq, aResp, null, aErrors);
+		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
 	/**
 	 * process the stop target instance action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
 	private ModelAndView processStop(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindException aErrors) throws Exception {
+			BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.stop(ti);
 
-		return processFilter(aReq, aResp, null, aErrors);
+		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
 	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {

@@ -21,12 +21,10 @@ import java.util.Locale;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.admin.PermissionTemplateManager;
 import org.webcurator.core.notification.MailServer;
 import org.webcurator.core.notification.Mailable;
@@ -43,7 +41,7 @@ import org.webcurator.ui.site.command.GeneratePermissionTemplateCommand;
  * The Controller for generating a permission request template.
  * @author bprice
  */
-public class GeneratePermissionTemplateController extends AbstractFormController {
+public class GeneratePermissionTemplateController {
 	/** The manager for accessing site information. */
     private SiteManager siteManager = null;
     /** The manager for permission request templates. */
@@ -56,12 +54,9 @@ public class GeneratePermissionTemplateController extends AbstractFormController
     /** Default Constructor. */
     public GeneratePermissionTemplateController() {
         super();
-        this.setCommandClass(GeneratePermissionTemplateCommand.class);
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aRes, BindException aErrors) throws Exception {
+    protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
 
         String siteOid = aReq.getParameter("siteOid");
         Long oid= Long.valueOf(siteOid);
@@ -75,18 +70,15 @@ public class GeneratePermissionTemplateController extends AbstractFormController
         return mav;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCmd, BindException aErrors)
-            throws Exception {
+    protected ModelAndView processFormSubmission(Object aCmd, BindingResult bindingResult) throws Exception {
         GeneratePermissionTemplateCommand tempCmd = (GeneratePermissionTemplateCommand) aCmd;
         User loggedInUser = AuthUtil.getRemoteUserObject();
         ModelAndView mav = new ModelAndView();
 
         if (tempCmd != null) {
-            if (aErrors.hasErrors()) {
-                mav.addObject(Constants.GBL_CMD_DATA, aErrors.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aErrors);
+            if (bindingResult.hasErrors()) {
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("generate-request");
 
             } else if (GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE.equals(tempCmd.getAction())) {

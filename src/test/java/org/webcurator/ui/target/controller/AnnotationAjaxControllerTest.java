@@ -2,12 +2,9 @@ package org.webcurator.ui.target.controller;
 
 import static org.junit.Assert.*;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.*;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.common.Constants;
@@ -49,19 +46,14 @@ public class AnnotationAjaxControllerTest extends BaseWCTTest<AnnotationAjaxCont
 		try
 		{
 			MockHttpServletRequest aReq = new MockHttpServletRequest();
-			HttpServletResponse aResp = new MockHttpServletResponse();
 			TargetInstanceCommand aCmd = new TargetInstanceCommand();
 			aCmd.setCmd(TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA);
 			aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA, new TargetInstanceCommand());
-			aReq.setParameter("targetOid", "0");
-			aReq.setParameter("targetInstanceOid", "1");
-			BindException aErrors = new BindException(aCmd, TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA);
 
 			aReq.setParameter(Constants.AJAX_REQUEST_TYPE, Constants.AJAX_REQUEST_FOR_TI_ANNOTATIONS);
-			ModelAndView mav = testInstance.processFormSubmission(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.processFormSubmission(0L, 1L, aReq);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(Constants.VIEW_TI_ANNOTATION_HISTORY));
-			assertFalse(aErrors.hasErrors());
 		}
 		catch(Exception e)
 		{

@@ -1,6 +1,5 @@
 package org.webcurator.webapp.beans.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
@@ -58,7 +57,6 @@ public class ListsConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public WCTTreeSet dublinCoreTypesList() {
         List<String> initialList = new ArrayList<>();
         initialList.add("");
@@ -84,7 +82,6 @@ public class ListsConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public WCTTreeSet selectionTypesList() {
         List<String> initialList = new ArrayList<>();
         initialList.add("Producer type");
@@ -101,7 +98,6 @@ public class ListsConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public WCTTreeSet harvestTypesList() {
         List<String> initialList = new ArrayList<>();
         initialList.add("Subject");
@@ -116,7 +112,6 @@ public class ListsConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public WCTTreeSet groupTypesList() {
         List<String> initialList = new ArrayList<>();
         initialList.add("");
@@ -135,7 +130,6 @@ public class ListsConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public WCTTreeSet subGroupParentTypesList() {
         List<String> initialList = new ArrayList<>();
         initialList.add("Collection");

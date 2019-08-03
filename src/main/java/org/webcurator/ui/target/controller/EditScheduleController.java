@@ -32,11 +32,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.quartz.CronExpression;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.DateUtils;
@@ -56,6 +61,7 @@ import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.command.Time;
 import org.webcurator.ui.target.command.TimeEditor;
+import org.webcurator.ui.target.validator.TargetSchedulesValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
@@ -65,7 +71,9 @@ import org.webcurator.common.util.Utils;
  * The controller for editing a schedule.
  * @author bbeaumont
  */
-public class EditScheduleController extends AbstractCommandController {
+@Controller
+@RequestMapping("/curator/target/schedule.html")
+public class EditScheduleController {
 
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
@@ -79,7 +87,9 @@ public class EditScheduleController extends AbstractCommandController {
 	private HeatmapDAO heatmapConfigDao = null;
 	private TargetInstanceManager targetInstanceManager;
 
-	@Override
+	@Autowired
+	private TargetSchedulesValidator validator;
+
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		// Determine the necessary formats.
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -93,50 +103,49 @@ public class EditScheduleController extends AbstractCommandController {
 
 
 	public EditScheduleController() {
-		setCommandClass(TargetSchedulesCommand.class);
 	}
 
 	public AbstractTargetEditorContext getEditorContext(HttpServletRequest req) {
 		return (AbstractTargetEditorContext) req.getSession().getAttribute(contextSessionKey);
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
-		TargetSchedulesCommand command = (TargetSchedulesCommand) comm;
-
+	@PostMapping
+	protected ModelAndView handle(@Validated @ModelAttribute("targetSchedulesCommand") TargetSchedulesCommand command,
+                                  HttpServletRequest request, HttpServletResponse response, BindingResult bindingResult)
+            throws Exception {
 		if(TargetSchedulesCommand.ACTION_EDIT.equals(command.getActionCmd())) {
-			return handleEdit(request, response, comm, errors);
+			return handleEdit(request, command, bindingResult);
 		}
 		else if(TargetSchedulesCommand.ACTION_NEW.equals(command.getActionCmd())) {
-			return handleNew(request, response, comm, errors);
+			return handleNew(request, bindingResult);
 		}
 		else if(TargetSchedulesCommand.ACTION_TEST.equals(command.getActionCmd())) {
-			return handleTest(request, response, comm, errors);
+			return handleTest(command, bindingResult);
 		}
 		else if(TargetSchedulesCommand.ACTION_SAVE.equals(command.getActionCmd())) {
-			return handleSave(request, response, comm, errors);
+			return handleSave(request, response, command, bindingResult);
 		}
 		else if(TargetSchedulesCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
-			return handleCancel(request, response, comm, errors);
+			return handleCancel(request, response, command, bindingResult);
 		}
 		else if(TargetSchedulesCommand.ACTION_VIEW.equals(command.getActionCmd())) {
-			return handleView(request, response, comm, errors);
+			return handleView(request, command, bindingResult);
 		}
 		else if(TargetSchedulesCommand.ACTION_REFRESH.equals(command.getActionCmd())) {
-			return getEditView(request, response, comm, errors);
+			return getEditView(command, bindingResult);
 		}
 		else {
-			return handleCancel(request, response, comm, errors);
+			return handleCancel(request, response, command, bindingResult);
 		}
 	}
 
-	protected ModelAndView handleNew(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handleNew(HttpServletRequest request, BindingResult bindingResult) {
 		if( authorityManager.hasPrivilege( getEditorContext(request).getAbstractTarget(), scheduleEditPrivilege)) {
 			TargetSchedulesCommand newCommand = new TargetSchedulesCommand();
 
 			newCommand.setHeatMap(buildHeatMap());
 			newCommand.setHeatMapThresholds(buildHeatMapThresholds());
-			return getEditView(request, response, newCommand, errors);
+			return getEditView(newCommand, bindingResult);
 		}
 		else {
 			return CommonViews.AUTHORISATION_FAILURE;
@@ -204,21 +213,21 @@ public class EditScheduleController extends AbstractCommandController {
 		}
 	}
 
-	protected ModelAndView handleEdit(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handleEdit(HttpServletRequest request, TargetSchedulesCommand command,
+                                      BindingResult bindingResult) {
 		if( authorityManager.hasPrivilege( getEditorContext(request).getAbstractTarget(), scheduleEditPrivilege)) {
-			TargetSchedulesCommand command = (TargetSchedulesCommand) comm;
 			Schedule aSchedule = (Schedule) getEditorContext(request).getObject(Schedule.class, command.getSelectedItem());
 			TargetSchedulesCommand newCommand = TargetSchedulesCommand.buildFromModel(aSchedule);
 			newCommand.setHeatMap(buildHeatMap());
 			newCommand.setHeatMapThresholds(buildHeatMapThresholds());
-			return getEditView(request, response, newCommand, errors);
+			return getEditView(newCommand, bindingResult);
 		}
 		else {
 			return CommonViews.AUTHORISATION_FAILURE;
 		}
 	}
 
-	protected ModelAndView handleView(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handleView(HttpServletRequest request, Object comm, BindingResult bindingResult) {
 		TargetSchedulesCommand command = (TargetSchedulesCommand) comm;
 		Schedule aSchedule = (Schedule) getEditorContext(request).getObject(Schedule.class, command.getSelectedItem());
 
@@ -226,7 +235,7 @@ public class EditScheduleController extends AbstractCommandController {
 
 		List<Date> testResults = new LinkedList<Date>();
 
-		ModelAndView mav = getEditView(request, response, newCommand, errors);
+		ModelAndView mav = getEditView(newCommand, bindingResult);
 		mav.addObject("testResults", testResults);
 		mav.addObject("viewMode", new Boolean(true));
 
@@ -306,17 +315,15 @@ public class EditScheduleController extends AbstractCommandController {
 		return options;
 	}
 
-	protected ModelAndView handleTest(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
-		TargetSchedulesCommand command = (TargetSchedulesCommand) comm;
-
-		if(errors.hasErrors()) {
-			return getEditView(request, response, comm, errors);
+	protected ModelAndView handleTest(TargetSchedulesCommand command, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			return getEditView(command, bindingResult);
 		}
 		else {
 
 			List<Date> testResults = new LinkedList<Date>();
 
-			ModelAndView mav = getEditView(request, response, comm, errors);
+			ModelAndView mav = getEditView(command, bindingResult);
 			mav.addObject("testResults", testResults);
 
 			try {
@@ -340,12 +347,12 @@ public class EditScheduleController extends AbstractCommandController {
 		}
 	}
 
-	protected ModelAndView handleSave(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
-		TargetSchedulesCommand command = (TargetSchedulesCommand) comm;
+	protected ModelAndView handleSave(HttpServletRequest request, HttpServletResponse response,
+                                      TargetSchedulesCommand command, BindingResult bindingResult) {
 
 		if( authorityManager.hasPrivilege( getEditorContext(request).getAbstractTarget(), scheduleEditPrivilege)) {
-			if(errors.hasErrors()) {
-				return getEditView(request, response, comm, errors);
+			if(bindingResult.hasErrors()) {
+				return getEditView(command, bindingResult);
 			}
 			else {
 				AbstractTargetEditorContext ctx = getEditorContext(request);
@@ -373,7 +380,7 @@ public class EditScheduleController extends AbstractCommandController {
 				ctx.putObject(schedule);
 				ctx.getAbstractTarget().addSchedule(schedule);
 
-				return getSchedulesListView(request, response, comm, errors);
+				return getSchedulesListView(request, response, command, bindingResult);
 			}
 		}
 		else {
@@ -381,16 +388,15 @@ public class EditScheduleController extends AbstractCommandController {
 		}
 	}
 
-	protected ModelAndView handleCancel(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
-		return getSchedulesListView(request, response, comm, errors);
+	protected ModelAndView handleCancel(HttpServletRequest request, HttpServletResponse response,
+                                        TargetSchedulesCommand command, BindingResult bindingResult) {
+		return getSchedulesListView(request, response, command, bindingResult);
 	}
 
-	private ModelAndView getEditView(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) {
-		TargetSchedulesCommand command = (TargetSchedulesCommand) comm;
-
+	private ModelAndView getEditView(TargetSchedulesCommand command, BindingResult bindingResult) {
 		ModelAndView mav = new ModelAndView(viewPrefix + "-" + Constants.VIEW_EDIT_SCHEDULE);
-		mav.addObject(Constants.GBL_CMD_DATA, comm);
-		mav.addObject(Constants.GBL_ERRORS, errors);
+		mav.addObject(Constants.GBL_CMD_DATA, command);
+		mav.addObject(Constants.GBL_ERRORS, bindingResult);
 		mav.addObject("viewPrefix", viewPrefix);
 		mav.addObject("patterns", patternFactory.getPatterns());
 		command.setHeatMap(buildHeatMap());
@@ -403,10 +409,11 @@ public class EditScheduleController extends AbstractCommandController {
 		return mav;
 	}
 
-	private ModelAndView getSchedulesListView(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) {
+	private ModelAndView getSchedulesListView(HttpServletRequest request, HttpServletResponse response,
+                                              TargetSchedulesCommand command, BindingResult bindingResult) {
 		Tab currentTab = targetController.getTabConfig().getTabByID("SCHEDULES");
 		TargetSchedulesHandler handler = (TargetSchedulesHandler) currentTab.getTabHandler();
-		TabbedModelAndView tmav = handler.preProcessNextTab(targetController, currentTab, request, response, comm, errors);
+		TabbedModelAndView tmav = handler.preProcessNextTab(targetController, currentTab, request, response, command, bindingResult);
 		tmav.getTabStatus().setCurrentTab(currentTab);
 
 		return tmav;

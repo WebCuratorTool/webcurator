@@ -15,8 +15,8 @@ import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
-import org.springframework.web.servlet.view.tiles2.TilesConfigurer;
-import org.springframework.web.servlet.view.tiles2.TilesView;
+import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
+import org.springframework.web.servlet.view.tiles3.TilesView;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.ui.admin.controller.*;
 import org.webcurator.ui.admin.validator.*;
@@ -31,26 +31,20 @@ import org.webcurator.ui.credentials.validator.ResetPasswordValidator;
 import org.webcurator.ui.groups.command.*;
 import org.webcurator.ui.groups.controller.*;
 import org.webcurator.ui.groups.validator.*;
-import org.webcurator.ui.groups.validator.AddParentsValidator;
 import org.webcurator.ui.home.controller.HomeController;
 import org.webcurator.ui.intray.controller.InTrayController;
 import org.webcurator.ui.management.controller.ManagementController;
 import org.webcurator.ui.profiles.command.Heritrix3ProfileCommand;
 import org.webcurator.ui.profiles.command.ImportedHeritrix3ProfileCommand;
 import org.webcurator.ui.profiles.controller.*;
-import org.webcurator.ui.profiles.renderers.GeneralOnlyRendererFilter;
+import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
 import org.webcurator.ui.profiles.validator.Heritrix3ProfileValidator;
 import org.webcurator.ui.profiles.validator.ImportedHeritrix3ProfileValidator;
 import org.webcurator.ui.profiles.validator.ProfileGeneralValidator;
-import org.webcurator.ui.report.command.ReportCommand;
-import org.webcurator.ui.report.command.ReportEmailCommand;
-import org.webcurator.ui.report.command.ReportPreviewCommand;
-import org.webcurator.ui.report.command.ReportSaveCommand;
 import org.webcurator.ui.report.controller.ReportController;
 import org.webcurator.ui.report.controller.ReportEmailController;
 import org.webcurator.ui.report.controller.ReportPreviewController;
 import org.webcurator.ui.report.controller.ReportSaveController;
-import org.webcurator.ui.report.validator.ReportValidator;
 import org.webcurator.ui.site.command.*;
 import org.webcurator.ui.site.controller.*;
 import org.webcurator.ui.site.validator.*;
@@ -153,16 +147,16 @@ public class ServletConfig {
         mappings.put("/curator/logout.html", "logoutController");
         mappings.put("/curator/home.html", "homeController");
         mappings.put("/curator/target/queue.html", "queueController");
-        mappings.put("/curator/target/qatisummary.html", "qaTiSummaryController");
+        // mapped via @RequestMapping mappings.put("/curator/target/qatisummary.html", "qaTiSummaryController");
         mappings.put("/curator/target/qa-indicator-report.html", "qaIndicatorReportController");
         mappings.put("/curator/target/qa-indicator-robots-report.html", "qaIndicatorRobotsReportController");
-        mappings.put("/curator/target/annotation-ajax.html", "annotationAjaxController");
+        //mappings.put("/curator/target/annotation-ajax.html", "annotationAjaxController");
         mappings.put("/curator/target/target-instance.html", "tabbedTargetInstanceController");
-        mappings.put("/curator/target/harvest-now.html", "harvestNowController");
+        //mappings.put("/curator/target/harvest-now.html", "harvestNowController");
         mappings.put("/curator/target/target.html", "targetController");
         mappings.put("/curator/target/search.html", "targetSearchController");
-        mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
-        mappings.put("/curator/targets/add-parents.html", "addParentsController");
+        //mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
+        //mappings.put("/curator/targets/add-parents.html", "addParentsController");
         mappings.put("/curator/admin/role.html", "roleController");
         mappings.put("/curator/profiles/profiles.html", "profileController");
         mappings.put("/curator/profiles/profilesH3.html", "profileH3Controller");
@@ -185,16 +179,16 @@ public class ServletConfig {
         mappings.put("/curator/admin/change-password.html", "changePasswordController");
         mappings.put("/curator/admin/management.html", "managementController");
         mappings.put("/curator/admin/templates.html", "templateController");
-        mappings.put("/curator/target/log-viewer.html", "logReaderController");
-        mappings.put("/curator/target/content-viewer.html", "contentReaderController");
+        //mappings.put("/curator/target/log-viewer.html", "logReaderController");
+        //mappings.put("/curator/target/content-viewer.html", "contentReaderController");
         mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");
-        mappings.put("/curator/target/aqa-viewer.html", "aqaReaderController");
-        mappings.put("/curator/target/log-retriever.html", "logRetrieverController");
+        //mappings.put("/curator/target/aqa-viewer.html", "aqaReaderController");
+        //mappings.put("/curator/target/log-retriever.html", "logRetrieverController");
         mappings.put("/curator/target/show-hop-path.html", "showHopPathController");
-        mappings.put("/curator/target/permission-popup.html", "permissionPopupController");
-        mappings.put("/curator/target/target-basic-credentials.html", "basicCredentialsControllerTarget");
+        //mappings.put("/curator/target/permission-popup.html", "permissionPopupController");
+        //mappings.put("/curator/target/target-basic-credentials.html", "basicCredentialsControllerTarget");
         mappings.put("/curator/target/target-form-credentials.html", "formCredentialsControllerTarget");
-        mappings.put("/curator/target/ti-basic-credentials.html", "basicCredentialsControllerTargetInstance");
+        //mappings.put("/curator/target/ti-basic-credentials.html", "basicCredentialsControllerTargetInstance");
         mappings.put("/curator/target/ti-form-credentials.html", "formCredentialsControllerTargetInstance");
         mappings.put("/curator/target/h3ScriptConsole.html", "h3ScriptConsoleController");
         mappings.put("/curator/target/h3ScriptFile.html", "h3ScriptFileController");
@@ -206,14 +200,14 @@ public class ServletConfig {
         mappings.put("/curator/groups/search.html", "groupSearchController");
         mappings.put("/curator/groups/groups.html", "groupsController");
         mappings.put("/curator/groups/add-members.html", "addMembersController");
-        mappings.put("/curator/groups/schedule.html", "groupsEditScheduleController");
+        //mappings.put("/curator/groups/schedule.html", "groupsEditScheduleController");
         mappings.put("/curator/groups/add-parents.html", "groupAddParentsController");
         mappings.put("/curator/groups/move-targets.html", "moveTargetsController");
         mappings.put("/curator/archive/submit.html", "submitToArchiveController");
         mappings.put("/curator/archive/test.html", "testArchiveController");
-        mappings.put("/curator/target/group-basic-credentials.html", "basicCredentialsControllerGroup");
+        //mappings.put("/curator/target/group-basic-credentials.html", "basicCredentialsControllerGroup");
         mappings.put("/curator/target/group-form-credentials.html", "formCredentialsControllerGroup");
-        mappings.put("/curator/target/ti-harvest-now.html", "assignToHarvesterController");
+        //mappings.put("/curator/target/ti-harvest-now.html", "assignToHarvesterController");
         bean.setMappings(mappings);
 
         return bean;
@@ -256,7 +250,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SimpleMappingExceptionResolver exceptionResolver() {
         SimpleMappingExceptionResolver bean = new SimpleMappingExceptionResolver();
         bean.setDefaultErrorView("Error");
@@ -274,7 +267,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public HomeController homeController() {
         HomeController bean = new HomeController();
         bean.setSupportedMethods("GET");
@@ -291,12 +283,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SiteSearchController siteSearchController() {
         SiteSearchController bean = new SiteSearchController();
         bean.setSiteManager(baseConfig.siteManager());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setCommandClass(SiteSearchCommand.class);
 
         return bean;
     }
@@ -304,10 +294,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SiteController siteController() {
         SiteController bean = new SiteController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTabConfig(siteTabConfig());
         bean.setDefaultCommandClass(DefaultSiteCommand.class);
         bean.setSiteManager(baseConfig.siteManager());
@@ -324,7 +312,6 @@ public class ServletConfig {
         SiteAgencySearchController bean = new SiteAgencySearchController();
         bean.setSiteController(siteController());
         bean.setSiteManager(baseConfig.siteManager());
-        bean.setValidator(new SiteAgencySearchValidator());
 
         return bean;
     }
@@ -332,10 +319,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public GeneratePermissionTemplateController generatePermissionTemplateController() {
         GeneratePermissionTemplateController bean = new GeneratePermissionTemplateController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setSiteManager(baseConfig.siteManager());
         bean.setMailServer(baseConfig.mailServer());
         bean.setMessageSource(baseConfig.messageSource());
@@ -347,7 +332,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TransferSeedsController transferSeedsController() {
         TransferSeedsController bean = new TransferSeedsController();
         bean.setTargetManager(baseConfig.targetManager());
@@ -355,7 +339,6 @@ public class ServletConfig {
         bean.setMessageSource(baseConfig.messageSource());
         bean.setSiteController(siteController());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(new TransferSeedsValidator());
 
         return bean;
     }
@@ -363,10 +346,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public HarvestHistoryController harvestHistoryController() {
         HarvestHistoryController bean = new HarvestHistoryController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
 
         return bean;
@@ -375,7 +356,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig siteTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("site");
@@ -475,7 +455,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig targetInstanceTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("site");
@@ -619,10 +598,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabbedTargetInstanceController tabbedTargetInstanceController() {
         TabbedTargetInstanceController bean = new TabbedTargetInstanceController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTabConfig(targetInstanceTabConfig());
         bean.setDefaultCommandClass(TargetInstanceCommand.class);
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
@@ -637,10 +614,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ManageHarvestAgentController manageHarvestAgentController() {
         ManageHarvestAgentController bean = new ManageHarvestAgentController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
 
         return bean;
@@ -649,15 +624,12 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public BandwidthRestrictionsController bandwidthRestrictionsController() {
         BandwidthRestrictionsController bean = new BandwidthRestrictionsController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setHarvestBandwidthManager(baseConfig.harvestBandwidthManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setHeatmapConfigDao(baseConfig.heatmapConfigDao());
         bean.setMessageSource(baseConfig.messageSource());
-        bean.setValidator(bandwidthRestrictionValidator());
 
         return bean;
     }
@@ -665,7 +637,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public BandwidthRestrictionValidator bandwidthRestrictionValidator() {
         return new BandwidthRestrictionValidator();
     }
@@ -673,7 +644,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
         OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
         bean.setSessionFactory(baseConfig.sessionFactory().getObject());
@@ -684,7 +654,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public LogoutController logoutController() {
         return new LogoutController();
     }
@@ -692,11 +661,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ResetPasswordController resetPasswordController() {
         ResetPasswordController bean = new ResetPasswordController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setValidator(resetPasswordValidator());
         bean.setAuthDAO(baseConfig.userRoleDAO());
         bean.setEncoder(securityConfig.passwordEncoder());
         bean.setSalt(securityConfig.saltSource());
@@ -707,7 +673,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ResetPasswordValidator resetPasswordValidator() {
         return new ResetPasswordValidator();
     }
@@ -715,11 +680,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ChangePasswordController changePasswordController() {
         ChangePasswordController bean = new ChangePasswordController();
-        bean.setSupportedMethods("POST");
-        bean.setValidator(changePasswordValidator());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setEncoder(securityConfig.passwordEncoder());
@@ -732,7 +694,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ChangePasswordValidator changePasswordValidator() {
         return new ChangePasswordValidator();
     }
@@ -740,7 +701,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public QueueController queueController() {
         QueueController bean = new QueueController();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
@@ -770,7 +730,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public QaTiSummaryController qaTiSummaryController() {
         QaTiSummaryController bean = new QaTiSummaryController();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
@@ -781,7 +740,7 @@ public class ServletConfig {
         bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
         bean.setTargetManager(baseConfig.targetManager());
         bean.setMessageSource(baseConfig.messageSource());
-        bean.setValidator(qaTiSummaryValidator());
+        //bean.setValidator(qaTiSummaryValidator());
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
 
         return bean;
@@ -790,7 +749,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public QaIndicatorReportController qaIndicatorReportController() {
         QaIndicatorReportController bean = new QaIndicatorReportController();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
@@ -812,7 +770,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public QaIndicatorRobotsReportController qaIndicatorRobotsReportController() {
         QaIndicatorRobotsReportController bean = new QaIndicatorRobotsReportController();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
@@ -829,7 +786,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AnnotationAjaxController annotationAjaxController() {
         AnnotationAjaxController bean = new AnnotationAjaxController();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
@@ -841,12 +797,9 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public RoleController roleController() {
         RoleController bean = new RoleController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setValidator(roleValidator());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setMessageSource(baseConfig.messageSource());
 
@@ -856,10 +809,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public RejReasonController rejReasonController() {
         RejReasonController bean = new RejReasonController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setMessageSource(baseConfig.messageSource());
@@ -870,13 +821,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateRejReasonController createRejReasonController() {
         CreateRejReasonController bean = new CreateRejReasonController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createRejReasonValidator());
         bean.setMessageSource(baseConfig.messageSource());
 
         return bean;
@@ -885,10 +833,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public QaIndicatorController qaIndicatorController() {
         QaIndicatorController bean = new QaIndicatorController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setMessageSource(baseConfig.messageSource());
@@ -899,10 +845,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public FlagController flagController() {
         FlagController bean = new FlagController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setMessageSource(baseConfig.messageSource());
@@ -913,13 +857,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateQaIndicatorController createQaIndicatorController() {
         CreateQaIndicatorController bean = new CreateQaIndicatorController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createQaIndicatorValidator());
         bean.setMessageSource(baseConfig.messageSource());
 
         return bean;
@@ -928,13 +869,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateFlagController createFlagController() {
         CreateFlagController bean = new CreateFlagController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createFlagValidator());
         bean.setMessageSource(baseConfig.messageSource());
 
         return bean;
@@ -943,10 +881,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public UserController userController() {
         UserController bean = new UserController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setMessageSource(baseConfig.messageSource());
@@ -957,15 +893,12 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateUserController createUserController() {
         CreateUserController bean = new CreateUserController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setSaltSource(securityConfig.saltSource());
         bean.setPasswordEncoder(securityConfig.passwordEncoder());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createFlagValidator());
         bean.setMessageSource(baseConfig.messageSource());
 
         return bean;
@@ -974,10 +907,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AssociateUserRoleController associateUserRoleController() {
         AssociateUserRoleController bean = new AssociateUserRoleController();
-        bean.setSupportedMethods("POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setMessageSource(baseConfig.messageSource());
@@ -988,12 +919,9 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AgencyController agencyController() {
         AgencyController bean = new AgencyController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setValidator(agencyValidator());
         bean.setMessageSource(baseConfig.messageSource());
 
         return bean;
@@ -1002,7 +930,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateUserValidator createUserValidator() {
         return new CreateUserValidator();
     }
@@ -1010,7 +937,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AgencyValidator agencyValidator() {
         return new AgencyValidator();
     }
@@ -1018,7 +944,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public RoleValidator roleValidator() {
         return new RoleValidator();
     }
@@ -1026,7 +951,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateRejReasonValidator createRejReasonValidator() {
         return new CreateRejReasonValidator();
     }
@@ -1034,7 +958,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateQaIndicatorValidator createQaIndicatorValidator() {
         return new CreateQaIndicatorValidator();
     }
@@ -1042,7 +965,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CreateFlagValidator createFlagValidator() {
         return new CreateFlagValidator();
     }
@@ -1050,21 +972,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public QaTiSummaryValidator qaTiSummaryValidator() {
-        return new QaTiSummaryValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public HarvestNowController harvestNowController() {
         HarvestNowController bean = new HarvestNowController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setValidator(harvestNowValidator());
         bean.setMessageSource(baseConfig.messageSource());
 
         return bean;
@@ -1073,7 +984,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public HarvestNowValidator harvestNowValidator() {
         return new HarvestNowValidator();
     }
@@ -1081,12 +991,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TargetSearchController targetSearchController() {
         TargetSearchController bean = new TargetSearchController();
         bean.setTargetDao(baseConfig.targetDao());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setCommandClass(TargetSearchCommand.class);
         bean.setTargetManager(baseConfig.targetManager());
 
         return bean;
@@ -1095,7 +1003,6 @@ public class ServletConfig {
     @Bean
     public PermissionPopupController permissionPopupController() {
         PermissionPopupController bean = new PermissionPopupController();
-        bean.setCommandClass(PermissionPopupCommand.class);
         bean.setTargetManager(baseConfig.targetManager());
 
         return bean;
@@ -1105,10 +1012,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabbedTargetController targetController() {
         TabbedTargetController bean = new TabbedTargetController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTabConfig(targetTabConfig());
         bean.setDefaultCommandClass(TargetDefaultCommand.class);
         bean.setTargetManager(baseConfig.targetManager());
@@ -1145,7 +1050,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig targetTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("target");
@@ -1322,19 +1226,6 @@ public class ServletConfig {
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
         bean.setHeatmapConfigDao(baseConfig.heatmapConfigDao());
         bean.setViewPrefix("target");
-        bean.setValidator(new TargetSchedulesValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public ProfileBasicCredentialsController basicCredentialsControllerTarget() {
-        ProfileBasicCredentialsController bean = new ProfileBasicCredentialsController();
-        bean.setCommandClass(BasicCredentialsCommand.class);
-        bean.setTabbedController(targetController());
-        bean.setOverrideGetter(targetOverrideGetter());
-        bean.setUrlPrefix("target");
-        bean.setValidator(new ProfilesBasicCredentialsValidator());
 
         return bean;
     }
@@ -1342,23 +1233,9 @@ public class ServletConfig {
     @Bean
     public ProfileFormCredentialsController formCredentialsControllerTarget() {
         ProfileFormCredentialsController bean = new ProfileFormCredentialsController();
-        bean.setCommandClass(FormCredentialsCommand.class);
         bean.setTabbedController(targetController());
         bean.setOverrideGetter(targetOverrideGetter());
         bean.setUrlPrefix("target");
-        bean.setValidator(new ProfilesFormCredentialsValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public ProfileBasicCredentialsController basicCredentialsControllerTargetInstance() {
-        ProfileBasicCredentialsController bean = new ProfileBasicCredentialsController();
-        bean.setCommandClass(BasicCredentialsCommand.class);
-        bean.setTabbedController(tabbedTargetInstanceController());
-        bean.setOverrideGetter(targetInstanceOverrideGetter());
-        bean.setUrlPrefix("ti");
-        bean.setValidator(basicCredentialsValidatorti());
 
         return bean;
     }
@@ -1371,11 +1248,9 @@ public class ServletConfig {
     @Bean
     public ProfileFormCredentialsController formCredentialsControllerTargetInstance() {
         ProfileFormCredentialsController bean = new ProfileFormCredentialsController();
-        bean.setCommandClass(FormCredentialsCommand.class);
         bean.setTabbedController(tabbedTargetInstanceController());
         bean.setOverrideGetter(targetInstanceOverrideGetter());
         bean.setUrlPrefix("ti");
-        bean.setValidator(formCredentialsValidatorti());
 
         return bean;
     }
@@ -1386,18 +1261,6 @@ public class ServletConfig {
     }
 
     @Bean
-    public ProfileBasicCredentialsController basicCredentialsControllerGroup() {
-        ProfileBasicCredentialsController bean = new ProfileBasicCredentialsController();
-        bean.setCommandClass(BasicCredentialsCommand.class);
-        bean.setTabbedController(groupsController());
-        bean.setOverrideGetter(groupOverrideGetter());
-        bean.setUrlPrefix("group");
-        bean.setValidator(basicCredentialsValidatorGroup());
-
-        return bean;
-    }
-
-    @Bean
     public ProfilesBasicCredentialsValidator basicCredentialsValidatorGroup() {
         return new ProfilesBasicCredentialsValidator();
     }
@@ -1405,11 +1268,9 @@ public class ServletConfig {
     @Bean
     public ProfileFormCredentialsController formCredentialsControllerGroup() {
         ProfileFormCredentialsController bean = new ProfileFormCredentialsController();
-        bean.setCommandClass(FormCredentialsCommand.class);
         bean.setTabbedController(groupsController());
         bean.setOverrideGetter(groupOverrideGetter());
         bean.setUrlPrefix("group");
-        bean.setValidator(formCredentialsValidatorGroup());
 
         return bean;
     }
@@ -1424,10 +1285,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabbedGroupController groupsController() {
         TabbedGroupController bean = new TabbedGroupController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTabConfig(groupsTabConfig());
         bean.setDefaultCommandClass(DefaultCommand.class);
         bean.setTargetManager(baseConfig.targetManager());
@@ -1450,7 +1309,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig groupsTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("groups");
@@ -1622,7 +1480,6 @@ public class ServletConfig {
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
         bean.setHeatmapConfigDao(baseConfig.heatmapConfigDao());
         bean.setViewPrefix("groups");
-        bean.setValidator(new TargetSchedulesValidator());
 
         return bean;
     }
@@ -1668,7 +1525,6 @@ public class ServletConfig {
         bean.setTargetManager(baseConfig.targetManager());
         bean.setGroupsController(groupsController());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(addMembersValidator());
 
         return bean;
     }
@@ -1684,14 +1540,8 @@ public class ServletConfig {
         bean.setTargetManager(baseConfig.targetManager());
         bean.setGroupsController(groupsController());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(addParentsValidator());
 
         return bean;
-    }
-
-    @Bean
-    public AddParentsValidator addParentsValidator() {
-        return new AddParentsValidator();
     }
 
     @Bean
@@ -1700,7 +1550,6 @@ public class ServletConfig {
         bean.setTargetManager(baseConfig.targetManager());
         bean.setGroupsController(groupsController());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(moveTargetsValidator());
 
         return bean;
     }
@@ -1717,7 +1566,6 @@ public class ServletConfig {
         bean.setTargetController(targetController());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setSubGroupSeparator(groupTypesSubgroupSeparator);
-        bean.setValidator(targetAddParentsValidator());
 
         return bean;
     }
@@ -1732,7 +1580,6 @@ public class ServletConfig {
     @Bean
     public ProfileListController profileListController() {
         ProfileListController bean = new ProfileListController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setProfileManager(baseConfig.profileManager());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
@@ -1743,7 +1590,6 @@ public class ServletConfig {
     @Bean
     public ProfileTargetsController profileTargetsController() {
         ProfileTargetsController bean = new ProfileTargetsController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setProfileManager(baseConfig.profileManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setTargetManager(baseConfig.targetManager());
@@ -1807,10 +1653,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ProfileController profileController() {
         ProfileController bean = new ProfileController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTabConfig(profileTabConfig());
         bean.setDefaultCommandClass(DefaultCommand.class);
         bean.setProfileManager(baseConfig.profileManager());
@@ -1822,10 +1666,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ProfileController profileH3Controller() {
         ProfileController bean = new ProfileController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTabConfig(profileH3TabConfig());
         bean.setDefaultCommandClass(DefaultCommand.class);
         bean.setProfileManager(baseConfig.profileManager());
@@ -1837,10 +1679,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ProfileController importedProfileH3Controller() {
         ProfileController bean = new ProfileController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setTabConfig(importedProfileH3TabConfig());
         bean.setDefaultCommandClass(DefaultCommand.class);
         bean.setProfileManager(baseConfig.profileManager());
@@ -1852,7 +1692,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig profileTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("profile");
@@ -1957,7 +1796,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig profileH3TabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("profileH3");
@@ -1990,7 +1828,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig importedProfileH3TabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("imported-profileH3");
@@ -2023,7 +1860,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public LogReaderController logReaderController() {
         LogReaderController bean = new LogReaderController();
         bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
@@ -2035,7 +1871,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ContentReaderController contentReaderController() {
         ContentReaderController bean = new ContentReaderController();
         bean.setHarvestLogManager(baseConfig.harvestLogManager());
@@ -2047,7 +1882,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AQAReaderController aqaReaderController() {
         AQAReaderController bean = new AQAReaderController();
         bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
@@ -2059,7 +1893,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public LiveContentRetrieverController liveContentRetrieverController() {
         return new LiveContentRetrieverController();
     }
@@ -2067,7 +1900,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public LogRetrieverController logRetrieverController() {
         LogRetrieverController bean = new LogRetrieverController();
         bean.setHarvestLogManager(baseConfig.harvestLogManager());
@@ -2079,7 +1911,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public InTrayController inTrayController() {
         InTrayController bean = new InTrayController();
         bean.setInTrayManager(baseConfig.inTrayManager());
@@ -2092,15 +1923,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ReportController reportController() {
         ReportController bean = new ReportController();
-        bean.setSupportedMethods("GET", "POST");
         // TODO CONFIGURATION There doesn't seem to be a reportMngr bean anywhere...
         bean.setReportMngr(null); // in the XML it's shown as 'ref bean="reportMngr"', but that doesn't exist anywhere.
-        bean.setCommandName("reportCommand");
-        bean.setCommandClass(ReportCommand.class);
-        bean.setValidator(new ReportValidator());
 
         return bean;
     }
@@ -2108,12 +1934,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ReportPreviewController reportPreviewController() {
         ReportPreviewController bean = new ReportPreviewController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setCommandName("reportPreviewCommand");
-        bean.setCommandClass(ReportPreviewCommand.class);
 
         return bean;
     }
@@ -2121,12 +1943,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ReportSaveController reportSaveController() {
         ReportSaveController bean = new ReportSaveController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setCommandName("reportSaveCommand");
-        bean.setCommandClass(ReportSaveCommand.class);
 
         return bean;
     }
@@ -2134,12 +1952,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ReportEmailController reportEmailController() {
         ReportEmailController bean = new ReportEmailController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setCommandName("reportEmailCommand");
-        bean.setCommandClass(ReportEmailCommand.class);
         bean.setMailServer(baseConfig.mailServer());
 
         return bean;
@@ -2151,10 +1965,8 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ManagementController managementController() {
         ManagementController bean = new ManagementController();
-        bean.setSupportedMethods("GET");
         bean.setEnableQaModule(queueControllerEnableQaModule);
 
         return bean;
@@ -2163,13 +1975,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TemplateController templateController() {
         TemplateController bean = new TemplateController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setPermissionTemplateManager(baseConfig.permissionTemplateManager());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setValidator(templateValidator());
         bean.setMessageSource(baseConfig.messageSource());
         bean.setDefaultSubject("Web Preservation Programme");
 
@@ -2179,7 +1988,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TemplateValidator templateValidator() {
         return new TemplateValidator();
     }
@@ -2187,12 +1995,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SiteAgencyController siteAgencyController() {
         SiteAgencyController bean = new SiteAgencyController();
         bean.setSiteController(siteController());
         bean.setBusObjFactory(baseConfig.businessObjectFactory());
-        bean.setValidator(siteAgencyValidator());
 
         return bean;
     }
@@ -2208,12 +2014,10 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SitePermissionController sitePermissionController() {
         SitePermissionController bean = new SitePermissionController();
         bean.setSiteController(siteController());
         bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setValidator(sitePermissionValidator());
 
         return bean;
     }
@@ -2226,7 +2030,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AssignToHarvesterController assignToHarvesterController() {
         AssignToHarvesterController bean = new AssignToHarvesterController();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());

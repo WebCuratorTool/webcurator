@@ -22,18 +22,15 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.jsp.JspException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
@@ -49,7 +46,7 @@ import org.webcurator.common.Constants;
  * Manages the creation flow for a Rejection Reason within WCT
  * @author oakleigh_sk
  */
-public class CreateFlagController extends AbstractFormController {
+public class CreateFlagController {
 	/** the logger. */
     private Log log = null;
     /** the agency user manager. */
@@ -62,10 +59,8 @@ public class CreateFlagController extends AbstractFormController {
     /** Default Constructor. */
     public CreateFlagController() {
         log = LogFactory.getLog(CreateFlagController.class);
-        setCommandClass(CreateFlagCommand.class);
     }
 
-    @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
     	// enable null values for long and float fields
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -73,16 +68,12 @@ public class CreateFlagController extends AbstractFormController {
         binder.registerCustomEditor(java.lang.Float.class, new CustomNumberEditor(java.lang.Float.class, nf, true));
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest arg0,
-            HttpServletResponse arg1, BindException arg2) throws Exception {
+    protected ModelAndView showForm() throws Exception {
 
         return null;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCommand, BindException aError)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = null;
@@ -90,7 +81,7 @@ public class CreateFlagController extends AbstractFormController {
 
 
         if (flagCmd != null) {
-            if (aError.hasErrors()) {
+            if (bindingResult.hasErrors()) {
                 mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateFlagCommand.MDL_AGENCIES, agencies);
@@ -99,8 +90,8 @@ public class CreateFlagController extends AbstractFormController {
                 if (CreateFlagCommand.ACTION_EDIT.equals(mode)) {
                     mav.addObject(CreateFlagCommand.ACTION_EDIT, mode);
                 }
-                mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aError);
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newFlag");
 
             } else if (CreateFlagCommand.ACTION_NEW.equals(flagCmd.getAction())) {
@@ -201,7 +192,7 @@ public class CreateFlagController extends AbstractFormController {
         return mav;
     }
 
-	public String getComplementColour(String hexColour) throws JspException  {
+	public String getComplementColour(String hexColour) {
 
 		String output = null;
 		Integer i = null;

@@ -16,9 +16,8 @@
 package org.webcurator.ui.profiles.controller;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 import org.webcurator.core.profiles.ProfileManager;
@@ -42,14 +41,9 @@ public class MakeDefaultProfileController extends ProfileListController {
 	 * Construct the controller.
 	 */
 	public MakeDefaultProfileController() {
-		setCommandClass(ViewCommand.class);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
 		ViewCommand command = (ViewCommand) comm;
 		Profile profile = profileManager.load(command.getProfileOid());
 		if(authorityManager.hasPrivilege(profile, Privilege.MANAGE_PROFILES)) {
@@ -69,9 +63,9 @@ public class MakeDefaultProfileController extends ProfileListController {
 			}
 			catch (WCTInvalidStateRuntimeException e) {
 				Object[] vals = new Object[] {profile.getName(), profile.getOwningAgency().getName()};
-				errors.reject("profile.inactive", vals, "The profile is inactive");
+				bindingResult.reject("profile.inactive", vals, "The profile is inactive");
 				mav = getView(pcomm);
-				mav.addObject(Constants.GBL_ERRORS, errors);
+				mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			}
 
 			return mav;

@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.targets.MockTargetManager;
@@ -111,7 +112,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-			BindException errors = new BindException(command, "AddMembersCommand");
+            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15000L);
 
@@ -121,12 +122,13 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			command.setMemberOids(oids);
 
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
 			assertEquals(mav.getViewName(), "group-add-members");
-			assertTrue(errors.getErrorCount() == 1);
-			assertTrue(errors.getMessage().indexOf("Already a member of this group") > 0);
+			assertTrue(bindingResult.getErrorCount() == 1);
+			BindException asBindException = (BindException) bindingResult;
+			assertTrue(asBindException.getMessage().indexOf("Already a member of this group") > 0);
 		}
 		catch(Exception e)
 		{
@@ -148,7 +150,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-			BindException errors = new BindException(command, "AddMembersCommand");
+            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
@@ -157,10 +159,10 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			command.setMemberOids(oids);
 
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
-			assertTrue(errors.getErrorCount() == 0);
+			assertTrue(bindingResult.getErrorCount() == 0);
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 1);
 		}
 		catch(Exception e)
@@ -183,7 +185,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-			BindException errors = new BindException(command, "AddMembersCommand");
+            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
@@ -192,10 +194,10 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			command.setMemberOids(oids);
 
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
-			assertTrue(errors.getErrorCount() == 0);
+			assertTrue(bindingResult.getErrorCount() == 0);
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
 		}
 		catch(Exception e)
@@ -216,7 +218,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-			BindException errors = new BindException(command, "AddMembersCommand");
+            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
@@ -226,7 +228,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 
 			List<AddMembersController.MemberSelection> selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
 			assertNull(selections);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "group-add-members");
 			selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
@@ -236,13 +238,13 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			assertEquals(selections.get(1).getOid(), new Long(15002));
 
 			command = new AddMembersCommand();
-			errors = new BindException(command, "AddMembersCommand");
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
 			command.setActionCmd(AddMembersCommand.ACTION_CANCEL);
 
-			mav = testInstance.handle(request, response, command, errors);
+			mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 			selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
@@ -266,7 +268,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-			BindException errors = new BindException(command, "AddMembersCommand");
+            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
@@ -276,7 +278,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 
 			List<AddMembersController.MemberSelection> selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
 			assertNull(selections);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "group-add-members");
 			selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
@@ -303,7 +305,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-			BindException errors = new BindException(command, "AddMembersCommand");
+            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
@@ -313,7 +315,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 
 			List<AddMembersController.MemberSelection> selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
 			assertNull(selections);
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "group-add-members");
 			selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
@@ -323,14 +325,14 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			assertEquals(selections.get(1).getOid(), new Long(15002));
 
 			command = new AddMembersCommand();
-			errors = new BindException(command, "AddMembersCommand");
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
 			command.setActionCmd(AddMembersCommand.ACTION_REMOVE);
 			command.setMemberIndex(1);
 
-			mav = testInstance.handle(request, response, command, errors);
+			mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "group-add-members");
 			selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);

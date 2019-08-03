@@ -20,16 +20,14 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.domain.model.auth.Agency;
@@ -40,7 +38,7 @@ import org.webcurator.common.Constants;
  * Manages the Agency Administration view and the actions associated with a Agency
  * @author bprice
  */
-public class AgencyController extends AbstractFormController {
+public class AgencyController {
 	/** the logger. */
     private Log log = null;
     /** the user manager. */
@@ -53,35 +51,28 @@ public class AgencyController extends AbstractFormController {
 
     public AgencyController() {
         log = LogFactory.getLog(AgencyController.class);
-        setCommandClass(AgencyCommand.class);
     }
 
-    @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aRes, BindException aError) throws Exception {
+    protected ModelAndView showForm() throws Exception {
 
         return populateAgencyList();
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCommand, BindException aError)
-            throws Exception {
+    protected ModelAndView processFormSubmission(Object aCommand, BindingResult bindingResult) throws Exception {
 
         ModelAndView mav = null;
         AgencyCommand agencyCmd = (AgencyCommand) aCommand;
         if (agencyCmd != null) {
-            if (aError.hasErrors()) {
+            if (bindingResult.hasErrors()) {
                 mav = new ModelAndView();
                 mav = populateAgencyList();
-                mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aError);
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newAgency");
 
             } else if (AgencyCommand.ACTION_NEW.equals(agencyCmd.getActionCommand())) {

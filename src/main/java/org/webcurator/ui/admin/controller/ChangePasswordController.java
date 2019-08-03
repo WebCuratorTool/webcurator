@@ -21,16 +21,14 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
 import org.acegisecurity.providers.encoding.PasswordEncoder;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.util.AuthUtil;
@@ -45,7 +43,7 @@ import org.webcurator.common.Constants;
  * Manage the view for changing a users password.
  * @author bprice
  */
-public class ChangePasswordController extends AbstractFormController {
+public class ChangePasswordController {
 	/** the agency user manager. */
     private AgencyUserManager agencyUserManager = null;
     /** the authority manager */
@@ -59,45 +57,40 @@ public class ChangePasswordController extends AbstractFormController {
 
     /** Default Constructor. */
     public ChangePasswordController() {
-        this.setCommandClass(ChangePasswordCommand.class);
     }
 
-    @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aRes, BindException aBindEx) throws Exception {
+    protected ModelAndView showForm() throws Exception {
 
         return null;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCmd, BindException aBindEx)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCmd, BindingResult bindingResult)
             throws Exception {
         ChangePasswordCommand pwdCmd = (ChangePasswordCommand) aCmd;
         if (ChangePasswordCommand.ACTION_SAVE.equals(pwdCmd.getAction())) {
             //Save the Change of password action
             ChangePasswordCommand aPwdCommand = (ChangePasswordCommand) aCmd;
-            return processPasswordChange(aReq, aRes, aPwdCommand, aBindEx);
+            return processPasswordChange(aReq, aPwdCommand, bindingResult);
         } else {
             //Display the change password form
-            return createDefaultModelAndView(aReq, pwdCmd);
+            return createDefaultModelAndView(pwdCmd);
         }
     }
 
     /**
      * Process the command tp change the users password.
      */
-    private ModelAndView processPasswordChange(HttpServletRequest aReq,HttpServletResponse aResp, ChangePasswordCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processPasswordChange(HttpServletRequest aReq, ChangePasswordCommand aCmd,
+                                               BindingResult bindingResult) throws Exception {
         ModelAndView mav = new ModelAndView();
-        if (aErrors.hasErrors()) {
-            mav.addObject(Constants.GBL_CMD_DATA, aErrors.getTarget());
-            mav.addObject(Constants.GBL_ERRORS, aErrors);
+        if (bindingResult.hasErrors()) {
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
             mav.setViewName("change-password");
 
             return mav;
@@ -147,7 +140,7 @@ public class ChangePasswordController extends AbstractFormController {
     /**
      * Generate a default model and view.
      */
-    private ModelAndView createDefaultModelAndView(HttpServletRequest aReq, ChangePasswordCommand pwdCmd) {
+    private ModelAndView createDefaultModelAndView(ChangePasswordCommand pwdCmd) {
         ModelAndView mav = new ModelAndView();
         mav.addObject(Constants.GBL_CMD_DATA, pwdCmd);
         mav.setViewName("change-password");

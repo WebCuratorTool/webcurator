@@ -15,15 +15,12 @@
  */
 package org.webcurator.ui.report.controller;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.ui.report.command.ReportSaveCommand;
 
@@ -33,7 +30,7 @@ import org.webcurator.ui.report.command.ReportSaveCommand;
  * @author MDubos
  *
  */
-public class ReportSaveController extends AbstractFormController {
+public class ReportSaveController {
 
 	public static final String ACTION_SAVE  = "Save";
 	public static final String ACTION_CANCEL  = "Cancel";
@@ -41,18 +38,14 @@ public class ReportSaveController extends AbstractFormController {
 	private Log log = LogFactory.getLog(ReportSaveController.class);
 
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse resp, BindException exc) throws Exception {
+	protected ModelAndView showForm() throws Exception {
 
 		return null;
 	}
 
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest req,
-			HttpServletResponse resp, Object comm, BindException exc)
-			throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest req, HttpServletResponse resp, Object comm)
+            throws Exception {
 
 		ReportSaveCommand com = (ReportSaveCommand) comm;
 		String format = com.getFormat();
