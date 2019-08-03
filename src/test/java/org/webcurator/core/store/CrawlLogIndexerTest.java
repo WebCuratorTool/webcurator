@@ -10,6 +10,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 
 import org.junit.After;
@@ -20,14 +24,14 @@ import org.webcurator.test.BaseWCTTest;
 
 public class CrawlLogIndexerTest extends BaseWCTTest<CrawlLogIndexer>{
 
-	private String testCrawlLogFile = "src/test/java/org/webcurator/core/store/logs/crawl.log";
+	private String testCrawlLogFile = "/org/webcurator/core/store/logs/crawl.log";
 	
 	private Long hrOid = 54321L;
 	private Long tiOid = 12345L;
 	private int harvestNumber = 1;
 
 	private final String tmpDir = System.getProperty("java.io.tmpdir");
-	
+
 	private final File baseFolder = new File(tmpDir + "/CrawlLogIndexerTest");
 	private final File archiveFolder = new File(tmpDir + "/CrawlLogIndexerTest/1");
 	private final File logsFolder = new File(tmpDir + "/CrawlLogIndexerTest/logs");
@@ -57,8 +61,10 @@ public class CrawlLogIndexerTest extends BaseWCTTest<CrawlLogIndexer>{
 		archiveFolder.mkdirs();
 		
 		try {
-			copyFile(new File(testCrawlLogFile), new File(logsFolder.getAbsolutePath()+"//crawl.log"));
-		} catch (IOException e) {
+            URL fileUrl = getClass().getResource(testCrawlLogFile);
+            Path resourcePath = Paths.get(fileUrl.toURI());
+			copyFile(resourcePath.toFile(), new File(logsFolder.getAbsolutePath()+"//crawl.log"));
+		} catch (IOException| URISyntaxException e) {
 			e.printStackTrace();
 		}
 	}

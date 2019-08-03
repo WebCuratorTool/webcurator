@@ -3,6 +3,9 @@ package org.webcurator.domain.model.core;
 import static org.junit.Assert.*;
 
 import java.io.*;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import javax.xml.xpath.*;
@@ -21,13 +24,15 @@ public class OldProfileOverridesTest extends BaseWCTTest<ProfileOverrides> {
 	public OldProfileOverridesTest()
 	{
 		super(ProfileOverrides.class, 
-			"src/test/java/org/webcurator/domain/model/core/OldProfileOverridesTest.xml");
+			"/org/webcurator/domain/model/core/OldProfileOverridesTest.xml");
 	}
 	
 	public void setUp() throws Exception {
 		super.setUp();
-		
-        FileInputStream fis = new FileInputStream(testFile);
+
+        URL fileUrl = getClass().getResource(testFile);
+        Path resourcePath = Paths.get(fileUrl.toURI());
+        FileInputStream fis = new FileInputStream(resourcePath.toFile());
         int x= fis.available();
         byte b[]= new byte[x];
         fis.read(b);

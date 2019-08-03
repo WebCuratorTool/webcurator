@@ -1,6 +1,9 @@
 package org.webcurator.domain;
 
 import java.io.File;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,7 +75,9 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 			indicatorCriteriaDAO = new MockIndicatorCriteriaDAO(filename);
 			
 	        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-	        theFile = docBuilder.parse (new File(filename));
+            URL fileUrl = getClass().getResource(filename);
+            Path resourcePath = Paths.get(fileUrl.toURI());
+            theFile = docBuilder.parse(resourcePath.toFile());
 	        
 	    	NodeList targetInstanceNodes = theFile.getElementsByTagName("target-instance");
 	    	

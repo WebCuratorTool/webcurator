@@ -1,5 +1,8 @@
 package org.webcurator.domain;
 
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import org.apache.commons.logging.Log;
@@ -38,7 +41,9 @@ public class MockRejReasonDAO implements RejReasonDAO {
 		try
 		{
 	        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-	        theFile = docBuilder.parse (new File(filename));
+            URL fileUrl = getClass().getResource(filename);
+            Path resourcePath = Paths.get(fileUrl.toURI());
+            theFile = docBuilder.parse(resourcePath.toFile());
 
 	    	NodeList agencyNodes = theFile.getElementsByTagName("agency");
 	    	//force a nested load of everything

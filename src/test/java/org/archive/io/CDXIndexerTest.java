@@ -9,6 +9,9 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 
 import org.junit.Ignore;
@@ -18,7 +21,7 @@ import org.webcurator.test.BaseWCTTest;
 
 public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 
-	private String archivePath = "src/test/java/org/webcurator/domain/model/core/archiveFiles";
+	private String archivePath = "/org/webcurator/domain/model/core/archiveFiles";
 	private String TestCARC_CDX = "IAH-20080610152724-00000-test.cdx";
 	private String TestCWARC_CDX = "IAH-20080610152754-00000-test.cdx";
 	
@@ -37,7 +40,9 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 	public void setUp() throws Exception {
 		super.setUp();
 		ArcHarvestResultDTO result = new ArcHarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
-		testInstance.initialise(result, new File(archivePath));
+        URL fileUrl = getClass().getResource(archivePath);
+        Path resourcePath = Paths.get(fileUrl.toURI());
+		testInstance.initialise(result, resourcePath.toFile());
 	}
 
 	//TODO Test doesn't work, test itself also does not appear to test anything worthwhile 

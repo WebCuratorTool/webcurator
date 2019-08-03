@@ -9,7 +9,7 @@ import java.util.List;
 
 public class LogReaderImplTest extends BaseWCTTest<LogReaderImpl>{
 
-	private String baseDir = "src/test/java/org/webcurator/core/reader/logs";
+	private String baseDir = "/org/webcurator/core/reader/logs";
 	public LogReaderImplTest()
 	{
 		super(LogReaderImpl.class, "");

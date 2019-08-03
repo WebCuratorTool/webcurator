@@ -2,7 +2,7 @@ package org.webcurator.core.reader;
 
 public class MockLogReader extends LogReaderImpl {
 
-	private String baseDir = "src/test/java/org/webcurator/core/reader/logs";
+	private String baseDir = "/org/webcurator/core/reader/logs";
 	
 	public MockLogReader()
 	{

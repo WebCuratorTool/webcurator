@@ -2,6 +2,9 @@ package org.webcurator.domain.model.core;
 
 import static org.junit.Assert.*;
 
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import org.junit.Ignore;
@@ -10,7 +13,7 @@ import org.webcurator.test.BaseWCTTest;
 
 public class ArcHarvestFileDTOTest extends BaseWCTTest<ArcHarvestFileDTO> {
 
-	private String archivePath = "src/test/java/org/webcurator/domain/model/core/archiveFiles";
+	private String archivePath = "/org/webcurator/domain/model/core/archiveFiles";
 	private String TestCARC = "IAH-20080610152724-00000-test.arc.gz";
 	private String TestCWARC = "IAH-20080610152754-00000-test.warc.gz";
 	
@@ -24,7 +27,9 @@ public class ArcHarvestFileDTOTest extends BaseWCTTest<ArcHarvestFileDTO> {
 
 	public void setUp() throws Exception {
 		super.setUp();
-		testInstance.setBaseDir(archivePath);
+        URL fileUrl = getClass().getResource(archivePath);
+        Path resourcePath = Paths.get(fileUrl.toURI());
+		testInstance.setBaseDir(resourcePath.toAbsolutePath().toString());
 	}
 
 	//TODO Test doesn't work, test itself also does not appear to test anything worthwhile 

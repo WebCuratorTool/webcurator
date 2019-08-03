@@ -62,7 +62,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
 
 	public HarvestCoordinatorImplTest() {
 		super(HarvestCoordinatorImpl.class,
-				"src/test/java/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
+				"/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
 	}
 
 	// Override BaseWCTTest setup method

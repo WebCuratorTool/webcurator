@@ -10,6 +10,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,12 +25,14 @@ public class Heritrix3ProfileTest extends BaseWCTTest<Heritrix3Profile> {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     public Heritrix3ProfileTest() {
-        super(Heritrix3Profile.class, "src/test/java/org/webcurator/core/profiles/Heritrix3ProfileTest.cxml", false);
+        super(Heritrix3Profile.class, "/org/webcurator/core/profiles/Heritrix3ProfileTest.cxml", false);
     }
 
     public void setUp() throws Exception {
         super.setUp();
-        String xml = readXMLFile(new File(testFile));
+        URL fileUrl = getClass().getResource(testFile);
+        Path resourcePath = Paths.get(fileUrl.toURI());
+        String xml = readXMLFile(resourcePath.toFile());
         testInstance = new Heritrix3Profile(xml);
     }
 
