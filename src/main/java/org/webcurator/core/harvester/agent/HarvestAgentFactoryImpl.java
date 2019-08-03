@@ -16,26 +16,18 @@
 package org.webcurator.core.harvester.agent;
 
 import org.webcurator.core.reader.LogReader;
+import org.webcurator.core.reader.LogReaderClient;
 
 /**
- * Interface for a factory to create instances of a HarvestAgent.
- * @author nwaight
+ * Factory to create HarvestAgent instances that use SOAP to communicate with a remote HarvestAgent.
  */
-public interface HarvestAgentFactory {
-    /**
-     * Return an instance of the harvest agent running on the 
-     * specified host, port and service name.
-     * @param aHost the name of the host
-     * @param aPort the port
-     * @return the Harvest Agent
-     */
-    HarvestAgent getHarvestAgent(String aHost, int aPort);
-    
-    /**
-     * Return an instance of the log reader running on the specified host and port
-     * @param aHost the name of the host
-     * @param aPort the port
-     * @return the log reader
-     */
-    LogReader getLogReader(String aHost, int aPort);
+public class HarvestAgentFactoryImpl implements HarvestAgentFactory {
+    public HarvestAgent getHarvestAgent(String aHost, int aPort) {
+        HarvestAgentClient ha = new HarvestAgentClient(aHost, aPort);
+        return ha;
+    }
+
+    public LogReader getLogReader(String aHost, int aPort) {
+        return new LogReaderClient(aHost, aPort);
+    }
 }

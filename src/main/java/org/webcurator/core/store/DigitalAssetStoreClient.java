@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
-public class DigitalAssetStoreClient implements DigitalAssetStore {
+public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetStoreConfig {
 
     /**
      * the logger.

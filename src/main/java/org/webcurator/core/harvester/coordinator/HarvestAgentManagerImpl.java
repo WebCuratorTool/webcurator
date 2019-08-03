@@ -124,7 +124,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 			if (hs == null) {
 				log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", ti.getJobName());
 			} else {
-				HarvestAgent agent = harvestAgentFactory.getHarvestAgent(hs.getHost(), hs.getPort(), hs.getService());
+				HarvestAgent agent = harvestAgentFactory.getHarvestAgent(hs.getHost(), hs.getPort());
 				agent.abort(ti.getJobName());
 			}
 		}
@@ -196,7 +196,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 					aTargetInstance.getJobName());
 			return;
 		}
-		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort(), status.getService());
+		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort());
 		agent.updateProfileOverrides(aTargetInstance.getJobName(), profileString);
 	}
 
@@ -209,7 +209,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 			return;
 		}
 
-		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort(), status.getService());
+		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort());
 
 		// Update the state of the allocated Target Instance
 		aTargetInstance.setState(TargetInstance.STATE_PAUSED);
@@ -226,7 +226,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 			log.warn("RESUME Failed. Failed to find the Harvest Agent for the Job {}.", aTargetInstance.getJobName());
 			return;
 		}
-		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort(), status.getService());
+		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort());
 
 		// Update the state of the allocated Target Instance
 		aTargetInstance.setState(TargetInstance.STATE_RUNNING);
@@ -246,7 +246,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 		if (status == null) {
 			log.warn("ABORT Failed. Failed to find the Harvest Agent for the Job {}.", aTargetInstance.getJobName());
 		} else {
-			HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort(), status.getService());
+			HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort());
 			try {
 				agent.abort(aTargetInstance.getJobName());
 			} catch (RuntimeException e) {
@@ -263,7 +263,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 			log.warn("STOP Failed. Failed to find the Harvest Agent for the Job {}.", aTargetInstance.getJobName());
 			return;
 		}
-		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort(), status.getService());
+		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(status.getHost(), status.getPort());
 
 		agent.stop(aTargetInstance.getJobName());
 	}
@@ -272,7 +272,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	public void pauseAll() {
 		for (HarvestAgentStatusDTO agentDTO : harvestAgents.values()) {
 			if (agentDTO.getHarvesterStatus() != null && !agentDTO.getHarvesterStatus().isEmpty()) {
-				HarvestAgent agent = harvestAgentFactory.getHarvestAgent(agentDTO.getHost(), agentDTO.getPort(), agentDTO.getService());
+				HarvestAgent agent = harvestAgentFactory.getHarvestAgent(agentDTO.getHost(), agentDTO.getPort());
 				agent.pauseAll();
 			}
 		}
@@ -282,7 +282,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	public void resumeAll() {
 		for (HarvestAgentStatusDTO agentDTO : harvestAgents.values()) {
 			if (agentDTO.getHarvesterStatus() != null && !agentDTO.getHarvesterStatus().isEmpty()) {
-				HarvestAgent agent = harvestAgentFactory.getHarvestAgent(agentDTO.getHost(), agentDTO.getPort(), agentDTO.getService());
+				HarvestAgent agent = harvestAgentFactory.getHarvestAgent(agentDTO.getHost(), agentDTO.getPort());
 				agent.resumeAll();
 			}
 		}
@@ -297,7 +297,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 			return null;
 		}
 
-		LogReader logReader = harvestAgentFactory.getLogReader(status.getHost(), status.getPort(), status.getLogReaderService());
+		LogReader logReader = harvestAgentFactory.getLogReader(status.getHost(), status.getPort());
 		return logReader;
 	}
 
@@ -327,7 +327,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	public void restrictBandwidthFor(TargetInstance targetInstance) {
 		HarvestAgentStatusDTO ha = getHarvestAgentStatusFor(targetInstance.getJobName());
 		if (ha != null) {
-			HarvestAgent agent = harvestAgentFactory.getHarvestAgent(ha.getHost(), ha.getPort(), ha.getService());
+			HarvestAgent agent = harvestAgentFactory.getHarvestAgent(ha.getHost(), ha.getPort());
 			Long allocated = targetInstance.getAllocatedBandwidth();
 			if (allocated == null || targetInstance.getAllocatedBandwidth().intValue() <= 0) {
 				// zero signifies unlimited bandwidth, prevent this
@@ -358,13 +358,13 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	@Override
 	public void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, TargetInstance aTargetInstance, String profile,
 			String seedsString) {
-		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(aHarvestAgent.getHost(), aHarvestAgent.getPort(), aHarvestAgent.getService());
+		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(aHarvestAgent.getHost(), aHarvestAgent.getPort());
 		agent.initiateHarvest(aTargetInstance.getJobName(), profile, seedsString);
 	}
 
 	@Override
 	public void recoverHarvests(String haHost, int haPort, String haService, List<String> activeJobs){
-		HarvestAgent agent  = harvestAgentFactory.getHarvestAgent(haHost, haPort, haService);
+		HarvestAgent agent  = harvestAgentFactory.getHarvestAgent(haHost, haPort);
 		agent.recoverHarvests(activeJobs);
 	}
 
@@ -398,7 +398,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	@Override
 	public void purgeAbortedTargetInstances(List<String> tiNames) {
 		for(HarvestAgentStatusDTO statusDto:harvestAgents.values()) {
-			HarvestAgent ha = harvestAgentFactory.getHarvestAgent(statusDto.getHost(), statusDto.getPort(), statusDto.getService());
+			HarvestAgent ha = harvestAgentFactory.getHarvestAgent(statusDto.getHost(), statusDto.getPort());
 			try {
 				ha.purgeAbortedTargetInstances(tiNames);
 			} catch (Exception e) {
