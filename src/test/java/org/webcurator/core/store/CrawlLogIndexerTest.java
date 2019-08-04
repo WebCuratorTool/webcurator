@@ -10,10 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 
 import org.junit.After;
@@ -21,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.test.BaseWCTTest;
+import org.webcurator.test.WCTTestUtils;
 
 public class CrawlLogIndexerTest extends BaseWCTTest<CrawlLogIndexer>{
 
@@ -59,12 +56,9 @@ public class CrawlLogIndexerTest extends BaseWCTTest<CrawlLogIndexer>{
 		baseFolder.mkdirs();
 		logsFolder.mkdirs();
 		archiveFolder.mkdirs();
-		
 		try {
-            URL fileUrl = getClass().getResource(testCrawlLogFile);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-			copyFile(resourcePath.toFile(), new File(logsFolder.getAbsolutePath()+"//crawl.log"));
-		} catch (IOException| URISyntaxException e) {
+			copyFile(WCTTestUtils.getResourceAsFile(testCrawlLogFile), new File(logsFolder.getAbsolutePath()+"//crawl.log"));
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

@@ -1,19 +1,14 @@
 package org.webcurator.domain;
 
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.*;
-
-//XML file imports
-import java.io.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+
+import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException; 
 
@@ -23,9 +18,6 @@ import org.w3c.dom.NodeList;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
-import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
-import org.webcurator.core.util.*;
-import org.webcurator.domain.model.core.*;
 import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 
 public class MockProfileDAO implements ProfileDAO {
@@ -45,9 +37,7 @@ public class MockProfileDAO implements ProfileDAO {
 			userRoleDAO = new MockUserRoleDAO(filename);
 			
 	        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            URL fileUrl = getClass().getResource(filename);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-            theFile = docBuilder.parse(resourcePath.toFile());
+            theFile = docBuilder.parse(WCTTestUtils.getResourceAsFile(filename));
 
 	    	NodeList profileNodes = theFile.getElementsByTagName("profile");
 	    	

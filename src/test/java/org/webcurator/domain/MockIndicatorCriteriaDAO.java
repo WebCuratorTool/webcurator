@@ -1,8 +1,5 @@
 package org.webcurator.domain;
 
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -13,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import java.io.*;
-
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+
+import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException; 
 
@@ -28,10 +25,7 @@ import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.Annotatable;
-import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorCriteria;
-import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.UserDTO;
 
 public class MockIndicatorCriteriaDAO implements IndicatorCriteriaDAO {
@@ -54,9 +48,7 @@ public class MockIndicatorCriteriaDAO implements IndicatorCriteriaDAO {
 		{
 			userRoleDAO = new MockUserRoleDAO(filename);
 	        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            URL fileUrl = getClass().getResource(filename);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-            theFile = docBuilder.parse(resourcePath.toFile());
+            theFile = docBuilder.parse(WCTTestUtils.getResourceAsFile(filename));
 	        
 	    	NodeList indicatorCriteriaNodes = theFile.getElementsByTagName("indicator-criteria");
 	    	

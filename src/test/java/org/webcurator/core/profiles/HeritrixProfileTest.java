@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.archive.crawler.settings.*;
 import org.junit.Test;
 import org.webcurator.test.BaseWCTTest;
+import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
@@ -12,9 +13,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.StringReader;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import javax.xml.parsers.SAXParserFactory;
@@ -64,9 +62,7 @@ public class HeritrixProfileTest extends BaseWCTTest<HeritrixProfile>{
 		}
 		catch(java.lang.InstantiationException e)
 		{
-            URL fileUrl = getClass().getResource(testFile);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-			testInstance = HeritrixProfile.create(resourcePath.toFile());
+			testInstance = HeritrixProfile.create(WCTTestUtils.getResourceAsFile(testFile));
 		}
 	}
 	
@@ -76,9 +72,7 @@ public class HeritrixProfileTest extends BaseWCTTest<HeritrixProfile>{
 	   	BufferedReader profileReader = null;
 	   	try
 	   	{
-            URL fileUrl = getClass().getResource(testFile);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-		    profileReader = new BufferedReader(new FileReader(resourcePath.toFile()));
+		    profileReader = new BufferedReader(new FileReader(WCTTestUtils.getResourceAsFile(testFile)));
 			String line = null;
 			
 			while( (line=profileReader.readLine()) != null) {
@@ -423,9 +417,7 @@ public class HeritrixProfileTest extends BaseWCTTest<HeritrixProfile>{
 	public final void testCreateFile() {
 		try
 		{
-            URL fileUrl = getClass().getResource(testFile);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-			assertNotNull(HeritrixProfile.create(resourcePath.toFile()));
+			assertNotNull(HeritrixProfile.create(WCTTestUtils.getResourceAsFile(testFile)));
 		}
 		catch(Exception e)
 		{
@@ -439,9 +431,7 @@ public class HeritrixProfileTest extends BaseWCTTest<HeritrixProfile>{
 	   	BufferedReader profileReader = null;
 	   	try
 	   	{
-            URL fileUrl = getClass().getResource(testFile);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-            profileReader = new BufferedReader(new FileReader(resourcePath.toFile()));
+            profileReader = new BufferedReader(new FileReader(WCTTestUtils.getResourceAsFile(testFile)));
 			String line = null;
 			
 			while( (line=profileReader.readLine()) != null) {

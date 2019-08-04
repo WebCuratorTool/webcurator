@@ -1,8 +1,5 @@
 package org.webcurator.domain;
 
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,12 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import java.io.*;
-
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+
+import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException; 
 
@@ -40,9 +37,7 @@ public class MockAnnotationDAO implements AnnotationDAO {
 		{
 			userRoleDAO = new MockUserRoleDAO(filename);
 	        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            URL fileUrl = getClass().getResource(filename);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-            theFile = docBuilder.parse(resourcePath.toFile());
+            theFile = docBuilder.parse(WCTTestUtils.getResourceAsFile(filename));
 		}
     	catch (SAXParseException err) 
     	{

@@ -9,15 +9,13 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.test.BaseWCTTest;
+import org.webcurator.test.WCTTestUtils;
 
 public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 
@@ -40,9 +38,7 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 	public void setUp() throws Exception {
 		super.setUp();
 		ArcHarvestResultDTO result = new ArcHarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
-        URL fileUrl = getClass().getResource(archivePath);
-        Path resourcePath = Paths.get(fileUrl.toURI());
-		testInstance.initialise(result, resourcePath.toFile());
+		testInstance.initialise(result, WCTTestUtils.getResourceAsFile(archivePath));
 	}
 
 	//TODO Test doesn't work, test itself also does not appear to test anything worthwhile 

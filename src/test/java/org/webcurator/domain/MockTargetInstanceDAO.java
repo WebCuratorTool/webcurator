@@ -1,9 +1,5 @@
 package org.webcurator.domain;
 
-import java.io.File;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +36,7 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
+import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -75,9 +72,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 			indicatorCriteriaDAO = new MockIndicatorCriteriaDAO(filename);
 			
 	        DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            URL fileUrl = getClass().getResource(filename);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-            theFile = docBuilder.parse(resourcePath.toFile());
+            theFile = docBuilder.parse(WCTTestUtils.getResourceAsFile(filename));
 	        
 	    	NodeList targetInstanceNodes = theFile.getElementsByTagName("target-instance");
 	    	

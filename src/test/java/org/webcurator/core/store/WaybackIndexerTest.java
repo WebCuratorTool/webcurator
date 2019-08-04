@@ -10,9 +10,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Date;
 
 import org.junit.After;
@@ -20,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.test.BaseWCTTest;
+import org.webcurator.test.WCTTestUtils;
 
 public class WaybackIndexerTest extends BaseWCTTest<WaybackIndexer>{
 
@@ -162,9 +160,7 @@ public class WaybackIndexerTest extends BaseWCTTest<WaybackIndexer>{
 		testInstance.setWaybackInputFolder(inputFolder.getAbsolutePath());
 		testInstance.setWaybackMergedFolder(mergedFolder.getAbsolutePath());
 		ArcHarvestResultDTO result = new ArcHarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
-        URL fileUrl = getClass().getResource(archivePath);
-        Path resourcePath = Paths.get(fileUrl.toURI());
-		testInstance.initialise(result, resourcePath.toFile());
+		testInstance.initialise(result, WCTTestUtils.getResourceAsFile(archivePath));
 	}
 
 	@After
@@ -229,9 +225,7 @@ public class WaybackIndexerTest extends BaseWCTTest<WaybackIndexer>{
 	public final void testRemoveIndex() {
 		try
 		{
-            URL fileUrl = getClass().getResource(archivePath);
-            Path resourcePath = Paths.get(fileUrl.toURI());
-			File[] files = resourcePath.toFile().listFiles(testInstance.new ARCFilter());
+			File[] files = WCTTestUtils.getResourceAsFile(archivePath).listFiles(testInstance.new ARCFilter());
 			for(int i = 0; i < files.length; i++)
 			{
 				WaybackIndexer.MonitoredFile mf = testInstance.new MonitoredFile(files[i]);

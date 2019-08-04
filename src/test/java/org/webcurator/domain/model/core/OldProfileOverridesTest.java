@@ -3,9 +3,6 @@ package org.webcurator.domain.model.core;
 import static org.junit.Assert.*;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import javax.xml.xpath.*;
@@ -14,7 +11,6 @@ import org.junit.Test;
 import org.webcurator.test.*;
 import org.webcurator.core.profiles.HeritrixProfile;
 import org.xml.sax.InputSource;
-
 
 public class OldProfileOverridesTest extends BaseWCTTest<ProfileOverrides> {
 
@@ -30,9 +26,7 @@ public class OldProfileOverridesTest extends BaseWCTTest<ProfileOverrides> {
 	public void setUp() throws Exception {
 		super.setUp();
 
-        URL fileUrl = getClass().getResource(testFile);
-        Path resourcePath = Paths.get(fileUrl.toURI());
-        FileInputStream fis = new FileInputStream(resourcePath.toFile());
+        FileInputStream fis = new FileInputStream(WCTTestUtils.getResourceAsFile(testFile));
         int x= fis.available();
         byte b[]= new byte[x];
         fis.read(b);

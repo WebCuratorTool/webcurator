@@ -3,6 +3,7 @@ package org.webcurator.core.profiles;
 import org.junit.Test;
 import org.webcurator.domain.model.core.ProfileOverrides;
 import org.webcurator.test.BaseWCTTest;
+import org.webcurator.test.WCTTestUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,9 +11,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,9 +28,7 @@ public class Heritrix3ProfileTest extends BaseWCTTest<Heritrix3Profile> {
 
     public void setUp() throws Exception {
         super.setUp();
-        URL fileUrl = getClass().getResource(testFile);
-        Path resourcePath = Paths.get(fileUrl.toURI());
-        String xml = readXMLFile(resourcePath.toFile());
+        String xml = readXMLFile(WCTTestUtils.getResourceAsFile(testFile));
         testInstance = new Heritrix3Profile(xml);
     }
 
