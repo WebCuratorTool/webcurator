@@ -45,7 +45,7 @@ public class GroupAnnotationHandlerTest extends BaseWCTTest<GroupAnnotationHandl
 	public GroupAnnotationHandlerTest()
 	{
 		super(GroupAnnotationHandler.class,
-				"src/test/java/org/webcurator/ui/groups/controller/GroupAnnotationHandlerTest.xml");
+                "/org/webcurator/ui/groups/controller/GroupAnnotationHandlerTest.xml");
 	}
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.UK);

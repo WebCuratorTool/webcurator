@@ -13,6 +13,8 @@ import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.scheduler.*;
 import org.webcurator.domain.model.core.*;
 
+import java.util.List;
+
 public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 	private TargetInstanceManager tim = null;
@@ -21,7 +23,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 	public LogReaderControllerTest()
 	{
 		super(LogReaderController.class,
-				"src/test/java/org/webcurator/ui/target/controller/LogReaderControllerTest.xml");
+                "/org/webcurator/ui/target/controller/LogReaderControllerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -31,17 +33,17 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		hc = new MockHarvestCoordinator();
 	}
 
-	private int countReturnedLines(String[] result)
+	private int countReturnedLines(List<String> result)
 	{
 		assertNotNull(result);
-		assertTrue(result.length == 2);
-		if(result[0].equals(""))
+		assertTrue(result.size() == 2);
+		if(result.get(0).equals(""))
 		{
 			return 0;
 		}
 		else
 		{
-			String[] lines = result[0].split("\n");
+			String[] lines = result.get(0).split("\n");
 			return lines.length;
 		}
 	}
@@ -65,16 +67,17 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+			List<String> result = (List<String>)mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 700);
-			assertEquals(result[0].substring(0,3), "1. ");
+			assertEquals(result.get(0).substring(0,3), "1. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
 		catch(Exception e)
 		{
 			fail(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -97,16 +100,17 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 700);
-			assertEquals(result[0].substring(0,6), "4602. ");
+			assertEquals(result.get(0).substring(0,6), "4602. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
 		catch(Exception e)
 		{
 			fail(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -130,10 +134,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 302);
-			assertEquals(result[0].substring(0,6), "5000. ");
+			assertEquals(result.get(0).substring(0,6), "5000. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -163,16 +167,17 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 4);
-			assertEquals(result[0].substring(0,6), "5298. ");
+			assertEquals(result.get(0).substring(0,6), "5298. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
 		catch(Exception e)
 		{
 			fail(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
@@ -196,10 +201,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 700);
-			assertEquals(result[0].substring(0,3), "1. ");
+			assertEquals(result.get(0).substring(0,3), "1. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -229,10 +234,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 4);
-			assertEquals(result[0].substring(0,6), "5298. ");
+			assertEquals(result.get(0).substring(0,6), "5298. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -262,10 +267,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 700);
-			assertEquals(result[0].substring(0,3), "1. ");
+			assertEquals(result.get(0).substring(0,3), "1. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -295,10 +300,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 4);
-			assertEquals(result[0].substring(0,6), "5298. ");
+			assertEquals(result.get(0).substring(0,6), "5298. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -327,8 +332,8 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 0);
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertNotNull((String)mav.getModel().get(Constants.MESSAGE_TEXT));
@@ -361,10 +366,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 1);
-			assertFalse("1. ".equals(result[0].substring(0,3)));
+			assertFalse("1. ".equals(result.get(0).substring(0,3)));
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -394,10 +399,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 1);
-			assertEquals(result[0].substring(0,6), "5280. ");
+			assertEquals(result.get(0).substring(0,6), "5280. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -427,10 +432,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 22);
-			assertEquals(result[0].substring(0,6), "5280. ");
+			assertEquals(result.get(0).substring(0,6), "5280. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}
@@ -460,10 +465,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
-			assertNotNull((String[])mav.getModel().get(LogReaderCommand.MDL_LINES));
-			String[] result = (String[])mav.getModel().get(LogReaderCommand.MDL_LINES);
+			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
+            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 24);
-			assertEquals(result[0].substring(0,4), "21. ");
+			assertEquals(result.get(0).substring(0,4), "21. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertFalse(bindingResult.hasErrors());
 		}

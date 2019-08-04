@@ -19,7 +19,6 @@ import org.webcurator.ui.target.validator.*;
 import org.webcurator.ui.util.*;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.targets.*;
-import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
 
@@ -30,7 +29,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 	public AddParentsControllerTest()
 	{
 		super(AddParentsController.class,
-				"src/test/java/org/webcurator/ui/target/controller/AddParentsControllerTest.xml");
+                "/org/webcurator/ui/target/controller/AddParentsControllerTest.xml");
 	}
 
 	public void setUp() throws Exception

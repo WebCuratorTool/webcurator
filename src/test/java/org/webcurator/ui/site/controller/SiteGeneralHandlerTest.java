@@ -41,7 +41,7 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 	public SiteGeneralHandlerTest()
 	{
 		super(SiteGeneralHandler.class,
-				"src/test/java/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
+                "/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
 	}
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.UK);

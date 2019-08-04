@@ -42,7 +42,7 @@ public class TargetSeedsHandlerTest extends BaseWCTTest<TargetSeedsHandler> {
 	public TargetSeedsHandlerTest()
 	{
 		super(TargetSeedsHandler.class,
-		"src/test/java/org/webcurator/ui/target/controller/TargetSeedsHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetSeedsHandlerTest.xml");
 	}
 
 	private List<Tab> getTabList(TargetManager targetManager)

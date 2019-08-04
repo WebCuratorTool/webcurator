@@ -27,7 +27,7 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
 	public ProfileListControllerTest()
 	{
 		super(ProfileListController.class,
-				"src/test/java/org/webcurator/ui/profiles/controller/ProfileListControllerTest.xml");
+                "/org/webcurator/ui/profiles/controller/ProfileListControllerTest.xml");
 	}
 
 	private void performTestGetView(int scope, String privilege, boolean showInactive)
@@ -137,9 +137,6 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
 
         try
         {
-            HttpServletRequest req = new MockHttpServletRequest();
-            HttpServletResponse res = new MockHttpServletResponse();
-
             ProfileListCommand comm = new ProfileListCommand();
             comm.setShowInactive(showInactive);
 
@@ -174,10 +171,11 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
                     assertTrue(showInactive?profiles.size() == 5: profiles.size() == 3);
                     break;
             }
-            assertTrue(((Boolean)req.getSession().getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE)).equals(showInactive));
+            assertTrue((session.getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE)).equals(showInactive));
         }
         catch(Exception e)
         {
+            e.printStackTrace();
             fail(e.getClass().getName()+": "+e.getMessage());
         }
     }

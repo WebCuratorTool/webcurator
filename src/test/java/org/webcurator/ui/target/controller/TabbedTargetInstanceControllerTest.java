@@ -37,7 +37,7 @@ import org.webcurator.ui.util.TabConfig;
 public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTargetInstanceController> {
 	public TabbedTargetInstanceControllerTest()
 	{
-		super(TabbedTargetInstanceController.class, "src/test/java/org/webcurator/ui/target/controller/TabbedTargetInstanceControllerTest.xml");
+		super(TabbedTargetInstanceController.class, "/org/webcurator/ui/target/controller/TabbedTargetInstanceControllerTest.xml");
 	}
 	TargetInstanceManager manager;
 	AuthorityManagerImpl authorityManager;

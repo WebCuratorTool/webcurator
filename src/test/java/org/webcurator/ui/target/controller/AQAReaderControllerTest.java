@@ -25,7 +25,7 @@ public class AQAReaderControllerTest extends BaseWCTTest<AQAReaderController>{
 	public AQAReaderControllerTest()
 	{
 		super(AQAReaderController.class,
-				"src/test/java/org/webcurator/ui/target/controller/LogReaderControllerTest.xml");
+                "/org/webcurator/ui/target/controller/LogReaderControllerTest.xml");
 	}
 
 	public void setUp() throws Exception

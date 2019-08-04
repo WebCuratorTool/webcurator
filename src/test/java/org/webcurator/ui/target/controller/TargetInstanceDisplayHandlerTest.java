@@ -31,7 +31,7 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 	public TargetInstanceDisplayHandlerTest()
 	{
 		super(TargetInstanceDisplayHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetInstanceDisplayHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetInstanceDisplayHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception

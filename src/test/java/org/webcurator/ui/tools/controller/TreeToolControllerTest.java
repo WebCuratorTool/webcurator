@@ -2,11 +2,8 @@ package org.webcurator.ui.tools.controller;
 
 import static org.junit.Assert.*;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -36,7 +33,7 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 	public TreeToolControllerTest() {
 		super(
 				TreeToolController.class,
-				"src/test/java/org/webcurator/ui/tools/controller/TreeToolControllerTest.xml");
+                "/org/webcurator/ui/tools/controller/TreeToolControllerTest.xml");
 
 	}
 

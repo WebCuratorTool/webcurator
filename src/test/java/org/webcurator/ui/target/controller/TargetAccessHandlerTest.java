@@ -28,7 +28,7 @@ public class TargetAccessHandlerTest extends BaseWCTTest<TargetAccessHandler> {
 	public TargetAccessHandlerTest()
 	{
 		super(TargetAccessHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetAccessHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetAccessHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception

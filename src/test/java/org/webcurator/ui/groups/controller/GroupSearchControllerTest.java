@@ -6,7 +6,6 @@ import java.util.*;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
-import org.springframework.validation.BindException;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
@@ -28,7 +27,7 @@ public class GroupSearchControllerTest extends BaseWCTTest<GroupSearchController
 	public GroupSearchControllerTest()
 	{
 		super(GroupSearchController.class,
-				"src/test/java/org/webcurator/ui/groups/controller/GroupSearchControllerTest.xml");
+                "/org/webcurator/ui/groups/controller/GroupSearchControllerTest.xml");
 	}
 
 	@Test

@@ -20,7 +20,7 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
 	public TemplateControllerTest()
 	{
-		super(TemplateController.class, "src/test/java/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
+		super(TemplateController.class, "/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
 
 	}
 
@@ -56,14 +56,14 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 	private void setUpController() {
 
 		AgencyUserManagerImpl aum = new AgencyUserManagerImpl();
-		MockUserRoleDAO murDao = new MockUserRoleDAO("src/test/java/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
+		MockUserRoleDAO murDao = new MockUserRoleDAO("/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
 		aum.setUserRoleDAO(murDao);
 		aum.setAuthorityManager(new AuthorityManagerImpl());
 		testInstance.setAgencyUserManager(aum);
 
 		testInstance.setMessageSource(new MockMessageSource());
 
-		MockPermissionTemplateDAO ptDAO = new MockPermissionTemplateDAO("src/test/java/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
+		MockPermissionTemplateDAO ptDAO = new MockPermissionTemplateDAO("/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
 		PermissionTemplateManagerImpl ptm = new PermissionTemplateManagerImpl();
 		ptm.setPermissionTemplateDAO(ptDAO);
 		ptm.setAuthorityManager(new AuthorityManagerImpl());

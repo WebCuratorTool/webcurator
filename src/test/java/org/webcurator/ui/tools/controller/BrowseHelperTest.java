@@ -13,6 +13,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.webcurator.test.BaseWCTTest;
+import org.webcurator.test.WCTTestUtils;
 
 //XML file imports
 import java.io.*;
@@ -35,7 +36,7 @@ public class BrowseHelperTest extends BaseWCTTest<BrowseHelper> {
 
 	public BrowseHelperTest()
 	{
-		super(BrowseHelper.class, "src/test/java/org/webcurator/ui/tools/controller/BrowseHelperTest.xml");
+		super(BrowseHelper.class, "/org/webcurator/ui/tools/controller/BrowseHelperTest.xml");
 
 	}
 
@@ -202,7 +203,7 @@ public class BrowseHelperTest extends BaseWCTTest<BrowseHelper> {
 			controller.setFixTokens(fixes);
 
 			DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-	        theFile = docBuilder.parse (new File(testFile));
+	        theFile = docBuilder.parse (WCTTestUtils.getResourceAsFile(testFile));
 
 	    	NodeList pageTestNodes = theFile.getElementsByTagName("pagetest");
 
@@ -294,7 +295,7 @@ public class BrowseHelperTest extends BaseWCTTest<BrowseHelper> {
 
 		try
 		{
-			fileReader = new FileReader(filePath); // throws FileNotFoundException
+			fileReader = new FileReader(WCTTestUtils.getResourceAsFile(filePath)); // throws FileNotFoundException
 			bufferedReader = new BufferedReader(fileReader);
 
 			// Read through the entire file
@@ -345,7 +346,7 @@ public class BrowseHelperTest extends BaseWCTTest<BrowseHelper> {
 
 		try {
 
-			fileOutputStream = new FileOutputStream("src/test/java/org/webcurator/ui/tools/controller/patched.txt");
+			fileOutputStream = new FileOutputStream("/org/webcurator/ui/tools/controller/patched.txt");
 			fileOutputStream.write(data.toString().getBytes());
 		}
 		catch (Exception e) {

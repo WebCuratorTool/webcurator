@@ -19,7 +19,7 @@ public class AnnotationAjaxControllerTest extends BaseWCTTest<AnnotationAjaxCont
 	public AnnotationAjaxControllerTest()
 	{
 		super(AnnotationAjaxController.class,
-				"src/test/java/org/webcurator/ui/target/controller/QueueControllerTest.xml");
+                "/org/webcurator/ui/target/controller/QueueControllerTest.xml");
 	}
 
 

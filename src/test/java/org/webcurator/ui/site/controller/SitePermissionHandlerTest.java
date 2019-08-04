@@ -41,7 +41,7 @@ public class SitePermissionHandlerTest extends BaseWCTTest<SitePermissionHandler
 	public SitePermissionHandlerTest()
 	{
 		super(SitePermissionHandler.class,
-				"src/test/java/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
+                "/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
 	}
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.UK);

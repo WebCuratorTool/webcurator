@@ -43,7 +43,7 @@ public class TabbedGroupControllerTest extends
 	public TabbedGroupControllerTest() {
 		super(
 				TabbedGroupController.class,
-				"src/test/java/org/webcurator/ui/groups/controller/TabbedGroupControllerTest.xml");
+                "/org/webcurator/ui/groups/controller/TabbedGroupControllerTest.xml");
 	}
 
 	TargetManager manager;

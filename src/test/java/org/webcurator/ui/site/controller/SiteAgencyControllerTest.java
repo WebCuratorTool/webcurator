@@ -26,7 +26,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 	public SiteAgencyControllerTest()
 	{
 		super(SiteAgencyController.class,
-				"src/test/java/org/webcurator/ui/site/controller/SiteAgencyControllerTest.xml");
+                "/org/webcurator/ui/site/controller/SiteAgencyControllerTest.xml");
 	}
 
 	@Test

@@ -31,7 +31,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 	public TargetInstanceLogsHandlerTest()
 	{
 		super(TargetInstanceLogsHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetInstanceLogsHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetInstanceLogsHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -135,8 +135,8 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
         BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
-		assertNotNull((List<LogFilePropertiesDTO>)mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST));
-		List<LogFilePropertiesDTO> logFiles = (List<LogFilePropertiesDTO>)mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST);
+		assertNotNull(mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST));
+		List<LogFilePropertiesDTO> logFiles = (List<LogFilePropertiesDTO>) mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST);
 		assertEquals(3, logFiles.size());
 		Iterator<LogFilePropertiesDTO> it = logFiles.iterator();
 		while(it.hasNext())

@@ -36,7 +36,7 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 	public GeneratePermissionTemplateControllerTest()
 	{
 		super(GeneratePermissionTemplateController.class,
-				"src/test/java/org/webcurator/ui/site/controller/GeneratePermissionTemplateControllerTest.xml");
+                "/org/webcurator/ui/site/controller/GeneratePermissionTemplateControllerTest.xml");
 	}
 
 	@Test

@@ -80,7 +80,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	private BindingResult errors;
 
 	public QueueControllerTest() {
-		super(QueueController.class, "src/test/java/org/webcurator/ui/target/controller/QueueControllerTest.xml");
+		super(QueueController.class, "/org/webcurator/ui/target/controller/QueueControllerTest.xml");
 
 	}
 
@@ -786,6 +786,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		testInstance.setTargetInstanceManager(mockTiManager);
 		command.setCmd(TargetInstanceCommand.ACTION_MULTI_REJECT);
 		command.setMultiselect(Arrays.asList("5000", "234"));
+		command.setRejReasonId(1L);
 		testInstance.processFormSubmission(mockRequest, mockResponse, command, errors);
 		verify(mockTI1).setState(TargetInstance.STATE_REJECTED);
 		verify(mockTI2).setState(TargetInstance.STATE_REJECTED);

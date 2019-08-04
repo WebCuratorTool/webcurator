@@ -175,7 +175,7 @@ public class ProfileListController {
      */
     @GetMapping
     protected ModelAndView getView(ProfileListCommand command) {
-        ModelAndView mav = new ModelAndView("profiles-list");
+        ModelAndView mav = new ModelAndView("profile-list");
 
         List<Agency> agencies = new ArrayList<>();
         List<ProfileDTO> profiles = new ArrayList<>();

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.mvel2.sh.Command;
 import org.springframework.validation.BindingResult;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.profiles.MockProfileManager;
@@ -37,7 +36,7 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 
 	public TabbedTargetControllerTest()
 	{
-		super(TabbedTargetController.class, "src/test/java/org/webcurator/ui/target/controller/TabbedTargetControllerTest.xml");
+		super(TabbedTargetController.class, "/org/webcurator/ui/target/controller/TabbedTargetControllerTest.xml");
 	}
 	TargetManager manager;
 	AuthorityManagerImpl authorityManager;

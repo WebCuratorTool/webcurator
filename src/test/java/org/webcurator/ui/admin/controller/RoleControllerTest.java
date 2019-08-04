@@ -30,7 +30,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 	public RoleControllerTest()
 	{
 		super(RoleController.class,
-				"src/test/java/org/webcurator/ui/admin/controller/RoleControllerTest.xml");
+                "/org/webcurator/ui/admin/controller/RoleControllerTest.xml");
 	}
 
 	@Test

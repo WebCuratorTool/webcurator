@@ -21,7 +21,7 @@ public class AssociateUserRoleControllerTest extends BaseWCTTest<AssociateUserRo
 	public AssociateUserRoleControllerTest()
 	{
 		super(AssociateUserRoleController.class,
-				"src/test/java/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
+                "/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
 	}
 
 	@Test

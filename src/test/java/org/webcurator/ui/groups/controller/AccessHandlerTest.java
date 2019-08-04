@@ -29,7 +29,7 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 	public AccessHandlerTest()
 	{
 		super(AccessHandler.class,
-				"src/test/java/org/webcurator/ui/groups/controller/AccessHandlerTest.xml");
+                "/org/webcurator/ui/groups/controller/AccessHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
