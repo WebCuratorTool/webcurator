@@ -5,18 +5,15 @@ import nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositFormMapping;
 import org.archive.io.CDXIndexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ListFactoryBean;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
@@ -271,7 +268,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
         ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(new RestTemplateBuilder());
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
@@ -418,7 +414,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public LogReaderImpl logReader() {
         LogReaderImpl bean = new LogReaderImpl();
         bean.setLogProvider(arcDigitalAssetStoreService());
@@ -429,7 +424,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public FileArchive fileArchive() {
         FileArchive bean = new FileArchive();
         bean.setArchiveRepository(fileArchiveArchiveRepository);
@@ -443,7 +437,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public OMSArchive omsArchive() {
         OMSArchive bean = new OMSArchive();
         bean.setArchiveLogReportFiles(omsArchiveArchiveLogReportFiles);
@@ -468,7 +461,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public DPSArchive dpsArchive() {
         DPSArchive bean = new DPSArchive();
         bean.setPdsUrl(dpsArchivePdsUrl);
@@ -531,7 +523,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public CustomDepositFormMapping customDepositFormFieldMappings() {
         CustomDepositFormMapping bean = new CustomDepositFormMapping();
         Map<String, List<CustomDepositField>> customDepositFormFieldMaps = new HashMap<>();
