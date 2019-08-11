@@ -3,7 +3,7 @@
 	<groupId>org.webcurator</groupId>
 	<artifactId>webcurator-store</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>Web Curator Tool Digital Asset Store</name>
 
     <parent>
