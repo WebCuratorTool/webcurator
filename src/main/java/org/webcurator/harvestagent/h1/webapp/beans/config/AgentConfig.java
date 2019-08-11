@@ -8,16 +8,15 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.webcurator.core.check.*;
@@ -40,6 +39,7 @@ import java.util.List;
  * XML files.
  */
 @Configuration
+@PropertySource(value = "classpath:wct-agent.properties")
 public class AgentConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(AgentConfig.class);
 
@@ -159,19 +159,6 @@ public class AgentConfig {
     @Value("${checkProcessorTrigger.repeatInterval}")
     private long checkProcessorTriggerRepeatInterval;
 
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    @Bean
-    public static PropertyPlaceholderConfigurer wctDASConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-agent.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        bean.setOrder(150);
-
-        return bean;
-    }
-
     @PostConstruct
     public void postConstruct() {
         // Avoid circular bean dependencies
@@ -182,7 +169,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestAgentHeritrix harvestAgent() {
         HarvestAgentHeritrix bean = new HarvestAgentHeritrix();
         bean.setBaseHarvestDirectory(harvestAgentBaseHarvestDirectory);
@@ -204,7 +190,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
         HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier();
         bean.setHost(harvestCoordinatorNotifierHost);
@@ -217,7 +202,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public DigitalAssetStore digitalAssetStore() {
         DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort,
                 new RestTemplateBuilder());
@@ -240,6 +224,7 @@ public class AgentConfig {
     }
 
     @Bean
+    @DependsOn("heartbeatJob")
     public Trigger heartbeatTrigger() {
         Date startTime = new Date(System.currentTimeMillis() + heartbeatTriggerStartDelay);
         Trigger bean = TriggerBuilder.newTrigger()
@@ -256,7 +241,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public SchedulerFactoryBean schedulerFactory() {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
         bean.setTriggers(heartbeatTrigger(), checkProcessorTrigger());
@@ -286,7 +270,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public MemoryChecker memoryChecker() {
         MemoryChecker bean = new MemoryChecker();
         bean.setWarnThreshold(memoryCheckerWarnThreshold);
@@ -307,7 +290,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestAgentMemoryChecker harvestAgentMemoryChecker() {
         HarvestAgentMemoryChecker bean = new HarvestAgentMemoryChecker();
         bean.setWarnThreshold(memoryCheckerWarnThreshold);
@@ -323,7 +305,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public ProcessorCheck processorCheck() {
         ProcessorCheck bean = new ProcessorCheck();
 
@@ -344,7 +325,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public DiskSpaceChecker diskSpaceChecker() {
         // List of disk mounts to check.
         ArrayList<String> diskMountsToCheck = new ArrayList<>();
@@ -363,7 +343,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public CheckProcessor checkProcessor() {
         CheckProcessor bean = new CheckProcessor();
 
