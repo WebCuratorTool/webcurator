@@ -6,12 +6,19 @@
 	<packaging>war</packaging>
 	<name>Web Curator Tool Digital Asset Store</name>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.6.RELEASE</version>
+    </parent>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
     </properties>
 
-	<build>
+    <build>
 		<finalName>${project.artifactId}-${project.version}</finalName>
 		<resources>
 			<resource>
@@ -30,47 +37,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.0-alpha-1</version>
-				<executions>
-					<execution>
-						<phase>initialize</phase>
-						<goals>
-							<goal>read-project-properties</goal>
-						</goals>
-						<configuration>
-							<files>
-								<file>${basedir}/build/local_config.properties</file>
-							</files>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.6</version>
-				<executions>
-					<execution>
-						<id>jetty-filtered-resources</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/filtered</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.basedir}/src/main/webapp-filter</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.3</version>
@@ -83,46 +49,8 @@
 								<include>license.txt</include>
 							</includes>
 						</resource>
-						<resource>
-							<directory>${basedir}/src/main/webapp-filter</directory>
-							<includes>
-								<include>**/*</include>
-							</includes>
-							<filtering>true</filtering>
-						</resource>
 					</webResources>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>9.4.15.v20190215</version>
-				<configuration>
-					<stopKey>${das.stopKey}</stopKey>
-					<stopPort>${das.stopPort}</stopPort>
-					<webApp>
-						<contextPath>/wct-store</contextPath>
-						<resourceBases>
-							<resourceBase>${project.build.directory}/filtered</resourceBase>
-							<resourceBase>src/main/webapp</resourceBase>
-						</resourceBases>
-					</webApp>
-					<!--See https://www.eclipse.org/jetty/documentation/9.4.x/configuring-connectors.html
-						Prior to Jetty 9, the type of the connector specified both the protocol and the implementation
-						used. Jetty 9 has a single selector-based non-blocking I/O connector, and a collection of
-						ConnectionFactories now configure the protocol on the connector. -->
-					<httpConnector>
-						<port>${das.port}</port>
-						<idleTimeout>60000</idleTimeout>
-					</httpConnector>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>commons-dbcp</groupId>
-						<artifactId>commons-dbcp</artifactId>
-						<version>1.4</version>
-					</dependency>
-				</dependencies>
 			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -136,6 +64,13 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.webcurator.core.store.springboot.WebcuratorStoreApplication</mainClass>
+                </configuration>
             </plugin>
 		</plugins>
 
@@ -192,17 +127,18 @@
 			<artifactId>webarchive-commons</artifactId>
 			<version>1.1.8</version>
 			<scope>compile</scope>
+            <exclusions>
+                <!-- Use spring logging -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
 			<version>3.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.2</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -224,12 +160,6 @@
 			<artifactId>mg4j</artifactId>
 			<version>2.0.1</version>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.4</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>smalltext-0.1.4</groupId>
@@ -273,6 +203,20 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <scope>provided</scope>
+        </dependency>
 	</dependencies>
 
 </project>

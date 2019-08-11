@@ -14,6 +14,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.webcurator.core.archive.Archive;
@@ -36,6 +37,7 @@ import java.util.*;
  * XML files.
  */
 @Configuration
+@PropertySource(value = "classpath:wct-das.properties")
 public class DasConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(DasConfig.class);
 
@@ -146,7 +148,7 @@ public class DasConfig {
     @Value("${omsArchive.agencyResponsible}")
     private String omsArchiveAgencyResponsible;
 
-    @Value("${omsArchiveInstanceRole}")
+    @Value("${omsArchive.instanceRole}")
     private String omsArchiveInstanceRole;
 
     @Value("${omsArchive.instanceCaptureSystem}")
@@ -206,7 +208,7 @@ public class DasConfig {
     @Value("${dpsArchive.htmlSerials.agencyNames}")
     private String dpsArchiveHtmlSerialsAgencyNames;
 
-    @Value("${dpsArchiveHtmlSerialsTargetDCTypes}")
+    @Value("${dpsArchive.htmlSerials.targetDCTypes}")
     private String dpsArchiveHtmlSerialsTargetDCTypes;
 
     @Value("${dpsArchive.htmlSerials.materialFlowIds}")
@@ -256,19 +258,6 @@ public class DasConfig {
 
     @Value("${dpsArchive.htmlSerials.restrictAgencyType}")
     private String dpsArchiveHtmlSerialsRestrictAgencyType;
-
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    @Bean
-    public static PropertyPlaceholderConfigurer wctDASConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-das.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        bean.setOrder(150);
-
-        return bean;
-    }
 
     @Bean
     public WebServiceEndPoint wctCoreWsEndpoint() {
