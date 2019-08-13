@@ -264,10 +264,15 @@
                 </exclusion>
             </exclusions>
         </dependency>
-		<dependency>
+        <dependency>
+            <groupId>org.netpreserve.openwayback</groupId>
+            <artifactId>openwayback-core</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+        <dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 			<exclusions>
 				<!-- Use the classes found in jcl-over-slf4j -->
@@ -282,37 +287,6 @@
 			<artifactId>taglibs-standard-impl</artifactId>
 			<version>1.2.5</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>struts</groupId>
-			<artifactId>struts</artifactId>
-			<version>1.2.8</version>
-			<scope>compile</scope>
-			<exclusions>
-				<!-- Use a different commons-beanutils dependency -->
-				<exclusion>
-					<groupId>commons-beanutils</groupId>
-					<artifactId>commons-beanutils</artifactId>
-				</exclusion>
-				<!-- Use the classes found in jcl-over-slf4j -->
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<!-- Replaces the version pulled in with struts (1.7.0), which also includes some commons-collections classes -->
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.9.3</version>
-			<exclusions>
-				<!-- Use the classes found in jcl-over-slf4j -->
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<!-- Migration of Tiles 2 to Tiles 3 -->
 		<dependency>
@@ -330,15 +304,11 @@
                 </exclusion>
             </exclusions>
 		</dependency>
-<!--		<dependency>-->
-<!--			&lt;!&ndash; Note that this includes org.apache.taglibs.standard, which is also in-->
-<!--				 org.apache.taglibs:taglibs-standard-impl. Jetty will complain about the duplication of classes, but-->
-<!--				 the Jetty implementation provides taglibs-standard-impl as part of its deployment, so there's no way-->
-<!--				 to easily resolve the duplication. &ndash;&gt;-->
-<!--			<groupId>javax.servlet</groupId>-->
-<!--			<artifactId>jstl</artifactId>-->
-<!--			<version>1.2</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+		</dependency>
 		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>

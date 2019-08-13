@@ -36,7 +36,7 @@
     <!-- These levels will be overridden by logging.level... properties found in application.properties and
          application-<run-configuration>.properties -->
     <root level="ERROR">
-        <appender-ref ref="Console" />
+        <appender-ref ref="GeneralLog" />
     </root>
 
     <logger name="org.webcurator" level="INFO" additivity="false">
@@ -52,10 +52,6 @@
     </logger>
 
     <logger name="org.acegisecurity" level="WARN" additivity="false">
-        <appender-ref ref="GeneralLog" />
-    </logger>
-
-    <logger name="org.archive.crawler" level="WARN" additivity="false">
         <appender-ref ref="GeneralLog" />
     </logger>
 
