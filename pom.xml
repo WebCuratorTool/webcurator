@@ -167,8 +167,27 @@
 					<groupId>org.archive</groupId>
 					<artifactId>heritrix</artifactId>
 				</exclusion>
+                <!-- Exclude hibernate as store does not need hibernate at all -->
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-ehcache</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-c3p0</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>2.10.6</version>
+            <scope>compile</scope>
+        </dependency>
 		<dependency>
 			<groupId>wsdl4j</groupId>
 			<artifactId>wsdl4j</artifactId>
