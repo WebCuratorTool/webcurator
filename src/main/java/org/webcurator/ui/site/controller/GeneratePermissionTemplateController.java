@@ -22,7 +22,12 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.admin.PermissionTemplateManager;
@@ -41,14 +46,21 @@ import org.webcurator.ui.site.command.GeneratePermissionTemplateCommand;
  * The Controller for generating a permission request template.
  * @author bprice
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class GeneratePermissionTemplateController {
 	/** The manager for accessing site information. */
-    private SiteManager siteManager = null;
+	@Autowired
+    private SiteManager siteManager;
     /** The manager for permission request templates. */
+    @Autowired
     private PermissionTemplateManager permissionTemplateManager;
     /** The mail server to use to send email messages. */
+    @Autowired
     private MailServer mailServer;
     /** the message source. */
+    @Autowired
     private MessageSource messageSource;
 
     /** Default Constructor. */

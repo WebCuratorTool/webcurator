@@ -19,6 +19,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.report.FileFactory;
 import org.webcurator.core.report.OperationalReport;
@@ -29,6 +33,9 @@ import org.webcurator.ui.report.command.ReportPreviewCommand;
  * @author MDubos
  *
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ReportPreviewController {
 
 	public static final String ACTION_PRINT = "Print";
@@ -36,14 +43,6 @@ public class ReportPreviewController {
 	public static final String ACTION_EMAIL = "E-mail";
 
 	private Log log = LogFactory.getLog(ReportPreviewController.class);
-
-	/**
-	 * Default constructor
-	 *
-	 */
-	public ReportPreviewController() {
-	}
-
 
 	protected ModelAndView showForm() throws Exception {
 

@@ -3,17 +3,13 @@ package org.webcurator.webapp.beans.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
-import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
-import org.springframework.web.servlet.view.UrlBasedViewResolver;
-import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
 import org.webcurator.ui.tools.controller.BrowseController;
 import org.webcurator.ui.tools.controller.BrowseHelper;
 import org.webcurator.ui.tools.controller.RegexReplacer;
@@ -27,6 +23,7 @@ import java.util.*;
  * XML files.
  */
 @Configuration
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class BrowseServletConfig {
 
     @Value("${browseHelper.prefix}")
@@ -38,24 +35,10 @@ public class BrowseServletConfig {
     @Autowired
     private BaseConfig baseConfig;
 
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    // TODO I don't understand how this bean can have the same name as the bean in BaseConfig...
-    @Bean
-    public static PropertyPlaceholderConfigurer wctCoreConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-core.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        bean.setOrder(150);
-
-        return bean;
-    }
-
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
+    public OpenSessionInViewInterceptor openSessionInViewInterceptorBrowse() {
         OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
         bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
@@ -65,48 +48,13 @@ public class BrowseServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public SimpleUrlHandlerMapping simpleUrlMapping() {
+    public SimpleUrlHandlerMapping simpleUrlMappingBrowse() {
         SimpleUrlHandlerMapping bean = new SimpleUrlHandlerMapping();
-        bean.setInterceptors(new Object[]{ openSessionInViewInterceptor() });
+        bean.setInterceptors(new Object[]{ openSessionInViewInterceptorBrowse() });
 
         Properties properties = new Properties();
         properties.setProperty("**", "browseController");
         bean.setMappings(properties);
-
-        return bean;
-    }
-
-    @Bean
-    public UrlBasedViewResolver tilesViewResolver() {
-        UrlBasedViewResolver bean = new UrlBasedViewResolver();
-        bean.setRequestContextAttribute("requestContext");
-        bean.setViewClass(TilesConfigurer.class);
-
-        return bean;
-    }
-
-    // Helper class to configure Tiles 2.x for the Spring Framework
-    // See http://static.springsource.org/spring/docs/3.0.x/javadoc-api/org/springframework/web/servlet/view/tiles2/TilesConfigurer.html
-    // The actual tiles templates are in the tiles-definitions.xml
-    @Bean
-    public TilesConfigurer tilesConfigurer() {
-        TilesConfigurer bean = new TilesConfigurer();
-        bean.setDefinitions("/WEB-INF/tiles-defs.xml");
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public SimpleMappingExceptionResolver exceptionResolver() {
-        SimpleMappingExceptionResolver bean = new SimpleMappingExceptionResolver();
-        bean.setDefaultErrorView("browse-tool-error");
-        Properties properties = new Properties();
-        properties.setProperty("org.springframework.orm.hibernate5.HibernateObjectRetrievalFailureException",
-                "NoObjectFound");
-
-        bean.setExceptionMappings(properties);
 
         return bean;
     }

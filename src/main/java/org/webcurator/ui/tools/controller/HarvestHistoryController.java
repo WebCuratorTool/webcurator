@@ -19,6 +19,11 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -30,8 +35,11 @@ import org.webcurator.ui.tools.command.HarvestHistoryCommand;
  * Controller for the HarvestHistory QR tool.
  * @author beaumontb
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class HarvestHistoryController {
-
+    @Autowired
 	private TargetInstanceManager targetInstanceManager;
 
 

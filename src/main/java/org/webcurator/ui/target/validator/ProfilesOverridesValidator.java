@@ -19,24 +19,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.core.harvester.agent.HarvestAgent;
-import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.domain.model.core.AbstractTarget;
-import org.webcurator.domain.model.core.Profile;
-import org.webcurator.domain.model.core.Target;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.common.validation.ValidatorUtil;
-import org.webcurator.ui.profiles.command.ImportedHeritrix3ProfileCommand;
 import org.webcurator.ui.target.command.ProfileCommand;
-import org.webcurator.ui.target.command.TargetAnnotationCommand;
 import org.webcurator.ui.util.HarvestAgentUtil;
 
 /**
- * Validate the profile ovverides tab.
+ * Validate the profile overrides tab.
  * @author nwaight
  */
+@Component
 public class ProfilesOverridesValidator extends AbstractBaseValidator implements ApplicationContextAware {
 	private Log log = LogFactory.getLog(ProfilesOverridesValidator.class);
 

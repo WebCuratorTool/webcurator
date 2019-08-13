@@ -15,6 +15,10 @@
  */
 package org.webcurator.ui.admin.validator;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.admin.command.CreateQaIndicatorCommand;
@@ -25,6 +29,9 @@ import org.webcurator.ui.common.validation.ValidatorUtil;
  * Validates the Rejection Reason Creation action, and checks all the fields used in creating a rejection reason
  * @author oakleigh_sk
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class CreateQaIndicatorValidator extends AbstractBaseValidator {
 	/** @see org.springframework.validation.Validator#supports(Class).*/
     public boolean supports(Class aClass) {

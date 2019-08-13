@@ -20,6 +20,7 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.BindingResult;
@@ -43,15 +44,18 @@ public class TabbedGroupController extends TabbedController {
 	/** The constant name of the group editor context. */
 	public static final String EDITOR_CONTEXT = "groupEditorContext";
 	/** the target groups business object factory. */
-	private BusinessObjectFactory businessObjectFactory = null;
+	@Autowired
+	private BusinessObjectFactory businessObjectFactory;
 	/** the group search controller. */
 	private GroupSearchController searchController = null;
 	/** the message source. */
-	private MessageSource messageSource = null;
+	@Autowired
+	private MessageSource messageSource;
 	/** the target manager. */
-	private TargetManager targetManager = null;
-
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private TargetManager targetManager;
+    @Autowired
+	private AuthorityManager authorityManager;
 
 	@Override
 	protected void switchToEditMode(HttpServletRequest req) {

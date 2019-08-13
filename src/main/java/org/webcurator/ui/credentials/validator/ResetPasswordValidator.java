@@ -15,6 +15,10 @@
  */
 package org.webcurator.ui.credentials.validator;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
@@ -25,6 +29,9 @@ import org.webcurator.ui.credentials.command.ResetPasswordCommand;
  * Validation for reseting a users password.
  * @author bprice
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ResetPasswordValidator extends AbstractBaseValidator {
 	/** @see org.springframework.validation.Validator#supports(java.lang.Class) */
     public boolean supports(Class aClass) {

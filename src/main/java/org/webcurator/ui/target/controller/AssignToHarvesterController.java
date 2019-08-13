@@ -18,6 +18,10 @@ package org.webcurator.ui.target.controller;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,12 +35,16 @@ import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 @Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 @RequestMapping("/curator/target/ti-harvest-now.html")
 public class AssignToHarvesterController {
 
 	/** The target instance manager */
+	@Autowired
 	private TargetInstanceManager targetInstanceManager;
 	/* The Harvest Coordinator */
+    @Autowired
 	private HarvestCoordinator harvestCoordinator;
 
 	/**

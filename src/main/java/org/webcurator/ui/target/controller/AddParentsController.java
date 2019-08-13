@@ -23,6 +23,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -48,13 +51,19 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * @author bbeaumont
  */
 @Controller
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class AddParentsController {
 	/** the manager for Target and Group data. */
-	private TargetManager targetManager = null;
+	@Autowired
+	private TargetManager targetManager;
 	/** the parent controller for this handler. */
-	private TabbedTargetController targetController = null;
+	@Autowired
+    @Qualifier("tabbedTargetController")
+	private TabbedTargetController targetController;
 	/** the manager for checking privleges. */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
+    @Value("${groupTypes.subgroupSeparator}")
 	private String subGroupSeparator;
 
 	@Autowired

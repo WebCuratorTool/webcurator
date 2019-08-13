@@ -20,6 +20,9 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -39,13 +42,18 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * This controller manages the process of adding members to a Target Group.
  * @author bbeaumont
  */
+@Controller
 public class AddMembersController {
 	/** the manager for Target and Group data. */
-	private TargetManager targetManager = null;
+	@Autowired
+	private TargetManager targetManager;
 	/** the parent controller for this handler. */
-	private TabbedGroupController groupsController = null;
+	@Autowired
+    @Qualifier("groupsController")
+	private TabbedGroupController groupsController;
 	/** the manager for checking privleges. */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 
 	public class MemberSelection
 	{

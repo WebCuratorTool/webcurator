@@ -23,7 +23,12 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -50,13 +55,18 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * harvest authorisations permissions.
  * @author nwaight
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class SitePermissionController {
 
 	/** The SiteController that this is part of */
+	@Autowired
 	private SiteController siteController;
 
 	/** BusinessObjectFactory */
-	private BusinessObjectFactory businessObjectFactory = null;
+	@Autowired
+	private BusinessObjectFactory businessObjectFactory;
 
 	/** The list of access statuses */
 	private List<String> accessStatusList;

@@ -19,8 +19,11 @@ import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.AuthUtil;
@@ -36,16 +39,13 @@ import org.webcurator.ui.profiles.command.ViewCommand;
  * @author bbeaumont
  *
  */
+@Controller
+@RequestMapping("/curator/profiles/delete.html")
 public class DeleteProfileController extends ProfileListController {
 
 	/** The Message Source for retrieving messages */
-	private MessageSource messageSource = null;
-
-	/**
-	 * Standard constructor.
-	 */
-	public DeleteProfileController() {
-	}
+	@Autowired
+	private MessageSource messageSource;
 
 	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
 		ViewCommand command = (ViewCommand) comm;

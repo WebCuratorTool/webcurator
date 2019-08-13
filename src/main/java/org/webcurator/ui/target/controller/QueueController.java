@@ -33,8 +33,16 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -72,38 +80,47 @@ import org.webcurator.common.util.DateUtils;
  *
  * @author nwaight
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class QueueController {
 
 	private final List<String> PAGINATION_ACTIONS = Arrays.asList(TargetInstanceCommand.ACTION_NEXT,
 			TargetInstanceCommand.ACTION_PREV, TargetInstanceCommand.ACTION_SHOW_PAGE);
 
 	/** The manager to use to access the target instance. */
+	@Autowired
 	private TargetInstanceManager targetInstanceManager;
 	/** The harvest coordinator for looking at the harvesters. */
+	@Autowired
 	private HarvestCoordinator harvestCoordinator;
 	/** the WCT global environment settings. */
+	@Autowired
+    @Qualifier("environmentWCT")
 	private Environment environment;
 	/** The manager to use for user, role and agency data. */
+	@Autowired
 	private AgencyUserManager agencyUserManager;
+    @Value("${queueController.thumbnailRenderer}")
 	private String thumbnailRenderer = "browseTool";
+	@Autowired
 	private HarvestResourceUrlMapper harvestResourceUrlMapper;
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 	private MessageSource messageSource = null;
 
 	/** enables the new Target Instance and Harvest Summary pages **/
+    @Value("${queueController.enableQaModule}")
 	private boolean enableQaModule = false;
 
 	/** the configured width of the harvest preview thumb-nail **/
+    @Value("${queueController.thumbnailWidth}")
 	private String thumbnailWidth = "150px;";
 
 	/** the configured height of the harvest preview thumb-nail **/
+    @Value("${queueController.thumbnailHeight}")
 	private String thumbnailHeight = "100px;";
-
-	/** Default constructor. */
-	public QueueController() {
-		super();
-	}
 
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));

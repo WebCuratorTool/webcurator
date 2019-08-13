@@ -18,6 +18,8 @@ package org.webcurator.ui.site.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.sites.SiteManager;
@@ -33,11 +35,12 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * The controller for managing searching for authorising agents.
  * @author bbeaumont
  */
+@Controller
 public class SiteAgencySearchController {
-
-	private SiteManager siteManager = null;
-
-	private SiteController siteController = null;
+    @Autowired
+	private SiteManager siteManager;
+    @Autowired
+	private SiteController siteController;
 
 	public SiteAgencySearchController() {
 	}

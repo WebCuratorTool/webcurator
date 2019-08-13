@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.profiles.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -37,9 +38,11 @@ import org.webcurator.ui.profiles.command.ViewCommand;
 @RequestMapping(path = "/curator/profiles/view")
 public class ProfileViewController {
 	/** The profile manager to load the profile */
-	private ProfileManager profileManager = null;
+	@Autowired
+	private ProfileManager profileManager;
 	/** The authority manager for checking permissions */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 
 	/**
 	 * Construct a new ProfileViewController.

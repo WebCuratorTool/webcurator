@@ -21,6 +21,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
@@ -39,18 +43,16 @@ import org.webcurator.common.ui.command.ReportCommand;
  * @author MDubos
  *
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ReportController {
 
 	private Log log = LogFactory.getLog(ReportController.class);
 
-	private ReportManager reportMngr;
-
-    /**
-     * Default constructor
-     *
-     */
-    public ReportController() {
-    }
+    // TODO CONFIGURATION There doesn't seem to be a reportMngr bean anywhere...
+    // in the XML it's shown as 'ref bean="reportMngr"', but that doesn't exist anywhere.
+    private ReportManager reportMngr;
 
 	protected ModelAndView showForm(HttpServletRequest req) throws Exception {
 

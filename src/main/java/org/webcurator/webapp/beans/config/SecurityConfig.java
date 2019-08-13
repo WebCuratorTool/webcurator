@@ -46,6 +46,7 @@ import java.util.List;
  */
 @Configuration
 @ImportResource({ "classpath*:security-config-filter-chain.xml" })
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class SecurityConfig {
     static final String USERS_BY_USERNAME_QUERY = "select usr_username, usr_password, usr_active, usr_force_pwd_change from ${hibernate.default_schema}.WCTUSER WHERE usr_username = ?";
 

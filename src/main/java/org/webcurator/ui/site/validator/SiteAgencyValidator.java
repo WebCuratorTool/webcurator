@@ -15,6 +15,8 @@
  */
 package org.webcurator.ui.site.validator;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.core.sites.SiteManager;
@@ -26,8 +28,9 @@ import org.webcurator.ui.site.command.SiteAuthorisingAgencyCommand;
  * Validate the saving of a harvest ahuthorisation.
  * @author nwaight
  */
+@Component
 public class SiteAgencyValidator extends AbstractBaseValidator {
-
+    @Autowired
 	private SiteManager siteManager = null;
 
 	/* (non-Javadoc)

@@ -24,12 +24,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
@@ -47,20 +52,32 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  * The Controller for managing the archiving of target instances.
  * @author aparker
  */
+@Controller
+@RequestMapping("/curator/archive/submit.html")
 public class ArchiveController {
 	/** The archive adapter to use to archive the target instance. */
-	private ArchiveAdapter archiveAdapter = null;
+	@Autowired
+	private ArchiveAdapter archiveAdapter;
 	/** the target instance mamager used to access the target instance. */
-	private TargetInstanceManager targetInstanceManager = null;
+	@Autowired
+	private TargetInstanceManager targetInstanceManager;
 	/** The SIP Builder (for backwards compatibility */
-	private SipBuilder sipBuilder = null;
+	@Autowired
+	private SipBuilder sipBuilder;
 	/** the url for the web curator. */
-	private String webCuratorUrl = null;
+	// TODO Must this be initialised like this?
+	private String webCuratorUrl = "http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd";
 	/** the version number of the heritrix harvester. */
-	private String heritrixVersion = null;
+    @Value("${heritrix.version}")
+    private String heritrixVersion;
 	/** the target manager to use to get Target data. */
-	private TargetManager targetManager = null;
+	@Autowired
+	private TargetManager targetManager;
 
+	@PostConstruct
+    protected void init() {
+	    setHeritrixVersion("Heritrix" + this.heritrixVersion);
+    }
 
 	/** Default Constructor. */
 	public ArchiveController() {

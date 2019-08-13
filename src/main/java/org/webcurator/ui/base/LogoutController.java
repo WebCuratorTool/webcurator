@@ -18,6 +18,10 @@ package org.webcurator.ui.base;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
 import org.webcurator.common.Constants;
@@ -26,6 +30,9 @@ import org.webcurator.common.Constants;
  * The controller for handling a user logout.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class LogoutController extends AbstractController {
 
 	@Override

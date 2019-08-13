@@ -24,7 +24,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -49,14 +52,19 @@ import org.webcurator.ui.target.validator.HarvestNowValidator;
  */
 // TODO Is this mapping even used?
 @Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 @RequestMapping("/curator/target/harvest-now.html")
 public class HarvestNowController {
     /** The manager to use to access the target instance. */
+    @Autowired
     private TargetInstanceManager targetInstanceManager;
     /** The harvest coordinator for looking at the harvesters. */
+    @Autowired
     private HarvestCoordinator harvestCoordinator;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
     /** the logger. */
     private Log log;
 

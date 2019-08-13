@@ -9,6 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,12 +32,16 @@ import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 @Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 @RequestMapping("/curator/target/annotation-ajax.html")
 public class AnnotationAjaxController {
 
     /** The manager to use to access the target instance. */
+    @Autowired
     private TargetInstanceManager targetInstanceManager;
     /** The manager to use to access the target. */
+    @Autowired
     private TargetManager targetManager;
     /** the logger. */
     private Log log;

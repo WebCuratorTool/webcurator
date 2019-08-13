@@ -23,8 +23,13 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -41,15 +46,22 @@ import org.webcurator.common.Constants;
  * Manages the User Administration view and the actions associated with a User
  * @author bprice
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class UserController {
 	/** the logger. */
     private Log log = null;
     /** the agency user manager. */
-    private AgencyUserManager agencyUserManager = null;
+    @Autowired
+    private AgencyUserManager agencyUserManager;
     /** the authority manager. */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
+
     /** Default Constructor. */
     public UserController() {
         log = LogFactory.getLog(UserController.class);

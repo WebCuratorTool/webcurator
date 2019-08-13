@@ -28,7 +28,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
@@ -45,15 +50,21 @@ import org.webcurator.common.Constants;
  * Manage the view for associating Roles to a user.
  * @author bprice
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class AssociateUserRoleController {
 	/** the logger. */
     private Log log = null;
     /** the agency mananger. */
-    private AgencyUserManager agencyUserManager = null;
+    @Autowired
+    private AgencyUserManager agencyUserManager;
     /** the authority manager */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
     /** Default Constructor. */
     public AssociateUserRoleController() {
         log = LogFactory.getLog(AssociateUserRoleController.class);

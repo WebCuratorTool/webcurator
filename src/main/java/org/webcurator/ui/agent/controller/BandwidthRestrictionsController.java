@@ -29,8 +29,13 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -53,18 +58,23 @@ import org.webcurator.common.util.DateUtils;
  *
  * @author nwaight
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class BandwidthRestrictionsController {
 	/** The class the coordinates the harvest agents and holds their states. */
+	@Autowired
 	private HarvestBandwidthManager harvestBandwidthManager;
+    @Autowired
+	private HeatmapDAO heatmapConfigDao;
 
-	private HeatmapDAO heatmapConfigDao = null;
-
-	/** The class that looks up the users privleges. */
+	/** The class that looks up the users privileges. */
+	@Autowired
 	private AuthorityManager authorityManager;
 	/** the logger. */
 	private Log log;
-
-	private MessageSource messageSource = null;
+    @Autowired
+	private MessageSource messageSource;
 
 	/** Default Constructor. */
 	public BandwidthRestrictionsController() {

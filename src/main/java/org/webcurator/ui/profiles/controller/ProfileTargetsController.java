@@ -21,6 +21,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.profiles.ProfileManager;
@@ -42,12 +44,15 @@ import org.webcurator.domain.model.dto.ProfileDTO;
  * @author oakleigh_sk
  *
  */
+@Controller
 public class ProfileTargetsController {
-
-	private TargetManager targetManager = null;
-	private TargetDAO targetDao = null;
-
+    @Autowired
+	private TargetManager targetManager;
+    @Autowired
+	private TargetDAO targetDao;
+    @Autowired
 	protected ProfileManager profileManager;
+    @Autowired
 	protected AuthorityManager authorityManager;
 
 

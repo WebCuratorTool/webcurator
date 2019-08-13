@@ -20,12 +20,19 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -47,6 +54,7 @@ import org.webcurator.common.Constants;
 import org.webcurator.ui.profiles.command.DefaultCommand;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
@@ -54,13 +62,28 @@ import org.webcurator.ui.util.TabbedController;
  * @author bbeaumont
  *
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ProfileController extends TabbedController {
 	/** the profile manager to use. */
+	@Autowired
 	private ProfileManager profileManager;
 	/** the agency user manager to use. */
+	@Autowired
 	private AgencyUserManager agencyUserManager;
 	/** Authority Manager */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
+
+    @Autowired
+    private ApplicationContext context;
+
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(DefaultCommand.class);
+        setTabConfig((TabConfig) context.getBean("profileTabConfig"));
+    }
 
 	@Override
 	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {

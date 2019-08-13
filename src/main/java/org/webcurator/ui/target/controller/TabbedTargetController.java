@@ -18,13 +18,21 @@ package org.webcurator.ui.target.controller;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -39,26 +47,39 @@ import org.webcurator.ui.target.command.TargetAnnotationCommand;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
  * The controller for all Target tabs.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TabbedTargetController extends TabbedController {
-
+    @Autowired
 	private TargetManager targetManager;
 
 	public static final String EDITOR_CONTEXT = "targetEditorContext";
+    @Autowired
+	private BusinessObjectFactory businessObjectFactory;
+    @Autowired
+    @Qualifier("targetSearchController")
+	private TargetSearchController searchController;
+    @Autowired
+	private MessageSource messageSource;
+    @Autowired
+	private AuthorityManager authorityManager;
 
-	private BusinessObjectFactory businessObjectFactory = null;
+    @Autowired
+    private ApplicationContext context;
 
-	private TargetSearchController searchController = null;
-
-	private MessageSource messageSource = null;
-
-	private AuthorityManager authorityManager = null;
-
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(TargetDefaultCommand.class);
+        setTabConfig((TabConfig) context.getBean("targetTabConfig"));
+    }
 
 	@Override
 	protected void switchToEditMode(HttpServletRequest req) {

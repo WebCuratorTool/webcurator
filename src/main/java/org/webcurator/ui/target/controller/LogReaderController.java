@@ -18,6 +18,10 @@ package org.webcurator.ui.target.controller;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -37,17 +41,20 @@ import org.webcurator.ui.target.validator.LogReaderValidator;
  * @author nwaight
  */
 @Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 @RequestMapping("/curator/target/log-viewer.html")
 public class LogReaderController {
-
+    @Autowired
 	HarvestCoordinator harvestCoordinator;
-
+    @Autowired
 	TargetInstanceManager targetInstanceManager;
 
 	private Map<String, String> filterTypes = null;
 	private Map<String, String> filterNames = null;
 
 	@Autowired
+    @Qualifier("logReaderValidator")
 	private LogReaderValidator validator;
 
 	public LogReaderController() {

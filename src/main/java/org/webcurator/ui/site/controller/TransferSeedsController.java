@@ -20,7 +20,12 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -41,17 +46,25 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * Controls the Transfer Seeds Action.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TransferSeedsController {
 	/** The TargetManager responsible for business operations. */
-	private TargetManager targetManager = null;
+	@Autowired
+	private TargetManager targetManager;
 	/** The SiteManager responsible for site related operations. */
-	private SiteManager siteManager = null;
+	@Autowired
+	private SiteManager siteManager;
 	/** The Site Controller that flow should return to. */
-	private SiteController siteController = null;
+	@Autowired
+	private SiteController siteController ;
 	/** Message Source */
-	private MessageSource messageSource = null;
+	@Autowired
+	private MessageSource messageSource;
 	/** Authority Manager */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 
 
 	/**

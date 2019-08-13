@@ -21,6 +21,11 @@ import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.notification.MailServer;
 import org.webcurator.core.notification.Mailable;
@@ -35,22 +40,17 @@ import org.webcurator.ui.report.command.ReportEmailCommand;
  * @author MDubos
  *
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ReportEmailController {
 
 	public static final String ACTION_EMAIL = "Email";
 	public static final String ACTION_CANCEL = "Cancel";
 
 	private Log log = LogFactory.getLog(ReportEmailController.class);
-
-	private MailServer mailServer = null;
-
-
-	/**
-	 * Default constructor
-	 *
-	 */
-	public ReportEmailController() {
-	}
+    @Autowired
+	private MailServer mailServer;
 
 	protected ModelAndView showForm() throws Exception {
 		return null;

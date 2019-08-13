@@ -20,13 +20,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,37 +53,54 @@ import org.webcurator.common.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.DefaultSiteCommand;
 import org.webcurator.ui.site.command.SiteCommand;
+import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
  * The Controller for managing the Harvest Autorisation tabs.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class SiteController extends TabbedController {
 
 	public static final String EDITOR_CONTEXT = "siteEditorContext";
 
 	/** Logger for the Siteontroller. **/
 	private static Log log = LogFactory.getLog(SiteController.class);
-
-	private SiteManager siteManager = null;
-
-	private AuthorityManager authorityManager = null;
+    @Autowired
+	private SiteManager siteManager;
+    @Autowired
+	private AuthorityManager authorityManager;
 
 	/** BusinessObjectFactory */
-	private BusinessObjectFactory businessObjectFactory = null;
+	@Autowired
+	private BusinessObjectFactory businessObjectFactory;
 
 	/** The message source for localised messages. */
-	private MessageSource messageSource = null;
+	@Autowired
+	private MessageSource messageSource;
 
 	/** The site search controller */
-	private SiteSearchController siteSearchController = null;
+	@Autowired
+	private SiteSearchController siteSearchController;
+
+    @Autowired
+    private ApplicationContext context;
 
 	public SiteController() {
 	}
 
-	/* (non-Javadoc)
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(DefaultSiteCommand.class);
+        setTabConfig((TabConfig) context.getBean("siteTabConfig"));
+    }
+
+    /* (non-Javadoc)
 	 * @see org.webcurator.ui.util.TabbedController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)
 	 */
 	@Override

@@ -15,6 +15,12 @@
  */
 package org.webcurator.ui.management.controller;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.Constants;
 
@@ -22,14 +28,15 @@ import org.webcurator.common.Constants;
  * Controller to render the management "menu" tab.
  * @author bprice
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class ManagementController {
 
 	/** enables the Management page (QA version) when true **/
-	private boolean enableQaModule = false;
-
-    public ManagementController() {
-        super();
-    }
+    @Value("${queueController.enableQaModule}")
+	private boolean enableQaModule;
 
     protected ModelAndView showForm() throws Exception {
         ModelAndView mav = new ModelAndView();

@@ -28,12 +28,12 @@ import org.webcurator.ui.groups.validator.GeneralValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
 
-public class AddParentsControllerTest extends BaseWCTTest<AddParentsController> {
+public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsController> {
 
 	private TargetManager tm = null;
 
-	public AddParentsControllerTest() {
-		super(AddParentsController.class, "/org/webcurator/ui/groups/controller/AddParentsControllerTest.xml");
+	public GroupAddParentsControllerTest() {
+		super(GroupAddParentsController.class, "/org/webcurator/ui/groups/controller/GroupAddParentsControllerTest.xml");
 	}
 
 	public void setUp() throws Exception

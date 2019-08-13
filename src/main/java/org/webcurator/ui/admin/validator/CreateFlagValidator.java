@@ -15,6 +15,10 @@
  */
 package org.webcurator.ui.admin.validator;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.admin.command.CreateFlagCommand;
@@ -25,6 +29,9 @@ import org.webcurator.ui.common.validation.ValidatorUtil;
  * Validates the Flag Creation action, and checks all the fields used in creating a flag
  * @author twoods
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class CreateFlagValidator extends AbstractBaseValidator {
 	/** @see org.springframework.validation.Validator#supports(Class).*/
     public boolean supports(Class aClass) {

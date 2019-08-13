@@ -18,6 +18,11 @@ package org.webcurator.ui.site.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
@@ -34,14 +39,19 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * The manager for Harvest Authorisation actions.
  * @author nwaight
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class SiteAgencyController {
 
 	/** The site manager */
-	private SiteManager siteManager = null;
-
+	@Autowired
+	private SiteManager siteManager;
+    @Autowired
 	private SiteController siteController;
 	/** BusinessObjectFactory */
-	private BusinessObjectFactory busObjFactory = null;
+	@Autowired
+	private BusinessObjectFactory businessObjectFactory;
 
 	public SiteAgencyController() {
 	}
@@ -85,7 +95,7 @@ public class SiteAgencyController {
 			// Are we creating a new item, or updating an existing
 			// one?
 			if(isEmpty(cmd.getIdentity())) {
-				AuthorisingAgent agent = busObjFactory.newAuthorisingAgent();
+				AuthorisingAgent agent = businessObjectFactory.newAuthorisingAgent();
 				cmd.updateBusinessModel(agent);
 				ctx.putObject(agent);
 				ctx.getSite().getAuthorisingAgents().add(agent);
@@ -121,10 +131,10 @@ public class SiteAgencyController {
 	}
 
 	/**
-	 * @param busObjFactory The busObjFactory to set.
+	 * @param businessObjectFactory The busObjFactory to set.
 	 */
-	public void setBusObjFactory(BusinessObjectFactory busObjFactory) {
-		this.busObjFactory = busObjFactory;
+	public void setBusinessObjectFactory(BusinessObjectFactory businessObjectFactory) {
+		this.businessObjectFactory = businessObjectFactory;
 	}
 
 	/**

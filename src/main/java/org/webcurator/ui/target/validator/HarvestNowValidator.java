@@ -17,6 +17,10 @@ package org.webcurator.ui.target.validator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.common.ui.CommandConstants;
@@ -28,6 +32,9 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  * Validate a request to harvest a target instance now.
  * @author nwaight
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class HarvestNowValidator extends AbstractBaseValidator {
 
     /** Logger to use with this class. */

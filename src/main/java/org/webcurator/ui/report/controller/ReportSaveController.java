@@ -20,6 +20,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.ui.report.command.ReportSaveCommand;
@@ -30,6 +34,9 @@ import org.webcurator.ui.report.command.ReportSaveCommand;
  * @author MDubos
  *
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ReportSaveController {
 
 	public static final String ACTION_SAVE  = "Save";

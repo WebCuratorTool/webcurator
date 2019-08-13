@@ -8,6 +8,9 @@ import java.net.HttpURLConnection;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,11 +20,10 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.ui.target.command.LiveContentRetrieverCommand;
 
 @Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 @RequestMapping("/curator/target/live-content-retriever.html")
 public class LiveContentRetrieverController {
-
-	public LiveContentRetrieverController() {
-	}
 
 	@GetMapping
 	protected ModelAndView handle(@RequestParam("url") String url, @RequestParam("contentFileName") String contentFileName)

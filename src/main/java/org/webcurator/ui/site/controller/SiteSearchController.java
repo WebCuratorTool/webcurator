@@ -23,7 +23,12 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.CommandConstants;
@@ -42,11 +47,16 @@ import org.webcurator.ui.site.command.SiteSearchCommand;
  * The controller for managing searching for harvest authorisations.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class SiteSearchController {
 
 	/** the site manager. */
+	@Autowired
 	private SiteManager siteManager;
 	/** the agency user manager. */
+	@Autowired
 	private AgencyUserManager agencyUserManager;
 
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {

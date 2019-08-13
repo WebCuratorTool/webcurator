@@ -20,6 +20,12 @@ import java.util.ArrayList;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
 import org.webcurator.auth.AuthorityManager;
@@ -35,6 +41,9 @@ import org.webcurator.common.Constants;
 /**
  * The home controller is responsible for rendering the home page.
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class HomeController extends AbstractController {
 	public static final String MDL_CNT_NOTIFICATION = "notificationsCount";
 	public static final String MDL_CNT_TASK = "tasksCount";
@@ -45,17 +54,23 @@ public class HomeController extends AbstractController {
 	public static final String MDL_CNT_QR = "qualityReviewCount";
 
 	/** The manager for getting task and notification counts. */
+	@Autowired
 	InTrayManager inTrayManager;
 	/** the manager for accessing privileges for a user. */
+	@Autowired
 	AuthorityManager authorityManager;
 	/** The manager for getting the site count. */
+	@Autowired
 	SiteManager siteManager;
 	/** The manager for getting a count of targets. */
+	@Autowired
 	TargetManager targetManager;
 	/** the manager for getting a count of target instances. */
+	@Autowired
 	TargetInstanceManager targetInstanceManager;
 	/** enables the new Qa Home page **/
-	private boolean enableQaModule = false;
+    @Value("${queueController.enableQaModule}")
+	private boolean enableQaModule;
 
     @Override
     protected ModelAndView handleRequestInternal(HttpServletRequest req, HttpServletResponse resp) throws Exception {

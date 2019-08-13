@@ -19,6 +19,11 @@ import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
@@ -30,8 +35,12 @@ import org.webcurator.common.Constants;
  * The controller for displaying harvest agent data.
  * @author nwaight
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ManageHarvestAgentController {
     /** The class the coordinates the harvest agents and holds their states. */
+    @Autowired
     private HarvestCoordinator harvestCoordinator;
     /** the logger. */
     private Log log;

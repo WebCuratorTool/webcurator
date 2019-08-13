@@ -33,14 +33,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -71,23 +70,27 @@ import org.webcurator.common.util.Utils;
  * The controller for editing a schedule.
  * @author bbeaumont
  */
-@Controller
-@RequestMapping("/curator/target/schedule.html")
 public class EditScheduleController {
 
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
-	private SchedulePatternFactory patternFactory = null;
-	private TabbedController targetController = null;
+	@Autowired
+	private SchedulePatternFactory patternFactory;
+	private TabbedController targetController;
 	private String scheduleEditPrivilege = null;
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 	private String contextSessionKey = null;
-	private BusinessObjectFactory businessObjectFactory = null;
+	@Autowired
+	private BusinessObjectFactory businessObjectFactory;
 	private String viewPrefix = null;
-	private HeatmapDAO heatmapConfigDao = null;
+	@Autowired
+	private HeatmapDAO heatmapConfigDao;
+	@Autowired
 	private TargetInstanceManager targetInstanceManager;
 
 	@Autowired
+    @Qualifier("targetSchedulesValidator")
 	private TargetSchedulesValidator validator;
 
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
@@ -100,10 +103,6 @@ public class EditScheduleController {
         binder.registerCustomEditor(java.util.Date.class, org.webcurator.common.util.DateUtils.get().getFullDateEditor(true));
         binder.registerCustomEditor(Time.class, new TimeEditor(false));
     }
-
-
-	public EditScheduleController() {
-	}
 
 	public AbstractTargetEditorContext getEditorContext(HttpServletRequest req) {
 		return (AbstractTargetEditorContext) req.getSession().getAttribute(contextSessionKey);

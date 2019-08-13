@@ -26,9 +26,14 @@ import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
 import org.acegisecurity.providers.encoding.PasswordEncoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,19 +51,27 @@ import org.webcurator.common.Constants;
  * Manages the creation flow for a User within WCT
  * @author bprice
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class CreateUserController {
 	/** the logger. */
     private Log log = null;
     /** the system wide salt. */
-    private SystemWideSaltSource saltSource = null;
+    @Autowired
+    private SystemWideSaltSource saltSource;
     /** the password encoder. */
-    private PasswordEncoder passwordEncoder = null;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     /** the agency user manager. */
-    private AgencyUserManager agencyUserManager = null;
+    @Autowired
+    private AgencyUserManager agencyUserManager;
     /** the authority manager. */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
 
     /** Default Constructor. */
     public CreateUserController() {

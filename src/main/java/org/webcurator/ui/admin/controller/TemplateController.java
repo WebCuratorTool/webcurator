@@ -23,8 +23,13 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
@@ -41,22 +46,23 @@ import org.webcurator.common.Constants;
  * The Controller for managing the creation and modification of permission templates.
  * @author bprice
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TemplateController {
 	/** the logger. */
     private Log log = LogFactory.getLog(TemplateController.class);
     /** the permission template manager. */
+    @Autowired
     private PermissionTemplateManager permissionTemplateManager;
     /** the agency user manager. */
+    @Autowired
     private AgencyUserManager agencyUserManager;
     /** the message source. */
+    @Autowired
     private MessageSource messageSource;
     /** the default Subject. */
-    private String defaultSubject = null;
-
-    /** Default Constructor. */
-    public TemplateController() {
-        super();
-    }
+    private String defaultSubject = "Web Preservation Programme";
 
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());

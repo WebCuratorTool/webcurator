@@ -68,8 +68,11 @@ public class ProfileListController {
     /**
      * The profile Manager
      */
+    @Autowired
     protected ProfileManager profileManager;
+    @Autowired
     private AgencyUserManager agencyUserManager;
+    @Autowired
     protected AuthorityManager authorityManager;
 
 

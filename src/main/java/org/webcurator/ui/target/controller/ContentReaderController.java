@@ -28,7 +28,6 @@ import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.target.command.LogReaderCommand;
-import org.webcurator.ui.target.validator.LogReaderValidator;
 
 /**
  * The controller for handling the log viewer commands.
@@ -38,13 +37,10 @@ import org.webcurator.ui.target.validator.LogReaderValidator;
 @Controller
 @RequestMapping("/curator/target/content-viewer.html")
 public class ContentReaderController {
-
+    @Autowired
 	HarvestLogManager harvestLogManager;
-
+    @Autowired
 	TargetInstanceManager targetInstanceManager;
-
-	@Autowired
-	private LogReaderValidator validator;
 
 	public ContentReaderController() {
 	}

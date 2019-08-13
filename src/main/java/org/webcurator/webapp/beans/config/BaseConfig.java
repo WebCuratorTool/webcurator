@@ -11,11 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
@@ -77,6 +75,7 @@ import java.util.*;
  * XML files.
  */
 @Configuration
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);
 
@@ -244,26 +243,6 @@ public class BaseConfig {
 
     @Autowired
     private ListsConfig listsConfig;
-
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    @Bean
-    public static PropertyPlaceholderConfigurer wctCoreConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-core.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        Properties theProperties = new Properties();
-        theProperties.setProperty("qualityReviewToolController.archiveName", null);
-        theProperties.setProperty("qualityReviewToolController.archive.alternative", null);
-        theProperties.setProperty("qualityReviewToolController.archive.alternative.name", null);
-        theProperties.setProperty("harvestCoordinator.harvestOptimizationEnabled", "false");
-        theProperties.setProperty("harvestCoordinator.harvestOptimizationLookaheadHours", "24");
-        theProperties.setProperty("harvestCoordinator.numHarvestersExcludedFromOptimisation", "0");
-        bean.setProperties(theProperties);
-
-        return bean;
-    }
 
     @Bean
     public ResourceBundleMessageSource messageSource() {

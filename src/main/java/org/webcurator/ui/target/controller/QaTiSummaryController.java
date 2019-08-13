@@ -35,8 +35,11 @@ import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -50,7 +53,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.common.Environment;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.profiles.ProfileDataUnit;
@@ -92,29 +94,37 @@ import org.webcurator.common.util.DateUtils;
  * @author twoods
  */
 @Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 @RequestMapping("/curator/target/qatisummary.html")
 public class QaTiSummaryController {
     /** The manager to use to access the target instance. */
+    @Autowired
     private TargetInstanceManager targetInstanceManager;
-    /** The harvest coordinator for looking at the harvesters. */
-    private Environment environment;
     /** The manager to use for user, role and agency data. */
+    @Autowired
     private AgencyUserManager agencyUserManager;
     /** The component that will provide an <code>Indicator</code> based QA recommendation **/
+    @Autowired
     private HarvestCoordinator harvestCoordinator;
     /** the logger. */
     private Log log;
 	/** the profile manager to use. */
+	@Autowired
 	private ProfileManager profileManager;
 	/** Authority Manager */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 	/** Business object factory */
+	@Autowired
 	private BusinessObjectFactory businessObjectFactory;
 	/** used to retrieve a complete target **/
+	@Autowired
 	private TargetManager targetManager;
     /** the message source. */
-    private MessageSource messageSource = null;
-
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
     private DigitalAssetStore digitalAssetStore;
 
     @Autowired
@@ -837,10 +847,6 @@ public class QaTiSummaryController {
     public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
         this.harvestCoordinator = harvestCoordinator;
     }
-
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
 
 	/**
 	 * @param agencyUserManager the agencyUserManager to set

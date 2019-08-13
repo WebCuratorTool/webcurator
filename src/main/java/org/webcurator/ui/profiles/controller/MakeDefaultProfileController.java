@@ -17,6 +17,7 @@ package org.webcurator.ui.profiles.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
@@ -35,6 +36,7 @@ import org.webcurator.ui.profiles.command.ViewCommand;
  * @author bbeaumont
  *
  */
+@Controller
 public class MakeDefaultProfileController extends ProfileListController {
 
 	/**

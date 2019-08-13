@@ -17,6 +17,10 @@ package org.webcurator.ui.target.controller;
 
 import java.io.File;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,14 +38,14 @@ import org.webcurator.ui.target.command.LogRetrieverCommand;
  *
  */
 @Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 @RequestMapping("/curator/target/log-retriever.html")
 public class LogRetrieverController {
-
-	private HarvestLogManager harvestLogManager = null;
-	private TargetInstanceManager targetInstanceManager = null;
-
-	public LogRetrieverController() {
-	}
+    @Autowired
+	private HarvestLogManager harvestLogManager;
+    @Autowired
+	private TargetInstanceManager targetInstanceManager;
 
 	@GetMapping
 	protected ModelAndView handle(@RequestParam("targetInstanceOid") Long targetInstanceOid,

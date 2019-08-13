@@ -17,14 +17,21 @@ package org.webcurator.ui.target.controller;
 
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -36,25 +43,43 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
  * The controller for all target instance tabs.
  * @author nwaight
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TabbedTargetInstanceController extends TabbedController {
     /** The manager for target instance data access. */
+    @Autowired
     TargetInstanceManager targetInstanceManager;
     /** The harvest coordinator to use to update the profile overrides. */
+    @Autowired
     HarvestCoordinator harvestCoordinator;
     /** The authority manager used to perform security checks */
+    @Autowired
     AuthorityManager authorityManager;
     /** The queue controller */
-    private QueueController queueController = null;
+    @Autowired
+    private QueueController queueController;
     /** The message source */
+    @Autowired
     private MessageSource messageSource;
 
     private static Log log = LogFactory.getLog(TabbedTargetInstanceController.class);
+
+    @Autowired
+    private ApplicationContext context;
+
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(TargetInstanceCommand.class);
+        setTabConfig((TabConfig) context.getBean("targetInstanceTabConfig"));
+    }
 
     /*
     @Override

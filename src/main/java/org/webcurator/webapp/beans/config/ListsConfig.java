@@ -5,6 +5,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.webcurator.core.common.WCTTreeSet;
 
@@ -19,6 +20,7 @@ import java.util.Map;
  * XML files.
  */
 @Configuration
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class ListsConfig {
 
     @Value("${groupTypes.subgroup}")

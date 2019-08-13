@@ -23,6 +23,9 @@ import java.util.*;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -39,7 +42,6 @@ import org.webcurator.core.util.XMLConverter;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.common.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
-import org.webcurator.ui.target.validator.LogReaderValidator;
 import org.xml.sax.SAXException;
 
 /**
@@ -48,14 +50,13 @@ import org.xml.sax.SAXException;
  */
 @Controller
 @RequestMapping("/curator/target/aqa-viewer.html")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class AQAReaderController {
-
+    @Autowired
 	HarvestCoordinator harvestCoordinator;
-
+    @Autowired
 	TargetInstanceManager targetInstanceManager;
-
-	@Autowired
-	private LogReaderValidator validator;
 
 	public class AQAElement
 	{

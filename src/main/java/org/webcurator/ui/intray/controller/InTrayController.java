@@ -20,6 +20,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.NotOwnerRuntimeException;
@@ -38,15 +43,15 @@ import org.webcurator.ui.intray.command.InTrayCommand;
  * The controller for managing the intray views.
  * @author bprice
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class InTrayController {
 	/** the logger. */
-    private Log log = null;
+    private Log log = LogFactory.getLog(InTrayController.class);
     /** the manager for manager tasks and notifications. */
-    private InTrayManager inTrayManager = null;
-    /** Default Constructor. */
-    public InTrayController() {
-        log = LogFactory.getLog(InTrayController.class);
-    }
+    @Autowired
+    private InTrayManager inTrayManager;
 
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd,
                                                  BindingResult bindingResult) throws Exception {

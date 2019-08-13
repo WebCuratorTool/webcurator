@@ -23,7 +23,12 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -44,13 +49,17 @@ import org.webcurator.ui.target.command.TargetSearchCommand;
  * The controller for searching for Targets.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TargetSearchController {
 
-	private TargetDAO targetDao = null;
-
-	private TargetManager targetManager = null;
-
-	private AgencyUserManager agencyUserManager = null;
+    @Autowired
+	private TargetDAO targetDao;
+    @Autowired
+	private TargetManager targetManager;
+    @Autowired
+	private AgencyUserManager agencyUserManager;
 
 
 	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
