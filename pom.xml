@@ -7,10 +7,17 @@
 	<name>Web Curator Tool Core</name>
 	<description>Web Curator Tool core web application</description>
 
-	<properties>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.6.RELEASE</version>
+    </parent>
+
+    <properties>
 		<browse.double_escape>false</browse.double_escape>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
     </properties>
 
 	<build>
@@ -22,26 +29,6 @@
 			</resource>
 		</resources>
 		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.0.0</version>
-				<executions>
-					<execution>
-						<phase>initialize</phase>
-						<goals>
-							<goal>read-project-properties</goal>
-						</goals>
-						<configuration>
-							<files>
-								<file>${basedir}/build/local_${databaseType}_config.properties</file>
-								<file>${basedir}/build/hib_${databaseType}.properties</file>
-								<file>${basedir}/build/local_config.properties</file>
-							</files>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -127,99 +114,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-	<profiles>
-		<profile>
-			<id>h2</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<properties>
-				<databaseType>h2</databaseType>
-				<hbm2ddl.auto>update</hbm2ddl.auto>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>com.h2database</groupId>
-					<artifactId>h2</artifactId>
-					<version>1.4.199</version>
-				</dependency>
-			</dependencies>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>properties-maven-plugin</artifactId>
-						<version>1.0-alpha-2</version>
-						<executions>
-							<execution>
-								<goals>
-									<goal>set-system-properties</goal>
-								</goals>
-								<configuration>
-									<properties>
-										<property>
-											<name>hibernate.hbm2ddl.auto</name>
-											<value>${hbm2ddl.auto}</value>
-										</property>
-										<!--
-										<property>
-											<name>hibernate.dialect</name>
-											<value>org.hibernate.dialect.H2Dialect</value>
-										</property>
-										-->
-									</properties>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>mysql</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<properties>
-				<databaseType>mysql</databaseType>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>mysql</groupId>
-					<artifactId>mysql-connector-java</artifactId>
-					<version>5.1.6</version>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<!-- Note for running Oracle in Jetty you need to include the oracle driver
-				in the war -->
-			<id>oracle</id>
-			<properties>
-				<databaseType>oracle</databaseType>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>com.oracle</groupId>
-					<artifactId>ojdbc14</artifactId>
-					<version>11.2.0.3</version>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>postgres</id>
-			<properties>
-				<databaseType>postgres</databaseType>
-			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>postgresql</groupId>
-					<artifactId>postgresql</artifactId>
-					<version>9.1-901.jdbc4</version>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
+
 	<repositories>
 		<repository>
 			<!-- Needed for com.sleepycat:je:3.374 -->
@@ -236,7 +131,7 @@
 			<scope>compile</scope>
 			<exclusions>
 				<!-- brings in spring-core, spring-remoting and spring-support 1.2.9, which have been superseded by
-					spring-core 5.1.7.RELEASE, spring-context 5.1.7.RELEASE and spring-context-support 5.1.7.RELEASE -->
+					spring-core 5.1.8.RELEASE, spring-context 5.1.8.RELEASE and spring-context-support 5.1.8.RELEASE -->
 				<exclusion>
 					<groupId>org.springframework</groupId>
 					<artifactId>spring-core</artifactId>
@@ -456,55 +351,55 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-orm</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-jdbc</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
-			<version>5.1.7.RELEASE</version>
+			<version>5.1.8.RELEASE</version>
 			<scope>compile</scope>
 		</dependency>
         <dependency>
@@ -524,12 +419,6 @@
             <scope>test</scope>
             <version>2.1.6.RELEASE</version>
         </dependency>
-		<dependency>
-			<groupId>org.archive.wayback</groupId>
-			<artifactId>wayback-core</artifactId>
-			<version>1.2.0</version>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
 
 </project>
