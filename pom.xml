@@ -30,26 +30,6 @@
 		</resources>
 		<plugins>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.0-alpha-1</version>
-				<executions>
-					<execution>
-						<phase>initialize</phase>
-						<goals>
-							<goal>read-project-properties</goal>
-						</goals>
-						<configuration>
-							<files>
-								<file>${basedir}/build/local_${databaseType}_config.properties</file>
-								<file>${basedir}/build/hib_${databaseType}.properties</file>
-								<file>${basedir}/build/local_config.properties</file>
-							</files>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.5.1</version>
@@ -57,44 +37,6 @@
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.6</version>
-				<executions>
-					<execution>
-						<id>copy-jetty-env</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>build/jetty</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
-						<id>jetty-filtered-resources</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/filtered</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.basedir}/src/main/webapp-filter</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -129,51 +71,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>9.4.15.v20190215</version>
-				<configuration>
-					<stopKey>${core.stopKey}</stopKey>
-					<stopPort>${core.stopPort}</stopPort>
-					<war>${project.basedir}/target/${project.artifactId}-${project.version}.war</war>
-					<!--<webApp>-->
-						<!--<contextPath>/wct</contextPath>-->
-						<!--<jettyEnvXml>${project.build.directory}/jetty-env.xml</jettyEnvXml>-->
-						<!--<resourceBases>-->
-							<!--<resourceBase>${project.build.directory}/filtered</resourceBase>-->
-							<!--<resourceBase>src/main/webapp</resourceBase>-->
-						<!--</resourceBases>-->
-					<!--</webApp>-->
-					<!--See https://www.eclipse.org/jetty/documentation/9.4.x/configuring-connectors.html
-						Prior to Jetty 9, the type of the connector specified both the protocol and the implementation
-						used. Jetty 9 has a single selector-based non-blocking I/O connector, and a collection of
-						ConnectionFactories now configure the protocol on the connector. -->
-					<httpConnector>
-						<port>${core.port}</port>
-						<idleTimeout>10000</idleTimeout>
-					</httpConnector>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.springframework</groupId>
-						<artifactId>spring-jdbc</artifactId>
-						<version>5.1.7.RELEASE</version>
-						<exclusions>
-							<!-- Use the classes found in jcl-over-slf4j -->
-							<exclusion>
-								<groupId>commons-logging</groupId>
-								<artifactId>commons-logging</artifactId>
-							</exclusion>
-						</exclusions>
-					</dependency>
-					<!--<dependency>-->
-					<!--<groupId>commons-dbcp</groupId>-->
-					<!--<artifactId>commons-dbcp</artifactId>-->
-					<!--<version>1.4</version>-->
-				<!--</dependency>-->
-				</dependencies>
 			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -229,6 +126,10 @@
 						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
@@ -254,7 +155,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>properties-maven-plugin</artifactId>
-						<version>1.0-alpha-2</version>
+						<version>1.0-0</version>
 						<executions>
 							<execution>
 								<goals>
@@ -429,15 +330,15 @@
                 </exclusion>
             </exclusions>
 		</dependency>
-		<dependency>
-			<!-- Note that this includes org.apache.taglibs.standard, which is also in
-				 org.apache.taglibs:taglibs-standard-impl. Jetty will complain about the duplication of classes, but
-				 the Jetty implementation provides taglibs-standard-impl as part of its deployment, so there's no way
-				 to easily resolve the duplication. -->
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>1.2</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			&lt;!&ndash; Note that this includes org.apache.taglibs.standard, which is also in-->
+<!--				 org.apache.taglibs:taglibs-standard-impl. Jetty will complain about the duplication of classes, but-->
+<!--				 the Jetty implementation provides taglibs-standard-impl as part of its deployment, so there's no way-->
+<!--				 to easily resolve the duplication. &ndash;&gt;-->
+<!--			<groupId>javax.servlet</groupId>-->
+<!--			<artifactId>jstl</artifactId>-->
+<!--			<version>1.2</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
