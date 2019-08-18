@@ -60,3 +60,6 @@ local.properties
 
 # IntelliJ
 /out/
+
+### VS Code ###
+.vscode/

@@ -4,12 +4,11 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.providers.encoding.PasswordEncoder;
-import org.acegisecurity.providers.encoding.ShaPasswordEncoder;
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -75,7 +74,6 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 		testSetAuthorityManager();
 		testSetMessageSource();
 		testSetEncoder();
-		testSetSalt();
 
 		try
 		{
@@ -102,15 +100,8 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 
 	@Test
 	public final void testSetEncoder() {
-		PasswordEncoder passwordEncoder = new ShaPasswordEncoder();
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		testInstance.setEncoder(passwordEncoder);
-	}
-
-	@Test
-	public final void testSetSalt() {
-		SystemWideSaltSource saltSource = new SystemWideSaltSource();
-		saltSource.setSystemWideSalt("Rand0mS4lt");
-		testInstance.setSalt(saltSource);
 	}
 
 	@Test

@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.validation.BindException;
@@ -15,10 +17,6 @@ import org.webcurator.ui.admin.command.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.auth.*;
 import org.webcurator.domain.model.auth.*;
-
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.providers.encoding.PasswordEncoder;
-import org.acegisecurity.providers.encoding.ShaPasswordEncoder;
 
 import java.util.List;
 
@@ -77,7 +75,6 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 			testSetAuthorityManager();
 			testSetMessageSource();
 			testSetPasswordEncoder();
-			testSetSaltSource();
 
 			CreateUserCommand aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_NEW);
@@ -147,15 +144,8 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 
 	@Test
 	public final void testSetPasswordEncoder() {
-		PasswordEncoder passwordEncoder = new ShaPasswordEncoder();
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		testInstance.setPasswordEncoder(passwordEncoder);
-	}
-
-	@Test
-	public final void testSetSaltSource() {
-		SystemWideSaltSource saltSource = new SystemWideSaltSource();
-		saltSource.setSystemWideSalt("Rand0mS4lt");
-		testInstance.setSaltSource(saltSource);
 	}
 
 	@Test

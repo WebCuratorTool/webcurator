@@ -15,20 +15,17 @@
  */
 package org.webcurator.ui.credentials.controller;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.acegisecurity.context.SecurityContextHolder;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.providers.encoding.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -36,8 +33,6 @@ import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.common.Constants;
 import org.webcurator.ui.credentials.command.ResetPasswordCommand;
-import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.util.TabConfig;
 
 /**
  * Controller for managing reseting a users password.
@@ -55,9 +50,6 @@ public class ResetPasswordController {
     @Autowired
     @Qualifier("passwordEncoder")
     private PasswordEncoder encoder;
-    /** the system wide salt source. */
-    @Qualifier("saltSource")
-    private SystemWideSaltSource salt;
 
     /** Default Constructor. */
     public ResetPasswordController() {
@@ -104,8 +96,7 @@ public class ResetPasswordController {
 
             User userAccount = (User) authDAO.getUserByName(upat.getName());
 
-            String sysSalt = salt.getSystemWideSalt();
-            String encodedPwd = encoder.encodePassword(aCmd.getNewPwd(),sysSalt);
+            String encodedPwd = encoder.encode(aCmd.getNewPwd());
 
             userAccount.setPassword(encodedPwd);
             //userAccount.setPwdFailedAttempts(0);
@@ -139,12 +130,5 @@ public class ResetPasswordController {
 	 */
 	public void setEncoder(PasswordEncoder encoder) {
 		this.encoder = encoder;
-	}
-
-	/**
-	 * @param salt the salt to set
-	 */
-	public void setSalt(SystemWideSaltSource salt) {
-		this.salt = salt;
 	}
 }

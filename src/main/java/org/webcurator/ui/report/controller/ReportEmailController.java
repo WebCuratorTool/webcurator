@@ -17,14 +17,14 @@ package org.webcurator.ui.report.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.notification.MailServer;
@@ -70,9 +70,9 @@ public class ReportEmailController {
 			// ...user
 	        String remoteUser = null;
 	        Authentication auth = null;
-	        SecurityContext acegiCtx = (SecurityContext) req.getSession().getAttribute("ACEGI_SECURITY_CONTEXT");
-	        if( acegiCtx != null) {
-	            auth = acegiCtx.getAuthentication();
+	        SecurityContext springSecurityContext = (SecurityContext) req.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
+	        if( springSecurityContext != null) {
+	            auth = springSecurityContext.getAuthentication();
 	            if (auth != null) {
 	                remoteUser = auth.getName();
 	            }

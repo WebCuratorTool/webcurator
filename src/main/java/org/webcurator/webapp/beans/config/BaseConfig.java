@@ -244,6 +244,9 @@ public class BaseConfig {
     @Autowired
     private ListsConfig listsConfig;
 
+    @Autowired
+    private DataSource dataSource;
+
     @Bean
     public ResourceBundleMessageSource messageSource() {
         ResourceBundleMessageSource bean = new ResourceBundleMessageSource();
@@ -255,7 +258,7 @@ public class BaseConfig {
     @Bean
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
-        bean.setDataSource((DataSource) dataSource().getObject());
+        bean.setDataSource(dataSource);
         // TODO NOTE it would be better if this was a wildcard
 //        Resource jarResource = new ClassPathResource("org/webcurator/**");
 //        Resource jarResource = new FileSystemResource("/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
@@ -291,14 +294,6 @@ public class BaseConfig {
     @Bean
     public TransactionTemplate transactionTemplate() {
         return new TransactionTemplate(transactionManager());
-    }
-
-    @Bean
-    public JndiObjectFactoryBean dataSource() {
-        JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
-        bean.setJndiName("java:comp/env/jdbc/wctDatasource");
-
-        return bean;
     }
 
     @Bean

@@ -22,8 +22,6 @@ import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.providers.encoding.PasswordEncoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +31,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -57,9 +56,6 @@ import org.webcurator.common.Constants;
 public class CreateUserController {
 	/** the logger. */
     private Log log = null;
-    /** the system wide salt. */
-    @Autowired
-    private SystemWideSaltSource saltSource;
     /** the password encoder. */
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -166,7 +162,7 @@ public class CreateUserController {
    //                  Only set the password for WCT Authenticating users
                             if (userCmd.isExternalAuth() == false) {
                                 String pwd = userCmd.getPassword();
-                                String encodedPwd =passwordEncoder.encodePassword(pwd, saltSource.getSystemWideSalt());
+                                String encodedPwd = passwordEncoder.encode(pwd);
                                 user.setPassword(encodedPwd);
    //                      force a password change only for WCT users, not LDAP users
                                 user.setForcePasswordChange(true);
@@ -245,13 +241,6 @@ public class CreateUserController {
      */
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
-    }
-
-    /**
-     * @param saltSource the system wide salt source.
-     */
-    public void setSaltSource(SystemWideSaltSource saltSource) {
-        this.saltSource = saltSource;
     }
 
     /**

@@ -20,11 +20,11 @@ import java.util.Date;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContext;
-import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.WebApplicationContext;
 import org.webcurator.core.common.Constants;
 import org.webcurator.core.report.LogonDurationDAO;
@@ -38,14 +38,14 @@ import org.webcurator.ui.tools.controller.BrowseController;
  * The a session listener that logs the user out when the session expires.
  * @author bbeaumont
  */
-public class AcegiLogoutListener implements HttpSessionListener {
+public class WctLogoutListener implements HttpSessionListener {
 	/** Logger for the BrowseController. **/
 	private static Log log = LogFactory.getLog(BrowseController.class);
 
 	/** The LockManager **/
 	LockManager lockManager = null;
 
-	public AcegiLogoutListener() {
+	public WctLogoutListener() {
 	}
 
 	public void sessionCreated(HttpSessionEvent arg0) {
@@ -60,14 +60,13 @@ public class AcegiLogoutListener implements HttpSessionListener {
 		// Get the Spring Application Context.
 		WebApplicationContext ctx = ApplicationContextFactory.getWebApplicationContext();
 
-		// We need to get the authentication context out of the
-        // event, as it doesn't necessarily exist through the
-        // standard Acegi tools.
+		// We need to get the authentication context out of the event, as it doesn't necessarily exist through the
+        // standard Spring security tools.
         String remoteUser = null;
         Authentication auth = null;
-        SecurityContext acegiCtx = (SecurityContext) event.getSession().getAttribute("ACEGI_SECURITY_CONTEXT");
-        if( acegiCtx != null) {
-            auth = acegiCtx.getAuthentication();
+        SecurityContext springSecurityContext = (SecurityContext) event.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
+        if( springSecurityContext != null) {
+            auth = springSecurityContext.getAuthentication();
             if (auth != null) {
                 remoteUser = auth.getName();
             }

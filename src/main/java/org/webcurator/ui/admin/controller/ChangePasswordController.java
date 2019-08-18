@@ -22,8 +22,6 @@ import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.providers.encoding.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,6 +29,7 @@ import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -64,9 +63,6 @@ public class ChangePasswordController {
     @Qualifier("passwordEncoder")
     private PasswordEncoder encoder;
     /** the system wide encoding salt. */
-    @Autowired
-    @Qualifier("saltSource")
-    private SystemWideSaltSource salt;
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
@@ -116,8 +112,7 @@ public class ChangePasswordController {
 
             User userAccount = agencyUserManager.getUserByOid(aCmd.getUserOid());
 
-            String sysSalt = salt.getSystemWideSalt();
-            String encodedPwd = encoder.encodePassword(aCmd.getNewPwd(),sysSalt);
+            String encodedPwd = encoder.encode(aCmd.getNewPwd());
 
             userAccount.setPassword(encodedPwd);
 
@@ -169,13 +164,6 @@ public class ChangePasswordController {
      */
     public void setEncoder(PasswordEncoder encoder) {
         this.encoder = encoder;
-    }
-
-    /**
-     * @param salt the system wide salt.
-     */
-    public void setSalt(SystemWideSaltSource salt) {
-        this.salt = salt;
     }
 
     /**
