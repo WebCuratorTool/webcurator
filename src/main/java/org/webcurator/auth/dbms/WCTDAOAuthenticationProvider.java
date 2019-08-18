@@ -18,31 +18,35 @@ package org.webcurator.auth.dbms;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.GrantedAuthorityImpl;
-import org.acegisecurity.userdetails.User;
-import org.acegisecurity.userdetails.UserDetails;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.object.MappingSqlQuery;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 
 /**
- * This authentication provider is used by the Acegi security framework to log a user in 
+ * This authentication provider is used by the Spring security framework to log a user in
  * by checking the provided username and credential against the WCT core database.
  * If the user is authenticated then the users granted authorities are also loaded from the 
  * WCT database.
  * @author bprice
  */
-public class WCTDAOAuthenticationProvider extends org.acegisecurity.userdetails.jdbc.JdbcDaoImpl {
+// TODO (Kurt) - look at spring security documentation to see how to get this done as per spring security
+public class WCTDAOAuthenticationProvider extends JdbcDaoImpl {
+    protected MappingSqlQuery authoritiesByUsernameMapping;
+    protected MappingSqlQuery usersByUsernameMapping;
 
     @SuppressWarnings("unchecked")
 	@Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException, DataAccessException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         List users = usersByUsernameMapping.execute(username);
 
         if (users.size() == 0) {
@@ -57,11 +61,9 @@ public class WCTDAOAuthenticationProvider extends org.acegisecurity.userdetails.
             throw new UsernameNotFoundException("User has no GrantedAuthority");
         }
 
-        GrantedAuthority[] arrayAuths = {};
-
         addCustomAuthorities(user.getUsername(), dbAuths);
 
-        arrayAuths = (GrantedAuthority[]) dbAuths.toArray(arrayAuths);
+        List<GrantedAuthority> grantedAuthorityList = (List<GrantedAuthority>) dbAuths;
 
         String returnUsername = user.getUsername();
 
@@ -70,7 +72,7 @@ public class WCTDAOAuthenticationProvider extends org.acegisecurity.userdetails.
         }
 
         return new User(returnUsername, user.getPassword(), user.isEnabled(),
-            true, true, true, arrayAuths);
+            true, true, true, grantedAuthorityList);
     }
 
     
@@ -78,7 +80,9 @@ public class WCTDAOAuthenticationProvider extends org.acegisecurity.userdetails.
      * Extension point to allow other MappingSqlQuery objects to be substituted
      * in a subclass
      */
-    protected void initMappingSqlQueries() {
+    @Override
+    protected void initDao() {
+        super.initDao();
         this.usersByUsernameMapping = new UsersByUsernameMapping(getDataSource());
         this.authoritiesByUsernameMapping = new AuthoritiesByUsernameMapping(getDataSource());
     }
@@ -96,7 +100,7 @@ public class WCTDAOAuthenticationProvider extends org.acegisecurity.userdetails.
         protected Object mapRow(ResultSet rs, int rownum)
             throws SQLException {
             String roleName = getRolePrefix() + rs.getString(1);
-            GrantedAuthorityImpl authority = new GrantedAuthorityImpl(roleName);
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(roleName);
 
             return authority;
         }
@@ -123,9 +127,10 @@ public class WCTDAOAuthenticationProvider extends org.acegisecurity.userdetails.
                 //set the password to blank for users authenticated by an external Authentication source
                 password = "";
             }
+            List<GrantedAuthority> grantedAuthorityList = Arrays.asList(new SimpleGrantedAuthority("HOLDER"));
             UserDetails user = new User(username, password, enabled, true,
                     !credentialsNonExpired, true,
-                    new GrantedAuthority[] {new GrantedAuthorityImpl("HOLDER")});
+                    grantedAuthorityList);
 
             return user;
         }

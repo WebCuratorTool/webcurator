@@ -28,19 +28,19 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.common.Constants;
 
 /**
- * This filter is used by the Acegi security framework.  
+ * This filter is used by the Spring security framework.
  * The filter checks that the users password has expired or 
  * must be changed and redirects the user to the password
- * change view if nessacary.
+ * change view if necessary.
  * @author bprice
  */
 public class WCTForcePasswordChange implements Filter {
@@ -72,7 +72,7 @@ public class WCTForcePasswordChange implements Filter {
     
       HttpServletRequest httpRequest = (HttpServletRequest) aRequest;
       
-      Authentication auth =  SecurityContextHolder.getContext().getAuthentication();      
+      Authentication auth =  SecurityContextHolder.getContext().getAuthentication();
       if (auth != null) {            
         if (auth.isAuthenticated()) {
             User authUser = (User)auth.getDetails();

@@ -9,10 +9,12 @@ import org.junit.AfterClass;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.webcurator.core.util.*;
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.context.*;
-import org.acegisecurity.providers.*;
 import org.webcurator.domain.MockUserRoleDAO;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.auth.Role;
@@ -75,7 +77,7 @@ public class BaseWCTTest<T> {
 		try
 		{
 			TestingAuthenticationToken testToken = new TestingAuthenticationToken(
-			"TestUser", "TestUser", new GrantedAuthority[] {});	
+			"TestUser", "TestUser", new ArrayList<GrantedAuthority>());
 			
 			testToken.setAuthenticated(true);
 			
@@ -83,7 +85,7 @@ public class BaseWCTTest<T> {
 			
 			testToken.setDetails(dao.getCurrentUser());
 	
-			// Create and store the Acegi SecurityContext into the SecurityContextHolder.
+			// Create and store the Spring SecurityContext into the SecurityContextHolder.
 			SecurityContext securityContext = new SecurityContextImpl();
 			securityContext.setAuthentication(testToken);
 			SecurityContextHolder.setContext(securityContext);

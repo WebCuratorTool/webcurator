@@ -15,14 +15,15 @@
  */
 package org.webcurator.auth.ldap;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.GrantedAuthorityImpl;
-import org.acegisecurity.ldap.LdapDataAccessException;
-import org.acegisecurity.providers.ldap.LdapAuthoritiesPopulator;
-import org.acegisecurity.userdetails.ldap.LdapUserDetails;
+import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.RolePrivilege;
 
@@ -42,28 +43,23 @@ public class WCTAuthoritiesPopulator implements LdapAuthoritiesPopulator {
     /**
      * Select the granted authorities for the sepcified user and return and 
      * array of the authorities found.
+     * @param userData the context object which was returned by the LDAP authenticator.
      * @param username the user name to get the authorities for
      * @return the list of granted authorities
-     * @throws LdapDataAccessException thrown if there is an error
      */
-    private GrantedAuthority[] getGrantedAuthorities(String username) throws LdapDataAccessException {
-       
+    public Collection<GrantedAuthority> getGrantedAuthorities(DirContextOperations userData, String username) {
+
+        List<GrantedAuthority> roles = new ArrayList<>();
         List privileges = auth.getUserPrivileges(username);
         if (privileges != null) {
-            int privSize = privileges.size();
-            GrantedAuthority roles[] = new GrantedAuthority[privSize]; 
-        
-            int i=0;
-            Iterator it = privileges.iterator();
-            while (it.hasNext()) {
-                RolePrivilege priv = (RolePrivilege) it.next();
-                GrantedAuthority ga = new GrantedAuthorityImpl("ROLE_"+priv.getPrivilege());
-                roles[i++] = ga;
+            for (Object rolePrivilegeObject : privileges) {
+                RolePrivilege rolePrivilege = (RolePrivilege) rolePrivilegeObject;
+                GrantedAuthority grantedAuthority = new SimpleGrantedAuthority("ROLE_" + rolePrivilege.getPrivilege());
+                roles.add(grantedAuthority);
             }
-            
-            return roles;
         }
-        return new GrantedAuthority[0];
+
+        return roles;
     }
     
     /** 
@@ -74,8 +70,7 @@ public class WCTAuthoritiesPopulator implements LdapAuthoritiesPopulator {
         this.auth = auth;
     }
 
-    /** @see LdapAuthoritiesPopulator#getGrantedAuthorities(LdapUserDetails) .*/
-    public GrantedAuthority[] getGrantedAuthorities(LdapUserDetails userDetails) throws LdapDataAccessException {        
-        return getGrantedAuthorities(userDetails.getUsername());
+    public Collection<GrantedAuthority> getGrantedAuthorities(LdapUserDetails userDetails) {
+        return getGrantedAuthorities(null, userDetails.getUsername());
     }
 }

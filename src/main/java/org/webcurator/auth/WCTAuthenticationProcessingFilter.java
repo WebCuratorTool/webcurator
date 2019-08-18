@@ -18,18 +18,20 @@ package org.webcurator.auth;
 import java.io.IOException;
 import java.util.Date;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.acegisecurity.Authentication;
-import org.acegisecurity.AuthenticationException;
-import org.acegisecurity.context.SecurityContextHolder;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
-import org.acegisecurity.ui.webapp.AuthenticationProcessingFilter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.context.WebApplicationContext;
 
 import org.webcurator.core.common.Constants;
@@ -45,18 +47,61 @@ import org.webcurator.domain.model.auth.User;
  * The hook for allowing the result of authentication requests to be audited.
  * @author bprice
  */
-public class WCTAuthenticationProcessingFilter extends
-        AuthenticationProcessingFilter {
-
+public class WCTAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
+    public static final String TODO_SECURITY_LAST_USERNAME_KEY = "SECURITY_LAST_USERNAME";
+    public static final String TODO_SECURITY_FORM_USERNAME_KEY = "SECURITY_FORM_USERNAME";
+    public static final String TODO_SECURITY_FORM_PASSWORD_KEY = "SECURITY_FORM_PASSWORD";
     private static Log log = LogFactory.getLog(WCTAuthenticationProcessingFilter.class);
     private Auditor auditor = null;
     private UserRoleDAO authDAO = null;
-     
-    /** @see org.acegisecurity.ui.AbstractProcessingFilter#onSuccessfulAuthentication(HttpServletRequest,HttpServletResponse, Authentication) . */
-    protected void onSuccessfulAuthentication(HttpServletRequest request,
-            HttpServletResponse response, Authentication authResult)
-            throws IOException {
-        
+
+    /**
+     * @param defaultFilterProcessesUrl the default value for <tt>filterProcessesUrl</tt>.
+     */
+    public WCTAuthenticationProcessingFilter(String defaultFilterProcessesUrl) {
+        super(defaultFilterProcessesUrl);
+    }
+
+    /**
+     * Creates a new instance
+     *
+     * @param requiresAuthenticationRequestMatcher the {@link RequestMatcher} used to
+     * determine if authentication is required. Cannot be null.
+     */
+    public WCTAuthenticationProcessingFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
+        super(requiresAuthenticationRequestMatcher);
+    }
+
+    public Authentication attemptAuthentication(HttpServletRequest request,
+                                                HttpServletResponse response)
+            throws AuthenticationException, IOException, ServletException {
+        String username = request.getParameter(TODO_SECURITY_FORM_USERNAME_KEY);
+        String password = request.getParameter(TODO_SECURITY_FORM_PASSWORD_KEY);
+
+        if (username == null) {
+            username = "";
+        }
+
+        if (password == null) {
+            password = "";
+        }
+
+        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
+
+        // Place the last username attempted into HttpSession for views
+        request.getSession().setAttribute(TODO_SECURITY_LAST_USERNAME_KEY, username);
+
+        // Allow subclasses to set the "details" property
+        //setDetails(request, authRequest);
+        authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
+
+        return this.getAuthenticationManager().authenticate(authRequest);
+
+    }
+
+    @Override
+    public void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+                                         Authentication authResult) throws IOException, ServletException {
         log.debug("calling onSuccessfulAuthentication for WCT");
         String userName = authResult.getName();
         
@@ -97,12 +142,12 @@ public class WCTAuthenticationProcessingFilter extends
         }
     }
 
-    /** @see org.acegisecurity.ui.AbstractProcessingFilter#onUnsuccessfulAuthentication(HttpServletRequest,HttpServletResponse, AuthenticationException) . */
     @Override
-    protected void onUnsuccessfulAuthentication(HttpServletRequest aReq, HttpServletResponse aRes, AuthenticationException e) throws IOException {
-        super.onUnsuccessfulAuthentication(aReq, aRes, e);
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                              AuthenticationException failed) throws IOException, ServletException {
+        super.unsuccessfulAuthentication(request, response, failed);
         
-        String username = aReq.getParameter("j_username");
+        String username = request.getParameter("j_username");
         
         //audit failed login event
         auditor.audit(User.class.getName(), Auditor.ACTION_LOGIN_FAILURE, "Failed Login for username: "+username);

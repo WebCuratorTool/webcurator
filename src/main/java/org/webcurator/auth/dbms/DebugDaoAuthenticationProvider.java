@@ -15,11 +15,11 @@
  */
 package org.webcurator.auth.dbms;
 
-import org.acegisecurity.AuthenticationException;
-import org.acegisecurity.BadCredentialsException;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
-import org.acegisecurity.providers.dao.DaoAuthenticationProvider;
-import org.acegisecurity.userdetails.UserDetails;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * This is a test authentication provider and must NOT be used in production.
@@ -32,26 +32,23 @@ public class DebugDaoAuthenticationProvider extends DaoAuthenticationProvider {
 
     @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails,
-            UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-        Object salt = null;
-
+                                                  UsernamePasswordAuthenticationToken authentication)
+            throws AuthenticationException {
         System.out.println("User pwd: "+userDetails.getPassword());
         System.out.println("Auth pwd raw: "+authentication.getCredentials().toString());
+
+        System.out.println("Auth pwd: "+getPasswordEncoder().encode(authentication.getCredentials().toString().trim()));
         
-        if (getSaltSource() != null) {
-            salt = getSaltSource().getSalt(userDetails);
-        }
-        
-        System.out.println("Auth pwd: "+getPasswordEncoder().encodePassword(authentication.getCredentials().toString().trim(), salt));
-        
-        System.out.println("Salt: "+salt);
         System.out.println("Encoder: "+getPasswordEncoder());
 
-        if (!getPasswordEncoder().isPasswordValid(userDetails.getPassword(),
-                authentication.getCredentials().toString(), salt)) {
+        String presentedPassword = authentication.getCredentials().toString();
+
+        if (!getPasswordEncoder().matches(presentedPassword, userDetails.getPassword())) {
+            System.out.println("Authentication failed: password does not match stored value");
+
             throw new BadCredentialsException(messages.getMessage(
                     "AbstractUserDetailsAuthenticationProvider.badCredentials",
-                    "Bad credentials"), userDetails);
+                    "Bad credentials"));
         }
     }
 }

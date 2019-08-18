@@ -53,7 +53,7 @@
         <appender-ref ref="GeneralLog" />
     </logger>
 
-    <logger name="org.acegisecurity" level="WARN" additivity="false">
+    <logger name="org.springframework.security" level="WARN" additivity="false">
         <appender-ref ref="GeneralLog" />
     </logger>
 

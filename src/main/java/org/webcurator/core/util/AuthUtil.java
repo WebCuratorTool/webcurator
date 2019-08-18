@@ -15,8 +15,8 @@
  */
 package org.webcurator.core.util;
 
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.webcurator.domain.model.auth.User;
 
 /**
@@ -29,11 +29,11 @@ public class AuthUtil {
     private static User user;
 
 	/**
-     * obtains the logged in Username as populated by the acegi security framework
+     * obtains the logged in Username as populated by the Spring security framework
      * @return the logged in username
      */
     public static String getRemoteUser() {
-        Authentication auth =  SecurityContextHolder.getContext().getAuthentication();      
+        Authentication auth =  SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {            
             return auth.getName();
         }
