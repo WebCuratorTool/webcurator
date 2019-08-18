@@ -28,8 +28,8 @@ rem Clone the heritrix-1-14-adjust project to get its jar and pom and install it
 RD /S /Q .\wct-core\target\heritrix-1-14-adjust
 mkdir .\wct-core\target
 call git clone https://github.com/WebCuratorTool/heritrix-1-14-adjust.git .\wct-core\target\heritrix-1-14-adjust
-call mvn install:install-file -Dfile=.\wct-core\target\heritrix-1-14-adjust\release_archive\heritrix-1.14.2-webcuratortool-2.0.1.jar ^
-  -DpomFile=.\wct-core\target\heritrix-1-14-adjust\release_archive\heritrix-1.14.2-webcuratortool-2.0.1.pom
+call mvn install:install-file -Dfile=.\wct-core\target\heritrix-1-14-adjust\release_archive\heritrix-1.14.2-webcuratortool-2.0.2.jar ^
+  -DpomFile=.\wct-core\target\heritrix-1-14-adjust\release_archive\heritrix-1.14.2-webcuratortool-2.0.2.pom
 
 
 rem
