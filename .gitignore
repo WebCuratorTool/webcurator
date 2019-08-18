@@ -35,6 +35,9 @@ local.properties
 /logs/
 /target/
 
+# the build folder is used by gradle for build artifacts
+build/
+
 *.eml
 
 ### Intellij ###
