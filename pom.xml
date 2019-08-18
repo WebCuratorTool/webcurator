@@ -127,7 +127,7 @@
 		<dependency>
 			<groupId>org.archive</groupId>
 			<artifactId>heritrix</artifactId>
-			<version>1.14.2-webcuratortool-2.0.1</version>
+			<version>1.14.2-webcuratortool-2.0.2</version>
 			<scope>compile</scope>
 			<exclusions>
 				<exclusion>
