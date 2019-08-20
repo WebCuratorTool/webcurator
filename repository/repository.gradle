@@ -15,10 +15,10 @@ targetCompatibility = 1.8
 setVersion(project.ext.versionNumber)
 
 dependencies {
-    implementation 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
+    api 'org.springframework.boot:spring-boot-starter-data-jpa:2.1.7.RELEASE'
 
-    implementation 'org.projectlombok:lombok:1.18.8'
+    api 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
 
     // TODO The version really should come in through the io.spring-dependency-management plugin. Not sure why it doesn't.
