@@ -1,4 +1,3 @@
-/build
 /build-static
 /classes
 /bin
@@ -11,9 +10,12 @@
 .xdoclet
 nbproject
 
+### Gradle specific ###
+.gradle
+build/
+
 ### Eclipse ###
 .metadata
-.gradle
 bin/
 tmp/
 *.tmp
@@ -33,25 +35,14 @@ local.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-wct-core/logs/
-harvest-agent-h1/logs/
-harvest-agent-h3/logs/
-wct-store/logs/
-wct-core/target/
-harvest-agent-h1/target/
-harvest-agent-h3/target/
-wct-store/target/
-wct-submit-to-rosetta/target/
-wct-assembly/target/
-wct-submit-to-rosetta/DpsDepositError.log
+/logs/
+/target/
 
 *.eml
 
 ### Intellij ###
+.idea
 *.iml
-
-## Directory-based project format:
-.idea/
 # if you remove the above rule, at least ignore the following:
 
 # User-specific stuff:
@@ -70,3 +61,6 @@ wct-submit-to-rosetta/DpsDepositError.log
 
 # IntelliJ
 /out/
+
+### VS Code ###
+.vscode/

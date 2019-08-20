@@ -1,0 +1,29 @@
+apply plugin: 'distribution'
+
+setVersion(project.ext.versionNumber)
+
+distZip {
+    includeEmptyDirs = false
+
+    from 'src/main/resources'
+}
+
+artifacts {
+    publishableArtifacts distZip
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact distZip
+        }
+    }
+
+    repositories {
+        maven {
+            mavenLocal()
+        }
+    }
+}
+
+build.dependsOn distZip

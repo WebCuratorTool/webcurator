@@ -1,0 +1,22 @@
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    group = 'org.webcurator'
+    description = 'Web Curator Tool database artifacts.'
+
+    project.ext {
+        versionNumber = "3.0.0-SNAPSHOT"
+    }
+
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+
+    configurations {
+        publishableArtifacts
+    }
+}
