@@ -17,6 +17,7 @@ import org.kie.api.io.ResourceType;
 import org.drools.compiler.compiler.DroolsParserException;
 import org.kie.internal.io.ResourceFactory;
 import org.kie.internal.runtime.StatefulKnowledgeSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.tools.QualityReviewFacade;
@@ -276,6 +277,7 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 	/**
 	 *	Setter for the Harvest Coordinator used by Spring 
 	 */
+	@Autowired
 	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
 		this.harvestCoordinator = harvestCoordinator;
 	}

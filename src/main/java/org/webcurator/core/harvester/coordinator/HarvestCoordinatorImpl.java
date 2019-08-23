@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -1278,6 +1279,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		this.harvestBandwidthManager = harvestBandwidthManager;
 	}
 
+	@Autowired
 	public void setHarvestQaManager(HarvestQaManager harvestQaManager) {
 		this.harvestQaManager = harvestQaManager;
 	}

@@ -15,6 +15,7 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.drools.compiler.compiler.DroolsParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.rules.QaRecommendationService;
@@ -217,6 +218,7 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 		return qaRecommendationService;
 	}
 
+	@Autowired
 	public void setQaRecommendationService(QaRecommendationService qaRecommendationService) {
 		this.qaRecommendationService = qaRecommendationService;
 	}
