@@ -11,13 +11,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
-import org.springframework.jndi.JndiObjectFactoryBean;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
@@ -81,6 +81,18 @@ public class BaseConfig {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @Value("${spring.datasource.driver-class-name}")
+    private String datasourceDriverClassName;
+
+    @Value("${spring.datasource.url}")
+    private String datasourceUrl;
+
+    @Value("${spring.datasource.username}")
+    private String datasourceUsername;
+
+    @Value("${spring.datasource.password}")
+    private String datasourcePassword;
 
     @Value("${hibernate.dialect}")
     private String hibernateDialect;
@@ -244,9 +256,6 @@ public class BaseConfig {
     @Autowired
     private ListsConfig listsConfig;
 
-    @Autowired
-    private DataSource dataSource;
-
     @Bean
     public ResourceBundleMessageSource messageSource() {
         ResourceBundleMessageSource bean = new ResourceBundleMessageSource();
@@ -256,9 +265,19 @@ public class BaseConfig {
     }
 
     @Bean
+    public DataSource dataSource() {
+        return DataSourceBuilder.create()
+                .driverClassName(datasourceDriverClassName)
+                .url(datasourceUrl)
+                .username(datasourceUsername)
+                .password(datasourcePassword)
+                .build();
+    }
+
+    @Bean
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
-        bean.setDataSource(dataSource);
+        bean.setDataSource(dataSource());
         // TODO NOTE it would be better if this was a wildcard
 //        Resource jarResource = new ClassPathResource("org/webcurator/**");
 //        Resource jarResource = new FileSystemResource("/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");

@@ -41,7 +41,6 @@ import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
 import org.webcurator.auth.dbms.WCTForcePasswordChange;
 import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
 
-import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -71,9 +70,6 @@ public class WctSecurityConfig {
 
     @Autowired
     private BaseConfig baseConfig;
-
-    @Autowired
-    private DataSource dataSource;
 
     public Collection<String> defaultUrlPatterns() {
         Collection<String> urlPatterns = Arrays.asList("/curator/credentials/reset-password.html", "/curator/**",
@@ -239,8 +235,7 @@ public class WctSecurityConfig {
     @Bean
     public WCTDAOAuthenticationProvider jdbcDaoImpl() {
         WCTDAOAuthenticationProvider bean = new WCTDAOAuthenticationProvider();
-        System.out.println("* * * DEBUG: baseConfig=" + baseConfig + ", baseConfig.dataSource()=" + dataSource);
-        bean.setDataSource(dataSource);
+        bean.setDataSource(baseConfig.dataSource());
         bean.setUsersByUsernameQuery(USERS_BY_USERNAME_QUERY);
         bean.setAuthoritiesByUsernameQuery(getAuthoritiesByUsernameQuery());
         bean.setRolePrefix("ROLE_");
