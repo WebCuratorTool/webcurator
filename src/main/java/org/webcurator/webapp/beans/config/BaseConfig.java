@@ -371,7 +371,7 @@ public class BaseConfig {
 
         bean.setRulesFileName("rules.drl");
         bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setHarvestCoordinator(harvestCoordinator());
+        //bean.setHarvestCoordinator(harvestCoordinator());
         bean.setTargetInstanceManager(targetInstanceManager());
 
         return bean;
@@ -525,13 +525,13 @@ public class BaseConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public HarvestCoordinatorImpl harvestCoordinator() {
+    public HarvestCoordinator harvestCoordinator() {
         HarvestCoordinatorImpl bean = new HarvestCoordinatorImpl();
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setHarvestLogManager(harvestLogManager());
         bean.setHarvestBandwidthManager(harvestBandwidthManager());
-        bean.setHarvestQaManager(harvestQaManager());
+        //bean.setHarvestQaManager(harvestQaManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetManager(targetManager());
@@ -584,7 +584,7 @@ public class BaseConfig {
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setAutoQAUrl(autoQAUrl);
-        bean.setQaRecommendationService(qaRecommendationService());
+        //bean.setQaRecommendationService(qaRecommendationService());
         bean.setQualityReviewFacade(qualityReviewFacade());
         bean.setEnableQaModule(enableQaModule);
         bean.setAutoPrunedNote(autoPrunedNote);
