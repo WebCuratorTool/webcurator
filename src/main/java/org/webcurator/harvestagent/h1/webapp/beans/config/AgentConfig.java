@@ -210,6 +210,7 @@ public class AgentConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public JobDetail heartbeatJob() {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("harvestAgent", harvestAgent());
@@ -218,6 +219,7 @@ public class AgentConfig {
         JobDetail bean = JobBuilder.newJob(HarvestAgentHeartBeatJob.class)
                 .withIdentity("HeartBeat", "HeartBeatGroup")
                 .usingJobData(jobDataMap)
+                .storeDurably(true)
                 .build();
 
         return bean;
@@ -225,6 +227,7 @@ public class AgentConfig {
 
     @Bean
     @DependsOn("heartbeatJob")
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger heartbeatTrigger() {
         Date startTime = new Date(System.currentTimeMillis() + heartbeatTriggerStartDelay);
         Trigger bean = TriggerBuilder.newTrigger()
@@ -243,6 +246,7 @@ public class AgentConfig {
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public SchedulerFactoryBean schedulerFactory() {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
+        bean.setJobDetails(heartbeatJob(), checkProcessorJob().getObject());
         bean.setTriggers(heartbeatTrigger(), checkProcessorTrigger());
 
         return bean;
@@ -355,6 +359,7 @@ public class AgentConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkProcessorJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(checkProcessor());
@@ -364,6 +369,7 @@ public class AgentConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger checkProcessorTrigger() {
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
         Trigger bean = TriggerBuilder.newTrigger()
