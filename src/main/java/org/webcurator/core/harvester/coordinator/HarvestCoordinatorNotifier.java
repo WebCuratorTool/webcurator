@@ -125,7 +125,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             }
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION))
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION_BY_OID))
                     .queryParam("target-instance-oid", aTargetInstanceOid)
                     .queryParam("notification-category", notificationCategory)
                     .queryParam("message-type", aMessageType);
@@ -154,7 +154,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             }
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION))
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION_BY_SUBJECT))
                     .queryParam("subject", agent.getName() + " " + aSubject)
                     .queryParam("notification-category", notificationCategory)
                     .queryParam("message", aMessage);
