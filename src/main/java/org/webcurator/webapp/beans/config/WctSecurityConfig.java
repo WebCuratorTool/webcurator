@@ -6,6 +6,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.*;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -67,6 +68,9 @@ public class WctSecurityConfig {
 
     @Value("${ldap.dn}")
     private String ldapDn;
+
+    @Autowired
+    private LdapContextSource ldapContextSource;
 
     @Autowired
     private BaseConfig baseConfig;
@@ -170,22 +174,24 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
-    public BaseLdapPathContextSource ldapPathContextSource() {
-        DefaultSpringSecurityContextSource bean = new DefaultSpringSecurityContextSource(ldapUrl);
-        // TODO CONFIGURATION (optional):
-        // <!-- <property name="managerDn"><value>OU=WCT Users,DC=webcurator,DC=org</value></property> -->
-        // <!-- <property name="managerPassword"><value>itsAsecretWord</value></property> -->
-
-        return bean;
-    }
+    // TODO Move this configuration suggestion to application.properties/sample ldif file
+    // as per https://spring.io/guides/gs/authenticating-ldap/
+//    @Bean
+//    public BaseLdapPathContextSource ldapPathContextSource() {
+//        DefaultSpringSecurityContextSource bean = new DefaultSpringSecurityContextSource(ldapUrl);
+//        // TODO CONFIGURATION (optional):
+//        // <!-- <property name="managerDn"><value>OU=WCT Users,DC=webcurator,DC=org</value></property> -->
+//        // <!-- <property name="managerPassword"><value>itsAsecretWord</value></property> -->
+//
+//        return bean;
+//    }
 
     // Note that the distinguished name patterns are in the class {@link SecurityUserDnListConfig}.
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public LdapAuthenticationProvider ldapAuthenticator() {
-        BindAuthenticator bindAuthenticator = new BindAuthenticator(ldapPathContextSource());
+        BindAuthenticator bindAuthenticator = new BindAuthenticator(ldapContextSource);
         // TODO CONFIGURATION:
         // Use this if your users have the same ldap dn pattern, and the only difference is the user name:
         bindAuthenticator.setUserDnPatterns(new String[]{ ldapDn });
