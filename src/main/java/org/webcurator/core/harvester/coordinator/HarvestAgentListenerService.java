@@ -77,7 +77,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
      *
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#notification(Long, String)
      */
-    @PostMapping(path = HarvestCoordinatorPaths.NOTIFICATION)
+    @PostMapping(path = HarvestCoordinatorPaths.NOTIFICATION_BY_OID)
     public void notification(@RequestParam(value = "target-instance-oid") Long aTargetInstanceOid,
                              @RequestParam(value = "notification-category") int notificationCategory,
                              @RequestParam(value = "message-type") String aMessageType) {
@@ -90,7 +90,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
      *
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#notification(String, String)
      */
-    @PostMapping(path = HarvestCoordinatorPaths.NOTIFICATION)
+    @PostMapping(path = HarvestCoordinatorPaths.NOTIFICATION_BY_SUBJECT)
     public void notification(@RequestParam(value = "subject") String aSubject,
                              @RequestParam(value = "notification-category") int notificationCategory,
                              @RequestParam(value = "message") String aMessage) {

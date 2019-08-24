@@ -41,6 +41,7 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 	/**
 	 * The interface for retrieving log files from the server or digital asset store
 	 */
+    @Autowired
 	private HarvestCoordinator harvestCoordinator = null;
 	
 	/**
@@ -277,7 +278,6 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 	/**
 	 *	Setter for the Harvest Coordinator used by Spring 
 	 */
-	@Autowired
 	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
 		this.harvestCoordinator = harvestCoordinator;
 	}

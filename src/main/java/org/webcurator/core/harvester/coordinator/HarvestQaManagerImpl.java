@@ -50,6 +50,7 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 	 * The component that will provide an <code>Indicator</code> based QA
 	 * recommendation
 	 **/
+    @Autowired
 	private QaRecommendationService qaRecommendationService;
 
 	/** The interface through which auto-prune is applied **/
@@ -218,7 +219,6 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 		return qaRecommendationService;
 	}
 
-	@Autowired
 	public void setQaRecommendationService(QaRecommendationService qaRecommendationService) {
 		this.qaRecommendationService = qaRecommendationService;
 	}

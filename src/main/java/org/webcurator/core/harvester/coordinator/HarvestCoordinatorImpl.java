@@ -32,6 +32,10 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -56,47 +60,61 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
  * 
  * @author nwaight
  */
+@Component("harvestCoordinator")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
 	private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
 
+    @Autowired
 	private TargetInstanceManager targetInstanceManager;
 
 	// Functionality segregated to reduce complexity and increase testability
+    @Autowired
 	private HarvestAgentManager harvestAgentManager;
+    @Autowired
 	private HarvestLogManager harvestLogManager;
+    @Autowired
 	private HarvestBandwidthManager harvestBandwidthManager;
+    @Autowired
 	private HarvestQaManager harvestQaManager;
-
+    @Autowired
 	private TargetInstanceDAO targetInstanceDao;
-
+    @Autowired
 	private DigitalAssetStoreFactory digitalAssetStoreFactory;
 
 	/** The Target Manager. */
+    @Autowired
 	private TargetManager targetManager;
 
 	/** The InTrayManager. */
+    @Autowired
 	private InTrayManager inTrayManager;
 
 	/**
 	 * the number of days before a target instance's digital assets are purged
 	 * from the DAS.
 	 */
+    @Value("${harvestCoordinator.daysBeforeDASPurge}")
 	private int daysBeforeDASPurge = 14;
 
 	/**
 	 * the number of days before an aborted target instance's remnant data are
 	 * purged from the system.
 	 */
+    @Value("${harvestCoordinator.daysBeforeAbortedTargetInstancePurge}")
 	private int daysBeforeAbortedTargetInstancePurge = 7;
-
+    @Autowired
 	private SipBuilder sipBuilder = null;
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 	private boolean queuePaused = false;
 
+    @Value("${harvestCoordinator.harvestOptimizationLookaheadHours}")
 	private int harvestOptimizationLookAheadHours;
+    @Value("${harvestCoordinator.numHarvestersExcludedFromOptimisation}")
 	private int numHarvestersExcludedFromOptimisation;
+    @Value("${harvestCoordinator.harvestOptimizationEnabled}")
 	private boolean harvestOptimizationEnabled;
 
 	/** Default Constructor. */
@@ -1279,7 +1297,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		this.harvestBandwidthManager = harvestBandwidthManager;
 	}
 
-	@Autowired
 	public void setHarvestQaManager(HarvestQaManager harvestQaManager) {
 		this.harvestQaManager = harvestQaManager;
 	}
