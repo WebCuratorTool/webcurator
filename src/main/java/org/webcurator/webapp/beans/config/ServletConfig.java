@@ -16,6 +16,7 @@ import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
 import org.springframework.web.servlet.view.tiles3.TilesView;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.ui.groups.command.*;
 import org.webcurator.ui.groups.controller.*;
 import org.webcurator.ui.groups.validator.*;
@@ -93,6 +94,9 @@ public class ServletConfig {
     @Autowired
     private TargetAccessValidator targetAccessValidator;
 
+    @Autowired
+    private HarvestCoordinator harvestCoordinator;
+
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
@@ -125,7 +129,7 @@ public class ServletConfig {
         //mappings.put("/curator/target/annotation-ajax.html", "annotationAjaxController");
         mappings.put("/curator/target/target-instance.html", "tabbedTargetInstanceController");
         //mappings.put("/curator/target/harvest-now.html", "harvestNowController");
-        mappings.put("/curator/target/target.html", "targetController");
+        //mappings.put("/curator/target/target.html", "targetController");
         mappings.put("/curator/target/search.html", "targetSearchController");
         //mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
         //mappings.put("/curator/targets/add-parents.html", "addParentsController");
@@ -137,7 +141,7 @@ public class ServletConfig {
         mappings.put("/curator/profiles/list.html", "profileListController");
         mappings.put("/curator/profiles/view.html", "profileViewController");
         //mappings.put("/curator/profiles/delete.html", "profileDeleteController");
-        mappings.put("/curator/profiles/make-default.html", "makeDefaultProfileController");
+        //mappings.put("/curator/profiles/make-default.html", "makeDefaultProfileController");
         mappings.put("/curator/admin/rejreason.html", "rejReasonController");
         mappings.put("/curator/admin/create-rejreason.html", "createRejReasonController");
         mappings.put("/curator/admin/qaindicators.html", "qaIndicatorController");
@@ -156,7 +160,7 @@ public class ServletConfig {
         mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");
         //mappings.put("/curator/target/aqa-viewer.html", "aqaReaderController");
         //mappings.put("/curator/target/log-retriever.html", "logRetrieverController");
-        mappings.put("/curator/target/show-hop-path.html", "showHopPathController");
+        //mappings.put("/curator/target/show-hop-path.html", "showHopPathController");
         //mappings.put("/curator/target/permission-popup.html", "permissionPopupController");
         //mappings.put("/curator/target/target-basic-credentials.html", "basicCredentialsControllerTarget");
         //mappings.put("/curator/target/target-form-credentials.html", "formCredentialsControllerTarget");
@@ -416,7 +420,7 @@ public class ServletConfig {
     public TargetInstanceGeneralHandler targetInstanceGeneralHandler() {
         TargetInstanceGeneralHandler bean = new TargetInstanceGeneralHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setAutoQAUrl("${harvestCoordinator.autoQAUrl}");
@@ -442,7 +446,7 @@ public class ServletConfig {
     public TargetInstanceStateHandler targetInstanceStateHandler() {
         TargetInstanceStateHandler bean = new TargetInstanceStateHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
 
         return bean;
     }
@@ -450,7 +454,7 @@ public class ServletConfig {
     public TargetInstanceLogsHandler targetInstanceLogsHandler() {
         TargetInstanceLogsHandler bean = new TargetInstanceLogsHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
 
         return bean;
     }
@@ -458,7 +462,7 @@ public class ServletConfig {
     public TargetInstanceResultHandler targetInstanceResultHandler() {
         TargetInstanceResultHandler bean = new TargetInstanceResultHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
 

@@ -7,7 +7,8 @@ import org.springframework.context.annotation.FilterType;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListenerService;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "org.webcurator.webapp", "org.webcurator.ui", "org.webcurator.core.rest" }//,
+@ComponentScan(basePackages = { "org.webcurator.webapp", "org.webcurator.ui", "org.webcurator.core.harvester",
+        "org.webcurator.core.rest" }//,
         // Put any exclusions here.
         //excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ClassToExclude.class)
 )

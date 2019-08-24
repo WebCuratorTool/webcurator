@@ -59,7 +59,6 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.ui.groups.controller.GroupSearchController;
-import org.webcurator.ui.target.controller.ShowHopPathController;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.ui.tools.controller.QualityReviewToolController;
 import org.webcurator.ui.tools.controller.TreeToolController;
@@ -105,21 +104,6 @@ public class BaseConfig {
 
     @Value("${digitalAssetStore.port}")
     private int digitalAssetStorePort;
-
-    @Value("${harvestCoordinator.harvestOptimizationEnabled}")
-    private boolean harvestOptimizationEnabled;
-
-    @Value("${harvestCoordinator.harvestOptimizationLookaheadHours}")
-    private int harvestOptimizationLookaheadHours;
-
-    @Value("${harvestCoordinator.numHarvestersExcludedFromOptimisation}")
-    private int numHarvestersExcludedFromOptimisation;
-
-    @Value("${harvestCoordinator.daysBeforeDASPurge}")
-    private int daysBeforeDASPurge;
-
-    @Value("${harvestCoordinator.daysBeforeAbortedTargetInstancePurge}")
-    private int daysBeforeAbortedTargetInstancePurge;
 
     @Value("${harvestCoordinator.minimumBandwidth}")
     private int minimumBandwidth;
@@ -255,6 +239,9 @@ public class BaseConfig {
 
     @Autowired
     private ListsConfig listsConfig;
+
+    @Autowired
+    private HarvestCoordinator harvestCoordinator;
 
     @Bean
     public ResourceBundleMessageSource messageSource() {
@@ -524,29 +511,6 @@ public class BaseConfig {
     }
 
     @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public HarvestCoordinator harvestCoordinator() {
-        HarvestCoordinatorImpl bean = new HarvestCoordinatorImpl();
-        bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setHarvestAgentManager(harvestAgentManager());
-        bean.setHarvestLogManager(harvestLogManager());
-        bean.setHarvestBandwidthManager(harvestBandwidthManager());
-        //bean.setHarvestQaManager(harvestQaManager());
-        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
-        bean.setTargetInstanceManager(targetInstanceManager());
-        bean.setTargetManager(targetManager());
-        bean.setInTrayManager(inTrayManager());
-        bean.setSipBuilder(sipBuilder());
-        bean.setHarvestOptimizationEnabled(harvestOptimizationEnabled);
-        bean.setHarvestOptimizationLookAheadHours(harvestOptimizationLookaheadHours);
-        bean.setNumHarvestersExcludedFromOptimisation(numHarvestersExcludedFromOptimisation);
-        bean.setDaysBeforeDASPurge(daysBeforeDASPurge);
-        bean.setDaysBeforeAbortedTargetInstancePurge(daysBeforeAbortedTargetInstancePurge);
-
-        return bean;
-    }
-
-    @Bean
     public HarvestAgentManagerImpl harvestAgentManager() {
         HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
         bean.setHarvestAgentFactory(harvestAgentFactory());
@@ -746,19 +710,22 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public JobDetail processScheduleJob() {
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("harvestCoordinator", harvestCoordinator());
+        jobDataMap.put("harvestCoordinator", harvestCoordinator);
 
         JobDetail bean = JobBuilder.newJob(ScheduleJob.class)
                 .withIdentity("ProcessSchedule", "ProcessScheduleGroup")
                 .usingJobData(jobDataMap)
+                .storeDurably(true)
                 .build();
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger processScheduleTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + processScheduleTriggerStartDelay);
@@ -775,15 +742,17 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkBandwidthTransitionsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator());
+        bean.setTargetObject(harvestCoordinator);
         bean.setTargetMethod("checkForBandwidthTransition");
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger bandwidthCheckTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + bandwidthCheckTriggerStartDelay);
@@ -804,6 +773,11 @@ public class BaseConfig {
     @Lazy(false)
     public SchedulerFactoryBean schedulerFactory() {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
+
+        bean.setJobDetails(processScheduleJob(), checkBandwidthTransitionsJob().getObject(),
+                purgeDigitalAssetsJob().getObject(), purgeAbortedTargetInstancesJob().getObject(),
+                groupExpiryJob().getObject(), createNewTargetInstancesJob().getObject());
+
         bean.setTriggers(processScheduleTrigger(), bandwidthCheckTrigger(), purgeDigitalAssetsTrigger(),
                 purgeAbortedTargetInstancesTrigger(), groupExpiryJobTrigger(), createNewTargetInstancesTrigger());
 
@@ -875,7 +849,7 @@ public class BaseConfig {
         bean.setErrorThreshold(bandwidthCheckerErrorThreshold);
         bean.setNotificationSubject("Core");
         bean.setCheckType("Bandwidth");
-        bean.setHarvestCoordinator(harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
         bean.setNotifier(checkNotifier());
 
         return bean;
@@ -906,6 +880,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkProcessorJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(checkProcessor());
@@ -915,6 +890,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger checkProcessorTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
@@ -931,15 +907,17 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeDigitalAssetsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator());
+        bean.setTargetObject(harvestCoordinator);
         bean.setTargetMethod("purgeDigitalAssets");
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger purgeDigitalAssetsTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
@@ -956,15 +934,17 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeAbortedTargetInstancesJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator());
+        bean.setTargetObject(harvestCoordinator);
         bean.setTargetMethod("purgeAbortedTargetInstances");
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger purgeAbortedTargetInstancesTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
@@ -1009,6 +989,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean groupExpiryJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(targetManager());
@@ -1018,6 +999,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger groupExpiryJobTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + groupExpiryJobTriggerStartDelay);
@@ -1034,6 +1016,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean createNewTargetInstancesJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(targetManager());
@@ -1043,6 +1026,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger createNewTargetInstancesTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + createNewTargetInstancesTriggerStartDelay);
@@ -1142,17 +1126,6 @@ public class BaseConfig {
         bean.setEnableBrowseTool(qualityReviewToolControllerEnableBrowseTool);
         bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
         bean.setWebArchiveTarget(qualityReviewToolControllerWebArchiveTarget);
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public ShowHopPathController showHopPathController() {
-        ShowHopPathController bean = new ShowHopPathController();
-        bean.setHarvestLogManager(harvestLogManager());
-        bean.setTargetInstanceManager(targetInstanceManager());
 
         return bean;
     }

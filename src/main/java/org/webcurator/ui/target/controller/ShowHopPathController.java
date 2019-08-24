@@ -21,7 +21,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -34,10 +39,16 @@ import org.webcurator.ui.target.validator.ShowHopPathValidator;
  * The controller for handling the hop path viewer commands.
  * @author skillarney
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@RequestMapping("/curator/target/show-hop-path.html")
 public class ShowHopPathController {
 
+    @Autowired
 	HarvestLogManager harvestLogManager;
 
+    @Autowired
 	TargetInstanceManager targetInstanceManager;
 
 	@Autowired

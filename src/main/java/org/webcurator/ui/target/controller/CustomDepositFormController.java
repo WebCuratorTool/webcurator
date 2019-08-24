@@ -11,7 +11,7 @@ import org.webcurator.ui.archive.ArchiveCommand;
 import org.webcurator.common.Constants;
 
 @Controller
-@RequestMapping("/curator/target/annotation-ajax.html")
+@RequestMapping("/curator/target/deposit-form-envelope.html")
 public class CustomDepositFormController {
     /** the logger. */
     private Log log;

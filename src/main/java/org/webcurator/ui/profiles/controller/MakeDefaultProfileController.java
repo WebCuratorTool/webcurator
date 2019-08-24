@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 import org.webcurator.core.profiles.ProfileManager;
@@ -37,6 +38,7 @@ import org.webcurator.ui.profiles.command.ViewCommand;
  *
  */
 @Controller
+@RequestMapping("/curator/profiles/make-default.html")
 public class MakeDefaultProfileController extends ProfileListController {
 
 	/**
