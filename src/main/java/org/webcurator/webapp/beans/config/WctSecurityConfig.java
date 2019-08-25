@@ -19,7 +19,6 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -57,9 +56,6 @@ import java.util.List;
 @Configuration
 @PropertySource(value = "classpath:wct-webapp.properties")
 public class WctSecurityConfig {
-    static final String USERS_BY_USERNAME_QUERY = "select usr_username, usr_password, usr_active, usr_force_pwd_change " +
-            "from ${hibernate.default_schema}.WCTUSER WHERE usr_username = ?";
-
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
 
@@ -242,11 +238,17 @@ public class WctSecurityConfig {
     public WCTDAOAuthenticationProvider jdbcDaoImpl() {
         WCTDAOAuthenticationProvider bean = new WCTDAOAuthenticationProvider();
         bean.setDataSource(baseConfig.dataSource());
-        bean.setUsersByUsernameQuery(USERS_BY_USERNAME_QUERY);
+        bean.setUsersByUsernameQuery(getUsersByUsernameQuery(hibernateDefaultSchema));
         bean.setAuthoritiesByUsernameQuery(getAuthoritiesByUsernameQuery());
         bean.setRolePrefix("ROLE_");
 
         return bean;
+    }
+
+    // TODO A common place for queries?
+    private String getUsersByUsernameQuery(String schema) {
+        return "select usr_username, usr_password, usr_active, usr_force_pwd_change from " + schema +
+                ".WCTUSER WHERE usr_username = ?";
     }
 
     public String getAuthoritiesByUsernameQuery() {
