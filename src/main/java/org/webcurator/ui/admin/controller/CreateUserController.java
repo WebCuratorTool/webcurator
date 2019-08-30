@@ -57,7 +57,7 @@ public class CreateUserController {
 	/** the logger. */
     private Log log = null;
     /** the password encoder. */
-    @Autowired
+    //@Autowired
     private PasswordEncoder passwordEncoder;
     /** the agency user manager. */
     @Autowired

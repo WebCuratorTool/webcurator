@@ -53,8 +53,8 @@ import java.util.List;
  * XML files.
  *
  */
-@Configuration
-@PropertySource(value = "classpath:wct-webapp.properties")
+//@Configuration
+//@PropertySource(value = "classpath:wct-webapp.properties")
 public class WctSecurityConfig {
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
@@ -79,7 +79,7 @@ public class WctSecurityConfig {
     }
 
     // NOTE: If you wish to use channel security, then uncomment this filter (it precedes securityFilter()).
-//    @Bean
+//    //@Bean
 //    public FilterRegistrationBean<ChannelProcessingFilter> channelFilter() {
 //        FilterRegistrationBean<ChannelProcessingFilter> bean = new FilterRegistrationBean<>();
 //        bean.setFilter(channelProcessingFilter());
@@ -90,7 +90,7 @@ public class WctSecurityConfig {
 //        return bean;
 //    }
 
-    @Bean
+    //@Bean
     public FilterRegistrationBean<SecurityContextPersistenceFilter> securityFilter() {
         FilterRegistrationBean<SecurityContextPersistenceFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(securityContextPersistenceFilter());
@@ -101,7 +101,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public FilterRegistrationBean<WCTAuthenticationProcessingFilter> authenticationFilter() {
         FilterRegistrationBean<WCTAuthenticationProcessingFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(authenticationProcessingFilter());
@@ -112,7 +112,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public FilterRegistrationBean<ExceptionTranslationFilter> exceptionFilter() {
         FilterRegistrationBean<ExceptionTranslationFilter> bean = new FilterRegistrationBean<>();
         bean.setFilter(exceptionTranslationFilter());
@@ -123,7 +123,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public FilterRegistrationBean<FilterSecurityInterceptor> securityInterceptorFilter() {
         FilterRegistrationBean<FilterSecurityInterceptor> bean = new FilterRegistrationBean<>();
         bean.setFilter(filterSecurityInterceptor());
@@ -134,7 +134,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public FilterRegistrationBean<WCTForcePasswordChange> expiredPasswordFilter() {
         FilterRegistrationBean<WCTForcePasswordChange> bean = new FilterRegistrationBean<>();
         bean.setFilter(wctPasswordExpiredFilter());
@@ -145,7 +145,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public WCTForcePasswordChange wctPasswordExpiredFilter() {
@@ -155,7 +155,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public ProviderManager authenticationManager() {
@@ -172,7 +172,7 @@ public class WctSecurityConfig {
 
     // TODO Move this configuration suggestion to application.properties/sample ldif file
     // as per https://spring.io/guides/gs/authenticating-ldap/
-//    @Bean
+//    //@Bean
 //    public BaseLdapPathContextSource ldapPathContextSource() {
 //        DefaultSpringSecurityContextSource bean = new DefaultSpringSecurityContextSource(ldapUrl);
 //        // TODO CONFIGURATION (optional):
@@ -183,7 +183,7 @@ public class WctSecurityConfig {
 //    }
 
     // Note that the distinguished name patterns are in the class {@link SecurityUserDnListConfig}.
-    @Bean
+    //@Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public LdapAuthenticationProvider ldapAuthenticator() {
@@ -210,7 +210,7 @@ public class WctSecurityConfig {
     // TODO CONFIGURATION
     // Active directory user search
     // Note that this bean has been commented out in the original xml configuration file.
-//    @Bean
+//    //@Bean
 //    public FilterBasedLdapUserSearch userSearch() {
 //        FilterBasedLdapUserSearch bean = new FilterBasedLdapUserSearch("OU=Users,DC=webcurator,DC=org",
 //                "(sAMAccountName={0})", initialDirContextFactory());
@@ -219,7 +219,7 @@ public class WctSecurityConfig {
 //        return bean;
 //    }
 
-    @Bean
+    //@Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider bean = new DaoAuthenticationProvider();
         bean.setUserDetailsService(jdbcDaoImpl());
@@ -228,13 +228,13 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public PasswordEncoder passwordEncoder() {
         // The original ShaPasswordEncoder would encrypt passwords with SystemWideSalt of "Rand0mS4lt"
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+    //@Bean
     public WCTDAOAuthenticationProvider jdbcDaoImpl() {
         WCTDAOAuthenticationProvider bean = new WCTDAOAuthenticationProvider();
         bean.setDataSource(baseConfig.dataSource());
@@ -272,12 +272,12 @@ public class WctSecurityConfig {
     }
 
     // Automatically receives AuthenticationEvent messages.
-    @Bean
+    //@Bean
     public LoggerListener loggerListener() {
         return new LoggerListener();
     }
 
-    @Bean
+    //@Bean
     public SecurityContextPersistenceFilter securityContextPersistenceFilter() {
         return new SecurityContextPersistenceFilter();
     }
@@ -286,7 +286,7 @@ public class WctSecurityConfig {
     // ===================== HTTP CHANNEL REQUIREMENTS ====================
     // You will need to uncomment the "Acegi Channel Processing Filter"
     // <filter-mapping> in web.xml for the following beans to be used
-    @Bean
+    //@Bean
     public ChannelProcessingFilter channelProcessingFilter() {
         LinkedHashMap<RequestMatcher, Collection<ConfigAttribute>> requestMap = new LinkedHashMap<>();
         requestMap.put(new AntPathRequestMatcher("\\A/acegilogin.jsp.*\\Z", null, false),
@@ -303,7 +303,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public ChannelDecisionManagerImpl channelDecisionManager() {
         ChannelDecisionManagerImpl bean = new ChannelDecisionManagerImpl();
         bean.setChannelProcessors(new ArrayList(Arrays.asList(secureChannelProcessor(), insecureChannelProcessor())));
@@ -311,26 +311,26 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public SecureChannelProcessor secureChannelProcessor() {
         return new SecureChannelProcessor();
     }
 
-    @Bean
+    //@Bean
     public InsecureChannelProcessor insecureChannelProcessor() {
         return new InsecureChannelProcessor();
     }
 
     // ===================== HTTP REQUEST SECURITY ====================
 
-    @Bean
+    //@Bean
     public ExceptionTranslationFilter exceptionTranslationFilter() {
         ExceptionTranslationFilter bean = new ExceptionTranslationFilter(authenticationEntryPoint());
 
         return bean;
     }
 
-    @Bean
+    //@Bean
     public WCTAuthenticationProcessingFilter authenticationProcessingFilter() {
         WCTAuthenticationProcessingFilter bean = new WCTAuthenticationProcessingFilter("/j_acegi_security_check");
         bean.setAuthenticationManager(authenticationManager());
@@ -346,7 +346,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public AuthenticationEntryPoint authenticationEntryPoint() {
@@ -356,7 +356,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public AffirmativeBased httpRequestAccessDecisionManager() {
         List<AccessDecisionVoter<? extends Object>> roleVoters = Arrays.asList(roleVoter());
         AffirmativeBased bean = new AffirmativeBased(roleVoters);
@@ -365,12 +365,12 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public RoleVoter roleVoter() {
         return new RoleVoter();
     }
 
-    @Bean
+    //@Bean
     public SecurityMetadataSource securityMetadataSource() {
         SecurityMetadataSource bean = new SecurityMetadataSource() {
             @Override
@@ -392,7 +392,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource() {
         // This is from the former XML wct-security-config.xml.
         // Note the order that entries are placed against the objectDefinitionSource is critical.
@@ -413,7 +413,7 @@ public class WctSecurityConfig {
         return bean;
     }
 
-    @Bean
+    //@Bean
     public FilterSecurityInterceptor filterSecurityInterceptor() {
         FilterSecurityInterceptor bean = new FilterSecurityInterceptor();
         bean.setAuthenticationManager(authenticationManager());

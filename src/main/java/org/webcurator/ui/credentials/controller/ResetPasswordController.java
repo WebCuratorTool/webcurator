@@ -38,9 +38,9 @@ import org.webcurator.ui.credentials.command.ResetPasswordCommand;
  * Controller for managing reseting a users password.
  * @author bprice
  */
-@Controller
-@Scope(BeanDefinition.SCOPE_SINGLETON)
-@Lazy(false)
+//@Controller
+//@Scope(BeanDefinition.SCOPE_SINGLETON)
+//@Lazy(false)
 public class ResetPasswordController {
 	/** The data access object for authorisation data. */
 	@Autowired
