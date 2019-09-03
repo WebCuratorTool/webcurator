@@ -48,9 +48,9 @@ import org.webcurator.common.Constants;
  * Manage the view for changing a users password.
  * @author bprice
  */
-//@Controller
-//@Scope(BeanDefinition.SCOPE_SINGLETON)
-//@Lazy(false)
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ChangePasswordController {
 	/** the agency user manager. */
 	@Autowired

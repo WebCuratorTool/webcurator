@@ -15,11 +15,11 @@ import java.util.List;
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
-//@Configuration
+@Configuration
 public class SecurityUserDnListConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(SecurityUserDnListConfig.class);
 
-    //@Bean
+    @Bean
     public ListFactoryBean userDnList() {
         ListFactoryBean bean = new ListFactoryBean();
         bean.setTargetListClass(ArrayList.class);
