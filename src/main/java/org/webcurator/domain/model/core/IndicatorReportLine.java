@@ -18,9 +18,9 @@ import javax.persistence.*;
 		@NamedQuery(name = "org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLines",
 				query = "SELECT irl FROM IndicatorReportLine irl ORDER BY irl.line"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLinesByIndicator",
-				query = "SELECT irl FROM IndicatorReportLine irl WHERE irl_i_oid=? ORDER BY irl.line"),
+				query = "SELECT irl FROM IndicatorReportLine irl WHERE irl_i_oid=?1 ORDER BY irl.line"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.IndicatorReportLine.getIndicatorReportLineByOid",
-				query = "SELECT irl FROM IndicatorReportLine irl WHERE irl_oid=?")
+				query = "SELECT irl FROM IndicatorReportLine irl WHERE irl_oid=?1")
 })
 public class IndicatorReportLine {
 		

@@ -82,8 +82,10 @@ public class TargetGroup extends AbstractTarget {
 	private Set<GroupMember> children = new HashSet<GroupMember>();
 	
 	/** Unpersisted - List of new children */
+	@Transient
 	private List<GroupMemberDTO> newChildren = new LinkedList<GroupMemberDTO>();
 	/** Set of children that have been removed */
+	@Transient
 	private Set<Long> removedChildren = new HashSet<Long>();
 	/** The type of the group */
 	@Column(name = "TG_TYPE", length = 255)

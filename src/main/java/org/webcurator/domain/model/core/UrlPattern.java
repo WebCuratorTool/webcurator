@@ -53,7 +53,7 @@ public class UrlPattern extends AbstractIdentityObject {
 	@JoinColumn(name = "UP_SITE_ID", foreignKey = @ForeignKey(name = "FK_UP_SITE_ID"))
 	private Site site;
 	/** A set of permissions. */
-	@ManyToMany(mappedBy = "urls", cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
 	@JoinTable(name = "PERMISSION_URLPATTERN",
 			joinColumns = { @JoinColumn(name = "PU_URLPATTERN_ID") },
 			inverseJoinColumns = { @JoinColumn(name = "PU_PERMISSION_ID") },

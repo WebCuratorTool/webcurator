@@ -15,21 +15,14 @@
  */
 package org.webcurator.domain.model.core;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.Collections;
-
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.core.util.Utils;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
 import javax.persistence.*;
+import java.util.*;
 
 /**
  * Base Target object to capture the common behaviour between groups and 
@@ -42,13 +35,13 @@ import javax.persistence.*;
 @Table(name = "ABSTRACT_TARGET")
 @NamedQueries({
 		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getAllDTOsByName",
-				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where lower(t.name) like lower(?) ORDER BY UPPER(t.name), t.objectType"),
+				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where lower(t.name) like lower(?1) ORDER BY UPPER(t.name), t.objectType"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.cntAllDTOsByName",
-				query = "SELECT count(*) FROM AbstractTarget t where lower(t.name) like lower(?)"),
+				query = "SELECT count(*) FROM AbstractTarget t where lower(t.name) like lower(?1)"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getGroupDTOsByName",
-				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?) ORDER BY UPPER(t.name), t.objectType"),
+				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?1) ORDER BY UPPER(t.name), t.objectType"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.cntGroupDTOsByName",
-				query = "SELECT count(*) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?)"),
+				query = "SELECT count(*) FROM AbstractTarget t where t.objectType = 0 and lower(t.name) like lower(?1)"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getDTOByOid",
 				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM AbstractTarget t where t.oid=:oid"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.getTargetDTOsByProfileOid",
@@ -129,18 +122,24 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @Column(name = "AT_STATE")
     private int state; 
     /** The list of annotations. */
+    @Transient
     private List<Annotation> annotations = new LinkedList<Annotation>();
     /** The list of deleted annotations. */
-    private List<Annotation> deletedAnnotations = new LinkedList<Annotation>();
+	@Transient
+	private List<Annotation> deletedAnnotations = new LinkedList<Annotation>();
     /** True if the annotations have been loaded */
-    private boolean annotationsSet = false;    
-    /** Flag to state if the annotations have been sorted */
-    private boolean annotationsSorted = false;    
-    /** Flag to state if the annotations contain any flagged as alertable, making the whole target/group alertable */
-    private boolean alertable = false;    
-    /** Removed Schedules */
-    private Set<Schedule> removedSchedules = new HashSet<Schedule>();    
-    /** The target's base profile. */
+	@Transient
+	private boolean annotationsSet = false;
+	/** Flag to state if the annotations have been sorted */
+	@Transient
+	private boolean annotationsSorted = false;
+	/** Flag to state if the annotations contain any flagged as alertable, making the whole target/group alertable */
+	@Transient
+	private boolean alertable = false;
+	/** Removed Schedules */
+	@Transient
+	private Set<Schedule> removedSchedules = new HashSet<Schedule>();
+	/** The target's base profile. */
     @ManyToOne
     @JoinColumn(name = "T_PROFILE_ID")
     private Profile profile;
@@ -153,8 +152,9 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @JoinColumn(name = "GM_CHILD_ID")
     private Set<GroupMember> parents = new HashSet<GroupMember>();
     /** Flag to state if the object is "dirty" */
-    private boolean dirty = false;    
-    /**
+	@Transient
+	private boolean dirty = false;
+	/**
      * Identifies whether this is a target or group without needing to use
      * the instanceof operator, which can be important if the object is not
      * fully initialised by Hibernate.
@@ -171,10 +171,12 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /** The Profile Note */
     @Column(name = "AT_PROFILE_NOTE", length = 255)
     private String profileNote = null;
-    
-    
-    private List<GroupMember> newParents = new LinkedList<GroupMember>();
-    private Set<Long> removedParents = new HashSet<Long>();
+
+
+	@Transient
+	private List<GroupMember> newParents = new LinkedList<GroupMember>();
+	@Transient
+	private Set<Long> removedParents = new HashSet<Long>();
 
     @Column(name = "AT_DISPLAY_TARGET")
     private boolean displayTarget = true;

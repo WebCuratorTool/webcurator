@@ -29,7 +29,7 @@ import java.util.Date;
 @Entity
 @Table(name = "WCTAUDIT")
 @NamedQuery(name = "org.webcurator.domain.model.audit.Audit.getAllByPeriodByAgencyByUser",
-        query = "SELECT au FROM Audit au, org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.auth.Agency ag WHERE au.userOid=u.oid AND u.agency.oid=ag.oid AND au.dateTime>=? AND au.dateTime<=? AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = u.agency.name) ) AND ( ?='All users' OR ( ? !='All users' AND au.userOid=u.oid AND ? = u.username) ) ORDER BY au.dateTime")
+        query = "SELECT au FROM Audit au, org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.auth.Agency ag WHERE au.userOid=u.oid AND u.agency.oid=ag.oid AND au.dateTime>=?1 AND au.dateTime<=?2 AND ( ?3='All agencies' OR ( ?4!='All agencies' AND ?5 = u.agency.name) ) AND ( ?6='All users' OR ( ?7 !='All users' AND au.userOid=u.oid AND ?8 = u.username) ) ORDER BY au.dateTime")
 public class Audit {
 
 	/** Query to retrieve Audit messages for a given user. */

@@ -18,9 +18,9 @@ import javax.persistence.*;
         @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlags",
                 query = "SELECT f FROM Flag f ORDER BY f_agc_oid, f.name"),
         @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagsByAgency",
-                query = "SELECT f FROM Flag f WHERE f.agency.oid=? ORDER BY f.name"),
+                query = "SELECT f FROM Flag f WHERE f.agency.oid=?1 ORDER BY f.name"),
         @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagByOid",
-                query = "SELECT f FROM Flag f WHERE f_oid=?")
+                query = "SELECT f FROM Flag f WHERE f_oid=?1")
 })
 public class Flag {
 		

@@ -36,9 +36,9 @@ import javax.persistence.*;
 		@NamedQuery(name = "org.webcurator.domain.model.core.RejReason.getReasons",
 				query = "SELECT rr FROM RejReason rr ORDER BY rr_agc_oid, rr.name"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.RejReason.getReasonByOid",
-				query = "SELECT rr FROM RejReason rr WHERE rr_oid=?"),
+				query = "SELECT rr FROM RejReason rr WHERE rr_oid=?1"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.RejReason.getReasonsByAgency",
-				query = "SELECT rr FROM RejReason rr WHERE rr.agency.oid=? ORDER BY rr.name")
+				query = "SELECT rr FROM RejReason rr WHERE rr.agency.oid=?1 ORDER BY rr.name")
 })
 public class RejReason implements Serializable {
     

@@ -29,11 +29,11 @@ import java.util.Date;
 @Table(name = "WCT_LOGON_DURATION")
 @NamedQueries({
 		@NamedQuery(name = "org.webcurator.domain.model.report.LogonDuration.getDurationBySession",
-				query = "SELECT ld FROM LogonDuration ld WHERE ld.sessionId = ? "),
+				query = "SELECT ld FROM LogonDuration ld WHERE ld.sessionId = ?1 "),
 		@NamedQuery(name = "org.webcurator.domain.model.report.LogonDuration.getLoggedUsersByPeriodByAgency",
-				query = "SELECT new org.webcurator.core.report.dto.LogonUserDTO(u.oid, u.username, u.firstname, u.lastname, u.active, u.deactivateDate, ld.logonTime, ld.duration) FROM org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.report.LogonDuration ld, org.webcurator.domain.model.auth.Agency ag WHERE u.oid = ld.userOid AND u.agency.oid = ag.oid AND ld.logonTime >= ? AND ld.logonTime < ? AND ( (ld.logoutTime is null AND ? < ?) OR (ld.logoutTime is not null AND ld.logoutTime <= ?) ) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = u.agency.name) )"),
+				query = "SELECT new org.webcurator.core.report.dto.LogonUserDTO(u.oid, u.username, u.firstname, u.lastname, u.active, u.deactivateDate, ld.logonTime, ld.duration) FROM org.webcurator.domain.model.auth.User u, org.webcurator.domain.model.report.LogonDuration ld, org.webcurator.domain.model.auth.Agency ag WHERE u.oid = ld.userOid AND u.agency.oid = ag.oid AND ld.logonTime >= ?1 AND ld.logonTime < ?2 AND ( (ld.logoutTime is null AND ?3 < ?4) OR (ld.logoutTime is not null AND ld.logoutTime <= ?5) ) AND ( ?6='All agencies' OR ( ?7!='All agencies' AND ?8 = u.agency.name) )"),
 		@NamedQuery(name = "org.webcurator.domain.model.report.LogonDuration.UnproperLoggedoutSessionsForCurrentUser",
-				query = "SELECT ld FROM LogonDuration ld, org.webcurator.domain.model.auth.User u WHERE u.oid = ld.userOid AND u.oid = ? AND ld.sessionId != ? AND ld.duration is null")
+				query = "SELECT ld FROM LogonDuration ld, org.webcurator.domain.model.auth.User u WHERE u.oid = ld.userOid AND u.oid = ?1 AND ld.sessionId != ?2 AND ld.duration is null")
 })
 public class LogonDuration {
 	

@@ -102,16 +102,21 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
     /**
      * A set of permissions that have been removed.
      */
+    @Transient
     private Set<Permission> removedPermissions = new HashSet<Permission>();
     
     /** The list of annotations. */
+    @Transient
     private List<Annotation> annotations = new LinkedList<Annotation>();
     /** The list of deleted annotations. */
+    @Transient
     private List<Annotation> deletedAnnotations = new LinkedList<Annotation>();
     /** True if the annotations have been loaded */
+    @Transient
     private boolean annotationsSet = false;
     /** Flag to state if the annotations have been sorted */
-    private boolean annotationsSorted = false;    
+    @Transient
+    private boolean annotationsSorted = false;
     
     /** The owning agency */
     @ManyToOne

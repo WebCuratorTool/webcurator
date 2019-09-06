@@ -25,7 +25,6 @@ import javax.persistence.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.profiles.*;
 
@@ -128,7 +127,7 @@ public class ProfileOverrides {
 	private boolean overrideMaxLinkHops = false;
 	
 	/** The list of URIs to exclude */
-	@ElementCollection
+	@ElementCollection()
 	@CollectionTable(name = "PO_EXCLUSION_URI", joinColumns = @JoinColumn(name = "PEU_PROF_OVER_OID"))
 	@Column(name = "PEU_FILTER")
 	// TODO @hibernate.collection-index column="PEU_IX"
@@ -138,9 +137,9 @@ public class ProfileOverrides {
 	private boolean overrideExcludeUriFilters = false;
 	
 	/** The list of URIs to forcefully include */
-	@ElementCollection(fetch = FetchType.EAGER)
+	@ElementCollection()
 	@CollectionTable(name = "PO_INCLUSION_URI", joinColumns = @JoinColumn(name = "PEU_PROF_OVER_OID"))
-	@Column(name = "PEU_FILTER")
+	@Column(name = "PIU_FILTER")
 	// TODO @hibernate.collection-index column="PEU_IX"
 	private List<String> includeUriFilters = new LinkedList<String>();
 	/** True to override the include filters; otherwise false */
@@ -236,7 +235,7 @@ public class ProfileOverrides {
 	private boolean overrideH3IgnoreCookies = false;
 
 	/** The list of blocked H3 URLs */
-	@ElementCollection(fetch = FetchType.EAGER)
+	@ElementCollection()
 	@CollectionTable(name = "PO_H3_BLOCK_URL", joinColumns = @JoinColumn(name = "PBU_PROF_OVER_OID"))
 	@Column(name = "PBU_FILTER")
 	// TODO @hibernate.collection-index column="PBU_IX"
@@ -246,7 +245,7 @@ public class ProfileOverrides {
 	private boolean overrideH3BlockedUrls = false;
 
 	/** The list of included H3 URLs */
-	@ElementCollection(fetch = FetchType.EAGER)
+	@ElementCollection()
 	@CollectionTable(name = "PO_H3_INCLUDE_URL", joinColumns = @JoinColumn(name = "PIU_PROF_OVER_OID"))
 	@Column(name = "PIU_FILTER")
 	// TODO @hibernate.collection-index column="PIU_IX"

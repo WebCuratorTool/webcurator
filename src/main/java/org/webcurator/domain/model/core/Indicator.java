@@ -26,9 +26,9 @@ import javax.persistence.*;
 		@NamedQuery(name = "org.webcurator.domain.model.core.Indicator.getIndicators",
 				query = "SELECT i FROM Indicator i ORDER BY i_agc_oid, i.name"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.Indicator.getIndicatorsByTargetInstance",
-				query = "SELECT i FROM Indicator i WHERE i_ti_oid=? ORDER BY i.name"),
+				query = "SELECT i FROM Indicator i WHERE i_ti_oid=?1 ORDER BY i.name"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.Indicator.getIndicatorByOid",
-				query = "SELECT i FROM Indicator i WHERE i_oid=?")
+				query = "SELECT i FROM Indicator i WHERE i_oid=?1")
 })
 public class Indicator {
 		

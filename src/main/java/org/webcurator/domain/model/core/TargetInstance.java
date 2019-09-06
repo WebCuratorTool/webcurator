@@ -52,7 +52,7 @@ import javax.persistence.*;
         @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.getPurgeableAborted",
                 query = "from TargetInstance ti where ti.purged = false and ti.actualStartTime < :purgeTime and ti.state = :abortedState"),
         @NamedQuery(name = "org.webcurator.domain.model.core.TargetInstance.get_harvest_history",
-                query = "select new org.webcurator.domain.model.dto.HarvestHistoryDTO(ti.oid, ti.actualStartTime, ti.state, ti.status.dataDownloaded, ti.status.urlsDownloaded, ti.status.urlsFailed, ti.status.elapsedTime, ti.status.averageKBs, ti.status.status) from TargetInstance ti where ti.target.oid=? order by ti.actualStartTime desc")
+                query = "select new org.webcurator.domain.model.dto.HarvestHistoryDTO(ti.oid, ti.actualStartTime, ti.state, ti.status.dataDownloaded, ti.status.urlsDownloaded, ti.status.urlsFailed, ti.status.elapsedTime, ti.status.averageKBs, ti.status.status) from TargetInstance ti where ti.target.oid=?1 order by ti.actualStartTime desc")
 })
 public class TargetInstance implements Annotatable, Overrideable, UserInTrayResource {
 	
@@ -175,8 +175,10 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Column(name = "TI_DISPLAY_ORDER")
     private int displayOrder = 40;   
     /** the list of annotations for this target instance. */
+    @Transient
     private List<Annotation> annotations = new LinkedList<Annotation>();
     /** the list of deleted annotations for this target instance. */
+    @Transient
     private List<Annotation> deletedAnnotations = new LinkedList<Annotation>();
     /** the list of indicators for this target instance. */
     @OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY
@@ -184,6 +186,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     // TODO @hibernate.collection-index column="I_INDEX"
     private List<Indicator> indicators = new LinkedList<Indicator>();
     /** the list of deleted indicators for this target instance. */
+    @Transient
     private List<Indicator> deletedIndicators = new LinkedList<Indicator>();
     /** Flag to state if the annotations have been sorted */
     private boolean annotationsSorted = false;   

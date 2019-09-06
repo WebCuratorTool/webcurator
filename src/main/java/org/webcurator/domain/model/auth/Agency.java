@@ -79,7 +79,8 @@ public class Agency implements Serializable {
     @JoinColumn(name = "USR_AGC_OID")
     private Set<User> users;
     /** The set of roles in this agency */
-    @OneToMany(cascade = { CascadeType.ALL }, mappedBy = "ROLE_AGENCY_OID") // default fetch type is LAZY
+    @OneToMany(cascade = { CascadeType.ALL }) // default fetch type is LAZY
+    @JoinColumn(name = "ROL_AGENCY_OID")
     private Set<Role> roles;
 
     /** Flag for displaying tasks on the intray screen */

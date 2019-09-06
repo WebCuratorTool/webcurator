@@ -32,21 +32,21 @@ import java.util.Set;
 @Table(name = "WCTUSER")
 @NamedQueries({
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserByName",
-                query = "SELECT usr FROM User usr WHERE usr.username=? "),
+                query = "SELECT usr FROM User usr WHERE usr.username=?1 "),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUsersByAgency",
-                query = "SELECT usr FROM User usr WHERE usr.agency.oid=? ORDER BY usr.username"),
+                query = "SELECT usr FROM User usr WHERE usr.agency.oid=?1 ORDER BY usr.username"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOs",
                 query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr ORDER BY usr.agency.name, usr.username"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOsByAgency",
-                query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.agency.oid=? ORDER BY usr.username"),
+                query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.agency.oid=?1 ORDER BY usr.username"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivilege",
-                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr INNER JOIN usr.roles AS usrRoles INNER JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege = ?"),
+                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr INNER JOIN usr.roles AS usrRoles INNER JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege = ?1"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOByOidorg.webcurator.domain.model.auth.User.getUserDTOByOid",
-                query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.oid=?"),
+                query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr WHERE usr.oid=?1"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByPrivAgency",
-                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr JOIN usr.roles AS usrRoles JOIN usr.agency AS usrAgency JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege=? AND usrAgency.oid=?"),
+                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM Role rol, User usr JOIN usr.roles AS usrRoles JOIN usr.agency AS usrAgency JOIN rol.rolePrivileges AS rolePrivileges WHERE usrRoles.oid = rol.oid AND rolePrivileges.privilege=?1 AND usrAgency.oid=?2"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUserDTOsByTargetPermission",
-                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr, Seed s JOIN s.permissions seedPermissions WHERE s.target.owner = usr AND seedPermissions.oid = ?")
+                query = "SELECT DISTINCT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr, Seed s JOIN s.permissions seedPermissions WHERE s.target.owner = usr AND seedPermissions.oid = ?1")
 })
 public class User implements Serializable {
     
@@ -125,7 +125,7 @@ public class User implements Serializable {
     @Column(name = "USR_ADDRESS", length = 200, nullable = true)
     private String address;
     /** The set of roles the user belongs to */
-    @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER,
+    @ManyToMany(fetch = FetchType.EAGER,
             cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
     @JoinTable(name = "USER_ROLE",
             joinColumns = { @JoinColumn(name = "URO_ROL_OID") },

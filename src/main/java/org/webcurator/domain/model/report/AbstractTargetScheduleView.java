@@ -30,9 +30,9 @@ import java.util.Date;
 @Table(name = "ABSTRACT_TARGET_SCHEDULE_VIEW")
 @NamedQueries({
 		@NamedQuery(name = "org.webcurator.domain.model.report.AbstractTargetScheduleView.getAllByUserByAgencyByType",
-				query = "SELECT t FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?='All users' OR ( ? !='All users' AND ? = t.ownerName ) ) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = t.agencyName) ) AND ( ?='All target types' OR ( ?!='All target types' AND ? = t.objectTypeDesc) )"),
+				query = "SELECT t FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?1='All users' OR ( ?2 !='All users' AND ?3 = t.ownerName ) ) AND ( ?4='All agencies' OR ( ?5 !='All agencies' AND ?6 = t.agencyName) ) AND ( ?7 ='All target types' OR ( ?8!='All target types' AND ?9 = t.objectTypeDesc) )"),
 		@NamedQuery(name = "org.webcurator.domain.model.report.AbstractTargetScheduleView.getSummaryStatsByAgency",
-				query = "SELECT t.agencyName, CASE t.scheduleType WHEN 1 THEN 'Mondays at 9:00pm' WHEN 0 THEN 'Custom' WHEN -1 THEN 'Daily' WHEN -2 THEN 'Weekly' WHEN -3 THEN 'Monthly' WHEN -4 THEN 'Bi-Monthly' WHEN -5 THEN 'Quarterly' WHEN -6 THEN 'Half-Yearly' WHEN -7 THEN 'Annually' END as scheduleDesc, COUNT(t.scheduleType) FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?='All agencies' OR ( ?!='All agencies' AND ? = t.agencyName) ) GROUP BY t.agencyName, t.scheduleType ORDER BY t.agencyName")
+				query = "SELECT t.agencyName, CASE t.scheduleType WHEN 1 THEN 'Mondays at 9:00pm' WHEN 0 THEN 'Custom' WHEN -1 THEN 'Daily' WHEN -2 THEN 'Weekly' WHEN -3 THEN 'Monthly' WHEN -4 THEN 'Bi-Monthly' WHEN -5 THEN 'Quarterly' WHEN -6 THEN 'Half-Yearly' WHEN -7 THEN 'Annually' END as scheduleDesc, COUNT(t.scheduleType) FROM AbstractTargetScheduleView t WHERE (t.state = 5 OR t.state = 9) AND ( ?1='All agencies' OR ( ?2!='All agencies' AND ?3 = t.agencyName) ) GROUP BY t.agencyName, t.scheduleType ORDER BY t.agencyName")
 })
 public class AbstractTargetScheduleView {
 	

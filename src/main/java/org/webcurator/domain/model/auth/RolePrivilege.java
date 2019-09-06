@@ -38,7 +38,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "ROLE_PRIVILEGE")
 @NamedQuery(name = "org.webcurator.domain.model.auth.RolePrivilege.getUserPrivileges",
-        query = "SELECT distinct rolpriv FROM RolePrivilege rolpriv JOIN rolpriv.role AS rolePrivRole JOIN rolePrivRole.users AS rolePrivRoleUsers WHERE rolePrivRoleUsers.username=?")
+        query = "SELECT distinct rolpriv FROM RolePrivilege rolpriv JOIN rolpriv.role AS rolePrivRole JOIN rolePrivRole.users AS rolePrivRoleUsers WHERE rolePrivRoleUsers.username=?1")
 public class RolePrivilege implements Serializable {
 
 	/** Version ID for serialization */

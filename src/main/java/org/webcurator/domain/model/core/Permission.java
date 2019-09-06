@@ -176,15 +176,19 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	
 
     /** The list of annotations. */
+    @Transient
     private List<Annotation> annotations = new LinkedList<Annotation>();
     /** The list of deleted annotations. */
-    private List<Annotation> deletedAnnotations = new LinkedList<Annotation>();
+	@Transient
+	private List<Annotation> deletedAnnotations = new LinkedList<Annotation>();
     /** True if the annotations have been loaded */
-    private boolean annotationsSet = false;
+	@Transient
+	private boolean annotationsSet = false;
     /** Flag to state if the annotations have been sorted */
-    private boolean annotationsSorted = false;    
+	@Transient
+	private boolean annotationsSorted = false;
 
-	
+
 	/**
 	 * Create a new Permission. This method is protected as Permission objects
 	 * should be created through the <code>BusinessObjectFactory</code>

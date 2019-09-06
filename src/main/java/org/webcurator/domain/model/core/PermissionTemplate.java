@@ -28,7 +28,7 @@ import javax.persistence.*;
 // lazy="false"
 @Entity
 @Table(name = "PERMISSION_TEMPLATE")
-@NamedQuery(name = "org.webcurator.domain.core.PermissionTemplate.getTemplatesByAgencyOid", query = "from PermissionTemplate tem where tem.agency.oid=?")
+@NamedQuery(name = "org.webcurator.domain.core.PermissionTemplate.getTemplatesByAgencyOid", query = "from PermissionTemplate tem where tem.agency.oid=?1")
 public class PermissionTemplate {
 	/** Query identifier to get permission request templates by Agency OID */
     public static final String QRY_GET_TEMPLATES_BY_AGENCY = "org.webcurator.domain.core.PermissionTemplate.getTemplatesByAgencyOid";
