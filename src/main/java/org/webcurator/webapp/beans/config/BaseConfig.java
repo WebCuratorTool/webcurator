@@ -15,6 +15,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
@@ -268,8 +269,12 @@ public class BaseConfig {
         // TODO NOTE it would be better if this was a wildcard
 //        Resource jarResource = new ClassPathResource("org/webcurator/**");
 //        Resource jarResource = new FileSystemResource("/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
-//        Resource jarResource = new ClassPathResource("/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
-        bean.setMappingJarLocations(getHibernateConfigurationResources());
+
+        //Resource jarResource = new ClassPathResource("classpath:/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
+        //bean.setMappingJarLocations(jarResource);
+
+        //bean.setMappingJarLocations(getHibernateConfigurationResources());
+        bean.setPackagesToScan(new String[]{"org.webcurator.domain.model"});
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
         hibernateProperties.setProperty("hibernate.show_sql", "false");
