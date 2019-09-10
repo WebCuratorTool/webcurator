@@ -48,9 +48,9 @@ import org.webcurator.domain.model.auth.User;
  * @author bprice
  */
 public class WCTAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
-    public static final String TODO_SECURITY_LAST_USERNAME_KEY = "SECURITY_LAST_USERNAME";
-    public static final String TODO_SECURITY_FORM_USERNAME_KEY = "SECURITY_FORM_USERNAME";
-    public static final String TODO_SECURITY_FORM_PASSWORD_KEY = "SECURITY_FORM_PASSWORD";
+    public static final String LAST_USERNAME_KEY = "last_username";
+    public static final String FORM_USERNAME_KEY = "j_username";
+    public static final String FORM_PASSWORD_KEY = "j_password";
     private static Log log = LogFactory.getLog(WCTAuthenticationProcessingFilter.class);
     private Auditor auditor = null;
     private UserRoleDAO authDAO = null;
@@ -75,8 +75,8 @@ public class WCTAuthenticationProcessingFilter extends AbstractAuthenticationPro
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response)
             throws AuthenticationException, IOException, ServletException {
-        String username = request.getParameter(TODO_SECURITY_FORM_USERNAME_KEY);
-        String password = request.getParameter(TODO_SECURITY_FORM_PASSWORD_KEY);
+        String username = request.getParameter(FORM_USERNAME_KEY);
+        String password = request.getParameter(FORM_PASSWORD_KEY);
 
         if (username == null) {
             username = "";
@@ -89,7 +89,7 @@ public class WCTAuthenticationProcessingFilter extends AbstractAuthenticationPro
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username, password);
 
         // Place the last username attempted into HttpSession for views
-        request.getSession().setAttribute(TODO_SECURITY_LAST_USERNAME_KEY, username);
+        request.getSession().setAttribute(LAST_USERNAME_KEY, username); // TODO Where is this being used? Perhaps this is the wrong key?
 
         // Allow subclasses to set the "details" property
         //setDetails(request, authRequest);

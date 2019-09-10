@@ -117,6 +117,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @JoinColumn(name = "AT_PROF_OVERRIDE_OID", foreignKey = @ForeignKey(name = "FK_T_PROF_OVERRIDE_OID"))
     private ProfileOverrides overrides = new ProfileOverrides();
     /** The loaded state of the target **/
+    @Transient
     private int originalState = -1;    
     /** The state of the target **/
     @Column(name = "AT_STATE")

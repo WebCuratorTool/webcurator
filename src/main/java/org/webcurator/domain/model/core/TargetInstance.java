@@ -165,7 +165,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Column(name = "TI_ALLOCATED_BANDWIDTH")
     private Long allocatedBandwidth;
     /** the status of the current or complete harvest. */
-    @OneToOne(cascade = {CascadeType.ALL})
+    @OneToOne(mappedBy = "targetInstance", cascade = {CascadeType.ALL})
     private HarvesterStatus status;
     /** the owner of this target instance. */
     @ManyToOne
@@ -189,8 +189,10 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Transient
     private List<Indicator> deletedIndicators = new LinkedList<Indicator>();
     /** Flag to state if the annotations have been sorted */
+    @Transient
     private boolean annotationsSorted = false;   
     /** Flag to state if the annotations contain any flagged as alertable, making the whole target instance alertable */
+    @Transient
     private boolean alertable = false;        
     /** The version number of this object */
     @Version
@@ -250,6 +252,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * flag to indicate that the list of annotations has been loaded for this instance. 
      * This is a transient flag used in the view. 
      */
+    @Transient
     private boolean annotationsSet = false;
     /** The profile overrides for this target instance. */
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH }) // WAS cascade="save-update"

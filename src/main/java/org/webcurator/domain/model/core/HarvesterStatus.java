@@ -54,6 +54,9 @@ public class HarvesterStatus {
     /** The status of the harvest job. */
     @Column(name = "HS_STATUS", length = 255)
     private String status;
+    @OneToOne
+    @MapsId
+    private TargetInstance targetInstance;
     /** The amount of elapsed time for the job. */
     @Column(name = "HS_ELAPSED_TIME")
     private long elapsedTime = 0; 
