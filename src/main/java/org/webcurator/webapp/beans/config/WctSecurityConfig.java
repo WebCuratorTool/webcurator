@@ -36,6 +36,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.webcurator.auth.TransitionalPasswordEncoder;
 import org.webcurator.auth.WCTAuthenticationProcessingFilter;
 import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
 import org.webcurator.auth.dbms.WCTForcePasswordChange;
@@ -230,8 +231,8 @@ public class WctSecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // The original ShaPasswordEncoder would encrypt passwords with SystemWideSalt of "Rand0mS4lt"
-        return new BCryptPasswordEncoder();
+        // for now support both bcrypt and legacy SHA-1
+        return new TransitionalPasswordEncoder();
     }
 
     @Bean
