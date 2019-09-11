@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -54,6 +55,9 @@ public class WCTAuthenticationProcessingFilter extends AbstractAuthenticationPro
     private static Log log = LogFactory.getLog(WCTAuthenticationProcessingFilter.class);
     private Auditor auditor = null;
     private UserRoleDAO authDAO = null;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     /**
      * @param defaultFilterProcessesUrl the default value for <tt>filterProcessesUrl</tt>.
@@ -106,19 +110,23 @@ public class WCTAuthenticationProcessingFilter extends AbstractAuthenticationPro
         String userName = authResult.getName();
         
         User wctUser = authDAO.getUserByName(userName);
-        
+
+        // TODO This seems to work now, but it's a mess
+
         if (wctUser != null) {
 	        log.debug("loaded WCT User object "+wctUser.getUsername()+" from database");
-	        UsernamePasswordAuthenticationToken auth =  (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-	        auth.setDetails(wctUser);
-	        log.debug("pushing back upat into SecurityContext with populated WCT User");
-	        SecurityContextHolder.getContext().setAuthentication(auth);
+	        //UsernamePasswordAuthenticationToken auth =  (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+	        //auth.setDetails(wctUser);
+            ((UsernamePasswordAuthenticationToken)authResult).setDetails(wctUser);
+	        //log.debug("pushing back upat into SecurityContext with populated WCT User");
+	        //SecurityContextHolder.getContext().setAuthentication(auth);
         
 	        //audit successful login event
 	        auditor.audit(User.class.getName(), wctUser.getOid(), Auditor.ACTION_LOGIN_SUCCESS, "Successful Login for username: "+wctUser.getUsername());
 	
 	        // Get the Spring Application Context.
-			WebApplicationContext ctx = ApplicationContextFactory.getWebApplicationContext();
+			//WebApplicationContext ctx = ApplicationContextFactory.getWebApplicationContext();
+
 
 			// set or re-set the page size cookie..
 			// ..first get the value of the page size cookie
@@ -128,7 +136,7 @@ public class WCTAuthenticationProcessingFilter extends AbstractAuthenticationPro
 
 	        // set login for duration
 	        String sessionId = request.getSession().getId();
-	        LogonDurationDAO logonDurationDAO = (LogonDurationDAO) ctx.getBean(Constants.BEAN_LOGON_DURATION_DAO);
+	        LogonDurationDAO logonDurationDAO = (LogonDurationDAO) webApplicationContext.getBean(Constants.BEAN_LOGON_DURATION_DAO);
 	       	logonDurationDAO.setLoggedIn(sessionId, new Date(), wctUser.getOid(), wctUser.getUsername(), wctUser.getNiceName());
 	       	
 			// Check previous records of duration

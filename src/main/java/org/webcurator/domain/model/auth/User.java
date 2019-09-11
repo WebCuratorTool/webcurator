@@ -137,7 +137,7 @@ public class User implements Serializable {
     @JoinColumn(name = "USR_AGC_OID", foreignKey = @ForeignKey(name = "FK_USER_AGENCY_OID"), nullable = false)
     private Agency agency;
     /** For inactive users, the date the user was deactivated */
-
+    @Column(name = "USR_DEACTIVATE_DATE")
     private Date deactivateDate;
     
     /** Enable notifications for changes to objects the user owns */

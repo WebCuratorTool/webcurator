@@ -68,6 +68,7 @@ public class LogonDuration {
 	@Column(name = "LOGDUR_LOGOUT_TIME", columnDefinition = "TIMESTAMP(9)", nullable = true)
 	@Temporal(TemporalType.TIMESTAMP)
     private Date logoutTime;
+	@Column(name = "LOGDUR_DURATION")
     private Long duration;
     
     
