@@ -3,11 +3,7 @@ package org.webcurator.webapp.beans.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.*;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
@@ -16,20 +12,35 @@ import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
 import org.springframework.web.servlet.view.tiles3.TilesView;
+import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
-import org.webcurator.ui.groups.command.*;
+import org.webcurator.ui.groups.command.GeneralCommand;
+import org.webcurator.ui.groups.command.GroupAnnotationCommand;
+import org.webcurator.ui.groups.command.MemberOfCommand;
+import org.webcurator.ui.groups.command.MembersCommand;
 import org.webcurator.ui.groups.controller.*;
-import org.webcurator.ui.groups.validator.*;
+import org.webcurator.ui.groups.validator.GeneralValidator;
+import org.webcurator.ui.groups.validator.GroupAnnotationValidator;
+import org.webcurator.ui.groups.validator.MembersValidator;
 import org.webcurator.ui.profiles.command.Heritrix3ProfileCommand;
 import org.webcurator.ui.profiles.command.ImportedHeritrix3ProfileCommand;
-import org.webcurator.ui.profiles.controller.*;
-import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
+import org.webcurator.ui.profiles.controller.Heritrix3ProfileHandler;
+import org.webcurator.ui.profiles.controller.HeritrixProfileHandler;
+import org.webcurator.ui.profiles.controller.ImportedHeritrix3ProfileHandler;
+import org.webcurator.ui.profiles.controller.ProfileGeneralHandler;
 import org.webcurator.ui.profiles.validator.Heritrix3ProfileValidator;
 import org.webcurator.ui.profiles.validator.ImportedHeritrix3ProfileValidator;
 import org.webcurator.ui.profiles.validator.ProfileGeneralValidator;
-import org.webcurator.ui.site.command.*;
-import org.webcurator.ui.site.controller.*;
-import org.webcurator.ui.site.validator.*;
+import org.webcurator.ui.site.command.SiteAuthorisingAgencyCommand;
+import org.webcurator.ui.site.command.SiteCommand;
+import org.webcurator.ui.site.command.SitePermissionCommand;
+import org.webcurator.ui.site.command.UrlCommand;
+import org.webcurator.ui.site.controller.SiteAuthorisingAgencyHandler;
+import org.webcurator.ui.site.controller.SiteGeneralHandler;
+import org.webcurator.ui.site.controller.SitePermissionHandler;
+import org.webcurator.ui.site.controller.SiteUrlHandler;
+import org.webcurator.ui.site.validator.SiteURLsValidator;
+import org.webcurator.ui.site.validator.SiteValidator;
 import org.webcurator.ui.target.command.*;
 import org.webcurator.ui.target.controller.*;
 import org.webcurator.ui.target.validator.*;
@@ -38,7 +49,9 @@ import org.webcurator.ui.util.OverrideGetter;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Contains configuration that used to be found in {@code wct-core-servlet.xml}. This
@@ -103,6 +116,9 @@ public class ServletConfig {
     public SimpleUrlHandlerMapping simpleUrlMapping() {
         SimpleUrlHandlerMapping bean = new SimpleUrlHandlerMapping();
         bean.setInterceptors(new Object[] { openSessionInViewInterceptor() });
+
+        // Make sure this overrides Spring's default handler
+        bean.setOrder(0);
 
         Properties mappings = new Properties();
         mappings.put("/curator/site/site.html", "siteController");
