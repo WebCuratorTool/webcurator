@@ -45,7 +45,7 @@ import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.Task;
 import org.webcurator.domain.model.dto.UserDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * The implementation of the InTrayManager interface.

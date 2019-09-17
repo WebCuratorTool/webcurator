@@ -34,7 +34,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * This filter is used by the Spring security framework.

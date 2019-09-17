@@ -66,7 +66,7 @@ import org.webcurator.domain.model.dto.AbstractTargetDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.domain.model.dto.PermissionSeedDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.TargetEditorContext;
 
 /**

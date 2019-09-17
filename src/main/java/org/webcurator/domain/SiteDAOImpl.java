@@ -43,7 +43,7 @@ import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * The implementation of the SiteDAO interface.

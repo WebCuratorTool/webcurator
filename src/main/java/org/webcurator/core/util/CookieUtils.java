@@ -18,7 +18,7 @@ package org.webcurator.core.util;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 
 /**
