@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.archive.ArchiveCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 public class CustomDepositFormControllerTest extends BaseWCTTest<CustomDepositFormController>{
 

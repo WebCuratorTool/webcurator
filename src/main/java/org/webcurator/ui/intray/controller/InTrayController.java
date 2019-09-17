@@ -36,7 +36,7 @@ import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Notification;
 import org.webcurator.domain.model.core.Task;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.intray.command.InTrayCommand;
 
 /**

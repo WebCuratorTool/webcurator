@@ -2,7 +2,7 @@
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <%@taglib prefix="authority" uri="http://www.webcurator.org/authority"%>
-<%@page import="org.webcurator.ui.common.Constants"%>
+<%@page import="org.webcurator.common.ui.Constants"%>
 <%@page import="org.webcurator.domain.model.core.AbstractTarget.AccessZone"%>
 
 

@@ -34,7 +34,7 @@ import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.command.SearchCommand;
 
 /**

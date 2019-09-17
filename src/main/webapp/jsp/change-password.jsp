@@ -1,7 +1,7 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ page import="org.webcurator.ui.admin.command.ChangePasswordCommand" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 
 		<img src="images/x.gif" alt="" width="1" height="10" border="0" /><br />
 		<span class="subBoxTitle">Change Password</span><br />

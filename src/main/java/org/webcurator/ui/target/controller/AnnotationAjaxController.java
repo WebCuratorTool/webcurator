@@ -28,7 +28,7 @@ import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 @Controller

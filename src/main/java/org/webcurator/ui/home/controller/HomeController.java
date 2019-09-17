@@ -36,7 +36,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * The home controller is responsible for rendering the home page.

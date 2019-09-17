@@ -32,7 +32,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddMembersCommand;
 import org.webcurator.ui.util.Tab;

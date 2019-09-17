@@ -40,7 +40,7 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Schedule;
 import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.util.Tab;

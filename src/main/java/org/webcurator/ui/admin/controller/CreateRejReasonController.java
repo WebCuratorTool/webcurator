@@ -44,7 +44,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.RejReason;
 import org.webcurator.ui.admin.command.CreateRejReasonCommand;
 import org.webcurator.ui.admin.command.RejReasonCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * Manages the creation flow for a Rejection Reason within WCT

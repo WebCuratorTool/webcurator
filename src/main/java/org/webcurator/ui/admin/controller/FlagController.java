@@ -42,7 +42,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Flag;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 /**
  * Manages the Flags Administration view and the actions associated with a Flag group definition
  * @author twoods

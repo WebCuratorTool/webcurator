@@ -5,7 +5,7 @@
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct" %>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@page import="org.webcurator.domain.model.auth.Privilege" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <script src="scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
 
 <style>

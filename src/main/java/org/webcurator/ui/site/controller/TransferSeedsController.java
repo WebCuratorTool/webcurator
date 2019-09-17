@@ -37,7 +37,7 @@ import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Permission;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.command.TransferSeedsCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;

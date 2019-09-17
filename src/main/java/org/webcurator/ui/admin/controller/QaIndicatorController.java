@@ -46,7 +46,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.ui.admin.command.QaIndicatorCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 /**
  * Manages the QA Indicator Administration view and the actions associated with a IndicatorCriteria
  * @author twoods

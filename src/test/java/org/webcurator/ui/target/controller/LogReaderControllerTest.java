@@ -7,7 +7,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.*;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.scheduler.*;

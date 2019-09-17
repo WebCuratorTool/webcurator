@@ -40,7 +40,7 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionExclusion;
 import org.webcurator.domain.model.core.Site;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.SitePermissionCommand;
 import org.webcurator.ui.site.editor.EditorContextObjectEditor;

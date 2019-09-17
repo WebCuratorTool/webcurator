@@ -22,7 +22,7 @@ import org.webcurator.core.profiles.PolitenessOptions;
 import org.webcurator.core.profiles.ProfileDataUnit;
 import org.webcurator.core.profiles.ProfileTimeUnit;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.Heritrix3ProfileCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;

@@ -28,7 +28,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.DefaultCommand;
 import org.webcurator.ui.site.command.DefaultSiteCommand;

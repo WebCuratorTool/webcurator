@@ -49,7 +49,7 @@ import org.webcurator.domain.model.core.BandwidthRestriction;
 import org.webcurator.domain.model.core.HeatmapConfig;
 import org.webcurator.domain.model.dto.HeatmapConfigDTO;
 import org.webcurator.ui.agent.command.BandwidthRestrictionsCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.DateUtils;
 
 /**

@@ -5,7 +5,7 @@
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@page import="org.webcurator.domain.model.auth.Privilege" %>
 <%@page import="org.webcurator.ui.target.command.TargetAnnotationCommand" %>
-<%@page import="org.webcurator.ui.common.Constants" %>
+<%@page import="org.webcurator.common.ui.Constants" %>
 <%@page import="org.webcurator.domain.model.core.Target" %>
 <script src="scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
 

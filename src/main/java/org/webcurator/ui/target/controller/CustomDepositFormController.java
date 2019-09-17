@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.ui.archive.ArchiveCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 @Controller
 @RequestMapping("/curator/target/deposit-form-envelope.html")

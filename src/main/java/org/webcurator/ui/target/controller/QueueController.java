@@ -69,7 +69,7 @@ import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.common.util.DateUtils;

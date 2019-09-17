@@ -4,7 +4,7 @@
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct" %>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
-<%@page import="org.webcurator.ui.common.Constants" %>
+<%@page import="org.webcurator.common.ui.Constants" %>
 <div id="annotationsBox">
 <form name="harvestNow" method="POST" action="<%=Constants.CNTRL_HARVEST_NOW%>">
 <table width="100%" cellpadding="3" cellspacing="0" border="0">

@@ -1,5 +1,5 @@
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@page import="org.webcurator.ui.common.Constants"%>
+<%@page import="org.webcurator.common.ui.Constants"%>
 <form name="siteAgency" method="POST" action="<%=Constants.CNTRL_SITE_AGENCY%>">
 <input type="hidden" id="identity" name="identity" value="<c:out value="${command.identity}"/>">
 <table>

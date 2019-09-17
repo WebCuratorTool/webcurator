@@ -6,7 +6,7 @@
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ page import="java.util.HashMap"%>
 <%@ page import="org.webcurator.ui.agent.command.ManageHarvestAgentCommand"%>
-<%@ page import="org.webcurator.ui.common.Constants"%>
+<%@ page import="org.webcurator.common.ui.Constants"%>
 <%@ page import="org.webcurator.domain.model.auth.Privilege"%>
 <%
 HashMap agents = (HashMap) request.getAttribute(ManageHarvestAgentCommand.MDL_HARVEST_AGENTS);

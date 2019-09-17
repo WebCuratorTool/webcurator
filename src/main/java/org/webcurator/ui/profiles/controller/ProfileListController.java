@@ -39,7 +39,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.profiles.forms.ProfileImportForm;
 import org.webcurator.ui.util.HarvestAgentUtil;

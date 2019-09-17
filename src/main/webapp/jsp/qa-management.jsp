@@ -1,5 +1,5 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <%@ page import="org.webcurator.domain.model.auth.Privilege" %>
 <%@ page import="org.webcurator.ui.admin.command.TemplateCommand" %>
 <%@ taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>

@@ -40,7 +40,7 @@ import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.PermissionTemplate;
 import org.webcurator.ui.admin.command.TemplateCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * The Controller for managing the creation and modification of permission templates.

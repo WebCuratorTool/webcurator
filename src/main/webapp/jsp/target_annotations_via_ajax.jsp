@@ -6,7 +6,7 @@
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
 <%@page import="org.webcurator.domain.model.core.TargetInstance" %>
-<%@page import="org.webcurator.ui.common.Constants" %>
+<%@page import="org.webcurator.common.ui.Constants" %>
 <%@page import="org.webcurator.domain.model.auth.Privilege" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>

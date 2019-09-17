@@ -45,7 +45,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.ui.admin.command.CreateQaIndicatorCommand;
 import org.webcurator.ui.admin.command.QaIndicatorCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * Manages the creation flow for a QA Indicator within WCT

@@ -27,7 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.domain.model.core.Overrideable;
 import org.webcurator.domain.model.core.ProfileFormCredentials;
 import org.webcurator.domain.model.core.ProfileOverrides;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.FormCredentialsCommand;
 import org.webcurator.ui.util.OverrideGetter;
 import org.webcurator.ui.util.Tab;

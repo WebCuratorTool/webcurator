@@ -32,7 +32,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.DublinCore;
 import org.webcurator.domain.model.core.RejReason;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetGeneralCommand;
 import org.webcurator.ui.util.Tab;

@@ -3,7 +3,7 @@
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct" %>
 <%@taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>
-<%@page import="org.webcurator.ui.common.Constants"%>
+<%@page import="org.webcurator.common.ui.Constants"%>
 <%@page import="org.webcurator.ui.site.command.SitePermissionCommand" %>
 <%@page import="org.webcurator.domain.model.core.Permission" %>
 

@@ -39,7 +39,7 @@ import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.SiteCriteria;
 import org.webcurator.domain.model.auth.Agency;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.common.editor.CustomIntegerCollectionEditor;
 import org.webcurator.ui.site.command.SiteSearchCommand;
 

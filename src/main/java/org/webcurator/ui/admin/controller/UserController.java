@@ -41,7 +41,7 @@ import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.UserCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 /**
  * Manages the User Administration view and the actions associated with a User
  * @author bprice

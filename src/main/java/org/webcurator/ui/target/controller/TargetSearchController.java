@@ -41,7 +41,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.common.editor.CustomIntegerCollectionEditor;
 import org.webcurator.ui.target.command.TargetSearchCommand;
 

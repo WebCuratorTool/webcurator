@@ -44,7 +44,7 @@ import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.AssociateUserRoleCommand;
 import org.webcurator.ui.admin.command.UserCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * Manage the view for associating Roles to a user.

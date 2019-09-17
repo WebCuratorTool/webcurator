@@ -33,7 +33,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.domain.model.core.Overrideable;
 import org.webcurator.domain.model.core.ProfileBasicCredentials;
 import org.webcurator.domain.model.core.ProfileOverrides;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.controller.TabbedGroupController;
 import org.webcurator.ui.target.command.BasicCredentialsCommand;
 import org.webcurator.ui.target.validator.ProfilesBasicCredentialsValidator;

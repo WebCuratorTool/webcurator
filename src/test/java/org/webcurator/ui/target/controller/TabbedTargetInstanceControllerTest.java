@@ -26,7 +26,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.command.DefaultSiteCommand;
 import org.webcurator.ui.site.command.SiteCommand;
 import org.webcurator.ui.target.command.TargetDefaultCommand;

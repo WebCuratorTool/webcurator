@@ -35,7 +35,7 @@ import org.webcurator.core.report.ReportManager;
 import org.webcurator.core.report.parameter.Parameter;
 import org.webcurator.core.report.parameter.ParameterFactory;
 import org.webcurator.core.report.parameter.ReportCommandParsing;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.command.ReportCommand;
 
 /**

@@ -10,7 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.profiles.MockProfileManager;
 import org.webcurator.test.*;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.command.*;
 import org.webcurator.auth.*;
 import org.webcurator.domain.MockTargetDAO;

@@ -7,7 +7,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.scheduler.*;

@@ -39,7 +39,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionTemplate;
 import org.webcurator.domain.model.core.Site;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.command.GeneratePermissionTemplateCommand;
 
 /**

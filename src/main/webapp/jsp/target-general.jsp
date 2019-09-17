@@ -1,6 +1,6 @@
 <%@ page import="org.webcurator.domain.model.auth.Privilege" %>
 <%@ page import="org.webcurator.domain.model.core.Target" %>
-<%@page import="org.webcurator.ui.common.Constants" %>
+<%@page import="org.webcurator.common.ui.Constants" %>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>

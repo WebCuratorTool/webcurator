@@ -55,7 +55,7 @@ import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HeatmapConfigDTO;
 import org.webcurator.ui.common.CommonViews;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.command.Time;

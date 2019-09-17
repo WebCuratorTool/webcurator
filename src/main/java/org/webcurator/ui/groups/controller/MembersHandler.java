@@ -30,7 +30,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.command.MembersCommand;
 import org.webcurator.ui.groups.command.MoveTargetsCommand;
 import org.webcurator.ui.util.Tab;
