@@ -178,7 +178,7 @@ public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
     }
     
     public long countTasks(final User user, final List<RolePrivilege> privs) {
-    	return (Integer) getHibernateTemplate().execute(new HibernateCallback() {
+    	return (Long) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session session) throws HibernateException {
 				
 				Criteria query = session.createCriteria(Task.class);

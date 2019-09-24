@@ -49,6 +49,7 @@ import java.util.*;
 		@NamedQuery(name = "org.webcurator.domain.model.core.AbstractTarget.cntTargetDTOsByProfileOid",
 				query = "SELECT count(*) FROM AbstractTarget t where t.objectType = 1 and t.profile.oid=:profileoid")
 })
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AbstractTarget extends AbstractIdentityObject implements UserOwnable, Annotatable, Overrideable, UserInTrayResource {
 	/** Query identifier for retrieving AbstractTargetDTOs by name */
 	public static final String QUERY_DTO_BY_NAME = "org.webcurator.domain.model.core.AbstractTarget.getAllDTOsByName";

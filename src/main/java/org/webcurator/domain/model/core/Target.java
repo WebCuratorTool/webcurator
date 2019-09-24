@@ -29,10 +29,9 @@ import java.util.Set;
  * @author nwaight
  */
 // TODO lazy="false"
-@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "TARGET")
-@DiscriminatorColumn(name = "T_AT_OID")
+@PrimaryKeyJoinColumn(name = "T_AT_OID", referencedColumnName = "AT_OID")
 public class Target extends AbstractTarget implements Optimizable {
 	/** The maximum length of the name string */
 	public static final int MAX_NAME_LENGTH = 255;

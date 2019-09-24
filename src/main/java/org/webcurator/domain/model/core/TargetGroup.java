@@ -30,10 +30,9 @@ import javax.persistence.*;
  * A TargetGroup contains a number of child targets or target groups.
  */
 // TODO lazy="true"
-@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "TARGET_GROUP")
-@DiscriminatorColumn(name = "TG_AT_OID")
+@PrimaryKeyJoinColumn(name = "TG_AT_OID", referencedColumnName = "AT_OID")
 @NamedQueries({
 		@NamedQuery(name = "org.webcurator.domain.model.core.TargetGroup.getGroupDTOsByNameAndType",
 				query = "SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType, t.type) FROM TargetGroup t where lower(t.name) like lower(:name) and t.type IN (:types) ORDER BY UPPER(t.name), t.type"),
