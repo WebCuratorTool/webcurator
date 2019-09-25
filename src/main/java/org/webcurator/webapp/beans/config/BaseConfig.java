@@ -278,7 +278,7 @@ public class BaseConfig {
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
         hibernateProperties.setProperty("hibernate.show_sql", "false");
-        hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
+        //hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
         hibernateProperties.setProperty("hibernate.transaction.factory_class",
                 "org.hibernate.transaction.JDBCTransactionFactory");
         bean.setHibernateProperties(hibernateProperties);
