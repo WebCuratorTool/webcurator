@@ -24,7 +24,7 @@ String wctAppVersion = "3.0.0";
 <div id="topBar"><img src="images/web-curator-tool-logo.gif" alt="Web Curator Tool" width="320" height="68" border="0" /></div>
 <br class="clear" />
 
-		<form name="login" action="j_acegi_security_check" method="POST">
+		<form name="login" action="login" method="POST">
 			<div id="loginBox">
 			<%
 				if (failed != null && failed.equals("true")) {
@@ -47,9 +47,9 @@ String wctAppVersion = "3.0.0";
 							<div id="homeBoxLine"><img src="images/x.gif" width="1" height="5" border="0" /></div>
 						  	<div id="homeBoxText">
 								username<br />
-								<input type="text" name="j_username" width="20" style="width:200px"><br />
+								<input type="text" name="username" width="20" style="width:200px"><br />
 								password<br />
-								<input type="password" name="j_password" width="20" style="width:200px"><br />
+								<input type="password" name="password" width="20" style="width:200px"><br />
 								<input type="image" src="images/home-btn-login.gif" alt="login" width="67" height="18" border="0" vspace="5" />
 							</div>
 						</td>
