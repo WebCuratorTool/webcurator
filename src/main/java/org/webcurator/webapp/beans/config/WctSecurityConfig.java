@@ -16,6 +16,7 @@ import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,18 +35,23 @@ import org.springframework.security.web.access.channel.SecureChannelProcessor;
 import org.springframework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.webcurator.auth.TransitionalPasswordEncoder;
+import org.webcurator.auth.WCTAuthenticationFailureHandler;
 import org.webcurator.auth.WCTAuthenticationProcessingFilter;
+import org.webcurator.auth.WCTAuthenticationSuccessHandler;
 import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
 import org.webcurator.auth.dbms.WCTForcePasswordChange;
 import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
+import org.webcurator.core.util.Auditor;
+import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.User;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -90,6 +96,23 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
         auth.authenticationProvider(authenticationProvider());
     }
 
+    @Bean
+    public AuthenticationSuccessHandler wctAuthenticationSuccessHandler(){
+        WCTAuthenticationSuccessHandler wctAuthenticationSuccessHandler = new WCTAuthenticationSuccessHandler("/curator/home.html", false);
+        wctAuthenticationSuccessHandler.setAuthDAO(baseConfig.userRoleDAO());
+        wctAuthenticationSuccessHandler.setAuditor(baseConfig.audit());
+        wctAuthenticationSuccessHandler.setLogonDurationDAO(baseConfig.logonDuration());
+        return wctAuthenticationSuccessHandler;
+    }
+
+    @Bean
+    public AuthenticationFailureHandler wctAuthenticationFailureHandler(){
+        WCTAuthenticationFailureHandler wctAuthenticationFailureHandler = new WCTAuthenticationFailureHandler("/logon.jsp?failed=true");
+        wctAuthenticationFailureHandler.setAuditor(baseConfig.audit());
+        wctAuthenticationFailureHandler.setUseForward(true);
+        return wctAuthenticationFailureHandler;
+    }
+
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
         http
@@ -97,6 +120,9 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/curator/**").hasRole("LOGIN")
+                .antMatchers( "/jsp/**").hasRole("LOGIN")
+                .antMatchers( "/replay/**").hasRole("LOGIN")
+                .antMatchers( "/help/**").hasRole("LOGIN")
                 .antMatchers( "/styles/**").permitAll()
                 .antMatchers( "/images/**").permitAll()
                 .antMatchers( "/scripts/**").permitAll()
@@ -105,9 +131,10 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginPage("/logon.jsp")
                 .permitAll()
                 .loginProcessingUrl("/login")
-                //TODO set alwaysUse to false, and configure default page for app
-                .defaultSuccessUrl("/curator/home.html",true)
-                .failureUrl("/logon.jsp?failed=true")
+                .successHandler(wctAuthenticationSuccessHandler())
+                //TODO configure default page for app
+                .failureHandler(wctAuthenticationFailureHandler())
+//                .failureUrl("/logon.jsp?failed=true")
                 .and().logout()
                 .invalidateHttpSession(true)
                 .logoutSuccessUrl("/logon.jsp");
