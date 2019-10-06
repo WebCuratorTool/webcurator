@@ -80,7 +80,7 @@ public class Role implements AgencyOwnable, Serializable{
            foreignKey = @ForeignKey(name = "FK_USERROLE_TO_USER"))
    private Set<User> users;
    /** The set of privileges that this role is made up from. */
-   @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
+   @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}, fetch=FetchType.EAGER)
    @JoinColumn(name = "PRV_ROLE_OID")
    private Set<RolePrivilege> rolePrivileges;
    /** The agency that this role belongs to */
