@@ -94,6 +94,7 @@ dependencies {
     }
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'
+    implementation 'org.apache.directory.server:apacheds-server-jndi:1.5.5'
 
     providedCompile 'org.apache.taglibs:taglibs-standard-impl:1.2.5'
     providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'

@@ -77,6 +77,24 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${ldap.dn}")
     private String ldapDn;
 
+    @Value("${ldap.usrSearchBase}")
+    private String ldapUsrSearchBase;
+
+    @Value("${ldap.usrSearchFilter}")
+    private String ldapUsrSearchFilter;
+
+    @Value("${ldap.groupSearchBase}")
+    private String ldapGroupSearchBase;
+
+    @Value("${ldap.groupSearchFilter}")
+    private String ldapGroupSearchFilter;
+
+    @Value("${ldap.contextSource.root}")
+    private String ldapContextSourceRoot;
+
+    @Value("${ldap.contextSource.ldif}")
+    private String ldapContextSourceLdif;
+
     @Autowired
     private LdapContextSource ldapContextSource;
 
@@ -89,12 +107,6 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 //
 //        return urlPatterns;
 //    }
-
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authenticationProvider());
-    }
 
     @Bean
     public AuthenticationSuccessHandler wctAuthenticationSuccessHandler(){
@@ -120,6 +132,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/curator/**").hasRole("LOGIN")
+//                .antMatchers("/curator/**").permitAll()
                 .antMatchers( "/jsp/**").hasRole("LOGIN")
                 .antMatchers( "/replay/**").hasRole("LOGIN")
                 .antMatchers( "/help/**").hasRole("LOGIN")
@@ -140,6 +153,33 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl("/logon.jsp");
     }
 
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+
+
+//        // Local LDAP server
+//        auth.ldapAuthentication()
+//                .userSearchBase("ou=people")
+//                .userSearchFilter("(uid={0})")
+//                .groupSearchBase("ou=groups")
+//                .groupSearchFilter("(member={0})")
+//                .ldapAuthoritiesPopulator(authoritiesPopulator())
+//                .contextSource()
+//                .root("dc=baeldung,dc=com")
+//                .ldif("classpath:users.ldif");
+
+        auth.ldapAuthentication()
+                .userSearchBase(ldapUsrSearchBase)
+                .userSearchFilter(ldapUsrSearchFilter)
+                .groupSearchBase(ldapGroupSearchBase)
+                .groupSearchFilter(ldapGroupSearchFilter)
+                .ldapAuthoritiesPopulator(authoritiesPopulator())
+                .contextSource()
+                .root(ldapContextSourceRoot)
+                .ldif(ldapContextSourceLdif);
+
+        auth.authenticationProvider(authenticationProvider());
+    }
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider bean = new DaoAuthenticationProvider();
@@ -192,6 +232,12 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
         return stringBuilder.toString();
     }
 
+    @Bean
+    public WCTAuthoritiesPopulator authoritiesPopulator() {
+        WCTAuthoritiesPopulator bean = new WCTAuthoritiesPopulator();
+        bean.setAuthDAO(baseConfig.userRoleDAO());
+        return bean;
+    }
 
     // NOTE: If you wish to use channel security, then uncomment this filter (it precedes securityFilter()).
 //    //@Bean
