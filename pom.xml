@@ -132,6 +132,21 @@
 			<artifactId>webcurator-core</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
 			<scope>compile</scope>
+			<exclusions>
+				<!-- Exclude hibernate as harvest-agent-h3 does not need hibernate at all -->
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-ehcache</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-c3p0</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.netarchivesuite</groupId>
