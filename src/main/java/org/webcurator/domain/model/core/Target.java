@@ -91,6 +91,7 @@ public class Target extends AbstractTarget implements Optimizable {
     private boolean useAQA = false;
 
     /** Run the target in five minutes */
+    @Transient
     private boolean harvestNow = false;
     @Column(name = "T_ALLOW_OPTIMIZE")
 	private boolean allowOptimize;

@@ -103,6 +103,7 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	@Temporal(TemporalType.TIMESTAMP)
     private Date lastProcessedDate;
     /** The first date after the currently assigned period on which this schedule should run */
+    @Transient
     private boolean savedInThisSession = false;
     
     /**

@@ -274,7 +274,10 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
     @Column(name = "TI_ALLOW_OPTIMIZE")
 	private boolean allowOptimize;
-    
+
+    @Formula("(case when ti_start_time is null then ti_scheduled_time else ti_start_time end)")
+    private Date sortOrderDate;
+
     /**
      * The job name used by the harvester for this target instance
      * @return the job name
@@ -889,9 +892,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	 * @return If the Target Instance has started (or later), then the start 
 	 * 	       time; otherwise the scheduled time.
 	 */
-	@Formula("(case when ti_start_time is null then ti_scheduled_time else ti_start_time end)")
+	@Transient
 	public Date getSortOrderDate() {
-		return actualStartTime == null ? scheduledTime : actualStartTime;
+	    return sortOrderDate;
 	}
 	
 	/**
