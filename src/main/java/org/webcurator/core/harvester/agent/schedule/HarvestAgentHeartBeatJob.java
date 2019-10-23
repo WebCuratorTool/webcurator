@@ -16,9 +16,11 @@
  */
 package org.webcurator.core.harvester.agent.schedule;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.quartz.*;
-import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
+import org.springframework.web.client.HttpClientErrorException;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -30,6 +32,7 @@ import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
  */
 public class HarvestAgentHeartBeatJob extends QuartzJobBean {
     public static final String HEART_BEAT_TRIGGER_GROUP = "HeartBeatTriggerGroup";
+    private static Log log = LogFactory.getLog(HarvestAgentHeartBeatJob.class);
 
     /** The harvest agent to use to get status information. */
     HarvestAgent harvestAgent;
@@ -44,23 +47,37 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
     @Override
     protected void executeInternal(JobExecutionContext aJobContext) throws JobExecutionException {
         Trigger.TriggerState triggerState = Trigger.TriggerState.NONE;
-        TriggerKey triggerKey = TriggerKey.triggerKey(null, HEART_BEAT_TRIGGER_GROUP);
-        GroupMatcher<TriggerKey> triggerMatcher = GroupMatcher.triggerGroupEquals(HEART_BEAT_TRIGGER_GROUP);
+        TriggerKey triggerKey = TriggerKey.triggerKey("HeartBeatTrigger", HEART_BEAT_TRIGGER_GROUP);
 
         try {
             triggerState = aJobContext.getScheduler().getTriggerState(triggerKey);
-            aJobContext.getScheduler().pauseTriggers(triggerMatcher);
+            aJobContext.getScheduler().pauseTrigger(triggerKey);
+            log.debug("Executing heartbeat - Trigger state: " + triggerState);
 
             HarvestAgentStatusDTO status = harvestAgent.getStatus();
             notifier.heartbeat(status);
 
-            aJobContext.getScheduler().resumeTriggers(triggerMatcher);
+            aJobContext.getScheduler().resumeTrigger(triggerKey);
+            log.debug("Executing heartbeat - Trigger state: " + triggerState);
         }
-        catch (SchedulerException e) {
-            e.printStackTrace();
-            if (e.getCause() != null)
-                e.getCause().printStackTrace();
+        catch (SchedulerException ex) {
+            log.error(ex);
             throw new JobExecutionException("Heartbeat failed controlling the scheduler. (triggerState is: " + triggerState + ")");
+        }
+        catch (HttpClientErrorException ex){
+            log.error("Failed sending heartbeat.");
+            log.error(ex);
+            // Resume trigger group, otherwise thread will suspend forever
+            try {
+                aJobContext.getScheduler().resumeTrigger(triggerKey);
+            } catch (SchedulerException e) {
+                log.error("Failed to resume Trigger - HeartBeatTrigger: " + e.getMessage());
+                throw new JobExecutionException("Failed to resume Trigger - HeartBeatTrigger: " + e.getMessage());
+            }
+        }
+        catch (Exception ex){
+            log.error("Heartbeat job failed", ex);
+            throw new JobExecutionException(ex);
         }
     }
 

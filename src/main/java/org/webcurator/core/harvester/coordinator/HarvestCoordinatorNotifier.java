@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.check.CheckNotifier;
@@ -34,7 +35,9 @@ import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
  */
 public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNotifier {
 	/** The harvest agent that the this notifier is running on. */
-	HarvestAgent agent;	
+	HarvestAgent agent;
+    /** the protocol for the wct host name or ip address. */
+    private String protocol = "http";
     /** the host name or ip-address for the wct. */
     private String host = "localhost";
     /** the port number for the wct. */
@@ -46,7 +49,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
     protected RestTemplateBuilder restTemplateBuilder;
 
     public String baseUrl() {
-        return host + ":" + port;
+        return protocol + "://" + host + ":" + port;
     }
 
     public String getUrl(String appendUrl) {
@@ -56,8 +59,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
     /* (non-Javadoc)
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(org.webcurator.core.harvester.agent.HarvestAgentStatus)
      */
-    public void heartbeat(HarvestAgentStatusDTO aStatus) {
-        try {
+    public void heartbeat(HarvestAgentStatusDTO aStatus) throws HttpClientErrorException, IllegalArgumentException{
             if (log.isDebugEnabled()) {
                 log.debug("WCT: Start of heartbeat");
             }
@@ -74,12 +76,6 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
                 log.debug("WCT: End of heartbeat");
             }
             log.info("WCT: End of heartbeat");
-        }
-        catch(Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Heartbeat Notification failed : " + ex.getMessage(), ex);
-            }
-        }
     }
 
     @Override
@@ -169,7 +165,14 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             }  
         }        
     }
-    
+
+    /**
+     * @param aProtocol The host to set.
+     */
+    public void setProtocol(String aProtocol) {
+        this.protocol = aProtocol;
+    }
+
     /**
      * @param aHost The host to set.
      */
