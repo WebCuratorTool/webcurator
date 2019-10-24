@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.check.CheckNotifier;
@@ -61,8 +62,9 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
     /* (non-Javadoc)
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(org.webcurator.core.harvester.agent.HarvestAgentStatus)
      */
-    public void heartbeat(HarvestAgentStatusDTO aStatus) {
-        try {
+    public void heartbeat(HarvestAgentStatusDTO aStatus) throws HttpClientErrorException, IllegalArgumentException{
+         try{
+
             if (log.isDebugEnabled()) {
                 log.debug("WCT: Start of heartbeat");
             }
@@ -80,14 +82,15 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             }
             log.info("WCT: End of heartbeat");
         }
-        catch(Exception ex) {
+            catch(HttpClientErrorException ex) {
             if (log.isErrorEnabled()) {
-                log.error("Heartbeat Notification failed : " + ex.getMessage(), ex);
+                log.error("Heartbeat failed.");
             }
+            throw new HttpClientErrorException(ex.getStatusCode());
         }
     }
 
-    public void requestRecovery(String haHost, int haPort, String haService) {
+    public void requestRecovery(String haHost, int haPort, String haService) throws HttpClientErrorException, IllegalArgumentException{
         try {
 
             if(attemptRecovery()){
@@ -112,10 +115,11 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
                 setAttemptRecovery("false");
             }
         }
-        catch(Exception ex) {
+        catch(HttpClientErrorException ex) {
             if (log.isErrorEnabled()) {
-                log.error("Recovery Request failed : " + ex.getMessage(), ex);
+                log.error("Recovery Request failed.");
             }
+            throw new HttpClientErrorException(ex.getStatusCode());
         }
     }
 

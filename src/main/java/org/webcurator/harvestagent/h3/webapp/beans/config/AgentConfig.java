@@ -226,7 +226,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public Heritrix3WrapperConfiguration heritrix3WrapperConfiguration() {
         Heritrix3WrapperConfiguration bean = new Heritrix3WrapperConfiguration();
         bean.setHost(h3WrapperHost);
