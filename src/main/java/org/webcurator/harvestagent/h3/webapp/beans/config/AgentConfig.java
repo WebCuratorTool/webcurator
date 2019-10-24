@@ -3,12 +3,11 @@ package org.webcurator.harvestagent.h3.webapp.beans.config;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
-import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
@@ -115,6 +114,10 @@ public class AgentConfig {
     // The host name or ip address of the core.
     @Value("${harvestCoordinatorNotifier.host}")
     private String harvestCoordinatorNotifierHost;
+
+    // The protocol for the core host name or ip address.
+    @Value("${harvestCoordinatorNotifier.protocol}")
+    private String harvestCoordinatorNotifierProtocol;
 
     // The port that the core is listening on for http connections.
     @Value("${harvestCoordinatorNotifier.port}")
@@ -239,9 +242,9 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
         HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier();
+        bean.setProtocol(harvestCoordinatorNotifierProtocol);
         bean.setHost(harvestCoordinatorNotifierHost);
         bean.setPort(harvestCoordinatorNotifierPort);
         //bean.setAgent(harvestAgent());
@@ -280,12 +283,11 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger heartbeatTrigger() {
         Date startTime = new Date(System.currentTimeMillis() + heartbeatTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("HeartBeatTrigger", "HeartBeatTriggerGroup")
-                .forJob(heartbeatJob())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInMilliseconds(heartbeatTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(heartbeatTriggerRepeatInterval))
+                .forJob(heartbeatJob())
                 .build();
 
         return bean;
@@ -402,7 +404,7 @@ public class AgentConfig {
 
         List<Checker> checksList = new ArrayList<>();
         checksList.add(memoryChecker());
-        checksList.add(diskSpaceChecker());
+//        checksList.add(diskSpaceChecker());
         bean.setChecks(checksList);
 
         return bean;
@@ -422,12 +424,11 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger checkProcessorTrigger() {
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("CheckProcessorTrigger", "CheckProcessorTriggerGroup")
-                .forJob(checkProcessorJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
+                .forJob(checkProcessorJob().getObject())
                 .build();
 
         return bean;

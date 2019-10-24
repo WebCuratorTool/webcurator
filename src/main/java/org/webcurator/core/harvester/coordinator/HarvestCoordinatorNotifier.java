@@ -35,7 +35,9 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
  */
 public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNotifier {
 	/** The harvest agent that the this notifier is running on. */
-	HarvestAgent agent;	
+	HarvestAgent agent;
+    /** the protocol for the wct host name or ip address. */
+    private String protocol = "http";
     /** the host name or ip-address for the wct. */
     private String host = "localhost";
     /** the port number for the wct. */
@@ -49,7 +51,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
     protected RestTemplateBuilder restTemplateBuilder;
 
     public String baseUrl() {
-        return host + ":" + port;
+        return protocol + "://" + host + ":" + port;
     }
 
     public String getUrl(String appendUrl) {
@@ -199,7 +201,14 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             }  
         }        
     }
-    
+
+    /**
+     * @param aProtocol The host to set.
+     */
+    public void setProtocol(String aProtocol) {
+        this.protocol = aProtocol;
+    }
+
     /**
      * @param aHost The host to set.
      */
