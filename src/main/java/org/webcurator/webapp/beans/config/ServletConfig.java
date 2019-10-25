@@ -138,7 +138,7 @@ public class ServletConfig {
         mappings.put("/curator/target/deposit-form-envelope.html", "customDepositFormController");
         mappings.put("/curator/logout.html", "logoutController");
         mappings.put("/curator/home.html", "homeController");
-        mappings.put("/curator/target/queue.html", "queueController");
+        //mappings.put("/curator/target/queue.html", "queueController");
         // mapped via @RequestMapping mappings.put("/curator/target/qatisummary.html", "qaTiSummaryController");
         mappings.put("/curator/target/qa-indicator-report.html", "qaIndicatorReportController");
         mappings.put("/curator/target/qa-indicator-robots-report.html", "qaIndicatorRobotsReportController");

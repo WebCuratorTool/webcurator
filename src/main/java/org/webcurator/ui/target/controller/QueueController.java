@@ -15,22 +15,6 @@
  */
 package org.webcurator.ui.target.controller;
 
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +29,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.CommandConstants;
+import org.webcurator.common.ui.Constants;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -58,21 +48,17 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.Flag;
-import org.webcurator.domain.model.core.HarvestResource;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Indicator;
-import org.webcurator.domain.model.core.RejReason;
-import org.webcurator.domain.model.core.Schedule;
-import org.webcurator.domain.model.core.Seed;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
-import org.webcurator.common.util.DateUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.text.NumberFormat;
+import java.util.*;
 
 /**
  * The controller for displaying a list of target instances and processing
@@ -122,6 +108,7 @@ public class QueueController {
     @Value("${queueController.thumbnailHeight}")
 	private String thumbnailHeight = "100px;";
 
+    @InitBinder
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
 
@@ -129,10 +116,16 @@ public class QueueController {
 		binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
 	}
 
-	protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp, BindingResult bindingResult)
-            throws Exception {
+	public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp, BindingResult bindingResult)
+			throws Exception {
 		cleanSession(aReq);
 		return processFilter(aReq, aResp, null, bindingResult);
+	}
+
+	@RequestMapping(value = "/curator/target/queue.html", method = RequestMethod.GET)
+	public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp)
+            throws Exception {
+	    return showForm(aReq, aResp, null);
 	}
 
 	/**
@@ -150,9 +143,9 @@ public class QueueController {
 		session.removeAttribute(Constants.GBL_SESS_EDIT_MODE);
 	}
 
-	protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, Object aCmd,
+	@RequestMapping(value = "/curator/target/queue.html", method = RequestMethod.POST)
+	protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, @ModelAttribute TargetInstanceCommand command,
 			BindingResult bindingResult) throws Exception {
-		TargetInstanceCommand command = (TargetInstanceCommand) aCmd;
 		if (command == null || command.getCmd() == null) {
 			throw new WCTRuntimeException("Unknown command recieved.");
 		}
@@ -236,7 +229,7 @@ public class QueueController {
                                BindingResult bindingResult) {
 
 		ModelAndView mav = new ModelAndView();
-		if (bindingResult.hasErrors()) {
+		if (bindingResult != null && bindingResult.hasErrors()) {
 			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 		}
 
