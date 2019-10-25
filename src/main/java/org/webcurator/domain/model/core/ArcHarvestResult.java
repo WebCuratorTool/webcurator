@@ -31,10 +31,9 @@ import java.util.Set;
  * 
  * @author bbeaumont
  */
-@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "ARC_HARVEST_RESULT")
-@DiscriminatorColumn(name = "AHRS_HARVEST_RESULT_OID")
+@PrimaryKeyJoinColumn(name = "AHRS_HARVEST_RESULT_OID")
 public class ArcHarvestResult extends HarvestResult {
 	/** The set of ARC files that make up this HarvestResult */
 	// cascade="save-update"

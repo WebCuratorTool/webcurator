@@ -15,19 +15,11 @@
  */
 package org.webcurator.domain.model.core;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.RejReason;
 
 import javax.persistence.*;
+import java.util.*;
 
 /**
  * The <code>HarvestResult</code> class describes the result of a harvest. It
@@ -35,6 +27,7 @@ import javax.persistence.*;
  * 
  **/
 // lazy="false"
+@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "HARVEST_RESULT")
 public class HarvestResult implements UserInTrayResource {
@@ -68,7 +61,7 @@ public class HarvestResult implements UserInTrayResource {
 			table = "ID_GENERATOR",
 			pkColumnName = "IG_TYPE",
 			valueColumnName = "IG_VALUE",
-			pkColumnValue = "HarvestResource", // TODO Should this not be 'HarvestResult'?
+			pkColumnValue = "HarvestResult",
 			allocationSize = 1) // 50 is the default
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	protected Long oid = null;

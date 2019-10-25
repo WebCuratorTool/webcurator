@@ -18,10 +18,9 @@ package org.webcurator.domain.model.core;
 
 import javax.persistence.*;
 
-@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "ARC_HARVEST_RESOURCE")
-@DiscriminatorColumn(name = "AHRC_HARVEST_RESOURCE_OID")
+@PrimaryKeyJoinColumn(name = "AHRC_HARVEST_RESOURCE_OID")
 public class ArcHarvestResource extends HarvestResource {
 	/** The offset into the ARC file where this resource starts */
 	@Column(name = "AHRC_RESOURCE_OFFSET", length = 100, nullable = false)

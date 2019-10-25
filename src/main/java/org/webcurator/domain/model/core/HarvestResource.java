@@ -30,6 +30,7 @@ import javax.persistence.*;
  * 
  **/
 // lazy="false"
+@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "HARVEST_RESOURCE")
 public class HarvestResource {

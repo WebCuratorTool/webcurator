@@ -274,9 +274,9 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	public HarvestResourceDTO getHarvestResourceDTO(final long harvestResultOid, final String resource) {
 		HarvestResourceDTO dto = (HarvestResourceDTO) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) {
-                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=? and ahr.name=?");
-				q.setParameter(0, harvestResultOid);
-				q.setParameter(1, resource);
+                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=?1 and ahr.name=?2");
+				q.setParameter(1, harvestResultOid);
+				q.setParameter(2, resource);
 				ArcHarvestResourceDTO dto = (ArcHarvestResourceDTO) q.uniqueResult();
 				
 				return dto;
@@ -290,8 +290,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	public List<HarvestResourceDTO> getHarvestResourceDTOs(final long harvestResultOid) {
 		List<HarvestResourceDTO> resources = (List<HarvestResourceDTO>) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) {
-                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=?");
-				q.setParameter(0, harvestResultOid);
+                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=?1");
+				q.setParameter(1, harvestResultOid);
 				List<HarvestResourceDTO> resources = q.list();
 				
 				return resources;
@@ -303,7 +303,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	
 	@SuppressWarnings("unchecked")
 	public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
-		return (List<HarvestResult>) getHibernateTemplate().find("select hr from HarvestResult hr where hr.targetInstance.oid=? order by hr.harvestNumber", targetInstanceId);
+		return (List<HarvestResult>) getHibernateTemplate().find("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
 	}
 	
 	public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {
