@@ -3,9 +3,9 @@ package org.webcurator.webapp.beans.config;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
-import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -734,13 +734,11 @@ public class BaseConfig {
     public Trigger processScheduleTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + processScheduleTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("ProcessScheduleTrigger", "ProcessScheduleTriggerGroup")
-                .forJob(processScheduleJob())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        // repeat every xx milliseconds
-                        .withIntervalInMilliseconds(processScheduleTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(processScheduleTriggerRepeatInterval))
+                .forJob(processScheduleJob())
                 .build();
 
         return bean;
@@ -761,13 +759,11 @@ public class BaseConfig {
     public Trigger bandwidthCheckTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + bandwidthCheckTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("BandwidthCheckTrigger", "BandwidthCheckTriggerGroup")
-                .forJob(checkBandwidthTransitionsJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        // repeat every xx milliseconds
-                        .withIntervalInMilliseconds(bandwidthCheckTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(bandwidthCheckTriggerRepeatInterval))
+                .forJob(checkBandwidthTransitionsJob().getObject())
                 .build();
 
         return bean;
@@ -899,13 +895,11 @@ public class BaseConfig {
     public Trigger checkProcessorTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("CheckProcessorTrigger", "CheckProcessorTriggerGroup")
-                .forJob(checkProcessorJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        // repeat every xx milliseconds
-                        .withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
+                .forJob(checkProcessorJob().getObject())
                 .build();
 
         return bean;
@@ -926,13 +920,11 @@ public class BaseConfig {
     public Trigger purgeDigitalAssetsTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("PurgeDigitalAssetsTrigger", "PurgeDigitalAssetsTriggerGroup")
-                .forJob(purgeDigitalAssetsJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        // repeat every xx milliseconds
-                        .withIntervalInMilliseconds(purgeDigitalAssetsTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(purgeDigitalAssetsTriggerRepeatInterval))
+                .forJob(purgeDigitalAssetsJob().getObject())
                 .build();
 
         return bean;
@@ -953,13 +945,11 @@ public class BaseConfig {
     public Trigger purgeAbortedTargetInstancesTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("PurgeAbortedTargetInstancesTrigger", "PurgeAbortedTargetInstancesTriggerGroup")
-                .forJob(purgeAbortedTargetInstancesJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        // repeat every xx milliseconds
-                        .withIntervalInMilliseconds(purgeAbortedTargetInstancesTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(purgeAbortedTargetInstancesTriggerRepeatInterval))
+                .forJob(purgeAbortedTargetInstancesJob().getObject())
                 .build();
 
         return bean;
@@ -1008,13 +998,11 @@ public class BaseConfig {
     public Trigger groupExpiryJobTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + groupExpiryJobTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("GroupExpiryJobTrigger", "GroupExpiryJobGroup")
-                .forJob(groupExpiryJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        // repeat every xx milliseconds
-                        .withIntervalInMilliseconds(groupExpiryJobTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(groupExpiryJobTriggerRepeatInterval))
+                .forJob(groupExpiryJob().getObject())
                 .build();
 
         return bean;
@@ -1035,13 +1023,11 @@ public class BaseConfig {
     public Trigger createNewTargetInstancesTrigger() {
         // delay before running the job measured in milliseconds
         Date startTime = new Date(System.currentTimeMillis() + createNewTargetInstancesTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("createNewTargetInstancesTrigger", "createNewTargetInstancesJobGroup")
-                .forJob(createNewTargetInstancesJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        // Repeat every xx milliseconds: this should run at most once a day (86,400,000 millseconds)
-                        .withIntervalInMilliseconds(createNewTargetInstancesTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(createNewTargetInstancesTriggerRepeatInterval))
+                .forJob(createNewTargetInstancesJob().getObject())
                 .build();
 
         return bean;
