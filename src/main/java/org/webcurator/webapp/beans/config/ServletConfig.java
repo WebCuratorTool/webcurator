@@ -169,7 +169,7 @@ public class ServletConfig {
         mappings.put("/curator/admin/associate-userroles.html", "associateUserRoleController");
         mappings.put("/curator/admin/agency.html", "agencyController");
         mappings.put("/curator/admin/change-password.html", "changePasswordController");
-        mappings.put("/curator/admin/management.html", "managementController");
+        //mappings.put("/curator/admin/management.html", "managementController");
         mappings.put("/curator/admin/templates.html", "templateController");
         //mappings.put("/curator/target/log-viewer.html", "logReaderController");
         //mappings.put("/curator/target/content-viewer.html", "contentReaderController");

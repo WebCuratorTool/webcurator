@@ -21,6 +21,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.Constants;
 
@@ -38,6 +40,7 @@ public class ManagementController {
     @Value("${queueController.enableQaModule}")
 	private boolean enableQaModule;
 
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/admin/management.html")
     protected ModelAndView showForm() throws Exception {
         ModelAndView mav = new ModelAndView();
 
