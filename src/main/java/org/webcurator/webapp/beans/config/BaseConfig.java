@@ -1053,20 +1053,6 @@ public class BaseConfig {
     }
 
     @Bean
-    public GroupSearchController groupSearchController() {
-        GroupSearchController bean = new GroupSearchController();
-        bean.setTargetManager(targetManager());
-        bean.setAgencyUserManager(agencyUserManager());
-        bean.setMessageSource(messageSource());
-        bean.setDefaultSearchOnAgencyOnly(groupSearchControllerDefaultSearchOnAgencyOnly);
-        bean.setGroupTypesList(listsConfig.groupTypesList());
-        bean.setSubGroupType(groupTypesSubgroup);
-        bean.setSubGroupSeparator(groupTypesSubgroupSeparator);
-
-        return bean;
-    }
-
-    @Bean
     public HarvestResourceUrlMapper harvestResourceUrlMapper() {
         HarvestResourceUrlMapper bean = new HarvestResourceUrlMapper();
         bean.setUrlMap(harvestResourceUrlMapperUrlMap);

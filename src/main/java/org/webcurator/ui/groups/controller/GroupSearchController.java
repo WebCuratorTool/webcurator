@@ -22,9 +22,20 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
@@ -41,19 +52,30 @@ import org.webcurator.ui.groups.command.SearchCommand;
  * The controller for processing target group searches.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class GroupSearchController {
 	/** the manager for accessing target and group data. */
+	@Autowired
 	private TargetManager targetManager = null;
 	/** the manager for accessing user and agency data. */
+	@Autowired
 	private AgencyUserManager agencyUserManager = null;
 	/** The message source for localisation */
+	@Autowired
 	private MessageSource messageSource = null;
 	/** Default Search on Agency only (not username) */
+	@Value("${groupSearchController.defaultSearchOnAgencyOnly}")
 	private boolean defaultSearchOnAgencyOnly = false;
 
 	/** The list of available group types */
+	@Autowired
 	private WCTTreeSet groupTypesList = null;
+	@Value("${groupTypes.subgroup}")
 	private String subGroupType;
+	@Value("${groupTypes.subgroupSeparator}")
 	private String subGroupSeparator;
 
 
@@ -61,12 +83,13 @@ public class GroupSearchController {
 	public GroupSearchController() {
 	}
 
-
+	@InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
+	@RequestMapping(value = "/curator/groups/search.html", method = RequestMethod.GET)
 	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// fetch command object (if any) from session..
@@ -170,11 +193,9 @@ public class GroupSearchController {
 		return mav;
 	}
 
-
-	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, Object comm)
+	@RequestMapping(value = "/curator/groups/search.html", method = RequestMethod.POST)
+	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, @ModelAttribute SearchCommand command)
             throws Exception {
-
-		SearchCommand command = (SearchCommand) comm;
 
 		if(command.isAction(SearchCommand.ACTION_DELETE)) {
 			TargetGroup group = targetManager.loadGroup(command.getDeletedGroupOid());

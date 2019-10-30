@@ -189,7 +189,7 @@ public class ServletConfig {
         mappings.put("/curator/report/report-preview.html", "reportPreviewController");
         mappings.put("/curator/report/report-save.html", "reportSaveController");
         mappings.put("/curator/report/report-email.html", "reportEmailController");
-        mappings.put("/curator/groups/search.html", "groupSearchController");
+//        mappings.put("/curator/groups/search.html", "groupSearchController");
         //mappings.put("/curator/groups/groups.html", "groupsController");
         mappings.put("/curator/groups/add-members.html", "addMembersController");
         //mappings.put("/curator/groups/schedule.html", "groupsEditScheduleController");
