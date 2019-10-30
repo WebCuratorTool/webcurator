@@ -15,16 +15,6 @@
  */
 package org.webcurator.core.agency;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.auth.AuthorityManager;
@@ -32,12 +22,7 @@ import org.webcurator.core.exceptions.NoPrivilegeException;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.AuthUtil;
-import org.webcurator.domain.FlagDAO;
-import org.webcurator.domain.IndicatorCriteriaDAO;
-import org.webcurator.domain.RejReasonDAO;
-import org.webcurator.domain.UserOwnable;
-import org.webcurator.domain.UserRoleDAO;
-import org.webcurator.domain.RejReasonDAO;
+import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.Role;
@@ -46,6 +31,8 @@ import org.webcurator.domain.model.core.Flag;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.domain.model.core.RejReason;
 import org.webcurator.domain.model.dto.UserDTO;
+
+import java.util.*;
 
 /**
  * Implementation of the AgencyUserManager interface.
