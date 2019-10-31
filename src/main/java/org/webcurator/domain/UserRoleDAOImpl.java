@@ -112,7 +112,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
     }
 
     public User getUserByOid(Long oid) {
-        return sessionFactory.getCurrentSession().load(User.class, oid);
+        return sessionFactory.getCurrentSession().get(User.class, oid);
 //        return (User)getHibernateTemplate().load(User.class,oid);
     }
 
@@ -136,7 +136,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
     }
 
     public Agency getAgencyByOid(Long oid) {
-        return (Agency)sessionFactory.getCurrentSession().load(Agency.class, oid);
+        return (Agency)sessionFactory.getCurrentSession().get(Agency.class, oid);
         //return (Agency)getHibernateTemplate().load(Agency.class,oid);
     }
     
@@ -261,7 +261,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
     }
 
     public Role getRoleByOid(Long oid) {
-        return sessionFactory.getCurrentSession().load(Role.class, oid);
+        return sessionFactory.getCurrentSession().get(Role.class, oid);
         //return (Role)getHibernateTemplate().load(Role.class, oid);
     }
 
