@@ -24,6 +24,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
@@ -51,6 +54,7 @@ public class ManageHarvestAgentController {
         log = LogFactory.getLog(getClass());
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/agent/harvest-agent.html")
     protected ModelAndView showForm() throws Exception {
         // Show the initial manage harvests page.
         ModelAndView mav = processAgentSummary();
@@ -63,8 +67,8 @@ public class ManageHarvestAgentController {
         return mav;
     }
 
-    protected ModelAndView processFormSubmission(Object aCmd) throws Exception {
-        ManageHarvestAgentCommand command = (ManageHarvestAgentCommand) aCmd;
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/agent/harvest-agent.html")
+    protected ModelAndView processFormSubmission(@ModelAttribute ManageHarvestAgentCommand command) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("process command " + command.getActionCmd());
         }

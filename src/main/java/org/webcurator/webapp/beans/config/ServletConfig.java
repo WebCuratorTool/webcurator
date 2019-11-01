@@ -128,7 +128,7 @@ public class ServletConfig {
         mappings.put("/curator/site/permissions.html", "sitePermissionController");
         mappings.put("/curator/site/transfer.html", "transferSeedsController");
         mappings.put("/curator/site/generate.html", "generatePermissionTemplateController");
-        mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
+        //mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
         mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
         mappings.put("/curator/tools/treetool.html", "treeToolController");
         mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
