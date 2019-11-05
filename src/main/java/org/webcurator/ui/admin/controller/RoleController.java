@@ -36,8 +36,13 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -75,6 +80,7 @@ public class RoleController {
         log = LogFactory.getLog(RoleController.class);
     }
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
@@ -108,11 +114,11 @@ public class RoleController {
         return mav;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCmd, BindingResult bindingResult)
+    @RequestMapping(path = "/curator/admin/role.html", method = RequestMethod.POST)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute RoleCommand roleCommand, BindingResult bindingResult)
             throws Exception {
 
-        RoleCommand roleCmd = (RoleCommand) aCmd;
-        if (roleCmd != null) {
+        if (roleCommand != null) {
             if (bindingResult.hasErrors()) {
                 ModelAndView mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
@@ -122,28 +128,29 @@ public class RoleController {
                 mav.setViewName("AddRole");
                 return mav;
 
-            } else if (RoleCommand.ACTION_NEW.equals(roleCmd.getAction())) {
+            } else if (RoleCommand.ACTION_NEW.equals(roleCommand.getAction())) {
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 ModelAndView mav = new ModelAndView();
                 mav.addObject(RoleCommand.MDL_AGENCIES, agencies);
                 mav.setViewName("AddRole");
                 return mav;
-            } else if (RoleCommand.ACTION_SAVE.equals(roleCmd.getAction())) {
-                return saveRole(aReq, roleCmd);
-            } else if (RoleCommand.ACTION_DELETE.equals(roleCmd.getAction())) {
-                return deleteRole(aReq, roleCmd);
-            } else if (RoleCommand.ACTION_VIEW.equals(roleCmd.getAction())||
-            		RoleCommand.ACTION_EDIT.equals(roleCmd.getAction())) {
-                return editRole(roleCmd);
-            } else if (RoleCommand.ACTION_FILTER.equals(roleCmd.getAction())){
-            	aReq.getSession().setAttribute(RoleCommand.PARAM_AGENCY_FILTER, roleCmd.getAgencyFilter());
-                return defaultView(roleCmd.getAgencyFilter());
+            } else if (RoleCommand.ACTION_SAVE.equals(roleCommand.getAction())) {
+                return saveRole(aReq, roleCommand);
+            } else if (RoleCommand.ACTION_DELETE.equals(roleCommand.getAction())) {
+                return deleteRole(aReq, roleCommand);
+            } else if (RoleCommand.ACTION_VIEW.equals(roleCommand.getAction())||
+            		RoleCommand.ACTION_EDIT.equals(roleCommand.getAction())) {
+                return editRole(roleCommand);
+            } else if (RoleCommand.ACTION_FILTER.equals(roleCommand.getAction())){
+            	aReq.getSession().setAttribute(RoleCommand.PARAM_AGENCY_FILTER, roleCommand.getAgencyFilter());
+                return defaultView(roleCommand.getAgencyFilter());
             }
         }
 
         return null;
     }
 
+    @RequestMapping(path = "/curator/admin/role.html", method = RequestMethod.GET)
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         String agencyFilter = (String)aReq.getSession().getAttribute(RoleCommand.PARAM_AGENCY_FILTER);
         if(agencyFilter == null)

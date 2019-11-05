@@ -149,7 +149,7 @@ public class ServletConfig {
         mappings.put("/curator/target/search.html", "targetSearchController");
         //mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
         //mappings.put("/curator/targets/add-parents.html", "addParentsController");
-        mappings.put("/curator/admin/role.html", "roleController");
+        //mappings.put("/curator/admin/role.html", "roleController");
         mappings.put("/curator/profiles/profiles.html", "profileController");
         //mappings.put("/curator/profiles/profilesH3.html", "profileH3Controller");
         //mappings.put("/curator/profiles/imported-profilesH3.html", "importedProfileH3Controller");
