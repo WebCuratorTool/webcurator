@@ -184,7 +184,7 @@ public class ServletConfig {
         //mappings.put("/curator/target/ti-form-credentials.html", "formCredentialsControllerTargetInstance");
         mappings.put("/curator/target/h3ScriptConsole.html", "h3ScriptConsoleController");
         mappings.put("/curator/target/h3ScriptFile.html", "h3ScriptFileController");
-        mappings.put("/curator/intray/intray.html", "inTrayController");
+//        mappings.put("/curator/intray/intray.html", "inTrayController");
         mappings.put("/curator/report/report.html", "reportController");
         mappings.put("/curator/report/report-preview.html", "reportPreviewController");
         mappings.put("/curator/report/report-save.html", "reportSaveController");

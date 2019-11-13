@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.NotOwnerRuntimeException;
 import org.webcurator.core.notification.InTrayManager;
@@ -53,9 +55,10 @@ public class InTrayController {
     @Autowired
     private InTrayManager inTrayManager;
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd,
+    @RequestMapping(path="/curator/intray/intray.html", method = RequestMethod.POST)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, InTrayCommand intrayCmd,
                                                  BindingResult bindingResult) throws Exception {
-        InTrayCommand intrayCmd = (InTrayCommand) aCmd;
+//        InTrayCommand intrayCmd = (InTrayCommand) aCmd;
         ModelAndView mav = null;
 
 		// get value of page size cookie
@@ -103,6 +106,7 @@ public class InTrayController {
         return mav;
     }
 
+    @RequestMapping(path="/curator/intray/intray.html", method =RequestMethod.GET)
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
 
     	// get value of page size cookie
