@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -56,9 +57,13 @@ public class InTrayController {
     private InTrayManager inTrayManager;
 
     @RequestMapping(path="/curator/intray/intray.html", method = RequestMethod.POST)
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, InTrayCommand intrayCmd,
-                                                 BindingResult bindingResult) throws Exception {
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes) throws Exception {
 //        InTrayCommand intrayCmd = (InTrayCommand) aCmd;
+        InTrayCommand intrayCmd=new InTrayCommand();
+        ServletRequestDataBinder binder=new ServletRequestDataBinder(intrayCmd);
+        binder.bind(aReq);
+        BindingResult bindingResult=binder.getBindingResult();
+
         ModelAndView mav = null;
 
 		// get value of page size cookie
