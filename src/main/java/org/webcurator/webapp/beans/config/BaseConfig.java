@@ -1,5 +1,6 @@
 package org.webcurator.webapp.beans.config;
 
+import org.hibernate.SessionFactory;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -15,7 +16,6 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
@@ -23,6 +23,8 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.common.util.DateUtils;
@@ -59,7 +61,6 @@ import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.SchedulePattern;
-import org.webcurator.ui.groups.controller.GroupSearchController;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.ui.tools.controller.QualityReviewToolController;
 import org.webcurator.ui.tools.controller.TreeToolController;
@@ -75,6 +76,7 @@ import java.util.*;
  * XML files.
  */
 @Configuration
+@EnableTransactionManagement
 @PropertySource(value = "classpath:wct-webapp.properties")
 public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);
@@ -274,13 +276,16 @@ public class BaseConfig {
         //bean.setMappingJarLocations(jarResource);
 
         //bean.setMappingJarLocations(getHibernateConfigurationResources());
+//        bean.setPackagesToScan(new String[]{"org.webcurator.domain.model","org.webcurator.domain"});
         bean.setPackagesToScan(new String[]{"org.webcurator.domain.model"});
+
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
-        hibernateProperties.setProperty("hibernate.show_sql", "false");
+        hibernateProperties.setProperty("hibernate.show_sql", "true");
         //hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
-        hibernateProperties.setProperty("hibernate.transaction.factory_class",
-                "org.hibernate.transaction.JDBCTransactionFactory");
+        hibernateProperties.setProperty("hibernate.transaction.factory_class", "org.hibernate.transaction.JDBCTransactionFactory");
+        hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans","true");
+
         bean.setHibernateProperties(hibernateProperties);
 
         return bean;
@@ -298,9 +303,20 @@ public class BaseConfig {
     }
 
     @Bean
+    @Autowired
     public HibernateTransactionManager transactionManager() {
-        return new HibernateTransactionManager(sessionFactory().getObject());
+        HibernateTransactionManager hibernateTransactionManager=new HibernateTransactionManager(sessionFactory().getObject());
+//        hibernateTransactionManager.setTransactionSynchronization(AbstractPlatformTransactionManager.SYNCHRONIZATION_ALWAYS);
+        return hibernateTransactionManager;
     }
+
+//    @Bean
+//    @Autowired
+//    public HibernateTransactionManager transactionManager(final SessionFactory sessionFactory) {
+//        final HibernateTransactionManager txManager = new HibernateTransactionManager();
+//        txManager.setSessionFactory(sessionFactory);
+//        return txManager;
+//    }
 
     @Bean
     public TransactionTemplate transactionTemplate() {
