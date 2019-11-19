@@ -75,8 +75,8 @@ public class Role implements AgencyOwnable, Serializable{
    /** The set of Users that hold this role */
    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
    @JoinTable(name = "USER_ROLE",
-           joinColumns = { @JoinColumn(name = "URO_USR_OID") },
-           inverseJoinColumns = { @JoinColumn(name = "URO_ROL_OID") },
+           joinColumns = { @JoinColumn(name = "URO_ROL_OID") },
+           inverseJoinColumns = { @JoinColumn(name = "URO_USR_OID") },
            foreignKey = @ForeignKey(name = "FK_USERROLE_TO_USER"))
    private Set<User> users;
    /** The set of privileges that this role is made up from. */
