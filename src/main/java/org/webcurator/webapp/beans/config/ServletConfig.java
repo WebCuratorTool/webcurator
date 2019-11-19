@@ -164,7 +164,7 @@ public class ServletConfig {
         mappings.put("/curator/admin/create-qaindicator.html", "createQaIndicatorController");
         mappings.put("/curator/admin/flags.html", "flagController");
         mappings.put("/curator/admin/create-flag.html", "createFlagController");
-        mappings.put("/curator/admin/user.html", "userController");
+        //mappings.put("/curator/admin/user.html", "userController");
         mappings.put("/curator/admin/create-user.html", "createUserController");
         mappings.put("/curator/admin/associate-userroles.html", "associateUserRoleController");
         mappings.put("/curator/admin/agency.html", "agencyController");

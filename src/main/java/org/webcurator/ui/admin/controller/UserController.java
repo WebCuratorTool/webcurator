@@ -33,6 +33,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
@@ -67,6 +70,7 @@ public class UserController {
         log = LogFactory.getLog(UserController.class);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/admin/user.html")
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         ModelAndView mav = new ModelAndView();
         String agencyFilter = (String)aReq.getSession().getAttribute(UserCommand.MDL_AGENCYFILTER);
@@ -79,26 +83,26 @@ public class UserController {
         return mav;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/user.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute UserCommand userCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = new ModelAndView();
-        UserCommand userCmd = (UserCommand) aCommand;
-        if (userCmd != null) {
+        if (userCommand != null) {
 
-            if (UserCommand.ACTION_STATUS.equals(userCmd.getCmd())) {
+            if (UserCommand.ACTION_STATUS.equals(userCommand.getCmd())) {
                 //Attempt to change the status of the user
 
-                Long userOid = userCmd.getOid();
+                Long userOid = userCommand.getOid();
                 User user = agencyUserManager.getUserByOid(userOid);
                 agencyUserManager.modifyUserStatus(user);
                 populateUserList(mav);
-            } else if (UserCommand.ACTION_MANAGE_ROLES.equals(userCmd.getCmd())) {
+            } else if (UserCommand.ACTION_MANAGE_ROLES.equals(userCommand.getCmd())) {
                 //Display the Manage User Roles screen
                 populateUserList(mav);
-            } else if (UserCommand.ACTION_DELETE.equals(userCmd.getCmd())) {
+            } else if (UserCommand.ACTION_DELETE.equals(userCommand.getCmd())) {
                 // Attempt to delete a user from the system
-                Long userOid = userCmd.getOid();
+                Long userOid = userCommand.getOid();
                 User user = agencyUserManager.getUserByOid(userOid);
                 String username = user.getUsername();
                 try {
@@ -108,7 +112,7 @@ public class UserController {
                     Object[] args = new Object[1];
                     args[0] = user.getUsername();
                     if (bindingResult == null) {
-                        bindingResult = new BindException(userCmd, "command");
+                        bindingResult = new BindException(userCommand, "command");
                     }
                     bindingResult.addError(new ObjectError("command",codes,args,"User owns objects in the system and can't be deleted."));
                     mav.addObject(Constants.GBL_ERRORS, bindingResult);
@@ -117,9 +121,9 @@ public class UserController {
                 }
                 populateUserList(mav);
                 mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("user.deleted", new Object[] { username }, Locale.getDefault()));
-            } else if (UserCommand.ACTION_FILTER.equals(userCmd.getCmd())) {
+            } else if (UserCommand.ACTION_FILTER.equals(userCommand.getCmd())) {
                 //Just filtering users by agency - if we change the default, store it in a session
-            	aReq.getSession().setAttribute(UserCommand.MDL_AGENCYFILTER, userCmd.getAgencyFilter());
+            	aReq.getSession().setAttribute(UserCommand.MDL_AGENCYFILTER, userCommand.getAgencyFilter());
                 populateUserList(mav);
             }
         } else {
