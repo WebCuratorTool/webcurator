@@ -34,6 +34,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
@@ -70,17 +73,17 @@ public class AssociateUserRoleController {
         log = LogFactory.getLog(AssociateUserRoleController.class);
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCmd) throws Exception {
-        AssociateUserRoleCommand command = (AssociateUserRoleCommand) aCmd;
-        if (command != null && command.getActionCmd() != null) {
-            if (AssociateUserRoleCommand.ACTION_ASSOCIATE_VIEW.equals(command.getActionCmd())) {
-                return processUserToRoleAssoc(command);
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/associate-userroles.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute AssociateUserRoleCommand associateUserRoleCommand) throws Exception {
+        if (associateUserRoleCommand != null && associateUserRoleCommand.getActionCmd() != null) {
+            if (AssociateUserRoleCommand.ACTION_ASSOCIATE_VIEW.equals(associateUserRoleCommand.getActionCmd())) {
+                return processUserToRoleAssoc(associateUserRoleCommand);
             }
-            else if (AssociateUserRoleCommand.ACTION_ASSOCIATE_SAVE.equals(command.getActionCmd())) {
-                return processSaveUserToRoleAssoc(aReq, command);
+            else if (AssociateUserRoleCommand.ACTION_ASSOCIATE_SAVE.equals(associateUserRoleCommand.getActionCmd())) {
+                return processSaveUserToRoleAssoc(aReq, associateUserRoleCommand);
             }
             else {
-                throw new RuntimeException("Unknown action item " + command.getActionCmd());
+                throw new RuntimeException("Unknown action item " + associateUserRoleCommand.getActionCmd());
             }
         }
         throw new RuntimeException("Unknown command.");

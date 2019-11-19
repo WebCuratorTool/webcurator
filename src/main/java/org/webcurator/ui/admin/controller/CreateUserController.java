@@ -84,10 +84,6 @@ public class CreateUserController {
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
-    protected ModelAndView showForm() throws Exception {
-
-        return null;
-    }
 
     @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/create-user.html")
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute CreateUserCommand createUserCommand, BindingResult bindingResult)
