@@ -57,8 +57,8 @@ public class Seed extends AbstractIdentityObject {
 	/** The set of related permissions */
 	@ManyToMany
 	@JoinTable(name = "SEED_PERMISSION",
-			joinColumns = { @JoinColumn(name = "SP_PERMISSION_ID") },
-			inverseJoinColumns = { @JoinColumn(name = "SP_SEED_ID") },
+			joinColumns = { @JoinColumn(name = "SP_SEED_ID") },
+			inverseJoinColumns = { @JoinColumn(name = "SP_PERMISSION_ID") },
 			foreignKey = @ForeignKey(name = "FK_SP_PERMISSION_ID"))
 	private Set<Permission> permissions = new HashSet<Permission>();
 	/** Sets if the seed is primary or secondary. */

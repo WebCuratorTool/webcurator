@@ -86,8 +86,8 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
 	/** The set of UrlPatterns covered by this permission. */
 	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
 	@JoinTable(name = "PERMISSION_URLPATTERN",
-			joinColumns = { @JoinColumn(name = "PU_URLPATTERN_ID") },
-			inverseJoinColumns = { @JoinColumn(name = "PU_PERMISSION_ID") },
+			joinColumns = { @JoinColumn(name = "PU_PERMISSION_ID") },
+			inverseJoinColumns = { @JoinColumn(name = "PU_URLPATTERN_ID") },
 			foreignKey = @ForeignKey(name = "PU_FK_1"))
 	private Set<UrlPattern> urls;
 	/** The date this permission starts. */

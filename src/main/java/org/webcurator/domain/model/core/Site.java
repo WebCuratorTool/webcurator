@@ -85,8 +85,8 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
      */
     @ManyToMany
     @JoinTable(name = "SITE_AUTH_AGENCY",
-            joinColumns = { @JoinColumn(name = "SA_AGENT_ID") },
-            inverseJoinColumns = { @JoinColumn(name = "SA_SITE_ID") },
+            joinColumns = { @JoinColumn(name = "SA_SITE_ID") },
+            inverseJoinColumns = { @JoinColumn(name = "SA_AGENT_ID") },
             foreignKey = @ForeignKey(name = "FK_SA_AGENT_ID"))
     private Set<AuthorisingAgent> authorisingAgents = new HashSet<AuthorisingAgent>();
     /** A set of URL patterns that are encompassed by this site. */
