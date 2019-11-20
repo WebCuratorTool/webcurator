@@ -18,14 +18,22 @@ package org.webcurator.ui.target.controller;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -33,32 +41,45 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.TargetAnnotationCommand;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
  * The controller for all Target tabs.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TabbedTargetController extends TabbedController {
-
+    @Autowired
 	private TargetManager targetManager;
 
 	public static final String EDITOR_CONTEXT = "targetEditorContext";
+    @Autowired
+	private BusinessObjectFactory businessObjectFactory;
+    @Autowired
+    @Qualifier("targetSearchController")
+	private TargetSearchController searchController;
+    @Autowired
+	private MessageSource messageSource;
+    @Autowired
+	private AuthorityManager authorityManager;
 
-	private BusinessObjectFactory businessObjectFactory = null;
+    @Autowired
+    private ApplicationContext context;
 
-	private TargetSearchController searchController = null;
-
-	private MessageSource messageSource = null;
-
-	private AuthorityManager authorityManager = null;
-
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(TargetDefaultCommand.class);
+        setTabConfig((TabConfig) context.getBean("targetTabConfig"));
+    }
 
 	@Override
 	protected void switchToEditMode(HttpServletRequest req) {
@@ -100,8 +121,8 @@ public class TabbedTargetController extends TabbedController {
 	}
 
 	@Override
-	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                       BindingResult bindingResult) {
 
 		// Load the session model.
 		TargetEditorContext ctx = getEditorContext(req);
@@ -114,34 +135,34 @@ public class TabbedTargetController extends TabbedController {
 		}
 
 		if(!targetManager.isNameOk(target)) {
-			errors.reject("target.errors.duplicatename");
+			bindingResult.reject("target.bindingResult.duplicatename");
 		}
 
 		if(target.getProfile()==null) {
-			errors.reject("target.errors.profile.missing");
+			bindingResult.reject("target.bindingResult.profile.missing");
 		}
 
 		if( ( target.getState() == Target.STATE_APPROVED ||
 			  target.getState() == Target.STATE_COMPLETED   ) && !target.isApprovable()) {
-			errors.reject("target.errors.notapprovable");
+			bindingResult.reject("target.bindingResult.notapprovable");
 		}
 
 		if(cmd != null && cmd.isHarvestNowSet() && target.getState() != Target.STATE_APPROVED && target.getState() != Target.STATE_COMPLETED) {
-			errors.reject("target.error.notapproved");
+			bindingResult.reject("target.error.notapproved");
 		}
 
 		//TODO if HarvestNow is set and it's completed, ensure the user has permission to do this
 		if(cmd != null && cmd.isHarvestNowSet() && target.getState()==Target.STATE_COMPLETED) {
 			if(!authorityManager.hasPrivilege(target, Privilege.APPROVE_TARGET) || !authorityManager.hasPrivilege(target, Privilege.REINSTATE_TARGET)) {
-				errors.reject("target.error.approve.denied");
+				bindingResult.reject("target.error.approve.denied");
 			}
 		}
 
-		if(errors.hasErrors()) {
-			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,errors);
+		if(bindingResult.hasErrors()) {
+			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,bindingResult);
 			tmav.getTabStatus().setCurrentTab(currentTab);
 			tmav.addObject(Constants.GBL_CMD_DATA,  comm);
-			tmav.addObject(Constants.GBL_ERRORS, errors);
+			tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return tmav;
 		}
 		else {
@@ -163,7 +184,7 @@ public class TabbedTargetController extends TabbedController {
 			if(comm instanceof TargetAnnotationCommand) {
 				TargetAnnotationCommand tac = (TargetAnnotationCommand)comm;
 				if(tac.isAction(TargetAnnotationCommand.ACTION_ADD_NOTE)) {
-					TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,errors);
+					TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,bindingResult);
 					tmav.getTabStatus().setCurrentTab(currentTab);
 					tmav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved", new Object[] { target.getName() }, Locale.getDefault()));
 					tmav.addObject(Constants.GBL_CMD_DATA,  comm);
@@ -175,7 +196,7 @@ public class TabbedTargetController extends TabbedController {
 				}
 			}
 
-			ModelAndView mav = searchController.prepareSearchView(req, res, errors);
+			ModelAndView mav = searchController.prepareSearchView(req, res);
 
 			if( beforeSaveState == afterSaveState) {
 				if (target.isHarvestNow() && afterSaveState == Target.STATE_APPROVED) {
@@ -200,37 +221,27 @@ public class TabbedTargetController extends TabbedController {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#processCancel(org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
 	@Override
-	protected ModelAndView processCancel(Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                         BindingResult bindingResult) {
 
 		// Remove from the session and go back to search.
 		req.getSession().removeAttribute("targetSessionModel");
 		return new ModelAndView("redirect:/curator/target/search.html");
 	}
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#processInitial(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
 	@Override
-	protected ModelAndView processInitial(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                          BindingResult bindingResult) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	private static Log log = LogFactory.getLog(TabbedTargetController.class);
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#showForm(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.validation.BindException)
-	 */
 	@Override
-	protected ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException bex) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                    BindingResult bindingResult) throws Exception {
 		TargetDefaultCommand command = (TargetDefaultCommand) comm;
 		if( command != null && command.getTargetOid() != null) {
 			Target aTarget = targetManager.load(command.getTargetOid(), true);
@@ -264,7 +275,7 @@ public class TabbedTargetController extends TabbedController {
 		}
 
 		Tab general = getTabConfig().getTabByID("GENERAL");
-		TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, bex);
+		TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, bindingResult);
 		tmav.getTabStatus().setCurrentTab(general);
 
 		return tmav;

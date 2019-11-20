@@ -1,5 +1,5 @@
 <%@page contentType="text/html; charset=UTF-8" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib uri="http://tiles.apache.org/tags-tiles" prefix="tiles" %>

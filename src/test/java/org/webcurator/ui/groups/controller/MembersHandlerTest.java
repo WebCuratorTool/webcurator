@@ -13,6 +13,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.targets.MockTargetManager;
@@ -33,7 +34,7 @@ public class MembersHandlerTest extends BaseWCTTest<MembersHandler> {
 
 	public MembersHandlerTest() {
 		super(MembersHandler.class,
-				"src/test/java/org/webcurator/ui/groups/controller/MembersHandlerTest.xml");
+                "/org/webcurator/ui/groups/controller/MembersHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -95,8 +96,8 @@ public class MembersHandlerTest extends BaseWCTTest<MembersHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.groups.command.DefaultCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "MembersCommand");
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "MembersCommand");
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav.getModel().get("command") instanceof MembersCommand);
 	}
 
@@ -126,8 +127,8 @@ public class MembersHandlerTest extends BaseWCTTest<MembersHandler> {
 		tc.setDefaultCommandClass(org.webcurator.ui.groups.command.DefaultCommand.class);
 
 		Tab currentTab = tabs.get(0);
-		BindException aErrors = new BindException(aCmd, "MembersCommand");
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "MembersCommand");
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertEquals("group-move-targets", mav.getViewName());
 		assertTrue(mav.getModel().get("command") instanceof MoveTargetsCommand);
@@ -162,8 +163,8 @@ public class MembersHandlerTest extends BaseWCTTest<MembersHandler> {
 		assertEquals(0, targetGroup.getRemovedChildren().size());
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, "MembersCommand");
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "MembersCommand");
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertEquals("group", mav.getViewName());
 		assertTrue(mav.getModel().get("command") instanceof MembersCommand);

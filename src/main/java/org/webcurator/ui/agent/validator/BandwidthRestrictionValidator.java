@@ -17,6 +17,10 @@ package org.webcurator.ui.agent.validator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.agent.command.BandwidthRestrictionsCommand;
@@ -27,6 +31,9 @@ import org.webcurator.ui.common.validation.ValidatorUtil;
  * Validator to use for validating Bandwidth restriction data.
  * @author nwaight
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class BandwidthRestrictionValidator extends AbstractBaseValidator {
 
     /** Logger to use with this class. */

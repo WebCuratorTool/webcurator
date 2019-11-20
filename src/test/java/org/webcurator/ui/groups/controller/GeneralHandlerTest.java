@@ -13,6 +13,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
@@ -36,7 +37,7 @@ public class GeneralHandlerTest extends BaseWCTTest<GeneralHandler>{
 	public GeneralHandlerTest()
 	{
 		super(GeneralHandler.class,
-				"src/test/java/org/webcurator/ui/groups/controller/GeneralHandlerTest.xml");
+                "/org/webcurator/ui/groups/controller/GeneralHandlerTest.xml");
 	}
 
 
@@ -96,27 +97,27 @@ public class GeneralHandlerTest extends BaseWCTTest<GeneralHandler>{
 		Tab currentTab = tabs.get(0);
 		aCmd.setName("TestName");
 		aCmd.setFromDate(null);
-		BindException aErrors = new BindException(aCmd, "GeneralCommand");
+        BindingResult bindingResult = new BindException(aCmd, "GeneralCommand");
 
 		this.addCurrentUserPrivilege("CREATE_GROUP");
 		this.addCurrentUserPrivilege("TAKE_OWNERSHIP");
 		assertTrue(targetGroup.getDublinCoreMetaData() != null);
 		assertTrue(targetGroup.getDublinCoreMetaData().getTitle().isEmpty());
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetGroup.getName().equals("TestName"));
 		assertTrue(targetGroup.getFromDate() == null);
 		assertTrue(targetGroup.getDublinCoreMetaData() != null);
 		assertEquals(targetGroup.getDublinCoreMetaData().getTitle(),"TestName");
 
 		aCmd.setName("TestName2");
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetGroup.getName().equals("TestName2"));
 		assertTrue(targetGroup.getDublinCoreMetaData() != null);
 		assertEquals(targetGroup.getDublinCoreMetaData().getTitle(),"TestName2");
 
 		targetGroup.getDublinCoreMetaData().setTitle("TestName4");
 		aCmd.setName("TestName3");
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetGroup.getName().equals("TestName3"));
 		assertTrue(targetGroup.getDublinCoreMetaData() != null);
 		assertEquals(targetGroup.getDublinCoreMetaData().getTitle(),"TestName4");
@@ -148,8 +149,8 @@ public class GeneralHandlerTest extends BaseWCTTest<GeneralHandler>{
 		tc.setDefaultCommandClass(org.webcurator.ui.groups.command.DefaultCommand.class);
 
 		Tab currentTab = tabs.get(0);
-		BindException aErrors = new BindException(aCmd, "GeneralCommand");
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "GeneralCommand");
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(((GeneralCommand)mav.getModel().get("command")).getName() == targetGroup.getName());
 		assertTrue(((GeneralCommand)mav.getModel().get("command")).getFromDate().equals(targetGroup.getFromDate()));
 	}
@@ -182,8 +183,8 @@ public class GeneralHandlerTest extends BaseWCTTest<GeneralHandler>{
 		tc.setDefaultCommandClass(org.webcurator.ui.groups.command.DefaultCommand.class);
 
 		Tab currentTab = tabs.get(0);
-		BindException aErrors = new BindException(aCmd, "GeneralCommand");
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "GeneralCommand");
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertEquals("group-add-parents", mav.getViewName());
 		assertTrue(mav.getModel().get("command") instanceof AddParentsCommand);
@@ -215,8 +216,8 @@ public class GeneralHandlerTest extends BaseWCTTest<GeneralHandler>{
 		tc.setDefaultCommandClass(org.webcurator.ui.groups.command.DefaultCommand.class);
 
 		Tab currentTab = tabs.get(0);
-		BindException aErrors = new BindException(aCmd, "GeneralCommand");
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "GeneralCommand");
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertEquals("group", mav.getViewName());
 		assertTrue(((GeneralCommand)mav.getModel().get("command")).getName() == targetGroup.getName());

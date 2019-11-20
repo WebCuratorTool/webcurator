@@ -3,8 +3,11 @@ package org.webcurator.ui.profiles.controller;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.Controller;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.auth.Privilege;
@@ -16,20 +19,25 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class H3ScriptFileController implements Controller {
+@Controller
+@PropertySource(value = "classpath:wct-webapp.properties")
+public class H3ScriptFileController {
     /** The profile manager to load the profile */
-    private TargetInstanceManager targetInstanceManager = null;
+    @Autowired
+    private TargetInstanceManager targetInstanceManager;
     /** The authority manager for checking permissions */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /**
      * The name of the h3 scripts directory.
      */
-    private String h3ScriptsDirectory = "";
+    @Value("${h3.scriptsDirectory}")
+    private String h3ScriptsDirectory;
+
     /** Logger for the H3ScriptFileController. **/
     private static Log log = LogFactory.getLog(H3ScriptFileController.class);
 
-    @Override
-    public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+    public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         // get target instance oid and script file name
         String targetInstanceOid = httpServletRequest.getParameter("targetInstanceOid");
         String scriptFileName = httpServletRequest.getParameter("scriptFileName"); // includes file extension

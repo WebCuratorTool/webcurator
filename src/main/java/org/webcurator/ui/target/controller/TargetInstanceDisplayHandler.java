@@ -23,12 +23,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
@@ -55,7 +55,7 @@ public class TargetInstanceDisplayHandler extends TabHandler {
 
     public void processTab(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                           BindingResult bindingResult) {
         // process the submit of the tab called on change tab or save
         TargetInstanceCommand cmd = null;
         if (comm instanceof TargetInstanceCommand) {
@@ -73,7 +73,7 @@ public class TargetInstanceDisplayHandler extends TabHandler {
     @SuppressWarnings("unchecked")
     public TabbedModelAndView preProcessNextTab(TabbedController tc,
             Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindException errors) {
+            Object comm, BindingResult bindingResult) {
         // build mav stuff b4 displaying the tab
         TabbedModelAndView tmav = tc.new TabbedModelAndView();
 
@@ -110,9 +110,9 @@ public class TargetInstanceDisplayHandler extends TabHandler {
 
     public ModelAndView processOther(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                                     BindingResult bindingResult) {
 		// Process the main tab.
-		TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+		TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 		tmav.getTabStatus().setCurrentTab(currentTab);
 		return tmav;
     }

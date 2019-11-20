@@ -6,27 +6,32 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.ui.target.command.LiveContentRetrieverCommand;
 
-public class LiveContentRetrieverController extends AbstractCommandController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@RequestMapping("/curator/target/live-content-retriever.html")
+public class LiveContentRetrieverController {
 
-	public LiveContentRetrieverController() {
-		setCommandClass(LiveContentRetrieverCommand.class);
-	}
-
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
-		LiveContentRetrieverCommand cmd = (LiveContentRetrieverCommand) comm;
-
+	@GetMapping
+	protected ModelAndView handle(@RequestParam("url") String url, @RequestParam("contentFileName") String contentFileName)
+			throws Exception {
+		LiveContentRetrieverCommand cmd = new LiveContentRetrieverCommand();
+		cmd.setUrl(url);
+		cmd.setContentFileName(contentFileName);
+		
 		File f = downloadTemporaryFile(cmd.getUrl());
 		AttachmentView v = new AttachmentView(cmd.getContentFileName(), f, true);
 		return new ModelAndView(v);

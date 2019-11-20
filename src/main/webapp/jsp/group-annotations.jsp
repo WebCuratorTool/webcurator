@@ -3,7 +3,7 @@
 <%@ taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>
 <%@ taglib prefix="wct" uri="http://www.webcurator.org/wct"  %>
 <%@ page import="org.webcurator.ui.groups.command.GroupAnnotationCommand" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <script src="scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
 
 <style>

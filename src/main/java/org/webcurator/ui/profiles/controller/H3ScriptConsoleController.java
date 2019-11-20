@@ -18,9 +18,13 @@ package org.webcurator.ui.profiles.controller;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentScriptResult;
@@ -28,7 +32,7 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.common.CommonViews;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.H3ScriptConsoleCommand;
 import org.webcurator.ui.util.HarvestAgentUtil;
 
@@ -43,17 +47,25 @@ import java.util.*;
  * @author bbeaumont
  *
  */
-public class H3ScriptConsoleController extends AbstractCommandController {
+@Controller
+@PropertySource(value = "classpath:wct-webapp.properties")
+public class H3ScriptConsoleController {
 	/** The profile manager to load the profile */
-	private TargetInstanceManager targetInstanceManager = null;
+	@Autowired
+	private TargetInstanceManager targetInstanceManager;
 	/** The authority manager for checking permissions */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 	/**
 	 * The name of the h3 scripts directory.
 	 */
-	private String h3ScriptsDirectory = "";
+    @Value("${h3.scriptsDirectory}")
+	private String h3ScriptsDirectory;
 
-	/** Logger for the H3ScriptConsoleController. **/
+    @Autowired
+    private ApplicationContext context;
+
+    /** Logger for the H3ScriptConsoleController. **/
 	private static Log log = LogFactory.getLog(H3ScriptConsoleController.class);
 
 	private static Map<String, String> fileExtensionToScriptType = new HashMap<String, String>();
@@ -68,14 +80,13 @@ public class H3ScriptConsoleController extends AbstractCommandController {
 	 * Construct a new ProfileViewController.
 	 */
 	public H3ScriptConsoleController() {
-		setCommandClass(H3ScriptConsoleCommand.class);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
 	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 		H3ScriptConsoleCommand command = (H3ScriptConsoleCommand) comm;
 		TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceOid(), true);
 		String result = "";
@@ -187,7 +198,7 @@ public class H3ScriptConsoleController extends AbstractCommandController {
 	 */
 	private HarvestAgent getHarvestAgent() {
 
-		return HarvestAgentUtil.getHarvestAgent(getApplicationContext());
+		return HarvestAgentUtil.getHarvestAgent(this.context);
 	}
 
 }

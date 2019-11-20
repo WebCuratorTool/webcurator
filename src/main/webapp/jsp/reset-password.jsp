@@ -20,7 +20,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <div id="topBar"><img src="images/web-curator-tool-logo.gif" alt="Web Curator Tool" width="320" height="68" border="0" /></div>
 <br class="clear" />
 
-		<form name="ResetPwd" action="<%= org.webcurator.ui.common.Constants.CNTRL_RESET_PWD%>" method="POST">
+		<form name="ResetPwd" action="<%= org.webcurator.common.ui.Constants.CNTRL_RESET_PWD%>" method="POST">
 		  <input type="hidden" name="<%=ResetPasswordCommand.PARAM_ACTION %>" value="<%=ResetPasswordCommand.ACTION_SAVE%>"/>
 			<div id="loginBox">
 

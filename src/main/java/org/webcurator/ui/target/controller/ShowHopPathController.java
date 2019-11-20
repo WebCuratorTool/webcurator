@@ -15,18 +15,23 @@
  */
 package org.webcurator.ui.target.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.ShowHopPathCommand;
 import org.webcurator.ui.target.validator.ShowHopPathValidator;
 
@@ -34,32 +39,34 @@ import org.webcurator.ui.target.validator.ShowHopPathValidator;
  * The controller for handling the hop path viewer commands.
  * @author skillarney
  */
-public class ShowHopPathController extends AbstractCommandController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@RequestMapping("/curator/target/show-hop-path.html")
+public class ShowHopPathController {
 
+    @Autowired
 	HarvestLogManager harvestLogManager;
 
+    @Autowired
 	TargetInstanceManager targetInstanceManager;
 
-	public ShowHopPathController() {
+	@Autowired
+    ShowHopPathValidator validator;
 
-		setCommandClass(ShowHopPathCommand.class);
-		setValidator(new ShowHopPathValidator());
+	public ShowHopPathController() {
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest aReq, HttpServletResponse aResp, Object aCommand, BindException aErrors) throws Exception {
+	protected ModelAndView handle(Object aCommand, BindingResult bindingResult) throws Exception {
 
 		ShowHopPathCommand cmd = (ShowHopPathCommand) aCommand;
 		String messageText = "";
 		int firstLine = 0;
-		String[] lines = {"", ""};
+		List<String> lines = Arrays.asList("", "");
 
-		if(aErrors.hasErrors())
+		if(bindingResult.hasErrors())
 		{
-			Iterator it = aErrors.getAllErrors().iterator();
+			Iterator it = bindingResult.getAllErrors().iterator();
 			while(it.hasNext())
 			{
 				org.springframework.validation.ObjectError err = (org.springframework.validation.ObjectError)it.next();
@@ -81,14 +88,14 @@ public class ShowHopPathController extends AbstractCommandController {
 			cmd = new ShowHopPathCommand();
 		}
 
-		if (lines.length == 0) {
+		if (lines.size() == 0) {
 
 		}
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(Constants.HOP_PATH__READER);
 		mav.addObject(Constants.GBL_CMD_DATA, cmd);
-		if (lines.length == 0) {
-			String [] problem = { "Could not determine Hop Path for Url: " + cmd.getUrl() };
+		if (lines.size() == 0) {
+			List<String> problem = Arrays.asList("Could not determine Hop Path for Url: " + cmd.getUrl());
 			mav.addObject(ShowHopPathCommand.MDL_LINES, parseLines(problem, cmd.getShowLineNumbers(), firstLine, cmd.getNumLines()));
 		} else {
 			mav.addObject(ShowHopPathCommand.MDL_LINES, parseLines(lines, cmd.getShowLineNumbers(), firstLine, cmd.getNumLines()));
@@ -112,26 +119,26 @@ public class ShowHopPathController extends AbstractCommandController {
 		this.targetInstanceManager = targetInstanceManager;
 	}
 
-	private String[] parseLines(String[] inLines, boolean showLineNumbers, int firstLine, int countLines)
+	private List<String> parseLines(List<String> inLines, boolean showLineNumbers, int firstLine, int countLines)
 	{
-		String[] outLines = new String[inLines.length];
+		List<String> outLines = new ArrayList<>(inLines.size());
 		int lineNumber = firstLine;
-		for(int i = 0; i < inLines.length; i++)
+		for(int i = 0; i < inLines.size(); i++)
 		{
 			if(i == 0 && showLineNumbers && lineNumber > -2)
 			{
-				String[] subLines = inLines[i].split("\n");
+				String[] subLines = inLines.get(i).split("\n");
 				if(lineNumber == -1)
 				{
 					//this is a tail
 					lineNumber = 1+(countLines-subLines.length);
 				}
 
-				outLines[i] = addNumbers(inLines, lineNumber, showLineNumbers);
+				outLines.add(addNumbers(inLines, lineNumber, showLineNumbers));
 			}
 			else
 			{
-				outLines[i] = inLines[i];
+				outLines.add(inLines.get(i));
 			}
 		}
 
@@ -139,12 +146,12 @@ public class ShowHopPathController extends AbstractCommandController {
 	}
 
 
-	private String addNumbers(String[] result, Integer firstLine, boolean showLineNumbers)
+	private String addNumbers(List<String> result, Integer firstLine, boolean showLineNumbers)
 	{
 		StringBuilder sb = new StringBuilder();
-		if(result != null && result.length == 2)
+		if(result != null && result.size() == 2)
 		{
-			String[] lineArray = result[0].split("\n");
+			String[] lineArray = result.get(0).split("\n");
 			for(int i = 0; i < lineArray.length; i++)
 			{
 				if(i == lineArray.length-1 && lineArray[i].length()==0)

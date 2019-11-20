@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.store.MockDigitalAssetStore;
@@ -30,13 +31,13 @@ public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJ
 	private MockHttpServletRequest aReq;
 	private HttpServletResponse aResp;
 	private TreeToolCommand aCmd;
-	private BindException aErrors;
+	private BindingResult bindingResult;
 	private String viewName = "TreeToolAJAX";
 
 	public TreeToolControllerAJAXTest() {
 		super(
 				TreeToolControllerAJAX.class,
-				"src/test/java/org/webcurator/ui/tools/controller/TreeToolControllerTest.xml");
+                "/org/webcurator/ui/tools/controller/TreeToolControllerTest.xml");
 
 	}
 
@@ -87,7 +88,7 @@ public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJ
 		// set up command:
 		aResp = new MockHttpServletResponse();
 		aCmd = new TreeToolCommand();
-		aErrors = new BindException(aCmd, aCmd.getActionCmd());
+		bindingResult = new BindException(aCmd, aCmd.getActionCmd());
 	}
 
 	private final void setUpAndTestFirstRequest() {
@@ -96,7 +97,7 @@ public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJ
 			aCmd.setLoadTree((long) 111000);
 
 			// test handle:
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:
@@ -142,7 +143,7 @@ public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJ
 			Node<HarvestResource> node = tree.getNodeCache().get((long) 2);
 			Boolean isopen = node.isOpen();
 			// test handle
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:
@@ -160,7 +161,7 @@ public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJ
 			aCmd.setMarkForDelete((long) 21);
 			aCmd.setPropagateDelete(false);
 			// test handle
-			mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			mav = testInstance.handle(aReq, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:
@@ -179,7 +180,7 @@ public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJ
 			aCmd.setMarkForDelete((long) 3);
 			aCmd.setPropagateDelete(true);
 			// test handle
-			mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			mav = testInstance.handle(aReq, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(viewName));
 			// test tree session variable:

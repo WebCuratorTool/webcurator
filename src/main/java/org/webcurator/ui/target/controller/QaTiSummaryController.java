@@ -30,22 +30,29 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.common.Environment;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.profiles.ProfileDataUnit;
@@ -72,74 +79,87 @@ import org.webcurator.domain.model.core.Schedule;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.common.validation.ValidatorUtil;
 import org.webcurator.ui.target.command.ProfileCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.target.command.TargetInstanceSummaryCommand;
 import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.command.Time;
+import org.webcurator.ui.target.validator.QaTiSummaryValidator;
 import org.webcurator.common.util.DateUtils;
 
 /**
  * The controller for displaying the Target Instance QA Summary Page.
  * @author twoods
  */
-public class QaTiSummaryController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@RequestMapping("/curator/target/qatisummary.html")
+public class QaTiSummaryController {
     /** The manager to use to access the target instance. */
+    @Autowired
     private TargetInstanceManager targetInstanceManager;
-    /** The harvest coordinator for looking at the harvesters. */
-    private Environment environment;
     /** The manager to use for user, role and agency data. */
+    @Autowired
     private AgencyUserManager agencyUserManager;
     /** The component that will provide an <code>Indicator</code> based QA recommendation **/
+    @Autowired
     private HarvestCoordinator harvestCoordinator;
     /** the logger. */
     private Log log;
 	/** the profile manager to use. */
+	@Autowired
 	private ProfileManager profileManager;
 	/** Authority Manager */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 	/** Business object factory */
+	@Autowired
 	private BusinessObjectFactory businessObjectFactory;
 	/** used to retrieve a complete target **/
+	@Autowired
 	private TargetManager targetManager;
     /** the message source. */
-    private MessageSource messageSource = null;
-
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
     private DigitalAssetStore digitalAssetStore;
 
-    private static Map<String,Integer> monthMap = new HashMap<String,Integer>(20);
-    private static Map<String,Integer> dayMap = new HashMap<String,Integer>(60);
+    @Autowired
+	private QaTiSummaryValidator validator;
+
+    private static Map<String,Integer> monthMap = new HashMap<>(20);
+    private static Map<String,Integer> dayMap = new HashMap<>(60);
 
     /** static Map of months used by the schedule panel **/
 	static {
-        monthMap.put("JAN", new Integer(0));
-        monthMap.put("FEB", new Integer(1));
-        monthMap.put("MAR", new Integer(2));
-        monthMap.put("APR", new Integer(3));
-        monthMap.put("MAY", new Integer(4));
-        monthMap.put("JUN", new Integer(5));
-        monthMap.put("JUL", new Integer(6));
-        monthMap.put("AUG", new Integer(7));
-        monthMap.put("SEP", new Integer(8));
-        monthMap.put("OCT", new Integer(9));
-        monthMap.put("NOV", new Integer(10));
-        monthMap.put("DEC", new Integer(11));
+        monthMap.put("JAN", 0);
+        monthMap.put("FEB", 1);
+        monthMap.put("MAR", 2);
+        monthMap.put("APR", 3);
+        monthMap.put("MAY", 4);
+        monthMap.put("JUN", 5);
+        monthMap.put("JUL", 6);
+        monthMap.put("AUG", 7);
+        monthMap.put("SEP", 8);
+        monthMap.put("OCT", 9);
+        monthMap.put("NOV", 10);
+        monthMap.put("DEC", 11);
 
-        dayMap.put("SUN", new Integer(1));
-        dayMap.put("MON", new Integer(2));
-        dayMap.put("TUE", new Integer(3));
-        dayMap.put("WED", new Integer(4));
-        dayMap.put("THU", new Integer(5));
-        dayMap.put("FRI", new Integer(6));
-        dayMap.put("SAT", new Integer(7));
+        dayMap.put("SUN", 1);
+        dayMap.put("MON", 2);
+        dayMap.put("TUE", 3);
+        dayMap.put("WED", 4);
+        dayMap.put("THU", 5);
+        dayMap.put("FRI", 6);
+        dayMap.put("SAT", 7);
     }
 
     /** Default constructor. */
     public QaTiSummaryController() {
         super();
-        setCommandClass(TargetInstanceSummaryCommand.class);
         log = LogFactory.getLog(getClass());
     }
 
@@ -166,14 +186,15 @@ public class QaTiSummaryController extends AbstractFormController {
         		}
         	}
         });
+        binder.bind(request);
     }
 
     /**
      * binds the data to the <code>ModelAndView</code>
-     * @param mav	the <code>ModelAndView</code> to bind to
      * @param ti	the <code>TargetInstance</code> whose data should be bound to the <code>ModelAndView</code>
      */
-    private ModelAndView buildModelAndView(HttpServletRequest request, TargetInstance ti, TargetInstance rcti, TargetInstanceSummaryCommand command, BindException errors) {
+    private ModelAndView buildModelAndView(TargetInstance ti, TargetInstance rcti,
+                                           TargetInstanceSummaryCommand command) {
 
        	ModelAndView mav = new ModelAndView(Constants.VIEW_TARGET_INSTANCE_QA_SUMMARY);
 
@@ -212,7 +233,7 @@ public class QaTiSummaryController extends AbstractFormController {
         mav.addObject(TargetInstanceSummaryCommand.MDL_SEEDS, seeds);
 
         // add the log list
-        LogFilePropertiesDTO[] arrLogs = harvestCoordinator.listLogFileAttributes(ti);
+        List<LogFilePropertiesDTO> arrLogs = harvestCoordinator.listLogFileAttributes(ti);
         mav.addObject(TargetInstanceSummaryCommand.MDL_LOGS, arrLogs);
 
         // add the harvest results
@@ -228,17 +249,17 @@ public class QaTiSummaryController extends AbstractFormController {
         ti.setAnnotations(targetInstanceManager.getAnnotations(ti));
 
         // add profile information to support overrides
-        buildProfile(mav, request, ti, command);
+        buildProfile(mav, ti);
 
         // add schedule info to support schedule management
-        buildSchedule(mav, request, ti, command, errors);
+        buildSchedule(mav, ti, command);
 
-        includeCustomFormDetails(request, mav, ti);
+        includeCustomFormDetails(mav, ti);
 
         return mav;
     }
 
-    private void includeCustomFormDetails(HttpServletRequest request, ModelAndView mav, TargetInstance ti) {
+    private void includeCustomFormDetails(ModelAndView mav, TargetInstance ti) {
 		boolean customDepositFormRequired = false;
 		if (TargetInstance.STATE_ENDORSED.equals(ti.getState())) {
 			try {
@@ -271,10 +292,8 @@ public class QaTiSummaryController extends AbstractFormController {
 	}
 
 	private void buildSchedule(	ModelAndView mav,
-    							HttpServletRequest request,
     							TargetInstance ti,
-    							TargetInstanceSummaryCommand command,
-    							BindException errors) {
+    							TargetInstanceSummaryCommand command) {
 
     	// add schedule info to support schedule management
     	mav.addObject(TargetInstanceSummaryCommand.MDL_SCHEDULES, ti.getTarget().getSchedules());
@@ -303,7 +322,7 @@ public class QaTiSummaryController extends AbstractFormController {
         		int scheduleIndex = command.getScheduleOid().indexOf(schedule.getOid().toString());
 
         		if (scheduleIndex != -1) {
-        			scheduleCommand = buildScheduleCommand(mav, command, scheduleIndex, errors);
+        			scheduleCommand = buildScheduleCommand(mav, command, scheduleIndex);
         		} else {
         			// build a new schedule command
         			scheduleCommand = TargetSchedulesCommand.buildFromModel(schedule);
@@ -334,8 +353,7 @@ public class QaTiSummaryController extends AbstractFormController {
 
     private TargetSchedulesCommand buildScheduleCommand(ModelAndView mav,
     													TargetInstanceSummaryCommand command,
-    													int scheduleIndex,
-    													BindException errors) {
+    													int scheduleIndex) {
     	TargetSchedulesCommand scheduleCommand = new TargetSchedulesCommand();
 		scheduleCommand.setScheduleType(Integer.parseInt(command.getScheduleType().get(scheduleIndex)));
 
@@ -373,7 +391,7 @@ public class QaTiSummaryController extends AbstractFormController {
     	return scheduleCommand;
     }
 
-    private void buildProfile(ModelAndView mav, HttpServletRequest request, TargetInstance ti, TargetInstanceSummaryCommand command) {
+    private void buildProfile(ModelAndView mav, TargetInstance ti) {
         // setup the model attributes to support profile override editing
 		mav.addObject("ownable", ti.getTarget());
 		mav.addObject("privlege", Privilege.MODIFY_TARGET + ";" + Privilege.CREATE_TARGET);
@@ -401,12 +419,10 @@ public class QaTiSummaryController extends AbstractFormController {
     }
 
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest request,
-    								HttpServletResponse response,
-    								BindException errors) throws Exception {
+	@GetMapping
+    protected ModelAndView showForm(HttpServletRequest request) throws Exception {
 
-		if( request.getParameter(TargetInstanceSummaryCommand.PARAM_OID) != null) {
+		if(request.getParameter(TargetInstanceSummaryCommand.PARAM_OID) != null) {
 			// fetch the ti
 	    	Long tiOid = new Long(request.getParameter(TargetInstanceSummaryCommand.PARAM_OID));
 			TargetInstance ti = targetInstanceManager.getTargetInstance(tiOid);
@@ -423,19 +439,18 @@ public class QaTiSummaryController extends AbstractFormController {
 			TargetInstance rcti = null;
 			if (refCrawlOid != null)
 				rcti = targetInstanceManager.getTargetInstance(refCrawlOid);
-			return buildModelAndView(request, ti, rcti, null, errors);
+			return buildModelAndView(ti, rcti, null);
 		}
 
         return null;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(	HttpServletRequest request,
-    												HttpServletResponse response,
-    												Object cmd,
-    												BindException error) throws Exception {
-
-    	TargetInstanceSummaryCommand command = (TargetInstanceSummaryCommand) cmd;
+	@PostMapping
+	protected ModelAndView processFormSubmission(@Validated @ModelAttribute("targetInstanceSummaryCommand") TargetInstanceSummaryCommand command,
+												 HttpServletRequest request) throws Exception {
+        ServletRequestDataBinder binder = new ServletRequestDataBinder(command);
+        initBinder(request, binder);
+        BindingResult error = binder.getBindingResult();
 
     	if (log.isDebugEnabled()) {
             log.debug("process command " + command.getCmd());
@@ -453,13 +468,13 @@ public class QaTiSummaryController extends AbstractFormController {
 		// resolve and execute the form action
         if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_RERUN_QA)) {
 
-        	processRunQa(request, response, command, error);
-    		return buildModelAndView(request, ti, rcti, command, error);
+        	processRunQa(command);
+    		return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_DENOTE_REF_CRAWL)) {
 
-        	processDenoteReferenceCrawl(request, response, command, error);
-			return buildModelAndView(request, ti, rcti, command, error);
+        	processDenoteReferenceCrawl(command);
+			return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_ARCHIVE)) {
 			// redirect to the ArchiveController for processing
@@ -471,13 +486,13 @@ public class QaTiSummaryController extends AbstractFormController {
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_ENDORSE)) {
 
     		// set the ti to endorsed
-    		processEndorse(request, response, command, error);
-        	return buildModelAndView(request, ti, rcti, command, error);
+    		processEndorse(request, command);
+        	return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_REJECT)) {
 
-        	processReject(request, response, command, error);
-        	return buildModelAndView(request, ti, rcti, command, error);
+        	processReject(request, command);
+        	return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_ADD_NOTE)) {
 
@@ -496,33 +511,33 @@ public class QaTiSummaryController extends AbstractFormController {
 	        	ti.addAnnotation(annotation);
 	        	targetInstanceManager.save(ti);
         	}
-        	return buildModelAndView(request, ti, rcti, command, error);
+        	return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_SAVE_PROFILE)) {
 
-        	processSaveProfile(ti, request, response, command, error);
-        	return buildModelAndView(request, ti, rcti, command, error);
+        	processSaveProfile(ti, command);
+        	return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_REFRESH)) {
 
         	// we just refresh view (only performed for schedule management)
-        	return buildModelAndView(request, ti, rcti, command, error);
+        	return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_SAVE_SCHEDULE)) {
 
-        	ModelAndView mav = buildModelAndView(request, ti, rcti, command, error);
-        	processSaveSchedule(mav, ti, request, error, command);
-        	return buildModelAndView(request, ti, rcti, command, error);
+        	ModelAndView mav = buildModelAndView(ti, rcti, command);
+        	processSaveSchedule(mav, ti, error, command);
+        	return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_RESET_SCHEDULE)) {
 
         	command = null;
-        	return buildModelAndView(request, ti, rcti, command, error);
+        	return buildModelAndView(ti, rcti, command);
 
         } else if (command.getCmd().equals(TargetInstanceSummaryCommand.ACTION_RUN_TARGET_NOW)) {
 
         	Target target = targetManager.load(ti.getTarget().getOid(), true);
-        	ModelAndView mav = buildModelAndView(request, ti, rcti, command, error);
+        	ModelAndView mav = buildModelAndView(ti, rcti, command);
         	// check if the target can be run
     		if(command != null && command.getRunTargetNow() && target.getState() != Target.STATE_APPROVED && target.getState() != Target.STATE_COMPLETED) {
                 mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.error.notapproved", new Object[] {  }, Locale.getDefault()));
@@ -561,7 +576,7 @@ public class QaTiSummaryController extends AbstractFormController {
         	return mav;
         }
         else {
-            throw new WCTRuntimeException("Unknown command " + command.getCmd() + " recieved.");
+            throw new WCTRuntimeException("Unknown command " + command.getCmd() + " received.");
         }
 
     }
@@ -570,14 +585,11 @@ public class QaTiSummaryController extends AbstractFormController {
      * Examines changes made to a <code>Schedule</code> for a <code>Target</code> by the user and saves any changes.<p/>
      * The changed <code>Schedule</code>'s end date is set to the current date, and a new <code>Schedule</code> is added to represent the changes.
      * @param ti the <code>TargetInstance</code> associated with the <code>Target</code> to which this <code>Schedule</code> belongs
-     * @param request the <code>HttpServletRequest</code> that holds the <code>Schedule</code> changes
      * @param errors any errors
      * @throws Exception
      */
     private void processSaveSchedule(	ModelAndView mav,
-    									TargetInstance ti,
-										HttpServletRequest request,
-										BindException errors,
+    									TargetInstance ti, BindingResult errors,
 										TargetInstanceSummaryCommand command) throws Exception {
 
     	// fetch the schedule changes submitted by the user
@@ -598,7 +610,7 @@ public class QaTiSummaryController extends AbstractFormController {
 
     			if (scheduleIndex != -1) {
 
-    				TargetSchedulesCommand scheduleCommand = buildScheduleCommand(mav, command, scheduleIndex, errors);
+    				TargetSchedulesCommand scheduleCommand = buildScheduleCommand(mav, command, scheduleIndex);
 
     				// validate the schedule
     				validateschedule(scheduleCommand, errors);
@@ -685,18 +697,14 @@ public class QaTiSummaryController extends AbstractFormController {
 
     }
 
-    private void validateschedule(TargetSchedulesCommand scheduleCommand, BindException errors) {
+    private void validateschedule(TargetSchedulesCommand scheduleCommand, BindingResult errors) {
 
 		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "startDate", "", getObjectArrayForLabel(TargetInstanceSummaryCommand.PARAM_START_DATE), "From Date is a required field");
 		ValidatorUtil.validateStartBeforeOrEqualEndTime(errors, scheduleCommand.getStartDate(), scheduleCommand.getEndDate(), "time.range", getObjectArrayForTwoLabels(TargetInstanceSummaryCommand.PARAM_START_DATE, TargetInstanceSummaryCommand.PARAM_END_DATE), "The start time must be before the end time.");
-
     }
 
     private void processSaveProfile(	TargetInstance ti,
-    									HttpServletRequest request,
-										HttpServletResponse response,
-										TargetInstanceSummaryCommand command,
-										BindException errors) throws Exception {
+										TargetInstanceSummaryCommand command) throws Exception {
     	// Because the type of profile (whether it is a standard (H1 or H3) OR a H3 imported) affects what overrides
 		// get applied, we first determine what profile we are overriding and then perform the conditional overrides.
 
@@ -714,10 +722,7 @@ public class QaTiSummaryController extends AbstractFormController {
     	targetInstanceManager.save(ti);
     }
 
-    private void processDenoteReferenceCrawl(	HttpServletRequest request,
-												HttpServletResponse response,
-												TargetInstanceSummaryCommand command,
-												BindException errors) throws Exception {
+    private void processDenoteReferenceCrawl(TargetInstanceSummaryCommand command) throws Exception {
 
     	TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceOid());
        	ti.getTarget().setReferenceCrawlOid(command.getReferenceCrawlOid());
@@ -725,10 +730,7 @@ public class QaTiSummaryController extends AbstractFormController {
     	targetInstanceManager.save(ti);
     }
 
-    private void processRunQa(	HttpServletRequest request,
-    							HttpServletResponse response,
-    							TargetInstanceSummaryCommand command,
-    							BindException errors) throws Exception {
+    private void processRunQa(TargetInstanceSummaryCommand command) throws Exception {
 
         TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceOid());
 		harvestCoordinator.runQaRecommentationService(ti);
@@ -743,9 +745,8 @@ public class QaTiSummaryController extends AbstractFormController {
 
     /**
      * process the endorse target instance action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private void processEndorse(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceSummaryCommand aCmd, BindException aErrors) throws Exception {
+    private void processEndorse(HttpServletRequest aReq, TargetInstanceSummaryCommand aCmd) throws Exception {
     	// set the ti state and the hr states
     	TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceOid());
     	ti.setState(TargetInstance.STATE_ENDORSED);
@@ -772,9 +773,8 @@ public class QaTiSummaryController extends AbstractFormController {
 
     /**
      * process the reject target instance action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private void processReject(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceSummaryCommand aCmd, BindException aErrors) throws Exception {
+    private void processReject(HttpServletRequest aReq, TargetInstanceSummaryCommand aCmd) throws Exception {
        	//	set the ti state and the hr states
     	TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceOid());
     	for (HarvestResult hr : ti.getHarvestResults()) {
@@ -847,10 +847,6 @@ public class QaTiSummaryController extends AbstractFormController {
     public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
         this.harvestCoordinator = harvestCoordinator;
     }
-
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
 
 	/**
 	 * @param agencyUserManager the agencyUserManager to set

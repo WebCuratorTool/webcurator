@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.*;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.target.command.*;
@@ -27,7 +28,7 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 	public TargetSchedulesHandlerTest()
 	{
 		super(TargetSchedulesHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetSchedulesHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetSchedulesHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -89,8 +90,8 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setHarvestNow(true);
-		BindException aErrors = new BindException(aCmd, "TargetSchedulesCommand");
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, "TargetSchedulesCommand");
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertFalse(target.isHarvestNow());
 	}
 
@@ -121,9 +122,9 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setHarvestNow(true);
-		BindException aErrors = new BindException(aCmd, "TargetSchedulesCommand");
+        BindingResult bindingResult = new BindException(aCmd, "TargetSchedulesCommand");
 		testInstance.setContextSessionKey(TabbedTargetController.EDITOR_CONTEXT);
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		//assertTrue(((TargetSchedulesCommand)mav.getModel().get("command")).isHarvestNowSet() == target.isHarvestNow());
 	}
@@ -154,9 +155,9 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setHarvestNow(true);
-		BindException aErrors = new BindException(aCmd, "TargetSchedulesCommand");
+        BindingResult bindingResult = new BindException(aCmd, "TargetSchedulesCommand");
 		testInstance.setContextSessionKey(TabbedTargetController.EDITOR_CONTEXT);
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 	}
 

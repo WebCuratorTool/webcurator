@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.site.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.domain.model.core.Permission;
@@ -26,6 +27,7 @@ import org.webcurator.ui.site.command.SitePermissionCommand;
  * Validate saving a harvest permission.
  * @author nwaight
  */
+@Component
 public class SitePermissionValidator extends AbstractBaseValidator {
 
 	/* (non-Javadoc)

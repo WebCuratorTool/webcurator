@@ -11,6 +11,7 @@ import org.springframework.context.MockMessageSource;
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.util.DateUtils;
@@ -30,7 +31,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 	public TargetInstanceLogsHandlerTest()
 	{
 		super(TargetInstanceLogsHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetInstanceLogsHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetInstanceLogsHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -99,10 +100,10 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		// processTab currently returns with no processing done.
-		assertTrue(aErrors.getAllErrors().size()==0);
+		assertTrue(bindingResult.getAllErrors().size()==0);
 	}
 
 	@Test
@@ -131,11 +132,11 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetInstanceCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
-		assertNotNull((List<LogFilePropertiesDTO>)mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST));
-		List<LogFilePropertiesDTO> logFiles = (List<LogFilePropertiesDTO>)mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST);
+		assertNotNull(mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST));
+		List<LogFilePropertiesDTO> logFiles = (List<LogFilePropertiesDTO>) mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST);
 		assertEquals(3, logFiles.size());
 		Iterator<LogFilePropertiesDTO> it = logFiles.iterator();
 		while(it.hasNext())
@@ -178,9 +179,9 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		try {
-			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		}
 		catch (Exception e) {
 			assertTrue(e.getMessage().equals("Unknown command " + TargetInstanceCommand.ACTION_EDIT + " received."));

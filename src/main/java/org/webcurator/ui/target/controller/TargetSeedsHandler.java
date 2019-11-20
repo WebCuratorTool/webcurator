@@ -34,7 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
@@ -51,7 +51,7 @@ import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionExclusion;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.SeedsCommand;
 import org.webcurator.ui.target.validator.TargetSeedsValidator;
@@ -92,20 +92,20 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
     }
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public void processTab(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                           BindingResult bindingResult) {
 		// Do nothing.
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 		TabbedModelAndView tmav = tc.new TabbedModelAndView();
 
 		TargetEditorContext ctx = getEditorContext(req);
@@ -179,8 +179,8 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 	/**
 	 *
 	 * @param aTarget  The target that is being linked.
-	 * @param aPermission The permisison.
 	 * @param aSeed The seed.
+     * @param aPermissionList the permission list
 	 * @return true if any exclusions have been added.
 	 */
 	private boolean linkSeed(Target aTarget, Seed aSeed, Set<Permission> aPermissionList) throws SeedLinkWrongAgencyException {
@@ -200,11 +200,11 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public ModelAndView processOther(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                                     BindingResult bindingResult) {
 		SeedsCommand command = (SeedsCommand) comm;
 
 		TargetEditorContext ctx = getEditorContext(req);
@@ -212,9 +212,9 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 		if(authorityManager.hasAtLeastOnePrivilege(ctx.getTarget(), Privilege.MODIFY_TARGET, Privilege.CREATE_TARGET )) {
 
 			if(command.isAction(SeedsCommand.ACTION_ADD)) {
-				if(errors.hasErrors()) {
+				if(bindingResult.hasErrors()) {
 					// Go to the Seeds tab.
-					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 					tmav.addObject(Constants.GBL_CMD_DATA, command);
 					tmav.getTabStatus().setCurrentTab(currentTab);
 					return tmav;
@@ -241,11 +241,11 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 					// The seed we've tried to link to is from a different
 					// agency.
 					catch(SeedLinkWrongAgencyException ex) {
-						errors.reject("target.seeds.link.wrong_agency", new Object[] { }, "One of the selected seeds cannot be linked because it belongs to another agency.");
+						bindingResult.reject("target.seeds.link.wrong_agency", new Object[] { }, "One of the selected seeds cannot be linked because it belongs to another agency.");
 					}
 
 					// Go to the Seeds tab.
-					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 					tmav.getTabStatus().setCurrentTab(currentTab);
 
 					if(addedExclusions) {
@@ -264,7 +264,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				ctx.getTarget().removeSeed(seedToRemove);
 
 				// Go back to the URLs tab.
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
@@ -291,7 +291,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				}
 
 				// Go back to the URLs tab.
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
@@ -320,7 +320,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				}
 
 				// Go back to the URLs tab.
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
@@ -333,7 +333,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				seed.removePermission(permission);
 
 				// Go back to the URLs tab.
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
@@ -354,7 +354,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				}
 
 				// Go back to the URLs tab.
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
@@ -367,9 +367,9 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				newCommand.setSearchType(SeedsCommand.SEARCH_URL);
 				newCommand.setUrlSearchCriteria(selectedSeed.getSeed());
 
-				boolean doSearch = validator.validateLinkSearch(command, errors);
+				boolean doSearch = validator.validateLinkSearch(command, bindingResult);
 
-				return processLinkSearch(tc, ctx.getTarget(), newCommand, doSearch, errors);
+				return processLinkSearch(tc, ctx.getTarget(), newCommand, doSearch, bindingResult);
 			}
 
 			if(command.isAction(SeedsCommand.ACTION_LINK_SELECTED)) {
@@ -405,12 +405,12 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 
 					ctx.putAllObjects(selectedSeeds);
 
-					return processLinkSearch(tc, ctx.getTarget(), newCommand, false, errors);
+					return processLinkSearch(tc, ctx.getTarget(), newCommand, false, bindingResult);
 				}
 				else
 				{
 					// Go back to the URLs tab.
-					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 					tmav.getTabStatus().setCurrentTab(currentTab);
 					return tmav;
 				}
@@ -418,8 +418,8 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 
 			if( command.isAction(SeedsCommand.ACTION_LINK_NEW_SEARCH)) {
 
-				if(errors.hasErrors()) {
-					return processLinkSearch(tc, ctx.getTarget(), command, false, errors);
+				if(bindingResult.hasErrors()) {
+					return processLinkSearch(tc, ctx.getTarget(), command, false, bindingResult);
 				}
 				else {
 					SeedsCommand newCommand = new SeedsCommand();
@@ -430,19 +430,19 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 					newCommand.setUrlSearchCriteria(command.getUrlSearchCriteria());
 					newCommand.setPageNumber(command.getPageNumber());
 
-					return processLinkSearch(tc, ctx.getTarget(), newCommand, true, errors);
+					return processLinkSearch(tc, ctx.getTarget(), newCommand, true, bindingResult);
 				}
 
 			}
 
 			if( command.isAction(SeedsCommand.ACTION_LINK_NEW_CONFIRM) ) {
-				if(errors.hasErrors()) {
-					boolean doSearch = validator.validateLinkSearch(command, errors);
-					return processLinkSearch(tc, ctx.getTarget(), command, doSearch, errors);
+				if(bindingResult.hasErrors()) {
+					boolean doSearch = validator.validateLinkSearch(command, bindingResult);
+					return processLinkSearch(tc, ctx.getTarget(), command, doSearch, bindingResult);
 				}
 				else {
 					// Go back to the URLs tab.
-					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+					TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 					tmav.getTabStatus().setCurrentTab(currentTab);
 
 					// Get the selected seed(s).
@@ -474,10 +474,10 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 
 						}
 						catch(SeedLinkWrongAgencyException ex) {
-							errors.reject("target.seeds.link.wrong_agency", new Object[] { }, "One of the selected seeds cannot be linked because it belongs to another agency.");
+							bindingResult.reject("target.seeds.link.wrong_agency", new Object[] { }, "One of the selected seeds cannot be linked because it belongs to another agency.");
 
-							boolean doSearch = validator.validateLinkSearch(command, errors);
-							return processLinkSearch(tc, ctx.getTarget(), command, doSearch, errors);
+							boolean doSearch = validator.validateLinkSearch(command, bindingResult);
+							return processLinkSearch(tc, ctx.getTarget(), command, doSearch, bindingResult);
 						}
 					}
 					return tmav;
@@ -486,7 +486,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 
 			if( command.isAction(SeedsCommand.ACTION_LINK_NEW_CANCEL) ) {
 				// Go back to the URLs tab.
-				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+				TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				return tmav;
 			}
@@ -504,15 +504,15 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 				CommonsMultipartFile file = (CommonsMultipartFile) multipartRequest.getFile("seedsFile");
 
 				if(command.getSeedsFile().length == 0 || file.getOriginalFilename() == null || "".equals(file.getOriginalFilename().trim())) {
-					errors.reject("target.seeds.import.nofile");
+					bindingResult.reject("target.seeds.import.nofile");
 					TabbedModelAndView tmav = getImportSeedsTabModel(tc, ctx);
-					tmav.addObject(Constants.GBL_ERRORS, errors);
+					tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 					return  tmav;
 				}
 				if(!file.getOriginalFilename().endsWith(".txt") && !"text/plain".equals(file.getContentType())) {
-					errors.reject("target.seeds.import.filetype");
+					bindingResult.reject("target.seeds.import.filetype");
 					TabbedModelAndView tmav = getImportSeedsTabModel(tc, ctx);
-					tmav.addObject(Constants.GBL_ERRORS, errors);
+					tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 					return  tmav;
 				}
 				else {
@@ -559,29 +559,29 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 							}
 						}
 						else {
-							errors.reject("target.seeds.import.badline", new Object[] { lineNumber }, "Bad seed detected on line: " + lineNumber);
+							bindingResult.reject("target.seeds.import.badline", new Object[] { lineNumber }, "Bad seed detected on line: " + lineNumber);
 						}
 
 					}
 					catch(SeedLinkWrongAgencyException ex) {
-						errors.reject("target.seeds.link.wrong_agency", new Object[] { }, "One of the selected seeds cannot be linked because it belongs to another agency.");
+						bindingResult.reject("target.seeds.link.wrong_agency", new Object[] { }, "One of the selected seeds cannot be linked because it belongs to another agency.");
 					}
 					catch(IOException ex) {
-						errors.reject("target.seeds.import.ioerror");
+						bindingResult.reject("target.seeds.import.ioerror");
 						log.error("Failed to import seeds", ex);
 					}
 					finally {
 						try { reader.close(); } catch(Exception ex) { log.debug("Failed to close uploaded seeds file", ex); }
 					}
 
-					if(errors.hasErrors()) {
+					if(bindingResult.hasErrors()) {
 						TabbedModelAndView tmav = getImportSeedsTabModel(tc, ctx);
-						tmav.addObject(Constants.GBL_ERRORS, errors);
+						tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 						return  tmav;
 					}
 					else {
 						// Go back to the URLs tab.
-						TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+						TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 						tmav.getTabStatus().setCurrentTab(currentTab);
 						return tmav;
 					}
@@ -596,8 +596,8 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 					if(seed.getOid().equals(Long.valueOf(id))) {
 						String value = command.getUpdatedNameSeedValue();
 						if(value.trim().equals("")) {
-							errors.reject("target.seeds.name.edit.required");
-							TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+							bindingResult.reject("target.seeds.name.edit.required");
+							TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 							tmav.addObject(Constants.GBL_CMD_DATA, command);
 							tmav.getTabStatus().setCurrentTab(currentTab);
 							return tmav;
@@ -606,8 +606,8 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 							seed.setSeed(UrlUtils.fixUrl(value));
 	     					ctx.putObject(seed);
 						} else {
-							errors.reject("target.seeds.name.edit.invalid");
-							TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+							bindingResult.reject("target.seeds.name.edit.invalid");
+							TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 							tmav.addObject(Constants.GBL_CMD_DATA, command);
 							tmav.getTabStatus().setCurrentTab(currentTab);
 							return tmav;
@@ -618,12 +618,12 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 			}
 		}
 
-		TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+		TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 		tmav.getTabStatus().setCurrentTab(currentTab);
 		return tmav;
 	}
 
-	public ModelAndView processLinkSearch(TabbedController tc, Target aTarget, SeedsCommand command, boolean doSearch, BindException errors) {
+	public ModelAndView processLinkSearch(TabbedController tc, Target aTarget, SeedsCommand command, boolean doSearch, BindingResult bindingResult) {
 		TabbedModelAndView tmav = getSeedLinkTabModel(tc);
 		tmav.addObject(Constants.GBL_CMD_DATA, command);
 
@@ -639,7 +639,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 			tmav.addObject("results", results);
 		}
 
-		tmav.addObject(Constants.GBL_ERRORS, errors);
+		tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 
 		return tmav;
 	}

@@ -1,7 +1,7 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 
 <img src="images/x.gif" alt="" width="1" height="30" border="0" /><br />
 <div id="resultsTable">

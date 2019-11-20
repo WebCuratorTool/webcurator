@@ -11,8 +11,8 @@ import org.junit.Test;
 
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import org.webcurator.core.admin.PermissionTemplateManager;
@@ -36,26 +36,18 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 	public GeneratePermissionTemplateControllerTest()
 	{
 		super(GeneratePermissionTemplateController.class,
-				"src/test/java/org/webcurator/ui/site/controller/GeneratePermissionTemplateControllerTest.xml");
+                "/org/webcurator/ui/site/controller/GeneratePermissionTemplateControllerTest.xml");
 	}
 
-	/**
-	 * Test method for {@link org.webcurator.ui.site.controller.GeneratePermissionTemplateController#GeneratePermissionTemplateController()}.
-	 */
 	@Test
 	public final void testGeneratePermissionTemplateController() {
 		assertTrue(testInstance != null);
 	}
 
-	/**
-	 * Test method for {@link org.webcurator.ui.site.controller.GeneratePermissionTemplateController#showForm(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.validation.BindException)}.
-	 */
 	@Test
 	public void testShowForm() {
 		try {
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new GeneratePermissionTemplateCommand(), GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE);
 
 			SiteManager sitemanager = new MockSiteManagerImpl(testFile);
 			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManagerImpl(testFile);
@@ -65,7 +57,7 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 
 			request.addParameter("siteOid", "9000");
 
-			ModelAndView mav = testInstance.showForm(request, response, aError);
+			ModelAndView mav = testInstance.showForm(request);
 			assert(mav != null);
 			assert(mav.getModel().values() != null);
 			assert(mav.getViewName().equals("select-permission"));
@@ -78,15 +70,10 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 		}
 	}
 
-	/**
-	 * Test method for {@link org.webcurator.ui.site.controller.GeneratePermissionTemplateController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)}.
-	 */
 	@Test
 	public void testProcessFormSubmission() {
 		try {
-			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new GeneratePermissionTemplateCommand(), GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE);
+            BindingResult bindingResult = new BindException(new GeneratePermissionTemplateCommand(), GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE);
 
 			SiteManager sitemanager = new MockSiteManagerImpl(testFile);
 			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManagerImpl(testFile);
@@ -107,7 +94,7 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 			aCommand.setTemplateOid(1L);
 			aCommand.setPermissionOid(1L);
 
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assert(mav != null);
 			assert(mav.getModel().values() != null);
 			assert(mav.getViewName().equals("generate-request"));
@@ -117,7 +104,7 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 			aCommand.setAction(GeneratePermissionTemplateCommand.ACTION_PRINTIT);
 			aCommand.setPermissionOid(1L);
 
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assert(mav != null);
 			assert(mav.getModel().values() != null);
 			assert(mav.getViewName().equals("select-permission"));
@@ -128,7 +115,7 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 			aCommand.setTemplateOid(1L);
 			aCommand.setPermissionOid(1L);
 
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assert(mav != null);
 			assert(mav.getModel().values() != null);
 			assert(mav.getViewName().equals("select-permission"));
@@ -145,9 +132,7 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 	@Test
 	public void testProcessEmailFormSubmission() {
 		try {
-			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new GeneratePermissionTemplateCommand(), GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE);
+            BindingResult bindingResult = new BindException(new GeneratePermissionTemplateCommand(), GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE);
 
 			SiteManager sitemanager = new MockSiteManagerImpl(testFile);
 			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManagerImpl(testFile);
@@ -184,7 +169,7 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 			MockMailServer ms = new MockMailServer(mailConfig);
 			testInstance.setMailServer(ms);
 
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			Mailable email = ms.getEmailResult();
 			assertEquals("rec@rep.com",email.getRecipients());
 			assertEquals("cc@rep.com",email.getCcs());

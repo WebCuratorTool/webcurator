@@ -24,14 +24,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -41,31 +45,42 @@ import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
 /**
  * The Controller for managing the archiving of target instances.
  * @author aparker
  */
-public class ArchiveController extends AbstractCommandController {
+@Controller
+@RequestMapping("/curator/archive/submit.html")
+public class ArchiveController {
 	/** The archive adapter to use to archive the target instance. */
-	private ArchiveAdapter archiveAdapter = null;
+	@Autowired
+	private ArchiveAdapter archiveAdapter;
 	/** the target instance mamager used to access the target instance. */
-	private TargetInstanceManager targetInstanceManager = null;
+	@Autowired
+	private TargetInstanceManager targetInstanceManager;
 	/** The SIP Builder (for backwards compatibility */
-	private SipBuilder sipBuilder = null;
+	@Autowired
+	private SipBuilder sipBuilder;
 	/** the url for the web curator. */
-	private String webCuratorUrl = null;
+	// TODO Must this be initialised like this?
+	private String webCuratorUrl = "http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd";
 	/** the version number of the heritrix harvester. */
-	private String heritrixVersion = null;
+    @Value("${heritrix.version}")
+    private String heritrixVersion;
 	/** the target manager to use to get Target data. */
-	private TargetManager targetManager = null;
+	@Autowired
+	private TargetManager targetManager;
 
+	@PostConstruct
+    protected void init() {
+	    setHeritrixVersion("Heritrix" + this.heritrixVersion);
+    }
 
 	/** Default Constructor. */
 	public ArchiveController() {
-		setCommandClass(ArchiveCommand.class);
 	}
 
 	protected String buildSip(HttpServletRequest request, HttpServletResponse response, int harvestNumber) throws ServletException, IOException {
@@ -148,8 +163,8 @@ public class ArchiveController extends AbstractCommandController {
 		return customDepositFormElements;
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 
 		// fetch the list of target instance ids to archive from the request (includes multi-select)
 		String[] targetInstanceOids = request.getParameterValues("instanceID");
@@ -197,13 +212,13 @@ public class ArchiveController extends AbstractCommandController {
 			}
 			catch(Exception e){
 				e.printStackTrace();
-				errors.reject("archive.failure", new Object[]{e.getMessage()}, "Failed to submit to archive");
+				bindingResult.reject("archive.failure", new Object[]{e.getMessage()}, "Failed to submit to archive");
 				ArchiveCommand command = (ArchiveCommand) comm;
 				ModelAndView mav = new ModelAndView("submit-to-archive2");
 				mav.addObject("instance", instance);
 				mav.addObject(Constants.GBL_CMD_DATA, command);
-				mav.addObject("hasErrors", errors.hasErrors());
-				mav.addObject(Constants.GBL_ERRORS, errors);
+				mav.addObject("hasErrors", bindingResult.hasErrors());
+				mav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return mav;
 			}
 

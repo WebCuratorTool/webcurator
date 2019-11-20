@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
@@ -35,7 +35,7 @@ import org.webcurator.domain.model.core.AbstractTarget;
 import org.webcurator.domain.model.core.Overrideable;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.ProfileDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.ProfileCommand;
 import org.webcurator.ui.target.command.TargetInstanceProfileCommand;
 import org.webcurator.ui.util.OverrideGetter;
@@ -57,9 +57,6 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 	/** the prefix for the credential url forms. */
 	private String credentialUrlPrefix = "";
 
-	/* (non-Javadoc)
-	 * @see TabHandler#initBinder(HttpServletRequest, ServletRequestDataBinder).
-	 */
 	@Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		// Determine the necessary formats.
@@ -70,13 +67,10 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
         binder.registerCustomEditor(Integer.class, new CustomNumberEditor(Integer.class, nf, true));
     }
 
-	/* (non-Javadoc)
-	 * @see TabHandler#processTab(TabbedController, Tab, HttpServletRequest, HttpServletResponse, Object, BindException).
-	 */
 	@Override
 	public void processTab(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+			BindingResult bindingResult) {
 
 		ProfileCommand command = (ProfileCommand) comm;
 		if(command.getProfileOid() != null && overrideGetter.isOverrideableEditable(req)) {
@@ -137,7 +131,7 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 
 		// Load the session model.
 		Overrideable o = overrideGetter.getOverrideable(req);
@@ -169,24 +163,21 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
 	@Override
 	public ModelAndView processOther(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+			BindingResult bindingResult) {
 
 		Overrideable o = overrideGetter.getOverrideable(req);
 		ProfileCommand command = (ProfileCommand) comm;
 
 		if(WebUtils.hasSubmitParameter(req, "delete")) {
 			// Process the main tab.
-			processTab(tc, currentTab, req, res, comm, errors);
+			processTab(tc, currentTab, req, res, comm, bindingResult);
 
 			o.getProfileOverrides().getCredentials().remove((int)command.getCredentialToRemove());
 
-			TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+			TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 			tmav.getTabStatus().setCurrentTab(currentTab);
 
 			return tmav;

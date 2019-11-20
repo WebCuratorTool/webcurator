@@ -1,7 +1,7 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
 <%@ page
 	import="org.webcurator.ui.site.command.GeneratePermissionTemplateCommand"%>
-<%@ page import="org.webcurator.ui.common.Constants"%>
+<%@ page import="org.webcurator.common.ui.Constants"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <script type="text/javascript">

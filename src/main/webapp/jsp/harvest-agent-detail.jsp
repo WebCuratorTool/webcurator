@@ -4,7 +4,7 @@
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct" %>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@page import="org.webcurator.ui.agent.command.ManageHarvestAgentCommand"%>
-<%@page import="org.webcurator.ui.common.Constants"%>
+<%@page import="org.webcurator.common.ui.Constants"%>
 <div id="resultsTable">
 <table border="0" cellpadding="1" cellspacing="0">
 	<tr>

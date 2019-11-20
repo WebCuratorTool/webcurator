@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
@@ -32,7 +33,7 @@ import org.webcurator.ui.util.TabConfig;
 public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController> {
 
 	public MoveTargetsControllerTest() {
-		super(MoveTargetsController.class, "src/test/java/org/webcurator/ui/groups/controller/MoveTargetsControllerTest.xml");
+		super(MoveTargetsController.class, "/org/webcurator/ui/groups/controller/MoveTargetsControllerTest.xml");
 	}
 
 	private TargetManager tm = null;
@@ -129,7 +130,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			HttpServletResponse response = new MockHttpServletResponse();
 			MoveTargetsCommand command = new MoveTargetsCommand();
 
-			BindException errors = new BindException(command, "MoveTargetsCommand");
+            BindingResult bindingResult = new BindException(command, "MoveTargetsCommand");
 
 			bindEditorContext(request, 15002L);
 
@@ -150,7 +151,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			TargetGroup dstGrp = tm.loadGroup(15000L);
 			assertEquals(0, dstGrp.getNewChildren().size());
 
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 
@@ -180,7 +181,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			HttpServletResponse response = new MockHttpServletResponse();
 			MoveTargetsCommand command = new MoveTargetsCommand();
 
-			BindException errors = new BindException(command, "MoveTargetsCommand");
+            BindingResult bindingResult = new BindException(command, "MoveTargetsCommand");
 
 			bindEditorContext(request, 15002L);
 
@@ -201,7 +202,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			TargetGroup dstGrp = tm.loadGroup(15000L);
 			assertEquals(0, dstGrp.getNewChildren().size());
 
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 
@@ -228,7 +229,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			HttpServletResponse response = new MockHttpServletResponse();
 			MoveTargetsCommand command = new MoveTargetsCommand();
 
-			BindException errors = new BindException(command, "MoveTargetsCommand");
+            BindingResult bindingResult = new BindException(command, "MoveTargetsCommand");
 
 			bindEditorContext(request, 15002L);
 
@@ -249,7 +250,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			TargetGroup dstGrp = tm.loadGroup(15000L);
 			assertEquals(0, dstGrp.getNewChildren().size());
 
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 
@@ -276,7 +277,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			HttpServletResponse response = new MockHttpServletResponse();
 			MoveTargetsCommand command = new MoveTargetsCommand();
 
-			BindException errors = new BindException(command, "MoveTargetsCommand");
+            BindingResult bindingResult = new BindException(command, "MoveTargetsCommand");
 
 			bindEditorContext(request, 15002L);
 
@@ -297,7 +298,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 			TargetGroup dstGrp = tm.loadGroup(15000L);
 			assertEquals(0, dstGrp.getNewChildren().size());
 
-			ModelAndView mav = testInstance.handle(request, response, command, errors);
+			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "group-move-targets");
 

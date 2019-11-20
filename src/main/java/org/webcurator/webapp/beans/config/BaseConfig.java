@@ -1,26 +1,33 @@
 package org.webcurator.webapp.beans.config;
 
+import org.hibernate.SessionFactory;
+import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.Trigger;
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
-import org.springframework.jndi.JndiObjectFactoryBean;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
-import org.springframework.scheduling.quartz.JobDetailBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import org.springframework.scheduling.quartz.SimpleTriggerBean;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.admin.PermissionTemplateManagerImpl;
 import org.webcurator.core.agency.AgencyUserManagerImpl;
 import org.webcurator.core.archive.ArchiveAdapterImpl;
@@ -45,8 +52,8 @@ import org.webcurator.core.scheduler.ScheduleJob;
 import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.sites.SiteManagerImpl;
 import org.webcurator.core.sites.SiteManagerListener;
+import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
-import org.webcurator.core.store.DigitalAssetStoreSOAPClient;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.AuditDAOUtil;
@@ -54,14 +61,10 @@ import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.SchedulePattern;
-import org.webcurator.ui.groups.controller.GroupSearchController;
-import org.webcurator.ui.target.controller.ShowHopPathController;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.ui.tools.controller.QualityReviewToolController;
 import org.webcurator.ui.tools.controller.TreeToolController;
 import org.webcurator.ui.tools.controller.TreeToolControllerAJAX;
-import org.webcurator.ui.tools.validator.TreeToolValidator;
-import org.webcurator.ui.util.DateUtils;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -73,14 +76,31 @@ import java.util.*;
  * XML files.
  */
 @Configuration
+@EnableTransactionManagement
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);
 
     @Autowired
     private ResourceLoader resourceLoader;
 
+    @Value("${spring.datasource.driver-class-name}")
+    private String datasourceDriverClassName;
+
+    @Value("${spring.datasource.url}")
+    private String datasourceUrl;
+
+    @Value("${spring.datasource.username}")
+    private String datasourceUsername;
+
+    @Value("${spring.datasource.password}")
+    private String datasourcePassword;
+
     @Value("${hibernate.dialect}")
     private String hibernateDialect;
+
+    @Value("${hibernate.show_sql}")
+    private String hibernateShowSql;
 
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
@@ -90,21 +110,6 @@ public class BaseConfig {
 
     @Value("${digitalAssetStore.port}")
     private int digitalAssetStorePort;
-
-    @Value("${harvestCoordinator.harvestOptimizationEnabled}")
-    private boolean harvestOptimizationEnabled;
-
-    @Value("${harvestCoordinator.harvestOptimizationLookaheadHours}")
-    private int harvestOptimizationLookaheadHours;
-
-    @Value("${harvestCoordinator.numHarvestersExcludedFromOptimisation}")
-    private int numHarvestersExcludedFromOptimisation;
-
-    @Value("${harvestCoordinator.daysBeforeDASPurge}")
-    private int daysBeforeDASPurge;
-
-    @Value("${harvestCoordinator.daysBeforeAbortedTargetInstancePurge}")
-    private int daysBeforeAbortedTargetInstancePurge;
 
     @Value("${harvestCoordinator.minimumBandwidth}")
     private int minimumBandwidth;
@@ -241,25 +246,8 @@ public class BaseConfig {
     @Autowired
     private ListsConfig listsConfig;
 
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    @Bean
-    public static PropertyPlaceholderConfigurer wctCoreConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-core.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        Properties theProperties = new Properties();
-        theProperties.setProperty("qualityReviewToolController.archiveName", null);
-        theProperties.setProperty("qualityReviewToolController.archive.alternative", null);
-        theProperties.setProperty("qualityReviewToolController.archive.alternative.name", null);
-        theProperties.setProperty("harvestCoordinator.harvestOptimizationEnabled", "false");
-        theProperties.setProperty("harvestCoordinator.harvestOptimizationLookaheadHours", "24");
-        theProperties.setProperty("harvestCoordinator.numHarvestersExcludedFromOptimisation", "0");
-        bean.setProperties(theProperties);
-
-        return bean;
-    }
+    @Autowired
+    private HarvestCoordinator harvestCoordinator;
 
     @Bean
     public ResourceBundleMessageSource messageSource() {
@@ -270,20 +258,37 @@ public class BaseConfig {
     }
 
     @Bean
+    public DataSource dataSource() {
+        return DataSourceBuilder.create()
+                .driverClassName(datasourceDriverClassName)
+                .url(datasourceUrl)
+                .username(datasourceUsername)
+                .password(datasourcePassword)
+                .build();
+    }
+
+    @Bean
     public LocalSessionFactoryBean sessionFactory() {
         LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
-        bean.setDataSource((DataSource) dataSource().getObject());
+        bean.setDataSource(dataSource());
         // TODO NOTE it would be better if this was a wildcard
 //        Resource jarResource = new ClassPathResource("org/webcurator/**");
 //        Resource jarResource = new FileSystemResource("/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
-//        Resource jarResource = new ClassPathResource("/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
-        bean.setMappingJarLocations(getHibernateConfigurationResources());
+
+        //Resource jarResource = new ClassPathResource("classpath:/WEB-INF/lib/webcurator-core-3.0.0-SNAPSHOT.jar");
+        //bean.setMappingJarLocations(jarResource);
+
+        //bean.setMappingJarLocations(getHibernateConfigurationResources());
+//        bean.setPackagesToScan(new String[]{"org.webcurator.domain.model","org.webcurator.domain"});
+        bean.setPackagesToScan(new String[]{"org.webcurator.domain.model"});
+
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
-        hibernateProperties.setProperty("hibernate.show_sql", "false");
-        hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
-        hibernateProperties.setProperty("hibernate.transaction.factory_class",
-                "org.hibernate.transaction.JDBCTransactionFactory");
+        hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
+        //hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
+        hibernateProperties.setProperty("hibernate.transaction.factory_class", "org.hibernate.transaction.JDBCTransactionFactory");
+        hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans","true");
+
         bean.setHibernateProperties(hibernateProperties);
 
         return bean;
@@ -301,9 +306,20 @@ public class BaseConfig {
     }
 
     @Bean
+    @Autowired
     public HibernateTransactionManager transactionManager() {
-        return new HibernateTransactionManager(sessionFactory().getObject());
+        HibernateTransactionManager hibernateTransactionManager=new HibernateTransactionManager(sessionFactory().getObject());
+//        hibernateTransactionManager.setTransactionSynchronization(AbstractPlatformTransactionManager.SYNCHRONIZATION_ALWAYS);
+        return hibernateTransactionManager;
     }
+
+//    @Bean
+//    @Autowired
+//    public HibernateTransactionManager transactionManager(final SessionFactory sessionFactory) {
+//        final HibernateTransactionManager txManager = new HibernateTransactionManager();
+//        txManager.setSessionFactory(sessionFactory);
+//        return txManager;
+//    }
 
     @Bean
     public TransactionTemplate transactionTemplate() {
@@ -311,20 +327,11 @@ public class BaseConfig {
     }
 
     @Bean
-    public JndiObjectFactoryBean dataSource() {
-        JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
-        bean.setJndiName("java:comp/env/jdbc/wctDatasource");
-
-        return bean;
-    }
-
-    @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public DigitalAssetStoreSOAPClient digitalAssetStore() {
-        DigitalAssetStoreSOAPClient bean = new DigitalAssetStoreSOAPClient();
-        bean.setHost(digitalAssetStoreHost);
-        bean.setPort(digitalAssetStorePort);
+    public DigitalAssetStoreClient digitalAssetStore() {
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort,
+                new RestTemplateBuilder());
 
         return bean;
     }
@@ -375,7 +382,7 @@ public class BaseConfig {
 
         bean.setRulesFileName("rules.drl");
         bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setHarvestCoordinator(harvestCoordinator());
+        //bean.setHarvestCoordinator(harvestCoordinator());
         bean.setTargetInstanceManager(targetInstanceManager());
 
         return bean;
@@ -405,7 +412,7 @@ public class BaseConfig {
     public UserRoleDAO userRoleDAO() {
         UserRoleDAOImpl bean = new UserRoleDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
-        bean.setTxTemplate(transactionTemplate());
+        //bean.setTxTemplate(transactionTemplate());
 
         return bean;
     }
@@ -528,29 +535,6 @@ public class BaseConfig {
     }
 
     @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public HarvestCoordinatorImpl harvestCoordinator() {
-        HarvestCoordinatorImpl bean = new HarvestCoordinatorImpl();
-        bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setHarvestAgentManager(harvestAgentManager());
-        bean.setHarvestLogManager(harvestLogManager());
-        bean.setHarvestBandwidthManager(harvestBandwidthManager());
-        bean.setHarvestQaManager(harvestQaManager());
-        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
-        bean.setTargetInstanceManager(targetInstanceManager());
-        bean.setTargetManager(targetManager());
-        bean.setInTrayManager(inTrayManager());
-        bean.setSipBuilder(sipBuilder());
-        bean.setHarvestOptimizationEnabled(harvestOptimizationEnabled);
-        bean.setHarvestOptimizationLookAheadHours(harvestOptimizationLookaheadHours);
-        bean.setNumHarvestersExcludedFromOptimisation(numHarvestersExcludedFromOptimisation);
-        bean.setDaysBeforeDASPurge(daysBeforeDASPurge);
-        bean.setDaysBeforeAbortedTargetInstancePurge(daysBeforeAbortedTargetInstancePurge);
-
-        return bean;
-    }
-
-    @Bean
     public HarvestAgentManagerImpl harvestAgentManager() {
         HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
         bean.setHarvestAgentFactory(harvestAgentFactory());
@@ -588,7 +572,7 @@ public class BaseConfig {
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setAutoQAUrl(autoQAUrl);
-        bean.setQaRecommendationService(qaRecommendationService());
+        //bean.setQaRecommendationService(qaRecommendationService());
         bean.setQualityReviewFacade(qualityReviewFacade());
         bean.setEnableQaModule(enableQaModule);
         bean.setAutoPrunedNote(autoPrunedNote);
@@ -599,7 +583,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TargetInstanceManagerImpl targetInstanceManager() {
         TargetInstanceManagerImpl bean = new TargetInstanceManagerImpl();
         bean.setTargetInstanceDao(targetInstanceDao());
@@ -618,7 +601,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public LockManager lockManager() {
         return new LockManager();
     }
@@ -626,7 +608,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SiteManagerImpl siteManager() {
         SiteManagerImpl bean = new SiteManagerImpl();
         bean.setSiteDao(siteDao());
@@ -649,7 +630,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TargetManagerImpl targetManager() {
         TargetManagerImpl bean = new TargetManagerImpl();
         bean.setTargetDao(targetDao());
@@ -672,7 +652,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ProfileManager profileManager() {
         ProfileManager bean = new ProfileManager();
         bean.setProfileDao(profileDao());
@@ -703,7 +682,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public HarvestAgentFactoryImpl harvestAgentFactory() {
         return new HarvestAgentFactoryImpl();
     }
@@ -756,52 +734,56 @@ public class BaseConfig {
     }
 
     @Bean
-    public JobDetailBean processScheduleJob() {
-        JobDetailBean bean = new JobDetailBean();
-        bean.setGroup("ProcessScheduleGroup");
-        bean.setName("ProcessSchedule");
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public JobDetail processScheduleJob() {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("harvestCoordinator", harvestCoordinator);
 
-        bean.setJobClass(ScheduleJob.class);
-        Map<String, Object> jobDataMap = new HashMap<>();
-        jobDataMap.put("harvestCoordinator", harvestCoordinator());
-        bean.setJobDataAsMap(jobDataMap);
+        JobDetail bean = JobBuilder.newJob(ScheduleJob.class)
+                .withIdentity("ProcessSchedule", "ProcessScheduleGroup")
+                .usingJobData(jobDataMap)
+                .storeDurably(true)
+                .build();
 
         return bean;
     }
 
     @Bean
-    public SimpleTriggerBean processScheduleTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("ProcessScheduleTriggerGroup");
-        bean.setName("ProcessScheduleTrigger");
-        bean.setJobDetail(processScheduleJob());
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Trigger processScheduleTrigger() {
         // delay before running the job measured in milliseconds
-        bean.setStartDelay(processScheduleTriggerStartDelay);
-        // repeat every xx milliseconds
-        bean.setRepeatInterval(processScheduleTriggerRepeatInterval);
+        Date startTime = new Date(System.currentTimeMillis() + processScheduleTriggerStartDelay);
+        Trigger bean = newTrigger()
+                .withIdentity("ProcessScheduleTrigger", "ProcessScheduleTriggerGroup")
+                .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(processScheduleTriggerRepeatInterval))
+                .forJob(processScheduleJob())
+                .build();
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkBandwidthTransitionsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator());
+        bean.setTargetObject(harvestCoordinator);
         bean.setTargetMethod("checkForBandwidthTransition");
 
         return bean;
     }
 
     @Bean
-    public SimpleTriggerBean bandwidthCheckTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("BandwidthCheckTriggerGroup");
-        bean.setName("BandwidthCheckTrigger");
-        bean.setJobDetail(checkBandwidthTransitionsJob().getObject());
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Trigger bandwidthCheckTrigger() {
         // delay before running the job measured in milliseconds
-        bean.setStartDelay(bandwidthCheckTriggerStartDelay);
-        // repeat every xx milliseconds
-        bean.setRepeatInterval(bandwidthCheckTriggerRepeatInterval);
+        Date startTime = new Date(System.currentTimeMillis() + bandwidthCheckTriggerStartDelay);
+        Trigger bean = newTrigger()
+                .withIdentity("BandwidthCheckTrigger", "BandwidthCheckTriggerGroup")
+                .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(bandwidthCheckTriggerRepeatInterval))
+                .forJob(checkBandwidthTransitionsJob().getObject())
+                .build();
 
         return bean;
     }
@@ -809,9 +791,13 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SchedulerFactoryBean schedulerFactory() {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
+
+        bean.setJobDetails(processScheduleJob(), checkBandwidthTransitionsJob().getObject(),
+                purgeDigitalAssetsJob().getObject(), purgeAbortedTargetInstancesJob().getObject(),
+                groupExpiryJob().getObject(), createNewTargetInstancesJob().getObject());
+
         bean.setTriggers(processScheduleTrigger(), bandwidthCheckTrigger(), purgeDigitalAssetsTrigger(),
                 purgeAbortedTargetInstancesTrigger(), groupExpiryJobTrigger(), createNewTargetInstancesTrigger());
 
@@ -821,7 +807,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AgencyUserManagerImpl agencyUserManager() {
         AgencyUserManagerImpl bean = new AgencyUserManagerImpl();
         bean.setUserRoleDAO(userRoleDAO());
@@ -838,7 +823,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AuthorityManagerImpl authorityManager() {
         return new AuthorityManagerImpl();
     }
@@ -854,7 +838,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public AnnotationDAOImpl annotationDao() {
         AnnotationDAOImpl bean = new AnnotationDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
@@ -866,7 +849,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public MailServerImpl mailServer() {
         Properties properties = new Properties();
         properties.put("mail.transport.protocol", mailProtocol);
@@ -881,14 +863,13 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public BandwidthChecker bandwidthChecker() {
         BandwidthChecker bean = new BandwidthChecker();
         bean.setWarnThreshold(bandwidthCheckerWarnThreshold);
         bean.setErrorThreshold(bandwidthCheckerErrorThreshold);
         bean.setNotificationSubject("Core");
         bean.setCheckType("Bandwidth");
-        bean.setHarvestCoordinator(harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
         bean.setNotifier(checkNotifier());
 
         return bean;
@@ -897,7 +878,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CoreCheckNotifier checkNotifier() {
         CoreCheckNotifier bean = new CoreCheckNotifier();
         bean.setInTrayManager(inTrayManager());
@@ -908,7 +888,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public CheckProcessor checkProcessor() {
         CheckProcessor bean = new CheckProcessor();
 
@@ -921,6 +900,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkProcessorJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(checkProcessor());
@@ -930,56 +910,66 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean checkProcessorTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("CheckProcessorTriggerGroup");
-        bean.setName("CheckProcessorTrigger");
-        bean.setJobDetail(checkProcessorJob().getObject());
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Trigger checkProcessorTrigger() {
         // delay before running the job measured in milliseconds
-        bean.setStartDelay(checkProcessorTriggerStartDelay);
-        // repeat every xx milliseconds
-        bean.setRepeatInterval(checkProcessorTriggerRepeatInterval);
+        Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
+        Trigger bean = newTrigger()
+                .withIdentity("CheckProcessorTrigger", "CheckProcessorTriggerGroup")
+                .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
+                .forJob(checkProcessorJob().getObject())
+                .build();
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeDigitalAssetsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator());
+        bean.setTargetObject(harvestCoordinator);
         bean.setTargetMethod("purgeDigitalAssets");
 
         return bean;
     }
 
     @Bean
-    public SimpleTriggerBean purgeDigitalAssetsTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("PurgeDigitalAssetsTriggerGroup");
-        bean.setName("PurgeDigitalAssetsTrigger");
-        bean.setJobDetail(purgeDigitalAssetsJob().getObject());
-        // interval in milliseconds.  trigger should run every x days
-        bean.setRepeatInterval(purgeDigitalAssetsTriggerRepeatInterval);
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Trigger purgeDigitalAssetsTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
+        Trigger bean = newTrigger()
+                .withIdentity("PurgeDigitalAssetsTrigger", "PurgeDigitalAssetsTriggerGroup")
+                .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(purgeDigitalAssetsTriggerRepeatInterval))
+                .forJob(purgeDigitalAssetsJob().getObject())
+                .build();
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeAbortedTargetInstancesJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator());
+        bean.setTargetObject(harvestCoordinator);
         bean.setTargetMethod("purgeAbortedTargetInstances");
 
         return bean;
     }
 
     @Bean
-    public SimpleTriggerBean purgeAbortedTargetInstancesTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("PurgeAbortedTargetInstancesTriggerGroup");
-        bean.setName("PurgeAbortedTargetInstancesTrigger");
-        bean.setJobDetail(purgeAbortedTargetInstancesJob().getObject());
-        bean.setRepeatInterval(purgeAbortedTargetInstancesTriggerRepeatInterval);
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Trigger purgeAbortedTargetInstancesTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
+        Trigger bean = newTrigger()
+                .withIdentity("PurgeAbortedTargetInstancesTrigger", "PurgeAbortedTargetInstancesTriggerGroup")
+                .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(purgeAbortedTargetInstancesTriggerRepeatInterval))
+                .forJob(purgeAbortedTargetInstancesJob().getObject())
+                .build();
 
         return bean;
     }
@@ -987,7 +977,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public InTrayManagerImpl inTrayManager() {
         InTrayManagerImpl bean = new InTrayManagerImpl();
         bean.setInTrayDAO(inTrayDao());
@@ -1005,7 +994,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PermissionTemplateManagerImpl permissionTemplateManager() {
         PermissionTemplateManagerImpl bean = new PermissionTemplateManagerImpl();
         bean.setPermissionTemplateDAO(permissionTemplateDao());
@@ -1015,6 +1003,7 @@ public class BaseConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean groupExpiryJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(targetManager());
@@ -1024,20 +1013,22 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean groupExpiryJobTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("GroupExpiryJobGroup");
-        bean.setName("GroupExpiryJobTrigger");
-        bean.setJobDetail(groupExpiryJob().getObject());
-        // Delay before running the job measured in milliseconds
-        bean.setStartDelay(groupExpiryJobTriggerStartDelay);
-        // Repeat every xx milliseconds: this should run at most once a day (86,400,000 millseconds)
-        bean.setRepeatInterval(groupExpiryJobTriggerRepeatInterval);
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Trigger groupExpiryJobTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + groupExpiryJobTriggerStartDelay);
+        Trigger bean = newTrigger()
+                .withIdentity("GroupExpiryJobTrigger", "GroupExpiryJobGroup")
+                .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(groupExpiryJobTriggerRepeatInterval))
+                .forJob(groupExpiryJob().getObject())
+                .build();
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean createNewTargetInstancesJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(targetManager());
@@ -1047,15 +1038,16 @@ public class BaseConfig {
     }
 
     @Bean
-    public SimpleTriggerBean createNewTargetInstancesTrigger() {
-        SimpleTriggerBean bean = new SimpleTriggerBean();
-        bean.setGroup("createNewTargetInstancesJobGroup");
-        bean.setName("createNewTargetInstancesTrigger");
-        bean.setJobDetail(createNewTargetInstancesJob().getObject());
-        // Delay before running the job measured in milliseconds
-        bean.setStartDelay(createNewTargetInstancesTriggerStartDelay);
-        // Repeat every xx milliseconds: this should run at most once a day (86,400,000 millseconds)
-        bean.setRepeatInterval(createNewTargetInstancesTriggerRepeatInterval);
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public Trigger createNewTargetInstancesTrigger() {
+        // delay before running the job measured in milliseconds
+        Date startTime = new Date(System.currentTimeMillis() + createNewTargetInstancesTriggerStartDelay);
+        Trigger bean = newTrigger()
+                .withIdentity("createNewTargetInstancesTrigger", "createNewTargetInstancesJobGroup")
+                .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(createNewTargetInstancesTriggerRepeatInterval))
+                .forJob(createNewTargetInstancesJob().getObject())
+                .build();
 
         return bean;
     }
@@ -1063,7 +1055,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public ArchiveAdapterImpl archiveAdapter() {
         ArchiveAdapterImpl bean = new ArchiveAdapterImpl();
         bean.setDigitalAssetStore(digitalAssetStore());
@@ -1081,20 +1072,6 @@ public class BaseConfig {
     }
 
     @Bean
-    public GroupSearchController groupSearchController() {
-        GroupSearchController bean = new GroupSearchController();
-        bean.setTargetManager(targetManager());
-        bean.setAgencyUserManager(agencyUserManager());
-        bean.setMessageSource(messageSource());
-        bean.setDefaultSearchOnAgencyOnly(groupSearchControllerDefaultSearchOnAgencyOnly);
-        bean.setGroupTypesList(listsConfig.groupTypesList());
-        bean.setSubGroupType(groupTypesSubgroup);
-        bean.setSubGroupSeparator(groupTypesSubgroupSeparator);
-
-        return bean;
-    }
-
-    @Bean
     public HarvestResourceUrlMapper harvestResourceUrlMapper() {
         HarvestResourceUrlMapper bean = new HarvestResourceUrlMapper();
         bean.setUrlMap(harvestResourceUrlMapperUrlMap);
@@ -1105,12 +1082,9 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TreeToolController treeToolController() {
         TreeToolController bean = new TreeToolController();
-        bean.setSupportedMethods("GET", "POST");
         bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setValidator(new TreeToolValidator());
         bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
         bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
         bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
@@ -1124,12 +1098,9 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TreeToolControllerAJAX treeToolControllerAJAX() {
         TreeToolControllerAJAX bean = new TreeToolControllerAJAX();
-        bean.setSupportedMethods("GET", "POST");
         bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setValidator(new TreeToolValidator());
         bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
 
         return bean;
@@ -1138,10 +1109,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public QualityReviewToolController qualityReviewToolController() {
         QualityReviewToolController bean = new QualityReviewToolController();
-        bean.setSupportedMethods("GET");
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetManager(targetManager());
         bean.setArchiveUrl(qualityReviewToolControllerArchiveUrl);
@@ -1160,20 +1129,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ShowHopPathController showHopPathController() {
-        ShowHopPathController bean = new ShowHopPathController();
-        bean.setSupportedMethods("GET");
-        bean.setHarvestLogManager(harvestLogManager());
-        bean.setTargetInstanceManager(targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PolitenessOptions politePolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
@@ -1183,7 +1138,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PolitenessOptions mediumPolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
@@ -1193,7 +1147,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public PolitenessOptions aggressivePolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec

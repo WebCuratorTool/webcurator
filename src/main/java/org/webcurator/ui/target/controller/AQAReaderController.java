@@ -20,13 +20,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -34,19 +40,22 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.XMLConverter;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
-import org.webcurator.ui.target.validator.LogReaderValidator;
 import org.xml.sax.SAXException;
 
 /**
  * The controller for handling the log viewer commands.
  * @author nwaight
  */
-public class AQAReaderController extends AbstractCommandController {
-
+@Controller
+@RequestMapping("/curator/target/aqa-viewer.html")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class AQAReaderController {
+    @Autowired
 	HarvestCoordinator harvestCoordinator;
-
+    @Autowired
 	TargetInstanceManager targetInstanceManager;
 
 	public class AQAElement
@@ -83,24 +92,18 @@ public class AQAReaderController extends AbstractCommandController {
 	}
 
 	public AQAReaderController() {
-		setCommandClass(LogReaderCommand.class);
-		setValidator(new LogReaderValidator());
-
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest aReq, HttpServletResponse aResp, Object aCommand, BindException aErrors) throws Exception {
-		LogReaderCommand cmd = (LogReaderCommand) aCommand;
+	@GetMapping
+	protected ModelAndView handle(@Validated @ModelAttribute("logReaderCommand") LogReaderCommand command,
+								  BindingResult bindingResult) throws Exception {
 		String messageText = "";
 		int firstLine = 0;
 		List<AQAElement> missingElements = new ArrayList<AQAElement>();
 
-		if(aErrors.hasErrors())
+		if(bindingResult.hasErrors())
 		{
-			Iterator it = aErrors.getAllErrors().iterator();
+			Iterator it = bindingResult.getAllErrors().iterator();
 			while(it.hasNext())
 			{
 				org.springframework.validation.ObjectError err = (org.springframework.validation.ObjectError)it.next();
@@ -108,13 +111,13 @@ public class AQAReaderController extends AbstractCommandController {
 				messageText += err.getDefaultMessage();
 			}
 		}
-		else if(cmd.getTargetInstanceOid() != null)
+		else if(command.getTargetInstanceOid() != null)
 		{
-			TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
+			TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceOid());
 
-			cmd.setTargetName(ti.getTarget().getName());
+			command.setTargetName(ti.getTarget().getName());
 
-			File f = harvestCoordinator.getLogfile(ti, cmd.getLogFileName());
+			File f = harvestCoordinator.getLogfile(ti, command.getLogFileName());
 			Document aqaResult = readXMLDocument(f);
 			NodeList missingElementsNodes = aqaResult.getElementsByTagName("missingElements");
 			if(missingElementsNodes.getLength() > 0)
@@ -136,7 +139,7 @@ public class AQAReaderController extends AbstractCommandController {
 
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName(Constants.VIEW_AQA_READER);
-		mav.addObject(Constants.GBL_CMD_DATA, cmd);
+		mav.addObject(Constants.GBL_CMD_DATA, command);
 		mav.addObject(Constants.MESSAGE_TEXT, messageText);
 		mav.addObject(LogReaderCommand.MDL_MISSINGELEMENTS, missingElements);
 

@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.groups.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.groups.command.MoveTargetsCommand;
@@ -23,6 +24,7 @@ import org.webcurator.ui.groups.command.MoveTargetsCommand;
  * The validation for adding members to a group.
  * @author bbeaumont
  */
+@Component
 public class MoveTargetsValidator extends AbstractBaseValidator {
 	/** @see org.springframework.validation.Validator#supports(java.lang.Class) */
 	public boolean supports(Class clazz) {

@@ -14,6 +14,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
@@ -40,7 +41,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 	public TargetInstanceGeneralHandlerTest()
 	{
 		super(TargetInstanceGeneralHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetInstanceGeneralHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetInstanceGeneralHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -161,15 +162,15 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		Tab currentTab = tabs.get(0);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
 		aCmd.setFlagged(true);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetInstance.getFlagged());
 
 		currentTab = tabs.get(0);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
 		aCmd.setFlagged(false);
-		aErrors = new BindException(aCmd, aCmd.getCmd());
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		bindingResult = new BindException(aCmd, aCmd.getCmd());
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertFalse(targetInstance.getFlagged());
 	}
 
@@ -201,8 +202,8 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetInstanceCommand.class);
 
 		Tab currentTab = tabs.get(0);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(((TargetInstanceCommand)mav.getModel().get("command")).getFlagged() == targetInstance.getFlagged());
 	}
 
@@ -235,15 +236,15 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		Tab currentTab = tabs.get(0);
 
 		aCmd.setCmd(TargetInstanceCommand.ACTION_HARVEST);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 
 		try
 		{
 			aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-			aErrors = new BindException(aCmd, aCmd.getCmd());
-			testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			bindingResult = new BindException(aCmd, aCmd.getCmd());
+			testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			fail("Exception not thrown for unknown command");
 		}
 		catch(WCTRuntimeException re)

@@ -23,11 +23,15 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.Annotation;
@@ -36,7 +40,7 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionExclusion;
 import org.webcurator.domain.model.core.Site;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.SitePermissionCommand;
 import org.webcurator.ui.site.editor.EditorContextObjectEditor;
@@ -51,13 +55,18 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * harvest authorisations permissions.
  * @author nwaight
  */
-public class SitePermissionController extends AbstractCommandController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class SitePermissionController {
 
 	/** The SiteController that this is part of */
+	@Autowired
 	private SiteController siteController;
 
 	/** BusinessObjectFactory */
-	private BusinessObjectFactory businessObjectFactory = null;
+	@Autowired
+	private BusinessObjectFactory businessObjectFactory;
 
 	/** The list of access statuses */
 	private List<String> accessStatusList;
@@ -67,7 +76,6 @@ public class SitePermissionController extends AbstractCommandController {
 	 * Construct a new Controller. Sets the command class.
 	 */
 	public SitePermissionController() {
-		setCommandClass(SitePermissionCommand.class);
 	}
 
 
@@ -92,10 +100,7 @@ public class SitePermissionController extends AbstractCommandController {
 	 * @param request The HttpServletRequest.
 	 * @param binder  The binder.
 	 */
-	@Override
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-		super.initBinder(request, binder);
-
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
 
         // Register the binders.
@@ -119,11 +124,12 @@ public class SitePermissionController extends AbstractCommandController {
 	 * @param req The HttpServletRequest.
 	 * @param resp The HttpServletResponse.
 	 * @param command The SitePermissionCommand object.
-	 * @param errors The Spring errors.
+	 * @param bindingResult The Spring bindingResult.
 	 * @return The next view to display.
 	 */
 	@SuppressWarnings("unchecked")
-	private ModelAndView handleCancel(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command, BindException errors) {
+	private ModelAndView handleCancel(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command,
+                                      BindingResult bindingResult) {
 		// Reset the permissions.
 		SiteEditorContext ctx = getEditorContext(req);
 		Permission p = (Permission) ctx.getObject(Permission.class, command.getIdentity());
@@ -133,7 +139,7 @@ public class SitePermissionController extends AbstractCommandController {
 
 		// Go back to the permissions tab.
 		Tab membersTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-		TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, errors);
+		TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, bindingResult);
 		tmav.getTabStatus().setCurrentTab(membersTab);
 		return tmav;
 	}
@@ -144,16 +150,17 @@ public class SitePermissionController extends AbstractCommandController {
 	 * @param req The HttpServletRequest.
 	 * @param resp The HttpServletResponse.
 	 * @param command The SitePermissionCommand object.
-	 * @param errors The Spring errors.
+	 * @param bindingResult The Spring bindingResult.
 	 * @return The next view to display.
 	 */
-	private ModelAndView handleSave(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command, BindException errors) {
+	private ModelAndView handleSave(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command,
+                                    BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 
-		if (errors.hasErrors()) {
+		if (bindingResult.hasErrors()) {
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("urls", ctx.getSortedUrlPatterns());
 			mav.addObject("agents", ctx.getSortedAuthAgents());
 			mav.addObject("permissionEditMode", true);
@@ -185,7 +192,7 @@ public class SitePermissionController extends AbstractCommandController {
 
 		// Go back to the list of permissions
 		Tab membersTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-		TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, errors);
+		TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, bindingResult);
 		tmav.getTabStatus().setCurrentTab(membersTab);
 
 		return tmav;
@@ -195,19 +202,19 @@ public class SitePermissionController extends AbstractCommandController {
 	/**
 	 * Handle the add annotation logic.
 	 * @param req The HttpServletRequest.
-	 * @param resp The HttpServletResponse.
 	 * @param command The SitePermissionCommand object.
-	 * @param errors The Spring errors.
+	 * @param bindingResult The Spring bindingResult.
 	 * @return The next view to display.
 	 */
-	private ModelAndView handleAnnotation(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command, BindException errors) {
+	private ModelAndView handleAnnotation(HttpServletRequest req, SitePermissionCommand command,
+                                          BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 		Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
 
-		if (errors.hasErrors()) {
+		if (bindingResult.hasErrors()) {
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("urls", ctx.getSortedUrlPatterns());
 			mav.addObject("agents", ctx.getSortedAuthAgents());
 			mav.addObject("permissionEditMode", true);
@@ -249,8 +256,8 @@ public class SitePermissionController extends AbstractCommandController {
 			permission.sortAnnotations();
 
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("urls", ctx.getSortedUrlPatterns());
 			mav.addObject("agents", ctx.getSortedAuthAgents());
 			mav.addObject("permissionEditMode", true);
@@ -266,19 +273,19 @@ public class SitePermissionController extends AbstractCommandController {
 	/**
 	 * Handle the add exlusion logic.
 	 * @param req The HttpServletRequest.
-	 * @param resp The HttpServletResponse.
 	 * @param command The SitePermissionCommand object.
-	 * @param errors The Spring errors.
+	 * @param bindingResult The Spring bindingResult.
 	 * @return The next view to display.
 	 */
-	private ModelAndView handleAddExclusion(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command, BindException errors) {
+	private ModelAndView handleAddExclusion(HttpServletRequest req, SitePermissionCommand command,
+                                            BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 		Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
 
-		if (errors.hasErrors()) {
+		if (bindingResult.hasErrors()) {
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("urls", ctx.getSortedUrlPatterns());
 			mav.addObject("agents", ctx.getSortedAuthAgents());
 			mav.addObject("permissionEditMode", true);
@@ -292,8 +299,8 @@ public class SitePermissionController extends AbstractCommandController {
 			permission.getExclusions().add(new PermissionExclusion(command.getExclusionUrl(), command.getExclusionReason()));
 
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("urls", ctx.getSortedUrlPatterns());
 			mav.addObject("agents", ctx.getSortedAuthAgents());
 			mav.addObject("permissionEditMode", true);
@@ -308,19 +315,19 @@ public class SitePermissionController extends AbstractCommandController {
 	/**
 	 * Handle the delete exlusion logic.
 	 * @param req The HttpServletRequest.
-	 * @param resp The HttpServletResponse.
 	 * @param command The SitePermissionCommand object.
-	 * @param errors The Spring errors.
+	 * @param bindingResult The Spring bindingResult.
 	 * @return The next view to display.
 	 */
-	private ModelAndView handleDeleteExclusion(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command, BindException errors) {
+	private ModelAndView handleDeleteExclusion(HttpServletRequest req, SitePermissionCommand command,
+                                               BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 		Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
 
-		if (errors.hasErrors()) {
+		if (bindingResult.hasErrors()) {
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("urls", ctx.getSortedUrlPatterns());
 			mav.addObject("agents", ctx.getSortedAuthAgents());
 			mav.addObject("permissionEditMode", true);
@@ -334,8 +341,8 @@ public class SitePermissionController extends AbstractCommandController {
 			permission.getExclusions().remove((int) command.getDeleteExclusionIndex());
 
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject("urls", ctx.getSortedUrlPatterns());
 			mav.addObject("agents", ctx.getSortedAuthAgents());
 			mav.addObject("permissionEditMode", true);
@@ -353,32 +360,30 @@ public class SitePermissionController extends AbstractCommandController {
 	 * @param req The HttpServletRequest object.
 	 * @param resp The HttpServletResponse object.
 	 * @param comm The Spring command object.
-	 * @param errors The Spring errors object.
-	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @param bindingResult The Spring bindingResult object.
 	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest req,
-			HttpServletResponse resp, Object comm, BindException errors)
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse resp, Object comm,
+                                  BindingResult bindingResult)
 			throws Exception {
 		//Get the command .
 		SitePermissionCommand command = (SitePermissionCommand) comm;
 
 		if(command.isAction(SitePermissionCommand.ACTION_CANCEL)) {
-			return handleCancel(req, resp, command, errors);
+			return handleCancel(req, resp, command, bindingResult);
 		}
 		else if(command.isAction(SitePermissionCommand.ACTION_SAVE)) {
-			return handleSave(req, resp, command, errors);
+			return handleSave(req, resp, command, bindingResult);
 		}
 		else if(command.isAction(SitePermissionCommand.ACTION_ADD_NOTE) ||
 				command.isAction(SitePermissionCommand.ACTION_MODIFY_NOTE) ||
 				command.isAction(SitePermissionCommand.ACTION_DELETE_NOTE)) {
-			return handleAnnotation(req, resp, command, errors);
+			return handleAnnotation(req, command, bindingResult);
 		}
 		else if(command.isAction(SitePermissionCommand.ACTION_ADD_EXCLUSION)) {
-			return handleAddExclusion(req, resp, command, errors);
+			return handleAddExclusion(req, command, bindingResult);
 		}
 		else if(command.isAction(SitePermissionCommand.ACTION_DELETE_EXCLUSION)) {
-			return handleDeleteExclusion(req, resp, command, errors);
+			return handleDeleteExclusion(req, command, bindingResult);
 		}
 		else {
 			throw new WCTRuntimeException("Unknown ActionCmd");

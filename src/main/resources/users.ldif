@@ -1,0 +1,31 @@
+dn: ou=groups,dc=baeldung,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: groups
+
+dn: ou=people,dc=baeldung,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: people
+
+dn: uid=nlnz_admin,ou=people,dc=baeldung,dc=com
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+cn: Jim Beam
+sn: Beam
+uid: nlnz_admin
+userPassword: Password02
+
+dn: cn=admin,ou=groups,dc=baeldung,dc=com
+objectclass: top
+objectclass: groupOfNames
+cn: admin
+member: uid=nlnz_admin,ou=people,dc=baeldung,dc=com
+
+dn: cn=LOGIN,ou=groups,dc=baeldung,dc=com
+objectclass: top
+objectclass: groupOfNames
+cn: user
+member: uid=nlnz_admin,ou=people,dc=baeldung,dc=com

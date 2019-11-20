@@ -1,7 +1,7 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <%@ page import="org.webcurator.ui.target.command.ShowHopPathCommand" %>
 <style>
 	.hidden { display:none; }

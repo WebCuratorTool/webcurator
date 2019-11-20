@@ -19,28 +19,27 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -54,7 +53,6 @@ import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorCriteria;
-import org.webcurator.domain.model.core.IndicatorReportLine;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.admin.command.QaIndicatorCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
@@ -65,33 +63,37 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  *
  * @author twoods
  */
-public class QaIndicatorRobotsReportController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class QaIndicatorRobotsReportController {
 	/** the logger. */
 	private Log log = null;
     /** The manager to use to access the target instance. */
+    @Autowired
     private TargetInstanceManager targetInstanceManager;
 	/** The Data access object for indicators. */
+	@Autowired
 	private IndicatorDAO indicatorDAO;
 	/** the agency user manager. */
-	private AgencyUserManager agencyUserManager = null;
+	@Autowired
+	private AgencyUserManager agencyUserManager;
 	/** the authority manager. */
-	private AuthorityManager authorityManager = null;
-	/** the message source. */
-	private MessageSource messageSource = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 
 	private Map<String, String> excludedIndicators = null;
 	/** interface for retrieving data for excluded indicators **/
-	private QualityReviewFacade qualityReviewFacade = null;
+	@Autowired
+	private QualityReviewFacade qualityReviewFacade;
 	/** message displayed if the robots.txt file is not found **/
-	private String fileNotFoundMessage = null;
+	private String fileNotFoundMessage = "robots.txt file not found";
 
 	/** Default Constructor. */
 	public QaIndicatorRobotsReportController() {
 		log = LogFactory.getLog(QaIndicatorRobotsReportController.class);
-		setCommandClass(QaIndicatorCommand.class);
 	}
 
-	@Override
 	protected void initBinder(HttpServletRequest request,
 			ServletRequestDataBinder binder) {
 		// enable null values for long and float fields
@@ -114,9 +116,9 @@ public class QaIndicatorRobotsReportController extends AbstractFormController {
      		HarvestResourceDTO resource = resources.next();
      		if (resource.getName().toLowerCase().contains("robots.txt")) {
 				try {
-					File file = qualityReviewFacade.getResource(resource);
+					Path path = qualityReviewFacade.getResource(resource);
 					// read the file for reporting
-					BufferedReader bout = new BufferedReader (new FileReader (file));
+					BufferedReader bout = new BufferedReader (new FileReader (path.toFile()));
 					String line = null;
 
 					while ((line = bout.readLine()) != null) {
@@ -139,9 +141,7 @@ public class QaIndicatorRobotsReportController extends AbstractFormController {
 
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request,
-			HttpServletResponse response, BindException errors)
+	protected ModelAndView showForm(HttpServletRequest request)
 			throws Exception {
 
 		ModelAndView mav = new ModelAndView();
@@ -177,12 +177,8 @@ public class QaIndicatorRobotsReportController extends AbstractFormController {
 
 	}
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object command, BindException errors)
-			throws Exception {
-
-		return showForm(request, response, errors);
+	protected ModelAndView processFormSubmission(HttpServletRequest request) throws Exception {
+		return showForm(request);
 	}
 
 	/**
@@ -265,14 +261,6 @@ public class QaIndicatorRobotsReportController extends AbstractFormController {
 	 */
 	public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
 		this.agencyUserManager = agencyUserManager;
-	}
-
-	/**
-	 * @param messageSource
-	 *            the message source.
-	 */
-	public void setMessageSource(MessageSource messageSource) {
-		this.messageSource = messageSource;
 	}
 
 	/**

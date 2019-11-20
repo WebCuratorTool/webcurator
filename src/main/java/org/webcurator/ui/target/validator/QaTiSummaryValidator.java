@@ -21,6 +21,8 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
@@ -33,6 +35,7 @@ import org.webcurator.ui.target.command.TargetSchedulesCommand;
  * Validate actions on a target instance.
  * @author nwaight
  */
+@Component
 public class QaTiSummaryValidator extends AbstractBaseValidator {
 
 	/** Logger to use with this class. */

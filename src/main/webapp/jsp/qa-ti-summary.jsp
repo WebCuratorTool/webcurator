@@ -4,10 +4,11 @@
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct" %>
 <%@taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>
 <%@taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceSummaryCommand" %>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
 <%@page import="org.webcurator.domain.model.core.TargetInstance" %>
-<%@page import="org.webcurator.ui.common.Constants" %>
+<%@page import="org.webcurator.common.ui.Constants" %>
 <%@page import="org.webcurator.domain.model.auth.Privilege" %>
 <%@page import="org.webcurator.domain.model.core.Indicator" %>
 <%@page import="org.webcurator.domain.model.core.Schedule" %>
@@ -368,7 +369,7 @@ function getSelectedProfile(profilesList) {
 					<c:set var="harvestResultsSize" value="${fn:length(results)}" />
 					<tr>
 						<td width="10%"><input type="radio" name="harvestResultRadio" id="harvestResultRadio${harvestResultCounter}" value="${result.oid}" <c:if test='${harvestResultCounter eq harvestResultsSize}'>checked="checked"</c:if> /></td>
-						<form id="harvestResults${harvestResultCounter}" name="harvestResults${harvestResultCounter}" method="post" action="curator/target/target-instance.html"> 
+						<form id="harvestResults${harvestResultCounter}" name="harvestResults${harvestResultCounter}" method="post" action="curator/target/target-instance.html">
 						<input type="hidden" id="init_tab" name="init_tab" value="RESULTS">
 						<input type="hidden" name="<%=TargetInstanceSummaryCommand.PARAM_OID%>" value="${instance.oid}" />
 						<input type="hidden" name="<%= TargetInstanceCommand.PARAM_CMD %>" value="<%=TargetInstanceCommand.ACTION_EDIT%>">
@@ -403,7 +404,8 @@ function getSelectedProfile(profilesList) {
 					</c:forEach>
 					<tr>
 						<td colspan="5" style="vertical-align: middle;">
-							<form id="harvestresults" name="harvestresults" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html">
+							<form:form id="harvestresults" name="harvestresults" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html"
+									   modelAttribute="targetInstanceSummaryCommand">
 								<input type="hidden" id="<%=TargetInstanceSummaryCommand.PARAM_HR_ID%>" name="<%=TargetInstanceSummaryCommand.PARAM_HR_ID%>" value="" />
 								<input type="hidden" id="<%=TargetInstanceSummaryCommand.PARAM_CMD%>" name="<%=TargetInstanceSummaryCommand.PARAM_CMD%>" value="" />
 								<input type="hidden" id="<%=TargetInstanceSummaryCommand.PARAM_OID%>" name="<%=TargetInstanceSummaryCommand.PARAM_OID%>" value="${instance.oid}" />
@@ -439,7 +441,7 @@ function getSelectedProfile(profilesList) {
 									</c:if>
 									</tr>
 								</table>
-							</form>
+							</form:form>
 						</td>
 					</tr>	
 					</table>
@@ -527,11 +529,12 @@ function getSelectedProfile(profilesList) {
 				</c:forEach>
 			<tr>
 				<td colspan="3">
-					<form id="rerunqa" name="rerunqa" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html">
+					<form:form id="rerunqa" name="rerunqa" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html"
+							   modelAttribute="targetInstanceSummaryCommand">
 						<input type="hidden" name="<%=TargetInstanceSummaryCommand.PARAM_OID%>" value="${instance.oid}" />
 						<input type="hidden" name="<%=TargetInstanceSummaryCommand.PARAM_CMD%>" value="<%=TargetInstanceSummaryCommand.ACTION_RERUN_QA%>" />
 						<input type="image" name="runqa" id="runqa" src="images/runqa-enabled.gif" alt="run the QA analysis" width="82" height="22" border="0" onclick="disableButton($(this).attr('id')); document.rerunqa.submit();" />
-					</form>
+					</form:form>
 				</td>
 			</tr>
 		</table>
@@ -578,7 +581,8 @@ function getSelectedProfile(profilesList) {
 		<td style="vertical-align: top;" width="40%">
 			<!-- profile panel -->
 			<c:set var="profileEditMode" value="${editMode && instance.overrides != null}"/>
-			<form id="profileoverrides" name="profileoverrides" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html">
+			<form:form id="profileoverrides" name="profileoverrides" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html"
+					   modelAttribute="targetInstanceSummaryCommand">
 			<table class="panel" border="0" width="100%" cellspacing="0px">
 				<tr><td colspan="4"><table class="panel_header_row"><tr><td><div class="panel_header_title">Profile Overrides</div></td></tr></table></td></tr>
 				<tr>
@@ -853,7 +857,7 @@ function getSelectedProfile(profilesList) {
 				</authority:show>
 				</authority:showControl>
 				</table>
-				</form>			
+				</form:form>
 
 				<!-- schedule and crawl filters -->
 				<table class="panel" border="0" width="100%" cellspacing="0px">
@@ -866,7 +870,8 @@ function getSelectedProfile(profilesList) {
 									<table class="panel" border="0" width="100%" cellspacing="0px">
 										<tr><td colspan="9"><table width="100%" class="panel_header_row"><tr><td><div class="panel_header_title">Schedule</div></td></tr></table></td></tr>
 									</table>
-									<form id="scheduleForm" name="scheduleForm" method="post" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html">
+									<form:form id="scheduleForm" name="scheduleForm" method="post" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html"
+											   modelAttribute="targetInstanceSummaryCommand">
 									<table border="0" class="panel" width="100%" cellspacing="0px" cellpadding="0px">
 										<tr> 
 											<td class="hhist_header_row" style="width: 20%">From</td>
@@ -998,7 +1003,7 @@ function getSelectedProfile(profilesList) {
 										</tr>
 										</c:forEach>
 									</table>
-									</form>
+									</form:form>
 									
 								</td>
 							</tr>
@@ -1085,7 +1090,6 @@ function getSelectedProfile(profilesList) {
 									</table>
 									</div>
 								</td>
-									
 							</tr>
 							<tr>
 								<td>
@@ -1149,11 +1153,12 @@ function getSelectedProfile(profilesList) {
 										<table border="0" width="100%">
 										<tr>
 											<td width="100%" style="vertical-align: top;">
-												<form id="addannotation" name="addannotation" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html">
+												<form:form id="addannotation" name="addannotation" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html"
+														   modelAttribute="targetInstanceSummaryCommand">
 													<input type="hidden" name="<%=TargetInstanceSummaryCommand.PARAM_OID%>" value="${instance.oid}" />
 													<input type="hidden" name="<%=TargetInstanceSummaryCommand.PARAM_CMD%>" value="<%=TargetInstanceSummaryCommand.ACTION_ADD_NOTE%>" />
 													<textarea id="note" rows="8" cols="45" name="note"></textarea>
-												</form>
+												</form:form>
 											</td>
 										</tr>
 										</table>
@@ -1165,11 +1170,12 @@ function getSelectedProfile(profilesList) {
 						</tr>
 						<tr>
 							<td>
-								<form id="refcrawl" name="refcrawl" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html">
+								<form:form id="refcrawl" name="refcrawl" method="POST" action="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/qatisummary.html"
+										   modelAttribute="targetInstanceSummaryCommand">
 									<input type="hidden" id="<%=TargetInstanceSummaryCommand.PARAM_OID%>" name="<%=TargetInstanceSummaryCommand.PARAM_OID%>" value="${instance.oid}" />
 									<input type="hidden" id="<%=TargetInstanceSummaryCommand.PARAM_REF_CRAWL_OID%>" name="<%=TargetInstanceSummaryCommand.PARAM_REF_CRAWL_OID%>" value="" />
 									<input type="hidden" name="<%=TargetInstanceSummaryCommand.PARAM_CMD%>" value="<%=TargetInstanceSummaryCommand.ACTION_DENOTE_REF_CRAWL%>" />
-								</form>
+								</form:form>
 															
 								<input type="image" name="denoterefcrawl" id="denoterefcrawl" src="images/denotereferencecrawl-enabled.gif" alt="mark the harvest history record as a reference crawl" width="135" height="22" border="0" onclick="if (document.refcrawl.<%=TargetInstanceSummaryCommand.PARAM_REF_CRAWL_OID%>!='') {disableButton($(this).attr('id')); document.refcrawl.submit();} else return false;" />
 								

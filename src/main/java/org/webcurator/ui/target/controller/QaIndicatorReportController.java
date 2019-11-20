@@ -26,17 +26,21 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -58,19 +62,24 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  *
  * @author twoods
  */
-public class QaIndicatorReportController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class QaIndicatorReportController {
 	/** the logger. */
 	private Log log = null;
     /** The manager to use to access the target instance. */
+    @Autowired
     private TargetInstanceManager targetInstanceManager;
 	/** The Data access object for indicators. */
+	@Autowired
 	private IndicatorDAO indicatorDAO;
 	/** the agency user manager. */
-	private AgencyUserManager agencyUserManager = null;
+	@Autowired
+	private AgencyUserManager agencyUserManager;
 	/** the authority manager. */
-	private AuthorityManager authorityManager = null;
-	/** the message source. */
-	private MessageSource messageSource = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 	/** the sort order for records in the report **/
 	private String sortOrder = "countdesc";
 
@@ -83,10 +92,18 @@ public class QaIndicatorReportController extends AbstractFormController {
 	/** Default Constructor. */
 	public QaIndicatorReportController() {
 		log = LogFactory.getLog(QaIndicatorReportController.class);
-		setCommandClass(QaIndicatorCommand.class);
 	}
 
-	@Override
+	@PostConstruct
+    protected void init() {
+        // These indicators are excluded from the IndicatorReportLine report since they have an alternative
+        // representation built by a separate report.
+        // The indicator name is specified by the map key and the report for the indicator is the map value.
+        Map<String, String> excludedIndicators = new HashMap<>();
+        excludedIndicators.put("Robots.txt entries disallowed", "/curator/target/qa-indicator-robots-report.html");
+        setExcludedIndicators(excludedIndicators);
+    }
+
 	protected void initBinder(HttpServletRequest request,
 			ServletRequestDataBinder binder) {
 		// enable null values for long and float fields
@@ -98,9 +115,7 @@ public class QaIndicatorReportController extends AbstractFormController {
 				new CustomNumberEditor(java.lang.Float.class, nf, true));
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request,
-			HttpServletResponse response, BindException errors)
+	protected ModelAndView showForm(HttpServletRequest request)
 			throws Exception {
 
 		ModelAndView mav = new ModelAndView();
@@ -187,14 +202,11 @@ public class QaIndicatorReportController extends AbstractFormController {
 
 	}
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object command, BindException errors)
-			throws Exception {
+	protected ModelAndView processFormSubmission(@RequestParam(value = "sortorder") String requestSortOrder,
+                                                 HttpServletRequest request) throws Exception {
+		sortOrder = requestSortOrder;
 
-		sortOrder=request.getParameter("sortorder");
-
-		return showForm(request, response, errors);
+		return showForm(request);
 	}
 
 	/**
@@ -277,14 +289,6 @@ public class QaIndicatorReportController extends AbstractFormController {
 	 */
 	public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
 		this.agencyUserManager = agencyUserManager;
-	}
-
-	/**
-	 * @param messageSource
-	 *            the message source.
-	 */
-	public void setMessageSource(MessageSource messageSource) {
-		this.messageSource = messageSource;
 	}
 
 	/**

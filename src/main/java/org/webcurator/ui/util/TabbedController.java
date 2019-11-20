@@ -19,13 +19,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.BaseCommandController;
 import org.springframework.web.util.WebUtils;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
@@ -72,7 +71,7 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  *
  * @author bbeaumont
  */
-public abstract class TabbedController extends BaseCommandController {
+public abstract class TabbedController {
 
 	/** The default command class for the entry into this tabbed controller */
 	private Class defaultCommandClass = null;
@@ -118,9 +117,7 @@ public abstract class TabbedController extends BaseCommandController {
 	 * there is a current page enabled. If there is, this calls the binder
 	 * method of the tab handler for that tab.
 	 */
-	protected void initBinder(HttpServletRequest request,
-			ServletRequestDataBinder binder) throws Exception {
-		super.initBinder(request, binder);
+	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		String currentPage = request.getParameter("_tab_current_page");
 		if (currentPage != null && !currentPage.trim().equals("")) {
 			Tab currentTab = tabConfig.getTabByID(currentPage);
@@ -192,13 +189,12 @@ public abstract class TabbedController extends BaseCommandController {
 	 *            The HttpServletResponse.
 	 * @param comm
 	 *            The Spring command object.
-	 * @param errors
-	 *            The Spring errors object.
+	 * @param bindingResult
+	 *            The Spring bindingResult object.
 	 * @return The ModelAndView object to display.
 	 */
-	protected abstract ModelAndView processSave(Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors);
+	protected abstract ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                                                Object comm, BindingResult bindingResult);
 
 	/**
 	 * Process the cancel instruction for this set of tabs. This is invoked when
@@ -216,13 +212,12 @@ public abstract class TabbedController extends BaseCommandController {
 	 *            The HttpServletResponse.
 	 * @param comm
 	 *            The Spring command object.
-	 * @param errors
-	 *            The Spring errors object.
+	 * @param bindingResult
+	 *            The Spring bindingResult object.
 	 * @return The ModelAndView object to display.
 	 */
-	protected abstract ModelAndView processCancel(Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors);
+	protected abstract ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                                                  Object comm, BindingResult bindingResult);
 
 	protected abstract void switchToEditMode(HttpServletRequest req);
 
@@ -237,12 +232,12 @@ public abstract class TabbedController extends BaseCommandController {
 	 *            The HttpServletResponse.
 	 * @param comm
 	 *            The Spring command object.
-	 * @param errors
-	 *            The Spring errors object.
+	 * @param bindingResult
+	 *            The Spring bindingResult object.
 	 * @return The ModelAndView object to display.
 	 */
-	protected abstract ModelAndView processInitial(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors);
+	protected abstract ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                                   BindingResult bindingResult);
 
 	/**
 	 * This is the main method of the TabbedController. It identifies which
@@ -255,13 +250,14 @@ public abstract class TabbedController extends BaseCommandController {
 	 *            The HttpServletResponse.
 	 * @param comm
 	 *            The Spring command object.
-	 * @param errors
-	 *            The Spring errors object.
+	 * @param bindingResult
+	 *            The Spring bindingResult object.
 	 * @return The next ModelAndView object to be displayed.
 	 * @throws Exception
 	 *             Any exception raised by the handlers.
 	 */
-	protected ModelAndView processFormSubmission(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                                 BindingResult bindingResult) throws Exception {
 		String currentPage = req.getParameter("_tab_current_page");
 		Tab currentTab = tabConfig.getTabByID(currentPage);
 		//log.info("processFormSubmission");
@@ -272,21 +268,21 @@ public abstract class TabbedController extends BaseCommandController {
 
 			Tab nextTab = null;
 
-			// If there are errors, do not allow the tab to be changed. Simply
-			// add the command and errors to the model and return the user to
+			// If there are bindingResult, do not allow the tab to be changed. Simply
+			// add the command and bindingResult to the model and return the user to
 			// the same tab.
-			if(errors.hasErrors()) {
-				TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm, errors);
+			if(bindingResult.hasErrors()) {
+				TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
-				tmav.addObject(Constants.GBL_CMD_DATA, errors.getTarget());
-	            tmav.addObject(Constants.GBL_ERRORS, errors);
+				tmav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+	            tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return tmav;
 			}
-			// There are no errors, so process the tab (saving the information
+			// There are no bindingResult, so process the tab (saving the information
 			// to the business objects) and return the view for the next tab,
 			// as identified by the "tabChangedTo" parameter.
 			else {
-				currentTab.getTabHandler().processTab(this, currentTab, req, res, comm, errors);
+				currentTab.getTabHandler().processTab(this, currentTab, req, res, comm, bindingResult);
 				nextTab = tabConfig.getTabByTitle(req.getParameter("tabChangedTo"));
 				// ensure that the target instance oid is set (enables us to directly refer the user to a specific tab)
 				if (comm instanceof TargetInstanceCommand && ((TargetInstanceCommand)comm).getTargetInstanceId() == null && WebUtils.hasSubmitParameter(req, "targetInstanceOid")) {
@@ -294,7 +290,7 @@ public abstract class TabbedController extends BaseCommandController {
 					Long targetInstanceId = Long.parseLong(targetInstanceOid);
 					((TargetInstanceCommand)comm).setTargetInstanceId(targetInstanceId);
 				}
-				TabbedModelAndView tmav = nextTab.getTabHandler().preProcessNextTab(this, nextTab, req, res, comm, errors);
+				TabbedModelAndView tmav = nextTab.getTabHandler().preProcessNextTab(this, nextTab, req, res, comm, bindingResult);
 				tmav.getTabStatus().setCurrentTab(nextTab);
 
 
@@ -305,7 +301,7 @@ public abstract class TabbedController extends BaseCommandController {
 		{
 
 			switchToEditMode(req);
-			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm, errors);
+			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm, bindingResult);
 			tmav.getTabStatus().setCurrentTab(currentTab);
 			return tmav;
 		}
@@ -313,28 +309,28 @@ public abstract class TabbedController extends BaseCommandController {
 		// Save Handler
 		else if( WebUtils.hasSubmitParameter(req, "_tab_save")) {
 			// Process the tab.
-			currentTab.getTabHandler().processTab(this, currentTab, req, res, comm, errors);
+			currentTab.getTabHandler().processTab(this, currentTab, req, res, comm, bindingResult);
 
-			// If there are any errors, do not invoke the save controller, but
-			// simply return the current tab with the command and errors objects
+			// If there are any bindingResult, do not invoke the save controller, but
+			// simply return the current tab with the command and bindingResult objects
 			// populated.
-			if(errors.hasErrors()) {
-				TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,errors);
+			if(bindingResult.hasErrors()) {
+				TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,bindingResult);
 				tmav.getTabStatus().setCurrentTab(currentTab);
 				tmav.addObject(Constants.GBL_CMD_DATA, comm);
-				tmav.addObject(Constants.GBL_ERRORS, errors);
+				tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return tmav;
 			}
 			else {
-				// There were no errors, so invoke the save method on the
+				// There were no bindingResult, so invoke the save method on the
 				// subclass.
-				return processSave(currentTab, req, res, comm, errors);
+				return processSave(currentTab, req, res, comm, bindingResult);
 			}
 		}
 
 		// Cancel Handler
 		else if( WebUtils.hasSubmitParameter(req, "_tab_cancel")) {
-			return processCancel(currentTab, req, res, comm, errors);
+			return processCancel(currentTab, req, res, comm, bindingResult);
 		}
 
 		// No standard action has been provided that the TabbedController
@@ -342,17 +338,17 @@ public abstract class TabbedController extends BaseCommandController {
 		// handler of the current tab and let the tab decide what to do.
 		else {
 			//log.debug(currentTab.getTabHandler().getClass().toString());
-			ModelAndView mav = currentTab.getTabHandler().processOther(this, currentTab, req, res, comm, errors);
+			ModelAndView mav = currentTab.getTabHandler().processOther(this, currentTab, req, res, comm, bindingResult);
 			//if(mav instanceof TabbedModelAndView) {
 			//	log.debug("Moving to: " + ((TabbedModelAndView)mav).getTabStatus().getCurrentTab().toString());
 			//}
 
-			if(errors.hasErrors()) {
-				mav.addObject(Constants.GBL_ERRORS, errors);
+			if(bindingResult.hasErrors()) {
+				mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			}
 
 			return mav;
-			// return processOther(currentTab, req, res, comm, errors);
+			// return processOther(currentTab, req, res, comm, bindingResult);
 		}
 	}
 
@@ -365,7 +361,6 @@ public abstract class TabbedController extends BaseCommandController {
 	 *            The HttpServletRequest.
 	 * @return An unpopulated command class.
 	 */
-	@Override
 	protected Object getCommand(HttpServletRequest req) throws Exception {
 		String currentPage = req.getParameter("_tab_current_page");
 		Tab currentTab = tabConfig.getTabByID(currentPage);
@@ -384,9 +379,8 @@ public abstract class TabbedController extends BaseCommandController {
 	 * @throws Exception
 	 *             if anything fails.
 	 */
-	@Override
-	protected ModelAndView handleRequestInternal(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+	protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
+            throws Exception {
 		// If the submission method is a POST.
 		if ("POST".equals(request.getMethod())) {
 			// Is there a tab currently selected? If there is, then get the
@@ -404,12 +398,11 @@ public abstract class TabbedController extends BaseCommandController {
 					if (newCommand instanceof TargetDefaultCommand && request.getParameter("targetOid") != null) {
 						Long targetOid = Long.parseLong(request.getParameter("targetOid"));
 						((TargetDefaultCommand)newCommand).setTargetOid(targetOid);
-						showForm(request, response, newCommand, binder.getErrors());
+						showForm(request, response, newCommand, binder.getBindingResult());
 					}
 				}
 
-				return processFormSubmission(request, response, command, binder
-						.getErrors());
+				return processFormSubmission(request, response, command, binder.getBindingResult());
 			}
 
 			// No tab is currently selected, so we need to instantated, bind,
@@ -420,8 +413,7 @@ public abstract class TabbedController extends BaseCommandController {
 						.instantiateClass(defaultCommandClass);
 				ServletRequestDataBinder binder = bindAndValidate(request,
 						command);
-				return processInitial(request, response, command, binder
-						.getErrors());
+				return processInitial(request, response, command, binder.getBindingResult());
 			}
 		} else {
 			// Even for a form, we may need a command object.
@@ -430,7 +422,7 @@ public abstract class TabbedController extends BaseCommandController {
 						.instantiateClass(defaultCommandClass);
 				ServletRequestDataBinder binder = bindAndValidate(request,
 						command);
-				return showForm(request, response, command, binder.getErrors());
+				return showForm(request, response, command, binder.getBindingResult());
 			} else {
 				return showForm(request, response, null, null);
 			}
@@ -448,23 +440,21 @@ public abstract class TabbedController extends BaseCommandController {
 	 *            The HttpServletRequest object.
 	 * @param command
 	 *            The Spring command object.
-	 * @param errors
-	 *            The Spring errors object.
+	 * @param bindingResult
+	 *            The Spring bindingResult object.
 	 * @throws Exception
 	 *             on failure.
 	 */
-	@Override
-	protected void onBindAndValidate(HttpServletRequest req, Object command,
-			BindException errors) throws Exception {
+	protected void onBindAndValidate(HttpServletRequest req, Object command, BindingResult bindingResult) {
 		if (WebUtils.hasSubmitParameter(req, "_tab_current_page")) {
 			String currentPage = req.getParameter("_tab_current_page");
 			Tab currentTab = tabConfig.getTabByID(currentPage);
 			if (currentTab.getValidator() != null && !WebUtils.hasSubmitParameter(req, "_tab_cancel")) {
-				currentTab.getValidator().validate(command, errors);
+				currentTab.getValidator().validate(command, bindingResult);
 			}
 		} else {
 			if (defaultValidator != null && !WebUtils.hasSubmitParameter(req, "_tab_cancel")) {
-				defaultValidator.validate(command, errors);
+				defaultValidator.validate(command, bindingResult);
 			}
 		}
 	}
@@ -481,14 +471,14 @@ public abstract class TabbedController extends BaseCommandController {
 	 *            The HttpSerlvetResponse object.
 	 * @param command
 	 *            The Spring command object.
-	 * @param bex
+	 * @param bindingResult
 	 *            The Spring errors object.
 	 * @return The model and view to display.
 	 * @throws Exception
 	 *             if any errors are raised.
 	 */
 	protected abstract ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse res, Object command, BindException bex)
+			HttpServletResponse res, Object command, BindingResult bindingResult)
 			throws Exception;
 
 	/**
@@ -501,5 +491,25 @@ public abstract class TabbedController extends BaseCommandController {
 	public void setDefaultCommandClass(Class defaultCommand) {
 		this.defaultCommandClass = defaultCommand;
 	}
+
+    /**
+     * Bind the parameters of the given request to the given command object.
+     *
+     * NOTE Copied and adjusted from from spring-mvc:1.2.7 version.
+     * TODO This method needs to be adjusted for Spring 5.
+     *
+     * @param request current HTTP request
+     * @param command the command to bind onto
+     * @return the ServletRequestDataBinder instance for additional custom validation
+     * @throws Exception in case of invalid state or arguments
+     */
+    protected final ServletRequestDataBinder bindAndValidate(HttpServletRequest request, Object command)
+            throws Exception {
+        ServletRequestDataBinder binder = new ServletRequestDataBinder(command);
+        binder.bind(request);
+        onBindAndValidate(request, command, binder.getBindingResult());
+
+        return binder;
+    }
 
 }

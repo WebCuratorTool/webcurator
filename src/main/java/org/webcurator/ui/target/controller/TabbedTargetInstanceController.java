@@ -17,15 +17,22 @@ package org.webcurator.ui.target.controller;
 
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -33,28 +40,46 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
  * The controller for all target instance tabs.
  * @author nwaight
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TabbedTargetInstanceController extends TabbedController {
     /** The manager for target instance data access. */
+    @Autowired
     TargetInstanceManager targetInstanceManager;
     /** The harvest coordinator to use to update the profile overrides. */
+    @Autowired
     HarvestCoordinator harvestCoordinator;
     /** The authority manager used to perform security checks */
+    @Autowired
     AuthorityManager authorityManager;
     /** The queue controller */
-    private QueueController queueController = null;
+    @Autowired
+    private QueueController queueController;
     /** The message source */
+    @Autowired
     private MessageSource messageSource;
 
     private static Log log = LogFactory.getLog(TabbedTargetInstanceController.class);
+
+    @Autowired
+    private ApplicationContext context;
+
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(TargetInstanceCommand.class);
+        setTabConfig((TabConfig) context.getBean("targetInstanceTabConfig"));
+    }
 
     /*
     @Override
@@ -72,11 +97,9 @@ public class TabbedTargetInstanceController extends TabbedController {
         req.getSession().setAttribute(Constants.GBL_SESS_EDIT_MODE, true);
 	};
 
-    /* (non-Javadoc)
-     * @see org.webcurator.ui.util.TabbedController#processSave(org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-     */
     @Override
-    protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+    protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                       BindingResult bindingResult) {
         TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
 
         try {
@@ -97,7 +120,7 @@ public class TabbedTargetInstanceController extends TabbedController {
         }
 
 		try {
-			ModelAndView mav = queueController.showForm(req ,res, errors);
+			ModelAndView mav = queueController.showForm(req ,res, bindingResult);
 			mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("targetInstance.saved", new Object[] { ti.getTarget().getName() + " ("+ ti.getOid().toString() + ")" }, Locale.getDefault()));
 	        return mav;
 		}
@@ -106,31 +129,25 @@ public class TabbedTargetInstanceController extends TabbedController {
 		}
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.ui.util.TabbedController#processCancel(org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-     */
     @Override
-    protected ModelAndView processCancel(Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+    protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                         BindingResult bindingResult) {
 
     	unbindContext(req);
 
         return new ModelAndView("redirect:/curator/target/queue.html");
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.ui.util.TabbedController#showForm(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.validation.BindException)
-     */
     @Override
-    protected ModelAndView showForm(HttpServletRequest req,
-            HttpServletResponse res, Object comm, BindException errors) throws Exception {
+    protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                    BindingResult bindingResult) throws Exception {
         // return std model and view to show form on a get.
-    	return processInitial(req, res, comm, errors);
+    	return processInitial(req, res, comm, bindingResult);
     }
 
     @Override
-    protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+    protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                          BindingResult bindingResult) {
         // Load the handler the first time
 
     	// Clear out the session attributes.
@@ -199,7 +216,7 @@ public class TabbedTargetInstanceController extends TabbedController {
 
         // Go to the first tab.
         Tab generalTab = getTabConfig().getTabByID(destTab);
-        TabbedModelAndView mav = generalTab.getTabHandler().preProcessNextTab(this, generalTab, req, res, populatedCommand, errors);
+        TabbedModelAndView mav = generalTab.getTabHandler().preProcessNextTab(this, generalTab, req, res, populatedCommand, bindingResult);
         mav.getTabStatus().setCurrentTab(generalTab);
         return mav;
     }

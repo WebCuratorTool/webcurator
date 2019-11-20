@@ -24,14 +24,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.Annotation;
 import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.GroupAnnotationCommand;
 import org.webcurator.common.util.DateUtils;
@@ -57,7 +57,7 @@ public class GroupAnnotationHandler extends AbstractGroupTabHandler {
 
     public void processTab(TabbedController tc, Tab currentTab,
             HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+                           BindingResult bindingResult) {
     	GroupAnnotationCommand cmd = (GroupAnnotationCommand) comm;
         if (cmd.isAction(GroupAnnotationCommand.ACTION_ADD_NOTE)) {
         	GroupsEditorContext ctx = getEditorContext(req);
@@ -66,9 +66,8 @@ public class GroupAnnotationHandler extends AbstractGroupTabHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public TabbedModelAndView preProcessNextTab(TabbedController tc,
-            Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindException errors) {
+    public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
         // build mav stuff b4 displaying the tab
         TabbedModelAndView tmav = tc.new TabbedModelAndView();
         GroupsEditorContext ctx = getEditorContext(req);
@@ -84,17 +83,16 @@ public class GroupAnnotationHandler extends AbstractGroupTabHandler {
         return tmav;
     }
 
-    public ModelAndView processOther(TabbedController tc, Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindException errors) {
+    public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
         GroupAnnotationCommand cmd = (GroupAnnotationCommand) comm;
         GroupsEditorContext ctx = getEditorContext(req);
 
         TabbedModelAndView nextView = null;
 
         if(ctx.isEditMode()) {
-        	if(errors.hasErrors()) {
-        		nextView = preProcessNextTab(tc, currentTab, req, res, cmd, errors);
+        	if(bindingResult.hasErrors()) {
+        		nextView = preProcessNextTab(tc, currentTab, req, res, cmd, bindingResult);
         		nextView.getTabStatus().setCurrentTab(currentTab);
         		nextView.addObject(Constants.GBL_CMD_DATA, cmd);
         	}
@@ -132,20 +130,19 @@ public class GroupAnnotationHandler extends AbstractGroupTabHandler {
 			     	}
     	        }
 
-    	        nextView = preProcessNextTab(tc, currentTab, req, res, cmd, errors);
+    	        nextView = preProcessNextTab(tc, currentTab, req, res, cmd, bindingResult);
     	        nextView.getTabStatus().setCurrentTab(currentTab);
         	}
         }
         else {
-        	nextView = preProcessNextTab(tc, currentTab, req, res, cmd, errors);
+        	nextView = preProcessNextTab(tc, currentTab, req, res, cmd, bindingResult);
 	        nextView.getTabStatus().setCurrentTab(currentTab);
         }
 
         return nextView;
     }
 
-	private void addAnnotation(GroupAnnotationCommand cmd,
-			GroupsEditorContext ctx) {
+	private void addAnnotation(GroupAnnotationCommand cmd, GroupsEditorContext ctx) {
 		Annotation annotation = new Annotation();
 		annotation.setDate(new Date());
 		annotation.setNote(cmd.getNote());

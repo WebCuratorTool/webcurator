@@ -15,12 +15,12 @@
  */
 package org.webcurator.ui.target.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.ui.target.command.PermissionPopupCommand;
 
@@ -28,13 +28,16 @@ import org.webcurator.ui.target.command.PermissionPopupCommand;
  * The controller for the permission popup view.
  * @author bbeaumont
  */
-public class PermissionPopupController extends AbstractCommandController {
-
+@Controller
+@RequestMapping("/curator/target/permission-popup.html")
+public class PermissionPopupController {
+    @Autowired
 	private TargetManager targetManager;
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
-		PermissionPopupCommand command = (PermissionPopupCommand) comm;
+	@GetMapping
+	protected ModelAndView handle(@RequestParam("permissionOid") Long permissionOid) throws Exception {
+		PermissionPopupCommand command = new PermissionPopupCommand();
+		command.setPermissionOid(permissionOid);
 		ModelAndView mav = new ModelAndView("permission-popup");
 		mav.addObject("permission", targetManager.loadPermission(command.getPermissionOid()));
 		return mav;

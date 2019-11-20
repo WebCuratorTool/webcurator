@@ -3,7 +3,7 @@
 <%@taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>
 <%@taglib prefix="wct" uri="http://www.webcurator.org/wct" %>
 <%@page import="org.webcurator.ui.target.command.TargetInstanceCommand" %>
-<%@page import="org.webcurator.ui.common.Constants" %>
+<%@page import="org.webcurator.common.ui.Constants" %>
 
 <style>
 	.hidden {

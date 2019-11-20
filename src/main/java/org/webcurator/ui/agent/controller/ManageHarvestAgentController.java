@@ -17,26 +17,33 @@ package org.webcurator.ui.agent.controller;
 
 import java.util.HashMap;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.ui.agent.command.ManageHarvestAgentCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * The controller for displaying harvest agent data.
  * @author nwaight
  */
-public class ManageHarvestAgentController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class ManageHarvestAgentController {
     /** The class the coordinates the harvest agents and holds their states. */
+    @Autowired
     private HarvestCoordinator harvestCoordinator;
     /** the logger. */
     private Log log;
@@ -45,17 +52,12 @@ public class ManageHarvestAgentController extends AbstractFormController {
     public ManageHarvestAgentController() {
         super();
         log = LogFactory.getLog(getClass());
-        setCommandClass(ManageHarvestAgentCommand.class);
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.web.servlet.mvc.AbstractFormController#showForm(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.validation.BindException)
-     */
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aResp, BindException aErrors) throws Exception {
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/agent/harvest-agent.html")
+    protected ModelAndView showForm() throws Exception {
         // Show the initial manage harvests page.
-        ModelAndView mav = processAgentSummary(aReq, aResp, new ManageHarvestAgentCommand(), aErrors);
+        ModelAndView mav = processAgentSummary();
 
         ManageHarvestAgentCommand command = new ManageHarvestAgentCommand();
 
@@ -65,14 +67,8 @@ public class ManageHarvestAgentController extends AbstractFormController {
         return mav;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.web.servlet.mvc.AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-     */
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aResp, Object aCmd, BindException aErrors)
-            throws Exception {
-        ManageHarvestAgentCommand command = (ManageHarvestAgentCommand) aCmd;
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/agent/harvest-agent.html")
+    protected ModelAndView processFormSubmission(@ModelAttribute ManageHarvestAgentCommand command) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("process command " + command.getActionCmd());
         }
@@ -80,37 +76,37 @@ public class ManageHarvestAgentController extends AbstractFormController {
         ModelAndView mav = new ModelAndView();
         if (command != null && command.getActionCmd() != null) {
             if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_AGENT)) {
-                mav = processAgentDetails(aReq, aResp, command, aErrors);
+                mav = processAgentDetails(command);
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_SUMMARY)) {
-            	mav = processAgentSummary(aReq, aResp, command, aErrors);
+            	mav = processAgentSummary();
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_HOME)) {
             	mav =  new ModelAndView("redirect:/" + Constants.CNTRL_HOME);
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_PAUSE)) {
-            	mav =  processPauseAll(aReq, aResp, command, aErrors);
+            	mav =  processPauseAll();
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_RESUME)) {
-            	mav =  processResumeAll(aReq, aResp, command, aErrors);
+            	mav =  processResumeAll();
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_PAUSEQ)) {
-            	mav =  processPauseQueue(aReq, aResp, command, aErrors);
+            	mav =  processPauseQueue();
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_RESUMEQ)) {
-            	mav =  processResumeQueue(aReq, aResp, command, aErrors);
+            	mav =  processResumeQueue();
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_PAUSE_AGENT)) {
-            	mav =  processPauseAgent(aReq, aResp, command, aErrors);
+            	mav =  processPauseAgent(command);
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_RESUME_AGENT)) {
-            	mav =  processResumeAgent(aReq, aResp, command, aErrors);
+            	mav =  processResumeAgent(command);
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_OPTIMIZE_DISABLE)) {
-            	mav =  processChangeOptimization(aReq, aResp, command, aErrors, false);
+            	mav =  processChangeOptimization(false);
             }
             else if (command.getActionCmd().equals(ManageHarvestAgentCommand.ACTION_OPTIMIZE_ENABLE)) {
-            	mav =  processChangeOptimization(aReq, aResp, command, aErrors, true);
+            	mav =  processChangeOptimization(true);
             }
             else {
                 throw new WCTRuntimeException("Unknown command " + command.getActionCmd() + " recieved.");
@@ -134,9 +130,8 @@ public class ManageHarvestAgentController extends AbstractFormController {
 
     /**
      * process the Show Agent Details action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processAgentDetails(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processAgentDetails(ManageHarvestAgentCommand aCmd) {
         ModelAndView mav = new ModelAndView();
 
         HashMap agents = harvestCoordinator.getHarvestAgents();
@@ -150,18 +145,16 @@ public class ManageHarvestAgentController extends AbstractFormController {
 
     /**
      * process the Show Agent Summary action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processAgentSummary(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processAgentSummary() {
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
 
     /**
      * process the pause all running harvests action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processPauseAll(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processPauseAll() {
     	harvestCoordinator.pauseAll();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
@@ -169,9 +162,8 @@ public class ManageHarvestAgentController extends AbstractFormController {
 
     /**
      * process the resume all paused harvests action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processResumeAll(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processResumeAll() {
     	harvestCoordinator.resumeAll();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
@@ -179,9 +171,8 @@ public class ManageHarvestAgentController extends AbstractFormController {
 
     /**
      * process the halt Scheduled and Queued harvests action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processPauseQueue(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processPauseQueue() {
     	harvestCoordinator.pauseQueue();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
@@ -189,9 +180,8 @@ public class ManageHarvestAgentController extends AbstractFormController {
 
     /**
      * process the resume Scheduled and Queued harvests action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processResumeQueue(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processResumeQueue() {
     	harvestCoordinator.resumeQueue();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
@@ -199,9 +189,8 @@ public class ManageHarvestAgentController extends AbstractFormController {
 
     /**
      * process the halt Scheduled and Queued harvests action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processPauseAgent(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processPauseAgent(ManageHarvestAgentCommand aCmd) {
     	harvestCoordinator.pauseAgent(aCmd.getAgentName());
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
@@ -209,18 +198,15 @@ public class ManageHarvestAgentController extends AbstractFormController {
 
     /**
      * process the resume Scheduled and Queued harvests action.
-     * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
      */
-    private ModelAndView processResumeAgent(HttpServletRequest aReq, HttpServletResponse aResp, ManageHarvestAgentCommand aCmd, BindException aErrors) throws Exception {
+    private ModelAndView processResumeAgent(ManageHarvestAgentCommand aCmd) {
     	harvestCoordinator.resumeAgent(aCmd.getAgentName());
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
 
 
-    private ModelAndView processChangeOptimization(HttpServletRequest aReq,
-			HttpServletResponse aResp, ManageHarvestAgentCommand command,
-			BindException aErrors, boolean optimizationEnabled) {
+    private ModelAndView processChangeOptimization(boolean optimizationEnabled) {
     	harvestCoordinator.setHarvestOptimizationEnabled(optimizationEnabled);
     	ModelAndView mav = getDefaultModelAndView();
         return mav;

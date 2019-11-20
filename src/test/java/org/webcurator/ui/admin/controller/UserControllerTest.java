@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.auth.AuthorityManagerImpl;
@@ -22,7 +22,7 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 	public UserControllerTest()
 	{
 		super(UserController.class,
-				"src/test/java/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
+                "/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
 	}
 
 	@Test
@@ -35,22 +35,18 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new UserCommand(), UserCommand.ACTION_EDIT);
 			this.testSetAgencyUserManager();
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
-			ModelAndView mav = testInstance.showForm(request, response, aError);
+			ModelAndView mav = testInstance.showForm(request);
 			assertTrue(mav != null);
 			String agencyFilter = (String)mav.getModel().get(UserCommand.MDL_AGENCYFILTER);
 			assertTrue(agencyFilter != null);
 			assertTrue(agencyFilter.equals(AuthUtil.getRemoteUserObject().getAgency().getName()));
 
 			request = new MockHttpServletRequest();
-			response = new MockHttpServletResponse();
-			aError = new BindException(new UserCommand(), UserCommand.ACTION_EDIT);
 			request.getSession().setAttribute(UserCommand.MDL_AGENCYFILTER, "");
-			mav = testInstance.showForm(request, response, aError);
+			mav = testInstance.showForm(request);
 			assertTrue(mav != null);
 			agencyFilter = (String)mav.getModel().get(UserCommand.MDL_AGENCYFILTER);
 			assertTrue(agencyFilter != null);
@@ -69,17 +65,16 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
 			request.getSession().setAttribute(UserCommand.MDL_AGENCYFILTER, "Dummy");
 			UserCommand command = new UserCommand();
 			command.setOid(1001L);
 			command.setCmd(UserCommand.ACTION_STATUS);
-			BindException aError = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
+            BindingResult bindingResult = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
 			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
 			testInstance.setAgencyUserManager(manager);
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
-			ModelAndView mav = testInstance.processFormSubmission(request, response, command, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, command, bindingResult);
 			assertTrue(mav != null);
 			String agencyFilter = (String)mav.getModel().get(UserCommand.MDL_AGENCYFILTER);
 			assertTrue(agencyFilter != null);
@@ -87,13 +82,12 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 			assertFalse(manager.getUserByOid(1001L).isActive());
 
 			request = new MockHttpServletRequest();
-			response = new MockHttpServletResponse();
 			request.getSession().setAttribute(UserCommand.MDL_AGENCYFILTER, "Dummy");
 			command = new UserCommand();
 			command.setOid(1001L);
 			command.setCmd(UserCommand.ACTION_STATUS);
-			aError = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
-			mav = testInstance.processFormSubmission(request, response, command, aError);
+			bindingResult = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
+			mav = testInstance.processFormSubmission(request, command, bindingResult);
 			assertTrue(mav != null);
 			agencyFilter = (String)mav.getModel().get(UserCommand.MDL_AGENCYFILTER);
 			assertTrue(agencyFilter != null);
@@ -113,17 +107,16 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
 			request.getSession().setAttribute(UserCommand.MDL_AGENCYFILTER, "Dummy");
 			UserCommand command = new UserCommand();
 			command.setOid(1001L);
 			command.setCmd(UserCommand.ACTION_DELETE);
-			BindException aError = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
+            BindingResult bindingResult = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
 			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
 			testInstance.setAgencyUserManager(manager);
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
-			ModelAndView mav = testInstance.processFormSubmission(request, response, command, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, command, bindingResult);
 			assertTrue(mav != null);
 			String agencyFilter = (String)mav.getModel().get(UserCommand.MDL_AGENCYFILTER);
 			assertTrue(agencyFilter != null);
@@ -143,16 +136,15 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
 			UserCommand command = new UserCommand();
 			command.setCmd(UserCommand.ACTION_FILTER);
 			command.setAgencyFilter("Dummy");
-			BindException aError = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
+            BindingResult bindingResult = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
 			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
 			testInstance.setAgencyUserManager(manager);
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
-			ModelAndView mav = testInstance.processFormSubmission(request, response, command, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, command, bindingResult);
 			assertTrue(mav != null);
 			String agencyFilter = (String)mav.getModel().get(UserCommand.MDL_AGENCYFILTER);
 			assertTrue(agencyFilter != null);

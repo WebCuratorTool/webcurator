@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -43,13 +42,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.propertyeditors.CustomBooleanEditor;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -64,7 +62,7 @@ import org.webcurator.domain.model.core.HarvestResource;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.tools.command.TreeToolCommand;
 import org.xml.sax.SAXException;
 
@@ -73,7 +71,7 @@ import org.xml.sax.SAXException;
  * harvest web site as a tree structure.
  * @author bbeaumont
  */
-public class TreeToolController extends AbstractCommandController {
+public class TreeToolController {
 
 	public class AQAElement
 	{
@@ -129,10 +127,8 @@ public class TreeToolController extends AbstractCommandController {
 	TargetInstanceManager targetInstanceManager;
 
 	public TreeToolController() {
-		super.setCommandClass(TreeToolCommand.class);
 	}
 
-	@Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		// Determine the necessary formats.
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -149,9 +145,7 @@ public class TreeToolController extends AbstractCommandController {
     }
 
 	@SuppressWarnings("unchecked")
-	@Override
-	protected ModelAndView handle(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors)
+	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult)
 			throws Exception {
 
 		TreeToolCommand command = (TreeToolCommand) comm;
@@ -210,13 +204,13 @@ public class TreeToolController extends AbstractCommandController {
 		WCTNodeTree tree = (WCTNodeTree) req.getSession().getAttribute("tree");
 		List<AQAElement> imports = (List<AQAElement>) req.getSession().getAttribute("aqaImports");
 
-		// Go back to the page if there were validation errors.
-		if(errors.hasErrors()) {
+		// Go back to the page if there were validation bindingResult.
+		if(bindingResult.hasErrors()) {
 			ModelAndView mav = new ModelAndView(getSuccessView());
 			mav.addObject( "tree", tree);
 			mav.addObject( "command", command);
 			mav.addObject( "aqaImports", imports);
-			mav.addObject( Constants.GBL_ERRORS, errors);
+			mav.addObject( Constants.GBL_ERRORS, bindingResult);
 			if(autoQAUrl != null && autoQAUrl.length() > 0) {
 				mav.addObject("showAQAOption", 1);
 			} else {
@@ -247,12 +241,12 @@ public class TreeToolController extends AbstractCommandController {
 					URL parentUrl = tb.getParent(new URL(command.getTargetURL()));
 				}
 				catch (MalformedURLException me) {
-					errors.reject("tools.errors.invalidtargeturl");
+					bindingResult.reject("tools.bindingResult.invalidtargeturl");
 					ModelAndView mav = new ModelAndView(getSuccessView());
 					mav.addObject( "tree", tree);
 					mav.addObject( "command", command);
 					mav.addObject( "aqaImports", imports);
-					mav.addObject( Constants.GBL_ERRORS, errors);
+					mav.addObject( Constants.GBL_ERRORS, bindingResult);
 					if(autoQAUrl != null && autoQAUrl.length() > 0) {
 						mav.addObject("showAQAOption", 1);
 					} else {
@@ -319,12 +313,12 @@ public class TreeToolController extends AbstractCommandController {
 						fos.write(fetchHTTPResponse(command.getSourceURL(), outStrings));
 					}
 					catch (HTTPGetException ge) {
-						errors.reject("tools.errors.httpgeterror", new Object[] {command.getSourceURL(), ge.getMessage()} ,"");
+						bindingResult.reject("tools.bindingResult.httpgeterror", new Object[] {command.getSourceURL(), ge.getMessage()} ,"");
 						ModelAndView mav = new ModelAndView(getSuccessView());
 						mav.addObject( "tree", tree);
 						mav.addObject( "aqaImports", imports);
 						mav.addObject( "command", command);
-						mav.addObject( Constants.GBL_ERRORS, errors);
+						mav.addObject( Constants.GBL_ERRORS, bindingResult);
 						if(autoQAUrl != null && autoQAUrl.length() > 0) {
 							mav.addObject("showAQAOption", 1);
 						} else {
@@ -502,7 +496,7 @@ public class TreeToolController extends AbstractCommandController {
 			mav.addObject( "tree", tree);
 			mav.addObject( "command", command);
 			mav.addObject( "aqaImports", imports);
-			mav.addObject( Constants.GBL_ERRORS, errors);
+			mav.addObject( Constants.GBL_ERRORS, bindingResult);
 			if(autoQAUrl != null && autoQAUrl.length() > 0) {
 				mav.addObject("showAQAOption", 1);
 			} else {

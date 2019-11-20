@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.springframework.validation.BindingResult;
 import org.webcurator.test.*;
 
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 	public AgencyControllerTest()
 	{
 		super(AgencyController.class,
-				"src/test/java/org/webcurator/ui/admin/controller/AgencyControllerTest.xml");
+                "/org/webcurator/ui/admin/controller/AgencyControllerTest.xml");
 	}
 
 	/**
@@ -41,9 +42,6 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 		assertTrue(testInstance != null);
 	}
 
-	/**
-	 * Test method for {@link org.webcurator.ui.admin.controller.AgencyController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)}.
-	 */
 	@Test
 	public final void testInitBinder() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -60,19 +58,13 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 		}
 	}
 
-	/**
-	 * Test method for {@link org.webcurator.ui.admin.controller.AgencyController#showForm(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.springframework.validation.BindException)}.
-	 */
 	@Test
 	public final void testShowForm() {
 		try
 		{
-			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new AgencyCommand(), AgencyCommand.ACTION_EDIT);
 			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
 			testInstance.setAgencyUserManager(manager);
-			testInstance.showForm(request, response, aError);
+			testInstance.showForm();
 		}
 		catch (Exception e)
 		{
@@ -82,23 +74,18 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 		}
 	}
 
-	/**
-	 * Test method for {@link org.webcurator.ui.admin.controller.AgencyController#processFormSubmission(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)}.
-	 */
 	@Test
 	public final void testProcessFormSubmission() {
 		try
 		{
-			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new AgencyCommand(), AgencyCommand.ACTION_EDIT);
+			BindingResult bindingResult = new BindException(new AgencyCommand(), AgencyCommand.ACTION_EDIT);
 			testSetAgencyUserManager();
 			testSetMessageSource();
 
 			AgencyCommand aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_NEW);
 			aCommand.setOid(new Long(2000));
-			ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			ModelAndView mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newAgency"));
 			List<Agency> agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -108,7 +95,7 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 			aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_VIEW);
 			aCommand.setOid(new Long(2000));
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newAgency"));
 			agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -121,7 +108,7 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 			aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_EDIT);
 			aCommand.setOid(new Long(2000));
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newAgency"));
 			agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -134,7 +121,7 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 			aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_SAVE);
 			aCommand.setName("New Test Agency");
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewAgencies"));
 			agencies = (List<Agency>)mav.getModel().get("agencies");

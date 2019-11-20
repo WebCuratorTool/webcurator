@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
+import org.springframework.validation.BindingResult;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -27,7 +28,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.DefaultCommand;
 import org.webcurator.ui.site.command.DefaultSiteCommand;
@@ -42,7 +43,7 @@ public class TabbedGroupControllerTest extends
 	public TabbedGroupControllerTest() {
 		super(
 				TabbedGroupController.class,
-				"src/test/java/org/webcurator/ui/groups/controller/TabbedGroupControllerTest.xml");
+                "/org/webcurator/ui/groups/controller/TabbedGroupControllerTest.xml");
 	}
 
 	TargetManager manager;
@@ -128,10 +129,10 @@ public class TabbedGroupControllerTest extends
 			comm.setMode(DefaultCommand.MODE_EDIT);
 			comm.setTargetGroupOid(null);
 
-			BindException aError = new BindException(new DefaultSiteCommand(),
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(),
 					null);
 			ModelAndView mav = testInstance.showForm(request, response, comm,
-					aError);
+					bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("group"));
 			// GroupEditorContext context =
@@ -162,12 +163,12 @@ public class TabbedGroupControllerTest extends
 			comm.setTargetGroupOid(15000L);
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new DefaultCommand(), null);
-			testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultCommand(), null);
+			testInstance.showForm(request, response, comm, bindingResult);
 			context = testInstance.getEditorContext(request);
 			context.getTargetGroup().setName("Test Group");
 			ModelAndView mav = testInstance.processSave(currTab, request,
-					response, comm, aError);
+					response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("groups-search"));
 			assertTrue(mav.getModel().get("page_message") != null);
@@ -190,10 +191,10 @@ public class TabbedGroupControllerTest extends
 
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new DefaultSiteCommand(),
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(),
 					null);
 			ModelAndView mav = testInstance.processCancel(currTab, request,
-					response, comm, aError);
+					response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals(
 					"redirect:/curator/groups/search.html"));
@@ -241,10 +242,10 @@ public class TabbedGroupControllerTest extends
 			assertFalse(authorityManager.hasPrivilege(aTargetGroup,
 					Privilege.CREATE_GROUP));
 
-			BindException aError = new BindException(new DefaultSiteCommand(),
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(),
 					null);
 			ModelAndView mav = testInstance.showForm(request, response, comm,
-					aError);
+					bindingResult);
 
 			assertFalse((Boolean) request.getSession().getAttribute(
 					Constants.GBL_SESS_CAN_EDIT));
@@ -276,10 +277,10 @@ public class TabbedGroupControllerTest extends
 			assertTrue(authorityManager.hasPrivilege(aTargetGroup,
 					Privilege.CREATE_GROUP));
 
-			BindException aError = new BindException(new DefaultSiteCommand(),
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(),
 					null);
 			ModelAndView mav = testInstance.showForm(request, response, comm,
-					aError);
+					bindingResult);
 
 			assertTrue((Boolean) request.getSession().getAttribute(
 					Constants.GBL_SESS_CAN_EDIT));
@@ -314,10 +315,10 @@ public class TabbedGroupControllerTest extends
 			assertTrue(authorityManager.hasPrivilege(aTargetGroup,
 					Privilege.CREATE_GROUP));
 
-			BindException aError = new BindException(new DefaultSiteCommand(),
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(),
 					null);
 			ModelAndView mav = testInstance.showForm(request, response, comm,
-					aError);
+					bindingResult);
 			// assertTrue(mav != null);
 			// assertTrue(mav.getViewName().equals("site"));
 

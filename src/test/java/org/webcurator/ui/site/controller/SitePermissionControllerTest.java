@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.site.SiteEditorContext;
@@ -25,7 +26,7 @@ public class SitePermissionControllerTest extends BaseWCTTest<SitePermissionCont
 	public SitePermissionControllerTest()
 	{
 		super(SitePermissionController.class,
-				"src/test/java/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
+                "/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
 	}
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.UK);
@@ -102,11 +103,11 @@ public class SitePermissionControllerTest extends BaseWCTTest<SitePermissionCont
 
 			aReq.getSession().setAttribute(SiteController.EDITOR_CONTEXT, ctx);
 
-			BindException aErrors = new BindException(aCmd, aCmd.getActionCmd());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getActionCmd());
 
 			int numAnnotations = p.getAnnotations().size();
 
-			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.handle(aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site-permissions"));
 			assertTrue(((Permission)mav.getModel().get("permission")).equals(p));
@@ -120,9 +121,9 @@ public class SitePermissionControllerTest extends BaseWCTTest<SitePermissionCont
 			aCmd.setActionCmd(SitePermissionCommand.ACTION_MODIFY_NOTE);
 			aCmd.setNote("A new note");
 			aCmd.setNoteIndex(noteIndex);
-			aErrors = new BindException(aCmd, aCmd.getActionCmd());
+			bindingResult = new BindException(aCmd, aCmd.getActionCmd());
 
-			mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			mav = testInstance.handle(aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site-permissions"));
 			assertTrue(((Permission)mav.getModel().get("permission")).equals(p));
@@ -137,9 +138,9 @@ public class SitePermissionControllerTest extends BaseWCTTest<SitePermissionCont
 
 			aCmd.setActionCmd(SitePermissionCommand.ACTION_DELETE_NOTE);
 			aCmd.setNoteIndex(noteIndex);
-			aErrors = new BindException(aCmd, aCmd.getActionCmd());
+			bindingResult = new BindException(aCmd, aCmd.getActionCmd());
 
-			mav = testInstance.handle(aReq, aResp, aCmd, aErrors);
+			mav = testInstance.handle(aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site-permissions"));
 			assertTrue(((Permission)mav.getModel().get("permission")).equals(p));

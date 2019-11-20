@@ -18,11 +18,11 @@ package org.webcurator.ui.site.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 import org.webcurator.domain.model.core.AuthorisingAgent;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.SiteAuthorisingAgencyCommand;
 import org.webcurator.ui.util.Tab;
@@ -35,15 +35,14 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  */
 public class SiteAuthorisingAgencyHandler extends AbstractSiteHandler {
 
-	public void processTab(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                           Object comm, BindingResult bindingResult) {
 		// Doesn't need to do anything.
 	}
 
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 
 		TabbedModelAndView tmav = tc.new TabbedModelAndView();
@@ -53,9 +52,8 @@ public class SiteAuthorisingAgencyHandler extends AbstractSiteHandler {
 		return tmav;
 	}
 
-	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(req);
 
 		// Handle the move into New Authorising Agent.
@@ -109,7 +107,7 @@ public class SiteAuthorisingAgencyHandler extends AbstractSiteHandler {
 
 			ctx.getSite().getAuthorisingAgents().remove(agent);
 
-			return preProcessNextTab(tc, currentTab, req, res, comm, errors);
+			return preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
 		}
 
 		return null;

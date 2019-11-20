@@ -20,17 +20,20 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
@@ -39,32 +42,32 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Flag;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 /**
  * Manages the Flags Administration view and the actions associated with a Flag group definition
  * @author twoods
  */
-public class FlagController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class FlagController {
 	/** the logger. */
     private Log log = null;
     /** the agency user manager. */
-    private AgencyUserManager agencyUserManager = null;
+    @Autowired
+    private AgencyUserManager agencyUserManager;
     /** the authority manager. */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
     /** Default Constructor. */
     public FlagController() {
         log = LogFactory.getLog(FlagController.class);
-        setCommandClass(FlagCommand.class);
     }
 
-    protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) {
-   }
-
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aRes, BindException aError) throws Exception {
+    protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         ModelAndView mav = new ModelAndView();
         String agencyFilter = (String)aReq.getSession().getAttribute(FlagCommand.MDL_AGENCYFILTER);
         if(agencyFilter == null)
@@ -76,9 +79,7 @@ public class FlagController extends AbstractFormController {
         return mav;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCommand, BindException aError)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = new ModelAndView();
@@ -96,11 +97,11 @@ public class FlagController extends AbstractFormController {
                     String[] codes = {"flag.delete.fail"};
                     Object[] args = new Object[1];
                     args[0] = flag.getName();
-                    if (aError == null) {
-                        aError = new BindException(flagCmd, "command");
+                    if (bindingResult == null) {
+                        bindingResult = new BindException(flagCmd, "command");
                     }
-                    aError.addError(new ObjectError("command",codes,args,"Flag owns objects in the system and can't be deleted."));
-                    mav.addObject(Constants.GBL_ERRORS, aError);
+                    bindingResult.addError(new ObjectError("command",codes,args,"Flag owns objects in the system and can't be deleted."));
+                    mav.addObject(Constants.GBL_ERRORS, bindingResult);
                     populateFlagList(mav);
                     return mav;
                 }

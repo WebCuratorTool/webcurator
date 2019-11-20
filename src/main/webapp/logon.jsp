@@ -4,8 +4,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 String failed = request.getParameter("failed");
 
-Environment env = EnvironmentFactory.getEnv();
-String wctAppVersion = env.getApplicationVersion();
+//Environment env = EnvironmentFactory.getEnv();
+//String wctAppVersion = env.getApplicationVersion();
+String wctAppVersion = "3.0.0";
 %><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
   <head>
@@ -23,7 +24,7 @@ String wctAppVersion = env.getApplicationVersion();
 <div id="topBar"><img src="images/web-curator-tool-logo.gif" alt="Web Curator Tool" width="320" height="68" border="0" /></div>
 <br class="clear" />
 
-		<form name="login" action="j_acegi_security_check" method="POST">
+		<form name="login" action="login" method="POST">
 			<div id="loginBox">
 			<%
 				if (failed != null && failed.equals("true")) {
@@ -46,9 +47,9 @@ String wctAppVersion = env.getApplicationVersion();
 							<div id="homeBoxLine"><img src="images/x.gif" width="1" height="5" border="0" /></div>
 						  	<div id="homeBoxText">
 								username<br />
-								<input type="text" name="j_username" width="20" style="width:200px"><br />
+								<input type="text" name="username" width="20" style="width:200px"><br />
 								password<br />
-								<input type="password" name="j_password" width="20" style="width:200px"><br />
+								<input type="password" name="password" width="20" style="width:200px"><br />
 								<input type="image" src="images/home-btn-login.gif" alt="login" width="67" height="18" border="0" vspace="5" />
 							</div>
 						</td>

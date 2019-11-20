@@ -16,15 +16,17 @@
 package org.webcurator.ui.report.controller;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.notification.MailServer;
 import org.webcurator.core.notification.Mailable;
 import org.webcurator.core.report.FileFactory;
@@ -38,36 +40,24 @@ import org.webcurator.ui.report.command.ReportEmailCommand;
  * @author MDubos
  *
  */
-public class ReportEmailController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class ReportEmailController {
 
 	public static final String ACTION_EMAIL = "Email";
 	public static final String ACTION_CANCEL = "Cancel";
 
 	private Log log = LogFactory.getLog(ReportEmailController.class);
+    @Autowired
+	private MailServer mailServer;
 
-	private MailServer mailServer = null;
-
-
-	/**
-	 * Default constructor
-	 *
-	 */
-	public ReportEmailController() {
-        setCommandClass(ReportEmailController.class);
-	}
-
-	@Override
-	protected ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse resp, BindException exc) throws Exception {
-
+	protected ModelAndView showForm() throws Exception {
 		return null;
 	}
 
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest req,
-			HttpServletResponse resp, Object comm, BindException exc)
-			throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest req, Object comm) throws Exception {
 
 		ReportEmailCommand com = (ReportEmailCommand) comm;
 		ModelAndView mav = new ModelAndView();
@@ -80,9 +70,9 @@ public class ReportEmailController extends AbstractFormController {
 			// ...user
 	        String remoteUser = null;
 	        Authentication auth = null;
-	        SecurityContext acegiCtx = (SecurityContext) req.getSession().getAttribute("ACEGI_SECURITY_CONTEXT");
-	        if( acegiCtx != null) {
-	            auth = acegiCtx.getAuthentication();
+	        SecurityContext springSecurityContext = (SecurityContext) req.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
+	        if( springSecurityContext != null) {
+	            auth = springSecurityContext.getAuthentication();
 	            if (auth != null) {
 	                remoteUser = auth.getName();
 	            }

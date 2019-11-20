@@ -26,16 +26,19 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
@@ -46,7 +49,7 @@ import org.webcurator.domain.model.core.BandwidthRestriction;
 import org.webcurator.domain.model.core.HeatmapConfig;
 import org.webcurator.domain.model.dto.HeatmapConfigDTO;
 import org.webcurator.ui.agent.command.BandwidthRestrictionsCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.DateUtils;
 
 /**
@@ -55,32 +58,31 @@ import org.webcurator.common.util.DateUtils;
  *
  * @author nwaight
  */
-public class BandwidthRestrictionsController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class BandwidthRestrictionsController {
 	/** The class the coordinates the harvest agents and holds their states. */
+	@Autowired
 	private HarvestBandwidthManager harvestBandwidthManager;
+    @Autowired
+	private HeatmapDAO heatmapConfigDao;
 
-	private HeatmapDAO heatmapConfigDao = null;
-
-	/** The class that looks up the users privleges. */
+	/** The class that looks up the users privileges. */
+	@Autowired
 	private AuthorityManager authorityManager;
 	/** the logger. */
 	private Log log;
-
-	private MessageSource messageSource = null;
+    @Autowired
+	private MessageSource messageSource;
 
 	/** Default Constructor. */
 	public BandwidthRestrictionsController() {
 		super();
 		log = LogFactory.getLog(getClass());
-		setCommandClass(BandwidthRestrictionsCommand.class);
 	}
 
-	/**
-	 * @see org.springframework.web.servlet.mvc.BaseCommandController#initBinder(javax.servlet.http.HttpServletRequest,
-	 *      org.springframework.web.bind.ServletRequestDataBinder)
-	 */
 	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-		super.initBinder(request, binder);
 		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
 		binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
 		binder.registerCustomEditor(Integer.class, BandwidthRestrictionsCommand.PARAM_HEATMAP_CONFIG_HIGH, new CustomNumberEditor(
@@ -92,8 +94,7 @@ public class BandwidthRestrictionsController extends AbstractFormController {
 		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullTimeEditor(true));
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp, BindException aErrors) throws Exception {
+	protected ModelAndView showForm() throws Exception {
 		if (log.isDebugEnabled()) {
 			log.debug("show form " + Constants.VIEW_MNG_BANDWIDTH);
 		}
@@ -101,9 +102,7 @@ public class BandwidthRestrictionsController extends AbstractFormController {
 		return createDefaultModelAndView();
 	}
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, Object aCmd,
-			BindException aErrors) throws Exception {
+	protected ModelAndView processFormSubmission(Object aCmd, BindingResult bindingResult) throws Exception {
 		BandwidthRestrictionsCommand command = (BandwidthRestrictionsCommand) aCmd;
 		if (log.isDebugEnabled()) {
 			log.debug("process command " + command.getActionCmd());
@@ -112,13 +111,13 @@ public class BandwidthRestrictionsController extends AbstractFormController {
 		if (command != null && command.getActionCmd() != null) {
 			if (authorityManager.hasPrivilege(Privilege.MANAGE_WEB_HARVESTER, Privilege.SCOPE_ALL)) {
 				if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_EDIT)) {
-					return processEditRestriction(aReq, aResp, command, aErrors);
+					return processEditRestriction(command, bindingResult);
 				} else if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_SAVE_HEATMAP)) {
-					return processSaveHeatmap(aReq, aResp, command, aErrors);
+					return processSaveHeatmap(command, bindingResult);
 				} else if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_SAVE)) {
-					return processSaveRestriction(aReq, aResp, command, aErrors);
+					return processSaveRestriction(command, bindingResult);
 				} else if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_DELETE)) {
-					return processDeleteRestriction(aReq, aResp, command, aErrors);
+					return processDeleteRestriction(command, bindingResult);
 				} else {
 					throw new WCTRuntimeException("Unknown command " + command.getActionCmd() + " recieved.");
 				}
@@ -133,35 +132,34 @@ public class BandwidthRestrictionsController extends AbstractFormController {
 		throw new WCTRuntimeException("Unknown command recieved.");
 	}
 
-	private ModelAndView processSaveHeatmap(HttpServletRequest aReq, HttpServletResponse aResp,
-			BandwidthRestrictionsCommand command, BindException aErrors) {
+	private ModelAndView processSaveHeatmap(BandwidthRestrictionsCommand command, BindingResult bindingResult) {
 
 		HeatmapConfigDTO lowConfig = command.getLowHeatmapConfig();
 		HeatmapConfigDTO mediumConfig = command.getMediumHeatmapConfig();
 		HeatmapConfigDTO highConfig = command.getHighHeatmapConfig();
 
 		ModelAndView mav = createDefaultModelAndView();
-		if (aErrors.hasErrors()) {
+		if (bindingResult.hasErrors()) {
 			mav.addObject(Constants.GBL_CMD_DATA, command);
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return mav;
 		}
 		if (lowConfig.getThresholdLowest() <= 0) {
-			aErrors.reject("heatmap.errors.gtzero");
+			bindingResult.reject("heatmap.errors.gtzero");
 			mav.addObject(Constants.GBL_CMD_DATA, command);
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return mav;
 		}
 		if (lowConfig.getThresholdLowest() >= mediumConfig.getThresholdLowest()) {
-			aErrors.reject("heatmap.errors.lowGtMedium");
+			bindingResult.reject("heatmap.errors.lowGtMedium");
 			mav.addObject(Constants.GBL_CMD_DATA, command);
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return mav;
 		}
 		if (mediumConfig.getThresholdLowest() >= highConfig.getThresholdLowest()) {
-			aErrors.reject("Threshold for medium heatmap color must be lower than high");
+			bindingResult.reject("Threshold for medium heatmap color must be lower than high");
 			mav.addObject(Constants.GBL_CMD_DATA, command);
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return mav;
 		}
 
@@ -192,17 +190,12 @@ public class BandwidthRestrictionsController extends AbstractFormController {
 
 	/**
 	 * process the edit restriction action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private ModelAndView processEditRestriction(HttpServletRequest aReq, HttpServletResponse aResp,
-			BandwidthRestrictionsCommand aCmd, BindException aErrors) throws Exception {
+	private ModelAndView processEditRestriction(BandwidthRestrictionsCommand aCmd, BindingResult bindingResult) {
 		ModelAndView mav = new ModelAndView();
-		if (aErrors.hasErrors()) {
-			mav.addObject(Constants.GBL_CMD_DATA, aErrors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+		if (bindingResult.hasErrors()) {
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject(BandwidthRestrictionsCommand.MDL_ACTION, Constants.CNTRL_MNG_BANDWIDTH);
 			mav.setViewName(Constants.VIEW_EDIT_BANDWIDTH);
 
@@ -218,17 +211,12 @@ public class BandwidthRestrictionsController extends AbstractFormController {
 
 	/**
 	 * process the save restriction action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private ModelAndView processSaveRestriction(HttpServletRequest aReq, HttpServletResponse aResp,
-			BandwidthRestrictionsCommand aCmd, BindException aErrors) throws Exception {
-		if (aErrors.hasErrors()) {
+	private ModelAndView processSaveRestriction(BandwidthRestrictionsCommand aCmd, BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, aErrors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject(BandwidthRestrictionsCommand.MDL_ACTION, Constants.CNTRL_MNG_BANDWIDTH);
 			mav.setViewName(Constants.VIEW_EDIT_BANDWIDTH);
 
@@ -255,17 +243,12 @@ public class BandwidthRestrictionsController extends AbstractFormController {
 
 	/**
 	 * process the delete restriction action.
-	 *
-	 * @see AbstractFormController#processFormSubmission(javax.servlet.http.HttpServletRequest,
-	 *      javax.servlet.http.HttpServletResponse, java.lang.Object,
-	 *      org.springframework.validation.BindException)
 	 */
-	private ModelAndView processDeleteRestriction(HttpServletRequest aReq, HttpServletResponse aResp,
-			BandwidthRestrictionsCommand aCmd, BindException aErrors) throws Exception {
-		if (aErrors.hasErrors()) {
+	private ModelAndView processDeleteRestriction(BandwidthRestrictionsCommand aCmd, BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
 			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, aErrors.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, aErrors);
+			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			mav.addObject(BandwidthRestrictionsCommand.MDL_ACTION, Constants.CNTRL_MNG_BANDWIDTH);
 			mav.setViewName(Constants.VIEW_EDIT_BANDWIDTH);
 

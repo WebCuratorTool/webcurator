@@ -18,12 +18,16 @@ package org.webcurator.ui.profiles.controller;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
-import org.springframework.validation.BindException;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.harvester.HarvesterType;
@@ -35,33 +39,40 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
+import org.webcurator.ui.profiles.forms.ProfileImportForm;
 import org.webcurator.ui.util.HarvestAgentUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 /**
  * Controller to list all the profiles.
- *
- * @author bbeaumont
  */
-public class ProfileListController extends AbstractCommandController {
+@Controller
+@RequestMapping(path = "/curator/profiles/list")
+public class ProfileListController {
     private Log log = LogFactory.getLog(ProfileListController.class);
 
     public static final String SESSION_KEY_SHOW_INACTIVE = "profile-list-show-inactive";
     public static final String SESSION_AGENCY_FILTER = "agency-filter";
     public static final String SESSION_HARVESTER_TYPE_FILTER = "harvester-type-filter";
 
+    @Autowired
+    private ApplicationContext context;
+
     /**
      * The profile Manager
      */
+    @Autowired
     protected ProfileManager profileManager;
+    @Autowired
     private AgencyUserManager agencyUserManager;
+    @Autowired
     protected AuthorityManager authorityManager;
 
 
@@ -69,81 +80,91 @@ public class ProfileListController extends AbstractCommandController {
      * Construct a new ProfileListController.
      */
     public ProfileListController() {
-        setCommandClass(ProfileListCommand.class);
     }
 
-    @Override
-    protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
-        ProfileListCommand command = (ProfileListCommand) comm;
-
-        req.getSession().setAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE, command.isShowInactive());
-        if (command.getActionCommand().equals(ProfileListCommand.ACTION_LIST)) {
-            String defaultAgency = (String) req.getSession().getAttribute(ProfileListController.SESSION_AGENCY_FILTER);
-            if (defaultAgency == null) {
-                defaultAgency = AuthUtil.getRemoteUserObject().getAgency().getName();
-            }
-            command.setDefaultAgency(defaultAgency);
-            String harvesterType = (String) req.getSession().getAttribute(ProfileListController.SESSION_HARVESTER_TYPE_FILTER);
-            if (harvesterType != null) {
-                command.setHarvesterType(harvesterType);
-            }
-        } else if (command.getActionCommand().equals(ProfileListCommand.ACTION_FILTER)) {
-            req.getSession().setAttribute(ProfileListController.SESSION_AGENCY_FILTER, command.getDefaultAgency());
-            req.getSession().setAttribute(ProfileListController.SESSION_HARVESTER_TYPE_FILTER, command.getHarvesterType());
-        } else if (command.getActionCommand().equals(ProfileListCommand.ACTION_IMPORT)) {
-            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) req;
-            CommonsMultipartFile uploadedFile = (CommonsMultipartFile) multipartRequest.getFile("sourceFile");
-            Profile profile = new Profile();
-            profile.setProfile(new String(uploadedFile.getBytes()));
-            profile.setDescription("Imported profile");
-            profile.setImported(true);
-            String importAgency = req.getParameter("importAgency");
-            String importType = req.getParameter("importType");
-            String importName = req.getParameter("importName");
-            if (StringUtils.isBlank(importName)) {
-                Date now = new Date();
-                profile.setName("Profile imported on " + now.toString());
-            } else {
-                profile.setName(importName);
-            }
-            if (StringUtils.isBlank(importAgency)) {
-                profile.setOwningAgency(AuthUtil.getRemoteUserObject().getAgency());
-            } else {
-                long agencyOid = Long.parseLong(importAgency);
-                Agency agency = agencyUserManager.getAgencyByOid(agencyOid);
-                profile.setOwningAgency(agency);
-            }
-            if (StringUtils.isBlank(importType)) {
-                profile.setHarvesterType(HarvesterType.DEFAULT.name());
-            } else {
-                profile.setHarvesterType(importType);
-            }
-
-            // For now we only validate H3 profiles
-            if (profile.getHarvesterType().equals(HarvesterType.HERITRIX3.name())) {
-                HarvestAgent agent = getHarvestAgent();
-                if (!agent.isValidProfile(profile.getProfile())) {
-                    Object[] vals = new Object[]{profile.getProfile()};
-                    log.info("Validation failed for H3 profile");
-                    errors.reject("profile.invalid", vals, "The submitted profile is invalid.");
-                    ModelAndView mav = getView(command);
-                    mav.addObject(Constants.GBL_ERRORS, errors);
-                    return mav;
-                }
-            }
-            // Save to the database
-            try {
-                profileManager.saveOrUpdate(profile);
-            } catch (HibernateOptimisticLockingFailureException e) {
-                Object[] vals = new Object[]{profile.getName(), profile.getOwningAgency().getName()};
-                errors.reject("profile.modified", vals, "profile has been modified by another user.");
-                ModelAndView mav = getView(command);
-                mav.addObject(Constants.GBL_ERRORS, errors);
-                return mav;
-            }
-            return new ModelAndView("redirect:/curator/profiles/list.html");
+    @PostMapping(path = "/import")
+    protected ModelAndView importList(@Valid @ModelAttribute("profileImportForm") ProfileImportForm profileImportForm,
+                                      // Note that the BindingResult must come right after the object it validates
+                                      // in the parameter list.
+                                      BindingResult bindingResult, HttpSession session) {
+        session.setAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE, profileImportForm.getCommand().isShowInactive());
+        Profile profile = new Profile();
+        profile.setProfile(new String(profileImportForm.getUploadedFile().getBytes()));
+        profile.setDescription("Imported profile");
+        profile.setImported(true);
+        if (StringUtils.isBlank(profileImportForm.getImportName())) {
+            Date now = new Date();
+            profile.setName("Profile imported on " + now.toString());
+        } else {
+            profile.setName(profileImportForm.getImportName());
+        }
+        if (StringUtils.isBlank(profileImportForm.getImportAgency())) {
+            profile.setOwningAgency(AuthUtil.getRemoteUserObject().getAgency());
+        } else {
+            long agencyOid = Long.parseLong(profileImportForm.getImportAgency());
+            Agency agency = agencyUserManager.getAgencyByOid(agencyOid);
+            profile.setOwningAgency(agency);
+        }
+        if (StringUtils.isBlank(profileImportForm.getImportType())) {
+            profile.setHarvesterType(HarvesterType.DEFAULT.name());
+        } else {
+            profile.setHarvesterType(profileImportForm.getImportType());
         }
 
+        // For now we only validate H3 profiles
+        if (HarvesterType.HERITRIX3.name().equals(profile.getHarvesterType())) {
+            HarvestAgent agent = getHarvestAgent();
+            if (!agent.isValidProfile(profile.getProfile())) {
+                Object[] vals = new Object[]{profile.getProfile()};
+                log.info("Validation failed for H3 profile");
+                bindingResult.reject("profile.invalid", vals, "The submitted profile is invalid.");
+                ModelAndView mav = getView(profileImportForm.getCommand());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
+                return mav;
+            }
+        }
+        // Save to the database
+        try {
+            profileManager.saveOrUpdate(profile);
+        } catch (HibernateOptimisticLockingFailureException e) {
+            Object[] vals = new Object[]{profile.getName(), profile.getOwningAgency().getName()};
+            bindingResult.reject("profile.modified", vals, "profile has been modified by another user.");
+            ModelAndView mav = getView(profileImportForm.getCommand());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            return mav;
+        }
+        return new ModelAndView("redirect:/curator/profiles/list");
+    }
+
+    @PostMapping // default
+    protected ModelAndView defaultList(@Valid @ModelAttribute("command") ProfileListCommand command,
+                                       // Note that the BindingResult must come right after the object it validates
+                                       // in the parameter list.
+                                       BindingResult bindingResult, HttpSession session) {
+        session.setAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE, command.isShowInactive());
+        String defaultAgency = (String) session.getAttribute(ProfileListController.SESSION_AGENCY_FILTER);
+        if (defaultAgency == null) {
+            defaultAgency = AuthUtil.getRemoteUserObject().getAgency().getName();
+        }
+        command.setDefaultAgency(defaultAgency);
+        String harvesterType = (String) session.getAttribute(ProfileListController.SESSION_HARVESTER_TYPE_FILTER);
+        if (harvesterType != null) {
+            command.setHarvesterType(harvesterType);
+        }
+
+        ModelAndView mav = getView(command);
+        mav.addObject(Constants.GBL_CMD_DATA, command);
+        return mav;
+    }
+
+    @PostMapping("/filter")
+    protected ModelAndView filter(@Valid @ModelAttribute("command") ProfileListCommand command,
+                                  // Note that the BindingResult must come right after the object it validates
+                                  // in the parameter list.
+                                  BindingResult bindingResult, HttpSession session) throws Exception {
+        session.setAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE, command.isShowInactive());
+        session.setAttribute(ProfileListController.SESSION_AGENCY_FILTER, command.getDefaultAgency());
+        session.setAttribute(ProfileListController.SESSION_HARVESTER_TYPE_FILTER, command.getHarvesterType());
 
         ModelAndView mav = getView(command);
         mav.addObject(Constants.GBL_CMD_DATA, command);
@@ -155,11 +176,12 @@ public class ProfileListController extends AbstractCommandController {
      *
      * @return The view.
      */
+    @GetMapping
     protected ModelAndView getView(ProfileListCommand command) {
         ModelAndView mav = new ModelAndView("profile-list");
 
-        List<Agency> agencies = new ArrayList<Agency>();
-        List<ProfileDTO> profiles = new ArrayList<ProfileDTO>();
+        List<Agency> agencies = new ArrayList<>();
+        List<ProfileDTO> profiles = new ArrayList<>();
         if (authorityManager.hasAtLeastOnePrivilege(new String[]{Privilege.VIEW_PROFILES, Privilege.MANAGE_PROFILES})) {
             if (authorityManager.hasPrivilege(Privilege.VIEW_PROFILES, Privilege.SCOPE_ALL) ||
                     authorityManager.hasPrivilege(Privilege.MANAGE_PROFILES, Privilege.SCOPE_ALL)) {
@@ -168,7 +190,7 @@ public class ProfileListController extends AbstractCommandController {
             } else {
                 User loggedInUser = AuthUtil.getRemoteUserObject();
                 Agency usersAgency = loggedInUser.getAgency();
-                agencies = new ArrayList<Agency>();
+                agencies = new ArrayList<>();
                 agencies.add(usersAgency);
                 profiles = profileManager.getAgencyDTOs(usersAgency, command.isShowInactive(), command.getHarvesterType());
             }
@@ -211,8 +233,8 @@ public class ProfileListController extends AbstractCommandController {
      * @return The first available H3 HarvestAgent instance that we can find.
      */
     private HarvestAgent getHarvestAgent() {
-
-        return HarvestAgentUtil.getHarvestAgent(getApplicationContext());
+        // TODO Replace by autowiring
+        return HarvestAgentUtil.getHarvestAgent(this.context);
     }
 
 }

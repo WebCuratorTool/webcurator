@@ -1,6 +1,6 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
 <%@ page import="org.webcurator.ui.admin.command.CreateUserCommand" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <%@ page import="org.webcurator.domain.model.auth.Privilege" %>
 <%@ page import="org.webcurator.ui.admin.command.ChangePasswordCommand"%>
 <%@taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>

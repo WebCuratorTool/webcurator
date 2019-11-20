@@ -22,12 +22,21 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.core.targets.TargetManager;
@@ -36,44 +45,52 @@ import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.command.SearchCommand;
 
 /**
  * The controller for processing target group searches.
  * @author bbeaumont
  */
-public class GroupSearchController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@PropertySource(value = "classpath:wct-webapp.properties")
+public class GroupSearchController {
 	/** the manager for accessing target and group data. */
+	@Autowired
 	private TargetManager targetManager = null;
 	/** the manager for accessing user and agency data. */
+	@Autowired
 	private AgencyUserManager agencyUserManager = null;
 	/** The message source for localisation */
+	@Autowired
 	private MessageSource messageSource = null;
 	/** Default Search on Agency only (not username) */
+	@Value("${groupSearchController.defaultSearchOnAgencyOnly}")
 	private boolean defaultSearchOnAgencyOnly = false;
 
 	/** The list of available group types */
+	@Autowired
 	private WCTTreeSet groupTypesList = null;
+	@Value("${groupTypes.subgroup}")
 	private String subGroupType;
+	@Value("${groupTypes.subgroupSeparator}")
 	private String subGroupSeparator;
 
 
 	/** Default Constructor. */
 	public GroupSearchController() {
-		setCommandClass(SearchCommand.class);
 	}
 
-
-    @Override
+	@InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request,
-			HttpServletResponse response, BindException errors) throws Exception {
+	@RequestMapping(value = "/curator/groups/search.html", method = RequestMethod.GET)
+	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// fetch command object (if any) from session..
 		SearchCommand command = (SearchCommand) request.getSession().getAttribute("groupsSearchCommand");
@@ -82,7 +99,7 @@ public class GroupSearchController extends AbstractFormController {
 		}
 		command.setSelectedPageSize(CookieUtils.getPageSize(request));
 
-		return prepareSearchView(request, response, command, errors);
+		return prepareSearchView(request, response, command);
 	}
 
 	/**
@@ -106,9 +123,7 @@ public class GroupSearchController extends AbstractFormController {
 	 * @return The search view.
 	 */
 	@SuppressWarnings("unchecked")
-	public ModelAndView prepareSearchView(HttpServletRequest request,
-			                              HttpServletResponse response,
-			                              BindException errors) {
+	public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response) {
 
 		// fetch command object (if any) from session..
 		SearchCommand command = (SearchCommand) request.getSession().getAttribute("groupsSearchCommand");
@@ -117,17 +132,15 @@ public class GroupSearchController extends AbstractFormController {
 		}
 		command.setSelectedPageSize(CookieUtils.getPageSize(request));
 
-		return prepareSearchView(request, response, command, errors);
+		return prepareSearchView(request, response, command);
 	}
 
 	/**
 	 * @return The search view.
 	 */
 	@SuppressWarnings("unchecked")
-	public ModelAndView prepareSearchView(HttpServletRequest request,
-			                              HttpServletResponse response,
-			                              SearchCommand command,
-			                              BindException errors) {
+	public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response,
+                                          SearchCommand command) {
 
 		List<Agency> agencies = agencyUserManager.getAgencies();
 
@@ -180,23 +193,19 @@ public class GroupSearchController extends AbstractFormController {
 		return mav;
 	}
 
-
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object comm, BindException errors)
-			throws Exception {
-
-		SearchCommand command = (SearchCommand) comm;
+	@RequestMapping(value = "/curator/groups/search.html", method = RequestMethod.POST)
+	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, @ModelAttribute SearchCommand command)
+            throws Exception {
 
 		if(command.isAction(SearchCommand.ACTION_DELETE)) {
 			TargetGroup group = targetManager.loadGroup(command.getDeletedGroupOid());
 			if(targetManager.deleteTargetGroup(group)) {
-				ModelAndView mav = prepareSearchView(request, response, command, errors);
+				ModelAndView mav = prepareSearchView(request, response, command);
 				mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("group.deleted.success", new Object[] { group.getName() }, Locale.getDefault()));
 				return mav;
 			}
 			else {
-				ModelAndView mav = prepareSearchView(request, response, command, errors);
+				ModelAndView mav = prepareSearchView(request, response, command);
 				mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("group.deleted.failed.instances", new Object[] { group.getName() }, Locale.getDefault()));
 				return mav;
 			}
@@ -211,11 +220,11 @@ public class GroupSearchController extends AbstractFormController {
 			command.setSearchOid(null);
 
 			request.getSession().setAttribute("groupsSearchCommand", command);
-			return prepareSearchView(request, response, command, errors);
+			return prepareSearchView(request, response, command);
 		}
 		else {
 			request.getSession().setAttribute("groupsSearchCommand", command);
-			return prepareSearchView(request, response, command, errors);
+			return prepareSearchView(request, response, command);
 		}
 	}
 

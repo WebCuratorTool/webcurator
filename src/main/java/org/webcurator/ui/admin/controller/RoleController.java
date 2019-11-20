@@ -26,16 +26,24 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
@@ -45,29 +53,34 @@ import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.RoleCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * The Controller for creation and management of Roles within the
  * WCT.
  * @author bprice
  */
-public class RoleController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class RoleController {
 	/** The agency user manager. */
-    private AgencyUserManager agencyUserManager = null;
+	@Autowired
+    private AgencyUserManager agencyUserManager;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
     /** the authority manager. */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /** the logger. */
     private Log log = null;
     /** Default Constructor. */
     public RoleController() {
-        setCommandClass(RoleCommand.class);
         log = LogFactory.getLog(RoleController.class);
     }
 
-    @Override
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
@@ -101,44 +114,44 @@ public class RoleController extends AbstractFormController {
         return mav;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd, BindException aError) throws Exception {
+    @RequestMapping(path = "/curator/admin/role.html", method = RequestMethod.POST)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute RoleCommand roleCommand, BindingResult bindingResult)
+            throws Exception {
 
-        RoleCommand roleCmd = (RoleCommand) aCmd;
-        if (roleCmd != null) {
-            if (aError.hasErrors()) {
+        if (roleCommand != null) {
+            if (bindingResult.hasErrors()) {
                 ModelAndView mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(RoleCommand.MDL_AGENCIES, agencies);
-                mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aError);
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("AddRole");
                 return mav;
 
-            } else if (RoleCommand.ACTION_NEW.equals(roleCmd.getAction())) {
+            } else if (RoleCommand.ACTION_NEW.equals(roleCommand.getAction())) {
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 ModelAndView mav = new ModelAndView();
                 mav.addObject(RoleCommand.MDL_AGENCIES, agencies);
                 mav.setViewName("AddRole");
                 return mav;
-            } else if (RoleCommand.ACTION_SAVE.equals(roleCmd.getAction())) {
-                return saveRole(aReq, aRes, roleCmd, aError);
-            } else if (RoleCommand.ACTION_DELETE.equals(roleCmd.getAction())) {
-                return deleteRole(aReq, aRes, roleCmd, aError);
-            } else if (RoleCommand.ACTION_VIEW.equals(roleCmd.getAction())||
-            		RoleCommand.ACTION_EDIT.equals(roleCmd.getAction())) {
-                return editRole(aReq, aRes, roleCmd, aError);
-            } else if (RoleCommand.ACTION_FILTER.equals(roleCmd.getAction())){
-            	aReq.getSession().setAttribute(RoleCommand.PARAM_AGENCY_FILTER, roleCmd.getAgencyFilter());
-                return defaultView(roleCmd.getAgencyFilter());
+            } else if (RoleCommand.ACTION_SAVE.equals(roleCommand.getAction())) {
+                return saveRole(aReq, roleCommand);
+            } else if (RoleCommand.ACTION_DELETE.equals(roleCommand.getAction())) {
+                return deleteRole(aReq, roleCommand);
+            } else if (RoleCommand.ACTION_VIEW.equals(roleCommand.getAction())||
+            		RoleCommand.ACTION_EDIT.equals(roleCommand.getAction())) {
+                return editRole(roleCommand);
+            } else if (RoleCommand.ACTION_FILTER.equals(roleCommand.getAction())){
+            	aReq.getSession().setAttribute(RoleCommand.PARAM_AGENCY_FILTER, roleCommand.getAgencyFilter());
+                return defaultView(roleCommand.getAgencyFilter());
             }
         }
 
         return null;
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aRes, BindException aError) throws Exception {
+    @RequestMapping(path = "/curator/admin/role.html", method = RequestMethod.GET)
+    protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         String agencyFilter = (String)aReq.getSession().getAttribute(RoleCommand.PARAM_AGENCY_FILTER);
         if(agencyFilter == null)
         {
@@ -151,13 +164,10 @@ public class RoleController extends AbstractFormController {
      * Save the new role or updates an existing role
      * to the database with all the associated privileges
      * @param aReq the HTTP Request
-     * @param aRes the HTTP response
      * @param aRoleCmd the RoleCommand holding the defined role parameters
-     * @param aError the Error object
-     * @param mav the ModelAndView to return
      * @throws Exception
      */
-    private ModelAndView saveRole(HttpServletRequest aReq, HttpServletResponse aRes, RoleCommand aRoleCmd, BindException aError) throws Exception {
+    private ModelAndView saveRole(HttpServletRequest aReq, RoleCommand aRoleCmd) throws Exception {
         boolean update = false;
 
         Role role = new Role();
@@ -227,7 +237,7 @@ public class RoleController extends AbstractFormController {
     /**
      * Process the delete role command.
      */
-    private ModelAndView deleteRole(HttpServletRequest aReq, HttpServletResponse aRes, RoleCommand aRoleCmd, BindException aError) throws Exception {
+    private ModelAndView deleteRole(HttpServletRequest aReq, RoleCommand aRoleCmd) {
         Role role = agencyUserManager.getRoleByOid(aRoleCmd.getOid());
         String roleName = role.getName();
 
@@ -252,7 +262,7 @@ public class RoleController extends AbstractFormController {
     /**
      * Process the edit role command.
      */
-    private ModelAndView editRole(HttpServletRequest aReq, HttpServletResponse aRes, RoleCommand aRoleCmd, BindException aError) throws Exception {
+    private ModelAndView editRole(RoleCommand aRoleCmd) throws Exception {
         List agencies = agencyUserManager.getAgenciesForLoggedInUser();
         ModelAndView mav = new ModelAndView();
         mav.addObject(RoleCommand.MDL_AGENCIES, agencies);

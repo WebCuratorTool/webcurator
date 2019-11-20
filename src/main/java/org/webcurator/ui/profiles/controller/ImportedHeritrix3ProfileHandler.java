@@ -15,11 +15,11 @@
  */
 package org.webcurator.ui.profiles.controller;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.profiles.Heritrix3Profile;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.ImportedHeritrix3ProfileCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;
@@ -37,12 +37,11 @@ import javax.servlet.http.HttpServletResponse;
 public class ImportedHeritrix3ProfileHandler extends TabHandler {
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
-	public void processTab(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                           Object comm, BindingResult bindingResult) {
 
 		// Use the command object to update the profile.
 		ImportedHeritrix3ProfileCommand command = (ImportedHeritrix3ProfileCommand) comm;
@@ -52,12 +51,11 @@ public class ImportedHeritrix3ProfileHandler extends TabHandler {
 
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
-	public TabbedModelAndView preProcessNextTab(TabbedController tc,
-			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		// Create the command object
 		Heritrix3Profile heritrix3Profile = (Heritrix3Profile)req.getSession().getAttribute("heritrixProfile");
@@ -73,12 +71,11 @@ public class ImportedHeritrix3ProfileHandler extends TabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
-	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 		// TODO Auto-generated method stub
 		return null;
 	}

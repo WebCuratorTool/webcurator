@@ -15,6 +15,10 @@
  */
 package org.webcurator.ui.admin.validator;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.admin.command.AgencyCommand;
@@ -25,6 +29,9 @@ import org.webcurator.ui.common.validation.ValidatorUtil;
  * Validates the Agency creation action, and checks all the fields used in creating an agency
  * @author bprice
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class AgencyValidator extends AbstractBaseValidator {
 
 	/** @see org.springframework.validation.Validator#supports(Class).*/

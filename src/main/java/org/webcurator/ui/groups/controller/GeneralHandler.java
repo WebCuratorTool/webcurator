@@ -22,7 +22,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -38,7 +38,7 @@ import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.domain.model.dto.UserDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddParentsCommand;
 import org.webcurator.ui.groups.command.GeneralCommand;
@@ -80,9 +80,8 @@ public class GeneralHandler extends AbstractGroupTabHandler {
 	}
 
 	@Override
-	public void processTab(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                           Object comm, BindingResult bindingResult) {
 
 		GeneralCommand command = (GeneralCommand) comm;
 		GroupsEditorContext ctx = getEditorContext(req);
@@ -307,7 +306,7 @@ public class GeneralHandler extends AbstractGroupTabHandler {
 	@Override
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 
 		TargetGroup aTargetGroup = getEditorContext(req).getTargetGroup();
 
@@ -381,20 +380,19 @@ public class GeneralHandler extends AbstractGroupTabHandler {
 	}
 
 	@Override
-	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
         TabbedModelAndView nextView = null;
 
         //Save the tab data before moving to parents screen
-        processTab(tc, currentTab, req, res, comm, errors);
-    	nextView = preProcessNextTab(tc, currentTab, req, res, comm, errors);
+        processTab(tc, currentTab, req, res, comm, bindingResult);
+    	nextView = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
         nextView.getTabStatus().setCurrentTab(currentTab);
 
 		GeneralCommand command = (GeneralCommand) comm;
 
-		if(!errors.hasErrors() && command.getAction().equals(GeneralCommand.ACTION_ADD_PARENT))
+		if(!bindingResult.hasErrors() && command.getAction().equals(GeneralCommand.ACTION_ADD_PARENT))
 		{
 			// get value of page size cookie
 			String currentPageSize = CookieUtils.getPageSize(req);

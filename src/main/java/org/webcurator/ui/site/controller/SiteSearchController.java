@@ -23,11 +23,14 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.sites.SiteManager;
@@ -36,7 +39,7 @@ import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.SiteCriteria;
 import org.webcurator.domain.model.auth.Agency;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.common.editor.CustomIntegerCollectionEditor;
 import org.webcurator.ui.site.command.SiteSearchCommand;
 
@@ -44,14 +47,18 @@ import org.webcurator.ui.site.command.SiteSearchCommand;
  * The controller for managing searching for harvest authorisations.
  * @author bbeaumont
  */
-public class SiteSearchController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class SiteSearchController {
 
 	/** the site manager. */
+	@Autowired
 	private SiteManager siteManager;
 	/** the agency user manager. */
+	@Autowired
 	private AgencyUserManager agencyUserManager;
 
-    @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
@@ -59,9 +66,7 @@ public class SiteSearchController extends AbstractFormController {
     }
 
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest req,
-			HttpServletResponse resp, BindException errors) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest req) throws Exception {
 
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(req);
@@ -97,10 +102,8 @@ public class SiteSearchController extends AbstractFormController {
 		return mav;
 	}
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object comm, BindException errors)
-			throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, Object comm)
+            throws Exception {
 
 		SiteSearchCommand command = (SiteSearchCommand) comm;
 

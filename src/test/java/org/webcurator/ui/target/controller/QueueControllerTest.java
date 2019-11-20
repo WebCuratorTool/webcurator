@@ -31,6 +31,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.CommandConstants;
@@ -62,7 +63,7 @@ import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.common.util.DateUtils;
@@ -76,10 +77,10 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	private MockHttpServletResponse mockResponse;
 	private MockTargetInstanceManager mockTargetInstanceManager;
 	private TargetInstanceCommand command;
-	private BindException errors;
+	private BindingResult errors;
 
 	public QueueControllerTest() {
-		super(QueueController.class, "src/test/java/org/webcurator/ui/target/controller/QueueControllerTest.xml");
+		super(QueueController.class, "/org/webcurator/ui/target/controller/QueueControllerTest.xml");
 
 	}
 
@@ -193,47 +194,47 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionFlagged() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_FILTER);
 		command.setFlagged(true);
-		BindException aErrors = new BindException(command, TargetInstanceCommand.ACTION_FILTER);
+        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_FILTER);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE);
 
 		assertEquals(TargetInstanceCommand.ACTION_FILTER, command.getCmd());
 		assertTrue(command.getFlagged());
-		assertFalse(aErrors.hasErrors());
+		assertFalse(bindingResult.hasErrors());
 	}
 
 	@Test
 	public final void testProcessFormSubmissionScheduled() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_DELETE);
 		command.setTargetInstanceId(5000L);
-		BindException aErrors = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
+        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE);
 		assertEquals(TargetInstanceCommand.ACTION_FILTER, command.getCmd());
-		assertFalse(aErrors.hasErrors());
+		assertFalse(bindingResult.hasErrors());
 	}
 
 	@Test
 	public final void testProcessFormSubmissionQueuedWithoutHarvesterStatus() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_DELETE);
 		command.setTargetInstanceId(5001L);
-		BindException aErrors = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
+        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE);
 		assertEquals(TargetInstanceCommand.ACTION_FILTER, command.getCmd());
-		assertFalse(aErrors.hasErrors());
+		assertFalse(bindingResult.hasErrors());
 	}
 
 	@Test
 	public final void testProcessFormSubmissionQueuedWithHarvesterStatus() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_DELETE);
 		command.setTargetInstanceId(5002L);
-		BindException aErrors = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
+        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
 
-		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE, aErrors);
+		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE, bindingResult);
 		assertEquals(TargetInstanceCommand.ACTION_FILTER, command.getCmd());
-		assertTrue(aErrors.hasErrors());
-		assertEquals(1, aErrors.getErrorCount());
+		assertTrue(bindingResult.hasErrors());
+		assertEquals(1, bindingResult.getErrorCount());
 	}
 
 	@Test
@@ -785,6 +786,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		testInstance.setTargetInstanceManager(mockTiManager);
 		command.setCmd(TargetInstanceCommand.ACTION_MULTI_REJECT);
 		command.setMultiselect(Arrays.asList("5000", "234"));
+		command.setRejReasonId(1L);
 		testInstance.processFormSubmission(mockRequest, mockResponse, command, errors);
 		verify(mockTI1).setState(TargetInstance.STATE_REJECTED);
 		verify(mockTI2).setState(TargetInstance.STATE_REJECTED);
@@ -859,8 +861,8 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		return processSubmitForm(expectedViewName, errors);
 	}
 
-	private TargetInstanceCommand processSubmitForm(String expectedViewName, BindException customErrors) throws Exception {
-		ModelAndView mav = testInstance.processFormSubmission(mockRequest, mockResponse, command, customErrors);
+	private TargetInstanceCommand processSubmitForm(String expectedViewName, BindingResult bindingResult) throws Exception {
+		ModelAndView mav = testInstance.processFormSubmission(mockRequest, mockResponse, command, bindingResult);
 		assertNotNull(mav);
 		assertEquals(expectedViewName, mav.getViewName());
 		TargetInstanceCommand command = (TargetInstanceCommand) mav.getModel().get("command");

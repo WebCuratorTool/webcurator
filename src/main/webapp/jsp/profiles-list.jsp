@@ -1,5 +1,6 @@
 <%@ taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
 <%@ taglib prefix="authority" uri="http://www.webcurator.org/authority"  %>
 <%@page import="org.webcurator.domain.model.auth.Privilege"%>
 <%@page import="org.webcurator.ui.profiles.command.ProfileListCommand"%>
@@ -61,16 +62,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<td colspan="2" valign="top">
 			<fieldset>
 			<legend class="smalltitleGrey">Import from file</legend>
-			<form id="importForm" action="curator/profiles/list.html" method="POST" enctype="multipart/form-data">
+			<form:form id="importForm" modelAttribute="profileImportForm" action="curator/profiles/list/import"
+                       method="POST" enctype="multipart/form-data">
 				<table width="100%">
 					<tr>
 						<td valign="top">
 							Select XML File:
 						</td>
 						<td><input type="file" id="sourceFile" name="sourceFile" value=""/></td>
-						<td>
-							<input type="hidden" id="actionCommand" name="actionCommand" value="<%=ProfileListCommand.ACTION_IMPORT %>">
-						</td>
 					</tr>
 					<tr>
 						<td>Profile name:</td><td><input type="text" name="importName"/></td>
@@ -107,7 +106,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						</td>
 					</tr>
 				</table>
-			</form>
+			</form:form>
 			</fieldset>
 		</td>
 		<td valign="top" colspan="5" align="right">
@@ -127,12 +126,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	</authority:hasPrivilege>
 	<tr>			
 		<td colspan="6" valign="top">
-			<form id="listForm" action="curator/profiles/list.html" method="POST">
+			<form:form id="listForm" modelAttribute="command" action="curator/profiles/list/filter" method="POST">
 			<table width="80%" cellpadding="0" cellspacing="0" border="0">
 			  <tr>
 				  <td>
-					<input type="hidden" id="actionCommand" name="actionCommand" value="<%=ProfileListCommand.ACTION_FILTER %>">
-				  	<input type="checkbox" name="showInactive" id="showInactive" ${command.showInactive ? 'CHECKED' : '' } onclick="document.getElementById('listForm').submit();"><label for="showInactive">Show Inactive Profiles</label>
+				  	<input type="checkbox" name="showInactive" id="showInactive" ${command.showInactive ? 'CHECKED' : '' }
+                           onclick="document.getElementById('listForm').submit();"><label for="showInactive">Show Inactive Profiles</label>
 				  </td>
 				  <td>
 				  Agency Filter:&nbsp;
@@ -154,7 +153,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				  </td>
 			  </tr>
 		    </table>
-			</form>
+			</form:form>
 		</td>
 	</tr>
 	<tr>
@@ -173,9 +172,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		    <td class="tableRowLite">
 			    <authority:showControl ownedObject="${profile}" privileges="<%= Privilege.MANAGE_PROFILES %>" editMode="${profile.status == 1}">
 					<authority:show>
-					<form id="changeDefaultForm_${profile.oid}" action="curator/profiles/make-default.html?profileOid=<c:out value="${profile.oid}"/>">
+					<form:form id="changeDefaultForm_${profile.oid}" action="curator/profiles/make-default.html?profileOid=<c:out value="${profile.oid}"/>">
 		      	    <input type="radio" name="profileOid" value="<c:out value="${profile.oid}"/>" ${profile.defaultProfile ? 'checked' : ''} onclick="document.getElementById('changeDefaultForm_${profile.oid}').submit();">
-		      	    </form>
+		      	    </form:form>
 					</authority:show>
 					<authority:dont>
 					${profile.defaultProfile ? 'Yes' : 'No'}
@@ -187,7 +186,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		    <td class="tableRowLite"><spring:message code="profile.state_${profile.status}"/></td>
 		    <td class="tableRowLite"><c:out value="${profile.owningAgency.name}"/></td>    
 		    <td class="tableRowLite">
-		    <form action="curator/profiles/delete.html" method="post"> 
+		    <form:form action="curator/profiles/delete.html" method="post">
 		        <input type="hidden" name="profileOid" value="${profile.oid}">
 		        <input type="hidden" id="actionCmd" name="actionCmd">
 		        
@@ -267,7 +266,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		      	</c:if>
 		      	</authority:hasAgencyOwnedPriv>
 
-			</form>	    
+			</form:form>
 						
 		    </td>    
 		  </tr>

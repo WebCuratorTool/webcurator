@@ -20,14 +20,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
@@ -42,42 +49,58 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.DefaultSiteCommand;
 import org.webcurator.ui.site.command.SiteCommand;
+import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
  * The Controller for managing the Harvest Autorisation tabs.
  * @author bbeaumont
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class SiteController extends TabbedController {
 
 	public static final String EDITOR_CONTEXT = "siteEditorContext";
 
 	/** Logger for the Siteontroller. **/
 	private static Log log = LogFactory.getLog(SiteController.class);
-
-	private SiteManager siteManager = null;
-
-	private AuthorityManager authorityManager = null;
+    @Autowired
+	private SiteManager siteManager;
+    @Autowired
+	private AuthorityManager authorityManager;
 
 	/** BusinessObjectFactory */
-	private BusinessObjectFactory businessObjectFactory = null;
+	@Autowired
+	private BusinessObjectFactory businessObjectFactory;
 
 	/** The message source for localised messages. */
-	private MessageSource messageSource = null;
+	@Autowired
+	private MessageSource messageSource;
 
 	/** The site search controller */
-	private SiteSearchController siteSearchController = null;
+	@Autowired
+	private SiteSearchController siteSearchController;
+
+    @Autowired
+    private ApplicationContext context;
 
 	public SiteController() {
-		this.setCommandClass(SiteCommand.class);
 	}
 
-	/* (non-Javadoc)
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(DefaultSiteCommand.class);
+        setTabConfig((TabConfig) context.getBean("siteTabConfig"));
+    }
+
+    /* (non-Javadoc)
 	 * @see org.webcurator.ui.util.TabbedController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)
 	 */
 	@Override
@@ -117,45 +140,48 @@ public class SiteController extends TabbedController {
 	};
 
 	@Override
-	protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object comm, BindException bex) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                    BindingResult bindingResult) throws Exception {
 		log.debug("------------------------showForm-------------------------------");
-		return processInitial(req, res, comm, bex);
+		return processInitial(req, res, comm, bindingResult);
 	}
 
 
-	private void checkAuthAgencyNamesUnique(HttpServletRequest request, BindException errors) {
+	private void checkAuthAgencyNamesUnique(HttpServletRequest request, BindingResult bindingResult) {
 		SiteEditorContext ctx = getEditorContext(request);
 		for(AuthorisingAgent agent: ctx.getSite().getAuthorisingAgents()) {
 			if( !siteManager.isAuthAgencyNameUnique( agent.isNew() ? null : agent.getOid(), agent.getName())) {
-				errors.reject("site.errors.authagent.duplicatename", new Object[] { agent.getName() }, "");
+				bindingResult.reject("site.bindingResult.authagent.duplicatename", new Object[] { agent.getName() }, "");
 			}
 		}
 	}
 
-	public void checkSave(HttpServletRequest req, BindException errors) {
-		if (!errors.hasErrors() && !siteManager.isSiteTitleUnique(getEditorContext(req).getSite())) {
-			errors.reject("site.errors.duplicatename", new Object[] {getEditorContext(req).getSite().getTitle()} ,"");
+	public void checkSave(HttpServletRequest req, BindingResult bindingResult) {
+		if (!bindingResult.hasErrors() && !siteManager.isSiteTitleUnique(getEditorContext(req).getSite())) {
+			bindingResult.reject("site.bindingResult.duplicatename", new Object[] {getEditorContext(req).getSite().getTitle()} ,"");
 		}
 
-		checkAuthAgencyNamesUnique(req, errors);
+		checkAuthAgencyNamesUnique(req, bindingResult);
 	}
 
-	public ModelAndView getErrorsView(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
-		TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,errors);
+	public ModelAndView getErrorsView(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                      BindingResult bindingResult) {
+		TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm ,bindingResult);
 		tmav.getTabStatus().setCurrentTab(currentTab);
 		tmav.addObject(Constants.GBL_CMD_DATA,  comm);
-		tmav.addObject(Constants.GBL_ERRORS, errors);
+		tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 		return tmav;
 	}
 
 	@Override
-	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                       BindingResult bindingResult) {
 
 		log.debug("------------------------processSave-------------------------------");
-		checkSave(req, errors);
+		checkSave(req, bindingResult);
 
-		if(errors.hasErrors()) {
-			return getErrorsView(currentTab, req, res, comm, errors);
+		if(bindingResult.hasErrors()) {
+			return getErrorsView(currentTab, req, res, comm, bindingResult);
 		}
 
 		// Save the object.
@@ -163,7 +189,7 @@ public class SiteController extends TabbedController {
 			siteManager.save(getEditorContext(req).getSite());
 
 			// Go back to the search screen.
-			ModelAndView mav = siteSearchController.showForm(req, res, errors);
+			ModelAndView mav = siteSearchController.showForm(req);
 			mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("site.saved", new Object[] { getEditorContext(req).getSite().getTitle() }, Locale.getDefault()));
 			return mav;
 		}
@@ -177,7 +203,8 @@ public class SiteController extends TabbedController {
 	}
 
 	@Override
-	protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                         BindingResult bindingResult) {
 		// Take the editor context out of the session.
 		log.debug("------------------------processCancel-------------------------------");
 		unbindEditorContext(req);
@@ -186,7 +213,8 @@ public class SiteController extends TabbedController {
 
 
     @Override
-    protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+    protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                          BindingResult bindingResult) {
 
     	if (log.isDebugEnabled()) {
     		log.debug("Processing intial in SiteController.");

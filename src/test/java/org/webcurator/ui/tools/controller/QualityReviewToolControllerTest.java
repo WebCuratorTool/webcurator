@@ -8,19 +8,14 @@ import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.site.command.DefaultSiteCommand;
 import org.webcurator.ui.tools.command.QualityReviewToolCommand;
 
 
@@ -28,7 +23,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 
 	public QualityReviewToolControllerTest()
 	{
-		super(QualityReviewToolController.class, "src/test/java/org/webcurator/ui/tools/controller/QualityReviewToolControllerTest.xml");
+		super(QualityReviewToolController.class, "/org/webcurator/ui/tools/controller/QualityReviewToolControllerTest.xml");
 	}
 	AuthorityManagerImpl authorityManager;
 
@@ -131,14 +126,11 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 	}
 
 	private ModelAndView getHandelMav() throws Exception {
-		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
 		QualityReviewToolCommand comm = new QualityReviewToolCommand();
 		comm.setHarvestResultId(111000L);
 		comm.setTargetInstanceOid(5000L);
 
-		BindException aError = new BindException(new DefaultSiteCommand(), null);
-		ModelAndView mav = testInstance.handle(request, response, comm, aError);
+		ModelAndView mav = testInstance.handle(comm);
 		return mav;
 	}
 

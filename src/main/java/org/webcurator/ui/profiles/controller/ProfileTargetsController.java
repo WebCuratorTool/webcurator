@@ -21,9 +21,9 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.targets.TargetManager;
@@ -33,7 +33,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.ProfileTargetsCommand;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.core.Target;
@@ -44,12 +44,15 @@ import org.webcurator.domain.model.dto.ProfileDTO;
  * @author oakleigh_sk
  *
  */
-public class ProfileTargetsController extends AbstractFormController {
-
-	private TargetManager targetManager = null;
-	private TargetDAO targetDao = null;
-
+@Controller
+public class ProfileTargetsController {
+    @Autowired
+	private TargetManager targetManager;
+    @Autowired
+	private TargetDAO targetDao;
+    @Autowired
 	protected ProfileManager profileManager;
+    @Autowired
 	protected AuthorityManager authorityManager;
 
 
@@ -57,11 +60,9 @@ public class ProfileTargetsController extends AbstractFormController {
 	 * Construct a new ProfileTargetsController.
 	 */
 	public ProfileTargetsController() {
-		setCommandClass(ProfileTargetsCommand.class);
 	}
 
-	@Override
-	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response, BindException errors) throws Exception {
+	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// fetch command object (if any) from session..
 		ProfileTargetsCommand command = (ProfileTargetsCommand) request.getSession().getAttribute("profileTargetsCommand");
@@ -126,10 +127,8 @@ public class ProfileTargetsController extends AbstractFormController {
 		return mav;
 	}
 
-	@Override
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object comm, BindException errors)
-			throws Exception {
+	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, Object comm)
+            throws Exception {
 
 		ProfileTargetsCommand command = (ProfileTargetsCommand) comm;
 

@@ -18,14 +18,14 @@ package org.webcurator.ui.target.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.DublinCore;
 import org.webcurator.domain.model.core.Target;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.DescriptionCommand;
 import org.webcurator.ui.util.Tab;
@@ -43,11 +43,11 @@ public class TargetDescriptionHandler extends AbstractTargetTabHandler {
 	private WCTTreeSet typeList = null;
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public void processTab(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                           BindingResult bindingResult) {
 		DescriptionCommand command = (DescriptionCommand) comm;
 		TargetEditorContext ctx = getEditorContext(req);
 
@@ -65,11 +65,11 @@ public class TargetDescriptionHandler extends AbstractTargetTabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
 			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+			Object comm, BindingResult bindingResult) {
 
 		Target aTarget = getEditorContext(req).getTarget();
 
@@ -86,11 +86,11 @@ public class TargetDescriptionHandler extends AbstractTargetTabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	public ModelAndView processOther(TabbedController tc, Tab currentTab,
 			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+                                     BindingResult bindingResult) {
 		// TODO Auto-generated method stub
 		return null;
 	}

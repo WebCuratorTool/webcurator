@@ -15,6 +15,10 @@
  */
 package org.webcurator.ui.admin.validator;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.common.ui.validation.TemplateValidatorHelper;
@@ -28,6 +32,9 @@ import org.webcurator.domain.model.core.PermissionTemplate;
  * Validates the Template Creation action, and checks all the fields used in creating a Permission Template
  * @author bprice
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class TemplateValidator extends AbstractBaseValidator {
 
 

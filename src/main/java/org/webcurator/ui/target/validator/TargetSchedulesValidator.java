@@ -24,6 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.quartz.CronExpression;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.domain.model.core.Schedule;
@@ -36,6 +37,7 @@ import org.webcurator.ui.target.command.TargetSchedulesCommand;
  * Validate a schedule for a target.
  * @author bbeaumont
  */
+@Component
 public class TargetSchedulesValidator extends AbstractBaseValidator {
 
     private static Map<String,Integer> monthMap = new HashMap<String,Integer>(20);

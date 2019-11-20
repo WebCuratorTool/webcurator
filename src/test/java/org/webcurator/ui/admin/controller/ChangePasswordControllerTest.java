@@ -4,14 +4,13 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.providers.encoding.PasswordEncoder;
-import org.acegisecurity.providers.encoding.ShaPasswordEncoder;
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -27,7 +26,7 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 	public ChangePasswordControllerTest()
 	{
 		super(ChangePasswordController.class,
-				"src/test/java/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
+                "/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
 	}
 
 	@Test
@@ -55,12 +54,9 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 	public final void testShowForm() {
 		try
 		{
-			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
 			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
 			testInstance.setAgencyUserManager(manager);
-			testInstance.showForm(request, response, aError);
+			testInstance.showForm();
 		}
 		catch (Exception e)
 		{
@@ -73,13 +69,11 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 	@Test
 	public final void testProcessFormSubmission() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-		MockHttpServletResponse response = new MockHttpServletResponse();
-		BindException aError = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
+        BindingResult bindingResult = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
 		testSetAgencyUserManager();
 		testSetAuthorityManager();
 		testSetMessageSource();
 		testSetEncoder();
-		testSetSalt();
 
 		try
 		{
@@ -88,7 +82,7 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 			aCommand.setUserOid(1000L);
 			aCommand.setNewPwd("Pa55word");
 			aCommand.setConfirmPwd("Pa55word");
-			ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUsers"));
 			List<Agency> agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -106,15 +100,8 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 
 	@Test
 	public final void testSetEncoder() {
-		PasswordEncoder passwordEncoder = new ShaPasswordEncoder();
+		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		testInstance.setEncoder(passwordEncoder);
-	}
-
-	@Test
-	public final void testSetSalt() {
-		SystemWideSaltSource saltSource = new SystemWideSaltSource();
-		saltSource.setSystemWideSalt("Rand0mS4lt");
-		testInstance.setSalt(saltSource);
 	}
 
 	@Test

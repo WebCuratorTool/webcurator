@@ -1,11 +1,13 @@
 package org.webcurator.ui.target.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.target.command.LogReaderCommand;
 import org.webcurator.ui.common.validation.ValidatorUtil;
 
+@Component
 public class LogReaderValidator extends AbstractBaseValidator {
 	public boolean supports(Class clazz) {
 		return LogReaderCommand.class.equals(clazz);

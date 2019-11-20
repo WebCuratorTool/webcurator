@@ -22,17 +22,20 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.dao.DataAccessException;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
@@ -42,30 +45,34 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.ui.admin.command.CreateQaIndicatorCommand;
 import org.webcurator.ui.admin.command.QaIndicatorCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * Manages the creation flow for a QA Indicator within WCT
  * @author oakleigh_sk
  */
-public class CreateQaIndicatorController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class CreateQaIndicatorController {
 	/** the logger. */
     private Log log = null;
     /** the agency user manager. */
-    private AgencyUserManager agencyUserManager = null;
+    @Autowired
+    private AgencyUserManager agencyUserManager;
     /** the authority manager. */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
 
     /** Default Constructor. */
     public CreateQaIndicatorController() {
     	super();
         log = LogFactory.getLog(CreateQaIndicatorController.class);
-        setCommandClass(CreateQaIndicatorCommand.class);
     }
 
-    @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
     	// enable null values for long and float fields
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -74,16 +81,12 @@ public class CreateQaIndicatorController extends AbstractFormController {
         binder.registerCustomEditor(java.lang.Float.class, new CustomNumberEditor(java.lang.Float.class, floatFormat, true));
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest arg0,
-            HttpServletResponse arg1, BindException arg2) throws Exception {
+    protected ModelAndView showForm() throws Exception {
 
         return null;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCommand, BindException aError)
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = null;
@@ -91,7 +94,7 @@ public class CreateQaIndicatorController extends AbstractFormController {
 
 
         if (indicatorCmd != null) {
-            if (aError.hasErrors()) {
+            if (bindingResult.hasErrors()) {
                 mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateQaIndicatorCommand.MDL_AGENCIES, agencies);
@@ -101,8 +104,8 @@ public class CreateQaIndicatorController extends AbstractFormController {
                 if (CreateQaIndicatorCommand.ACTION_EDIT.equals(mode)) {
                     mav.addObject(CreateQaIndicatorCommand.ACTION_EDIT, mode);
                 }
-                mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aError);
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newIndicator");
 
             } else if (CreateQaIndicatorCommand.ACTION_NEW.equals(indicatorCmd.getAction())) {

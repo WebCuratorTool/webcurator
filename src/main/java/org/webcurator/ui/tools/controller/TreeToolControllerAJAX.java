@@ -16,9 +16,8 @@
 package org.webcurator.ui.tools.controller;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 
 
@@ -32,18 +31,11 @@ public class TreeToolControllerAJAX extends TreeToolController {
 		super.setSuccessView("TreeToolAJAX");
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors)
-			throws Exception {
+	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
 		// TODO Auto-generated method stub
 		super.setSuccessView(getSuccessView());
-		return super.handle(req, res, comm, errors);
+		return super.handle(req, comm, bindingResult);
 	}
-
-
-
-
 }
 
 

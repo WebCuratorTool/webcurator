@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
@@ -29,7 +30,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 	public RoleControllerTest()
 	{
 		super(RoleController.class,
-				"src/test/java/org/webcurator/ui/admin/controller/RoleControllerTest.xml");
+                "/org/webcurator/ui/admin/controller/RoleControllerTest.xml");
 	}
 
 	@Test
@@ -110,8 +111,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new RoleCommand(), RoleCommand.ACTION_EDIT);
+            BindingResult bindingResult = new BindException(new RoleCommand(), RoleCommand.ACTION_EDIT);
 			this.testSetAgencyUserManager();
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
@@ -119,7 +119,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			RoleCommand aCommand = new RoleCommand();
 			aCommand.setAction(RoleCommand.ACTION_NEW);
 			aCommand.setOid(new Long(3000));
-			ModelAndView mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("AddRole"));
 			List<Agency> agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -129,7 +129,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand = new RoleCommand();
 			aCommand.setAction(RoleCommand.ACTION_VIEW);
 			aCommand.setOid(new Long(3000));
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("AddRole"));
 			agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -142,7 +142,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand = new RoleCommand();
 			aCommand.setAction(RoleCommand.ACTION_EDIT);
 			aCommand.setOid(new Long(3000));
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("AddRole"));
 			agencies = (List<Agency>)mav.getModel().get("agencies");
@@ -158,7 +158,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand.setAgency(AuthUtil.getRemoteUserObject().getAgency().getOid());
 			String[] scopedPrivileges = {};
 			aCommand.setScopedPrivileges(scopedPrivileges);
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("Roles"));
 			List<Role> roles = (List<Role>)mav.getModel().get("roles");
@@ -169,7 +169,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand.setAction(RoleCommand.ACTION_FILTER);
 			String agencyFilter = "Dummy";
 			aCommand.setAgencyFilter(agencyFilter);
-			mav = testInstance.processFormSubmission(request, response, aCommand, aError);
+			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("Roles"));
 			RoleCommand command = (RoleCommand)mav.getModel().get("command");
@@ -190,12 +190,10 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new RoleCommand(), RoleCommand.ACTION_EDIT);
 			this.testSetAgencyUserManager();
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
-			ModelAndView mav = testInstance.showForm(request, response, aError);
+			ModelAndView mav = testInstance.showForm(request);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("Roles"));
 			List roles = (List)mav.getModel().get(RoleCommand.MDL_ROLES);

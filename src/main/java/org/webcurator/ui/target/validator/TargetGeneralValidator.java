@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.target.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.domain.model.core.Target;
@@ -26,6 +27,7 @@ import org.webcurator.ui.target.command.TargetGeneralCommand;
  * Validate the targets general tab.
  * @author nwaight
  */
+@Component
 public class TargetGeneralValidator extends AbstractBaseValidator {
 
 	public boolean supports(Class clazz) {

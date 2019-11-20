@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.target.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
@@ -25,6 +26,7 @@ import org.webcurator.ui.target.command.TargetAccessCommand;
  * Validate the targets access tab.
  * @author oakleigh_sk
  */
+@Component
 public class TargetAccessValidator extends AbstractBaseValidator {
 
 	public boolean supports(Class clazz) {

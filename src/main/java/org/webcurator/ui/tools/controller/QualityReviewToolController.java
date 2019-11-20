@@ -21,14 +21,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.TargetInstanceDAO;
@@ -46,7 +41,7 @@ import org.webcurator.ui.tools.command.QualityReviewToolCommand;
  * page where the user can access the other quality review tools.
  * @author bbeaumont
  */
-public class QualityReviewToolController extends AbstractCommandController {
+public class QualityReviewToolController {
     static private Log log = LogFactory.getLog(QualityReviewToolController.class);
 
     private TargetInstanceManager targetInstanceManager;
@@ -64,12 +59,10 @@ public class QualityReviewToolController extends AbstractCommandController {
 
 
 	public QualityReviewToolController() {
-		setCommandClass(QualityReviewToolCommand.class);
 		businessObjectFactory = new BusinessObjectFactory();
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse ress, Object comm, BindException error) throws Exception {
+	protected ModelAndView handle(Object comm) throws Exception {
         QualityReviewToolCommand cmd = (QualityReviewToolCommand) comm;
 
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
@@ -244,7 +237,6 @@ public class QualityReviewToolController extends AbstractCommandController {
 
 	/**
 	 * The URL defined for the UK Webarchive
-	 * @param ukwa
 	 */
 	public void setWebArchiveTarget(String webArchiveTarget) {
 		this.webArchiveTarget = webArchiveTarget;

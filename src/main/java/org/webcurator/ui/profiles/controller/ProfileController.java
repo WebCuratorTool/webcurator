@@ -20,13 +20,20 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
@@ -43,10 +50,11 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.ui.common.CommonViews;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.DefaultCommand;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.util.Tab;
+import org.webcurator.ui.util.TabConfig;
 import org.webcurator.ui.util.TabbedController;
 
 /**
@@ -54,17 +62,29 @@ import org.webcurator.ui.util.TabbedController;
  * @author bbeaumont
  *
  */
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
 public class ProfileController extends TabbedController {
 	/** the profile manager to use. */
+	@Autowired
 	private ProfileManager profileManager;
 	/** the agency user manager to use. */
+	@Autowired
 	private AgencyUserManager agencyUserManager;
 	/** Authority Manager */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)
-	 */
+    @Autowired
+    private ApplicationContext context;
+
+    @PostConstruct
+    protected void init() {
+        setDefaultCommandClass(DefaultCommand.class);
+        setTabConfig((TabConfig) context.getBean("profileTabConfig"));
+    }
+
 	@Override
 	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		super.initBinder(request, binder);
@@ -79,11 +99,9 @@ public class ProfileController extends TabbedController {
 		req.getSession().setAttribute(Constants.GBL_SESS_EDIT_MODE, true);
 	};
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#processSave(org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
 	@Override
-	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processSave(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                       BindingResult bindingResult) {
 		// Get the Profile out of the session.
 		Profile profile = (Profile) req.getSession().getAttribute("profile");
 
@@ -106,21 +124,22 @@ public class ProfileController extends TabbedController {
 			}
 			catch (HibernateOptimisticLockingFailureException e) {
 				Object[] vals = new Object[] {profile.getName(), profile.getOwningAgency().getName()};
-				errors.reject("profile.modified", vals, "profile has been modified by another user.");
+				bindingResult.reject("profile.modified", vals, "profile has been modified by another user.");
 
 			} catch (WCTInvalidStateRuntimeException e1) {
 				Object[] vals = new Object[] {profile.getName(), profile.getOwningAgency().getName()};
-				errors.reject("profile.inuse", vals, "inuse profile cannot be de-activated.");
+				bindingResult.reject("profile.inuse", vals, "inuse profile cannot be de-activated.");
 
 			}
 
-			if (errors.hasErrors()) {
+			if (bindingResult.hasErrors()) {
 
 				ModelAndView mav = new ModelAndView("profile-list");
 				ProfileListCommand command = new ProfileListCommand();
 
 				// TODO This looks fishy... Should this really be ProfileListCommand.ACTION_FILTER?
-		        String defaultAgency = (String)req.getSession().getAttribute(ProfileListCommand.ACTION_FILTER);
+                // Removing the reference to ProfileListCommand.ACTION_FILTER
+		        String defaultAgency = (String)req.getSession().getAttribute("filter");
 		        if(defaultAgency == null)
 		        {
 		        	defaultAgency = AuthUtil.getRemoteUserObject().getAgency().getName();
@@ -153,7 +172,7 @@ public class ProfileController extends TabbedController {
 				mav.addObject(Constants.GBL_CMD_DATA, command);
 				mav.addObject("profiles", profiles);
 				mav.addObject("agencies", agencies);
-				mav.addObject(Constants.GBL_ERRORS, errors);
+				mav.addObject(Constants.GBL_ERRORS, bindingResult);
 				return mav;
 
 			} else {
@@ -172,11 +191,9 @@ public class ProfileController extends TabbedController {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#processCancel(org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
 	@Override
-	protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
+                                         BindingResult bindingResult) {
 
 		// Remove the attributes from the session.
 		req.getSession().removeAttribute("profile");
@@ -187,11 +204,9 @@ public class ProfileController extends TabbedController {
 		return new ModelAndView("redirect:/curator/profiles/list.html?showInactive=" + showInactive);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#processInitial(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
 	@Override
-	protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) {
+	protected ModelAndView processInitial(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                          BindingResult bindingResult) {
 		DefaultCommand command = (DefaultCommand) comm;
 
 		// There are several actions handled by this controller. Each action
@@ -273,7 +288,7 @@ public class ProfileController extends TabbedController {
 						out.close();
 					}
 					catch (IOException e) {
-						errors.reject("profile.export.error");
+						bindingResult.reject("profile.export.error");
 					}
 					ModelAndView mav = new ModelAndView("profile-list");
 					ProfileListCommand cmd = new ProfileListCommand();
@@ -281,7 +296,7 @@ public class ProfileController extends TabbedController {
 					mav.addObject(Constants.GBL_CMD_DATA, cmd);
 					//mav.addObject("profiles", profiles);
 					//mav.addObject("agencies", agencies);
-					mav.addObject(Constants.GBL_ERRORS, errors);
+					mav.addObject(Constants.GBL_ERRORS, bindingResult);
 					return mav;
 				}
 			}
@@ -308,7 +323,7 @@ public class ProfileController extends TabbedController {
 		req.getSession().setAttribute(Constants.GBL_SESS_EDIT_MODE, true);
 		if(allowed) {
 			Tab general = getTabConfig().getTabByID("GENERAL");
-			TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, errors);
+			TabbedModelAndView tmav = general.getTabHandler().preProcessNextTab(this, general, req, res, null, bindingResult);
 			tmav.getTabStatus().setCurrentTab(general);
 			return tmav;
 		}
@@ -317,12 +332,10 @@ public class ProfileController extends TabbedController {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabbedController#showForm(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
-	 */
 	@Override
-	protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object command, BindException bex) throws Exception {
-		return processInitial(req, res, command, bex);
+	protected ModelAndView showForm(HttpServletRequest req, HttpServletResponse res, Object command,
+                                    BindingResult bindingResult) throws Exception {
+		return processInitial(req, res, command, bindingResult);
 	}
 
 	/**

@@ -3,7 +3,7 @@
 <%@ page import="org.webcurator.domain.model.auth.Privilege" %>
 <%@ page import="org.webcurator.ui.admin.command.RoleCommand" %>
 <%@ page import="org.webcurator.auth.tag.HasPrivilegeTag" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <%@ page import="org.springframework.context.MessageSource" %>
 <%@ page import="org.springframework.web.servlet.support.RequestContext" %>
 <%@ taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>

@@ -21,13 +21,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.archive.crawler.settings.SimpleType;
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.profiles.ComplexProfileElement;
 import org.webcurator.core.profiles.DuplicateNameException;
 import org.webcurator.core.profiles.HeritrixProfile;
 import org.webcurator.core.profiles.ProfileElement;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.profiles.renderers.AcceptAllRendererFilter;
 import org.webcurator.common.ui.profiles.renderers.RendererFilter;
 import org.webcurator.ui.util.Tab;
@@ -59,12 +59,11 @@ public class HeritrixProfileHandler extends TabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
-	public void processTab(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                           Object comm, BindingResult bindingResult) {
 
 		try {
 	        // Go through all the simple parameter types.
@@ -81,12 +80,11 @@ public class HeritrixProfileHandler extends TabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#preProcessNextTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
 	 */
 	@Override
-	public TabbedModelAndView preProcessNextTab(TabbedController tc,
-			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindException errors) {
+	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTabID, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		TabbedModelAndView tmav = tc.new TabbedModelAndView();
 		tmav.addObject("heritrixProfile", req.getSession().getAttribute("heritrixProfile"));
@@ -96,12 +94,11 @@ public class HeritrixProfileHandler extends TabHandler {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
+	 * @see org.webcurator.ui.util.TabHandler#processOther(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindResult)
 	 */
 	@Override
-	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest request, HttpServletResponse response, Object comm,
-			BindException errors)  {
+	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest request,
+                                     HttpServletResponse response, Object comm, BindingResult bindingResult)  {
 
 		HeritrixProfile profile = (HeritrixProfile) request.getSession().getAttribute("heritrixProfile");
 
@@ -124,7 +121,7 @@ public class HeritrixProfileHandler extends TabHandler {
 			String value = request.getParameter(elementName + ".value");
 
 			if(key.startsWith("_")) {
-				errors.reject("profile.error.illegalname", new Object[] { key }, key + " is an illegal name");
+				bindingResult.reject("profile.error.illegalname", new Object[] { key }, key + " is an illegal name");
 			}
 			else {
 				try {
@@ -132,12 +129,12 @@ public class HeritrixProfileHandler extends TabHandler {
 					profile.addMapElement(elementName, child);
 				}
 				catch (InvalidAttributeValueException e) {
-					errors.reject("profile.error.illegalvalue", new Object[] { elementName }, "Illegal value for map " + elementName);
+					bindingResult.reject("profile.error.illegalvalue", new Object[] { elementName }, "Illegal value for map " + elementName);
 					e.printStackTrace();
 				}
 				catch (DuplicateNameException ex) {
 					ex.printStackTrace();
-					errors.reject("profile.error.duplicate_map_element", new Object[] { ex.getDupeName() }, "Attempt to add element to map with a duplicate name");
+					bindingResult.reject("profile.error.duplicate_map_element", new Object[] { ex.getDupeName() }, "Attempt to add element to map with a duplicate name");
 				}
 			}
 		}
@@ -148,7 +145,7 @@ public class HeritrixProfileHandler extends TabHandler {
 			String type = request.getParameter("newElemType");
 
 	    	if(key.startsWith("_")) {
-				errors.reject("profile.error.illegalname", new Object[] { key }, key + " is an illegal name");
+				bindingResult.reject("profile.error.illegalname", new Object[] { key }, key + " is an illegal name");
 			}
 			else {
 		    	try {
@@ -156,8 +153,8 @@ public class HeritrixProfileHandler extends TabHandler {
 		    	}
 		    	catch(DuplicateNameException ex) {
 
-		    		errors.reject("profile.error.duplicate_map_element", new Object[] { ex.getDupeName() }, "Attempt to add element to map with a duplicate name");
-		    		//errors.addError(new ObjectError("profile", ));
+		    		bindingResult.reject("profile.error.duplicate_map_element", new Object[] { ex.getDupeName() }, "Attempt to add element to map with a duplicate name");
+		    		//bindingResult.addError(new ObjectError("profile", ));
 		    	}
 			}
 	    }
@@ -173,8 +170,8 @@ public class HeritrixProfileHandler extends TabHandler {
 		tmav.addObject("baseAttribute", baseAttribute);
 		tmav.addObject("recursionFilter", recursionFilter);
 
-		if(errors.hasErrors()) {
-			tmav.addObject(Constants.GBL_ERRORS, errors);
+		if(bindingResult.hasErrors()) {
+			tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 		}
 
 		return tmav;

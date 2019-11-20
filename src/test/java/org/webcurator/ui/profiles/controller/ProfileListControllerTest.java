@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.auth.AuthorityManagerImpl;
@@ -26,7 +27,7 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
 	public ProfileListControllerTest()
 	{
 		super(ProfileListController.class,
-				"src/test/java/org/webcurator/ui/profiles/controller/ProfileListControllerTest.xml");
+                "/org/webcurator/ui/profiles/controller/ProfileListControllerTest.xml");
 	}
 
 	private void performTestGetView(int scope, String privilege, boolean showInactive)
@@ -41,7 +42,6 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
 		}
 		ProfileListCommand comm = new ProfileListCommand();
 		comm.setShowInactive(showInactive);
-		comm.setActionCommand(ProfileListCommand.ACTION_LIST);
 		mav = testInstance.getView(comm);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("profile-list"));
@@ -69,70 +69,118 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
 		}
 	}
 
-	private void performTestHandle(String action, int scope, String privilege, boolean showInactive)
-	{
-		ModelAndView mav = null;
+    private void performTestFilter(int scope, String privilege, boolean showInactive)
+    {
+        ModelAndView mav = null;
 
-		this.removeAllCurrentUserPrivileges();
+        this.removeAllCurrentUserPrivileges();
 
-		if(scope >= 0)
-		{
-			this.addCurrentUserPrivilege(scope, privilege);
-		}
+        if(scope >= 0)
+        {
+            this.addCurrentUserPrivilege(scope, privilege);
+        }
 
-		try
-		{
-			HttpServletRequest req = new MockHttpServletRequest();
-			HttpServletResponse res = new MockHttpServletResponse();
+        try
+        {
+            ProfileListCommand comm = new ProfileListCommand();
+            comm.setShowInactive(showInactive);
 
-			ProfileListCommand comm = new ProfileListCommand();
-			comm.setShowInactive(showInactive);
-			comm.setActionCommand(action);
+            MockHttpSession session = new MockHttpSession();
+            BindingResult bindingResult = new BindException(comm, null);
 
-			BindException errors = new BindException(comm, null);
+            mav = testInstance.filter(comm, bindingResult, session);
+            assertTrue(mav != null);
+            assertTrue(mav.getViewName().equals("profile-list"));
+            ProfileListCommand command = (ProfileListCommand)mav.getModel().get("command");
+            assertTrue(command != null);
+            assertEquals(command.isShowInactive(), showInactive);
 
-			mav = testInstance.handle(req, res, comm, errors);
-			assertTrue(mav != null);
-			assertTrue(mav.getViewName().equals("profile-list"));
-			ProfileListCommand command = (ProfileListCommand)mav.getModel().get("command");
-			assertTrue(command != null);
-			assertEquals(command.isShowInactive(), showInactive);
-			if(action.equals(ProfileListCommand.ACTION_FILTER))
-			{
-				assertTrue(command.getDefaultAgency().equals(""));
-			}
-			if(action.equals(ProfileListCommand.ACTION_LIST))
-			{
-				assertTrue(command.getDefaultAgency().equals(AuthUtil.getRemoteUserObject().getAgency().getName()));
-			}
-			List<Agency> agencies = (List<Agency>)mav.getModel().get("agencies");
-			assertTrue(agencies != null);
-			List<ProfileDTO> profiles = (List<ProfileDTO>)mav.getModel().get("profiles");
-			assertTrue(profiles != null);
-			switch(scope)
-			{
-			case -1:
-				assertTrue(agencies.size() == 0);
-				assertTrue(profiles.size() == 0);
-				break;
-			case Privilege.SCOPE_AGENCY:
-				assertTrue(agencies.size() == 1);
-				assertTrue(showInactive?profiles.size() == 3: profiles.size() == 2);
-				break;
-			case Privilege.SCOPE_ALL:
-				assertTrue(agencies.size() == 2);
-				assertTrue(showInactive?profiles.size() == 5: profiles.size() == 3);
-				break;
-			}
-			assertTrue(((Boolean)req.getSession().getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE)).equals(showInactive));
-		}
-		catch(Exception e)
-		{
-			fail(e.getClass().getName()+": "+e.getMessage());
-		}
-	}
+            assertTrue(command.getDefaultAgency().equals(""));
 
-	@Test
+            List<Agency> agencies = (List<Agency>)mav.getModel().get("agencies");
+            assertTrue(agencies != null);
+            List<ProfileDTO> profiles = (List<ProfileDTO>)mav.getModel().get("profiles");
+            assertTrue(profiles != null);
+            switch(scope)
+            {
+                case -1:
+                    assertTrue(agencies.size() == 0);
+                    assertTrue(profiles.size() == 0);
+                    break;
+                case Privilege.SCOPE_AGENCY:
+                    assertTrue(agencies.size() == 1);
+                    assertTrue(showInactive?profiles.size() == 3: profiles.size() == 2);
+                    break;
+                case Privilege.SCOPE_ALL:
+                    assertTrue(agencies.size() == 2);
+                    assertTrue(showInactive?profiles.size() == 5: profiles.size() == 3);
+                    break;
+            }
+            assertTrue((session.getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE)).equals(showInactive));
+        }
+        catch(Exception e)
+        {
+            fail(e.getClass().getName()+": "+e.getMessage());
+        }
+    }
+
+    private void performTestList(int scope, String privilege, boolean showInactive)
+    {
+        ModelAndView mav = null;
+
+        this.removeAllCurrentUserPrivileges();
+
+        if(scope >= 0)
+        {
+            this.addCurrentUserPrivilege(scope, privilege);
+        }
+
+        try
+        {
+            ProfileListCommand comm = new ProfileListCommand();
+            comm.setShowInactive(showInactive);
+
+            MockHttpSession session = new MockHttpSession();
+            BindingResult bindingResult = new BindException(comm, null);
+
+            mav = testInstance.defaultList(comm, bindingResult, session);
+            assertTrue(mav != null);
+            assertTrue(mav.getViewName().equals("profile-list"));
+            ProfileListCommand command = (ProfileListCommand)mav.getModel().get("command");
+            assertTrue(command != null);
+            assertEquals(command.isShowInactive(), showInactive);
+
+            assertTrue(command.getDefaultAgency().equals(AuthUtil.getRemoteUserObject().getAgency().getName()));
+
+            List<Agency> agencies = (List<Agency>)mav.getModel().get("agencies");
+            assertTrue(agencies != null);
+            List<ProfileDTO> profiles = (List<ProfileDTO>)mav.getModel().get("profiles");
+            assertTrue(profiles != null);
+            switch(scope)
+            {
+                case -1:
+                    assertTrue(agencies.size() == 0);
+                    assertTrue(profiles.size() == 0);
+                    break;
+                case Privilege.SCOPE_AGENCY:
+                    assertTrue(agencies.size() == 1);
+                    assertTrue(showInactive?profiles.size() == 3: profiles.size() == 2);
+                    break;
+                case Privilege.SCOPE_ALL:
+                    assertTrue(agencies.size() == 2);
+                    assertTrue(showInactive?profiles.size() == 5: profiles.size() == 3);
+                    break;
+            }
+            assertTrue((session.getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE)).equals(showInactive));
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            fail(e.getClass().getName()+": "+e.getMessage());
+        }
+    }
+
+    @Test
 	public final void testProfileListController() {
 		assertTrue(testInstance != null);
 	}
@@ -144,26 +192,26 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
 		this.testSetAuthorityManager();
 		this.testSetProfileManager();
 
-		performTestHandle(ProfileListCommand.ACTION_LIST, -1, "", false);
-		performTestHandle(ProfileListCommand.ACTION_LIST, -1, "", true);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, true);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, true);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, true);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_LIST, Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, true);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, -1, "", false);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, -1, "", true);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, true);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, true);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, true);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, false);
-		performTestHandle(ProfileListCommand.ACTION_FILTER, Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, true);
+		performTestList(-1, "", false);
+        performTestList(-1, "", true);
+        performTestList(Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, false);
+        performTestList(Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, true);
+        performTestList(Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, false);
+        performTestList(Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, true);
+        performTestList(Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, false);
+        performTestList(Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, true);
+        performTestList(Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, false);
+        performTestList(Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, true);
+		performTestFilter(-1, "", false);
+		performTestFilter(-1, "", true);
+		performTestFilter(Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, false);
+		performTestFilter(Privilege.SCOPE_AGENCY, Privilege.VIEW_PROFILES, true);
+		performTestFilter(Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, false);
+		performTestFilter(Privilege.SCOPE_AGENCY, Privilege.MANAGE_PROFILES, true);
+		performTestFilter(Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, false);
+		performTestFilter(Privilege.SCOPE_ALL, Privilege.VIEW_PROFILES, true);
+		performTestFilter(Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, false);
+		performTestFilter(Privilege.SCOPE_ALL, Privilege.MANAGE_PROFILES, true);
 	}
 
 	@Test

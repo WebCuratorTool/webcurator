@@ -1,13 +1,12 @@
 package org.webcurator.ui.admin.controller;
 
 import static org.junit.Assert.*;
-import java.util.*;
 
 
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
-import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.*;
 import org.webcurator.ui.admin.command.*;
@@ -16,22 +15,12 @@ import org.webcurator.core.admin.PermissionTemplateManagerImpl;
 import org.webcurator.core.agency.*;
 import org.webcurator.domain.MockPermissionTemplateDAO;
 import org.webcurator.domain.MockUserRoleDAO;
-import org.webcurator.domain.model.auth.Agency;
-
-
-final class MockAgencyUserManager extends AgencyUserManagerImpl {
-
-	   public List getAgenciesForTemplatePriv() {
-	             List<Agency> singleAgency = new ArrayList<Agency>();
-	             return singleAgency;
-	   }
-}
 
 public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
 	public TemplateControllerTest()
 	{
-		super(TemplateController.class, "src/test/java/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
+		super(TemplateController.class, "/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
 
 	}
 
@@ -43,16 +32,11 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 		setUpController();
 
 		TemplateCommand aCmd = setUpCommand(action, 1);
-		BindException aError = new BindException(aCmd, action);
-
-
-		MockHttpServletRequest aReq = new MockHttpServletRequest();
-		MockHttpServletResponse aRes = new MockHttpServletResponse();
-
+        BindingResult bindingResult = new BindException(aCmd, action);
 
 		try
 		{
-			ModelAndView mav = testInstance.processFormSubmission(aReq, aRes, aCmd, aError);
+			ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult);
 			assertTrue(mav.getViewName().equals("view-template"));
 		}
 		catch(Exception e)
@@ -71,16 +55,15 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
 	private void setUpController() {
 
-		TemplateController controller = new TemplateController();
 		AgencyUserManagerImpl aum = new AgencyUserManagerImpl();
-		MockUserRoleDAO murDao = new MockUserRoleDAO("src/test/java/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
+		MockUserRoleDAO murDao = new MockUserRoleDAO("/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
 		aum.setUserRoleDAO(murDao);
 		aum.setAuthorityManager(new AuthorityManagerImpl());
 		testInstance.setAgencyUserManager(aum);
 
 		testInstance.setMessageSource(new MockMessageSource());
 
-		MockPermissionTemplateDAO ptDAO = new MockPermissionTemplateDAO("src/test/java/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
+		MockPermissionTemplateDAO ptDAO = new MockPermissionTemplateDAO("/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
 		PermissionTemplateManagerImpl ptm = new PermissionTemplateManagerImpl();
 		ptm.setPermissionTemplateDAO(ptDAO);
 		ptm.setAuthorityManager(new AuthorityManagerImpl());
@@ -96,15 +79,11 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 		setUpController();
 
 		TemplateCommand aCmd = setUpCommand(action, 0);
-		BindException aError = new BindException(aCmd, action);
-
-
-		MockHttpServletRequest aReq = new MockHttpServletRequest();
-		MockHttpServletResponse aRes = new MockHttpServletResponse();
+        BindingResult bindingResult = new BindException(aCmd, action);
 
 		try
 		{
-			ModelAndView mav = testInstance.processFormSubmission(aReq, aRes, aCmd, aError);
+			ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult);
 			assertTrue(mav.getViewName().equals("add-template"));
 		}
 		catch(Exception e)
@@ -121,15 +100,11 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 		setUpController();
 
 		TemplateCommand aCmd = setUpCommand(action, 1);
-		BindException aError = new BindException(aCmd, action);
-
-
-		MockHttpServletRequest aReq = new MockHttpServletRequest();
-		MockHttpServletResponse aRes = new MockHttpServletResponse();
+        BindingResult bindingResult = new BindException(aCmd, action);
 
 		try
 		{
-			ModelAndView mav = testInstance.processFormSubmission(aReq, aRes, aCmd, aError);
+			ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult);
 			assertTrue(mav.getViewName().equals("add-template"));
 		}
 		catch(Exception e)
@@ -145,15 +120,11 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 		setUpController();
 
 		TemplateCommand aCmd = setUpCommand(action, 1);
-		BindException aError = new BindException(aCmd, action);
-
-
-		MockHttpServletRequest aReq = new MockHttpServletRequest();
-		MockHttpServletResponse aRes = new MockHttpServletResponse();
+        BindingResult bindingResult = new BindException(aCmd, action);
 
 		try
 		{
-			ModelAndView mav = testInstance.processFormSubmission(aReq, aRes, aCmd, aError);
+			ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult);
 			assertTrue(mav.getViewName().equals("view-templates"));
 		}
 		catch(Exception e)

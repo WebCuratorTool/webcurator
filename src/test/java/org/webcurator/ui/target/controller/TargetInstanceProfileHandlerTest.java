@@ -13,6 +13,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
@@ -37,7 +38,7 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 	public TargetInstanceProfileHandlerTest()
 	{
 		super(TargetInstanceProfileHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetInstanceProfileHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetInstanceProfileHandlerTest.xml");
 	}
 
 
@@ -184,8 +185,8 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 		aCmd.setExcludedMimeTypes("OverrideTest1");
 		aCmd.setOverrideTarget(true);
 
-		BindException aErrors = new BindException(aCmd, aCmd.getActionCmd());
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getActionCmd());
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetInstance.getOverrides().getExcludedMimeTypes().equals("OverrideTest1"));
 
 	}
@@ -219,8 +220,8 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 		aCmd.setExcludedMimeTypes("OverrideTest2");
 		aCmd.setOverrideTarget(true);
 
-		BindException aErrors = new BindException(aCmd, aCmd.getActionCmd());
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getActionCmd());
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertFalse(targetInstance.getOverrides().getExcludedMimeTypes().equals("OverrideTest2"));
 
 	}
@@ -249,8 +250,8 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetInstanceCommand.class);
 
 		Tab currentTab = tabs.get(1);
-		BindException aErrors = new BindException(aCmd, aCmd.getActionCmd());
-		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getActionCmd());
+		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(((TargetInstanceProfileCommand)mav.getModel().get("command")).getExcludedMimeTypes().equals(targetInstance.getProfileOverrides().getExcludedMimeTypes()));
 	}
 
@@ -278,8 +279,8 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setActionCmd("toggleOverride");
-		BindException aErrors = new BindException(aCmd, aCmd.getActionCmd());
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getActionCmd());
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 	}
 

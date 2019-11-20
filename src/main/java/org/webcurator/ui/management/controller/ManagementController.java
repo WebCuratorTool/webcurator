@@ -15,31 +15,33 @@
  */
 package org.webcurator.ui.management.controller;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
-import org.webcurator.common.Constants;
-import org.webcurator.ui.management.command.ManagementCommand;
+import org.webcurator.common.ui.Constants;
 
 /**
  * Controller to render the management "menu" tab.
  * @author bprice
  */
-public class ManagementController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@PropertySource(value = "classpath:wct-webapp.properties")
+public class ManagementController {
 
 	/** enables the Management page (QA version) when true **/
-	private boolean enableQaModule = false;
+    @Value("${queueController.enableQaModule}")
+	private boolean enableQaModule;
 
-    public ManagementController() {
-        super();
-        setCommandClass(ManagementCommand.class);
-    }
-
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aRes, BindException aError) throws Exception {
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/admin/management.html")
+    protected ModelAndView showForm() throws Exception {
         ModelAndView mav = new ModelAndView();
 
         if (!enableQaModule) {
@@ -50,8 +52,7 @@ public class ManagementController extends AbstractFormController {
         return mav;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes, Object aCmd, BindException aError) throws Exception {
+    protected ModelAndView processFormSubmission() throws Exception {
         // TODO Implement this if we require a POST version of the management screen
         return null;
     }

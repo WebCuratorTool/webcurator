@@ -12,6 +12,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -25,7 +26,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.command.DefaultSiteCommand;
 import org.webcurator.ui.site.command.SiteCommand;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
@@ -36,7 +37,7 @@ import org.webcurator.ui.util.TabConfig;
 public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTargetInstanceController> {
 	public TabbedTargetInstanceControllerTest()
 	{
-		super(TabbedTargetInstanceController.class, "src/test/java/org/webcurator/ui/target/controller/TabbedTargetInstanceControllerTest.xml");
+		super(TabbedTargetInstanceController.class, "/org/webcurator/ui/target/controller/TabbedTargetInstanceControllerTest.xml");
 	}
 	TargetInstanceManager manager;
 	AuthorityManagerImpl authorityManager;
@@ -104,8 +105,8 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 			comm.setCmd(TargetInstanceCommand.ACTION_EDIT);
 			comm.setTargetInstanceId(5000L);
 
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("target-instance"));
 			//TargetEditorContext context = testInstance.getEditorContext(request);
@@ -138,12 +139,12 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new TargetDefaultCommand(), null);
-			testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new TargetDefaultCommand(), null);
+			testInstance.showForm(request, response, comm, bindingResult);
 			//context = testInstance.getEditorContext(request);
 			//context.getTarget().setName("Test Target");
 			//context.setParents(new ArrayList<GroupMemberDTO>());
-			ModelAndView mav = testInstance.processSave(currTab, request, response, comm, aError);
+			ModelAndView mav = testInstance.processSave(currTab, request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("TargetInstanceQueue"));
 			assertTrue(mav.getModel().get("page_message") != null);
@@ -170,8 +171,8 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 
 			Tab currTab = testInstance.getTabConfig().getTabs().get(0);
 			assertTrue(currTab != null);
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.processCancel(currTab, request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.processCancel(currTab, request, response, comm, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("redirect:/curator/target/queue.html"));
 		}
@@ -226,8 +227,8 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 			assertFalse(authorityManager.hasAtLeastOnePrivilege(ti,privs));
 
 
-			BindException aError = new BindException(new DefaultSiteCommand(), null);
-			ModelAndView mav = testInstance.showForm(request, response, comm, aError);
+            BindingResult bindingResult = new BindException(new DefaultSiteCommand(), null);
+			ModelAndView mav = testInstance.showForm(request, response, comm, bindingResult);
 
 			assertFalse((Boolean)request.getSession().getAttribute(Constants.GBL_SESS_CAN_EDIT));
 
@@ -235,7 +236,7 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 
 			assertTrue(authorityManager.hasAtLeastOnePrivilege(ti,privs));
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 			//assertTrue(mav != null);
 			//assertTrue(mav.getViewName().equals("site"));
 
@@ -249,7 +250,7 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 
 			assertTrue(authorityManager.hasAtLeastOnePrivilege(ti,privs));
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 
 			assertTrue((Boolean)request.getSession().getAttribute(Constants.GBL_SESS_CAN_EDIT));
 
@@ -264,7 +265,7 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 
 			assertTrue(authorityManager.hasAtLeastOnePrivilege(ti,privs));
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 			//assertTrue(mav != null);
 			//assertTrue(mav.getViewName().equals("site"));
 
@@ -278,7 +279,7 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 
 			assertTrue(authorityManager.hasAtLeastOnePrivilege(ti,privs));
 
-			mav = testInstance.showForm(request, response, comm, aError);
+			mav = testInstance.showForm(request, response, comm, bindingResult);
 
 			assertTrue((Boolean)request.getSession().getAttribute(Constants.GBL_SESS_CAN_EDIT));
 

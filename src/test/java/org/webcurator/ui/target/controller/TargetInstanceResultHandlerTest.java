@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
@@ -43,7 +44,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 	public TargetInstanceResultHandlerTest()
 	{
 		super(TargetInstanceResultHandler.class,
-				"src/test/java/org/webcurator/ui/target/controller/TargetInstanceResultHandlerTest.xml");
+                "/org/webcurator/ui/target/controller/TargetInstanceResultHandlerTest.xml");
 
 	}
 
@@ -126,9 +127,9 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		TargetInstanceCommand aCmd = new TargetInstanceCommand();
 		aCmd.setCmd(TargetInstanceCommand.ACTION_ENDORSE);
 		aCmd.setHarvestResultId(result.getOid());
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("targetInstance"));
 		assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("RESULTS"));
@@ -147,9 +148,9 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		aCmd = new TargetInstanceCommand();
 		aCmd.setCmd(TargetInstanceCommand.ACTION_UNENDORSE);
 		aCmd.setHarvestResultId(result.getOid());
-		aErrors = new BindException(aCmd, aCmd.getCmd());
+		bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("targetInstance"));
 		assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("RESULTS"));
@@ -201,9 +202,9 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		aCmd.setCmd(TargetInstanceCommand.ACTION_REJECT);
 		aCmd.setHarvestResultId(result.getOid());
 		aCmd.setRejReasonId(1L);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("targetInstance"));
 		assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("RESULTS"));
@@ -255,9 +256,9 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_REJECT);
 		aCmd.setHarvestResultId(result.getOid());
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("targetInstance"));
 		assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("RESULTS"));
@@ -307,15 +308,15 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		aCmd.setHarvestResultId(result.getOid());
 		coordinator.setReIndexHarvestResultReturnValue(true);
 		result.setState(HarvestResult.STATE_INDEXING);
-		BindException aErrors = new BindException(aCmd, aCmd.getCmd());
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("targetInstance"));
 		assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("RESULTS"));
 		assertEquals(targetInstance.getState(),TargetInstance.STATE_HARVESTED);
 		assertEquals(result.getState(), HarvestResult.STATE_ABORTED);
-		assertFalse(aErrors.hasErrors());
+		assertFalse(bindingResult.hasErrors());
 
 		//Reindex unsuccessful
 		aCmd = new TargetInstanceCommand();
@@ -323,15 +324,15 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		aCmd.setHarvestResultId(result.getOid());
 		coordinator.setReIndexHarvestResultReturnValue(false);
 		result.setState(HarvestResult.STATE_INDEXING);
-		aErrors = new BindException(aCmd, aCmd.getCmd());
+		bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("targetInstance"));
 		assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("RESULTS"));
 		assertEquals(targetInstance.getState(),TargetInstance.STATE_HARVESTED);
 		assertEquals(result.getState(), HarvestResult.STATE_INDEXING);
-		assertTrue(aErrors.hasErrors());
+		assertTrue(bindingResult.hasErrors());
 
 		//Reindex not tried due to not in indexing state
 		aCmd = new TargetInstanceCommand();
@@ -339,15 +340,15 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		aCmd.setHarvestResultId(result.getOid());
 		coordinator.setReIndexHarvestResultReturnValue(false);
 		result.setState(0);
-		aErrors = new BindException(aCmd, aCmd.getCmd());
+		bindingResult = new BindException(aCmd, aCmd.getCmd());
 
-		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertTrue(mav.getViewName().equals("targetInstance"));
 		assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("RESULTS"));
 		assertEquals(targetInstance.getState(),TargetInstance.STATE_HARVESTED);
 		assertEquals(result.getState(), 0);
-		assertFalse(aErrors.hasErrors());
+		assertFalse(bindingResult.hasErrors());
 		List<HarvestResult> removedIndexes = coordinator.getRemovedIndexes();
 		assertEquals(0,removedIndexes.size());
 		removedIndexes.clear();

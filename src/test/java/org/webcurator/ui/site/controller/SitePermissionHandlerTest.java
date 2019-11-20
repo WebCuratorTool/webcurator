@@ -18,26 +18,22 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.sites.MockSiteManagerImpl;
 import org.webcurator.core.sites.SiteManager;
-import org.webcurator.core.targets.MockTargetManager;
-import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.Annotation;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
-import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.SitePermissionCommand;
 import org.webcurator.ui.site.validator.SiteValidator;
 import org.webcurator.ui.target.command.TargetAnnotationCommand;
-import org.webcurator.ui.target.controller.TargetAnnotationHandler;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
-import org.webcurator.ui.util.TabStatus;
 import org.webcurator.ui.util.TabbedController;
 
 public class SitePermissionHandlerTest extends BaseWCTTest<SitePermissionHandler> {
@@ -45,7 +41,7 @@ public class SitePermissionHandlerTest extends BaseWCTTest<SitePermissionHandler
 	public SitePermissionHandlerTest()
 	{
 		super(SitePermissionHandler.class,
-				"src/test/java/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
+                "/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
 	}
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.UK);
@@ -150,9 +146,9 @@ public class SitePermissionHandlerTest extends BaseWCTTest<SitePermissionHandler
 			tc.setTabConfig(tabConfig);
 
 			Tab currentTab = tabs.get(1);
-			BindException aErrors = new BindException(aCmd, aCmd.getActionCmd());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getActionCmd());
 
-			ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertNotNull(mav);
 			assertFalse(checkSortedList(site.getAnnotations()));
 		}
@@ -197,18 +193,18 @@ public class SitePermissionHandlerTest extends BaseWCTTest<SitePermissionHandler
 			tc.setTabConfig(tabConfig);
 
 			Tab currentTab = tabs.get(1);
-			BindException aErrors = new BindException(aCmd, aCmd.getActionCmd());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getActionCmd());
 
 			aReq.addParameter("_new", "");
 
-			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertNotNull(mav);
 
 			aReq.removeParameter("_new");
 			aReq.addParameter("_edit_permission", "");
 
 			aCmd.setSelectedPermission("7000");
-			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertNotNull(mav);
 			Permission permission = (Permission) ctx.getObject(Permission.class, "7000");
 			assertNotNull(permission);

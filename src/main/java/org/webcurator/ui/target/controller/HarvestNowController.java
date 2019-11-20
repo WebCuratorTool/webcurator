@@ -20,49 +20,67 @@ import java.util.Iterator;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
-import org.springframework.validation.BindException;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
+import org.webcurator.ui.target.validator.HarvestNowValidator;
 
 /**
  * This controller is responsible for allocating a TargetInstance to a
  * Harvest Agent immediatly.
  * @author nwaight
  */
-public class HarvestNowController extends AbstractFormController {
+// TODO Is this mapping even used?
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+@RequestMapping("/curator/target/harvest-now.html")
+public class HarvestNowController {
     /** The manager to use to access the target instance. */
+    @Autowired
     private TargetInstanceManager targetInstanceManager;
     /** The harvest coordinator for looking at the harvesters. */
+    @Autowired
     private HarvestCoordinator harvestCoordinator;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
     /** the logger. */
     private Log log;
+
+    @Autowired
+    private HarvestNowValidator validator;
 
     /**
      * Constructor to set the command class for this controller.
      */
     public HarvestNowController() {
         super();
-        setCommandClass(TargetInstanceCommand.class);
         log = LogFactory.getLog(HarvestNowController.class);
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest aReq,
-            HttpServletResponse aResp, BindException aErrs) throws Exception {
+    @GetMapping
+    protected ModelAndView showForm() throws Exception {
         if (log.isWarnEnabled()) {
             log.warn("the showForm method is not supported in this class.");
         }
@@ -70,12 +88,11 @@ public class HarvestNowController extends AbstractFormController {
         return null;
     }
 
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aResp, Object aCmd, BindException aErrs)
+    @PostMapping
+    protected ModelAndView processFormSubmission(@Validated @ModelAttribute("targetInstanceCommand") TargetInstanceCommand cmd,
+                                                 BindingResult bindingResult, HttpServletRequest aReq)
             throws Exception {
 
-    	TargetInstanceCommand cmd = (TargetInstanceCommand) aCmd;
     	if (!cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             aReq.getSession().removeAttribute(TargetInstanceCommand.SESSION_TI);
             return new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE);
@@ -98,11 +115,11 @@ public class HarvestNowController extends AbstractFormController {
 			}
 		}
 
-        if (aErrs.hasErrors()) {
+        if (bindingResult.hasErrors()) {
         	ModelAndView mav = new ModelAndView();
-            mav.addObject(Constants.GBL_CMD_DATA, aCmd);
+            mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, allowedAgents);
-        	mav.addObject(Constants.GBL_ERRORS, aErrs);
+        	mav.addObject(Constants.GBL_ERRORS, bindingResult);
             mav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
 
@@ -122,9 +139,9 @@ public class HarvestNowController extends AbstractFormController {
         else if(!has.isAcceptTasks()) {
 			// Display a global message and return to queue
 			mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.agent.paused", new Object[] { ti.getOid(), has.getName() }, Locale.getDefault()));
-            mav.addObject(Constants.GBL_CMD_DATA, aCmd);
+            mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, allowedAgents);
-        	mav.addObject(Constants.GBL_ERRORS, aErrs);
+        	mav.addObject(Constants.GBL_ERRORS, bindingResult);
             mav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
 

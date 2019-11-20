@@ -20,10 +20,14 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.BindException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.sites.SiteManager;
@@ -33,7 +37,7 @@ import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Permission;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.command.TransferSeedsCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
@@ -42,24 +46,31 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * Controls the Transfer Seeds Action.
  * @author bbeaumont
  */
-public class TransferSeedsController extends AbstractCommandController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class TransferSeedsController {
 	/** The TargetManager responsible for business operations. */
-	private TargetManager targetManager = null;
+	@Autowired
+	private TargetManager targetManager;
 	/** The SiteManager responsible for site related operations. */
-	private SiteManager siteManager = null;
+	@Autowired
+	private SiteManager siteManager;
 	/** The Site Controller that flow should return to. */
-	private SiteController siteController = null;
+	@Autowired
+	private SiteController siteController ;
 	/** Message Source */
-	private MessageSource messageSource = null;
+	@Autowired
+	private MessageSource messageSource;
 	/** Authority Manager */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 
 
 	/**
 	 * Set up the controller by setting the command class.
 	 */
 	public TransferSeedsController() {
-		setCommandClass(TransferSeedsCommand.class);
 	}
 
 
@@ -67,37 +78,37 @@ public class TransferSeedsController extends AbstractCommandController {
 	 * Pass the control of the action over to one of the specific handler
 	 * methods.
 	 */
-	@Override
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 		TransferSeedsCommand command = (TransferSeedsCommand) comm;
 
 		if(TransferSeedsCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
-			return handleCancel(req, res, command, errors);
+			return handleCancel(req, res, command, bindingResult);
 		}
 		else if(TransferSeedsCommand.ACTION_NEXT.equals(command.getActionCmd())) {
-			return handleNext(req, res, command, errors);
+			return handleNext(req, command);
 		}
 		else if(TransferSeedsCommand.ACTION_PREV.equals(command.getActionCmd())) {
-			return handlePrev(req, res, command, errors);
+			return handlePrev(req, command);
 		}
 		else if(TransferSeedsCommand.ACTION_SEARCH.equals(command.getActionCmd())) {
-			return handleSearch(req, res, command, errors);
+			return handleSearch(req, command);
 		}
 		else if(TransferSeedsCommand.ACTION_TRANSFER.equals(command.getActionCmd())) {
-			return handleTransfer(req, res, command, errors);
+			return handleTransfer(req, res, command, bindingResult);
 		}
 		else if(TransferSeedsCommand.ACTION_INIT.equals(command.getActionCmd())) {
-			// Check if there are any errors.
-			siteController.checkSave(req, errors);
-			if(errors.hasErrors()) {
+			// Check if there are any bindingResult.
+			siteController.checkSave(req, bindingResult);
+			if(bindingResult.hasErrors()) {
 				Tab currentTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-				return siteController.getErrorsView(currentTab, req, res, comm, errors);
+				return siteController.getErrorsView(currentTab, req, res, comm, bindingResult);
 			}
 
 			// Save the Site.
 			try {
 				siteManager.save(siteController.getEditorContext(req).getSite());
-				return handleSearch(req, res, command, errors);
+				return handleSearch(req, command);
 			}
 			catch (Exception ex) {
 				throw new WCTRuntimeException(ex.getMessage(), ex);
@@ -112,12 +123,10 @@ public class TransferSeedsController extends AbstractCommandController {
 	/**
 	 * Handle search.
 	 * @param req The servlet request.
-	 * @param res The servlet response.
 	 * @param command The TransferSeedsCommand object.
-	 * @param errors The bind errors.
 	 * @return The ModelAndView to be displayed.
 	 */
-	protected ModelAndView handleSearch(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command, BindException errors) {
+	protected ModelAndView handleSearch(HttpServletRequest req, TransferSeedsCommand command) {
 		PermissionCriteria criteria = new PermissionCriteria();
 		criteria.setAgencyOid(AuthUtil.getRemoteUserObject().getAgency().getOid());
 		criteria.setSiteName(command.getSiteTitle());
@@ -165,15 +174,16 @@ public class TransferSeedsController extends AbstractCommandController {
 	 * @param req The servlet request.
 	 * @param res The servlet response.
 	 * @param command The TransferSeedsCommand object.
-	 * @param errors The bind errors.
+	 * @param bindingResult The bind bindingResult.
 	 * @return The ModelAndView to be displayed.
 	 */
-	protected ModelAndView handleTransfer(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command, BindException errors) {
+	protected ModelAndView handleTransfer(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command,
+                                          BindingResult bindingResult) {
 
-		if(errors.hasErrors()) {
+		if(bindingResult.hasErrors()) {
 			PermissionCriteria criteria = (PermissionCriteria) req.getSession().getAttribute("permSearchCriteria");
 			ModelAndView mav = getSearchView(command, criteria);
-			mav.addObject(Constants.GBL_ERRORS, errors);
+			mav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return mav;
 		}
 		else {
@@ -194,7 +204,7 @@ public class TransferSeedsController extends AbstractCommandController {
 
 
 			Tab currentTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(siteController, currentTab, req, res, command, errors);
+			TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(siteController, currentTab, req, res, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(currentTab);
 
 			tmav.addObject(Constants.GBL_MESSAGES, message);
@@ -207,12 +217,10 @@ public class TransferSeedsController extends AbstractCommandController {
 	/**
 	 * Handle next.
 	 * @param req The servlet request.
-	 * @param res The servlet response.
 	 * @param command The TransferSeedsCommand object.
-	 * @param errors The bind errors.
 	 * @return The ModelAndView to be displayed.
 	 */
-	protected ModelAndView handleNext(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command, BindException errors) {
+	protected ModelAndView handleNext(HttpServletRequest req, TransferSeedsCommand command) {
 		PermissionCriteria criteria = (PermissionCriteria) req.getSession().getAttribute("permSearchCriteria");
 		criteria.setPageNumber(criteria.getPageNumber() + 1);
 		return getSearchView(command, criteria);
@@ -222,12 +230,10 @@ public class TransferSeedsController extends AbstractCommandController {
 	/**
 	 * Handle previous.
 	 * @param req The servlet request.
-	 * @param res The servlet response.
 	 * @param command The TransferSeedsCommand object.
-	 * @param errors The bind errors.
 	 * @return The ModelAndView to be displayed.
 	 */
-	protected ModelAndView handlePrev(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command, BindException errors) {
+	protected ModelAndView handlePrev(HttpServletRequest req, TransferSeedsCommand command) {
 		PermissionCriteria criteria = (PermissionCriteria) req.getSession().getAttribute("permSearchCriteria");
 		criteria.setPageNumber(criteria.getPageNumber() - 1);
 		return getSearchView(command, criteria);
@@ -238,12 +244,13 @@ public class TransferSeedsController extends AbstractCommandController {
 	 * @param req The servlet request.
 	 * @param res The servlet response.
 	 * @param command The TransferSeedsCommand object.
-	 * @param errors The bind errors.
+	 * @param bindingResult The bind bindingResult.
 	 * @return The ModelAndView to be displayed.
 	 */
-	protected ModelAndView handleCancel(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command, BindException errors) {
+	protected ModelAndView handleCancel(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command,
+                                        BindingResult bindingResult) {
 		Tab currentTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-		TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(siteController, currentTab, req, res, command, errors);
+		TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(siteController, currentTab, req, res, command, bindingResult);
 		tmav.getTabStatus().setCurrentTab(currentTab);
 
 		tmav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("site.seeds_transfer_cancelled", new Object[] { }, Locale.getDefault()));

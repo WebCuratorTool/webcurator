@@ -5,8 +5,6 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.validation.BindException;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.auth.AuthorityManagerImpl;
@@ -23,7 +21,7 @@ public class AssociateUserRoleControllerTest extends BaseWCTTest<AssociateUserRo
 	public AssociateUserRoleControllerTest()
 	{
 		super(AssociateUserRoleController.class,
-				"src/test/java/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
+                "/org/webcurator/ui/admin/controller/CreateUserControllerTest.xml");
 	}
 
 	@Test
@@ -36,16 +34,14 @@ public class AssociateUserRoleControllerTest extends BaseWCTTest<AssociateUserRo
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
 			AssociateUserRoleCommand command = new AssociateUserRoleCommand();
 			command.setChoosenUserOid(1001L);
 			command.setActionCmd(AssociateUserRoleCommand.ACTION_ASSOCIATE_VIEW);
-			BindException aError = new BindException(new AssociateUserRoleCommand(), AssociateUserRoleCommand.ACTION_ASSOCIATE_VIEW);
 			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
 			testInstance.setAgencyUserManager(manager);
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
-			ModelAndView mav = testInstance.processFormSubmission(request, response, command, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, command);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUserRoleAssociations"));
 			String chosenUser = (String)mav.getModel().get(AssociateUserRoleCommand.MDL_USER);
@@ -65,7 +61,6 @@ public class AssociateUserRoleControllerTest extends BaseWCTTest<AssociateUserRo
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
 			AssociateUserRoleCommand command = new AssociateUserRoleCommand();
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
@@ -76,8 +71,7 @@ public class AssociateUserRoleControllerTest extends BaseWCTTest<AssociateUserRo
 			command.setChoosenUserOid(1001L);
 			command.setSelectedRoles("3001");
 			command.setActionCmd(AssociateUserRoleCommand.ACTION_ASSOCIATE_SAVE);
-			BindException aError = new BindException(new AssociateUserRoleCommand(), AssociateUserRoleCommand.ACTION_ASSOCIATE_VIEW);
-			ModelAndView mav = testInstance.processFormSubmission(request, response, command, aError);
+			ModelAndView mav = testInstance.processFormSubmission(request, command);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUsers"));
 			assertTrue(mav.getModel().get(UserCommand.MDL_AGENCIES)!= null);
@@ -101,10 +95,7 @@ public class AssociateUserRoleControllerTest extends BaseWCTTest<AssociateUserRo
 	public final void testShowForm() {
 		try
 		{
-			MockHttpServletRequest request = new MockHttpServletRequest();
-			MockHttpServletResponse response = new MockHttpServletResponse();
-			BindException aError = new BindException(new AssociateUserRoleCommand(), AssociateUserRoleCommand.ACTION_ASSOCIATE_VIEW);
-			ModelAndView mav = testInstance.showForm(request, response, aError);
+			ModelAndView mav = testInstance.showForm();
 			assertTrue(mav == null);
 		}
 		catch (Exception e)

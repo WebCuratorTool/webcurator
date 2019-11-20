@@ -6,7 +6,7 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="org.webcurator.ui.admin.command.AssociateUserRoleCommand" %>
 <%@ page import="org.webcurator.domain.model.auth.Role" %>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <script language="JavaScript" src="scripts/multiselect.js"%>"></script>
 <form name="associate" action="<%=Constants.CNTRL_ASSOCIATE_USERROLE%>" method="POST" ONSUBMIT="listBoxToHidden(document.associate.<%=AssociateUserRoleCommand.PARAM_ASSOCIATED_ROLES%>, document.associate.<%=AssociateUserRoleCommand.PARAM_SELECTED_ROLES%>); return true;">
 <input type="hidden" name="<%=AssociateUserRoleCommand.PARAM_USERNAME%>" value="${command.choosenUser}">

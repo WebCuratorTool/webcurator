@@ -29,8 +29,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.archive.wayback.replay.TagMagix;
-import org.archive.wayback.archivalurl.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;

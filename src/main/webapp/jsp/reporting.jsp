@@ -1,5 +1,5 @@
 <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
-<%@ page import="org.webcurator.ui.common.Constants" %>
+<%@ page import="org.webcurator.common.ui.Constants" %>
 <%@ page import="org.webcurator.core.report.*" %>
 <%@ page import="org.webcurator.core.report.parameter.*" %>
 <%@ page import="org.webcurator.ui.report.controller.ReportController" %>

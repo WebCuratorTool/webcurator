@@ -20,9 +20,11 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractCommandController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.CookieUtils;
@@ -30,7 +32,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddMembersCommand;
 import org.webcurator.ui.util.Tab;
@@ -40,13 +42,18 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * This controller manages the process of adding members to a Target Group.
  * @author bbeaumont
  */
-public class AddMembersController extends AbstractCommandController {
+@Controller
+public class AddMembersController {
 	/** the manager for Target and Group data. */
-	private TargetManager targetManager = null;
+	@Autowired
+	private TargetManager targetManager;
 	/** the parent controller for this handler. */
-	private TabbedGroupController groupsController = null;
+	@Autowired
+    @Qualifier("groupsController")
+	private TabbedGroupController groupsController;
 	/** the manager for checking privleges. */
-	private AuthorityManager authorityManager = null;
+	@Autowired
+	private AuthorityManager authorityManager;
 
 	public class MemberSelection
 	{
@@ -84,7 +91,6 @@ public class AddMembersController extends AbstractCommandController {
 
 	/** Default COnstructor. */
 	public AddMembersController() {
-		setCommandClass(AddMembersCommand.class);
 	}
 
 	/**
@@ -134,8 +140,8 @@ public class AddMembersController extends AbstractCommandController {
 		request.getSession().removeAttribute(AddMembersCommand.SESSION_SELECTIONS);
 	}
 
-	@Override
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) throws Exception {
 		AddMembersCommand command = (AddMembersCommand) comm;
 
 		if( AddMembersCommand.ACTION_ADD_MEMBERS.equals(command.getActionCmd())) {
@@ -160,23 +166,23 @@ public class AddMembersController extends AbstractCommandController {
 					if(ancestorOids.contains(newMember)) {
 						// Raise error to prevent creation of loops.
 						String name = newMember.getName();
-						errors.reject("groups.error.loops", new Object[] { name }, "Adding one of these members would cause an inclusion loop");
+						bindingResult.reject("groups.error.loops", new Object[] { name }, "Adding one of these members would cause an inclusion loop");
 					}
 					else if(group.getOid() != null && newMember.equals(group.getOid())) {
 						// Raise error as cannot create self references.
 						String name = newMember.getName();
-						errors.reject("groups.error.selfref", new Object[] { name }, "Cannot create self referencing groups");
+						bindingResult.reject("groups.error.selfref", new Object[] { name }, "Cannot create self referencing groups");
 					}
 					else if( targetManager.isDuplicateMember(group, newMember.getOid())) {
 						// Prevent the addition of duplicate members.
 						String name = newMember.getName();
-						errors.reject("groups.errors.duplicate", new Object[] { name }, "Already a member of this group");
+						bindingResult.reject("groups.bindingResult.duplicate", new Object[] { name }, "Already a member of this group");
 					}
 				}
 			}
 
-			if(errors.hasErrors()) {
-				return doSearch(request, response, comm, errors);
+			if(bindingResult.hasErrors()) {
+				return doSearch(request, response, comm, bindingResult);
 			}
 			else {
 				// Add the members only if the user has the appropriate privilege.
@@ -196,7 +202,7 @@ public class AddMembersController extends AbstractCommandController {
 
 				// Go back to the Members tab on the groups controller.
 				Tab membersTab = groupsController.getTabConfig().getTabByID("MEMBERS");
-				TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, errors);
+				TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, bindingResult);
 				tmav.getTabStatus().setCurrentTab(membersTab);
 				return tmav;
 			}
@@ -207,13 +213,13 @@ public class AddMembersController extends AbstractCommandController {
 
 			// Go back to the Members tab on the groups controller.
 			Tab membersTab = groupsController.getTabConfig().getTabByID("MEMBERS");
-			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, errors);
+			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(groupsController, membersTab, request, response, command, bindingResult);
 			tmav.getTabStatus().setCurrentTab(membersTab);
 			return tmav;
 		}
 		else if( AddMembersCommand.ACTION_REMOVE.equals(command.getActionCmd())) {
 			getSelections(request).remove(command.getMemberIndex());
-			return doSearch(request, response, comm, errors);
+			return doSearch(request, response, comm, bindingResult);
 		}
 		else {
 			long[] memberOids = command.getMemberOids();
@@ -222,14 +228,15 @@ public class AddMembersController extends AbstractCommandController {
 				addSelection(request, nmo);
 			}
 
-			return doSearch(request, response, comm, errors);
+			return doSearch(request, response, comm, bindingResult);
 		}
 	}
 
 	/**
 	 * Perform the search for Group members.
 	 */
-	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm, BindException errors) throws Exception {
+	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm,
+                                  BindingResult bindingResult) {
 
 		AddMembersCommand command = (AddMembersCommand) comm;
 
@@ -257,7 +264,7 @@ public class AddMembersController extends AbstractCommandController {
 		mav.addObject("page", results);
 		mav.addObject(Constants.GBL_CMD_DATA, command);
 		mav.addObject(AddMembersCommand.PARAM_SELECTIONS, getSelections(request));
-		if(errors.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, errors); }
+		if(bindingResult.hasErrors()) { mav.addObject(Constants.GBL_ERRORS, bindingResult); }
 		return mav;
 	}
 

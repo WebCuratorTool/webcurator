@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.sites.MockSiteManagerImpl;
 import org.webcurator.core.sites.SiteManager;
@@ -40,7 +41,7 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 	public SiteGeneralHandlerTest()
 	{
 		super(SiteGeneralHandler.class,
-				"src/test/java/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
+                "/org/webcurator/ui/site/controller/SiteGeneralHandlerTest.xml");
 	}
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss", Locale.UK);
@@ -134,9 +135,9 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 			tc.setTabConfig(tabConfig);
 
 			Tab currentTab = tabs.get(0);
-			BindException aErrors = new BindException(aCmd, aCmd.getCmdAction());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmdAction());
 
-			ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertNotNull(mav);
 			assertTrue(checkSortedList(site.getAnnotations()));
 		}
@@ -173,11 +174,11 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 			Tab currentTab = tabs.get(0);
 			aCmd.setCmdAction(SiteCommand.ACTION_ADD_NOTE);
 			aCmd.setAnnotation("A note");
-			BindException aErrors = new BindException(aCmd, aCmd.getCmdAction());
+            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmdAction());
 
 			int numAnnotations = site.getAnnotations().size();
 
-			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 			assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("GENERAL"));
@@ -192,9 +193,9 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 			aCmd.setCmdAction(SiteCommand.ACTION_MODIFY_NOTE);
 			aCmd.setAnnotation("A new note");
 			aCmd.setAnnotationIndex(noteIndex);
-			aErrors = new BindException(aCmd, aCmd.getCmdAction());
+			bindingResult = new BindException(aCmd, aCmd.getCmdAction());
 
-			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 			assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("GENERAL"));
@@ -210,9 +211,9 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 			currentTab = tabs.get(0);
 			aCmd.setCmdAction(SiteCommand.ACTION_DELETE_NOTE);
 			aCmd.setAnnotationIndex(noteIndex);
-			aErrors = new BindException(aCmd, aCmd.getCmdAction());
+			bindingResult = new BindException(aCmd, aCmd.getCmdAction());
 
-			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, aErrors);
+			mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("site"));
 			assertTrue(((TabStatus)mav.getModel().get("tabStatus")).getCurrentTab().getPageId().equals("GENERAL"));
@@ -259,12 +260,12 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 		Tab currentTab = tabs.get(0);
 		aCmd.setCmdAction(SiteCommand.ACTION_ADD_NOTE);
 		aCmd.setAnnotation("A note");
-		BindException aErrors = new BindException(aCmd, aCmd.getCmdAction());
+        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmdAction());
 
 		List<Annotation> resultAnnotations = site.getAnnotations();
 		int numAnnotations = resultAnnotations.size();
 
-		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, aErrors);
+		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertEquals(resultAnnotations.size(), numAnnotations+1);
 		Annotation resultAnnotation = resultAnnotations.get(resultAnnotations.size()-1);
 		assertEquals("A note", resultAnnotation.getNote());

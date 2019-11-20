@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.target.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
@@ -25,6 +26,7 @@ import org.webcurator.ui.target.command.SeedsCommand;
  * Validate adding seeds to a target.
  * @author nwaight
  */
+@Component
 public class TargetSeedsValidator extends AbstractBaseValidator {
 
 	public boolean supports(Class clazz) {

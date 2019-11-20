@@ -3,18 +3,18 @@ package org.webcurator.ui.profiles.controller;
 import static org.junit.Assert.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.profiles.*;
 import org.webcurator.domain.model.auth.Privilege;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
 import org.webcurator.ui.profiles.command.ViewCommand;
 
@@ -23,7 +23,7 @@ public class MakeDefaultProfileControllerTest extends BaseWCTTest<MakeDefaultPro
 	public MakeDefaultProfileControllerTest()
 	{
 		super(MakeDefaultProfileController.class,
-				"src/test/java/org/webcurator/ui/profiles/controller/ProfileListControllerTest.xml");
+                "/org/webcurator/ui/profiles/controller/ProfileListControllerTest.xml");
 	}
 
 	private ModelAndView performTestHandle(String defaultAgency, Long profileOid)
@@ -33,16 +33,15 @@ public class MakeDefaultProfileControllerTest extends BaseWCTTest<MakeDefaultPro
 		try
 		{
 			HttpServletRequest req = new MockHttpServletRequest();
-			HttpServletResponse res = new MockHttpServletResponse();
 			req.getSession().setAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE, false);
 			req.getSession().setAttribute(ProfileListController.SESSION_AGENCY_FILTER, defaultAgency);
 
 			ViewCommand comm = new ViewCommand();
 			comm.setProfileOid(profileOid);
 
-			BindException errors = new BindException(comm, "DUMMY-COMMAND");
+            BindingResult bindingResult = new BindException(comm, "DUMMY-COMMAND");
 
-			mav = testInstance.handle(req, res, comm, errors);
+			mav = testInstance.handle(req, comm, bindingResult);
 			assertTrue(mav != null);
 		}
 		catch(Exception e)

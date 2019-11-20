@@ -21,19 +21,25 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.providers.encoding.PasswordEncoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.dao.DataAccessException;
-import org.springframework.validation.BindException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.AbstractFormController;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
@@ -42,76 +48,71 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.admin.command.UserCommand;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 
 /**
  * Manages the creation flow for a User within WCT
  * @author bprice
  */
-public class CreateUserController extends AbstractFormController {
+@Controller
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Lazy(false)
+public class CreateUserController {
 	/** the logger. */
     private Log log = null;
-    /** the system wide salt. */
-    private SystemWideSaltSource saltSource = null;
     /** the password encoder. */
-    private PasswordEncoder passwordEncoder = null;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     /** the agency user manager. */
-    private AgencyUserManager agencyUserManager = null;
+    @Autowired
+    private AgencyUserManager agencyUserManager;
     /** the authority manager. */
-    private AuthorityManager authorityManager = null;
+    @Autowired
+    private AuthorityManager authorityManager;
     /** the message source. */
-    private MessageSource messageSource = null;
+    @Autowired
+    private MessageSource messageSource;
 
     /** Default Constructor. */
     public CreateUserController() {
         log = LogFactory.getLog(CreateUserController.class);
-        setCommandClass(CreateUserCommand.class);
     }
 
-    @Override
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
-    @Override
-    protected ModelAndView showForm(HttpServletRequest arg0,
-            HttpServletResponse arg1, BindException arg2) throws Exception {
 
-        return null;
-    }
-
-    @Override
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCommand, BindException aError)
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/create-user.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute CreateUserCommand createUserCommand, BindingResult bindingResult)
             throws Exception {
-
-        CreateUserCommand userCmd = (CreateUserCommand) aCommand;
 
         ModelAndView mav = new ModelAndView();
         mav.addObject(UserCommand.MDL_LOGGED_IN_USER, AuthUtil.getRemoteUserObject());
-        if (userCmd != null) {
-            if (aError.hasErrors()) {
+        if (createUserCommand != null) {
+            if (bindingResult.hasErrors()) {
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
 
                 mav.addObject(CreateUserCommand.MDL_AGENCIES, agencies);
-                String mode = userCmd.getMode();
+                String mode = createUserCommand.getMode();
                 if (CreateUserCommand.ACTION_EDIT.equals(mode)) {
                     mav.addObject(CreateUserCommand.ACTION_EDIT, mode);
                 }
-                mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, aError);
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newUser");
 
-            } else if (CreateUserCommand.ACTION_NEW.equals(userCmd.getAction())) {
+            } else if (CreateUserCommand.ACTION_NEW.equals(createUserCommand.getAction())) {
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateUserCommand.MDL_AGENCIES, agencies);
                 mav.setViewName("newUser");
 
-            } else if (CreateUserCommand.ACTION_VIEW.equals(userCmd.getAction()) ||
-            		CreateUserCommand.ACTION_EDIT.equals(userCmd.getAction())) {
+            } else if (CreateUserCommand.ACTION_VIEW.equals(createUserCommand.getAction()) ||
+            		CreateUserCommand.ACTION_EDIT.equals(createUserCommand.getAction())) {
                 //View/Edit an existing user
-                Long userOid = userCmd.getOid();
+                Long userOid = createUserCommand.getOid();
                 User user = agencyUserManager.getUserByOid(userOid);
                 CreateUserCommand editCmd = new CreateUserCommand();
                 editCmd.setOid(userOid);
@@ -129,39 +130,39 @@ public class CreateUserController extends AbstractFormController {
                 editCmd.setExternalAuth(user.isExternalAuth());
                 editCmd.setNotifyOnGeneral(user.isNotifyOnGeneral());
                 editCmd.setNotifyOnHarvestWarnings(user.isNotifyOnHarvestWarnings());
-                editCmd.setMode(userCmd.getAction());
+                editCmd.setMode(createUserCommand.getAction());
 
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateUserCommand.MDL_AGENCIES, agencies);
-                List assignedRoles = agencyUserManager.getAssociatedRolesForUser(userCmd.getOid());
+                List assignedRoles = agencyUserManager.getAssociatedRolesForUser(createUserCommand.getOid());
                 mav.addObject(CreateUserCommand.MDL_ASSIGNED_ROLES, assignedRoles);
                 mav.addObject(Constants.GBL_CMD_DATA, editCmd);
                 mav.setViewName("newUser");
 
-            } else if (CreateUserCommand.ACTION_SAVE.equals(userCmd.getAction())) {
+            } else if (CreateUserCommand.ACTION_SAVE.equals(createUserCommand.getAction())) {
 
 
                     try {
                         User user = new User();
-                        boolean update = (userCmd.getOid() != null);
+                        boolean update = (createUserCommand.getOid() != null);
                         if (update == true) {
                             // Update an existing user object by loading it in first
-                            user = agencyUserManager.getUserByOid(userCmd.getOid());
+                            user = agencyUserManager.getUserByOid(createUserCommand.getOid());
                         } else {
    //                  Save the newly created User object
                             user.setActive(true);
 
                             //load Agency
-                            Long agencyOid = userCmd.getAgencyOid();
+                            Long agencyOid = createUserCommand.getAgencyOid();
                             Agency agency = agencyUserManager.getAgencyByOid(agencyOid);
                             user.setAgency(agency);
 
-                            user.setExternalAuth(userCmd.isExternalAuth());
+                            user.setExternalAuth(createUserCommand.isExternalAuth());
 
    //                  Only set the password for WCT Authenticating users
-                            if (userCmd.isExternalAuth() == false) {
-                                String pwd = userCmd.getPassword();
-                                String encodedPwd =passwordEncoder.encodePassword(pwd, saltSource.getSystemWideSalt());
+                            if (createUserCommand.isExternalAuth() == false) {
+                                String pwd = createUserCommand.getPassword();
+                                String encodedPwd = passwordEncoder.encode(pwd);
                                 user.setPassword(encodedPwd);
    //                      force a password change only for WCT users, not LDAP users
                                 user.setForcePasswordChange(true);
@@ -170,17 +171,17 @@ public class CreateUserController extends AbstractFormController {
                             user.setRoles(null);
                         }
 
-                        user.setAddress(userCmd.getAddress());
-                        user.setEmail(userCmd.getEmail());
-                        user.setFirstname(userCmd.getFirstname());
-                        user.setLastname(userCmd.getLastname());
-                        user.setNotificationsByEmail(userCmd.isNotificationsByEmail());
-                        user.setTasksByEmail(userCmd.isTasksByEmail());
-                        user.setPhone(userCmd.getPhone());
-                        user.setTitle(userCmd.getTitle());
-                        user.setUsername(userCmd.getUsername());
-                        user.setNotifyOnGeneral(userCmd.isNotifyOnGeneral());
-                        user.setNotifyOnHarvestWarnings(userCmd.isNotifyOnHarvestWarnings());
+                        user.setAddress(createUserCommand.getAddress());
+                        user.setEmail(createUserCommand.getEmail());
+                        user.setFirstname(createUserCommand.getFirstname());
+                        user.setLastname(createUserCommand.getLastname());
+                        user.setNotificationsByEmail(createUserCommand.isNotificationsByEmail());
+                        user.setTasksByEmail(createUserCommand.isTasksByEmail());
+                        user.setPhone(createUserCommand.getPhone());
+                        user.setTitle(createUserCommand.getTitle());
+                        user.setUsername(createUserCommand.getUsername());
+                        user.setNotifyOnGeneral(createUserCommand.isNotifyOnGeneral());
+                        user.setNotifyOnHarvestWarnings(createUserCommand.isNotifyOnHarvestWarnings());
 
                         agencyUserManager.updateUser(user, update);
 
@@ -197,9 +198,9 @@ public class CreateUserController extends AbstractFormController {
 
                         String message;
                         if (update == true) {
-                            message = messageSource.getMessage("user.updated", new Object[] { userCmd.getUsername() }, Locale.getDefault());
+                            message = messageSource.getMessage("user.updated", new Object[] { createUserCommand.getUsername() }, Locale.getDefault());
                         } else {
-                            message = messageSource.getMessage("user.created", new Object[] { userCmd.getUsername() }, Locale.getDefault());
+                            message = messageSource.getMessage("user.created", new Object[] { createUserCommand.getUsername() }, Locale.getDefault());
                         }
                         String agencyFilter = (String)aReq.getSession().getAttribute(UserCommand.MDL_AGENCYFILTER);
                         if(agencyFilter == null)
@@ -216,13 +217,13 @@ public class CreateUserController extends AbstractFormController {
                     catch (DataAccessException e) {
                         List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                         mav.addObject(CreateUserCommand.MDL_AGENCIES, agencies);
-                        String mode = userCmd.getMode();
+                        String mode = createUserCommand.getMode();
                         if (CreateUserCommand.ACTION_EDIT.equals(mode)) {
                             mav.addObject(CreateUserCommand.ACTION_EDIT, mode);
                         }
-                        aError.reject("user.duplicate");
-                        mav.addObject(Constants.GBL_CMD_DATA, aError.getTarget());
-                        mav.addObject(Constants.GBL_ERRORS, aError);
+                        bindingResult.reject("user.duplicate");
+                        mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                        mav.addObject(Constants.GBL_ERRORS, bindingResult);
                         mav.setViewName("newUser");
                     }
 
@@ -240,13 +241,6 @@ public class CreateUserController extends AbstractFormController {
      */
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
-    }
-
-    /**
-     * @param saltSource the system wide salt source.
-     */
-    public void setSaltSource(SystemWideSaltSource saltSource) {
-        this.saltSource = saltSource;
     }
 
     /**

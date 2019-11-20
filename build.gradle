@@ -1,0 +1,128 @@
+plugins {
+    id 'com.gradle.build-scan' version '2.4'
+    id 'org.springframework.boot' version '2.1.7.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'http://repo.maven.apache.org/maven2'
+    }
+}
+
+group = 'org.webcurator'
+version = '3.0.0-SNAPSHOT'
+description = 'Web Curator Tool WebApp'
+
+project.ext {
+    // Set these project properties by including the property with -P<property-name>, for example -PincludeH2=true
+    includeH2 = (project.hasProperty('includeH2') ? project.includeH2.toBoolean() : false).toBoolean()
+    includeMysql = (project.hasProperty('includeMysql') ? project.includeH2.toBoolean() : false).toBoolean()
+    includeOracle = (project.hasProperty('includeOracle') ? project.includeH2.toBoolean() : false).toBoolean()
+    includePostgres = (project.hasProperty('includePostgres') ? project.includeH2.toBoolean() : false).toBoolean()
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'war'
+
+
+// this needs to be set after the 'java' plugin has been applied
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+configurations {
+    publishableArtifacts
+}
+
+dependencies {
+    implementation('org.webcurator:webcurator-db-repository:3.0.0-SNAPSHOT') {
+        // Use Spring boot logging.
+        exclude group: 'commons-logging', module: 'commons-logging'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+    implementation 'org.netpreserve.openwayback:openwayback-core:2.4.0'
+    implementation('org.apache.tiles:tiles-jsp:3.0.8') {
+        // Use Spring boot logging.
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+        exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
+    }
+    implementation 'javax.servlet:jstl:1.2'
+    implementation 'commons-fileupload:commons-fileupload:1.4'
+    implementation 'commons-dbcp:commons-dbcp:1.4'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'mysql:mysql-connector-java:5.1.6'
+
+    // Specific database dependencies.
+    // Note that multiple database dependencies could be in use concurrently.
+    if (project.includeH2) {
+        logger.info("Including H2 dependencies, includeH2=${project.includeH2}")
+        implementation 'com.h2database:h2:1.4.199'
+    } else {
+        logger.info("Not including H2 dependencies, includeH2=${project.includeH2}")
+    }
+    if (project.includeMysql) {
+        logger.info("Including MySQL dependencies, includeMysql=${project.includeMysql}")
+        implementation 'mysql:mysql-connector-java:5.1.6'
+    } else {
+        logger.info("Not including MySQL dependencies, includeMysql=${project.includeMysql}")
+    }
+    if (project.includeOracle) {
+        logger.info("Including Oracle dependencies, includeOracle=${project.includeOracle}")
+        implementation 'com.oracle:ojdbc14:11.2.0.3'
+    } else {
+        logger.info("Not including Oracle dependencies, includeOracle=${project.includeOracle}")
+    }
+    if (project.includePostgres) {
+        logger.info("Including Postgres dependencies, includePostgres=${project.includePostgres}")
+        implementation 'postgresql:postgresql:9.1-901.jdbc4'
+    } else {
+        logger.info("Not including Postgres dependencies, includePostgres=${project.includePostgres}")
+    }
+
+    // NOTE: This is a workaround so that gradle brings in the tests jar.
+    testImplementation group: 'org.webcurator', name: 'webcurator-core', version: '3.0.0-SNAPSHOT', classifier: 'tests', {
+        // Use Spring boot logging.
+        exclude group: 'commons-logging', module: 'commons-logging'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'junit:junit:4.12'
+    implementation 'org.apache.directory.server:apacheds-server-jndi:1.5.5'
+
+    providedCompile 'org.apache.taglibs:taglibs-standard-impl:1.2.5'
+    providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'
+    providedCompile 'org.projectlombok:lombok:1.18.8'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+}
+
+war {
+    includeEmptyDirs = false
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from(sourceSets.main.allJava)
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.web
+            artifact tasks.sourcesJar
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+build.dependsOn war, sourcesJar

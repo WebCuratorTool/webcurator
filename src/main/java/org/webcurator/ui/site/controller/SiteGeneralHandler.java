@@ -20,13 +20,13 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.Annotation;
 import org.webcurator.domain.model.core.Site;
-import org.webcurator.common.Constants;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.SiteCommand;
 import org.webcurator.ui.util.Tab;
@@ -41,8 +41,8 @@ public class SiteGeneralHandler extends AbstractSiteHandler {
 
 	SiteManager siteManager;
 
-	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+	public void processTab(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res,
+                           Object comm, BindingResult bindingResult) {
 		SiteCommand sc = (SiteCommand) comm;
 		if (getEditorContext(req).isEditMode()) {
 			sc.updateBusinessModel(getEditorContext(req).getSite());
@@ -59,9 +59,8 @@ public class SiteGeneralHandler extends AbstractSiteHandler {
 		}
 	}
 
-	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindException errors) {
+	public TabbedModelAndView preProcessNextTab(TabbedController tc, Tab nextTab, HttpServletRequest req,
+                                                HttpServletResponse res, Object comm, BindingResult bindingResult) {
 		TabbedModelAndView tmav = tc.new TabbedModelAndView();
 		Site aSite = getEditorContext(req).getSite();
 		//ensure annotations are sorted
@@ -71,21 +70,21 @@ public class SiteGeneralHandler extends AbstractSiteHandler {
 	}
 
 	public ModelAndView processOther(TabbedController tc, Tab currentTab, HttpServletRequest req,
-			HttpServletResponse res, Object comm, BindException errors) {
+                                     HttpServletResponse res, Object comm, BindingResult bindingResult) {
 
 		SiteCommand sc = (SiteCommand) comm;
 		SiteEditorContext ctx = getEditorContext(req);
 
-		if(errors.hasErrors()) {
+		if(bindingResult.hasErrors()) {
 			Tab tab = tc.getTabConfig().getTabByID("GENERAL");
-			TabbedModelAndView tmav = tab.getTabHandler().preProcessNextTab(tc, tab, req, res, comm ,errors);
+			TabbedModelAndView tmav = tab.getTabHandler().preProcessNextTab(tc, tab, req, res, comm ,bindingResult);
 			tmav.getTabStatus().setCurrentTab(tab);
-			tmav.addObject(Constants.GBL_ERRORS, errors);
+			tmav.addObject(Constants.GBL_ERRORS, bindingResult);
 			return tmav;
 		}
 
 		// Process the current tab as well as the annotation.
-		processTab(tc, currentTab, req, res, comm, errors);
+		processTab(tc, currentTab, req, res, comm, bindingResult);
 
 		Site site = ctx.getSite();
 
@@ -113,7 +112,7 @@ public class SiteGeneralHandler extends AbstractSiteHandler {
 
 		bindEditorContext(req, ctx);
 
-		TabbedModelAndView tmav = preProcessNextTab(tc, tc.getTabConfig().getTabByID("GENERAL"), req, res, comm, errors);
+		TabbedModelAndView tmav = preProcessNextTab(tc, tc.getTabConfig().getTabByID("GENERAL"), req, res, comm, bindingResult);
 		tmav.getTabStatus().setCurrentTab(tc.getTabConfig().getTabByID("GENERAL"));
 		return tmav;
 	}

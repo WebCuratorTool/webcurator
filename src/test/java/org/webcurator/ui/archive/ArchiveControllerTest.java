@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.core.archive.*;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
@@ -27,7 +28,7 @@ public class ArchiveControllerTest extends BaseWCTTest<ArchiveController>{
 	public ArchiveControllerTest()
 	{
 		super(ArchiveController.class,
-				"src/test/java/org/webcurator/ui/archive/ArchiveControllerTest.xml");
+                "/org/webcurator/ui/archive/ArchiveControllerTest.xml");
 	}
 
 	@Test
@@ -125,9 +126,9 @@ public class ArchiveControllerTest extends BaseWCTTest<ArchiveController>{
 			comm.setHarvestResultNumber(1);
 			comm.setTargetInstanceID(5001);
 
-			BindException errors = new BindException(comm, "ArchiveCommand");
+            BindingResult bindingResult = new BindException(comm, "ArchiveCommand");
 
-			ModelAndView mav = testInstance.handle(request, response, comm, errors);
+			ModelAndView mav = testInstance.handle(request, response, comm, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "redirect:/curator/target/queue.html?showSubmittedMsg=y");
 		}

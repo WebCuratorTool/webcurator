@@ -3,68 +3,55 @@ package org.webcurator.webapp.beans.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.context.annotation.*;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewInterceptor;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 import org.springframework.web.servlet.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
-import org.springframework.web.servlet.view.tiles2.TilesConfigurer;
-import org.springframework.web.servlet.view.tiles2.TilesView;
-import org.webcurator.core.store.tools.QualityReviewFacade;
-import org.webcurator.ui.admin.controller.*;
-import org.webcurator.ui.admin.validator.*;
-import org.webcurator.ui.agent.controller.BandwidthRestrictionsController;
-import org.webcurator.ui.agent.controller.ManageHarvestAgentController;
-import org.webcurator.ui.agent.validator.BandwidthRestrictionValidator;
-import org.webcurator.ui.archive.ArchiveController;
-import org.webcurator.ui.archive.TestArchiveController;
-import org.webcurator.ui.base.LogoutController;
-import org.webcurator.ui.credentials.controller.ResetPasswordController;
-import org.webcurator.ui.credentials.validator.ResetPasswordValidator;
-import org.webcurator.ui.groups.command.*;
+import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
+import org.springframework.web.servlet.view.tiles3.TilesView;
+import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.ui.groups.command.GeneralCommand;
+import org.webcurator.ui.groups.command.GroupAnnotationCommand;
+import org.webcurator.ui.groups.command.MemberOfCommand;
+import org.webcurator.ui.groups.command.MembersCommand;
 import org.webcurator.ui.groups.controller.*;
-import org.webcurator.ui.groups.validator.*;
-import org.webcurator.ui.groups.validator.AddParentsValidator;
-import org.webcurator.ui.home.controller.HomeController;
-import org.webcurator.ui.intray.controller.InTrayController;
-import org.webcurator.ui.management.controller.ManagementController;
+import org.webcurator.ui.groups.validator.GeneralValidator;
+import org.webcurator.ui.groups.validator.GroupAnnotationValidator;
+import org.webcurator.ui.groups.validator.MembersValidator;
 import org.webcurator.ui.profiles.command.Heritrix3ProfileCommand;
 import org.webcurator.ui.profiles.command.ImportedHeritrix3ProfileCommand;
-import org.webcurator.ui.profiles.controller.*;
-import org.webcurator.ui.profiles.renderers.GeneralOnlyRendererFilter;
+import org.webcurator.ui.profiles.controller.Heritrix3ProfileHandler;
+import org.webcurator.ui.profiles.controller.HeritrixProfileHandler;
+import org.webcurator.ui.profiles.controller.ImportedHeritrix3ProfileHandler;
+import org.webcurator.ui.profiles.controller.ProfileGeneralHandler;
 import org.webcurator.ui.profiles.validator.Heritrix3ProfileValidator;
 import org.webcurator.ui.profiles.validator.ImportedHeritrix3ProfileValidator;
 import org.webcurator.ui.profiles.validator.ProfileGeneralValidator;
-import org.webcurator.ui.report.command.ReportCommand;
-import org.webcurator.ui.report.command.ReportEmailCommand;
-import org.webcurator.ui.report.command.ReportPreviewCommand;
-import org.webcurator.ui.report.command.ReportSaveCommand;
-import org.webcurator.ui.report.controller.ReportController;
-import org.webcurator.ui.report.controller.ReportEmailController;
-import org.webcurator.ui.report.controller.ReportPreviewController;
-import org.webcurator.ui.report.controller.ReportSaveController;
-import org.webcurator.ui.report.validator.ReportValidator;
-import org.webcurator.ui.site.command.*;
-import org.webcurator.ui.site.controller.*;
-import org.webcurator.ui.site.validator.*;
+import org.webcurator.ui.site.command.SiteAuthorisingAgencyCommand;
+import org.webcurator.ui.site.command.SiteCommand;
+import org.webcurator.ui.site.command.SitePermissionCommand;
+import org.webcurator.ui.site.command.UrlCommand;
+import org.webcurator.ui.site.controller.SiteAuthorisingAgencyHandler;
+import org.webcurator.ui.site.controller.SiteGeneralHandler;
+import org.webcurator.ui.site.controller.SitePermissionHandler;
+import org.webcurator.ui.site.controller.SiteUrlHandler;
+import org.webcurator.ui.site.validator.SiteURLsValidator;
+import org.webcurator.ui.site.validator.SiteValidator;
 import org.webcurator.ui.target.command.*;
 import org.webcurator.ui.target.controller.*;
-import org.webcurator.ui.target.controller.AddParentsController;
 import org.webcurator.ui.target.validator.*;
-import org.webcurator.ui.tools.controller.HarvestHistoryController;
 import org.webcurator.ui.util.EmptyCommand;
 import org.webcurator.ui.util.OverrideGetter;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Contains configuration that used to be found in {@code wct-core-servlet.xml}. This
@@ -73,6 +60,7 @@ import java.util.*;
  *
  */
 @Configuration
+@PropertySource(value = "classpath:wct-webapp.properties")
 public class ServletConfig {
 
     @Value("${queueController.enableQaModule}")
@@ -111,28 +99,26 @@ public class ServletConfig {
     private ListsConfig listsConfig;
 
     @Autowired
-    private SecurityConfig securityConfig;
+    private TargetSeedsValidator targetSeedsValidator;
 
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    @Bean
-    public static PropertyPlaceholderConfigurer wctCoreServletConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-core.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        bean.setOrder(150);
+    @Autowired
+    private TargetGeneralValidator targetGeneralValidator;
 
-        return bean;
-    }
+    @Autowired
+    private TargetAccessValidator targetAccessValidator;
+
+    @Autowired
+    private HarvestCoordinator harvestCoordinator;
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SimpleUrlHandlerMapping simpleUrlMapping() {
         SimpleUrlHandlerMapping bean = new SimpleUrlHandlerMapping();
         bean.setInterceptors(new Object[] { openSessionInViewInterceptor() });
+
+        // Make sure this overrides Spring's default handler
+        bean.setOrder(0);
 
         Properties mappings = new Properties();
         mappings.put("/curator/site/site.html", "siteController");
@@ -142,7 +128,7 @@ public class ServletConfig {
         mappings.put("/curator/site/permissions.html", "sitePermissionController");
         mappings.put("/curator/site/transfer.html", "transferSeedsController");
         mappings.put("/curator/site/generate.html", "generatePermissionTemplateController");
-        mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
+        //mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
         mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
         mappings.put("/curator/tools/treetool.html", "treeToolController");
         mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
@@ -152,68 +138,68 @@ public class ServletConfig {
         mappings.put("/curator/target/deposit-form-envelope.html", "customDepositFormController");
         mappings.put("/curator/logout.html", "logoutController");
         mappings.put("/curator/home.html", "homeController");
-        mappings.put("/curator/target/queue.html", "queueController");
-        mappings.put("/curator/target/qatisummary.html", "qaTiSummaryController");
+        //mappings.put("/curator/target/queue.html", "queueController");
+        // mapped via @RequestMapping mappings.put("/curator/target/qatisummary.html", "qaTiSummaryController");
         mappings.put("/curator/target/qa-indicator-report.html", "qaIndicatorReportController");
         mappings.put("/curator/target/qa-indicator-robots-report.html", "qaIndicatorRobotsReportController");
-        mappings.put("/curator/target/annotation-ajax.html", "annotationAjaxController");
+        //mappings.put("/curator/target/annotation-ajax.html", "annotationAjaxController");
         mappings.put("/curator/target/target-instance.html", "tabbedTargetInstanceController");
-        mappings.put("/curator/target/harvest-now.html", "harvestNowController");
-        mappings.put("/curator/target/target.html", "targetController");
+        //mappings.put("/curator/target/harvest-now.html", "harvestNowController");
+        //mappings.put("/curator/target/target.html", "targetController");
         mappings.put("/curator/target/search.html", "targetSearchController");
-        mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
-        mappings.put("/curator/targets/add-parents.html", "addParentsController");
-        mappings.put("/curator/admin/role.html", "roleController");
+        //mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
+        //mappings.put("/curator/targets/add-parents.html", "addParentsController");
+        //mappings.put("/curator/admin/role.html", "roleController");
         mappings.put("/curator/profiles/profiles.html", "profileController");
-        mappings.put("/curator/profiles/profilesH3.html", "profileH3Controller");
-        mappings.put("/curator/profiles/imported-profilesH3.html", "importedProfileH3Controller");
+        //mappings.put("/curator/profiles/profilesH3.html", "profileH3Controller");
+        //mappings.put("/curator/profiles/imported-profilesH3.html", "importedProfileH3Controller");
         mappings.put("/curator/profiles/profiletargets.html", "profileTargetsController");
         mappings.put("/curator/profiles/list.html", "profileListController");
         mappings.put("/curator/profiles/view.html", "profileViewController");
-        mappings.put("/curator/profiles/delete.html", "profileDeleteController");
-        mappings.put("/curator/profiles/make-default.html", "makeDefaultProfileController");
+        //mappings.put("/curator/profiles/delete.html", "profileDeleteController");
+        //mappings.put("/curator/profiles/make-default.html", "makeDefaultProfileController");
         mappings.put("/curator/admin/rejreason.html", "rejReasonController");
         mappings.put("/curator/admin/create-rejreason.html", "createRejReasonController");
         mappings.put("/curator/admin/qaindicators.html", "qaIndicatorController");
         mappings.put("/curator/admin/create-qaindicator.html", "createQaIndicatorController");
         mappings.put("/curator/admin/flags.html", "flagController");
         mappings.put("/curator/admin/create-flag.html", "createFlagController");
-        mappings.put("/curator/admin/user.html", "userController");
-        mappings.put("/curator/admin/create-user.html", "createUserController");
-        mappings.put("/curator/admin/associate-userroles.html", "associateUserRoleController");
+        //mappings.put("/curator/admin/user.html", "userController");
+        //mappings.put("/curator/admin/create-user.html", "createUserController");
+        //mappings.put("/curator/admin/associate-userroles.html", "associateUserRoleController");
         mappings.put("/curator/admin/agency.html", "agencyController");
         mappings.put("/curator/admin/change-password.html", "changePasswordController");
-        mappings.put("/curator/admin/management.html", "managementController");
+        //mappings.put("/curator/admin/management.html", "managementController");
         mappings.put("/curator/admin/templates.html", "templateController");
-        mappings.put("/curator/target/log-viewer.html", "logReaderController");
-        mappings.put("/curator/target/content-viewer.html", "contentReaderController");
+        //mappings.put("/curator/target/log-viewer.html", "logReaderController");
+        //mappings.put("/curator/target/content-viewer.html", "contentReaderController");
         mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");
-        mappings.put("/curator/target/aqa-viewer.html", "aqaReaderController");
-        mappings.put("/curator/target/log-retriever.html", "logRetrieverController");
-        mappings.put("/curator/target/show-hop-path.html", "showHopPathController");
-        mappings.put("/curator/target/permission-popup.html", "permissionPopupController");
-        mappings.put("/curator/target/target-basic-credentials.html", "basicCredentialsControllerTarget");
-        mappings.put("/curator/target/target-form-credentials.html", "formCredentialsControllerTarget");
-        mappings.put("/curator/target/ti-basic-credentials.html", "basicCredentialsControllerTargetInstance");
-        mappings.put("/curator/target/ti-form-credentials.html", "formCredentialsControllerTargetInstance");
+        //mappings.put("/curator/target/aqa-viewer.html", "aqaReaderController");
+        //mappings.put("/curator/target/log-retriever.html", "logRetrieverController");
+        //mappings.put("/curator/target/show-hop-path.html", "showHopPathController");
+        //mappings.put("/curator/target/permission-popup.html", "permissionPopupController");
+        //mappings.put("/curator/target/target-basic-credentials.html", "basicCredentialsControllerTarget");
+        //mappings.put("/curator/target/target-form-credentials.html", "formCredentialsControllerTarget");
+        //mappings.put("/curator/target/ti-basic-credentials.html", "basicCredentialsControllerTargetInstance");
+        //mappings.put("/curator/target/ti-form-credentials.html", "formCredentialsControllerTargetInstance");
         mappings.put("/curator/target/h3ScriptConsole.html", "h3ScriptConsoleController");
         mappings.put("/curator/target/h3ScriptFile.html", "h3ScriptFileController");
-        mappings.put("/curator/intray/intray.html", "inTrayController");
+//        mappings.put("/curator/intray/intray.html", "inTrayController");
         mappings.put("/curator/report/report.html", "reportController");
         mappings.put("/curator/report/report-preview.html", "reportPreviewController");
         mappings.put("/curator/report/report-save.html", "reportSaveController");
         mappings.put("/curator/report/report-email.html", "reportEmailController");
-        mappings.put("/curator/groups/search.html", "groupSearchController");
-        mappings.put("/curator/groups/groups.html", "groupsController");
+//        mappings.put("/curator/groups/search.html", "groupSearchController");
+        //mappings.put("/curator/groups/groups.html", "groupsController");
         mappings.put("/curator/groups/add-members.html", "addMembersController");
-        mappings.put("/curator/groups/schedule.html", "groupsEditScheduleController");
-        mappings.put("/curator/groups/add-parents.html", "groupAddParentsController");
+        //mappings.put("/curator/groups/schedule.html", "groupsEditScheduleController");
+        //mappings.put("/curator/groups/add-parents.html", "groupAddParentsController");
         mappings.put("/curator/groups/move-targets.html", "moveTargetsController");
-        mappings.put("/curator/archive/submit.html", "submitToArchiveController");
+        //mappings.put("/curator/archive/submit.html", "submitToArchiveController");
         mappings.put("/curator/archive/test.html", "testArchiveController");
-        mappings.put("/curator/target/group-basic-credentials.html", "basicCredentialsControllerGroup");
-        mappings.put("/curator/target/group-form-credentials.html", "formCredentialsControllerGroup");
-        mappings.put("/curator/target/ti-harvest-now.html", "assignToHarvesterController");
+        //mappings.put("/curator/target/group-basic-credentials.html", "basicCredentialsControllerGroup");
+        //mappings.put("/curator/target/group-form-credentials.html", "formCredentialsControllerGroup");
+        //mappings.put("/curator/target/ti-harvest-now.html", "assignToHarvesterController");
         bean.setMappings(mappings);
 
         return bean;
@@ -256,7 +242,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public SimpleMappingExceptionResolver exceptionResolver() {
         SimpleMappingExceptionResolver bean = new SimpleMappingExceptionResolver();
         bean.setDefaultErrorView("Error");
@@ -264,8 +249,9 @@ public class ServletConfig {
         Properties exceptionMappings = new Properties();
         exceptionMappings.setProperty("org.springframework.orm.hibernate5.HibernateObjectRetrievalFailureException",
                 "NoObjectFound");
+        // TODO Is this property even used?
         exceptionMappings.setProperty("org.springframework.web.multipart.MaxUploadSizeExceededException",
-                "max-file-size-exceeeded");
+                "max-file-size-exceeded");
         bean.setExceptionMappings(exceptionMappings);
 
         return bean;
@@ -274,108 +260,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public HomeController homeController() {
-        HomeController bean = new HomeController();
-        bean.setSupportedMethods("GET");
-        bean.setInTrayManager(baseConfig.inTrayManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setSiteManager(baseConfig.siteManager());
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setEnableQaModule(queueControllerEnableQaModule);
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public SiteSearchController siteSearchController() {
-        SiteSearchController bean = new SiteSearchController();
-        bean.setSiteManager(baseConfig.siteManager());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setCommandClass(SiteSearchCommand.class);
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public SiteController siteController() {
-        SiteController bean = new SiteController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTabConfig(siteTabConfig());
-        bean.setDefaultCommandClass(DefaultSiteCommand.class);
-        bean.setSiteManager(baseConfig.siteManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setSiteSearchController(siteSearchController());
-
-        return bean;
-    }
-
-    @Bean
-    public SiteAgencySearchController siteAgencySearchController() {
-        SiteAgencySearchController bean = new SiteAgencySearchController();
-        bean.setSiteController(siteController());
-        bean.setSiteManager(baseConfig.siteManager());
-        bean.setValidator(new SiteAgencySearchValidator());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public GeneratePermissionTemplateController generatePermissionTemplateController() {
-        GeneratePermissionTemplateController bean = new GeneratePermissionTemplateController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setSiteManager(baseConfig.siteManager());
-        bean.setMailServer(baseConfig.mailServer());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setPermissionTemplateManager(baseConfig.permissionTemplateManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public TransferSeedsController transferSeedsController() {
-        TransferSeedsController bean = new TransferSeedsController();
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setSiteManager(baseConfig.siteManager());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setSiteController(siteController());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(new TransferSeedsValidator());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public HarvestHistoryController harvestHistoryController() {
-        HarvestHistoryController bean = new HarvestHistoryController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig siteTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("site");
@@ -475,7 +359,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig targetInstanceTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("site");
@@ -553,7 +436,7 @@ public class ServletConfig {
     public TargetInstanceGeneralHandler targetInstanceGeneralHandler() {
         TargetInstanceGeneralHandler bean = new TargetInstanceGeneralHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setAutoQAUrl("${harvestCoordinator.autoQAUrl}");
@@ -579,7 +462,7 @@ public class ServletConfig {
     public TargetInstanceStateHandler targetInstanceStateHandler() {
         TargetInstanceStateHandler bean = new TargetInstanceStateHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
 
         return bean;
     }
@@ -587,7 +470,7 @@ public class ServletConfig {
     public TargetInstanceLogsHandler targetInstanceLogsHandler() {
         TargetInstanceLogsHandler bean = new TargetInstanceLogsHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
 
         return bean;
     }
@@ -595,7 +478,7 @@ public class ServletConfig {
     public TargetInstanceResultHandler targetInstanceResultHandler() {
         TargetInstanceResultHandler bean = new TargetInstanceResultHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
+        bean.setHarvestCoordinator(harvestCoordinator);
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
 
@@ -619,519 +502,11 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public TabbedTargetInstanceController tabbedTargetInstanceController() {
-        TabbedTargetInstanceController bean = new TabbedTargetInstanceController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTabConfig(targetInstanceTabConfig());
-        bean.setDefaultCommandClass(TargetInstanceCommand.class);
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setQueueController(queueController());
-        bean.setMessageSource(baseConfig.messageSource());
-        
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ManageHarvestAgentController manageHarvestAgentController() {
-        ManageHarvestAgentController bean = new ManageHarvestAgentController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public BandwidthRestrictionsController bandwidthRestrictionsController() {
-        BandwidthRestrictionsController bean = new BandwidthRestrictionsController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setHarvestBandwidthManager(baseConfig.harvestBandwidthManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setHeatmapConfigDao(baseConfig.heatmapConfigDao());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setValidator(bandwidthRestrictionValidator());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public BandwidthRestrictionValidator bandwidthRestrictionValidator() {
-        return new BandwidthRestrictionValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public OpenSessionInViewInterceptor openSessionInViewInterceptor() {
         OpenSessionInViewInterceptor bean = new OpenSessionInViewInterceptor();
         bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public LogoutController logoutController() {
-        return new LogoutController();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ResetPasswordController resetPasswordController() {
-        ResetPasswordController bean = new ResetPasswordController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setValidator(resetPasswordValidator());
-        bean.setAuthDAO(baseConfig.userRoleDAO());
-        bean.setEncoder(securityConfig.passwordEncoder());
-        bean.setSalt(securityConfig.saltSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ResetPasswordValidator resetPasswordValidator() {
-        return new ResetPasswordValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ChangePasswordController changePasswordController() {
-        ChangePasswordController bean = new ChangePasswordController();
-        bean.setSupportedMethods("POST");
-        bean.setValidator(changePasswordValidator());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setEncoder(securityConfig.passwordEncoder());
-        bean.setSalt(securityConfig.saltSource());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ChangePasswordValidator changePasswordValidator() {
-        return new ChangePasswordValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public QueueController queueController() {
-        QueueController bean = new QueueController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-        bean.setEnvironment(baseConfig.environmentWCT());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setEnableQaModule(queueControllerEnableQaModule);
-        bean.setThumbnailWidth(queueControllerThumbnailWidth);
-        bean.setThumbnailHeight(queueControllerThumbnailHeight);
-        bean.setThumbnailRenderer(queueControllerThumbnailRenderer);
-        bean.setHarvestResourceUrlMapper(baseConfig.harvestResourceUrlMapper());
-
-        return bean;
-    }
-
-    @Bean
-    public QualityReviewFacade qualityReviewFacade() {
-        QualityReviewFacade bean = new QualityReviewFacade();
-        bean.setDigialAssetStore(baseConfig.digitalAssetStore());
-        bean.setTargetInstanceDao(baseConfig.targetInstanceDao());
-        bean.setAuditor(baseConfig.audit());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public QaTiSummaryController qaTiSummaryController() {
-        QaTiSummaryController bean = new QaTiSummaryController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-        bean.setEnvironment(baseConfig.environmentWCT());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setValidator(qaTiSummaryValidator());
-        bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public QaIndicatorReportController qaIndicatorReportController() {
-        QaIndicatorReportController bean = new QaIndicatorReportController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setIndicatorDAO(baseConfig.indicatorDAO());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        // These indicators are excluded from the IndicatorReportLine report since they have an alternative
-        // representation built by a separate report.
-        // The indicator name is specified by the map key and the report for the indicator is the map value.
-        Map<String, String> excludedIndicators = new HashMap<>();
-        excludedIndicators.put("Robots.txt entries disallowed", "/curator/target/qa-indicator-robots-report.html");
-        bean.setExcludedIndicators(excludedIndicators);
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public QaIndicatorRobotsReportController qaIndicatorRobotsReportController() {
-        QaIndicatorRobotsReportController bean = new QaIndicatorRobotsReportController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setIndicatorDAO(baseConfig.indicatorDAO());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setFileNotFoundMessage("robots.txt file not found");
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public AnnotationAjaxController annotationAjaxController() {
-        AnnotationAjaxController bean = new AnnotationAjaxController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setTargetManager(baseConfig.targetManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public RoleController roleController() {
-        RoleController bean = new RoleController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setValidator(roleValidator());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public RejReasonController rejReasonController() {
-        RejReasonController bean = new RejReasonController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateRejReasonController createRejReasonController() {
-        CreateRejReasonController bean = new CreateRejReasonController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createRejReasonValidator());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public QaIndicatorController qaIndicatorController() {
-        QaIndicatorController bean = new QaIndicatorController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public FlagController flagController() {
-        FlagController bean = new FlagController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateQaIndicatorController createQaIndicatorController() {
-        CreateQaIndicatorController bean = new CreateQaIndicatorController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createQaIndicatorValidator());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateFlagController createFlagController() {
-        CreateFlagController bean = new CreateFlagController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createFlagValidator());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public UserController userController() {
-        UserController bean = new UserController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateUserController createUserController() {
-        CreateUserController bean = new CreateUserController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setSaltSource(securityConfig.saltSource());
-        bean.setPasswordEncoder(securityConfig.passwordEncoder());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(createFlagValidator());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public AssociateUserRoleController associateUserRoleController() {
-        AssociateUserRoleController bean = new AssociateUserRoleController();
-        bean.setSupportedMethods("POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public AgencyController agencyController() {
-        AgencyController bean = new AgencyController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setValidator(agencyValidator());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateUserValidator createUserValidator() {
-        return new CreateUserValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public AgencyValidator agencyValidator() {
-        return new AgencyValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public RoleValidator roleValidator() {
-        return new RoleValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateRejReasonValidator createRejReasonValidator() {
-        return new CreateRejReasonValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateQaIndicatorValidator createQaIndicatorValidator() {
-        return new CreateQaIndicatorValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public CreateFlagValidator createFlagValidator() {
-        return new CreateFlagValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public QaTiSummaryValidator qaTiSummaryValidator() {
-        return new QaTiSummaryValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public HarvestNowController harvestNowController() {
-        HarvestNowController bean = new HarvestNowController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setValidator(harvestNowValidator());
-        bean.setMessageSource(baseConfig.messageSource());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public HarvestNowValidator harvestNowValidator() {
-        return new HarvestNowValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public TargetSearchController targetSearchController() {
-        TargetSearchController bean = new TargetSearchController();
-        bean.setTargetDao(baseConfig.targetDao());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setCommandClass(TargetSearchCommand.class);
-        bean.setTargetManager(baseConfig.targetManager());
-
-        return bean;
-    }
-
-    @Bean
-    public PermissionPopupController permissionPopupController() {
-        PermissionPopupController bean = new PermissionPopupController();
-        bean.setCommandClass(PermissionPopupCommand.class);
-        bean.setTargetManager(baseConfig.targetManager());
-
-        return bean;
-    }
-
-    //  Target Controller and Tab Configuration
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public TabbedTargetController targetController() {
-        TabbedTargetController bean = new TabbedTargetController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTabConfig(targetTabConfig());
-        bean.setDefaultCommandClass(TargetDefaultCommand.class);
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setSearchController(targetSearchController());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    public TargetGeneralValidator targetGeneralValidator() {
-        return new TargetGeneralValidator();
-    }
-
-    @Bean
-    public TargetSeedsValidator targetSeedsValidator() {
-        return new TargetSeedsValidator();
-    }
-
-    @Bean
-    public TargetAccessValidator targetAccessValidator() {
-        return new TargetAccessValidator();
     }
 
     @Bean
@@ -1145,7 +520,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig targetTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("target");
@@ -1157,7 +531,7 @@ public class ServletConfig {
         theTab.setTitle("general");
         theTab.setJsp("../target-general.jsp");
         theTab.setCommandClass(TargetGeneralCommand.class);
-        theTab.setValidator(targetGeneralValidator());
+        theTab.setValidator(targetGeneralValidator);
         theTab.setTabHandler(targetGeneralHandler());
         tabs.add(theTab);
 
@@ -1166,7 +540,7 @@ public class ServletConfig {
         theTab.setTitle("seeds");
         theTab.setJsp("../target-seeds.jsp");
         theTab.setCommandClass(SeedsCommand.class);
-        theTab.setValidator(targetSeedsValidator());
+        theTab.setValidator(targetSeedsValidator);
         theTab.setTabHandler(targetSeedsHandler());
         tabs.add(theTab);
 
@@ -1219,7 +593,7 @@ public class ServletConfig {
         theTab.setTitle("access");
         theTab.setJsp("../target-access.jsp");
         theTab.setCommandClass(TargetAccessCommand.class);
-        theTab.setValidator(targetAccessValidator());
+        theTab.setValidator(targetAccessValidator);
         theTab.setTabHandler(targetAccessHandler());
         tabs.add(theTab);
 
@@ -1243,7 +617,7 @@ public class ServletConfig {
         TargetSeedsHandler bean = new TargetSeedsHandler();
         bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
         bean.setTargetManager(baseConfig.targetManager());
-        bean.setValidator(targetSeedsValidator());
+        bean.setValidator(targetSeedsValidator);
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setMessageSource(baseConfig.messageSource());
 
@@ -1311,73 +685,8 @@ public class ServletConfig {
     }
 
     @Bean
-    public EditScheduleController targetEditScheduleController() {
-        EditScheduleController bean = new EditScheduleController();
-        bean.setPatternFactory(baseConfig.schedulePatternFactory());
-        bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setContextSessionKey("targetEditorContext");
-        bean.setScheduleEditPrivilege("ADD_SCHEDULE_TO_TARGET");
-        bean.setTargetController(targetController());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHeatmapConfigDao(baseConfig.heatmapConfigDao());
-        bean.setViewPrefix("target");
-        bean.setValidator(new TargetSchedulesValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public ProfileBasicCredentialsController basicCredentialsControllerTarget() {
-        ProfileBasicCredentialsController bean = new ProfileBasicCredentialsController();
-        bean.setCommandClass(BasicCredentialsCommand.class);
-        bean.setTabbedController(targetController());
-        bean.setOverrideGetter(targetOverrideGetter());
-        bean.setUrlPrefix("target");
-        bean.setValidator(new ProfilesBasicCredentialsValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public ProfileFormCredentialsController formCredentialsControllerTarget() {
-        ProfileFormCredentialsController bean = new ProfileFormCredentialsController();
-        bean.setCommandClass(FormCredentialsCommand.class);
-        bean.setTabbedController(targetController());
-        bean.setOverrideGetter(targetOverrideGetter());
-        bean.setUrlPrefix("target");
-        bean.setValidator(new ProfilesFormCredentialsValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public ProfileBasicCredentialsController basicCredentialsControllerTargetInstance() {
-        ProfileBasicCredentialsController bean = new ProfileBasicCredentialsController();
-        bean.setCommandClass(BasicCredentialsCommand.class);
-        bean.setTabbedController(tabbedTargetInstanceController());
-        bean.setOverrideGetter(targetInstanceOverrideGetter());
-        bean.setUrlPrefix("ti");
-        bean.setValidator(basicCredentialsValidatorti());
-
-        return bean;
-    }
-
-    @Bean
     public ProfilesBasicCredentialsValidator basicCredentialsValidatorti() {
         return new ProfilesBasicCredentialsValidator();
-    }
-
-    @Bean
-    public ProfileFormCredentialsController formCredentialsControllerTargetInstance() {
-        ProfileFormCredentialsController bean = new ProfileFormCredentialsController();
-        bean.setCommandClass(FormCredentialsCommand.class);
-        bean.setTabbedController(tabbedTargetInstanceController());
-        bean.setOverrideGetter(targetInstanceOverrideGetter());
-        bean.setUrlPrefix("ti");
-        bean.setValidator(formCredentialsValidatorti());
-
-        return bean;
     }
 
     @Bean
@@ -1386,32 +695,8 @@ public class ServletConfig {
     }
 
     @Bean
-    public ProfileBasicCredentialsController basicCredentialsControllerGroup() {
-        ProfileBasicCredentialsController bean = new ProfileBasicCredentialsController();
-        bean.setCommandClass(BasicCredentialsCommand.class);
-        bean.setTabbedController(groupsController());
-        bean.setOverrideGetter(groupOverrideGetter());
-        bean.setUrlPrefix("group");
-        bean.setValidator(basicCredentialsValidatorGroup());
-
-        return bean;
-    }
-
-    @Bean
     public ProfilesBasicCredentialsValidator basicCredentialsValidatorGroup() {
         return new ProfilesBasicCredentialsValidator();
-    }
-
-    @Bean
-    public ProfileFormCredentialsController formCredentialsControllerGroup() {
-        ProfileFormCredentialsController bean = new ProfileFormCredentialsController();
-        bean.setCommandClass(FormCredentialsCommand.class);
-        bean.setTabbedController(groupsController());
-        bean.setOverrideGetter(groupOverrideGetter());
-        bean.setUrlPrefix("group");
-        bean.setValidator(formCredentialsValidatorGroup());
-
-        return bean;
     }
 
     @Bean
@@ -1420,24 +705,6 @@ public class ServletConfig {
     }
 
     // Groups Controller and Tab Configuration
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public TabbedGroupController groupsController() {
-        TabbedGroupController bean = new TabbedGroupController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTabConfig(groupsTabConfig());
-        bean.setDefaultCommandClass(DefaultCommand.class);
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setSearchController(baseConfig.groupSearchController());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
 
     @Bean
     public OverrideGetter groupOverrideGetter() {
@@ -1450,7 +717,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig groupsTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("groups");
@@ -1524,7 +790,7 @@ public class ServletConfig {
         theTab.setTitle("access");
         theTab.setJsp("../target-access.jsp");
         theTab.setCommandClass(TargetAccessCommand.class);
-        theTab.setValidator(targetAccessValidator());
+        theTab.setValidator(targetAccessValidator);
         theTab.setTabHandler(accessHandler());
         tabs.add(theTab);
 
@@ -1611,118 +877,6 @@ public class ServletConfig {
     }
 
     @Bean
-    public EditScheduleController groupsEditScheduleController() {
-        EditScheduleController bean = new EditScheduleController();
-        bean.setPatternFactory(baseConfig.schedulePatternFactory());
-        bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setContextSessionKey("groupEditorContext");
-        bean.setScheduleEditPrivilege("MANAGE_GROUP_SCHEDULE");
-        bean.setTargetController(groupsController());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHeatmapConfigDao(baseConfig.heatmapConfigDao());
-        bean.setViewPrefix("groups");
-        bean.setValidator(new TargetSchedulesValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public ArchiveController submitToArchiveController() {
-        ArchiveController bean = new ArchiveController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setSipBuilder(baseConfig.sipBuilder());
-        bean.setArchiveAdapter(baseConfig.archiveAdapter());
-        bean.setHeritrixVersion("Heritrix " + heritrixVersion);
-        bean.setWebCuratorUrl("http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd");
-
-        return bean;
-    }
-
-    @Bean
-    public CustomDepositFormController customDepositFormController() {
-        return new CustomDepositFormController();
-    }
-
-    @Bean
-    public TestArchiveController testArchiveController() {
-        TestArchiveController bean = new TestArchiveController();
-        // NOTE inherits from submitToArchiveController
-        // But none if its access methods are public, so we're just going to replicate the values that get set
-        // as 'parent' is not replicated in Spring beans annotations.
-        ArchiveController submitToArchiveController = submitToArchiveController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setSipBuilder(baseConfig.sipBuilder());
-        bean.setArchiveAdapter(baseConfig.archiveAdapter());
-        bean.setHeritrixVersion("Heritrix " + heritrixVersion);
-        bean.setWebCuratorUrl("http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd");
-
-        return bean;
-    }
-
-    @Bean
-    public AddMembersController addMembersController() {
-        AddMembersController bean = new AddMembersController();
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setGroupsController(groupsController());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(addMembersValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public AddMembersValidator addMembersValidator() {
-        return new AddMembersValidator();
-    }
-
-    @Bean
-    public org.webcurator.ui.groups.controller.AddParentsController groupAddParentsController() {
-        org.webcurator.ui.groups.controller.AddParentsController bean = new org.webcurator.ui.groups.controller.AddParentsController();
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setGroupsController(groupsController());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(addParentsValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public AddParentsValidator addParentsValidator() {
-        return new AddParentsValidator();
-    }
-
-    @Bean
-    public MoveTargetsController moveTargetsController() {
-        MoveTargetsController bean = new MoveTargetsController();
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setGroupsController(groupsController());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setValidator(moveTargetsValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public MoveTargetsValidator moveTargetsValidator() {
-        return new MoveTargetsValidator();
-    }
-
-    @Bean
-    public AddParentsController addParentsController() {
-        AddParentsController bean = new AddParentsController();
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setTargetController(targetController());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setSubGroupSeparator(groupTypesSubgroupSeparator);
-        bean.setValidator(targetAddParentsValidator());
-
-        return bean;
-    }
-
-    @Bean
     public org.webcurator.ui.target.validator.AddParentsValidator targetAddParentsValidator() {
         return new org.webcurator.ui.target.validator.AddParentsValidator();
     }
@@ -1730,129 +884,8 @@ public class ServletConfig {
     // Profile Controller and Tab Configuration
 
     @Bean
-    public ProfileListController profileListController() {
-        ProfileListController bean = new ProfileListController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    public ProfileTargetsController profileTargetsController() {
-        ProfileTargetsController bean = new ProfileTargetsController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setTargetManager(baseConfig.targetManager());
-        bean.setTargetDao(baseConfig.targetDao());
-
-        return bean;
-    }
-
-    @Bean
-    public ProfileViewController profileViewController() {
-        ProfileViewController bean = new ProfileViewController();
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    public H3ScriptConsoleController h3ScriptConsoleController() {
-        // name of the directory where the h3 scripts are stored
-        H3ScriptConsoleController bean = new H3ScriptConsoleController();
-        bean.setH3ScriptsDirectory(h3ScriptsDirectory);
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    public H3ScriptFileController h3ScriptFileController() {
-        // name of the directory where the h3 scripts are stored
-        H3ScriptFileController bean = new H3ScriptFileController();
-        bean.setH3ScriptsDirectory(h3ScriptsDirectory);
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    public DeleteProfileController profileDeleteController() {
-        DeleteProfileController bean = new DeleteProfileController();
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    public MakeDefaultProfileController makeDefaultProfileController() {
-        MakeDefaultProfileController bean = new MakeDefaultProfileController();
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ProfileController profileController() {
-        ProfileController bean = new ProfileController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTabConfig(profileTabConfig());
-        bean.setDefaultCommandClass(DefaultCommand.class);
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ProfileController profileH3Controller() {
-        ProfileController bean = new ProfileController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTabConfig(profileH3TabConfig());
-        bean.setDefaultCommandClass(DefaultCommand.class);
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ProfileController importedProfileH3Controller() {
-        ProfileController bean = new ProfileController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setTabConfig(importedProfileH3TabConfig());
-        bean.setDefaultCommandClass(DefaultCommand.class);
-        bean.setProfileManager(baseConfig.profileManager());
-        bean.setAuthorityManager(baseConfig.authorityManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig profileTabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("profile");
@@ -1957,7 +990,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig profileH3TabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("profileH3");
@@ -1990,7 +1022,6 @@ public class ServletConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
     public TabConfig importedProfileH3TabConfig() {
         TabConfig bean = new TabConfig();
         bean.setViewName("imported-profileH3");
@@ -2019,318 +1050,4 @@ public class ServletConfig {
 
         return bean;
     }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public LogReaderController logReaderController() {
-        LogReaderController bean = new LogReaderController();
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ContentReaderController contentReaderController() {
-        ContentReaderController bean = new ContentReaderController();
-        bean.setHarvestLogManager(baseConfig.harvestLogManager());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public AQAReaderController aqaReaderController() {
-        AQAReaderController bean = new AQAReaderController();
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public LiveContentRetrieverController liveContentRetrieverController() {
-        return new LiveContentRetrieverController();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public LogRetrieverController logRetrieverController() {
-        LogRetrieverController bean = new LogRetrieverController();
-        bean.setHarvestLogManager(baseConfig.harvestLogManager());
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public InTrayController inTrayController() {
-        InTrayController bean = new InTrayController();
-        bean.setInTrayManager(baseConfig.inTrayManager());
-
-        return bean;
-    }
-
-    // Reporting
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ReportController reportController() {
-        ReportController bean = new ReportController();
-        bean.setSupportedMethods("GET", "POST");
-        // TODO CONFIGURATION There doesn't seem to be a reportMngr bean anywhere...
-        bean.setReportMngr(null); // in the XML it's shown as 'ref bean="reportMngr"', but that doesn't exist anywhere.
-        bean.setCommandName("reportCommand");
-        bean.setCommandClass(ReportCommand.class);
-        bean.setValidator(new ReportValidator());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ReportPreviewController reportPreviewController() {
-        ReportPreviewController bean = new ReportPreviewController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setCommandName("reportPreviewCommand");
-        bean.setCommandClass(ReportPreviewCommand.class);
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ReportSaveController reportSaveController() {
-        ReportSaveController bean = new ReportSaveController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setCommandName("reportSaveCommand");
-        bean.setCommandClass(ReportSaveCommand.class);
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ReportEmailController reportEmailController() {
-        ReportEmailController bean = new ReportEmailController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setCommandName("reportEmailCommand");
-        bean.setCommandClass(ReportEmailCommand.class);
-        bean.setMailServer(baseConfig.mailServer());
-
-        return bean;
-    }
-
-
-    // Management Controllers
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public ManagementController managementController() {
-        ManagementController bean = new ManagementController();
-        bean.setSupportedMethods("GET");
-        bean.setEnableQaModule(queueControllerEnableQaModule);
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public TemplateController templateController() {
-        TemplateController bean = new TemplateController();
-        bean.setSupportedMethods("GET", "POST");
-        bean.setPermissionTemplateManager(baseConfig.permissionTemplateManager());
-        bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setValidator(templateValidator());
-        bean.setMessageSource(baseConfig.messageSource());
-        bean.setDefaultSubject("Web Preservation Programme");
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public TemplateValidator templateValidator() {
-        return new TemplateValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public SiteAgencyController siteAgencyController() {
-        SiteAgencyController bean = new SiteAgencyController();
-        bean.setSiteController(siteController());
-        bean.setBusObjFactory(baseConfig.businessObjectFactory());
-        bean.setValidator(siteAgencyValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public SiteAgencyValidator siteAgencyValidator() {
-        SiteAgencyValidator bean = new SiteAgencyValidator();
-        bean.setSiteManager(baseConfig.siteManager());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public SitePermissionController sitePermissionController() {
-        SitePermissionController bean = new SitePermissionController();
-        bean.setSiteController(siteController());
-        bean.setBusinessObjectFactory(baseConfig.businessObjectFactory());
-        bean.setValidator(sitePermissionValidator());
-
-        return bean;
-    }
-
-    @Bean
-    public SitePermissionValidator sitePermissionValidator() {
-        return new SitePermissionValidator();
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    @Autowired(required = false) // default when default-autowire="no"
-    public AssignToHarvesterController assignToHarvesterController() {
-        AssignToHarvesterController bean = new AssignToHarvesterController();
-        bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(baseConfig.harvestCoordinator());
-
-        return bean;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
