@@ -32,6 +32,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
@@ -57,27 +61,30 @@ public class AgencyController {
     private MessageSource messageSource;
     /** Default Constructor. */
 
-	private WCTTreeSet typeList = null;
+    @Autowired
+	private WCTTreeSet dublinCoreTypesList;
 
     public AgencyController() {
         log = LogFactory.getLog(AgencyController.class);
     }
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/admin/agency.html")
     protected ModelAndView showForm() throws Exception {
 
         return populateAgencyList();
     }
 
-    protected ModelAndView processFormSubmission(Object aCommand, BindingResult bindingResult) throws Exception {
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/agency.html")
+    protected ModelAndView processFormSubmission(@ModelAttribute AgencyCommand agencyCommand, BindingResult bindingResult) throws Exception {
 
         ModelAndView mav = null;
-        AgencyCommand agencyCmd = (AgencyCommand) aCommand;
-        if (agencyCmd != null) {
+        if (agencyCommand != null) {
             if (bindingResult.hasErrors()) {
                 mav = new ModelAndView();
                 mav = populateAgencyList();
@@ -85,42 +92,42 @@ public class AgencyController {
                 mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newAgency");
 
-            } else if (AgencyCommand.ACTION_NEW.equals(agencyCmd.getActionCommand())) {
+            } else if (AgencyCommand.ACTION_NEW.equals(agencyCommand.getActionCommand())) {
                 //Display the Create Agency screen
 
                 mav = populateAgencyList();
                 mav.setViewName("newAgency");
-            } else if (AgencyCommand.ACTION_SAVE.equals(agencyCmd.getActionCommand())) {
+            } else if (AgencyCommand.ACTION_SAVE.equals(agencyCommand.getActionCommand())) {
                 //Save the new Agency details
                 boolean update = false;
                 Agency agency = new Agency();
 
-                if (agencyCmd.getOid() != null) {
+                if (agencyCommand.getOid() != null) {
                     update = true;
-                    agency.setOid(agencyCmd.getOid());
+                    agency.setOid(agencyCommand.getOid());
                 }
 
-                agency.setName(agencyCmd.getName());
-                agency.setAddress(agencyCmd.getAddress());
-                agency.setPhone(agencyCmd.getPhone());
-                agency.setFax(agencyCmd.getFax());
-                agency.setEmail(agencyCmd.getEmail());
-                agency.setAgencyURL(agencyCmd.getAgencyURL());
-                agency.setAgencyLogoURL(agencyCmd.getAgencyLogoURL());
-                agency.setShowTasks(agencyCmd.getShowTasks());
-                agency.setDefaultDescriptionType(agencyCmd.getDescriptionType());
+                agency.setName(agencyCommand.getName());
+                agency.setAddress(agencyCommand.getAddress());
+                agency.setPhone(agencyCommand.getPhone());
+                agency.setFax(agencyCommand.getFax());
+                agency.setEmail(agencyCommand.getEmail());
+                agency.setAgencyURL(agencyCommand.getAgencyURL());
+                agency.setAgencyLogoURL(agencyCommand.getAgencyLogoURL());
+                agency.setShowTasks(agencyCommand.getShowTasks());
+                agency.setDefaultDescriptionType(agencyCommand.getDescriptionType());
 
                 agencyUserManager.updateAgency(agency, update);
                 mav = populateAgencyList();
                 if (update == true) {
-                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.updated", new Object[] { agencyCmd.getName() }, Locale.getDefault()));
+                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.updated", new Object[] { agencyCommand.getName() }, Locale.getDefault()));
                 } else {
-                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.created", new Object[] { agencyCmd.getName() }, Locale.getDefault()));
+                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.created", new Object[] { agencyCommand.getName() }, Locale.getDefault()));
                 }
-            } else if (AgencyCommand.ACTION_VIEW.equals(agencyCmd.getActionCommand()) ||
-            		AgencyCommand.ACTION_EDIT.equals(agencyCmd.getActionCommand())) {
+            } else if (AgencyCommand.ACTION_VIEW.equals(agencyCommand.getActionCommand()) ||
+            		AgencyCommand.ACTION_EDIT.equals(agencyCommand.getActionCommand())) {
 
-                Agency agency = agencyUserManager.getAgencyByOid(agencyCmd.getOid());
+                Agency agency = agencyUserManager.getAgencyByOid(agencyCommand.getOid());
                 AgencyCommand populatedCmd = new AgencyCommand();
                 populatedCmd.setOid(agency.getOid());
                 populatedCmd.setName(agency.getName());
@@ -131,7 +138,7 @@ public class AgencyController {
                 populatedCmd.setAgencyURL(agency.getAgencyURL());
                 populatedCmd.setAgencyLogoURL(agency.getAgencyLogoURL());
                 populatedCmd.setShowTasks(agency.getShowTasks());
-                populatedCmd.setViewOnlyMode(AgencyCommand.ACTION_VIEW.equals(agencyCmd.getActionCommand()));
+                populatedCmd.setViewOnlyMode(AgencyCommand.ACTION_VIEW.equals(agencyCommand.getActionCommand()));
                 populatedCmd.setDescriptionType(agency.getDefaultDescriptionType());
 
                 mav = new ModelAndView();
@@ -144,7 +151,7 @@ public class AgencyController {
             mav = populateAgencyList();
         }
 
-		mav.addObject("descriptionTypes", typeList);
+		mav.addObject("descriptionTypes", dublinCoreTypesList);
         return mav;
     }
 
@@ -174,8 +181,8 @@ public class AgencyController {
         this.messageSource = messageSource;
     }
 
-	public void setTypeList(WCTTreeSet typeList) {
-		this.typeList = typeList;
+	public void setDublinCoreTypesList(WCTTreeSet dublinCoreTypesList) {
+		this.dublinCoreTypesList = dublinCoreTypesList;
 	}
 
 
