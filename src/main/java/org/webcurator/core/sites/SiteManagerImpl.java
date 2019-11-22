@@ -26,6 +26,7 @@ import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.util.Auditor;
+import org.webcurator.core.util.Utils;
 import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.SiteCriteria;
@@ -94,14 +95,12 @@ public class SiteManagerImpl implements SiteManager {
             // classname are set.
             for (Annotation annotation : annotations) {
                 annotation.setObjectOid(annotatable.getOid());
-                annotation.setObjectType(annotatable.getClass().getName());
+                annotation.setObjectType(Utils.getPrefixClassName(annotatable.getClass()));
             }
-
             annotationDAO.saveAnnotations(annotations);
         }
 
         if (deletedAnnotations != null && !deletedAnnotations.isEmpty()) {
-
             annotationDAO.deleteAnnotations(deletedAnnotations);
         }
     }
@@ -113,7 +112,7 @@ public class SiteManagerImpl implements SiteManager {
 //    @Transactional
     public void save(Site aSite) {
         // Fire the before save event handlers.
-        fireEvent(EVENT_TYPE.before_save, aSite);
+//        fireEvent(EVENT_TYPE.before_save, aSite);
 
         Long soid = aSite.getOid();
 
@@ -132,21 +131,6 @@ public class SiteManagerImpl implements SiteManager {
             }
         }
 
-
-        Site tmpSite = new Site();
-        tmpSite.setOid(aSite.getOid());
-        tmpSite.setTitle(aSite.getTitle());
-        tmpSite.setActive(aSite.isActive());
-        tmpSite.setPublished(aSite.isPublished());
-        tmpSite.setPermissions(aSite.getPermissions());
-        tmpSite.setLibraryOrderNo(aSite.getLibraryOrderNo());
-        tmpSite.setAuthorisingAgents(aSite.getAuthorisingAgents());
-        tmpSite.setNotes(aSite.getNotes());
-        tmpSite.setOwningAgency(aSite.getOwningAgency());
-        tmpSite.setCreationDate(aSite.getCreationDate());
-        tmpSite.setDescription(aSite.getDescription());
-
-
         // Save the site.
         siteDao.saveOrUpdate(aSite);
 
@@ -160,27 +144,27 @@ public class SiteManagerImpl implements SiteManager {
 
         // Auditing messages.
         if (soid == null) {
-            auditor.audit(Site.class.getName(), aSite.getOid(), Auditor.ACTION_NEW_SITE, "New Harvest Authorisation created");
+            auditor.audit(Utils.getPrefixClassName(Site.class), aSite.getOid(), Auditor.ACTION_NEW_SITE, "New Harvest Authorisation created");
         } else {
-            auditor.audit(Site.class.getName(), aSite.getOid(), Auditor.ACTION_UPDATE_SITE, "Update Harvest Authorisation " + aSite.getTitle());
+            auditor.audit(Utils.getPrefixClassName(Site.class), aSite.getOid(), Auditor.ACTION_UPDATE_SITE, "Update Harvest Authorisation " + aSite.getTitle());
         }
 
 
         // New Permissions.
         for (Permission p : newPermissions) {
-            auditor.audit(Permission.class.getName(), p.getOid(), Auditor.ACTION_NEW_PERMISSION, "New permission created");
+            auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_NEW_PERMISSION, "New permission created");
         }
 
         // Removed Permissions.
         for (Permission p : removedPermissions) {
-            auditor.audit(Permission.class.getName(), p.getOid(), Auditor.ACTION_DELETE_PERMISSION, "Permission deleted");
+            auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_DELETE_PERMISSION, "Permission deleted");
             intrayManager.deleteTask(p.getOid(), p.getResourceType(), MessageType.TASK_SEEK_PERMISSON);
         }
 
         // Updated Permissions.
         for (Permission p : aSite.getPermissions()) {
             if (p.isDirty()) {
-                auditor.audit(Permission.class.getName(), p.getOid(), Auditor.ACTION_UPDATE_PERMISSION, "Permission updated");
+                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_UPDATE_PERMISSION, "Permission updated");
             }
         }
 
@@ -188,7 +172,7 @@ public class SiteManagerImpl implements SiteManager {
         for (Permission p : aSite.getPermissions()) {
             // Permissions that have been approved.
             if (p.hasChangedState() && p.getStatus() == Permission.STATUS_APPROVED) {
-                auditor.audit(Permission.class.getName(), p.getOid(), Auditor.ACTION_APPROVE_PERMISSION, "Permission approved");
+                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_APPROVE_PERMISSION, "Permission approved");
                 intrayManager.deleteTask(p.getOid(), p.getResourceType(), MessageType.TASK_SEEK_PERMISSON);
 
                 List<UserDTO> users = agencyUserManager.getUserDTOsByTargetPrivilege(p.getOid());
@@ -207,18 +191,18 @@ public class SiteManagerImpl implements SiteManager {
             }
 
             if (p.hasChangedState() && p.getStatus() == Permission.STATUS_REQUESTED) {
-                auditor.audit(Permission.class.getName(), p.getOid(), Auditor.ACTION_REQUESTED_PERMISSION, "Permission has been requested from the authoring agent(s)");
+                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_REQUESTED_PERMISSION, "Permission has been requested from the authoring agent(s)");
             }
 
 
             if (p.getStatus() == Permission.STATUS_PENDING && p.isCreateSeekPermissionTask()) {
-                auditor.audit(Permission.class.getName(), p.getOid(), Auditor.ACTION_SEEK_PERMISSION, "A task has been created for another user to request permission from an authoring agent");
+                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_SEEK_PERMISSION, "A task has been created for another user to request permission from an authoring agent");
                 intrayManager.generateUniqueTask(Privilege.CONFIRM_PERMISSION, MessageType.TASK_SEEK_PERMISSON, p);
             }
         }
 
         // Fire the after save event handlers.
-        fireEvent(EVENT_TYPE.after_save, aSite);
+//        fireEvent(EVENT_TYPE.after_save, aSite);
     }
 
 
@@ -307,7 +291,7 @@ public class SiteManagerImpl implements SiteManager {
     public List<Annotation> getAnnotations(Site aSite) {
         List<Annotation> annotations = null;
         if (aSite.getOid() != null) {
-            annotations = annotationDAO.loadAnnotations(Site.class.getName(), aSite.getOid());
+            annotations = annotationDAO.loadAnnotations(Utils.getPrefixClassName(Site.class), aSite.getOid());
         }
 
         if (annotations == null) {
@@ -327,7 +311,7 @@ public class SiteManagerImpl implements SiteManager {
     public List<Annotation> getAnnotations(Permission aPermission) {
         List<Annotation> annotations = null;
         if (aPermission.getOid() != null) {
-            annotations = annotationDAO.loadAnnotations(Permission.class.getName(), aPermission.getOid());
+            annotations = annotationDAO.loadAnnotations(Utils.getPrefixClassName(Permission.class), aPermission.getOid());
         }
 
         if (annotations == null) {
