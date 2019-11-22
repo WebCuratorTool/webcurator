@@ -124,6 +124,7 @@ public class User implements Serializable {
     /** The user's address */
     @Column(name = "USR_ADDRESS", length = 200, nullable = true)
     private String address;
+
     /** The set of roles the user belongs to */
     @ManyToMany(fetch = FetchType.EAGER,
             cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
@@ -132,6 +133,7 @@ public class User implements Serializable {
             inverseJoinColumns = { @JoinColumn(name = "URO_ROL_OID") },
             foreignKey = @ForeignKey(name = "FK_USERROLE_TO_ROLE"))
     private Set<Role> roles;
+
     /** The agency the user belongs to */
     @ManyToOne
     @JoinColumn(name = "USR_AGC_OID", foreignKey = @ForeignKey(name = "FK_USER_AGENCY_OID"), nullable = false)

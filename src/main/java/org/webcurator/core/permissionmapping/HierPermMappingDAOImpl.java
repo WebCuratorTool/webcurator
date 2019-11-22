@@ -25,6 +25,7 @@ import org.hibernate.query.Query;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Site;
@@ -36,6 +37,7 @@ import org.webcurator.domain.model.core.Site;
  * @author bbeaumont
  *
  */
+@Transactional
 public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierPermMappingDAO {
 	/** The logger for this class */
 	private final static Log log = LogFactory.getLog(HierPermMappingDAOImpl.class);
@@ -58,7 +60,7 @@ public class HierPermMappingDAOImpl extends HibernateDaoSupport implements HierP
 					public Object doInTransaction(TransactionStatus ts) {
 						try { 
 							//log.debug("Before Saving of Target");
-							currentSession().save(aMapping);
+							currentSession().saveOrUpdate(aMapping);
 							//log.debug("After Saving Target");
 						}
 						catch(Exception ex) {

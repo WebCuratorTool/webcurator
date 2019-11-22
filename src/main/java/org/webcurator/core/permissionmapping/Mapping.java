@@ -15,7 +15,6 @@
  */
 package org.webcurator.core.permissionmapping;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.UrlPattern;
 

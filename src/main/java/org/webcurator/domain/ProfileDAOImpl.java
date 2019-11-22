@@ -28,7 +28,9 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.HibernateCallback;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -43,6 +45,8 @@ import org.webcurator.domain.model.dto.ProfileDTO;
  * The implementation of the ProfileDAO interface.
  * @author bbeaumont
  */
+@Repository
+@Transactional
 public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 	/** Logger for this class */
 	private Log log = LogFactory.getLog(ProfileDAOImpl.class);
