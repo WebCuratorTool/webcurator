@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.webcurator.core.util.Utils;
 import org.webcurator.domain.model.core.HasIdentity;
 
 /**
@@ -40,7 +41,7 @@ public class EditorContext {
      */
     public HasIdentity getObject(Class clazz, String identity) {
         // Get the cache for the given object type.
-        String key = this.getPrefixAsKey(clazz);
+        String key = Utils.getPrefixClassName(clazz);
         Map<String, HasIdentity> clazzCache = objectCache.get(key);
 
         // Get the object out of the cache.
@@ -69,7 +70,7 @@ public class EditorContext {
      */
     public void putObject(HasIdentity anObject) {
         // Get the cache for the given object type.
-        String key = this.getPrefixAsKey(anObject.getClass());
+        String key = Utils.getPrefixClassName(anObject.getClass());
         Map<String, HasIdentity> clazzCache = objectCache.get(key);
 
         // In case the object cache is empty.
@@ -105,19 +106,13 @@ public class EditorContext {
      */
     protected void removeObjectsOfType(Class clazz) {
         // Get the cache for the given object type.
-        String key = this.getPrefixAsKey(clazz);
+        String key = Utils.getPrefixClassName(clazz);
         Map<String, HasIdentity> clazzCache = objectCache.get(key);
 
         // Get the object out of the cache.
         if (clazzCache != null) {
             clazzCache.clear();
         }
-    }
-
-    private String getPrefixAsKey(Class clazz) {
-        String clazzName = clazz.getName();
-        int idx = clazzName.indexOf('$');
-        return idx > 0 ? clazzName.substring(0, idx) : clazzName;
     }
 }
 
