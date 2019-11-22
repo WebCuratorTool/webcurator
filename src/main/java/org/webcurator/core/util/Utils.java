@@ -143,5 +143,10 @@ public class Utils {
 		
 		return sDays + ":" + sHours + ":" + sMinutes + ":" + sSeconds;
 	}
-	
+
+	public static String getPrefixClassName(Class clazz) {
+		String clazzName = clazz.getName();
+		int idx = clazzName.indexOf('$');
+		return idx > 0 ? clazzName.substring(0, idx) : clazzName;
+	}
 }
