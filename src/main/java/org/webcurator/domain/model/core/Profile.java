@@ -152,6 +152,7 @@ public class Profile implements AgencyOwnable {
 	
 	/** The hibernate version number. */
 	@Column(name = "P_VERSION")
+	@Version
 	private Integer version;
 	
 	/** The original OID for this profile before it was locked */

@@ -75,12 +75,10 @@ public class Agency implements Serializable {
     @Column(name = "AGC_FAX", length = 20, nullable = true)
     private String fax;
     /** The set of users in this agency */
-    @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
-    @JoinColumn(name = "USR_AGC_OID")
+    @OneToMany(mappedBy = "agency", orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
     private Set<User> users;
     /** The set of roles in this agency */
-    @OneToMany(cascade = { CascadeType.ALL }) // default fetch type is LAZY
-    @JoinColumn(name = "ROL_AGENCY_OID")
+    @OneToMany(mappedBy = "agency", cascade = { CascadeType.ALL }) // default fetch type is LAZY
     private Set<Role> roles;
 
     /** Flag for displaying tasks on the intray screen */
