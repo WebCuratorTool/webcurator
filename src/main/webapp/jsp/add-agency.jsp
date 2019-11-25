@@ -120,7 +120,14 @@
 			<tr>
 				<td class="subBoxTextHdr">Default type:</td>
 				<td>
-					<wct:list list="${descriptionTypes}" paramName="descriptionType" currentValue="${command.descriptionType}"/>
+				<c:choose>
+					<c:when test="${command.viewOnlyMode}">
+				        <c:out value="${command.descriptionType}"/>
+					</c:when>
+					<c:otherwise>
+					    <wct:list list="${descriptionTypes}" paramName="descriptionType" currentValue="${command.descriptionType}"/>
+					</c:otherwise>
+				</c:choose>
 				</td>
 			</tr>
 			
