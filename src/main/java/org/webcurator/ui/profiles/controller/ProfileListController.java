@@ -23,10 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -54,7 +51,6 @@ import java.util.List;
  * Controller to list all the profiles.
  */
 @Controller
-@RequestMapping(path = "/curator/profiles/list")
 public class ProfileListController {
     private Log log = LogFactory.getLog(ProfileListController.class);
 
@@ -82,7 +78,7 @@ public class ProfileListController {
     public ProfileListController() {
     }
 
-    @PostMapping(path = "/import")
+    @RequestMapping(path = "/import", method = RequestMethod.POST)
     protected ModelAndView importList(@Valid @ModelAttribute("profileImportForm") ProfileImportForm profileImportForm,
                                       // Note that the BindingResult must come right after the object it validates
                                       // in the parameter list.
@@ -136,7 +132,7 @@ public class ProfileListController {
         return new ModelAndView("redirect:/curator/profiles/list");
     }
 
-    @PostMapping // default
+    @RequestMapping(path = "/curator/profiles/list", method = RequestMethod.POST)
     protected ModelAndView defaultList(@Valid @ModelAttribute("command") ProfileListCommand command,
                                        // Note that the BindingResult must come right after the object it validates
                                        // in the parameter list.
@@ -157,7 +153,7 @@ public class ProfileListController {
         return mav;
     }
 
-    @PostMapping("/filter")
+    @RequestMapping(path = "/filter", method = RequestMethod.POST)
     protected ModelAndView filter(@Valid @ModelAttribute("command") ProfileListCommand command,
                                   // Note that the BindingResult must come right after the object it validates
                                   // in the parameter list.
@@ -176,7 +172,7 @@ public class ProfileListController {
      *
      * @return The view.
      */
-    @GetMapping
+    @RequestMapping(path = "/curator/profiles/list", method = RequestMethod.POST)
     protected ModelAndView getView(ProfileListCommand command) {
         ModelAndView mav = new ModelAndView("profile-list");
 
