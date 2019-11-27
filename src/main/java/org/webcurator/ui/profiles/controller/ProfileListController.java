@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
+import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.profiles.ProfileManager;
@@ -37,10 +38,13 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.common.CommonViews;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
+import org.webcurator.ui.profiles.command.ViewCommand;
 import org.webcurator.ui.profiles.forms.ProfileImportForm;
 import org.webcurator.ui.util.HarvestAgentUtil;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -51,7 +55,7 @@ import java.util.List;
  * Controller to list all the profiles.
  */
 @Controller
-public class ProfileListController {
+public class ProfileListController extends AbstractProfileListController {
     private Log log = LogFactory.getLog(ProfileListController.class);
 
     public static final String SESSION_KEY_SHOW_INACTIVE = "profile-list-show-inactive";
@@ -60,17 +64,6 @@ public class ProfileListController {
 
     @Autowired
     private ApplicationContext context;
-
-    /**
-     * The profile Manager
-     */
-    @Autowired
-    protected ProfileManager profileManager;
-    @Autowired
-    private AgencyUserManager agencyUserManager;
-    @Autowired
-    protected AuthorityManager authorityManager;
-
 
     /**
      * Construct a new ProfileListController.
@@ -132,7 +125,41 @@ public class ProfileListController {
         return new ModelAndView("redirect:/curator/profiles/list");
     }
 
-    @RequestMapping(path = "/curator/profiles/list", method = RequestMethod.POST)
+
+
+    @RequestMapping(path = "/curator/profiles/make-default.html", method = RequestMethod.POST)
+    protected ModelAndView makeDefault(HttpServletRequest req, @ModelAttribute ViewCommand viewCommand, BindingResult bindingResult) throws Exception {
+        Profile profile = profileManager.load(viewCommand.getProfileOid());
+        if(authorityManager.hasPrivilege(profile, Privilege.MANAGE_PROFILES)) {
+            boolean showInactive = (Boolean) req.getSession().getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE);
+            String defaultAgency = (String)req.getSession().getAttribute(ProfileListController.SESSION_AGENCY_FILTER);
+            if(defaultAgency == null)
+            {
+                defaultAgency = AuthUtil.getRemoteUserObject().getAgency().getName();
+            }
+            ProfileListCommand pcomm = new ProfileListCommand();
+            pcomm.setShowInactive(showInactive);
+            pcomm.setDefaultAgency(defaultAgency);
+            ModelAndView mav = null;
+            try {
+                profileManager.setProfileAsDefault(profile);
+                mav = getView(pcomm);
+            }
+            catch (WCTInvalidStateRuntimeException e) {
+                Object[] vals = new Object[] {profile.getName(), profile.getOwningAgency().getName()};
+                bindingResult.reject("profile.inactive", vals, "The profile is inactive");
+                mav = getView(pcomm);
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            }
+
+            return mav;
+        }
+        else {
+            return CommonViews.AUTHORISATION_FAILURE;
+        }
+    }
+
+    @RequestMapping(path = "/curator/profiles/list.html", method = RequestMethod.GET)
     protected ModelAndView defaultList(@Valid @ModelAttribute("command") ProfileListCommand command,
                                        // Note that the BindingResult must come right after the object it validates
                                        // in the parameter list.
@@ -153,7 +180,7 @@ public class ProfileListController {
         return mav;
     }
 
-    @RequestMapping(path = "/filter", method = RequestMethod.POST)
+    @RequestMapping(path = "/curator/profiles/list/filter", method = RequestMethod.POST)
     protected ModelAndView filter(@Valid @ModelAttribute("command") ProfileListCommand command,
                                   // Note that the BindingResult must come right after the object it validates
                                   // in the parameter list.
@@ -165,62 +192,6 @@ public class ProfileListController {
         ModelAndView mav = getView(command);
         mav.addObject(Constants.GBL_CMD_DATA, command);
         return mav;
-    }
-
-    /**
-     * Get the view of the list.
-     *
-     * @return The view.
-     */
-    @RequestMapping(path = "/curator/profiles/list", method = RequestMethod.POST)
-    protected ModelAndView getView(ProfileListCommand command) {
-        ModelAndView mav = new ModelAndView("profile-list");
-
-        List<Agency> agencies = new ArrayList<>();
-        List<ProfileDTO> profiles = new ArrayList<>();
-        if (authorityManager.hasAtLeastOnePrivilege(new String[]{Privilege.VIEW_PROFILES, Privilege.MANAGE_PROFILES})) {
-            if (authorityManager.hasPrivilege(Privilege.VIEW_PROFILES, Privilege.SCOPE_ALL) ||
-                    authorityManager.hasPrivilege(Privilege.MANAGE_PROFILES, Privilege.SCOPE_ALL)) {
-                agencies = agencyUserManager.getAgencies();
-                profiles = profileManager.getDTOs(command.isShowInactive(), command.getHarvesterType());
-            } else {
-                User loggedInUser = AuthUtil.getRemoteUserObject();
-                Agency usersAgency = loggedInUser.getAgency();
-                agencies = new ArrayList<>();
-                agencies.add(usersAgency);
-                profiles = profileManager.getAgencyDTOs(usersAgency, command.isShowInactive(), command.getHarvesterType());
-            }
-
-        }
-
-        mav.addObject(Constants.GBL_CMD_DATA, command);
-        mav.addObject("profiles", profiles);
-        mav.addObject("agencies", agencies);
-        mav.addObject("usersAgency", AuthUtil.getRemoteUserObject().getAgency());
-        mav.addObject("types", HarvesterType.values());
-        mav.addObject("defaultType", HarvesterType.DEFAULT);
-        return mav;
-    }
-
-    /**
-     * @param profileManager The profileManager to set.
-     */
-    public void setProfileManager(ProfileManager profileManager) {
-        this.profileManager = profileManager;
-    }
-
-    /**
-     * @param agencyUserManager The agencyUserManager to set.
-     */
-    public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
-        this.agencyUserManager = agencyUserManager;
-    }
-
-    /**
-     * @param authorityManager The authorityManager to set.
-     */
-    public void setAuthorityManager(AuthorityManager authorityManager) {
-        this.authorityManager = authorityManager;
     }
 
 

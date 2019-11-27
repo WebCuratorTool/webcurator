@@ -23,7 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.AuthUtil;
@@ -40,13 +42,13 @@ import org.webcurator.ui.profiles.command.ViewCommand;
  *
  */
 @Controller
-@RequestMapping("/curator/profiles/delete.html")
-public class DeleteProfileController extends ProfileListController {
+public class DeleteProfileController extends AbstractProfileListController {
 
 	/** The Message Source for retrieving messages */
 	@Autowired
 	private MessageSource messageSource;
 
+	@RequestMapping(path = "/curator/profiles/delete.html", method = RequestMethod.POST)
 	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
 		ViewCommand command = (ViewCommand) comm;
 		Profile profile = profileManager.load(command.getProfileOid());

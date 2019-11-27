@@ -172,7 +172,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		    <td class="tableRowLite">
 			    <authority:showControl ownedObject="${profile}" privileges="<%= Privilege.MANAGE_PROFILES %>" editMode="${profile.status == 1}">
 					<authority:show>
-					<form:form id="changeDefaultForm_${profile.oid}" action="curator/profiles/make-default.html?profileOid=<c:out value="${profile.oid}"/>">
+					<form:form id="changeDefaultForm_${profile.oid}" action="curator/profiles/make-default.html?profileOid=${profile.oid}">
 		      	    <input type="radio" name="profileOid" value="<c:out value="${profile.oid}"/>" ${profile.defaultProfile ? 'checked' : ''} onclick="document.getElementById('changeDefaultForm_${profile.oid}').submit();">
 		      	    </form:form>
 					</authority:show>
