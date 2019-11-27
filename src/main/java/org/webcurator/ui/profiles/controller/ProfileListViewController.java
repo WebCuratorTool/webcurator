@@ -15,56 +15,28 @@
  */
 package org.webcurator.ui.profiles.controller;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
-import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
-import org.webcurator.ui.common.CommonViews;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
-import org.webcurator.ui.profiles.command.ViewCommand;
-import org.webcurator.ui.profiles.forms.ProfileImportForm;
-import org.webcurator.ui.util.HarvestAgentUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
- * Controller to list all the profiles.
+ * Common superclass for several profile controllers,
+ * used to generate the profile list view
  */
-public abstract class AbstractProfileListController {
-    private Log log = LogFactory.getLog(AbstractProfileListController.class);
-
-    public static final String SESSION_KEY_SHOW_INACTIVE = "profile-list-show-inactive";
-    public static final String SESSION_AGENCY_FILTER = "agency-filter";
-    public static final String SESSION_HARVESTER_TYPE_FILTER = "harvester-type-filter";
-
-    @Autowired
-    private ApplicationContext context;
+public class ProfileListViewController {
 
     /**
      * The profile Manager

@@ -39,7 +39,7 @@ import org.webcurator.ui.profiles.command.ViewCommand;
  */
 @Controller
 @RequestMapping("/curator/profiles/make-default.html")
-public class MakeDefaultProfileController extends AbstractProfileListController {
+public class MakeDefaultProfileController extends ProfileListViewController {
 
 	/**
 	 * Construct the controller.

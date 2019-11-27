@@ -27,7 +27,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   }
 
   function importFile() {
-   	if(document.getElementById("sourceFile").value.trim() != "") {
+   	if(document.getElementById("uploadedFile").value.trim() != "") {
    	  document.forms.importForm.submit();
     }
     else {
@@ -62,14 +62,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<td colspan="2" valign="top">
 			<fieldset>
 			<legend class="smalltitleGrey">Import from file</legend>
-			<form:form id="importForm" modelAttribute="profileImportForm" action="curator/profiles/list/import"
+			<form:form id="importForm" modelAttribute="profileImportCommand" action="curator/profiles/list/import"
                        method="POST" enctype="multipart/form-data">
+
 				<table width="100%">
 					<tr>
 						<td valign="top">
 							Select XML File:
 						</td>
-						<td><input type="file" id="sourceFile" name="sourceFile" value=""/></td>
+						<td><input type="file" id="uploadedFile" name="uploadedFile" value=""/></td>
 					</tr>
 					<tr>
 						<td>Profile name:</td><td><input type="text" name="importName"/></td>
@@ -92,7 +93,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							Type to import:&nbsp;
 						</td>
 						<td>
-				  			<select name="importType" id="importType"> 
+				  			<select name="harvesterType" id="harvesterType">
 								<c:forEach items="${types}" var="type">
 							  		<option value="${type}" ${defaultType eq type ? 'SELECTED' : ''}>${type}</option>
 				  				</c:forEach>
