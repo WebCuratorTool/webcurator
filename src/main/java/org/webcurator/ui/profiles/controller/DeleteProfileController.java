@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -48,9 +49,8 @@ public class DeleteProfileController extends ProfileListViewController {
 	private MessageSource messageSource;
 
 	@RequestMapping(path = "/curator/profiles/delete.html", method = RequestMethod.POST)
-	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
-		ViewCommand command = (ViewCommand) comm;
-		Profile profile = profileManager.load(command.getProfileOid());
+	protected ModelAndView handle(HttpServletRequest req, @ModelAttribute ViewCommand viewCommand, BindingResult bindingResult) throws Exception {
+		Profile profile = profileManager.load(viewCommand.getProfileOid());
 		if(authorityManager.hasPrivilege(profile, Privilege.MANAGE_PROFILES)) {
 			boolean showInactive = (Boolean) req.getSession().getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE);
 	        String defaultAgency = (String)req.getSession().getAttribute(ProfileListController.SESSION_AGENCY_FILTER);

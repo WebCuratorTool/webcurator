@@ -23,17 +23,18 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.ProfileImportCommand;
 import org.webcurator.ui.profiles.command.ProfileListCommand;
-import org.webcurator.ui.profiles.forms.ProfileImportForm;
 import org.webcurator.ui.util.HarvestAgentUtil;
 
 import javax.servlet.http.HttpSession;
@@ -111,7 +112,7 @@ public class ProfileListController extends ProfileListViewController {
             mav.addObject(Constants.GBL_ERRORS, bindingResult);
             return mav;
         }
-        return new ModelAndView("redirect:/curator/profiles/list");
+        return new ModelAndView("redirect:/curator/profiles/list.html");
     }
 
 
