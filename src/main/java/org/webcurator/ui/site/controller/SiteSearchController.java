@@ -30,6 +30,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -45,131 +49,134 @@ import org.webcurator.ui.site.command.SiteSearchCommand;
 
 /**
  * The controller for managing searching for harvest authorisations.
+ *
  * @author bbeaumont
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping("/curator/site/search.html")
 public class SiteSearchController {
 
-	/** the site manager. */
-	@Autowired
-	private SiteManager siteManager;
-	/** the agency user manager. */
-	@Autowired
-	private AgencyUserManager agencyUserManager;
+    /**
+     * the site manager.
+     */
+    @Autowired
+    private SiteManager siteManager;
+    /**
+     * the agency user manager.
+     */
+    @Autowired
+    private AgencyUserManager agencyUserManager;
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
-		binder.registerCustomEditor(Set.class, "states", new CustomIntegerCollectionEditor(Set.class,true));
+        binder.registerCustomEditor(Set.class, "states", new CustomIntegerCollectionEditor(Set.class, true));
     }
 
+    @GetMapping
+    protected ModelAndView showForm(HttpServletRequest req) throws Exception {
 
-	protected ModelAndView showForm(HttpServletRequest req) throws Exception {
+        // get value of page size cookie
+        String currentPageSize = CookieUtils.getPageSize(req);
 
-		// get value of page size cookie
-		String currentPageSize = CookieUtils.getPageSize(req);
+        SiteCriteria criteria = (SiteCriteria) req.getSession().getAttribute(SiteSearchCommand.SESSION_SITE_CRITERIA);
+        if (null == criteria) {
+            criteria = new SiteCriteria();
+            Agency usersAgency = AuthUtil.getRemoteUserObject().getAgency();
+            criteria.setAgency(usersAgency.getName());
+            req.getSession().setAttribute(SiteSearchCommand.SESSION_SITE_CRITERIA, criteria);
+        }
 
-		SiteCriteria criteria = (SiteCriteria) req.getSession().getAttribute(SiteSearchCommand.SESSION_SITE_CRITERIA);
-		if (null == criteria) {
-			criteria = new SiteCriteria();
-			Agency usersAgency = AuthUtil.getRemoteUserObject().getAgency();
-			criteria.setAgency(usersAgency.getName());
-			req.getSession().setAttribute(SiteSearchCommand.SESSION_SITE_CRITERIA, criteria);
-		}
+        List<Agency> agencies = agencyUserManager.getAgencies();
 
-		List<Agency> agencies = agencyUserManager.getAgencies();
+        SiteSearchCommand command = new SiteSearchCommand();
+        command.setSearchOid(criteria.getSearchOid());
+        command.setTitle(criteria.getTitle());
+        command.setAgentName(criteria.getAgentName());
+        command.setOrderNo(criteria.getOrderNo());
+        command.setAgency(criteria.getAgency());
+        command.setShowDisabled(criteria.isShowDisabled());
+        command.setPermsFileRef(criteria.getPermsFileRef());
+        command.setUrlPattern(criteria.getUrlPattern());
+        command.setStates(criteria.getStates());
+        command.setSortorder(criteria.getSortorder());
 
-		SiteSearchCommand command = new SiteSearchCommand();
-		command.setSearchOid(criteria.getSearchOid());
-		command.setTitle(criteria.getTitle());
-		command.setAgentName(criteria.getAgentName());
-		command.setOrderNo(criteria.getOrderNo());
-		command.setAgency(criteria.getAgency());
-		command.setShowDisabled(criteria.isShowDisabled());
-		command.setPermsFileRef(criteria.getPermsFileRef());
-		command.setUrlPattern(criteria.getUrlPattern());
-		command.setStates(criteria.getStates());
-		command.setSortorder(criteria.getSortorder());
+        Pagination results = siteManager.search(criteria, 0, Integer.parseInt(currentPageSize));
 
-		Pagination results = siteManager.search(criteria, 0, Integer.parseInt(currentPageSize));
+        ModelAndView mav = new ModelAndView("site-search");
+        mav.addObject(Constants.GBL_CMD_DATA, command);
+        mav.addObject("agencies", agencies);
+        mav.addObject("page", results);
+        return mav;
+    }
 
-		ModelAndView mav = new ModelAndView("site-search");
-		mav.addObject(Constants.GBL_CMD_DATA, command);
-		mav.addObject("agencies", agencies);
-		mav.addObject("page", results);
-		return mav;
-	}
+    @PostMapping
+    protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, SiteSearchCommand command) throws Exception {
+        List<Agency> agencies = agencyUserManager.getAgencies();
+        Agency usersAgency = AuthUtil.getRemoteUserObject().getAgency();
 
-	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, Object comm)
-            throws Exception {
+        if (SiteSearchCommand.ACTION_RESET.equals(command.getCmdAction())) {
+            command.setPageNo(0);
+            command.setSearchOid(null);
+            command.setTitle("");
+            command.setAgentName("");
+            command.setOrderNo("");
+            command.setAgency(usersAgency.getName());
+            command.setShowDisabled(false);
+            command.setPermsFileRef("");
+            command.setUrlPattern("");
+            command.setStates(new HashSet<Integer>());
+            command.setSortorder(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_ASC);
+        }
 
-		SiteSearchCommand command = (SiteSearchCommand) comm;
+        SiteCriteria criteria = new SiteCriteria();
+        criteria.setSearchOid(command.getSearchOid());
+        criteria.setTitle(command.getTitle());
+        criteria.setAgentName(command.getAgentName());
+        criteria.setOrderNo(command.getOrderNo());
+        criteria.setAgency(command.getAgency());
+        criteria.setShowDisabled(command.isShowDisabled());
+        criteria.setPermsFileRef(command.getPermsFileRef());
+        criteria.setUrlPattern(command.getUrlPattern());
+        criteria.setStates(command.getStates());
+        criteria.setSortorder(command.getSortorder());
 
-		List<Agency> agencies = agencyUserManager.getAgencies();
-		Agency usersAgency = AuthUtil.getRemoteUserObject().getAgency();
+        request.getSession().setAttribute(SiteSearchCommand.SESSION_SITE_CRITERIA, criteria);
 
-		if (SiteSearchCommand.ACTION_RESET.equals(command.getCmdAction())) {
-			command.setPageNo(0);
-			command.setSearchOid(null);
-			command.setTitle("");
-			command.setAgentName("");
-			command.setOrderNo("");
-			command.setAgency(usersAgency.getName());
-			command.setShowDisabled(false);
-			command.setPermsFileRef("");
-			command.setUrlPattern("");
-			command.setStates(new HashSet<Integer>());
-			command.setSortorder(CommandConstants.SITE_SEARCH_COMMAND_SORT_NAME_ASC);
-		}
+        // get value of page size cookie
+        String currentPageSize = CookieUtils.getPageSize(request);
 
-		SiteCriteria criteria = new SiteCriteria();
-		criteria.setSearchOid(command.getSearchOid());
-		criteria.setTitle(command.getTitle());
-		criteria.setAgentName(command.getAgentName());
-		criteria.setOrderNo(command.getOrderNo());
-		criteria.setAgency(command.getAgency());
-		criteria.setShowDisabled(command.isShowDisabled());
-		criteria.setPermsFileRef(command.getPermsFileRef());
-		criteria.setUrlPattern(command.getUrlPattern());
-		criteria.setStates(command.getStates());
-		criteria.setSortorder(command.getSortorder());
+        Pagination results = null;
+        if (command.getSelectedPageSize().equals(currentPageSize)) {
+            // user has left the page size unchanged..
+            results = siteManager.search(criteria, command.getPageNo(), Integer.parseInt(command.getSelectedPageSize()));
+        } else {
+            // user has selected a new page size, so reset to first page..
+            results = siteManager.search(criteria, 0, Integer.parseInt(command.getSelectedPageSize()));
+            // ..then update the page size cookie
+            CookieUtils.setPageSize(response, command.getSelectedPageSize());
+        }
+        ModelAndView mav = new ModelAndView("site-search");
+        mav.addObject("agencies", agencies);
+        mav.addObject("page", results);
+        mav.addObject(Constants.GBL_CMD_DATA, command);
+        return mav;
+    }
 
-		request.getSession().setAttribute(SiteSearchCommand.SESSION_SITE_CRITERIA, criteria);
+    /**
+     * @param agencyUserManager The agencyUserManager to set.
+     */
+    public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
+        this.agencyUserManager = agencyUserManager;
+    }
 
-		// get value of page size cookie
-		String currentPageSize = CookieUtils.getPageSize(request);
-
-		Pagination results = null;
-		if (command.getSelectedPageSize().equals(currentPageSize)) {
-			// user has left the page size unchanged..
-			results = siteManager.search(criteria, command.getPageNo(), Integer.parseInt(command.getSelectedPageSize()));
-		}
-		else {
-			// user has selected a new page size, so reset to first page..
-			results = siteManager.search(criteria, 0, Integer.parseInt(command.getSelectedPageSize()));
-			// ..then update the page size cookie
-			CookieUtils.setPageSize(response, command.getSelectedPageSize());
-		}
-		ModelAndView mav = new ModelAndView("site-search");
-		mav.addObject("agencies", agencies);
-		mav.addObject("page", results);
-		mav.addObject(Constants.GBL_CMD_DATA, command);
-		return mav;
-	}
-
-	/**
-	 * @param agencyUserManager The agencyUserManager to set.
-	 */
-	public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
-		this.agencyUserManager = agencyUserManager;
-	}
-
-	/**
-	 * @param siteManager the siteManager to set
-	 */
-	public void setSiteManager(SiteManager siteManager) {
-		this.siteManager = siteManager;
-	}
+    /**
+     * @param siteManager the siteManager to set
+     */
+    public void setSiteManager(SiteManager siteManager) {
+        this.siteManager = siteManager;
+    }
 }

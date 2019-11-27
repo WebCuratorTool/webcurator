@@ -31,6 +31,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.AuthUtil;
@@ -53,389 +56,387 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 /**
  * The Controller for managing the creation and editing of a
  * harvest authorisations permissions.
+ *
  * @author nwaight
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
 public class SitePermissionController {
+    /**
+     * The SiteController that this is part of
+     */
+    @Autowired
+    private SiteController siteController;
 
-	/** The SiteController that this is part of */
-	@Autowired
-	private SiteController siteController;
+    /**
+     * BusinessObjectFactory
+     */
+    @Autowired
+    private BusinessObjectFactory businessObjectFactory;
 
-	/** BusinessObjectFactory */
-	@Autowired
-	private BusinessObjectFactory businessObjectFactory;
-
-	/** The list of access statuses */
-	private List<String> accessStatusList;
-
-
-	/**
-	 * Construct a new Controller. Sets the command class.
-	 */
-	public SitePermissionController() {
-	}
+    /**
+     * The list of access statuses
+     */
+    private List<String> accessStatusList;
 
 
-	/**
-	 * Get the editor context for the Site.
-	 * @param req The HttpServletRequest object.
-	 * @return The editor context.
-	 */
-	public SiteEditorContext getEditorContext(HttpServletRequest req) {
-		SiteEditorContext ctx = (SiteEditorContext) req.getSession().getAttribute("siteEditorContext");
-		if( ctx == null) {
-			throw new IllegalStateException("siteEditorContext not yet bound to the session");
-		}
-
-		return ctx;
-	}
+    /**
+     * Construct a new Controller. Sets the command class.
+     */
+    public SitePermissionController() {
+    }
 
 
-	/**
-	 * Initialise some special binders for this command. (Overrides Spring
-	 * method).
-	 * @param request The HttpServletRequest.
-	 * @param binder  The binder.
-	 */
-	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+    /**
+     * Get the editor context for the Site.
+     *
+     * @param req The HttpServletRequest object.
+     * @return The editor context.
+     */
+    public SiteEditorContext getEditorContext(HttpServletRequest req) {
+        SiteEditorContext ctx = (SiteEditorContext) req.getSession().getAttribute("siteEditorContext");
+        if (ctx == null) {
+            throw new IllegalStateException("siteEditorContext not yet bound to the session");
+        }
+
+        return ctx;
+    }
+
+
+    /**
+     * Initialise some special binders for this command. (Overrides Spring
+     * method).
+     *
+     * @param request The HttpServletRequest.
+     * @param binder  The binder.
+     */
+    @InitBinder
+    public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
 
         // Register the binders.
         binder.registerCustomEditor(Long.class, "selectedPermission", new CustomNumberEditor(Long.class, nf, true));
-		binder.registerCustomEditor(java.util.Date.class, "startDate", DateUtils.get().getFullDateEditor(true));
-		binder.registerCustomEditor(java.util.Date.class, "endDate", DateUtils.get().getFullDateEditor(true));
-		binder.registerCustomEditor(java.util.Date.class, "openAccessDate", DateUtils.get().getFullDateEditor(true));
+        binder.registerCustomEditor(java.util.Date.class, "startDate", DateUtils.get().getFullDateEditor(true));
+        binder.registerCustomEditor(java.util.Date.class, "endDate", DateUtils.get().getFullDateEditor(true));
+        binder.registerCustomEditor(java.util.Date.class, "openAccessDate", DateUtils.get().getFullDateEditor(true));
 
-		// If the session model is available, we want to register the Permission's
-		// authorising agency editor.
-		if(getEditorContext(request) != null) {
-			binder.registerCustomEditor(AuthorisingAgent.class, "authorisingAgent", new EditorContextObjectEditor(getEditorContext(request), AuthorisingAgent.class));
-			binder.registerCustomEditor(Set.class, "urls", new UrlPatternCollectionEditor(Set.class, true, getEditorContext(request)));
-			binder.registerCustomEditor(Integer.class, "deleteExclusionIndex", new CustomNumberEditor(Integer.class, true));
-		}
-	}
+        // If the session model is available, we want to register the Permission's
+        // authorising agency editor.
+        if (getEditorContext(request) != null) {
+            binder.registerCustomEditor(AuthorisingAgent.class, "authorisingAgent", new EditorContextObjectEditor(getEditorContext(request), AuthorisingAgent.class));
+            binder.registerCustomEditor(Set.class, "urls", new UrlPatternCollectionEditor(Set.class, true, getEditorContext(request)));
+            binder.registerCustomEditor(Integer.class, "deleteExclusionIndex", new CustomNumberEditor(Integer.class, true));
+        }
+    }
 
 
-	/**
-	 * Handle the cancel logic.
-	 * @param req The HttpServletRequest.
-	 * @param resp The HttpServletResponse.
-	 * @param command The SitePermissionCommand object.
-	 * @param bindingResult The Spring bindingResult.
-	 * @return The next view to display.
-	 */
-	@SuppressWarnings("unchecked")
-	private ModelAndView handleCancel(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command,
+    /**
+     * Handle the cancel logic.
+     *
+     * @param req           The HttpServletRequest.
+     * @param resp          The HttpServletResponse.
+     * @param command       The SitePermissionCommand object.
+     * @param bindingResult The Spring bindingResult.
+     * @return The next view to display.
+     */
+    @SuppressWarnings("unchecked")
+    private ModelAndView handleCancel(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command,
                                       BindingResult bindingResult) {
-		// Reset the permissions.
-		SiteEditorContext ctx = getEditorContext(req);
-		Permission p = (Permission) ctx.getObject(Permission.class, command.getIdentity());
-		List<Annotation> oldPermissionAnnotations = (List<Annotation>) req.getSession().getAttribute("oldPermissionAnnotations");
-		p.setAnnotations(oldPermissionAnnotations);
-		req.getSession().removeAttribute("oldPermissionAnnotations");
+        // Reset the permissions.
+        SiteEditorContext ctx = getEditorContext(req);
+        Permission p = (Permission) ctx.getObject(Permission.class, command.getIdentity());
+        List<Annotation> oldPermissionAnnotations = (List<Annotation>) req.getSession().getAttribute("oldPermissionAnnotations");
+        p.setAnnotations(oldPermissionAnnotations);
+        req.getSession().removeAttribute("oldPermissionAnnotations");
 
-		// Go back to the permissions tab.
-		Tab membersTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-		TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, bindingResult);
-		tmav.getTabStatus().setCurrentTab(membersTab);
-		return tmav;
-	}
+        // Go back to the permissions tab.
+        Tab membersTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
+        TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, bindingResult);
+        tmav.getTabStatus().setCurrentTab(membersTab);
+        return tmav;
+    }
 
 
-	/**
-	 * Handle the save logic.
-	 * @param req The HttpServletRequest.
-	 * @param resp The HttpServletResponse.
-	 * @param command The SitePermissionCommand object.
-	 * @param bindingResult The Spring bindingResult.
-	 * @return The next view to display.
-	 */
-	private ModelAndView handleSave(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command,
+    /**
+     * Handle the save logic.
+     *
+     * @param req           The HttpServletRequest.
+     * @param resp          The HttpServletResponse.
+     * @param command       The SitePermissionCommand object.
+     * @param bindingResult The Spring bindingResult.
+     * @return The next view to display.
+     */
+    private ModelAndView handleSave(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command,
                                     BindingResult bindingResult) {
-		SiteEditorContext ctx = getEditorContext(req);
+        SiteEditorContext ctx = getEditorContext(req);
 
-		if (bindingResult.hasErrors()) {
-			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-			mav.addObject("urls", ctx.getSortedUrlPatterns());
-			mav.addObject("agents", ctx.getSortedAuthAgents());
-			mav.addObject("permissionEditMode", true);
-			mav.addObject("accessStatusList", accessStatusList);
-			mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
+        if (bindingResult.hasErrors()) {
+            ModelAndView mav = new ModelAndView();
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject("urls", ctx.getSortedUrlPatterns());
+            mav.addObject("agents", ctx.getSortedAuthAgents());
+            mav.addObject("permissionEditMode", true);
+            mav.addObject("accessStatusList", accessStatusList);
+            mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
 
-			mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
-			return mav;
-		}
+            mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
+            return mav;
+        }
 
-		Permission permission = null;
+        Permission permission = null;
 
-		if( Utils.isEmpty(command.getIdentity())) {
-			permission = businessObjectFactory.newPermission(ctx.getSite());
-			ctx.putObject(permission);
-			updateBusinessModel(ctx.getSite(), command, permission);
-			ctx.getSite().addPermission(permission);
-			throw new WCTRuntimeException("Permission object doesn't have identity set");
-		}
-		else {
-			permission = (Permission) ctx.getObject(Permission.class, command.getSelectedPermission());
-			updateBusinessModel(ctx.getSite(), command, permission);
-			permission.setDirty(true);
-			ctx.getSite().addPermission(permission);
-		}
+        if (Utils.isEmpty(command.getIdentity())) {
+            permission = businessObjectFactory.newPermission(ctx.getSite());
+            ctx.putObject(permission);
+            updateBusinessModel(ctx.getSite(), command, permission);
+            ctx.getSite().addPermission(permission);
+            throw new WCTRuntimeException("Permission object doesn't have identity set");
+        } else {
+            permission = (Permission) ctx.getObject(Permission.class, command.getSelectedPermission());
+            updateBusinessModel(ctx.getSite(), command, permission);
+            permission.setDirty(true);
+            ctx.getSite().addPermission(permission);
+        }
 
-		// Remove the List of old annotations.
-		req.getSession().removeAttribute("oldPermissionAnnotations");
+        // Remove the List of old annotations.
+        req.getSession().removeAttribute("oldPermissionAnnotations");
 
-		// Go back to the list of permissions
-		Tab membersTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-		TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, bindingResult);
-		tmav.getTabStatus().setCurrentTab(membersTab);
+        // Go back to the list of permissions
+        Tab membersTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
+        TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, req, resp, command, bindingResult);
+        tmav.getTabStatus().setCurrentTab(membersTab);
 
-		return tmav;
-	}
+        return tmav;
+    }
 
 
-	/**
-	 * Handle the add annotation logic.
-	 * @param req The HttpServletRequest.
-	 * @param command The SitePermissionCommand object.
-	 * @param bindingResult The Spring bindingResult.
-	 * @return The next view to display.
-	 */
-	private ModelAndView handleAnnotation(HttpServletRequest req, SitePermissionCommand command,
+    /**
+     * Handle the add annotation logic.
+     *
+     * @param req           The HttpServletRequest.
+     * @param command       The SitePermissionCommand object.
+     * @param bindingResult The Spring bindingResult.
+     * @return The next view to display.
+     */
+    private ModelAndView handleAnnotation(HttpServletRequest req, SitePermissionCommand command,
                                           BindingResult bindingResult) {
-		SiteEditorContext ctx = getEditorContext(req);
-		Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
+        SiteEditorContext ctx = getEditorContext(req);
+        Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
 
-		if (bindingResult.hasErrors()) {
-			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-			mav.addObject("urls", ctx.getSortedUrlPatterns());
-			mav.addObject("agents", ctx.getSortedAuthAgents());
-			mav.addObject("permissionEditMode", true);
-			mav.addObject("accessStatusList", accessStatusList);
-			mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
+        if (bindingResult.hasErrors()) {
+            ModelAndView mav = new ModelAndView();
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject("urls", ctx.getSortedUrlPatterns());
+            mav.addObject("agents", ctx.getSortedAuthAgents());
+            mav.addObject("permissionEditMode", true);
+            mav.addObject("accessStatusList", accessStatusList);
+            mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
 
-			mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
-			return mav;
-		}
-		else {
-			if(command.isAction(SitePermissionCommand.ACTION_ADD_NOTE))
-			{
-				// Add the annotation
-				permission.addAnnotation(new Annotation(new Date(), command.getNote(), AuthUtil.getRemoteUserObject(), null, null, false));
-			}
-			else if(command.isAction(SitePermissionCommand.ACTION_MODIFY_NOTE))
-			{
-				// Modify the annotation
-	        	Annotation annotation = permission.getAnnotation(command.getNoteIndex());
-	        	if(annotation != null &&
-	        			annotation.getUser().equals(AuthUtil.getRemoteUserObject()))
-	        	{
-		        	annotation.setDate(new Date());
-		        	annotation.setNote(command.getNote());
-		     	}
-			}
-			else if(command.isAction(SitePermissionCommand.ACTION_DELETE_NOTE))
-			{
-				// Delete the annotations
-	        	Annotation annotation = permission.getAnnotation(command.getNoteIndex());
-	        	if(annotation != null &&
-	        			annotation.getUser().equals(AuthUtil.getRemoteUserObject()))
-	        	{
-		        	permission.deleteAnnotation(command.getNoteIndex());
-		     	}
-			}
+            mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
+            return mav;
+        } else {
+            if (command.isAction(SitePermissionCommand.ACTION_ADD_NOTE)) {
+                // Add the annotation
+                permission.addAnnotation(new Annotation(new Date(), command.getNote(), AuthUtil.getRemoteUserObject(), null, null, false));
+            } else if (command.isAction(SitePermissionCommand.ACTION_MODIFY_NOTE)) {
+                // Modify the annotation
+                Annotation annotation = permission.getAnnotation(command.getNoteIndex());
+                if (annotation != null &&
+                        annotation.getUser().equals(AuthUtil.getRemoteUserObject())) {
+                    annotation.setDate(new Date());
+                    annotation.setNote(command.getNote());
+                }
+            } else if (command.isAction(SitePermissionCommand.ACTION_DELETE_NOTE)) {
+                // Delete the annotations
+                Annotation annotation = permission.getAnnotation(command.getNoteIndex());
+                if (annotation != null &&
+                        annotation.getUser().equals(AuthUtil.getRemoteUserObject())) {
+                    permission.deleteAnnotation(command.getNoteIndex());
+                }
+            }
 
-			//make sure annotations are sorted
-			permission.sortAnnotations();
+            //make sure annotations are sorted
+            permission.sortAnnotations();
 
-			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-			mav.addObject("urls", ctx.getSortedUrlPatterns());
-			mav.addObject("agents", ctx.getSortedAuthAgents());
-			mav.addObject("permissionEditMode", true);
-			mav.addObject("accessStatusList", accessStatusList);
-			mav.addObject("permission", permission);
+            ModelAndView mav = new ModelAndView();
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject("urls", ctx.getSortedUrlPatterns());
+            mav.addObject("agents", ctx.getSortedAuthAgents());
+            mav.addObject("permissionEditMode", true);
+            mav.addObject("accessStatusList", accessStatusList);
+            mav.addObject("permission", permission);
 
-			mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
-			return mav;
-		}
-	}
+            mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
+            return mav;
+        }
+    }
 
 
-	/**
-	 * Handle the add exlusion logic.
-	 * @param req The HttpServletRequest.
-	 * @param command The SitePermissionCommand object.
-	 * @param bindingResult The Spring bindingResult.
-	 * @return The next view to display.
-	 */
-	private ModelAndView handleAddExclusion(HttpServletRequest req, SitePermissionCommand command,
+    /**
+     * Handle the add exlusion logic.
+     *
+     * @param req           The HttpServletRequest.
+     * @param command       The SitePermissionCommand object.
+     * @param bindingResult The Spring bindingResult.
+     * @return The next view to display.
+     */
+    private ModelAndView handleAddExclusion(HttpServletRequest req, SitePermissionCommand command,
                                             BindingResult bindingResult) {
-		SiteEditorContext ctx = getEditorContext(req);
-		Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
+        SiteEditorContext ctx = getEditorContext(req);
+        Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
 
-		if (bindingResult.hasErrors()) {
-			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-			mav.addObject("urls", ctx.getSortedUrlPatterns());
-			mav.addObject("agents", ctx.getSortedAuthAgents());
-			mav.addObject("permissionEditMode", true);
-			mav.addObject("accessStatusList", accessStatusList);
-			mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
+        if (bindingResult.hasErrors()) {
+            ModelAndView mav = new ModelAndView();
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject("urls", ctx.getSortedUrlPatterns());
+            mav.addObject("agents", ctx.getSortedAuthAgents());
+            mav.addObject("permissionEditMode", true);
+            mav.addObject("accessStatusList", accessStatusList);
+            mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
 
-			mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
-			return mav;
-		}
-		else {
-			permission.getExclusions().add(new PermissionExclusion(command.getExclusionUrl(), command.getExclusionReason()));
+            mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
+            return mav;
+        } else {
+            permission.getExclusions().add(new PermissionExclusion(command.getExclusionUrl(), command.getExclusionReason()));
 
-			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-			mav.addObject("urls", ctx.getSortedUrlPatterns());
-			mav.addObject("agents", ctx.getSortedAuthAgents());
-			mav.addObject("permissionEditMode", true);
-			mav.addObject("accessStatusList", accessStatusList);
-			mav.addObject("permission", permission);
+            ModelAndView mav = new ModelAndView();
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject("urls", ctx.getSortedUrlPatterns());
+            mav.addObject("agents", ctx.getSortedAuthAgents());
+            mav.addObject("permissionEditMode", true);
+            mav.addObject("accessStatusList", accessStatusList);
+            mav.addObject("permission", permission);
 
-			mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
-			return mav;
-		}
-	}
+            mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
+            return mav;
+        }
+    }
 
-	/**
-	 * Handle the delete exlusion logic.
-	 * @param req The HttpServletRequest.
-	 * @param command The SitePermissionCommand object.
-	 * @param bindingResult The Spring bindingResult.
-	 * @return The next view to display.
-	 */
-	private ModelAndView handleDeleteExclusion(HttpServletRequest req, SitePermissionCommand command,
+    /**
+     * Handle the delete exlusion logic.
+     *
+     * @param req           The HttpServletRequest.
+     * @param command       The SitePermissionCommand object.
+     * @param bindingResult The Spring bindingResult.
+     * @return The next view to display.
+     */
+    private ModelAndView handleDeleteExclusion(HttpServletRequest req, SitePermissionCommand command,
                                                BindingResult bindingResult) {
-		SiteEditorContext ctx = getEditorContext(req);
-		Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
+        SiteEditorContext ctx = getEditorContext(req);
+        Permission permission = (Permission) ctx.getObject(Permission.class, command.getIdentity());
 
-		if (bindingResult.hasErrors()) {
-			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-			mav.addObject("urls", ctx.getSortedUrlPatterns());
-			mav.addObject("agents", ctx.getSortedAuthAgents());
-			mav.addObject("permissionEditMode", true);
-			mav.addObject("accessStatusList", accessStatusList);
-			mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
+        if (bindingResult.hasErrors()) {
+            ModelAndView mav = new ModelAndView();
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject("urls", ctx.getSortedUrlPatterns());
+            mav.addObject("agents", ctx.getSortedAuthAgents());
+            mav.addObject("permissionEditMode", true);
+            mav.addObject("accessStatusList", accessStatusList);
+            mav.addObject("permission", ctx.getObject(Permission.class, command.getIdentity()));
 
-			mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
-			return mav;
-		}
-		else {
-			permission.getExclusions().remove((int) command.getDeleteExclusionIndex());
+            mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
+            return mav;
+        } else {
+            permission.getExclusions().remove((int) command.getDeleteExclusionIndex());
 
-			ModelAndView mav = new ModelAndView();
-			mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-			mav.addObject("urls", ctx.getSortedUrlPatterns());
-			mav.addObject("agents", ctx.getSortedAuthAgents());
-			mav.addObject("permissionEditMode", true);
-			mav.addObject("accessStatusList", accessStatusList);
-			mav.addObject("permission", permission);
+            ModelAndView mav = new ModelAndView();
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject("urls", ctx.getSortedUrlPatterns());
+            mav.addObject("agents", ctx.getSortedAuthAgents());
+            mav.addObject("permissionEditMode", true);
+            mav.addObject("accessStatusList", accessStatusList);
+            mav.addObject("permission", permission);
 
-			mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
-			return mav;
-		}
-	}
-
-
-	/**
-	 * Handle the request by sending it to the appropriate sub-handler.
-	 * @param req The HttpServletRequest object.
-	 * @param resp The HttpServletResponse object.
-	 * @param comm The Spring command object.
-	 * @param bindingResult The Spring bindingResult object.
-	 */
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse resp, Object comm,
-                                  BindingResult bindingResult)
-			throws Exception {
-		//Get the command .
-		SitePermissionCommand command = (SitePermissionCommand) comm;
-
-		if(command.isAction(SitePermissionCommand.ACTION_CANCEL)) {
-			return handleCancel(req, resp, command, bindingResult);
-		}
-		else if(command.isAction(SitePermissionCommand.ACTION_SAVE)) {
-			return handleSave(req, resp, command, bindingResult);
-		}
-		else if(command.isAction(SitePermissionCommand.ACTION_ADD_NOTE) ||
-				command.isAction(SitePermissionCommand.ACTION_MODIFY_NOTE) ||
-				command.isAction(SitePermissionCommand.ACTION_DELETE_NOTE)) {
-			return handleAnnotation(req, command, bindingResult);
-		}
-		else if(command.isAction(SitePermissionCommand.ACTION_ADD_EXCLUSION)) {
-			return handleAddExclusion(req, command, bindingResult);
-		}
-		else if(command.isAction(SitePermissionCommand.ACTION_DELETE_EXCLUSION)) {
-			return handleDeleteExclusion(req, command, bindingResult);
-		}
-		else {
-			throw new WCTRuntimeException("Unknown ActionCmd");
-		}
-	}
+            mav.setViewName(Constants.VIEW_SITE_PERMISSIONS);
+            return mav;
+        }
+    }
 
 
-	/**
-	 * Update the business object.
-	 * @param aSite The Site the permission belongs to.
-	 * @param aCommand The command object to update from.
-	 * @param aPermission The permission object to update.
-	 */
-	private void updateBusinessModel(Site aSite, SitePermissionCommand aCommand, Permission aPermission) {
-		aPermission.setSite(aSite);
-		aPermission.setQuickPick(aCommand.isQuickPick());
-		aPermission.setDisplayName(aCommand.getDisplayName());
-		aPermission.setStartDate(aCommand.getStartDate());
-		aPermission.setEndDate(aCommand.getEndDate());
-		aPermission.setStatus(aCommand.getStatus());
-		aPermission.setAuthorisingAgent(aCommand.getAuthorisingAgent());
-		aPermission.setSpecialRequirements(aCommand.getSpecialRequirements());
-		aPermission.adjustUrlPatternSet(aCommand.getUrls());
-		aPermission.setCreateSeekPermissionTask(aCommand.isCreateSeekPermissionTask());
-		aPermission.setCopyrightStatement(aCommand.getCopyrightStatement());
-		aPermission.setCopyrightUrl(aCommand.getCopyrightUrl());
-		aPermission.setOpenAccessDate(aCommand.getOpenAccessDate());
-		aPermission.setAccessStatus(aCommand.getAccessStatus());
-		aPermission.setFileReference(aCommand.getFileReference());
-		aPermission.setAuthResponse(aCommand.getAuthResponse());
-	}
+    /**
+     * Handle the request by sending it to the appropriate sub-handler.
+     *
+     * @param req           The HttpServletRequest object.
+     * @param resp          The HttpServletResponse object.
+     * @param comm          The Spring command object.
+     * @param bindingResult The Spring bindingResult object.
+     */
+    @RequestMapping(value = "/curator/site/permissions.html", method = {RequestMethod.GET, RequestMethod.POST})
+    protected ModelAndView handle(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command, BindingResult bindingResult) throws Exception {
+        if (command.isAction(SitePermissionCommand.ACTION_CANCEL)) {
+            return handleCancel(req, resp, command, bindingResult);
+        } else if (command.isAction(SitePermissionCommand.ACTION_SAVE)) {
+            return handleSave(req, resp, command, bindingResult);
+        } else if (command.isAction(SitePermissionCommand.ACTION_ADD_NOTE) ||
+                command.isAction(SitePermissionCommand.ACTION_MODIFY_NOTE) ||
+                command.isAction(SitePermissionCommand.ACTION_DELETE_NOTE)) {
+            return handleAnnotation(req, command, bindingResult);
+        } else if (command.isAction(SitePermissionCommand.ACTION_ADD_EXCLUSION)) {
+            return handleAddExclusion(req, command, bindingResult);
+        } else if (command.isAction(SitePermissionCommand.ACTION_DELETE_EXCLUSION)) {
+            return handleDeleteExclusion(req, command, bindingResult);
+        } else {
+            throw new WCTRuntimeException("Unknown ActionCmd");
+        }
+    }
 
 
-	/**
-	 * @param businessObjectFactory the businessObjectFactory to set
-	 */
-	public void setBusinessObjectFactory(BusinessObjectFactory businessObjectFactory) {
-		this.businessObjectFactory = businessObjectFactory;
-	}
-	/**
-	 * @param siteController the siteController to set
-	 */
-	public void setSiteController(SiteController siteController) {
-		this.siteController = siteController;
-	}
+    /**
+     * Update the business object.
+     *
+     * @param aSite       The Site the permission belongs to.
+     * @param aCommand    The command object to update from.
+     * @param aPermission The permission object to update.
+     */
+    private void updateBusinessModel(Site aSite, SitePermissionCommand aCommand, Permission aPermission) {
+        aPermission.setSite(aSite);
+        aPermission.setQuickPick(aCommand.isQuickPick());
+        aPermission.setDisplayName(aCommand.getDisplayName());
+        aPermission.setStartDate(aCommand.getStartDate());
+        aPermission.setEndDate(aCommand.getEndDate());
+        aPermission.setStatus(aCommand.getStatus());
+        aPermission.setAuthorisingAgent(aCommand.getAuthorisingAgent());
+        aPermission.setSpecialRequirements(aCommand.getSpecialRequirements());
+        aPermission.adjustUrlPatternSet(aCommand.getUrls());
+        aPermission.setCreateSeekPermissionTask(aCommand.isCreateSeekPermissionTask());
+        aPermission.setCopyrightStatement(aCommand.getCopyrightStatement());
+        aPermission.setCopyrightUrl(aCommand.getCopyrightUrl());
+        aPermission.setOpenAccessDate(aCommand.getOpenAccessDate());
+        aPermission.setAccessStatus(aCommand.getAccessStatus());
+        aPermission.setFileReference(aCommand.getFileReference());
+        aPermission.setAuthResponse(aCommand.getAuthResponse());
+    }
 
-	/**
-	 * Spring setter method for the list of Access Status values.
-	 * @param accessStatusList The accessStatusList to set.
-	 */
-	public void setAccessStatusList(List<String> accessStatusList) {
-		this.accessStatusList = accessStatusList;
-	}
+
+    /**
+     * @param businessObjectFactory the businessObjectFactory to set
+     */
+    public void setBusinessObjectFactory(BusinessObjectFactory businessObjectFactory) {
+        this.businessObjectFactory = businessObjectFactory;
+    }
+
+    /**
+     * @param siteController the siteController to set
+     */
+    public void setSiteController(SiteController siteController) {
+        this.siteController = siteController;
+    }
+
+    /**
+     * Spring setter method for the list of Access Status values.
+     *
+     * @param accessStatusList The accessStatusList to set.
+     */
+    public void setAccessStatusList(List<String> accessStatusList) {
+        this.accessStatusList = accessStatusList;
+    }
 
 }
