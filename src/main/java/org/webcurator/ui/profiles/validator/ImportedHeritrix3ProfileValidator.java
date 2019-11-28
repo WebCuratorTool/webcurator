@@ -20,11 +20,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
-import org.webcurator.ui.common.validation.ValidatorUtil;
-import org.webcurator.ui.profiles.command.Heritrix3ProfileCommand;
 import org.webcurator.ui.profiles.command.ImportedHeritrix3ProfileCommand;
 import org.webcurator.ui.util.HarvestAgentUtil;
 

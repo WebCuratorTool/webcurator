@@ -20,6 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.profiles.ProfileManager;
@@ -35,7 +36,6 @@ import org.webcurator.ui.profiles.command.ViewCommand;
  *
  */
 @Controller
-@RequestMapping(path = "/curator/profiles/view")
 public class ProfileViewController {
 	/** The profile manager to load the profile */
 	@Autowired
@@ -50,7 +50,7 @@ public class ProfileViewController {
 	public ProfileViewController() {
 	}
 
-	@GetMapping
+	@RequestMapping(path = "/curator/profiles/view.html", method = RequestMethod.GET)
 	protected ModelAndView getView(@ModelAttribute("command") ViewCommand command) {
 		Profile profile = profileManager.load(command.getProfileOid());
 

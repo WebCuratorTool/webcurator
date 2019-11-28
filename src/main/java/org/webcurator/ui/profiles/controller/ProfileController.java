@@ -35,6 +35,10 @@ import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureExcep
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.harvester.HarvesterType;
@@ -86,6 +90,7 @@ public class ProfileController extends TabbedController {
     }
 
 	@Override
+	@InitBinder
 	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		super.initBinder(request, binder);
 
@@ -330,6 +335,12 @@ public class ProfileController extends TabbedController {
 		else {
 			return CommonViews.AUTHORISATION_FAILURE;
 		}
+	}
+
+	@Override
+	@RequestMapping(method = {RequestMethod.GET, RequestMethod.POST}, path = "/curator/profiles/profiles.html")
+	protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		return super.handleRequestInternal(request, response);
 	}
 
 	@Override

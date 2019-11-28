@@ -150,12 +150,12 @@ public class ServletConfig {
         //mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
         //mappings.put("/curator/targets/add-parents.html", "addParentsController");
         //mappings.put("/curator/admin/role.html", "roleController");
-        mappings.put("/curator/profiles/profiles.html", "profileController");
+        //mappings.put("/curator/profiles/profiles.html", "profileController");
         //mappings.put("/curator/profiles/profilesH3.html", "profileH3Controller");
         //mappings.put("/curator/profiles/imported-profilesH3.html", "importedProfileH3Controller");
         //mappings.put("/curator/profiles/profiletargets.html", "profileTargetsController");
         //mappings.put("/curator/profiles/list.html", "profileListController");
-        mappings.put("/curator/profiles/view.html", "profileViewController");
+        //mappings.put("/curator/profiles/view.html", "profileViewController");
         //mappings.put("/curator/profiles/delete.html", "profileDeleteController");
         //mappings.put("/curator/profiles/make-default.html", "makeDefaultProfileController");
         mappings.put("/curator/admin/rejreason.html", "rejReasonController");
@@ -896,7 +896,7 @@ public class ServletConfig {
         theTab.setPageId("GENERAL");
         theTab.setTitle("general");
         theTab.setJsp("../profile-general.jsp");
-        theTab.setCommandClass(GeneralCommand.class);
+        theTab.setCommandClass(org.webcurator.ui.profiles.command.GeneralCommand.class);
         theTab.setValidator(new ProfileGeneralValidator());
         theTab.setTabHandler(new ProfileGeneralHandler());
         tabs.add(theTab);
@@ -1000,7 +1000,7 @@ public class ServletConfig {
         theTab.setPageId("GENERAL");
         theTab.setTitle("general");
         theTab.setJsp("../profile-general.jsp");
-        theTab.setCommandClass(GeneralCommand.class);
+        theTab.setCommandClass(org.webcurator.ui.profiles.command.GeneralCommand.class);
         theTab.setValidator(new ProfileGeneralValidator());
         theTab.setTabHandler(new ProfileGeneralHandler());
         tabs.add(theTab);
@@ -1032,7 +1032,7 @@ public class ServletConfig {
         theTab.setPageId("GENERAL");
         theTab.setTitle("general");
         theTab.setJsp("../profile-general.jsp");
-        theTab.setCommandClass(GeneralCommand.class);
+        theTab.setCommandClass(org.webcurator.ui.profiles.command.GeneralCommand.class);
         theTab.setValidator(new ProfileGeneralValidator());
         theTab.setTabHandler(new ProfileGeneralHandler());
         tabs.add(theTab);
