@@ -108,6 +108,9 @@ public class ServletConfig {
     private TargetAccessValidator targetAccessValidator;
 
     @Autowired
+    private ImportedHeritrix3ProfileValidator importedHeritrix3ProfileValidator;
+
+    @Autowired
     private HarvestCoordinator harvestCoordinator;
 
     @Bean
@@ -1010,7 +1013,7 @@ public class ServletConfig {
         theTab.setTitle("scope");
         theTab.setJsp("../imported-profileH3-scope.jsp");
         theTab.setCommandClass(ImportedHeritrix3ProfileCommand.class);
-        theTab.setValidator(new ImportedHeritrix3ProfileValidator());
+        theTab.setValidator(importedHeritrix3ProfileValidator);
         theTab.setTabHandler(new ImportedHeritrix3ProfileHandler());
         tabs.add(theTab);
 
