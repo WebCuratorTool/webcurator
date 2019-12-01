@@ -639,7 +639,9 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 			tmav.addObject("results", results);
 		}
 
-		tmav.addObject(Constants.GBL_ERRORS, bindingResult);
+		if(bindingResult.hasErrors()) {
+			tmav.addObject(Constants.GBL_ERRORS, bindingResult);
+		}
 
 		return tmav;
 	}
