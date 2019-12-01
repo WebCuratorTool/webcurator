@@ -30,6 +30,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import org.webcurator.common.ui.CommandConstants;
@@ -52,8 +56,8 @@ import org.webcurator.ui.target.command.TargetSearchCommand;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping("/curator/target/search.html")
 public class TargetSearchController {
-
     @Autowired
 	private TargetDAO targetDao;
     @Autowired
@@ -61,7 +65,7 @@ public class TargetSearchController {
     @Autowired
 	private AgencyUserManager agencyUserManager;
 
-
+	@GetMapping
 	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// fetch command object (if any) from session..
@@ -165,11 +169,9 @@ public class TargetSearchController {
 		return mav;
 	}
 
+	@PostMapping
 	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, Object comm)
-			throws Exception {
-
-		TargetSearchCommand command = (TargetSearchCommand) comm;
+			HttpServletResponse response, TargetSearchCommand command) throws Exception {
 
 		if(TargetSearchCommand.ACTION_SEARCH.equals(command.getActionCmd())) {
 			return prepareSearchView(request, response, command);
@@ -205,6 +207,7 @@ public class TargetSearchController {
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.BaseCommandController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)
 	 */
+	@InitBinder
 	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		binder.registerCustomEditor(Set.class, "states", new CustomIntegerCollectionEditor(Set.class,true));
 		binder.registerCustomEditor(Long.class, "selectedTargetOid", new CustomNumberEditor(Long.class,true));
