@@ -31,6 +31,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
@@ -124,7 +126,7 @@ public class AddParentsController {
 	}
 
 
-	@PostMapping(value = { "/curator/targets/add-parents.html", "/curator/groups/add-parents.html" })
+	@RequestMapping(value = { "/curator/targets/add-parents.html", "/curator/groups/add-parents.html" },method={RequestMethod.GET,RequestMethod.POST})
 	protected ModelAndView handle(@Validated @ModelAttribute("addParentsCommand") AddParentsCommand command,
                                   BindingResult bindingResult,
 								  HttpServletRequest request, HttpServletResponse response) throws Exception {
