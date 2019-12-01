@@ -296,7 +296,7 @@ public class ProfileController extends TabbedController {
 					mav.addObject(Constants.GBL_CMD_DATA, cmd);
 					//mav.addObject("profiles", profiles);
 					//mav.addObject("agencies", agencies);
-					mav.addObject(Constants.GBL_ERRORS, bindingResult);
+					if(bindingResult.hasErrors()){mav.addObject(Constants.GBL_ERRORS, bindingResult);}
 					return mav;
 				}
 			}
