@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.persistence.Column;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -35,6 +36,7 @@ import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -108,7 +110,6 @@ public class EditScheduleController {
 		return (AbstractTargetEditorContext) req.getSession().getAttribute(contextSessionKey);
 	}
 
-	@PostMapping
 	protected ModelAndView handle(@Validated @ModelAttribute("targetSchedulesCommand") TargetSchedulesCommand command,
                                   HttpServletRequest request, HttpServletResponse response, BindingResult bindingResult)
             throws Exception {
@@ -395,7 +396,7 @@ public class EditScheduleController {
 	private ModelAndView getEditView(TargetSchedulesCommand command, BindingResult bindingResult) {
 		ModelAndView mav = new ModelAndView(viewPrefix + "-" + Constants.VIEW_EDIT_SCHEDULE);
 		mav.addObject(Constants.GBL_CMD_DATA, command);
-		mav.addObject(Constants.GBL_ERRORS, bindingResult);
+		if(bindingResult.hasErrors()){mav.addObject(Constants.GBL_ERRORS, bindingResult);}
 		mav.addObject("viewPrefix", viewPrefix);
 		mav.addObject("patterns", patternFactory.getPatterns());
 		command.setHeatMap(buildHeatMap());
