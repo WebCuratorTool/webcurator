@@ -139,7 +139,7 @@ public class ProfileOverrides {
 	/** The list of URIs to forcefully include */
 	@ElementCollection()
 	@CollectionTable(name = "PO_INCLUSION_URI", joinColumns = @JoinColumn(name = "PEU_PROF_OVER_OID"))
-	@Column(name = "PIU_FILTER")
+	@Column(name = "PEU_FILTER")
 	// TODO @hibernate.collection-index column="PEU_IX"
 	private List<String> includeUriFilters = new LinkedList<String>();
 	/** True to override the include filters; otherwise false */
