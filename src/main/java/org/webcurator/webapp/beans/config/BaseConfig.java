@@ -1,6 +1,5 @@
 package org.webcurator.webapp.beans.config;
 
-import org.hibernate.SessionFactory;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.*;
@@ -24,7 +24,6 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.common.util.DateUtils;
@@ -44,6 +43,7 @@ import org.webcurator.core.notification.MailServerImpl;
 import org.webcurator.core.permissionmapping.HierPermMappingDAOImpl;
 import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrategy;
 import org.webcurator.core.permissionmapping.PermMappingSiteListener;
+import org.webcurator.core.permissionmapping.PermissionMappingStrategy;
 import org.webcurator.core.profiles.PolitenessOptions;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.report.LogonDurationDAOImpl;
@@ -481,6 +481,13 @@ public class BaseConfig {
     }
 
     @Bean
+    public PermissionDAO permissionDAO(){
+        PermissionDAOImpl bean=new PermissionDAOImpl();
+        bean.setSessionFactory(sessionFactory().getObject());
+        return bean;
+    }
+
+    @Bean
     public ProfileDAO profileDao() {
         ProfileDAOImpl bean = new ProfileDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
@@ -720,7 +727,8 @@ public class BaseConfig {
     public HierarchicalPermissionMappingStrategy permissionMappingStrategy() {
         HierarchicalPermissionMappingStrategy bean = new HierarchicalPermissionMappingStrategy();
         bean.setDao(permMappingDao());
-
+        bean.setPermissionDAO(permissionDAO());
+        PermissionMappingStrategy.setStrategy(bean);
         return bean;
     }
 
