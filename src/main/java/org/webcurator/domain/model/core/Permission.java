@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.AgencyInTrayResource;
 import org.webcurator.core.notification.InTrayResource;
 import org.webcurator.core.util.Utils;
@@ -38,7 +37,13 @@ import javax.persistence.*;
 // lazy="false"
 @Entity
 @Table(name = "PERMISSION")
+@NamedQueries(
+        @NamedQuery(name = "org.webcurator.domain.model.core.Permission.List",
+                query = "from Permission p where p.site.oid=:siteId")
+)
 public class Permission extends AbstractIdentityObject implements Annotatable, AgencyOwnable, InTrayResource, AgencyInTrayResource {
+    public final static String QUERY_BY_SITE_ID="org.webcurator.domain.model.core.Permission.List";
+
     /**
      * Maximum length for the File Reference
      */
@@ -103,7 +108,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
      * The set of UrlPatterns covered by this permission.
      */
     //CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE
-    @ManyToMany(cascade = {CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     @JoinTable(name = "PERMISSION_URLPATTERN",
             joinColumns = {@JoinColumn(name = "PU_PERMISSION_ID")},
             inverseJoinColumns = {@JoinColumn(name = "PU_URLPATTERN_ID")},
@@ -244,6 +249,16 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     // TODO @hibernate.collection-index column="PEX_INDEX"
     private List<PermissionExclusion> exclusions = new LinkedList<PermissionExclusion>();
 
+    @ManyToMany(mappedBy = "permissions", targetEntity = Seed.class)
+    private Set<Seed> seeds;
+
+    public Set<Seed> getSeeds() {
+        return seeds;
+    }
+
+    public void setSeeds(Set<Seed> seeds) {
+        this.seeds = seeds;
+    }
 
     /**
      * The list of annotations.
