@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.webcurator.domain.model.core.Site;
+import org.webcurator.domain.model.permissionmapping.Mapping;
+import org.webcurator.domain.model.permissionmapping.MappingView;
 
 /**
  * DAO for the Hierarchical Permission Mapping Strategy.

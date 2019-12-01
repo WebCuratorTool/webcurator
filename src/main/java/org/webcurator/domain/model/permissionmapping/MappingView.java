@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.webcurator.core.permissionmapping;
+package org.webcurator.domain.model.permissionmapping;
 
 import java.util.Date;
 
@@ -33,11 +33,11 @@ import javax.persistence.*;
 // lazy="true"
 @Entity
 @Table(name = "URL_PERMISSION_MAPPING_VIEW")
-@NamedQuery(name = "org.webcurator.core.permissionmapping.MappingView.LIST",
-		query = "from MappingView where domain=?")
+@NamedQuery(name = "org.webcurator.domain.model.permissionmapping.MappingView.LIST",
+		query = "from MappingView where domain=?1")
 public class MappingView {
 	/** Query identifier for listing Mappings by domain */
-	public static final String QUERY_BY_DOMAIN = "org.webcurator.core.permissionmapping.MappingView.LIST";
+	public static final String QUERY_BY_DOMAIN = "org.webcurator.domain.model.permissionmapping.MappingView.LIST";
 	
 	/** The oid of the mapping view record. */
 	@Id

@@ -20,11 +20,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.webcurator.domain.PermissionDAO;
+import org.webcurator.domain.PermissionDAOImpl;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.UrlPattern;
+import org.webcurator.domain.model.permissionmapping.Mapping;
+import org.webcurator.domain.model.permissionmapping.MappingView;
 
 /**
  * The HierarchicalPermissionMappingStrategy is a strategy for fast searches to
@@ -51,7 +55,8 @@ public class HierarchicalPermissionMappingStrategy extends PermissionMappingStra
 	
 	/** The DAO for loading mappings */
 	private HierPermMappingDAO dao = null;
-	
+
+	private PermissionDAO permissionDAO=null;
 	/**
 	 * Constructor
 	 */
@@ -174,7 +179,7 @@ public class HierarchicalPermissionMappingStrategy extends PermissionMappingStra
 					// now fetch the main Mapping entity to get at the associated Permission
 					List<Mapping> mapping = dao.getMapping(m.getOid());
 					for(Mapping map: mapping) {
-						permissions.add(map.getPermission());
+						permissions.add(permissionDAO.load(map.getPermissionId()));
 					}
 					oids.add(m.getPermissionOId());
 				}
@@ -195,7 +200,7 @@ public class HierarchicalPermissionMappingStrategy extends PermissionMappingStra
 						// now fetch the main Mapping entity to get at the associated Permission
 						List<Mapping> mapping = dao.getMapping(m.getOid());
 						for(Mapping map: mapping) {
-							permissions.add(map.getPermission());
+							permissions.add(permissionDAO.load(map.getPermissionId()));
 						}
 						oids.add(m.getPermissionOId());
 					}
@@ -284,6 +289,8 @@ public class HierarchicalPermissionMappingStrategy extends PermissionMappingStra
 	public void setDao(HierPermMappingDAO dao) {
 		this.dao = dao;
 	}
-	
-	
+
+	public void setPermissionDAO(PermissionDAO permissionDAO) {
+		this.permissionDAO = permissionDAO;
+	}
 }
