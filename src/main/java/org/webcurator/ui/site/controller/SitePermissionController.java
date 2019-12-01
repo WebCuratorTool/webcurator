@@ -263,7 +263,7 @@ public class SitePermissionController {
 
             ModelAndView mav = new ModelAndView();
             mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            if(bindingResult.hasErrors()){mav.addObject(Constants.GBL_ERRORS, bindingResult);}
             mav.addObject("urls", ctx.getSortedUrlPatterns());
             mav.addObject("agents", ctx.getSortedAuthAgents());
             mav.addObject("permissionEditMode", true);
@@ -306,7 +306,7 @@ public class SitePermissionController {
 
             ModelAndView mav = new ModelAndView();
             mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            if(bindingResult.hasErrors()){mav.addObject(Constants.GBL_ERRORS, bindingResult);}
             mav.addObject("urls", ctx.getSortedUrlPatterns());
             mav.addObject("agents", ctx.getSortedAuthAgents());
             mav.addObject("permissionEditMode", true);
@@ -348,7 +348,7 @@ public class SitePermissionController {
 
             ModelAndView mav = new ModelAndView();
             mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            if(bindingResult.hasErrors()){mav.addObject(Constants.GBL_ERRORS, bindingResult);}
             mav.addObject("urls", ctx.getSortedUrlPatterns());
             mav.addObject("agents", ctx.getSortedAuthAgents());
             mav.addObject("permissionEditMode", true);
