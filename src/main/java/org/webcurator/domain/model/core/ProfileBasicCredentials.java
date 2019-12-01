@@ -27,10 +27,9 @@ import org.webcurator.core.profiles.HeritrixProfile;
  * 
  * @author bbeaumont
  */
-@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "PROFILE_BASIC_CREDENTIALS")
-@DiscriminatorColumn(name = "PBC_PC_OID")
+@PrimaryKeyJoinColumn(name = "PBC_PC_OID")
 public class ProfileBasicCredentials extends ProfileCredentials {
 	/** The realm to which the credentials apply */
 	@Column(name = "PBC_REALM", length = 255)
