@@ -114,7 +114,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @JoinColumn(name = "AT_OWNER_ID")
     private User owner;
     /** Profile Overrides */
-    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH }) // WAS cascade="save-update"
+    @ManyToOne(cascade = CascadeType.ALL) // WAS cascade="save-update"
     @JoinColumn(name = "AT_PROF_OVERRIDE_OID", foreignKey = @ForeignKey(name = "FK_T_PROF_OVERRIDE_OID"))
     private ProfileOverrides overrides = new ProfileOverrides();
     /** The loaded state of the target **/
@@ -498,7 +498,10 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	 * @return Returns the original state.
 	 */
 	public int getOriginalState() {
-		return originalState;
+		if(this.originalState==-1){
+			return this.state;
+		}
+		return this.originalState;
 	}
 
 	/**
