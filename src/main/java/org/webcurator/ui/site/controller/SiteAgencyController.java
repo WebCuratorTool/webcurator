@@ -117,7 +117,7 @@ public class SiteAgencyController {
 
         ModelAndView mav = new ModelAndView();
         mav.addObject(Constants.GBL_CMD_DATA, cmd);
-        mav.addObject(Constants.GBL_ERRORS, bindingResult);
+        if(bindingResult.hasErrors()){mav.addObject(Constants.GBL_ERRORS, bindingResult);}
         mav.setViewName(Constants.VIEW_SITE_AGENCIES);
 
         return mav;
