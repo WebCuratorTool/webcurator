@@ -60,11 +60,6 @@ public class UrlPattern extends AbstractIdentityObject {
     /**
      * A set of permissions.
      */
-    //CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE
-//    @JoinTable(name = "PERMISSION_URLPATTERN",
-//            joinColumns = {@JoinColumn(name = "PU_URLPATTERN_ID")},
-//            inverseJoinColumns = {@JoinColumn(name = "PU_PERMISSION_ID")},
-//            foreignKey = @ForeignKey(name = "PU_FK_2"))
     @ManyToMany(mappedBy = "urls", targetEntity = Permission.class)
     private Set<Permission> permissions = new HashSet<Permission>();
 

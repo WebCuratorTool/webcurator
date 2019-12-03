@@ -122,12 +122,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
 
 
     public List getAgencies() {
-//<<<<<<< Updated upstream
         Query q = sessionFactory.getCurrentSession().createNamedQuery(Agency.QRY_GET_ALL_AGENCIES);
-//=======
-////        Query q = sessionFactory.getCurrentSession().createQuery(Agency.QRY_GET_ALL_AGENCIES);
-//        Query q = sessionFactory.getCurrentSession().createNamedQuery(Agency.QRY_GET_ALL_AGENCIES,Agency.class);
-//>>>>>>> Stashed changes
         return q.getResultList();
     }
 
