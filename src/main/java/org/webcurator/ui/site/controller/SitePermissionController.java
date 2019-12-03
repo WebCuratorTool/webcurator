@@ -185,7 +185,7 @@ public class SitePermissionController {
             return mav;
         }
 
-        Permission permission = null;
+        Permission permission;
 
         if (Utils.isEmpty(command.getIdentity())) {
             permission = businessObjectFactory.newPermission(ctx.getSite());
@@ -366,7 +366,7 @@ public class SitePermissionController {
      *
      * @param req           The HttpServletRequest object.
      * @param resp          The HttpServletResponse object.
-     * @param comm          The Spring command object.
+     * @param command          The Spring command object.
      * @param bindingResult The Spring bindingResult object.
      */
     @RequestMapping(value = "/curator/site/permissions.html", method = {RequestMethod.GET, RequestMethod.POST})
