@@ -91,7 +91,7 @@ public class HarvestResult implements UserInTrayResource {
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "HR_MODIFICATION_NOTE", joinColumns = @JoinColumn(name = "HMN_HR_OID"))
 	@Column(name = "HMN_NOTE", length = 2000)
-	// TODO @hibernate.collection-index column="HMN_INDEX"
+	@OrderColumn(name = "HMN_INDEX")
 	protected List<String> modificationNotes = new LinkedList<String>();
 	/** The Harvest ID that this harvest was derived from */
 	@Column(name = "HR_DERIVED_FROM")
