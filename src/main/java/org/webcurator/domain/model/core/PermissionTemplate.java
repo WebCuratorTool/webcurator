@@ -70,6 +70,7 @@ public class PermissionTemplate {
     @Column(name = "PRT_TEMPLATE_TYPE", length = 40, nullable = false)
     private String templateType;
     /** The template text after place-holder substitution */
+    @Transient
     private String parsedText;
     /** The subject of the Email*/
     @Column(name = "PRT_TEMPLATE_SUBJECT", length = 255, nullable = true)

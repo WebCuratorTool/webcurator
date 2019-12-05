@@ -26,7 +26,7 @@ public interface Constants {
     /** default time pattern. */
     public static final String GBL_DFLT_TIME_PTRN = "HH:mm:ss";
     /** Key to the errors object. */
-    public static final String GBL_ERRORS = "org.springframework.validation.BindException.command";
+    public static final String GBL_ERRORS = "page_errors"; // "org.springframework.validation.BindException.command";
     /** Key to the display messages. */
     public static final String GBL_MESSAGES = "page_message";       
     /** Default page size. */
