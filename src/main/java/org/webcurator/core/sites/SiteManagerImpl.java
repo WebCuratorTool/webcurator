@@ -203,6 +203,12 @@ public class SiteManagerImpl implements SiteManager {
 
         // Fire the after save event handlers.
         fireEvent(EVENT_TYPE.after_save, aSite);
+
+        // Refresh annotations after being saved, so this method could be multiple called.
+        aSite.setAnnotations(this.getAnnotations(aSite));
+        aSite.getPermissions().forEach(p->{
+            p.setAnnotations(this.getAnnotations(p));
+        });
     }
 
 
