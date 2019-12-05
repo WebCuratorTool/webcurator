@@ -61,6 +61,7 @@ public class SeedsCommand {
     /** The number */
     private int pageNumber;
     private String updatedNameSeedId;
+	private String updatedNameSeedTempId;
     private String updatedNameSeedValue;
 
     private String siteSearchCriteria;
@@ -244,12 +245,20 @@ public class SeedsCommand {
 		return updatedNameSeedId;
 	}
 
+	public String getUpdatedNameSeedTempId() {
+		return updatedNameSeedTempId;
+	}
+
 	public String getUpdatedNameSeedValue() {
 		return updatedNameSeedValue;
 	}
 
 	public void setUpdatedNameSeedId(String updatedNameSeedId) {
 		this.updatedNameSeedId = updatedNameSeedId;
+	}
+
+	public void setUpdatedNameSeedTempId(String updatedNameSeedTempId) {
+		this.updatedNameSeedTempId = updatedNameSeedTempId;
 	}
 
 	public void setUpdatedNameSeedValue(String updatedNameSeedValue) {

@@ -591,7 +591,8 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 
 		if(command.isAction(SeedsCommand.ACTION_SET_NAME)) {
 			String id = command.getUpdatedNameSeedId();
-			if(id!=null) {
+			String tempId = command.getUpdatedNameSeedTempId();
+			if(id!=null && !id.isEmpty()) {
 				for(Seed seed:ctx.getSortedSeeds()) {
 					if(seed.getOid().equals(Long.valueOf(id))) {
 						String value = command.getUpdatedNameSeedValue();
@@ -613,6 +614,31 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 							return tmav;
 						}
 						System.out.println("Found seed " + id);
+					}
+				}
+			}
+			else if(tempId!=null && !tempId.isEmpty()) {
+				for(Seed seed:ctx.getSortedSeeds()) {
+					if(seed.getIdentity().equals(tempId)) {
+						String value = command.getUpdatedNameSeedValue();
+						if(value.trim().equals("")) {
+							bindingResult.reject("target.seeds.name.edit.required");
+							TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+							tmav.addObject(Constants.GBL_CMD_DATA, command);
+							tmav.getTabStatus().setCurrentTab(currentTab);
+							return tmav;
+						}
+						if(UrlUtils.isUrl(seed.getSeed())) {
+							seed.setSeed(UrlUtils.fixUrl(value));
+							ctx.putObject(seed);
+						} else {
+							bindingResult.reject("target.seeds.name.edit.invalid");
+							TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+							tmav.addObject(Constants.GBL_CMD_DATA, command);
+							tmav.getTabStatus().setCurrentTab(currentTab);
+							return tmav;
+						}
+						System.out.println("Found seed " + tempId);
 					}
 				}
 			}

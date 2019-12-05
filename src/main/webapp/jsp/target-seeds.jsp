@@ -105,11 +105,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   	$("#seedNameLabelDiv"+id).hide()
   }
   
-  function saveSeedName(id, oid) {
+  function saveSeedName(id, oid, tid) {
     $("#updatedNameSeedId").val(oid)
+    $("#updatedNameSeedTempId").val(tid)
     value = $("#seedNameInput"+id).val()
     $("#updatedNameSeedValue").val(value)
-  	setActionCmd('<%= SeedsCommand.ACTION_SET_NAME %>');
+    setActionCmd('<%= SeedsCommand.ACTION_SET_NAME %>');
+
   }
   
   function cancelEdit() {
@@ -125,6 +127,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<input type="hidden" id="selectedSeed" name="selectedSeed"/>
 	<input type="hidden" id="selectedPermission" name="selectedPermission"/>
 	<input type="hidden" id="updatedNameSeedId" name="updatedNameSeedId"/>
+	<input type="hidden" id="updatedNameSeedTempId" name="updatedNameSeedTempId"/>
 	<input type="hidden" id="updatedNameSeedValue" name="updatedNameSeedValue"/>
 	<input type="hidden" id="actionCmd" name="actionCmd"/>
   <tr>
@@ -236,7 +239,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			    			<div class="seedNameEdit" id="<c:out value="seedNameInputDiv${i.count}"/>">
 								<input style="width:250px" type="text" id="<c:out value="seedNameInput${i.count}"/>" name="<c:out value="seedNameInput${i.count}"/>" value="<c:out value="${seed.seed}"/>"/>
 		    					<input style="float:right" type="image" src="images/abort-icon.gif"  alt="Discard name" onclick="cancelEdit();return false;">			    			
-		    					<input style="float:right" type="image" src="images/action-icon-export.gif"  alt="Save name" onclick="saveSeedName(<c:out value="${i.count}"/>, <c:out value="${seed.oid}"/>)">			    			
+		    					<input style="float:right" type="image" src="images/action-icon-export.gif"  alt="Save name" onclick="saveSeedName(<c:out value="${i.count}"/>, '<c:out value="${seed.oid}"/>', '<c:out value="${seed.identity}"/>')">
 							</div>
 	    				</td>
 	        			<td class="annotationsLiteRow">
