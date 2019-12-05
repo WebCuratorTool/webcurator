@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.domain.Pagination;
@@ -33,124 +35,118 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
 /**
  * The controller for managing searching for authorising agents.
+ *
  * @author bbeaumont
  */
 @Controller
 public class SiteAgencySearchController {
     @Autowired
-	private SiteManager siteManager;
+    private SiteManager siteManager;
     @Autowired
-	private SiteController siteController;
+    private SiteController siteController;
 
-	public SiteAgencySearchController() {
-	}
+    public SiteAgencySearchController() {
+    }
 
-	/**
-	 * Retrive the editor context for the groups controller.
-	 * @param req The HttpServletRequest so the session can be retrieved.
-	 * @return The editor context.
-	 */
-	public SiteEditorContext getEditorContext(HttpServletRequest req) {
-		SiteEditorContext ctx = (SiteEditorContext) req.getSession().getAttribute(SiteController.EDITOR_CONTEXT);
-		if( ctx == null) {
-			throw new IllegalStateException("Editor Context not yet bound to the session");
-		}
+    /**
+     * Retrive the editor context for the groups controller.
+     *
+     * @param req The HttpServletRequest so the session can be retrieved.
+     * @return The editor context.
+     */
+    public SiteEditorContext getEditorContext(HttpServletRequest req) {
+        SiteEditorContext ctx = (SiteEditorContext) req.getSession().getAttribute(SiteController.EDITOR_CONTEXT);
+        if (ctx == null) {
+            throw new IllegalStateException("Editor Context not yet bound to the session");
+        }
 
-		return ctx;
-	}
+        return ctx;
+    }
 
+    @RequestMapping(value = "/curator/site/site-auth-agency-search.html", method = {RequestMethod.GET, RequestMethod.POST})
+    protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, AgencySearchCommand command, BindingResult bindingResult) throws Exception {
+        if (AgencySearchCommand.ACTION_ADD.equals(command.getActionCmd())) {
+            if (bindingResult.hasErrors()) {
+                return getSearchView(command, bindingResult);
+            } else {
+                long[] newAuthAgents = command.getSelectedOids();
 
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
-                                  BindingResult bindingResult) throws Exception {
-		AgencySearchCommand command = (AgencySearchCommand) comm;
+                if (newAuthAgents != null && newAuthAgents.length > 0) {
+                    // Perform some validation before allowing the members to be
+                    // added.
+                    for (int i = 0; i < newAuthAgents.length; i++) {
+                        AuthorisingAgent agent = siteManager.loadAuthorisingAgent(newAuthAgents[i]);
+                        SiteEditorContext ctx = getEditorContext(request);
+                        ctx.putObject(agent);
+                        ctx.getSite().getAuthorisingAgents().add(agent);
+                    }
 
-		if(AgencySearchCommand.ACTION_ADD.equals(command.getActionCmd())) {
+                    // Go back to the main view.
+                    return getAgencyTab(request, response, command, bindingResult);
+                } else {
+                    // Shouldn't ever reach this code, as newAuthAgents being
+                    // null or empty should cause a validation failure.
+                    return getSearchView(command, bindingResult);
+                }
+            }
+        } else if (AgencySearchCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
+            // Go back to the main view.
+            return getAgencyTab(request, response, command, bindingResult);
+        } else {
+            return getSearchView(command, bindingResult);
+        }
+    }
 
-			if(bindingResult.hasErrors()) {
-				return getSearchView(comm, bindingResult);
-			}
-			else {
-				long[] newAuthAgents = command.getSelectedOids();
+    private ModelAndView getSearchView(Object comm, BindingResult bindingResult) {
+        AgencySearchCommand command = (AgencySearchCommand) comm;
+        Pagination results = siteManager.searchAuthAgents(command.getName(), command.getPageNumber());
 
-				if(newAuthAgents != null && newAuthAgents.length > 0 ) {
-					// Perform some validation before allowing the members to be
-					// added.
-					for(int i=0; i<newAuthAgents.length; i++) {
-						AuthorisingAgent agent = siteManager.loadAuthorisingAgent(newAuthAgents[i]);
-						SiteEditorContext ctx = getEditorContext(request);
-						ctx.putObject(agent);
-						ctx.getSite().getAuthorisingAgents().add(agent);
-					}
+        ModelAndView mav = new ModelAndView("site-auth-agency-search");
+        mav.addObject("results", results);
+        mav.addObject(Constants.GBL_CMD_DATA, command);
 
-					// Go back to the main view.
-					return getAgencyTab(request, response, comm, bindingResult);
-				}
-				else {
-					// Shouldn't ever reach this code, as newAuthAgents being
-					// null or empty should cause a validation failure.
-					return getSearchView(comm, bindingResult);
-				}
-			}
-		}
-		else if(AgencySearchCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
-			// Go back to the main view.
-			return getAgencyTab(request, response, comm, bindingResult);
-		}
-		else {
-			return getSearchView(comm, bindingResult);
-		}
-	}
+        if (bindingResult.hasErrors()) {
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+        }
 
-	private ModelAndView getSearchView(Object comm, BindingResult bindingResult) {
-		AgencySearchCommand command = (AgencySearchCommand) comm;
-		Pagination results = siteManager.searchAuthAgents(command.getName(), command.getPageNumber());
+        return mav;
+    }
 
-		ModelAndView mav = new ModelAndView("site-auth-agency-search");
-		mav.addObject("results", results);
-		mav.addObject(Constants.GBL_CMD_DATA, command);
-
-		if(bindingResult.hasErrors()) {
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-		}
-
-		return mav;
-	}
-
-	private ModelAndView getAgencyTab(HttpServletRequest request, HttpServletResponse response, Object command,
+    private ModelAndView getAgencyTab(HttpServletRequest request, HttpServletResponse response, Object command,
                                       BindingResult bindingResult) {
-		// Go back to the Members tab on the groups controller.
-		Tab authAgentTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
-		TabbedModelAndView tmav = authAgentTab.getTabHandler().preProcessNextTab(siteController, authAgentTab, request, response, command, bindingResult);
-		tmav.getTabStatus().setCurrentTab(authAgentTab);
-		return tmav;
-	}
+        // Go back to the Members tab on the groups controller.
+        Tab authAgentTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
+        TabbedModelAndView tmav = authAgentTab.getTabHandler().preProcessNextTab(siteController, authAgentTab, request, response, command, bindingResult);
+        tmav.getTabStatus().setCurrentTab(authAgentTab);
+        return tmav;
+    }
 
-	/**
-	 * @return Returns the siteController.
-	 */
-	public SiteController getSiteController() {
-		return siteController;
-	}
+    /**
+     * @return Returns the siteController.
+     */
+    public SiteController getSiteController() {
+        return siteController;
+    }
 
-	/**
-	 * @param siteController The siteController to set.
-	 */
-	public void setSiteController(SiteController siteController) {
-		this.siteController = siteController;
-	}
+    /**
+     * @param siteController The siteController to set.
+     */
+    public void setSiteController(SiteController siteController) {
+        this.siteController = siteController;
+    }
 
-	/**
-	 * @return Returns the siteManager.
-	 */
-	public SiteManager getSiteManager() {
-		return siteManager;
-	}
+    /**
+     * @return Returns the siteManager.
+     */
+    public SiteManager getSiteManager() {
+        return siteManager;
+    }
 
-	/**
-	 * @param siteManager The siteManager to set.
-	 */
-	public void setSiteManager(SiteManager siteManager) {
-		this.siteManager = siteManager;
-	}
+    /**
+     * @param siteManager The siteManager to set.
+     */
+    public void setSiteManager(SiteManager siteManager) {
+        this.siteManager = siteManager;
+    }
 
 }

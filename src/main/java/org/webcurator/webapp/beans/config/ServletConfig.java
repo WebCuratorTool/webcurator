@@ -121,13 +121,13 @@ public class ServletConfig {
         bean.setOrder(0);
 
         Properties mappings = new Properties();
-        mappings.put("/curator/site/site.html", "siteController");
-        mappings.put("/curator/site/search.html", "siteSearchController");
-        mappings.put("/curator/site/agencies.html", "siteAgencyController");
-        mappings.put("/curator/site/site-auth-agency-search.html", "siteAgencySearchController");
-        mappings.put("/curator/site/permissions.html", "sitePermissionController");
-        mappings.put("/curator/site/transfer.html", "transferSeedsController");
-        mappings.put("/curator/site/generate.html", "generatePermissionTemplateController");
+//        mappings.put("/curator/site/site.html", "siteController");
+//        mappings.put("/curator/site/search.html", "siteSearchController");
+//        mappings.put("/curator/site/agencies.html", "siteAgencyController");
+//        mappings.put("/curator/site/site-auth-agency-search.html", "siteAgencySearchController");
+//        mappings.put("/curator/site/permissions.html", "sitePermissionController");
+//        mappings.put("/curator/site/transfer.html", "transferSeedsController");
+//        mappings.put("/curator/site/generate.html", "generatePermissionTemplateController");
         //mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
         mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
         mappings.put("/curator/tools/treetool.html", "treeToolController");
@@ -143,7 +143,7 @@ public class ServletConfig {
         mappings.put("/curator/target/qa-indicator-report.html", "qaIndicatorReportController");
         mappings.put("/curator/target/qa-indicator-robots-report.html", "qaIndicatorRobotsReportController");
         //mappings.put("/curator/target/annotation-ajax.html", "annotationAjaxController");
-        mappings.put("/curator/target/target-instance.html", "tabbedTargetInstanceController");
+//        mappings.put("/curator/target/target-instance.html", "tabbedTargetInstanceController");
         //mappings.put("/curator/target/harvest-now.html", "harvestNowController");
         //mappings.put("/curator/target/target.html", "targetController");
         mappings.put("/curator/target/search.html", "targetSearchController");

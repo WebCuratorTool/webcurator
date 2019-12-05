@@ -24,6 +24,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 import org.webcurator.core.sites.SiteManager;
@@ -37,6 +39,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
 /**
  * The manager for Harvest Authorisation actions.
+ *
  * @author nwaight
  */
 @Controller
@@ -44,110 +47,111 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 @Lazy(false)
 public class SiteAgencyController {
 
-	/** The site manager */
-	@Autowired
-	private SiteManager siteManager;
+    /**
+     * The site manager
+     */
     @Autowired
-	private SiteController siteController;
-	/** BusinessObjectFactory */
-	@Autowired
-	private BusinessObjectFactory businessObjectFactory;
+    private SiteManager siteManager;
+    @Autowired
+    private SiteController siteController;
+    /**
+     * BusinessObjectFactory
+     */
+    @Autowired
+    private BusinessObjectFactory businessObjectFactory;
 
-	public SiteAgencyController() {
-	}
+    public SiteAgencyController() {
+    }
 
-	public SiteEditorContext getEditorContext(HttpServletRequest req) {
-		SiteEditorContext ctx = (SiteEditorContext) req.getSession().getAttribute("siteEditorContext");
-		if( ctx == null) {
-			throw new IllegalStateException("siteEditorContext not yet bound to the session");
-		}
+    public SiteEditorContext getEditorContext(HttpServletRequest req) {
+        SiteEditorContext ctx = (SiteEditorContext) req.getSession().getAttribute("siteEditorContext");
+        if (ctx == null) {
+            throw new IllegalStateException("siteEditorContext not yet bound to the session");
+        }
 
-		return ctx;
-	}
+        return ctx;
+    }
 
-	protected ModelAndView handle(HttpServletRequest aReq, HttpServletResponse aResp, Object aCommand,
-                                  BindingResult bindingResult) throws Exception {
+    @RequestMapping(value = "/curator/site/agencies.html", method = {RequestMethod.GET, RequestMethod.POST})
+    protected ModelAndView handle(HttpServletRequest aReq, HttpServletResponse aResp, SiteAuthorisingAgencyCommand cmd, BindingResult bindingResult) throws Exception {
+        SiteEditorContext ctx = getEditorContext(aReq);
 
-		SiteAuthorisingAgencyCommand cmd = (SiteAuthorisingAgencyCommand) aCommand;
-		SiteEditorContext ctx = getEditorContext(aReq);
+        // Handle Cancel
+        if (WebUtils.hasSubmitParameter(aReq, "_cancel_auth_agent")) {
+            Tab membersTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
+            TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, bindingResult);
+            tmav.getTabStatus().setCurrentTab(membersTab);
+            return tmav;
+        }
 
-		// Handle Cancel
-		if(WebUtils.hasSubmitParameter(aReq, "_cancel_auth_agent")) {
-			Tab membersTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
-			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, bindingResult);
-			tmav.getTabStatus().setCurrentTab(membersTab);
-			return tmav;
-		}
+        // Handle Save
+        if (WebUtils.hasSubmitParameter(aReq, "_save_auth_agent")) {
 
-		// Handle Save
-		if(WebUtils.hasSubmitParameter(aReq, "_save_auth_agent")) {
+            if (bindingResult.hasErrors()) {
+                ModelAndView mav = new ModelAndView();
+                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+                mav.addObject(Constants.GBL_ERRORS, bindingResult);
+                mav.setViewName(Constants.VIEW_SITE_AGENCIES);
+                mav.addObject("authAgencyEditMode", true);
 
-			if (bindingResult.hasErrors()) {
-				ModelAndView mav = new ModelAndView();
-				mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-				mav.addObject(Constants.GBL_ERRORS, bindingResult);
-				mav.setViewName(Constants.VIEW_SITE_AGENCIES);
-				mav.addObject("authAgencyEditMode", true);
+                return mav;
+            }
 
-				return mav;
-			}
+            // Are we creating a new item, or updating an existing
+            // one?
+            if (isEmpty(cmd.getIdentity())) {
+                AuthorisingAgent agent = businessObjectFactory.newAuthorisingAgent();
+                cmd.updateBusinessModel(agent);
+                ctx.putObject(agent);
+                ctx.getSite().getAuthorisingAgents().add(agent);
+            } else {
+                AuthorisingAgent agent = (AuthorisingAgent) ctx.getObject(AuthorisingAgent.class, cmd.getIdentity());
+                cmd.updateBusinessModel(agent);
+            }
 
-			// Are we creating a new item, or updating an existing
-			// one?
-			if(isEmpty(cmd.getIdentity())) {
-				AuthorisingAgent agent = businessObjectFactory.newAuthorisingAgent();
-				cmd.updateBusinessModel(agent);
-				ctx.putObject(agent);
-				ctx.getSite().getAuthorisingAgents().add(agent);
-			}
-			else {
-				AuthorisingAgent agent = (AuthorisingAgent) ctx.getObject(AuthorisingAgent.class, cmd.getIdentity());
-				cmd.updateBusinessModel(agent);
-			}
+            Tab membersTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
+            TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, bindingResult);
+            tmav.getTabStatus().setCurrentTab(membersTab);
+            return tmav;
+        }
 
-			Tab membersTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");
-			TabbedModelAndView tmav = membersTab.getTabHandler().preProcessNextTab(siteController, membersTab, aReq, aResp, cmd, bindingResult);
-			tmav.getTabStatus().setCurrentTab(membersTab);
-			return tmav;
-		}
+        ModelAndView mav = new ModelAndView();
+        mav.addObject(Constants.GBL_CMD_DATA, cmd);
+        mav.addObject(Constants.GBL_ERRORS, bindingResult);
+        mav.setViewName(Constants.VIEW_SITE_AGENCIES);
 
-		ModelAndView mav = new ModelAndView();
-		mav.addObject(Constants.GBL_CMD_DATA, cmd);
-		mav.addObject(Constants.GBL_ERRORS, bindingResult);
-		mav.setViewName(Constants.VIEW_SITE_AGENCIES);
+        return mav;
+    }
 
-		return mav;
-	}
+    private boolean isEmpty(String aString) {
+        return aString == null || aString.trim().equals("");
+    }
 
-	private boolean isEmpty(String aString) {
-		return aString == null || aString.trim().equals("");
-	}
+    /**
+     * @param siteController the siteController to set
+     */
+    public void setSiteController(SiteController siteController) {
+        this.siteController = siteController;
+    }
 
-	/**
-	 * @param siteController the siteController to set
-	 */
-	public void setSiteController(SiteController siteController) {
-		this.siteController = siteController;
-	}
+    /**
+     * @param businessObjectFactory The busObjFactory to set.
+     */
+    public void setBusinessObjectFactory(BusinessObjectFactory businessObjectFactory) {
+        this.businessObjectFactory = businessObjectFactory;
+    }
 
-	/**
-	 * @param businessObjectFactory The busObjFactory to set.
-	 */
-	public void setBusinessObjectFactory(BusinessObjectFactory businessObjectFactory) {
-		this.businessObjectFactory = businessObjectFactory;
-	}
+    /**
+     * @return Returns the siteManager.
+     */
+    public SiteManager getSiteManager() {
+        return siteManager;
+    }
 
-	/**
-	 * @return Returns the siteManager.
-	 */
-	public SiteManager getSiteManager() {
-		return siteManager;
-	}
-
-	/**
-	 * @param siteManager The siteManager to set.
-	 */
-	public void setSiteManager(SiteManager siteManager) {
-		this.siteManager = siteManager;
-	}
+    /**
+     * @param siteManager The siteManager to set.
+     */
+    public void setSiteManager(SiteManager siteManager) {
+        this.siteManager = siteManager;
+    }
 }

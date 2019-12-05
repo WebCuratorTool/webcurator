@@ -27,6 +27,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -78,10 +80,9 @@ public class TransferSeedsController {
 	 * Pass the control of the action over to one of the specific handler
 	 * methods.
 	 */
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm,
+	@RequestMapping(value = "/curator/site/transfer.html", method = {RequestMethod.GET, RequestMethod.POST})
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command,
                                   BindingResult bindingResult) throws Exception {
-		TransferSeedsCommand command = (TransferSeedsCommand) comm;
-
 		if(TransferSeedsCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
 			return handleCancel(req, res, command, bindingResult);
 		}
@@ -102,7 +103,7 @@ public class TransferSeedsController {
 			siteController.checkSave(req, bindingResult);
 			if(bindingResult.hasErrors()) {
 				Tab currentTab = siteController.getTabConfig().getTabByID("PERMISSIONS");
-				return siteController.getErrorsView(currentTab, req, res, comm, bindingResult);
+				return siteController.getErrorsView(currentTab, req, res, command, bindingResult);
 			}
 
 			// Save the Site.

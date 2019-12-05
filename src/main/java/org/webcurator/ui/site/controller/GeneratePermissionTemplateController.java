@@ -29,6 +29,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.admin.PermissionTemplateManager;
 import org.webcurator.core.notification.MailServer;
@@ -49,6 +52,7 @@ import org.webcurator.ui.site.command.GeneratePermissionTemplateCommand;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping("/curator/site/generate.html")
 public class GeneratePermissionTemplateController {
 	/** The manager for accessing site information. */
 	@Autowired
@@ -68,6 +72,7 @@ public class GeneratePermissionTemplateController {
         super();
     }
 
+    @GetMapping
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
 
         String siteOid = aReq.getParameter("siteOid");
@@ -82,8 +87,8 @@ public class GeneratePermissionTemplateController {
         return mav;
     }
 
-    protected ModelAndView processFormSubmission(Object aCmd, BindingResult bindingResult) throws Exception {
-        GeneratePermissionTemplateCommand tempCmd = (GeneratePermissionTemplateCommand) aCmd;
+    @PostMapping
+    protected ModelAndView processFormSubmission(GeneratePermissionTemplateCommand tempCmd, BindingResult bindingResult) throws Exception {
         User loggedInUser = AuthUtil.getRemoteUserObject();
         ModelAndView mav = new ModelAndView();
 

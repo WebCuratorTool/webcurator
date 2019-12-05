@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -53,6 +54,7 @@ import org.webcurator.ui.util.TabbedController;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping("/curator/target/target-instance.html")
 public class TabbedTargetInstanceController extends TabbedController {
     /** The manager for target instance data access. */
     @Autowired
