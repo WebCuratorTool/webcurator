@@ -594,7 +594,7 @@ public class TargetSeedsHandler extends AbstractTargetTabHandler {
 			String tempId = command.getUpdatedNameSeedTempId();
 			if(id!=null && !id.isEmpty()) {
 				for(Seed seed:ctx.getSortedSeeds()) {
-					if(seed.getOid().equals(Long.valueOf(id))) {
+					if(seed!=null && seed.getOid()!=null && seed.getOid().equals(Long.valueOf(id))) {
 						String value = command.getUpdatedNameSeedValue();
 						if(value.trim().equals("")) {
 							bindingResult.reject("target.seeds.name.edit.required");
