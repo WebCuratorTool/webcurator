@@ -146,7 +146,7 @@ public class ServletConfig {
 //        mappings.put("/curator/target/target-instance.html", "tabbedTargetInstanceController");
         //mappings.put("/curator/target/harvest-now.html", "harvestNowController");
         //mappings.put("/curator/target/target.html", "targetController");
-        mappings.put("/curator/target/search.html", "targetSearchController");
+//        mappings.put("/curator/target/search.html", "targetSearchController");
         //mappings.put("/curator/target/schedule.html", "targetEditScheduleController");
         //mappings.put("/curator/targets/add-parents.html", "addParentsController");
         //mappings.put("/curator/admin/role.html", "roleController");
@@ -584,7 +584,7 @@ public class ServletConfig {
         theTab.setTitle("groups");
         theTab.setJsp("../target-groups.jsp");
         theTab.setCommandClass(TargetGroupsCommand.class);
-        theTab.setValidator(new TargetAnnotationValidator());
+//        theTab.setValidator(new TargetAnnotationValidator());
         theTab.setTabHandler(targetGroupsHandler());
         tabs.add(theTab);
 

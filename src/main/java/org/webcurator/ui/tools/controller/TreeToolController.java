@@ -496,7 +496,7 @@ public class TreeToolController {
 			mav.addObject( "tree", tree);
 			mav.addObject( "command", command);
 			mav.addObject( "aqaImports", imports);
-			mav.addObject( Constants.GBL_ERRORS, bindingResult);
+			if(bindingResult.hasErrors()){mav.addObject( Constants.GBL_ERRORS, bindingResult);}
 			if(autoQAUrl != null && autoQAUrl.length() > 0) {
 				mav.addObject("showAQAOption", 1);
 			} else {
