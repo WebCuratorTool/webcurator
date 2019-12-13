@@ -113,6 +113,9 @@ public class ServletConfig {
     @Autowired
     private HarvestCoordinator harvestCoordinator;
 
+    @Autowired
+    private Heritrix3ProfileHandler heritrix3ProfileHandler;
+
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
@@ -1009,14 +1012,14 @@ public class ServletConfig {
         tabs.add(theTab);
 
         theTab = new Tab();
-        theTab.setPageId("SCOPE-IMPORTED");
-        theTab.setTitle("scope");
-        theTab.setJsp("../imported-profileH3-scope.jsp");
-        theTab.setCommandClass(ImportedHeritrix3ProfileCommand.class);
-        theTab.setValidator(importedHeritrix3ProfileValidator);
-        theTab.setTabHandler(new ImportedHeritrix3ProfileHandler());
-        tabs.add(theTab);
 
+        tabs.add(theTab);
+        theTab.setPageId("SCOPE");
+        theTab.setTitle("scope");
+        theTab.setJsp("../profileH3-scope.jsp");
+        theTab.setCommandClass(Heritrix3ProfileCommand.class);
+        theTab.setValidator(new Heritrix3ProfileValidator());
+        theTab.setTabHandler(heritrix3ProfileHandler);
         bean.setTabs(tabs);
 
         return bean;
@@ -1041,16 +1044,17 @@ public class ServletConfig {
         tabs.add(theTab);
 
         theTab = new Tab();
-        theTab.setPageId("SCOPE");
+        theTab.setPageId("SCOPE-IMPORTED");
         theTab.setTitle("scope");
-        theTab.setJsp("../profileH3-scope.jsp");
-        theTab.setCommandClass(Heritrix3ProfileCommand.class);
-        theTab.setValidator(new Heritrix3ProfileValidator());
-        theTab.setTabHandler(new Heritrix3ProfileHandler());
+        theTab.setJsp("../imported-profileH3-scope.jsp");
+        theTab.setCommandClass(ImportedHeritrix3ProfileCommand.class);
+        theTab.setValidator(importedHeritrix3ProfileValidator);
+        theTab.setTabHandler(new ImportedHeritrix3ProfileHandler());
         tabs.add(theTab);
 
         bean.setTabs(tabs);
 
         return bean;
     }
+
 }

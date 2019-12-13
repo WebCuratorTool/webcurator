@@ -15,14 +15,16 @@
  */
 package org.webcurator.ui.profiles.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.core.profiles.Heritrix3Profile;
 import org.webcurator.core.profiles.PolitenessOptions;
 import org.webcurator.core.profiles.ProfileDataUnit;
 import org.webcurator.core.profiles.ProfileTimeUnit;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.profiles.command.Heritrix3ProfileCommand;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;
@@ -37,7 +39,16 @@ import javax.servlet.http.HttpServletResponse;
  * @author bbeaumont
  *
  */
+@Component
 public class Heritrix3ProfileHandler extends TabHandler {
+
+
+	@Autowired
+	private PolitenessOptions politePolitenessOptions;
+	@Autowired
+	private PolitenessOptions mediumPolitenessOptions;
+	@Autowired
+	private PolitenessOptions aggressivePolitenessOptions;
 
 	/* (non-Javadoc)
 	 * @see org.webcurator.ui.util.TabHandler#processTab(org.webcurator.ui.util.TabbedController, org.webcurator.ui.util.Tab, javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindingResult)
@@ -78,9 +89,9 @@ public class Heritrix3ProfileHandler extends TabHandler {
 		tmav.addObject("politenessTypes", PolitenessOptions.POLITENESS_OPTIONS);
 		tmav.addObject("profileDataUnits", ProfileDataUnit.getProfileDataUnitNames());
 		tmav.addObject("profileTimeUnits", ProfileTimeUnit.getProfileDataTimeNames());
-		tmav.addObject("politeOption", PolitenessOptions.getPolitePolitenessOptions());
-		tmav.addObject("mediumOption", PolitenessOptions.getMediumPolitenessOptions());
-		tmav.addObject("aggressiveOption", PolitenessOptions.getAggressivePolitenessOptions());
+		tmav.addObject("politeOption", politePolitenessOptions);
+		tmav.addObject("mediumOption", mediumPolitenessOptions);
+		tmav.addObject("aggressiveOption", aggressivePolitenessOptions);
 		tmav.addObject(Constants.GBL_CMD_DATA, command);
 
 		return tmav;
