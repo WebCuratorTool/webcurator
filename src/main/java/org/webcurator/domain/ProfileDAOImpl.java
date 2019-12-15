@@ -211,7 +211,7 @@ public class ProfileDAOImpl extends BaseDAOImpl implements ProfileDAO {
 										.add(Restrictions.eq("oid", aProfile.getOid()))
 										.uniqueResult();
 						
-						targetCount += (Integer) session.createCriteria(TargetInstance.class)
+						targetCount += (Long) session.createCriteria(TargetInstance.class)
 						.setProjection(Projections.rowCount())
 						.createCriteria("lockedProfile")
 						.add(Restrictions.eq("origOid", aProfile.getOrigOid()))
