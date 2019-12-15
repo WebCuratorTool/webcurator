@@ -22,7 +22,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.profiles.ProfileManager;
@@ -62,6 +68,7 @@ public class ProfileTargetsController {
 	public ProfileTargetsController() {
 	}
 
+	@RequestMapping(method = RequestMethod.GET, path = "/curator/profiles/profiletargets.html")
 	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// fetch command object (if any) from session..
@@ -127,28 +134,27 @@ public class ProfileTargetsController {
 		return mav;
 	}
 
-	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, Object comm)
+	@RequestMapping(method = RequestMethod.POST, path = "/curator/profiles/profiletargets.html")
+	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, @ModelAttribute ProfileTargetsCommand profileTargetsCommand)
             throws Exception {
 
-		ProfileTargetsCommand command = (ProfileTargetsCommand) comm;
+		if (ProfileTargetsCommand.ACTION_LIST.equals(profileTargetsCommand.getActionCommand())) {
 
-		if (ProfileTargetsCommand.ACTION_LIST.equals(command.getActionCommand())) {
-
-			return getView(request, response, command);
+			return getView(request, response, profileTargetsCommand);
 
 		} else {
 
-			if (ProfileTargetsCommand.ACTION_TRANSFER.equals(command.getActionCommand())) {
+			if (ProfileTargetsCommand.ACTION_TRANSFER.equals(profileTargetsCommand.getActionCommand())) {
 
 				// set the profile of the non-excluded targets to be the selected profile
-				if (command.getTargetOids() != null) {
-					long[] targetOids = command.getTargetOids();
+				if (profileTargetsCommand.getTargetOids() != null) {
+					long[] targetOids = profileTargetsCommand.getTargetOids();
 					for(int i=0;i<targetOids.length;i++) {
 						long targetOid = targetOids[i];
 						Target target = targetManager.load(targetOid);
-						Profile profile = profileManager.load(command.getNewProfileOid());
+						Profile profile = profileManager.load(profileTargetsCommand.getNewProfileOid());
 						target.setProfile(profile);
-						if (command.isCancelTargets()) {
+						if (profileTargetsCommand.isCancelTargets()) {
 							target.changeState(Target.STATE_CANCELLED);
 						}
 						targetManager.save(target);
@@ -156,12 +162,12 @@ public class ProfileTargetsController {
 				};
 
 				// refresh list view
-				command.setPageNumber(0);
-				return getView(request, response, command);
+				profileTargetsCommand.setPageNumber(0);
+				return getView(request, response, profileTargetsCommand);
 
 			} else {
 
-				if (command.getActionCommand().equals(ProfileTargetsCommand.ACTION_CANCEL)) {
+				if (profileTargetsCommand.getActionCommand().equals(ProfileTargetsCommand.ACTION_CANCEL)) {
 
 					//  go back to profile list.
 					return new ModelAndView("redirect:/curator/profiles/list.html");

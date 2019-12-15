@@ -17,14 +17,13 @@ package org.webcurator.ui.profiles.validator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
-import org.webcurator.ui.common.validation.ValidatorUtil;
-import org.webcurator.ui.profiles.command.Heritrix3ProfileCommand;
 import org.webcurator.ui.profiles.command.ImportedHeritrix3ProfileCommand;
 import org.webcurator.ui.util.HarvestAgentUtil;
 
@@ -32,9 +31,11 @@ import org.webcurator.ui.util.HarvestAgentUtil;
  * Validate the imported heritrix 3 profile.
  * @author hannakoppelaar
  */
+@Component
 public class ImportedHeritrix3ProfileValidator extends AbstractBaseValidator implements ApplicationContextAware {
 	private Log log = LogFactory.getLog(ImportedHeritrix3ProfileValidator.class);
 
+	@Autowired
 	ApplicationContext applicationContext;
 
 	public boolean supports(Class clazz) {

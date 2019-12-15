@@ -1,5 +1,6 @@
 package org.webcurator.ui.util;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.HarvestAgent;

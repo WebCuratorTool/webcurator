@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
@@ -39,7 +41,7 @@ import org.webcurator.ui.profiles.command.ViewCommand;
  */
 @Controller
 @RequestMapping("/curator/profiles/make-default.html")
-public class MakeDefaultProfileController extends ProfileListController {
+public class MakeDefaultProfileController extends ProfileListViewController {
 
 	/**
 	 * Construct the controller.
@@ -47,9 +49,9 @@ public class MakeDefaultProfileController extends ProfileListController {
 	public MakeDefaultProfileController() {
 	}
 
-	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
-		ViewCommand command = (ViewCommand) comm;
-		Profile profile = profileManager.load(command.getProfileOid());
+	@PostMapping
+	protected ModelAndView handle(HttpServletRequest req, @ModelAttribute ViewCommand viewCommand, BindingResult bindingResult) throws Exception {
+		Profile profile = profileManager.load(viewCommand.getProfileOid());
 		if(authorityManager.hasPrivilege(profile, Privilege.MANAGE_PROFILES)) {
 			boolean showInactive = (Boolean) req.getSession().getAttribute(ProfileListController.SESSION_KEY_SHOW_INACTIVE);
 	        String defaultAgency = (String)req.getSession().getAttribute(ProfileListController.SESSION_AGENCY_FILTER);

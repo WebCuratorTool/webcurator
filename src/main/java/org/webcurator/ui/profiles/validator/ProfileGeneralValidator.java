@@ -18,11 +18,9 @@ package org.webcurator.ui.profiles.validator;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.domain.model.core.Profile;
-import org.webcurator.domain.model.core.Target;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.common.validation.ValidatorUtil;
 import org.webcurator.ui.profiles.command.GeneralCommand;
-import org.webcurator.ui.target.command.TargetGeneralCommand;
 
 /**
  * Validate the profile general tab.
