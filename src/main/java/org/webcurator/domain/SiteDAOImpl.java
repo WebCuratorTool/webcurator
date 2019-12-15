@@ -33,6 +33,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.common.ui.CommandConstants;
@@ -125,6 +126,7 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 	}	
 
 	@SuppressWarnings("unchecked")
+	@Transactional
 	public List<Permission> getQuickPickPermissions(Agency anAgency) {
 		Criteria criteria = currentSession().createCriteria(Permission.class);
 		criteria.add(Restrictions.disjunction().add(Restrictions.isNull("endDate")).add(Restrictions.ge("endDate", new Date())));
@@ -133,9 +135,7 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 		//criteria.add(Restrictions.eq("active", true));
 		criteria.addOrder(Order.asc("displayName"));
 		
-		
 		return criteria.list();
-		
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -337,7 +337,8 @@ public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 				}
 			);	
 	}
-	
+
+	@Transactional
 	public Permission loadPermission(long permOid) {
 		Permission perm = (Permission) currentSession().load(Permission.class, permOid);
 		Hibernate.initialize(perm.getUrls());

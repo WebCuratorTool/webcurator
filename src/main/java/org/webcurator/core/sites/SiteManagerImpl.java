@@ -112,7 +112,7 @@ public class SiteManagerImpl implements SiteManager {
 //    @Transactional
     public void save(Site aSite) {
         // Fire the before save event handlers.
-//        fireEvent(EVENT_TYPE.before_save, aSite);
+        fireEvent(EVENT_TYPE.before_save, aSite);
 
         Long soid = aSite.getOid();
 
@@ -202,7 +202,7 @@ public class SiteManagerImpl implements SiteManager {
         }
 
         // Fire the after save event handlers.
-//        fireEvent(EVENT_TYPE.after_save, aSite);
+        fireEvent(EVENT_TYPE.after_save, aSite);
     }
 
 

@@ -27,6 +27,7 @@ import org.webcurator.core.profiles.HeritrixProfile;
  * 
  * @author bbeaumont
  */
+@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "PROFILE_CREDENTIALS")
 public abstract class ProfileCredentials {

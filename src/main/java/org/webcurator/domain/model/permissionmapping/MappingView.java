@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.webcurator.core.permissionmapping;
+package org.webcurator.domain.model.permissionmapping;
 
 import java.util.Date;
 
@@ -33,11 +33,11 @@ import javax.persistence.*;
 // lazy="true"
 @Entity
 @Table(name = "URL_PERMISSION_MAPPING_VIEW")
-@NamedQuery(name = "org.webcurator.core.permissionmapping.MappingView.LIST",
-		query = "from MappingView where domain=?")
+@NamedQuery(name = "org.webcurator.domain.model.permissionmapping.MappingView.LIST",
+		query = "from MappingView where domain=?1")
 public class MappingView {
 	/** Query identifier for listing Mappings by domain */
-	public static final String QUERY_BY_DOMAIN = "org.webcurator.core.permissionmapping.MappingView.LIST";
+	public static final String QUERY_BY_DOMAIN = "org.webcurator.domain.model.permissionmapping.MappingView.LIST";
 	
 	/** The oid of the mapping view record. */
 	@Id
@@ -229,19 +229,19 @@ public class MappingView {
 	 * @see java.lang.Object#hashCode()
 	 */
 	//@Override
-	//public int hashCode() {
-	//	final int PRIME = 31;
-	//	int result = 1;
-	//	result = PRIME * result + ((permission == null) ? 0 : permission.getOid().hashCode());
-	//	result = PRIME * result + ((urlPattern == null) ? 0 : urlPattern.getOid().hashCode());
-	//	return result;
-	//}
+//	public int hashCode() {
+//		final int PRIME = 31;
+//		int result = 1;
+//		result = PRIME * result + ((permission == null) ? 0 : permission.getOid().hashCode());
+//		result = PRIME * result + ((urlPattern == null) ? 0 : urlPattern.getOid().hashCode());
+//		return result;
+//	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	//@Override
-	/*
+
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -250,17 +250,18 @@ public class MappingView {
 		if (getClass() != obj.getClass())
 			return false;
 		final Mapping other = (Mapping) obj;
-		if (permission == null) {
-			if (other.permission != null)
-				return false;
-		} else if (!permission.getOid().equals(other.permission.getOid()))
-			return false;
-		if (urlPattern == null) {
-			if (other.urlPattern != null)
-				return false;
-		} else if (!urlPattern.getOid().equals(other.urlPattern.getOid()))
-			return false;
-		return true;
+//		if (permission == null) {
+//			if (other.permission != null)
+//				return false;
+//		} else if (!permission.getOid().equals(other.permission.getOid()))
+//			return false;
+//		if (urlPattern == null) {
+//			if (other.urlPattern != null)
+//				return false;
+//		} else if (!urlPattern.getOid().equals(other.urlPattern.getOid()))
+//			return false;
+//		return true;
+		return this.getPermissionOId().equals(((Mapping) obj).getPermissionId()) && this.getUrlPattern().equals(((Mapping) obj).getUrlPatternId());
 	}
-	*/	
+
 }

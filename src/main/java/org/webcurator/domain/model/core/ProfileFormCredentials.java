@@ -27,10 +27,9 @@ import org.webcurator.core.profiles.HeritrixProfile;
  * 
  * @author bbeaumont
  */
-@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "PROFILE_FORM_CREDENTIALS")
-@DiscriminatorColumn(name = "PRC_PC_OID")
+@PrimaryKeyJoinColumn(name = "PRC_PC_OID")
 public class ProfileFormCredentials extends ProfileCredentials {
 	/** Constant for POST requests */
 	public static final String METHOD_POST = "POST";

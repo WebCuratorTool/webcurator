@@ -25,6 +25,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.RejReason;
@@ -98,6 +99,7 @@ public class RejReasonDAOImpl extends HibernateDaoSupport implements RejReasonDA
                     .list());
     }
 
+    @Transactional
     public List getRejReasons(Long agencyOid) {
         List results = getHibernateTemplate().execute(session ->
                 session.getNamedQuery(RejReason.QRY_GET_REASONS_BY_AGENCY)
