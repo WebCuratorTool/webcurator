@@ -138,6 +138,11 @@ public class MockTargetDAO implements TargetDAO {
 		log.debug("delete Target: "+target.getName());
 	}
 
+	@Override
+	public void delete(Schedule schedule) {
+
+	}
+
 	public boolean deleteGroup(TargetGroup targetGroup) 
 	{
 		gOids.remove(targetGroup.getOid());
