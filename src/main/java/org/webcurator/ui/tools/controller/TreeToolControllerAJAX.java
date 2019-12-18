@@ -17,8 +17,12 @@ package org.webcurator.ui.tools.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.ui.tools.command.TreeToolCommand;
 
 
 /**
@@ -26,12 +30,14 @@ import org.springframework.web.servlet.ModelAndView;
  * havest web site as a tree structure.
  * @author bbeaumont
  */
+@Controller
 public class TreeToolControllerAJAX extends TreeToolController {
 	public TreeToolControllerAJAX() {
 		super.setSuccessView("TreeToolAJAX");
 	}
 
-	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult) throws Exception {
+	@RequestMapping(path = "/curator/tools/treetoolAJAX.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest req, TreeToolCommand comm, BindingResult bindingResult) throws Exception {
 		// TODO Auto-generated method stub
 		super.setSuccessView(getSuccessView());
 		return super.handle(req, comm, bindingResult);

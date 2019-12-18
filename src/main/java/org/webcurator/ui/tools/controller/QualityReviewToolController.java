@@ -23,6 +23,12 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
@@ -41,34 +47,28 @@ import org.webcurator.ui.tools.command.QualityReviewToolCommand;
  * page where the user can access the other quality review tools.
  * @author bbeaumont
  */
+@Controller
+//@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class QualityReviewToolController {
     static private Log log = LogFactory.getLog(QualityReviewToolController.class);
 
-    private TargetInstanceManager targetInstanceManager;
-    private TargetInstanceDAO targetInstanceDao;
-    private TargetManager targetManager = null;
-    private String archiveUrl = null;
-    private String archiveName = null;
-    private String archiveUrlAlternative = null;
-    private String archiveUrlAlternativeName = null;
-	private HarvestResourceUrlMapper harvestResourceUrlMapper;
-	private boolean enableBrowseTool = true;
-	private boolean enableAccessTool = false;
-	private String webArchiveTarget = null;
-	private BusinessObjectFactory businessObjectFactory = null;
+	@Autowired
+	private QualityReviewToolControllerAttribute attr;
 
+	private BusinessObjectFactory businessObjectFactory = null;
 
 	public QualityReviewToolController() {
 		businessObjectFactory = new BusinessObjectFactory();
 	}
 
-	protected ModelAndView handle(Object comm) throws Exception {
-        QualityReviewToolCommand cmd = (QualityReviewToolCommand) comm;
+	@RequestMapping(path = "/curator/target/quality-review-toc.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(QualityReviewToolCommand cmd) throws Exception {
+//        QualityReviewToolCommand cmd = (QualityReviewToolCommand) comm;
 
-        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
+        TargetInstance ti = attr.targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
 
         //Do not load fully as this loads ALL resources, regardless of whether they're seeds. Causes OutOfMemory for large harvests.
-        HarvestResult result = targetInstanceDao.getHarvestResult(cmd.getHarvestResultId(), false);
+        HarvestResult result = attr.targetInstanceDao.getHarvestResult(cmd.getHarvestResultId(), false);
 
         // v1.2 - The seeds are now against the Target Instance. We should prefer the seeds
         // in the instances over those on the target.
@@ -80,7 +80,7 @@ public class QualityReviewToolController {
         // fetch the seed with the same url as the original seed
         while (originalSeedsIt.hasNext()) {
         	String seedUrl = originalSeedsIt.next();
-            Iterator<Seed> currentSeedsIt = targetManager.getSeeds(ti).iterator();
+            Iterator<Seed> currentSeedsIt = attr.targetManager.getSeeds(ti).iterator();
             while (currentSeedsIt.hasNext()) {
             	Seed seed = currentSeedsIt.next();
             	if (seed.getSeed().equals(seedUrl)) {
@@ -102,7 +102,7 @@ public class QualityReviewToolController {
                 	if (seedHistoryObj.getSeed().equals(seedUrl)) {
                 		// Retrieve target for building new seed
                 		Target existingTarget = null;
-                		Iterator<Seed> currentSeedsIt = targetManager.getSeeds(ti).iterator();
+                		Iterator<Seed> currentSeedsIt = attr.targetManager.getSeeds(ti).iterator();
                         while (currentSeedsIt.hasNext()) {
                         	Seed seed = currentSeedsIt.next();
                         	existingTarget = seed.getTarget();
@@ -131,36 +131,34 @@ public class QualityReviewToolController {
     		load(seedMap, seed, false, result);
         }
 
-        ModelAndView mav = new ModelAndView("quality-review-toc", "command", comm);
+        ModelAndView mav = new ModelAndView("quality-review-toc", "command", cmd);
         mav.addObject(QualityReviewToolCommand.MDL_SEEDS, seedMap);
         mav.addObject("targetInstanceOid", ti.getOid());
-        mav.addObject("archiveUrl", archiveUrl);
-        mav.addObject("archiveName", archiveName);
-        mav.addObject("archiveAlternative", archiveUrlAlternative);
-        mav.addObject("archiveAlternativeName", archiveUrlAlternativeName);
-        mav.addObject("webArchiveTarget", webArchiveTarget);
+        mav.addObject("archiveUrl", attr.archiveUrl);
+        mav.addObject("archiveName", attr.archiveName);
+        mav.addObject("archiveAlternative", attr.archiveUrlAlternative);
+        mav.addObject("archiveAlternativeName", attr.archiveUrlAlternativeName);
+        mav.addObject("webArchiveTarget", attr.webArchiveTarget);
         mav.addObject("targetOid", ti.getTarget().getOid());
 
         return mav;
 	}
 
 	private void load(List<SeedMapElement> seedMap, Seed seed, boolean loadPrimary, HarvestResult result) {
-
-
 		if (seed.isPrimary() == loadPrimary) {
         	SeedMapElement element = new SeedMapElement(seed.getSeed());
         	element.setPrimary(loadPrimary);
-        	if(enableBrowseTool)
+        	if(attr.enableBrowseTool)
         	{
-        		element.setBrowseUrl("curator/tools/browse/" + String.valueOf(result.getOid()) + "/" + seed.getSeed() );
+        		element.setBrowseUrl("curator/tools/browse/" + String.valueOf(result.getOid()) + "/" + seed.getUrlEncodedSeed() );
         	}
 
-        	if(enableAccessTool && harvestResourceUrlMapper != null)
+        	if(attr.enableAccessTool && attr.harvestResourceUrlMapper != null)
         	{
-                HarvestResourceDTO hRsr = targetInstanceDao.getHarvestResourceDTO(result.getOid(), seed.getSeed());
+                HarvestResourceDTO hRsr = attr.targetInstanceDao.getHarvestResourceDTO(result.getOid(), seed.getUrlEncodedSeed());
         		if(hRsr != null)
         		{
-        			element.setAccessUrl(harvestResourceUrlMapper.generateUrl(result, hRsr));
+        			element.setAccessUrl(attr.harvestResourceUrlMapper.generateUrl(result, hRsr));
         		}
         		else
         		{
@@ -170,91 +168,5 @@ public class QualityReviewToolController {
         	seedMap.add(element);
 		}
 
-	}
-
-    /**
-     * @param targetInstanceManager The targetInstanceManager to set.
-     */
-    public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
-        this.targetInstanceManager = targetInstanceManager;
-    }
-
-	/**
-	 * @param targetManager The targetManager to set.
-	 */
-	public void setTargetManager(TargetManager targetManager) {
-		this.targetManager = targetManager;
-	}
-
-	public String getArchiveUrl() {
-		return archiveUrl;
-	}
-
-	public void setArchiveUrl(String archiveUrl) {
-		this.archiveUrl = archiveUrl;
-	}
-
-	public String getArchiveUrlAlternative() {
-		return archiveUrlAlternative;
-	}
-
-	public void setArchiveUrlAlternative(String archiveUrlAlternative) {
-		this.archiveUrlAlternative = archiveUrlAlternative;
-	}
-
-	public HarvestResourceUrlMapper getHarvestResourceUrlMapper() {
-		return harvestResourceUrlMapper;
-	}
-
-	public void setHarvestResourceUrlMapper(
-			HarvestResourceUrlMapper harvestResourceUrlMapper) {
-		this.harvestResourceUrlMapper = harvestResourceUrlMapper;
-	}
-
-	public TargetInstanceDAO getTargetInstanceDao() {
-		return targetInstanceDao;
-	}
-
-	public void setTargetInstanceDao(TargetInstanceDAO targetInstanceDao) {
-		this.targetInstanceDao = targetInstanceDao;
-	}
-
-	public void setEnableBrowseTool(boolean enableBrowseTool) {
-		this.enableBrowseTool = enableBrowseTool;
-	}
-
-	public boolean isEnableBrowseTool() {
-		return enableBrowseTool;
-	}
-
-	public void setEnableAccessTool(boolean enableAccessTool) {
-		this.enableAccessTool = enableAccessTool;
-	}
-
-	public boolean isEnableAccessTool() {
-		return enableAccessTool;
-	}
-
-	/**
-	 * The URL defined for the UK Webarchive
-	 */
-	public void setWebArchiveTarget(String webArchiveTarget) {
-		this.webArchiveTarget = webArchiveTarget;
-	}
-
-	public String getArchiveName() {
-		return archiveName;
-	}
-
-	public void setArchiveName(String archiveName) {
-		this.archiveName = archiveName;
-	}
-
-	public String getArchiveUrlAlternativeName() {
-		return archiveUrlAlternativeName;
-	}
-
-	public void setArchiveUrlAlternativeName(String archiveUrlAlternativeName) {
-		this.archiveUrlAlternativeName = archiveUrlAlternativeName;
 	}
 }

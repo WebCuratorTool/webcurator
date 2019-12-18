@@ -24,6 +24,8 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -35,9 +37,9 @@ import org.webcurator.ui.tools.command.HarvestHistoryCommand;
  * Controller for the HarvestHistory QR tool.
  * @author beaumontb
  */
+//@Scope(BeanDefinition.SCOPE_SINGLETON)
+//@Lazy(false)
 @Controller
-@Scope(BeanDefinition.SCOPE_SINGLETON)
-@Lazy(false)
 public class HarvestHistoryController {
     @Autowired
 	private TargetInstanceManager targetInstanceManager;
@@ -46,8 +48,9 @@ public class HarvestHistoryController {
 	public HarvestHistoryController() {
 	}
 
-	protected ModelAndView handle(HttpServletRequest request, Object command) throws Exception {
-		HarvestHistoryCommand cmd = (HarvestHistoryCommand) command;
+	@RequestMapping(path = "/curator/tools/harvest-history.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest request, HarvestHistoryCommand cmd ) throws Exception {
+//		HarvestHistoryCommand cmd = (HarvestHistoryCommand) command;
 		TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
 		List<HarvestHistoryDTO> history = targetInstanceManager.getHarvestHistory(ti.getTarget().getOid());
 
