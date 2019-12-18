@@ -139,26 +139,26 @@ public class TabbedTargetController extends TabbedController {
         }
 
         if (!targetManager.isNameOk(target)) {
-            bindingResult.reject("target.bindingResult.duplicatename");
+            bindingResult.reject("target.bindingResult.duplicatename","Duplicate target name. Please change the target name.");
         }
 
         if (target.getProfile() == null) {
-            bindingResult.reject("target.bindingResult.profile.missing");
+            bindingResult.reject("target.bindingResult.profile.missing","The profile is missing. Please select a profile for this target.");
         }
 
         if ((target.getState() == Target.STATE_APPROVED ||
                 target.getState() == Target.STATE_COMPLETED) && !target.isApprovable()) {
-            bindingResult.reject("target.bindingResult.notapprovable");
+            bindingResult.reject("target.bindingResult.notapprovable","The targets in this state could not be changed to 'Approved' state");
         }
 
         if (cmd != null && cmd.isHarvestNowSet() && target.getState() != Target.STATE_APPROVED && target.getState() != Target.STATE_COMPLETED) {
-            bindingResult.reject("target.error.notapproved");
+            bindingResult.reject("target.error.notapproved","Could not create target instance now if target is not approved.");
         }
 
         //TODO if HarvestNow is set and it's completed, ensure the user has permission to do this
         if (cmd != null && cmd.isHarvestNowSet() && target.getState() == Target.STATE_COMPLETED) {
             if (!authorityManager.hasPrivilege(target, Privilege.APPROVE_TARGET) || !authorityManager.hasPrivilege(target, Privilege.REINSTATE_TARGET)) {
-                bindingResult.reject("target.error.approve.denied");
+                bindingResult.reject("target.error.approve.denied","Could not create target instance now because lack of privilege.");
             }
         }
 
@@ -168,57 +168,57 @@ public class TabbedTargetController extends TabbedController {
             tmav.addObject(Constants.GBL_CMD_DATA, comm);
             tmav.addObject(Constants.GBL_ERRORS, bindingResult);
             return tmav;
-        } else {
-            if (cmd != null) {
-                if (cmd.isHarvestNowSet()) {
-                    target.setHarvestNow(true);
-                    if (target.getState() == Target.STATE_COMPLETED) {
-                        target.changeState(Target.STATE_APPROVED);
-                    }
-                }
-                target.setAllowOptimize(cmd.isAllowOptimize());
-            }
-
-            int beforeSaveState = target.getState();
-            targetManager.save(target, ctx.getParents());
-            int afterSaveState = target.getState();
-
-            if (comm instanceof TargetAnnotationCommand) {
-                TargetAnnotationCommand tac = (TargetAnnotationCommand) comm;
-                if (tac.isAction(TargetAnnotationCommand.ACTION_ADD_NOTE)) {
-                    TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm, bindingResult);
-                    tmav.getTabStatus().setCurrentTab(currentTab);
-                    tmav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved", new Object[]{target.getName()}, Locale.getDefault()));
-                    tmav.addObject(Constants.GBL_CMD_DATA, comm);
-
-                    // Refresh the context editor cache to use any new oids as the keys.
-                    ctx.refreshCachedSchedules();
-
-                    return tmav;
-                }
-            }
-
-            ModelAndView mav = searchController.prepareSearchView(req, res);
-
-            if (beforeSaveState == afterSaveState) {
-                if (target.isHarvestNow() && afterSaveState == Target.STATE_APPROVED) {
-                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved.schedulednow", new Object[]{target.getName()}, Locale.getDefault()));
-                } else {
-                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved", new Object[]{target.getName()}, Locale.getDefault()));
-                }
-            } else if (afterSaveState == Target.STATE_NOMINATED) {
-                mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved.nominated", new Object[]{target.getName()}, Locale.getDefault()));
-            } else if (afterSaveState == Target.STATE_REINSTATED) {
-                mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved.reinstated", new Object[]{target.getName()}, Locale.getDefault()));
-            }
-
-
-            // Remove from the session and go back to search.
-            unbindEditorContext(req);
-
-            return mav;
         }
+
+        if (cmd != null) {
+            if (cmd.isHarvestNowSet()) {
+                target.setHarvestNow(true);
+                if (target.getState() == Target.STATE_COMPLETED) {
+                    target.changeState(Target.STATE_APPROVED);
+                }
+            }
+            target.setAllowOptimize(cmd.isAllowOptimize());
+        }
+
+        int beforeSaveState = target.getState();
+        targetManager.save(target, ctx.getParents());
+        int afterSaveState = target.getState();
+
+        if (comm instanceof TargetAnnotationCommand) {
+            TargetAnnotationCommand tac = (TargetAnnotationCommand) comm;
+            if (tac.isAction(TargetAnnotationCommand.ACTION_ADD_NOTE)) {
+                TabbedModelAndView tmav = currentTab.getTabHandler().preProcessNextTab(this, currentTab, req, res, comm, bindingResult);
+                tmav.getTabStatus().setCurrentTab(currentTab);
+                tmav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved", new Object[]{target.getName()}, Locale.getDefault()));
+                tmav.addObject(Constants.GBL_CMD_DATA, comm);
+
+                // Refresh the context editor cache to use any new oids as the keys.
+                ctx.refreshCachedSchedules();
+
+                return tmav;
+            }
+        }
+
+        ModelAndView mav = searchController.prepareSearchView(req, res);
+
+        if (beforeSaveState == afterSaveState) {
+            if (target.isHarvestNow() && afterSaveState == Target.STATE_APPROVED) {
+                mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved.schedulednow", new Object[]{target.getName()}, Locale.getDefault()));
+            } else {
+                mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved", new Object[]{target.getName()}, Locale.getDefault()));
+            }
+        } else if (afterSaveState == Target.STATE_NOMINATED) {
+            mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved.nominated", new Object[]{target.getName()}, Locale.getDefault()));
+        } else if (afterSaveState == Target.STATE_REINSTATED) {
+            mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.saved.reinstated", new Object[]{target.getName()}, Locale.getDefault()));
+        }
+
+        // Remove from the session and go back to search.
+        unbindEditorContext(req);
+
+        return mav;
     }
+
 
     @Override
     protected ModelAndView processCancel(Tab currentTab, HttpServletRequest req, HttpServletResponse res, Object comm,
