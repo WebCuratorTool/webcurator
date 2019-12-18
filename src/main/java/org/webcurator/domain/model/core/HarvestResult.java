@@ -70,7 +70,7 @@ public class HarvestResult implements UserInTrayResource {
 	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
 	@JoinColumn(name = "HRC_HARVEST_RESULT_OID")
 	// TODO @hibernate.collection-index column="HRC_NAME" (might be solved by MapKeyJoinColumn)
-	@MapKeyJoinColumn(name = "HRC_NAME")
+	@MapKeyColumn(name = "HRC_NAME")
 	protected Map<String,HarvestResource> resources = new HashMap<String,HarvestResource>();
 	/** The provenance note (how this harvest result was created */
 	@Column(name = "HR_PROVENANCE_NOTE", length = 1024, nullable = false)
