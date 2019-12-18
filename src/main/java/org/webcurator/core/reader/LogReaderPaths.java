@@ -1,7 +1,7 @@
 package org.webcurator.core.reader;
 
 public class LogReaderPaths {
-    public static final String ROOT_PATH = "/log-file";
+    public static final String ROOT_PATH = "/curator/log-reader/log-file";
     public static final String LOG_FILE = ROOT_PATH;
     public static final String LOG_FILE_PROPERTIES = ROOT_PATH + "/{job}/properties";
     public static final String LOG_FILE_LINE_COUNT = ROOT_PATH + "/{job}/line-count";
