@@ -50,6 +50,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  * The implementation of the Target Instance Manager interface.
  * @author nwaight
  */
+@SuppressWarnings("all")
 public class TargetInstanceManagerImpl implements TargetInstanceManager {
 	/** The Data access object for target instances. */
     private TargetInstanceDAO targetInstanceDao;
@@ -135,11 +136,12 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
     /** @see TargetInstanceManager#delete(TargetInstance). */
     public void delete(TargetInstance aTargetInstance) {
     	aTargetInstance.setTarget(null);
-    	if(aTargetInstance.getSchedule() != null)
-    	{
+    	//TODO: to be refined, uncessary remove from schedule entity
+//    	if(aTargetInstance.getSchedule() != null)
+//    	{
     		//remove this target instance from any schedules it is associated with
-    		aTargetInstance.getSchedule().getTargetInstances().remove(aTargetInstance);
-    	}
+//    		aTargetInstance.getSchedule().getTargetInstances().remove(aTargetInstance);
+//    	}
     	
     	targetInstanceDao.delete(aTargetInstance);
     	auditor.audit(TargetInstance.class.getName(), aTargetInstance.getOid(), Auditor.ACTION_DELETE_TARGET_INSTANCE, "The TargetInstance '"+ aTargetInstance.getOid() +"' has been deleted");
@@ -185,8 +187,6 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
 			}
 		}
 
-		
-		
 		targetInstanceDao.save(aTargetInstance);
 
 		if (aTargetInstance.getAnnotations() != null && !aTargetInstance.getAnnotations().isEmpty()) {
