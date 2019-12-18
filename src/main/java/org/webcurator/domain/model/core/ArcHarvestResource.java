@@ -130,7 +130,7 @@ public class ArcHarvestResource extends HarvestResource {
 		dto.setLength(this.getLength());
 		dto.setName(this.getName());
 		dto.setOid(this.getOid());
-		dto.setTargetInstanceOid(result.targetInstance.getOid());
+		dto.setTargetInstanceOid(result.getTargetInstance().getOid());
 		
 		dto.setArcFileName(this.arcFileName);
 		dto.setCompressed(this.compressed);
