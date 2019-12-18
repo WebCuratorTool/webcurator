@@ -1,9 +1,9 @@
 package org.webcurator.core.harvester.agent;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -11,6 +11,7 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import java.util.Map;
  *
  * @author nwaight
  */
+@SuppressWarnings("all")
 public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
 
     /**
@@ -35,8 +37,8 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      */
     private int port = 8080;
 
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
+//    @Autowired
+    private static RestTemplateBuilder restTemplateBuilder;
 
     /**
      * Constructor to initialise the host, port and service.
@@ -55,21 +57,20 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
     }
 
     public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
+        return "http://" + baseUrl() + appendUrl;
     }
 
     /**
      * @see HarvestAgent#initiateHarvest(String, String, String)
      */
-    public void initiateHarvest(String job, String profile, String seeds) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.INITIATE_HARVEST))
-                .queryParam("profile", profile)
-                .queryParam("seeds", seeds);
+    public void initiateHarvest(String job, Map<String, String> params) {
+        RestTemplate restTemplate = restTemplateBuilder.build();
 
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.INITIATE_HARVEST));
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+        URI uri=uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+
+        restTemplate.postForObject(uri, params, Void.class);
     }
 
     public void recoverHarvests(List<String> activeJobs) {
@@ -314,5 +315,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      */
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public static void setRestTemplateBuilder(RestTemplateBuilder tmpRestTempBuilder){
+        restTemplateBuilder=tmpRestTempBuilder;
     }
 }
