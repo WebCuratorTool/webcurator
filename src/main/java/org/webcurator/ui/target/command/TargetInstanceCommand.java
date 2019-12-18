@@ -138,6 +138,7 @@ public class TargetInstanceCommand {
     /** Name of the multi-delist action for target instances **/
     public static final String ACTION_MULTI_DELIST = "multi-delist";
 
+    public static final String PARAM_OID= "targetInstanceId";
     public static final String PARAM_CMD = "cmd";
     public static final String PARAM_TIME = "scheduledTime";
     public static final String PARAM_PRI = "priority";
