@@ -137,8 +137,13 @@ public interface TargetDAO extends BaseDAO {
 	 * @param aTarget The Target to be deleted.
 	 */
 	public void delete(Target aTarget);
-	
-	
+
+	/**
+	 * Delete a schedule
+	 * @param schedule The schedule to be deleted
+	 */
+	public void delete(final Schedule schedule);
+
 	/**
 	 * Delete a TargetGroup as long as it has no Target Instances associated
 	 * with it.
