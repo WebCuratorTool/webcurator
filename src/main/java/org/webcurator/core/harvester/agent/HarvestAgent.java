@@ -18,6 +18,7 @@ package org.webcurator.core.harvester.agent;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * The <code>HarvestAgent</code> is the interface used by the <code>HarvestCoordinator</code> to
@@ -66,7 +67,7 @@ public interface HarvestAgent {
      * @param profile the profile to use for the new Harvest.
      * @param seeds   the list of seeds to harvest
      */
-    void initiateHarvest(String job, String profile, String seeds);
+    void initiateHarvest(String job, Map<String, String> params);
 
     /**
      * recover Harvests on launch.
