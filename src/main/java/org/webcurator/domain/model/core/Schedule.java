@@ -41,7 +41,6 @@ import javax.persistence.*;
 @Entity
 @Table(name = "SCHEDULE")
 public class Schedule extends AbstractIdentityObject implements UserOwnable {
-	
 	/** Constant for a custom schedule */
 	public static final int CUSTOM_SCHEDULE = 0;
 	
@@ -79,12 +78,12 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     @Column(name = "S_CRON", length = 255, nullable = false)
     private String cronPattern;
     /** the target the schedule is related to. */
-    @ManyToOne
-    @JoinColumn(name = "S_TARGET_ID", foreignKey = @ForeignKey(name = "FK_S_TARGET_ID"))
+    @ManyToOne(cascade = {CascadeType.REFRESH})
+    @JoinColumn(name = "S_ABSTRACT_TARGET_ID") //, foreignKey = @ForeignKey(name = "FK_S_TARGET_ID")
     private AbstractTarget target;
     /** Set of related target instances */
     // cascade="save-update"
-	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
+	@OneToMany(cascade ={CascadeType.REFRESH}) // default fetch type is LAZY,(cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
 	@JoinColumn(name = "TI_SCHEDULE_ID")
     private Set<TargetInstance> targetInstances;
     /** Type Identifier for quick schedules. */
