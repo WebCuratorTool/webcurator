@@ -26,6 +26,7 @@ import org.hibernate.Session;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Annotation;
@@ -34,6 +35,7 @@ import org.webcurator.domain.model.core.Annotation;
  * The implemantation of the AnnotationDAO interface.
  * @author nwaight
  */
+@Transactional
 public class AnnotationDAOImpl extends HibernateDaoSupport implements AnnotationDAO {
 	/** the logger. */
     private Log log = LogFactory.getLog(AnnotationDAOImpl.class);    
