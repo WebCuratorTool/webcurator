@@ -50,6 +50,7 @@ import org.webcurator.common.ui.Constants;
  * The implementation of the SiteDAO interface.
  * @author bbeaumont
  */
+@Transactional
 public class SiteDAOImpl extends HibernateDaoSupport implements SiteDAO {
 	private Log log = LogFactory.getLog(SiteDAOImpl.class);
 	
