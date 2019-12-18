@@ -1,14 +1,7 @@
 package org.webcurator.core.harvester.coordinator;
 
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -359,7 +352,11 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	public void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, TargetInstance aTargetInstance, String profile,
 			String seedsString) {
 		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(aHarvestAgent.getHost(), aHarvestAgent.getPort());
-		agent.initiateHarvest(aTargetInstance.getJobName(), profile, seedsString);
+
+		Map<String, String> params=new HashMap<String, String>();
+		params.put("profile", profile);
+		params.put("seeds", seedsString);
+		agent.initiateHarvest(aTargetInstance.getJobName(), params);
 	}
 
 	@Override
