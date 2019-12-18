@@ -31,14 +31,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
+import org.hibernate.criterion.*;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
@@ -314,7 +309,11 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 				public Object doInHibernate(Session session) {					
 					Criteria query = session.createCriteria(TargetInstance.class);
 					Criteria cntQuery = session.createCriteria(TargetInstance.class);
-					
+
+					//To ignore duplicated data
+					query.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
+					cntQuery.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
+
 					Date from = aCriteria.getFrom();										
 					if(null == from) {						
 						try {
