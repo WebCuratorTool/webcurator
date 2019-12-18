@@ -60,7 +60,6 @@ public class UrlPattern extends AbstractIdentityObject {
     /**
      * A set of permissions.
      */
-
     @ManyToMany(mappedBy = "urls", targetEntity = Permission.class, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     private Set<Permission> permissions = new HashSet<Permission>();
 
