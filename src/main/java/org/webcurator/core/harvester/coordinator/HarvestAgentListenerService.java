@@ -4,12 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.common.Constants;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
@@ -26,7 +21,7 @@ import java.util.Collection;
  * @author nwaight
  */
 @RestController
-@RequestMapping("/curator")
+@RequestMapping(consumes = "application/json", produces = "application/json")
 public class HarvestAgentListenerService implements HarvestAgentListener, CheckNotifier,
         IndexerService, DasCallback {
     /**
@@ -48,7 +43,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
      * )
      */
     @PostMapping(path = HarvestCoordinatorPaths.HEARTBEAT)
-    public void heartbeat(@RequestParam(value = "harvest-agent-status") HarvestAgentStatusDTO aStatus) {
+    public void heartbeat(@RequestBody HarvestAgentStatusDTO aStatus) {
         log.info("Received heartbeat from {}:{}", aStatus.getHost(), aStatus.getPort());
         harvestCoordinator.heartbeat(aStatus);
     }
