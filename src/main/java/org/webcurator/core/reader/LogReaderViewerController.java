@@ -2,12 +2,15 @@ package org.webcurator.core.reader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
-
-import javax.activation.DataHandler;
-import javax.activation.FileDataSource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -53,7 +56,7 @@ public class LogReaderViewerController {
     @RequestMapping(path = LogReaderPaths.LOG_FILE_TAIL, method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json")
     public List<String> tail(@PathVariable(value = "job") String job,
                              @RequestParam(value = "filename") String filename,
-                             @RequestParam(value = "number-lines") int numberOfLines) {
+                             @RequestParam(value = "number-of-lines") int numberOfLines) {
         return logReader.tail(job, filename, numberOfLines);
     }
 
@@ -123,15 +126,17 @@ public class LogReaderViewerController {
         return logReader.getByRegularExpression(job, filename, regularExpression, addLines, prependLineNumbers, skipFirstMatches, numberOfMatches);
     }
 
+
     @RequestMapping(path = LogReaderPaths.LOG_FILE_RETRIEVE_LOG_FILE, method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json")
-    public DataHandler retrieveLogfile(@PathVariable(value= "job") String job,
-                                       @RequestParam(value = "filename") String filename) {
+    public void retrieveLogfile(@PathVariable(value= "job") String job,
+                                                    @RequestParam(value = "filename") String filename,
+                                                    HttpServletRequest request,
+                                                    HttpServletResponse response) {
         try {
-            return new DataHandler(new FileDataSource(logReader.retrieveLogfile(job, filename)));
+            File file=logReader.retrieveLogfile(job, filename);
+            StreamUtils.copy(new FileInputStream(file), response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        catch(RuntimeException rex) {
-            System.out.println("Error");
-            throw rex;
-        }            
     }
 }
