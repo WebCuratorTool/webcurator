@@ -474,7 +474,7 @@ public abstract class TabbedController {
     protected final BindingResult bindAndValidate(HttpServletRequest req, Object command)
             throws Exception {
         ServletRequestDataBinder binder = new ServletRequestDataBinder(command);
-
+        binder.setFieldMarkerPrefix("!");
         //Register customer editors
         this.initBinder(req, binder);
 
