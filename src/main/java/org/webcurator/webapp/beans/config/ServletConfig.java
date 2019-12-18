@@ -136,11 +136,11 @@ public class ServletConfig {
 //        mappings.put("/curator/site/generate.html", "generatePermissionTemplateController");
         //mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
         mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
-        mappings.put("/curator/tools/treetool.html", "treeToolController");
-        mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
-        mappings.put("/curator/tools/harvest-history.html", "harvestHistoryController");
+//        mappings.put("/curator/tools/treetool.html", "treeToolController");
+//        mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
+//        mappings.put("/curator/tools/harvest-history.html", "harvestHistoryController");
         mappings.put("/curator/credentials/reset-password.html", "resetPasswordController");
-        mappings.put("/curator/target/quality-review-toc.html", "qualityReviewToolController");
+//        mappings.put("/curator/target/quality-review-toc.html", "qualityReviewToolController");
         mappings.put("/curator/target/deposit-form-envelope.html", "customDepositFormController");
         mappings.put("/curator/logout.html", "logoutController");
         mappings.put("/curator/home.html", "homeController");
@@ -188,8 +188,8 @@ public class ServletConfig {
         //mappings.put("/curator/target/target-form-credentials.html", "formCredentialsControllerTarget");
         //mappings.put("/curator/target/ti-basic-credentials.html", "basicCredentialsControllerTargetInstance");
         //mappings.put("/curator/target/ti-form-credentials.html", "formCredentialsControllerTargetInstance");
-        mappings.put("/curator/target/h3ScriptConsole.html", "h3ScriptConsoleController");
-        mappings.put("/curator/target/h3ScriptFile.html", "h3ScriptFileController");
+//        mappings.put("/curator/target/h3ScriptConsole.html", "h3ScriptConsoleController");
+//        mappings.put("/curator/target/h3ScriptFile.html", "h3ScriptFileController");
 //        mappings.put("/curator/intray/intray.html", "inTrayController");
         mappings.put("/curator/report/report.html", "reportController");
         mappings.put("/curator/report/report-preview.html", "reportPreviewController");
@@ -367,7 +367,7 @@ public class ServletConfig {
     @Lazy(false)
     public TabConfig targetInstanceTabConfig() {
         TabConfig bean = new TabConfig();
-        bean.setViewName("site");
+        bean.setViewName("targetInstance");
 
         List<Tab> tabs = new ArrayList<>();
 
