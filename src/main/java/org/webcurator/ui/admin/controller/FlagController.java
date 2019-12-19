@@ -33,6 +33,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -67,6 +70,7 @@ public class FlagController {
         log = LogFactory.getLog(FlagController.class);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/admin/flags.html")
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         ModelAndView mav = new ModelAndView();
         String agencyFilter = (String)aReq.getSession().getAttribute(FlagCommand.MDL_AGENCYFILTER);
@@ -79,16 +83,16 @@ public class FlagController {
         return mav;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/flags.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute FlagCommand flagCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = new ModelAndView();
-        FlagCommand flagCmd = (FlagCommand) aCommand;
-        if (flagCmd != null) {
+        if (flagCommand != null) {
 
-        	if (FlagCommand.ACTION_DELETE.equals(flagCmd.getCmd())) {
+        	if (FlagCommand.ACTION_DELETE.equals(flagCommand.getCmd())) {
                 // Attempt to delete a indicator criteria from the system
-                Long oid = flagCmd.getOid();
+                Long oid = flagCommand.getOid();
                 Flag flag = agencyUserManager.getFlagByOid(oid);
                 String name = flag.getName();
                 try {
@@ -98,7 +102,7 @@ public class FlagController {
                     Object[] args = new Object[1];
                     args[0] = flag.getName();
                     if (bindingResult == null) {
-                        bindingResult = new BindException(flagCmd, "command");
+                        bindingResult = new BindException(flagCommand, "command");
                     }
                     bindingResult.addError(new ObjectError("command",codes,args,"Flag owns objects in the system and can't be deleted."));
                     mav.addObject(Constants.GBL_ERRORS, bindingResult);
@@ -107,9 +111,9 @@ public class FlagController {
                 }
                 populateFlagList(mav);
                 mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("flag.deleted", new Object[] { name }, Locale.getDefault()));
-            } else if (FlagCommand.ACTION_FILTER.equals(flagCmd.getCmd())) {
+            } else if (FlagCommand.ACTION_FILTER.equals(flagCommand.getCmd())) {
                 //Just filtering reasons by agency - if we change the default, store it in the session
-            	aReq.getSession().setAttribute(FlagCommand.MDL_AGENCYFILTER, flagCmd.getAgencyFilter());
+            	aReq.getSession().setAttribute(FlagCommand.MDL_AGENCYFILTER, flagCommand.getAgencyFilter());
             	populateFlagList(mav);
             }
         } else {
