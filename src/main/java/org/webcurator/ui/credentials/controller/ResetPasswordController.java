@@ -28,6 +28,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
@@ -55,15 +57,16 @@ public class ResetPasswordController {
     public ResetPasswordController() {
     }
 
+    @RequestMapping(path = "/curator/credentials/reset-password.html", method = RequestMethod.GET)
     protected ModelAndView showForm() throws Exception {
         return createDefaultModelAndView();
     }
 
+    @RequestMapping(path = "/curator/credentials/reset-password.html", method = RequestMethod.POST)
     protected ModelAndView processFormSubmission(HttpServletRequest aReq,
-            HttpServletResponse aRes, Object aCmd, BindingResult bindingResult)
+            HttpServletResponse aRes, ResetPasswordCommand resetPasswordCommand, BindingResult bindingResult)
             throws Exception {
-        ResetPasswordCommand aPwdCommand = (ResetPasswordCommand) aCmd;
-        return processPasswordChange(aPwdCommand, bindingResult);
+        return processPasswordChange(resetPasswordCommand, bindingResult);
     }
 
     /**
