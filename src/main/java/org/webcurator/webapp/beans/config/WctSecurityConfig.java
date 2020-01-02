@@ -44,7 +44,6 @@ import org.webcurator.auth.WCTAuthenticationFailureHandler;
 import org.webcurator.auth.WCTAuthenticationProcessingFilter;
 import org.webcurator.auth.WCTAuthenticationSuccessHandler;
 import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
-import org.webcurator.auth.dbms.WCTForcePasswordChange;
 import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.UserRoleDAO;
