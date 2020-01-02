@@ -139,7 +139,7 @@ public class ServletConfig {
         mappings.put("/curator/tools/treetool.html", "treeToolController");
         mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
         mappings.put("/curator/tools/harvest-history.html", "harvestHistoryController");
-        mappings.put("/curator/credentials/reset-password.html", "resetPasswordController");
+        //mappings.put("/curator/credentials/reset-password.html", "resetPasswordController");
         mappings.put("/curator/target/quality-review-toc.html", "qualityReviewToolController");
         mappings.put("/curator/target/deposit-form-envelope.html", "customDepositFormController");
         mappings.put("/curator/logout.html", "logoutController");
