@@ -34,6 +34,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
@@ -71,6 +75,7 @@ public class CreateRejReasonController {
         log = LogFactory.getLog(CreateRejReasonController.class);
     }
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
@@ -81,19 +86,18 @@ public class CreateRejReasonController {
         return null;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/create-rejreason.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute CreateRejReasonCommand createRejReasonCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = null;
-        CreateRejReasonCommand reasonCmd = (CreateRejReasonCommand) aCommand;
 
-
-        if (reasonCmd != null) {
+        if (createRejReasonCommand != null) {
             if (bindingResult.hasErrors()) {
                 mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateRejReasonCommand.MDL_AGENCIES, agencies);
-                String mode = reasonCmd.getMode();
+                String mode = createRejReasonCommand.getMode();
                 if (CreateRejReasonCommand.ACTION_EDIT.equals(mode)) {
                     mav.addObject(CreateRejReasonCommand.ACTION_EDIT, mode);
                 }
@@ -101,17 +105,17 @@ public class CreateRejReasonController {
                 mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newReason");
 
-            } else if (CreateRejReasonCommand.ACTION_NEW.equals(reasonCmd.getAction())) {
+            } else if (CreateRejReasonCommand.ACTION_NEW.equals(createRejReasonCommand.getAction())) {
                 mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateRejReasonCommand.MDL_AGENCIES, agencies);
                 mav.setViewName("newReason");
 
-            } else if (CreateRejReasonCommand.ACTION_VIEW.equals(reasonCmd.getAction()) ||
-            		CreateRejReasonCommand.ACTION_EDIT.equals(reasonCmd.getAction())) {
+            } else if (CreateRejReasonCommand.ACTION_VIEW.equals(createRejReasonCommand.getAction()) ||
+            		CreateRejReasonCommand.ACTION_EDIT.equals(createRejReasonCommand.getAction())) {
                 //View/Edit an existing reason
                 mav = new ModelAndView();
-                Long reasonOid = reasonCmd.getOid();
+                Long reasonOid = createRejReasonCommand.getOid();
                 RejReason reason = agencyUserManager.getRejReasonByOid(reasonOid);
                 CreateRejReasonCommand editCmd = new CreateRejReasonCommand();
                 editCmd.setOid(reasonOid);
@@ -119,34 +123,34 @@ public class CreateRejReasonController {
                 editCmd.setName(reason.getName());
                 editCmd.setAvailableForTargets(reason.isAvailableForTargets());
                 editCmd.setAvailableForTIs(reason.isAvailableForTIs());
-                editCmd.setMode(reasonCmd.getAction());
+                editCmd.setMode(createRejReasonCommand.getAction());
 
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateRejReasonCommand.MDL_AGENCIES, agencies);
                 mav.addObject(Constants.GBL_CMD_DATA, editCmd);
                 mav.setViewName("newReason");
 
-            } else if (CreateRejReasonCommand.ACTION_SAVE.equals(reasonCmd.getAction())) {
+            } else if (CreateRejReasonCommand.ACTION_SAVE.equals(createRejReasonCommand.getAction())) {
 
 
                     try {
                         RejReason reason = new RejReason();
-                        boolean update = (reasonCmd.getOid() != null);
+                        boolean update = (createRejReasonCommand.getOid() != null);
                         if (update == true) {
                             // Update an existing reason object by loading it in first
-                        	reason = agencyUserManager.getRejReasonByOid(reasonCmd.getOid());
+                        	reason = agencyUserManager.getRejReasonByOid(createRejReasonCommand.getOid());
                         } else {
                         	// Save the newly created reason object
 
                             //load Agency
-                            Long agencyOid = reasonCmd.getAgencyOid();
+                            Long agencyOid = createRejReasonCommand.getAgencyOid();
                             Agency agency = agencyUserManager.getAgencyByOid(agencyOid);
                             reason.setAgency(agency);
                         }
 
-                        reason.setAvailableForTargets(reasonCmd.isAvailableForTargets());
-                        reason.setAvailableForTIs(reasonCmd.isAvailableForTIs());
-                        reason.setName(reasonCmd.getName());
+                        reason.setAvailableForTargets(createRejReasonCommand.isAvailableForTargets());
+                        reason.setAvailableForTIs(createRejReasonCommand.isAvailableForTIs());
+                        reason.setName(createRejReasonCommand.getName());
 
                         agencyUserManager.updateRejReason(reason, update);
 
@@ -164,9 +168,9 @@ public class CreateRejReasonController {
                         mav = new ModelAndView();
                         String message;
                         if (update == true) {
-                            message = messageSource.getMessage("reason.updated", new Object[] { reasonCmd.getName() }, Locale.getDefault());
+                            message = messageSource.getMessage("reason.updated", new Object[] { createRejReasonCommand.getName() }, Locale.getDefault());
                         } else {
-                            message = messageSource.getMessage("reason.created", new Object[] { reasonCmd.getName() }, Locale.getDefault());
+                            message = messageSource.getMessage("reason.created", new Object[] { createRejReasonCommand.getName() }, Locale.getDefault());
                         }
                         String agencyFilter = (String)aReq.getSession().getAttribute(RejReasonCommand.MDL_AGENCYFILTER);
                         if(agencyFilter == null)
@@ -185,7 +189,7 @@ public class CreateRejReasonController {
                         mav = new ModelAndView();
                         List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                         mav.addObject(CreateRejReasonCommand.MDL_AGENCIES, agencies);
-                        String mode = reasonCmd.getMode();
+                        String mode = createRejReasonCommand.getMode();
                         if (CreateRejReasonCommand.ACTION_EDIT.equals(mode)) {
                             mav.addObject(CreateRejReasonCommand.ACTION_EDIT, mode);
                         }

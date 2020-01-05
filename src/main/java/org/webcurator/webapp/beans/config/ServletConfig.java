@@ -164,8 +164,8 @@ public class ServletConfig {
         //mappings.put("/curator/profiles/view.html", "profileViewController");
         //mappings.put("/curator/profiles/delete.html", "profileDeleteController");
         //mappings.put("/curator/profiles/make-default.html", "makeDefaultProfileController");
-        mappings.put("/curator/admin/rejreason.html", "rejReasonController");
-        mappings.put("/curator/admin/create-rejreason.html", "createRejReasonController");
+        //mappings.put("/curator/admin/rejreason.html", "rejReasonController");
+        //mappings.put("/curator/admin/create-rejreason.html", "createRejReasonController");
         mappings.put("/curator/admin/qaindicators.html", "qaIndicatorController");
         mappings.put("/curator/admin/create-qaindicator.html", "createQaIndicatorController");
         mappings.put("/curator/admin/flags.html", "flagController");
