@@ -33,6 +33,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
@@ -71,6 +75,7 @@ public class ChangePasswordController {
     public ChangePasswordController() {
     }
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
@@ -81,16 +86,15 @@ public class ChangePasswordController {
         return null;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCmd, BindingResult bindingResult)
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/change-password.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute ChangePasswordCommand changePasswordCommand, BindingResult bindingResult)
             throws Exception {
-        ChangePasswordCommand pwdCmd = (ChangePasswordCommand) aCmd;
-        if (ChangePasswordCommand.ACTION_SAVE.equals(pwdCmd.getAction())) {
+        if (ChangePasswordCommand.ACTION_SAVE.equals(changePasswordCommand.getAction())) {
             //Save the Change of password action
-            ChangePasswordCommand aPwdCommand = (ChangePasswordCommand) aCmd;
-            return processPasswordChange(aReq, aPwdCommand, bindingResult);
+            return processPasswordChange(aReq, changePasswordCommand, bindingResult);
         } else {
             //Display the change password form
-            return createDefaultModelAndView(pwdCmd);
+            return createDefaultModelAndView(changePasswordCommand);
         }
     }
 

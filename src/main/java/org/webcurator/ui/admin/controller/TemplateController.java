@@ -32,6 +32,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.admin.PermissionTemplateManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -64,39 +67,41 @@ public class TemplateController {
     /** the default Subject. */
     private String defaultSubject = "Web Preservation Programme";
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
     }
 
+    @RequestMapping(path = "/curator/admin/templates.html", method = RequestMethod.GET)
     protected ModelAndView showForm() throws Exception {
         return getDefaultView();
     }
 
-    protected ModelAndView processFormSubmission(Object aCmd, BindingResult bindingResult) throws Exception {
+    @RequestMapping(path = "/curator/admin/templates.html", method = RequestMethod.POST)
+    protected ModelAndView processFormSubmission(TemplateCommand templateCommand, BindingResult bindingResult) throws Exception {
         ModelAndView mav = null;
-        TemplateCommand templateCmd = (TemplateCommand) aCmd;
-        if (templateCmd != null) {
+        if (templateCommand != null) {
             if (bindingResult.hasErrors()) {
-                mav = getNewTemplateView(templateCmd);
+                mav = getNewTemplateView(templateCommand);
                 mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
                 mav.addObject(Constants.GBL_ERRORS, bindingResult);
 
-            } else if (TemplateCommand.ACTION_NEW.equals(templateCmd.getAction())) {
+            } else if (TemplateCommand.ACTION_NEW.equals(templateCommand.getAction())) {
                 log.debug("New Action on TemplateController");
-                mav = getNewTemplateView(templateCmd);
-            } else if (TemplateCommand.ACTION_SAVE.equals(templateCmd.getAction())) {
+                mav = getNewTemplateView(templateCommand);
+            } else if (TemplateCommand.ACTION_SAVE.equals(templateCommand.getAction())) {
                 log.debug("Save Action on TemplateController");
-                mav = getSaveTemplateView(templateCmd);
-            } else if (TemplateCommand.ACTION_VIEW.equals(templateCmd.getAction())) {
+                mav = getSaveTemplateView(templateCommand);
+            } else if (TemplateCommand.ACTION_VIEW.equals(templateCommand.getAction())) {
                 log.debug("View Action on Template Controller");
-                mav = getViewTemplateView(templateCmd);
-            } else if (TemplateCommand.ACTION_EDIT.equals(templateCmd.getAction())) {
+                mav = getViewTemplateView(templateCommand);
+            } else if (TemplateCommand.ACTION_EDIT.equals(templateCommand.getAction())) {
                 log.debug("Edit Action on Template Controller");
-                mav = getNewTemplateView(templateCmd);
-            } else if (TemplateCommand.ACTION_DELETE.equals(templateCmd.getAction())) {
+                mav = getNewTemplateView(templateCommand);
+            } else if (TemplateCommand.ACTION_DELETE.equals(templateCommand.getAction())) {
                 log.debug("Delete Action on Template Controller");
-                mav = getDeleteView(templateCmd);
+                mav = getDeleteView(templateCommand);
             }
         }
         return mav;

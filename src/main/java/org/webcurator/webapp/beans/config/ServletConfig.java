@@ -135,11 +135,11 @@ public class ServletConfig {
 //        mappings.put("/curator/site/transfer.html", "transferSeedsController");
 //        mappings.put("/curator/site/generate.html", "generatePermissionTemplateController");
         //mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
-        mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
+        //mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
         mappings.put("/curator/tools/treetool.html", "treeToolController");
         mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
         mappings.put("/curator/tools/harvest-history.html", "harvestHistoryController");
-        mappings.put("/curator/credentials/reset-password.html", "resetPasswordController");
+        //mappings.put("/curator/credentials/reset-password.html", "resetPasswordController");
         mappings.put("/curator/target/quality-review-toc.html", "qualityReviewToolController");
         mappings.put("/curator/target/deposit-form-envelope.html", "customDepositFormController");
         mappings.put("/curator/logout.html", "logoutController");
@@ -174,9 +174,9 @@ public class ServletConfig {
         //mappings.put("/curator/admin/create-user.html", "createUserController");
         //mappings.put("/curator/admin/associate-userroles.html", "associateUserRoleController");
         //mappings.put("/curator/admin/agency.html", "agencyController");
-        mappings.put("/curator/admin/change-password.html", "changePasswordController");
+        //mappings.put("/curator/admin/change-password.html", "changePasswordController");
         //mappings.put("/curator/admin/management.html", "managementController");
-        mappings.put("/curator/admin/templates.html", "templateController");
+        //mappings.put("/curator/admin/templates.html", "templateController");
         //mappings.put("/curator/target/log-viewer.html", "logReaderController");
         //mappings.put("/curator/target/content-viewer.html", "contentReaderController");
         mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");

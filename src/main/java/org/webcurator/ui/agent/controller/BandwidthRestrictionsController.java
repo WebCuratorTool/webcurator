@@ -38,6 +38,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -82,6 +85,7 @@ public class BandwidthRestrictionsController {
 		log = LogFactory.getLog(getClass());
 	}
 
+	@InitBinder
 	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
 		binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
@@ -94,6 +98,7 @@ public class BandwidthRestrictionsController {
 		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullTimeEditor(true));
 	}
 
+	@RequestMapping(method = RequestMethod.GET, path = "/curator/agent/bandwidth-restrictions.html")
 	protected ModelAndView showForm() throws Exception {
 		if (log.isDebugEnabled()) {
 			log.debug("show form " + Constants.VIEW_MNG_BANDWIDTH);
@@ -102,24 +107,24 @@ public class BandwidthRestrictionsController {
 		return createDefaultModelAndView();
 	}
 
-	protected ModelAndView processFormSubmission(Object aCmd, BindingResult bindingResult) throws Exception {
-		BandwidthRestrictionsCommand command = (BandwidthRestrictionsCommand) aCmd;
+	@RequestMapping(method = RequestMethod.POST, path = "/curator/agent/bandwidth-restrictions.html")
+	protected ModelAndView processFormSubmission(BandwidthRestrictionsCommand bandwidthRestrictionsCommand, BindingResult bindingResult) throws Exception {
 		if (log.isDebugEnabled()) {
-			log.debug("process command " + command.getActionCmd());
+			log.debug("process command " + bandwidthRestrictionsCommand.getActionCmd());
 		}
 
-		if (command != null && command.getActionCmd() != null) {
+		if (bandwidthRestrictionsCommand != null && bandwidthRestrictionsCommand.getActionCmd() != null) {
 			if (authorityManager.hasPrivilege(Privilege.MANAGE_WEB_HARVESTER, Privilege.SCOPE_ALL)) {
-				if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_EDIT)) {
-					return processEditRestriction(command, bindingResult);
-				} else if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_SAVE_HEATMAP)) {
-					return processSaveHeatmap(command, bindingResult);
-				} else if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_SAVE)) {
-					return processSaveRestriction(command, bindingResult);
-				} else if (command.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_DELETE)) {
-					return processDeleteRestriction(command, bindingResult);
+				if (bandwidthRestrictionsCommand.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_EDIT)) {
+					return processEditRestriction(bandwidthRestrictionsCommand, bindingResult);
+				} else if (bandwidthRestrictionsCommand.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_SAVE_HEATMAP)) {
+					return processSaveHeatmap(bandwidthRestrictionsCommand, bindingResult);
+				} else if (bandwidthRestrictionsCommand.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_SAVE)) {
+					return processSaveRestriction(bandwidthRestrictionsCommand, bindingResult);
+				} else if (bandwidthRestrictionsCommand.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_DELETE)) {
+					return processDeleteRestriction(bandwidthRestrictionsCommand, bindingResult);
 				} else {
-					throw new WCTRuntimeException("Unknown command " + command.getActionCmd() + " recieved.");
+					throw new WCTRuntimeException("Unknown command " + bandwidthRestrictionsCommand.getActionCmd() + " recieved.");
 				}
 			} else {
 				if (log.isWarnEnabled()) {
@@ -167,6 +172,11 @@ public class BandwidthRestrictionsController {
 		saveHeatmapConfig(lowConfig);
 		saveHeatmapConfig(mediumConfig);
 		saveHeatmapConfig(highConfig);
+
+		// update heatmap settings
+		mav.addObject(BandwidthRestrictionsCommand.PARAM_HEATMAP_CONFIG_LOW, lowConfig);
+		mav.addObject(BandwidthRestrictionsCommand.PARAM_HEATMAP_CONFIG_MEDIUM, mediumConfig);
+		mav.addObject(BandwidthRestrictionsCommand.PARAM_HEATMAP_CONFIG_HIGH, highConfig);
 
 		mav.addObject(Constants.GBL_MESSAGES,
 				messageSource.getMessage("heatmap.config.saved", new Object[] {}, Locale.getDefault()));
