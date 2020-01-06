@@ -84,7 +84,7 @@ public class FlagDAOImpl extends HibernateDaoSupport implements FlagDAO{
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(Flag.QRY_GET_FLAG_BY_OID);
-                        query.setParameter(0,FlagOid);
+                        query.setParameter(1,FlagOid);
                         return query.uniqueResult();
                     }
                 }
