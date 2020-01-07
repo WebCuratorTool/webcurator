@@ -58,6 +58,8 @@ public class ArcHarvestFile {
 	/** true if the ARC file is compressed; otherwise false */
 	@Column(name = "AHF_COMPRESSED", nullable = false)
 	private boolean compressed;
+
+	@Transient
 	/** The base directory in which the ARC file exists. */
 	private String baseDir;
 	/** The ArcHarvestResult that this file belong to. */
