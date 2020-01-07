@@ -60,6 +60,7 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
  * 
  * @author nwaight
  */
+@SuppressWarnings("all")
 @Component("harvestCoordinator")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class HarvestCoordinatorImpl implements HarvestCoordinator {
@@ -129,15 +130,16 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		harvestAgentManager.heartbeat(aStatus);
 	}
 
-	public void requestRecovery(String haHost, int port, String haService) {}
+	@Override
+	public void requestRecovery(int haPort, Map<String, String> params) {	}
 
 	/**
 	 * Execute search of Target Instances in 'Running' or 'Paused' states. Add any
 	 * active job names to List for Harvest Agent attempting recovery.
 	 *
 	 * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#recoverHarvests(String, int, String)
-	 * @param haHost harvest agent host requesting attempting recovery
 	 * @param haPort harvest agent port requesting attempting recovery
+	 * @param haHost harvest agent host requesting attempting recovery
 	 * @param haService harvest agent service requesting attempting recovery
 	 */
 	public void recoverHarvests(String haHost, int haPort, String haService) {
@@ -464,10 +466,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
 		// Get the profile.
 		String profile = getHarvestProfileString(aTargetInstance);
+		long targetInstanceId=aTargetInstance.getOid();
 
 		// Initiate harvest on the remote harvest agent
 		harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
 
+		// Data maybe changed in asynchronized threads, so refresh entity
+		aTargetInstance = targetInstanceDao.load(targetInstanceId);
 		// Update the state of the allocated Target Instance
 		aTargetInstance.setActualStartTime(new Date());
 		aTargetInstance.setState(TargetInstance.STATE_RUNNING);
@@ -1113,13 +1118,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	}
 
 	public void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO ahf) {
-		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getHarvestResult(harvestResultOid, false);
+		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getArcHarvestResult(harvestResultOid, false);
 		ArcHarvestFile f = new ArcHarvestFile(ahf, ahr);
 		targetInstanceDao.save(f);
 	}
 
 	public void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> dtos) {
-		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getHarvestResult(harvestResultOid, false);
+		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getArcHarvestResult(harvestResultOid, false);
 		Collection<ArcHarvestResource> resources = new ArrayList<ArcHarvestResource>(dtos.size());
 		for (HarvestResourceDTO dto : dtos) {
 			resources.add(new ArcHarvestResource((ArcHarvestResourceDTO) dto, ahr));
@@ -1142,7 +1147,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	}
 
 	public void finaliseIndex(Long harvestResultOid) {
-		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getHarvestResult(harvestResultOid, false);
+		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getArcHarvestResult(harvestResultOid, false);
 		ahr.setState(0);
 		harvestQaManager.triggerAutoQA(ahr);
 		targetInstanceDao.save(ahr);
