@@ -27,9 +27,9 @@ import java.util.*;
  * 
  **/
 // lazy="false"
-@Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(name = "HARVEST_RESULT")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class HarvestResult implements UserInTrayResource {
 	private static final int MAX_MOD_NOTE_LENGTH = 2000;
 	
