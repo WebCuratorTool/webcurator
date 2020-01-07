@@ -1,15 +1,15 @@
 package org.webcurator.core.store;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Bytes;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
@@ -21,11 +21,13 @@ import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
+import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
 import javax.activation.DataHandler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
@@ -58,75 +60,96 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
     }
 
     public String baseUrl() {
-        return host + ":" + port;
+        return "http://" + host + ":" + port;
     }
 
     public String getUrl(String appendUrl) {
         return baseUrl() + appendUrl;
     }
 
-    public void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SAVE))
-                .queryParam("directory", directory)
-                .queryParam("path", path);
+    private void internalSave(String targetInstanceName, HarvestStoreDTO requestBody) throws DigitalAssetStoreException{
+        try {
+            RestTemplate restTemplate = restTemplateBuilder.build();
 
-        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Boolean.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonStr = objectMapper.writeValueAsString(requestBody);
+            log.debug(jsonStr);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
+            Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SAVE));
+            URI uri=uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+            restTemplate.postForObject(uri, request, Void.class);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            throw new DigitalAssetStoreException(e);
+        }
     }
 
+    @Override
+    public void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
+        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        requestBody.setDirectory(directory);
+        requestBody.setPathFromPath(path);
+
+        internalSave(targetInstanceName, requestBody);
+    }
+
+    @Override
     // Assuming that without any values set will keep infinitely retrying
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     public void save(String targetInstanceName, Path path) throws DigitalAssetStoreException {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SAVE))
-                .queryParam("path", path);
+        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        requestBody.setPathFromPath(path);
 
-        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Boolean.class);
+        internalSave(targetInstanceName, requestBody);
     }
 
+    @Override
     public void save(String targetInstanceName, String directory, List<Path> paths) throws DigitalAssetStoreException {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SAVE))
-                .queryParam("directory", directory)
-                .queryParam("paths", paths);
+        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        requestBody.setDirectory(directory);
+        requestBody.setPathsFromPath(paths);
 
-        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Boolean.class);
+        internalSave(targetInstanceName, requestBody);
     }
 
+    @Override
     public void save(String targetInstanceName, List<Path> paths) throws DigitalAssetStoreException {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SAVE))
-                .queryParam("paths", paths);
+        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        requestBody.setPathsFromPath(paths);
 
-        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        // TODO This is an infinite-retry-invoke with a delay of 30000L
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Boolean.class);
+        internalSave(targetInstanceName, requestBody);
     }
 
-    public Path getResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource)
-            throws DigitalAssetStoreException {
+    public Path getResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(resource);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return null;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.RESOURCE))
-                .queryParam("harvest-result-number", harvestResultNumber)
-                .queryParam("resource", resource);
+                .queryParam("harvest-result-number", harvestResultNumber);
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-        DataHandler dataHandler = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                DataHandler.class);
+        DataHandler dataHandler = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),request, DataHandler.class);
 
         FileOutputStream fos = null;
         try {
@@ -151,6 +174,21 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
 
     public List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource)
             throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(resource);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return null;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
 
@@ -161,7 +199,7 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
         ResponseEntity<List<Header>> listResponse = restTemplate.exchange(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<Header>>() {
+                HttpMethod.POST, request, new ParameterizedTypeReference<List<Header>>() {
                 });
 
         return listResponse.getBody();
@@ -190,26 +228,54 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
      * @see DigitalAssetStore#purge(List<String>).
      */
     public void purge(List<String> targetInstanceNames) throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(targetInstanceNames);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.PURGE))
-                .queryParam("target-instance-names", targetInstanceNames);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.PURGE));
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Boolean.class);
+                request, Boolean.class);
     }
 
     /**
      * @see DigitalAssetStore#purgeAbortedTargetInstances(List<String>).
      */
     public void purgeAbortedTargetInstances(List<String> targetInstanceNames) throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(targetInstanceNames);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.PURGE_ABORTED_TARGET_INSTANCES))
-                .queryParam("target-instance-names", targetInstanceNames);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.PURGE_ABORTED_TARGET_INSTANCES));
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Boolean.class);
+                request, Boolean.class);
     }
 
     public void submitToArchive(String targetInstanceOid, String sip, Map xAttributes, int harvestNumber)
@@ -228,40 +294,80 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
     }
 
     public byte[] getSmallResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(resource);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return null;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SMALL_RESOURCE))
-                .queryParam("harvest-result-number", harvestResultNumber)
-                .queryParam("resource", resource);
+                .queryParam("harvest-result-number", harvestResultNumber);
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
         ResponseEntity<List<Byte>> listResponse = restTemplate.exchange(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<Byte>>() {
+                HttpMethod.POST, request, new ParameterizedTypeReference<List<Byte>>() {
                 });
 
         return Bytes.toArray(listResponse.getBody());
     }
 
     public void initiateIndexing(ArcHarvestResultDTO harvestResult) throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(harvestResult);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.INITIATE_INDEXING))
-                .queryParam("harvest-result", harvestResult);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.INITIATE_INDEXING));
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Boolean.class);
+        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Boolean.class);
     }
 
     public void initiateRemoveIndexes(ArcHarvestResultDTO harvestResult) throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(harvestResult);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.INITIATE_REMOVE_INDEXES))
-                .queryParam("harvest-result", harvestResult);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.INITIATE_REMOVE_INDEXES));
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Boolean.class);
+        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Boolean.class);
     }
 
     public Boolean checkIndexing(Long harvestResultOid) throws DigitalAssetStoreException {
@@ -277,14 +383,27 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
     }
 
     public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(criteria);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return null;
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.CUSTOM_DEPOSIT_FORM_DETAILS))
-                .queryParam("custom-deposit-form-criteria", criteria);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.CUSTOM_DEPOSIT_FORM_DETAILS));
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        CustomDepositFormResultDTO customDepositFormResultDTO = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                CustomDepositFormResultDTO.class);
+        CustomDepositFormResultDTO customDepositFormResultDTO = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, CustomDepositFormResultDTO.class);
 
         toAbsoluteUrl(customDepositFormResultDTO);
 
