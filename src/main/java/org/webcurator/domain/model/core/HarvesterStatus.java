@@ -56,7 +56,7 @@ public class HarvesterStatus {
     private String status;
     @OneToOne
     @JoinColumn(name = "HS_OID")
-    @MapsId
+//    @MapsId
     private TargetInstance targetInstance;
     /** The amount of elapsed time for the job. */
     @Column(name = "HS_ELAPSED_TIME")
