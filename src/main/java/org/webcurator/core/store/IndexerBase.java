@@ -55,7 +55,7 @@ public abstract class IndexerBase implements RunnableIndex {
 	}
 
     public String baseUrl() {
-        return wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+        return "http://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
     }
 
     public String getUrl(String appendUrl) {
