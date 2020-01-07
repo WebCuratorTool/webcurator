@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
@@ -130,13 +129,13 @@ public interface DigitalAssetStore {
 	 * 
 	 * @param harvestResult The DTO of the Harvest Result to be indexed.
 	 */
-	void initiateIndexing(ArcHarvestResultDTO harvestResult) throws DigitalAssetStoreException;
+	void initiateIndexing(HarvestResultDTO harvestResult) throws DigitalAssetStoreException;
 	/**
 	 * Initiate the removal of indexes of the given HarvestResult.
 	 * @param harvestResult The HarvestResult to remove indexes for.
 	 * @throws DigitalAssetStoreException if any errors occur.
 	 */
-	void initiateRemoveIndexes(ArcHarvestResultDTO harvestResult) throws DigitalAssetStoreException;
+	void initiateRemoveIndexes(HarvestResultDTO harvestResult) throws DigitalAssetStoreException;
 
 	/**
 	 * Check the indexing of a Harvest Result.

@@ -22,7 +22,6 @@ import org.webcurator.core.rules.QaRecommendationService;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.core.HarvestResource;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -130,7 +129,7 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 		// if the QA service is enabled, then derive the QA Indicators for this
 		// ti
 		if (enableQaModule) {
-			ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getHarvestResult(harvestResultOid, false);
+			HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
 			TargetInstance ti = ahr.getTargetInstance();
 			if (ti == null) {
 				throw new WCTRuntimeException(
@@ -170,7 +169,7 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 	}
 
 	@Override
-	public void triggerAutoQA(ArcHarvestResult ahr) {
+	public void triggerAutoQA(HarvestResult ahr) {
 		TargetInstance ti = ahr.getTargetInstance();
 
 		if (autoQAUrl != null && autoQAUrl.length() > 0 && ti.isUseAQA()) {

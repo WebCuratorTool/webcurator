@@ -15,7 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.core.util.WebServiceEndPoint;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public abstract class IndexerBase implements RunnableIndex {
@@ -62,7 +62,7 @@ public abstract class IndexerBase implements RunnableIndex {
         return baseUrl() + appendUrl;
     }
 
-    protected abstract ArcHarvestResultDTO getResult();
+    protected abstract HarvestResultDTO getResult();
 	
 	@Override
 	public void setMode(Mode mode)

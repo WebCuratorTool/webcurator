@@ -50,7 +50,7 @@ public class ArcHarvestFileDTO {
 	/** The base directory of the ArcHarvestFile. */
 	private String baseDir;
 	/** The harvest result. */
-	private ArcHarvestResultDTO harvestResult;
+	private HarvestResultDTO harvestResult;
 	/** The maximum URL length to capture */
 	public static final int MAX_URL_LENGTH = 1020;
 
@@ -99,14 +99,14 @@ public class ArcHarvestFileDTO {
 	/**
 	 * @return the harvest result data.
 	 */	
-	public ArcHarvestResultDTO getHarvestResult() {
+	public HarvestResultDTO getHarvestResult() {
 		return harvestResult;
 	}
 
 	/** 
 	 * @param harvestResult the harvest result data.
 	 */
-	public void setHarvestResult(ArcHarvestResultDTO harvestResult) {
+	public void setHarvestResult(HarvestResultDTO harvestResult) {
 		this.harvestResult = harvestResult;
 	}
 	

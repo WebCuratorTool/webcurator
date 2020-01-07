@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
@@ -29,7 +29,7 @@ public class WCTIndexer extends IndexerBase
 {
 	private static Log log = LogFactory.getLog(WCTIndexer.class);
 	
-	private ArcHarvestResultDTO result;
+	private HarvestResultDTO result;
 	private File directory;
 	private boolean doCreate = false;
 
@@ -190,13 +190,13 @@ public class WCTIndexer extends IndexerBase
 	}
 
 	@Override
-	public void initialise(ArcHarvestResultDTO result, File directory) {
+	public void initialise(HarvestResultDTO result, File directory) {
 		this.result = result;
 		this.directory = directory;
 	}
 
 	@Override
-	protected ArcHarvestResultDTO getResult() {
+	protected HarvestResultDTO getResult() {
 		return result;
 	}
 

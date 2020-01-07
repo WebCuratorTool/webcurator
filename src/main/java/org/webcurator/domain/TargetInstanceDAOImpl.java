@@ -43,14 +43,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.Auditor;
-import org.webcurator.domain.model.core.AbstractTarget;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.GroupMember;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Schedule;
-import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
@@ -59,6 +52,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  * The implementation of the TargetInstanceDAO interface.
  * @author nwaight
  */
+@SuppressWarnings("all")
 @Transactional
 public class TargetInstanceDAOImpl extends HibernateDaoSupport implements TargetInstanceDAO {
 	
@@ -241,30 +235,29 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		return (TargetInstance) getHibernateTemplate().load(TargetInstance.class, targetInstanceOid);
 	}
 	
-	
-	
+
 	public HarvestResult getHarvestResult(final Long harvestResultOid) {
 		return getHarvestResult(harvestResultOid, true);
 	}
-	
+
 	public HarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
 		HarvestResult hr = (HarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) {
-				HarvestResult hr = (HarvestResult)aSession.load(HarvestResult.class, harvestResultOid);
-				
+				HarvestResult hr = aSession.load(HarvestResult.class, harvestResultOid);
+
 				// Force population of the resources and target instance
 				if(loadFully) {
 					hr.getResources().values();
 					hr.getTargetInstance();
 				}
-				
+
 				return hr;
 			}
 		});
-		
+
 		return hr;
 	}
-	
+
 	/**
 	 * TODO This should be moved to an ArcHarvestResultDAO.
 	 */

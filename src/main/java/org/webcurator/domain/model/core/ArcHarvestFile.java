@@ -62,10 +62,10 @@ public class ArcHarvestFile {
 	@Transient
 	/** The base directory in which the ARC file exists. */
 	private String baseDir;
-	/** The ArcHarvestResult that this file belong to. */
+	/** The HarvestResult that this file belong to. */
 	@ManyToOne
 	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID", foreignKey = @ForeignKey(name = "FK_AHR_ARC_HARVEST_RESULT_ID"))
-	private ArcHarvestResult harvestResult;
+	private HarvestResult harvestResult;
 
 	/**
 	 * No-arg constructor.
@@ -77,9 +77,9 @@ public class ArcHarvestFile {
     /**
      * Creates an ArcHarvestFile from a DTO and HarvestResult.
      * @param aHarvestFile   The DTO object to create the object from.
-     * @param aHarvestResult The ArcHarvestResult that this ARC file belongs to.
+     * @param aHarvestResult The HarvestResult that this ARC file belongs to.
      */
-    public ArcHarvestFile(ArcHarvestFileDTO aHarvestFile, ArcHarvestResult aHarvestResult) {
+    public ArcHarvestFile(ArcHarvestFileDTO aHarvestFile, HarvestResult aHarvestResult) {
         harvestResult = aHarvestResult;
         name = aHarvestFile.getName();
         compressed = aHarvestFile.isCompressed();
@@ -135,18 +135,18 @@ public class ArcHarvestFile {
 	}
 
 	/**
-	 * Returns the ArcHarvestResult that this ARC file belongs to.
-	 * @return the ArcHarvestResult that this ARC file belongs to
+	 * Returns the HarvestResult that this ARC file belongs to.
+	 * @return the HarvestResult that this ARC file belongs to
 	 */	
-	public ArcHarvestResult getHarvestResult() {
+	public HarvestResult getHarvestResult() {
 		return harvestResult;
 	}
 
 	/**
-	 * Sets the ArcHarvestResult that this ARC file belongs to.
-	 * @param harvestResult The ArcHarvestResult that this ARC file belongs to.
+	 * Sets the HarvestResult that this ARC file belongs to.
+	 * @param harvestResult The HarvestResult that this ARC file belongs to.
 	 */
-	public void setHarvestResult(ArcHarvestResult harvestResult) {
+	public void setHarvestResult(HarvestResult harvestResult) {
 		this.harvestResult = harvestResult;
 	}
 	

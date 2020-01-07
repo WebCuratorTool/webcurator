@@ -3,7 +3,7 @@ package org.webcurator.core.harvester.coordinator;
 import java.util.Collection;
 
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
+import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public interface IndexerService {
@@ -34,5 +34,5 @@ public interface IndexerService {
     void notifyAQAComplete(String aqaId);
     
     
-    void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> harvestResources);
+    void addHarvestResources(Long harvestResultOid, Collection<ArcHarvestResourceDTO> harvestResources);
 }

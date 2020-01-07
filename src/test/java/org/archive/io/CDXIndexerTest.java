@@ -13,7 +13,7 @@ import java.util.Date;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.test.WCTTestUtils;
 
@@ -37,7 +37,7 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 
 	public void setUp() throws Exception {
 		super.setUp();
-		ArcHarvestResultDTO result = new ArcHarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
+		HarvestResultDTO result = new HarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
 		testInstance.initialise(result, WCTTestUtils.getResourceAsFile(archivePath));
 	}
 

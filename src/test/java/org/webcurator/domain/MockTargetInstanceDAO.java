@@ -24,7 +24,6 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.AbstractTarget;
 import org.webcurator.domain.model.core.ArcHarvestFile;
 import org.webcurator.domain.model.core.ArcHarvestResource;
-import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.core.HarvestResource;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -40,6 +39,7 @@ import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+@SuppressWarnings("all")
 public class MockTargetInstanceDAO implements TargetInstanceDAO {
 
 	private static Log log = LogFactory.getLog(MockTargetInstanceDAO.class);
@@ -450,14 +450,11 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 	{
 		//fully load the harvest result
 		HarvestResult hr = getHarvestResult(harvestResultId, true);
-		
-		if(hr instanceof ArcHarvestResult)
+
+		//delete all the associated resources
+		if(hr.getArcFiles() != null)
 		{
-			//delete all the associated resources
-			if(((ArcHarvestResult)hr).getArcFiles() != null)
-			{
-				((ArcHarvestResult)hr).getArcFiles().clear();
-			}
+			hr.getArcFiles().clear();
 		}
 	}
 
@@ -642,7 +639,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     }
     
     
-    protected Map<String,HarvestResource> loadHarvestResourcesFromNodeList(ArcHarvestResult hr, NodeList hrsNodes)
+    protected Map<String,HarvestResource> loadHarvestResourcesFromNodeList(HarvestResult hr, NodeList hrsNodes)
     {
     	Map<String,HarvestResource> harvestResources = new Hashtable<String,HarvestResource>();
     	for (int i = 0; i < hrsNodes.getLength(); i++)
@@ -658,7 +655,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	return harvestResources;
     }
     
-    protected Set<ArcHarvestFile> loadArcFilesFromNodeList(ArcHarvestResult hr, NodeList hrsNodes)
+    protected Set<ArcHarvestFile> loadArcFilesFromNodeList(HarvestResult hr, NodeList hrsNodes)
     {
     	Set<ArcHarvestFile> harvestFiles = new HashSet<ArcHarvestFile>();
     	for (int i = 0; i < hrsNodes.getLength(); i++)
@@ -680,7 +677,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	Long oid = getOid(hrNode);
     	if(oid != null &&  hrNode.hasChildNodes() && !hrOids.containsKey(oid))
     	{
-    		ArcHarvestResult hr = new ArcHarvestResult();
+    		HarvestResult hr = new HarvestResult();
     		hr.setOid(oid);
     		hr.setTargetInstance(ti);
     		
@@ -752,7 +749,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	return hrOids.get(oid);
     }
     
-    protected HarvestResource loadHarvestResourceFromNode(ArcHarvestResult hr, Node hrsNode)
+    protected HarvestResource loadHarvestResourceFromNode(HarvestResult hr, Node hrsNode)
     {
     	Long oid = getOid(hrsNode);
     	if(oid != null &&  hrsNode.hasChildNodes() && !hrsOids.containsKey(oid))
@@ -804,7 +801,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	return hrsOids.get(oid);
     }
 
-    protected ArcHarvestFile loadArcFileFromNode(ArcHarvestResult hr, Node ahfNode)
+    protected ArcHarvestFile loadArcFileFromNode(HarvestResult hr, Node ahfNode)
     {
     	Long oid = getOid(ahfNode);
     	if(oid != null &&  ahfNode.hasChildNodes() && !ahfOids.containsKey(oid))

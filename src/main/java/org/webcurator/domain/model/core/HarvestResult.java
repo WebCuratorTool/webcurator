@@ -19,6 +19,8 @@ import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.model.auth.User;
 
 import javax.persistence.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -101,6 +103,10 @@ public class HarvestResult implements UserInTrayResource {
 	@JoinColumn(name = "HR_RR_OID", foreignKey = @ForeignKey(name = "FK_HR_RR_OID"))
 	protected RejReason rejReason;
 
+	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
+	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID")
+	private Set<ArcHarvestFile> arcFiles = new HashSet<ArcHarvestFile>();;
+
 	/**
 	 * Construct a new HarvestResult.
 	 */
@@ -109,31 +115,41 @@ public class HarvestResult implements UserInTrayResource {
 		this.creationDate = new Date();
 	}
 
+	public HarvestResult(TargetInstance aTargetInstance, int harvestNumber) {
+		this.targetInstance = aTargetInstance;
+		this.creationDate = new Date();
+		this.createdBy = aTargetInstance.getOwner();
+		this.harvestNumber = harvestNumber;
+	}
+
 	/**
-	 * Create a new HarvestResult from its DTO.
-	 * @param aResult The DTO.
-	 * @param aTargetInstance The TargetInstance that this HarvestResult belongs to.
+	 * Create an HarvestResult from its DTO.
+	 * @param aResultDTO The DTO.
+	 * @param aTargetInstance The TargetInstance that this HarvestResult
+	 * 						  belongs to.
 	 */
-    public HarvestResult(HarvestResultDTO aResult, TargetInstance aTargetInstance) {
-        super();
-        targetInstance = aTargetInstance;
-        harvestNumber = aResult.getHarvestNumber();
-        provenanceNote = aResult.getProvenanceNote();
-        creationDate = aResult.getCreationDate();
-        createdBy = aTargetInstance.getOwner();
-        
-        HarvestResource harvestResource = null;
-        HarvestResourceDTO harvestResourceDTO = null;
-        String key = "";        
-        Map resourceDtos = aResult.getResources();
-        Iterator it = resourceDtos.keySet().iterator();
-        while (it.hasNext()) {
-            key = (String) it.next();
-            harvestResourceDTO = (HarvestResourceDTO) resourceDtos.get(key);
-            harvestResource = new HarvestResource(harvestResourceDTO, this);
-            resources.put(key, harvestResource);
-        }
-    }
+	public HarvestResult(HarvestResultDTO aResultDTO, TargetInstance aTargetInstance) {
+		super();
+		arcFiles = new HashSet<ArcHarvestFile>();
+		targetInstance = aTargetInstance;
+		harvestNumber = aResultDTO.getHarvestNumber();
+		provenanceNote = aResultDTO.getProvenanceNote();
+		creationDate = aResultDTO.getCreationDate();
+		createdBy = aTargetInstance.getOwner();
+
+		aResultDTO.getResources().forEach((key,value)->{
+			ArcHarvestResourceDTO harvestResourceDTO = (ArcHarvestResourceDTO)value;
+			ArcHarvestResource harvestResource = new ArcHarvestResource(harvestResourceDTO, this);
+			this.resources.put(key, harvestResource);
+		});
+
+		if(aResultDTO.getArcFiles() != null) {
+			aResultDTO.getArcFiles().forEach(value->{
+				ArcHarvestFile file = new ArcHarvestFile(value, this);
+				this.arcFiles.add(file);
+			});
+		}
+	}
 
 	/**
 	 * Get the number of the harvest result. This is 1 for the original harvest.
@@ -346,9 +362,48 @@ public class HarvestResult implements UserInTrayResource {
      * @see org.webcurator.core.notification.InTrayResource#getResourceType()
      */
     public String getResourceType() {
-        return this.getClass().getName(); //May be an ArcHarvestResult
+        return this.getClass().getName(); 
     }
-    
+
+	/**
+	 * Get the set of ARC files that make up this HarvestResult.
+	 * @return the set of ARC files that make up this HarvestResult
+	 */
+	public Set<ArcHarvestFile> getArcFiles() {
+		return arcFiles;
+	}
+
+	/**
+	 * Set the set of ARC files that make up this HarvestResult.
+	 * @param arcFiles The set of ARC Harvest Files.
+	 */
+	public void setArcFiles(Set<ArcHarvestFile> arcFiles) {
+		this.arcFiles = arcFiles;
+	}
+
+	/**
+	 * Create an index for this HarvestResult, assuming that all ARC Files
+	 * are in the basedir provided.
+	 * @param baseDir The base directory for the ARC files.
+	 * @throws IOException if the indexing fails.
+	 */
+	public void index(File baseDir) throws IOException {
+		for(ArcHarvestFile ahf: arcFiles) {
+			this.getResources().putAll(ahf.index(baseDir));
+		}
+	}
+
+	/**
+	 * Create an index for this HarvestResult, assuming that each ARC File is
+	 * in the base directory that it states in the ArcHarvestFile object.
+	 * @throws IOException if the indexing fails.
+	 */
+	public void index() throws IOException {
+		for(ArcHarvestFile ahf: arcFiles) {
+			this.getResources().putAll(ahf.index());
+		}
+	}
+
     /* (non-Javadoc)
      * @see org.webcurator.core.notification.InTrayResource#getOwningUser()
      */

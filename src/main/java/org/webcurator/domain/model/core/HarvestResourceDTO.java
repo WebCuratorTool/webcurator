@@ -126,7 +126,7 @@ public class HarvestResourceDTO {
 		return tempFileName;
 	}
 	/**
-	 * @param name the temporary file name to set
+	 * @param tempFileName the temporary file name to set
 	 */
 	public void setTempFileName(String tempFileName) {
 		this.tempFileName = tempFileName;
@@ -138,7 +138,7 @@ public class HarvestResourceDTO {
 		return contentType;
 	}
 	/**
-	 * @param name the imported content type to set
+	 * @param contentType the imported content type to set
 	 */
 	public void setContentType(String contentType) {
 		this.contentType = contentType;

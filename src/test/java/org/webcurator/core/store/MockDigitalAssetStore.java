@@ -10,7 +10,6 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
@@ -20,7 +19,7 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 
 	private static Log log = LogFactory.getLog(MockDigitalAssetStore.class);
 	private Boolean checkIndexing = false;
-	private List<ArcHarvestResultDTO> removedIndexes = new ArrayList<ArcHarvestResultDTO>();
+	private List<HarvestResultDTO> removedIndexes = new ArrayList<HarvestResultDTO>();
 	
 	public MockDigitalAssetStore() {
 		// TODO Auto-generated constructor stub
@@ -53,13 +52,13 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 		return null;
 	}
 
-	public void initiateIndexing(ArcHarvestResultDTO harvestResult)
+	public void initiateIndexing(HarvestResultDTO harvestResult)
 			throws DigitalAssetStoreException {
 		// TODO Auto-generated method stub
 
 	}
 	
-	public void initiateRemoveIndexes(ArcHarvestResultDTO harvestResult)
+	public void initiateRemoveIndexes(HarvestResultDTO harvestResult)
 			throws DigitalAssetStoreException {
 		log.info("Removing indexes for TargetInstance "+harvestResult.getTargetInstanceOid()+ " HarvestNumber "+harvestResult.getHarvestNumber());
 		removedIndexes.add(harvestResult);

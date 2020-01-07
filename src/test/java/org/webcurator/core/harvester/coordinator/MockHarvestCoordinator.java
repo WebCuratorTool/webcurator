@@ -7,8 +7,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResult;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.BandwidthRestriction;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -276,23 +274,13 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		if(reIndexHarvestResultReturnValue)
 		{
 			TargetInstance ti = origHarvestResult.getTargetInstance();
-            HarvestResult newHarvestResult = null;
-            if (origHarvestResult instanceof ArcHarvestResult) {
-            	ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
-	            ahr.setCreationDate(new Date());    
-	            ahr.setTargetInstanceOid(ti.getOid());
-	            ahr.setProvenanceNote(origHarvestResult.getProvenanceNote()); 
-	            ahr.setHarvestNumber(origHarvestResult.getHarvestNumber()); 
-	            newHarvestResult = new HarvestResult(ahr, ti);
-            }        
-            else {
-            	HarvestResultDTO hr = new HarvestResultDTO();
-	            hr.setCreationDate(new Date());    
-	            hr.setTargetInstanceOid(ti.getOid());
-	            hr.setProvenanceNote(origHarvestResult.getProvenanceNote()); 
-	            hr.setHarvestNumber(origHarvestResult.getHarvestNumber()); 
-            	newHarvestResult = new HarvestResult(hr, ti);
-            }
+
+			HarvestResultDTO hr = new HarvestResultDTO();
+			hr.setCreationDate(new Date());
+			hr.setTargetInstanceOid(ti.getOid());
+			hr.setProvenanceNote(origHarvestResult.getProvenanceNote());
+			hr.setHarvestNumber(origHarvestResult.getHarvestNumber());
+			HarvestResult newHarvestResult = new HarvestResult(hr, ti);
 
             origHarvestResult.setState(HarvestResult.STATE_ABORTED);
             newHarvestResult.setState(HarvestResult.STATE_INDEXING);

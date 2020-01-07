@@ -16,7 +16,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.RestClientResponseHandler;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
@@ -324,7 +323,7 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
         return Bytes.toArray(listResponse.getBody());
     }
 
-    public void initiateIndexing(ArcHarvestResultDTO harvestResult) throws DigitalAssetStoreException {
+    public void initiateIndexing(HarvestResultDTO harvestResult) throws DigitalAssetStoreException {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonStr = null;
         try {
@@ -347,7 +346,7 @@ public class DigitalAssetStoreClient implements DigitalAssetStore, DigitalAssetS
         Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Boolean.class);
     }
 
-    public void initiateRemoveIndexes(ArcHarvestResultDTO harvestResult) throws DigitalAssetStoreException {
+    public void initiateRemoveIndexes(HarvestResultDTO harvestResult) throws DigitalAssetStoreException {
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonStr = null;
         try {

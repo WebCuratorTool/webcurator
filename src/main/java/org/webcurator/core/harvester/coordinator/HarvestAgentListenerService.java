@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.common.Constants;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
+import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -23,8 +24,7 @@ import java.util.Map;
  */
 @RestController
 //@RequestMapping(consumes = "application/json", produces = "application/json")
-public class HarvestAgentListenerService implements HarvestAgentListener, CheckNotifier,
-        IndexerService, DasCallback {
+public class HarvestAgentListenerService implements HarvestAgentListener, CheckNotifier, IndexerService, DasCallback {
     /**
      * the logger.
      */
@@ -143,7 +143,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
 
     @PostMapping(path = HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES)
     public void addHarvestResources(@PathVariable(value = "harvest-result-oid") Long harvestResultOid,
-                                    @RequestBody Collection<HarvestResourceDTO> harvestResources) {
+                                    @RequestBody Collection<ArcHarvestResourceDTO> harvestResources) {
         try {
             log.info("Received addHarvestResources for Harvest Result {}", harvestResultOid);
             harvestCoordinator.addHarvestResources(harvestResultOid, harvestResources);

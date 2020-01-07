@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.RunnableIndex.Mode;
 import org.webcurator.core.util.WebServiceEndPoint;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class Indexer {
 	private static Log log = LogFactory.getLog(Indexer.class);
@@ -124,7 +124,7 @@ public class Indexer {
 		this.doCreate = doCreate;
 	}	
 
-	public void runIndex(ArcHarvestResultDTO dto, File directory) { 
+	public void runIndex(HarvestResultDTO dto, File directory) {
 		if(indexers == null || indexers.size() <= 0)
 		{
 			log.error("No indexers are defined");
@@ -153,7 +153,7 @@ public class Indexer {
 		}
 	}	
 
-	public void removeIndex(ArcHarvestResultDTO dto, File directory) { 
+	public void removeIndex(HarvestResultDTO dto, File directory) {
 		if(indexers == null || indexers.size() <= 0)
 		{
 			log.error("No indexers are defined");
@@ -235,7 +235,7 @@ public class Indexer {
 	        	syntax();
 	        }
 	        
-	        ArcHarvestResultDTO dto = new ArcHarvestResultDTO();
+	        HarvestResultDTO dto = new HarvestResultDTO();
 	        dto.setTargetInstanceOid(targetInstanceOid);
 	        dto.setHarvestNumber(hrnum);
 	        dto.setProvenanceNote("Manual Intervention");

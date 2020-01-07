@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.webcurator.core.archive.MockSipBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
-import org.webcurator.core.harvester.agent.HarvestAgentConfig;
 import org.webcurator.core.harvester.agent.MockHarvestAgent;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
 import org.webcurator.core.notification.MockInTrayManager;
@@ -38,7 +37,6 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.AbstractTarget;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
 import org.webcurator.domain.model.core.BandwidthRestriction;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -493,7 +491,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
 
 		TargetInstance ti = tiDao.load(5001L);
 		ti.setState(TargetInstance.STATE_STOPPING);
-		HarvestResultDTO ahr = new ArcHarvestResultDTO();
+		HarvestResultDTO ahr = new HarvestResultDTO();
 		ahr.setCreationDate(new Date());
 		ahr.setTargetInstanceOid(ti.getOid());
 		ahr.setProvenanceNote("Original Harvest");

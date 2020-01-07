@@ -36,7 +36,7 @@ public interface HarvestAgentListener {
 
     /**
      * Recover connection
-     * @param haPort: service port
+     * @param port: service port
      * @param params: host, String service
      */
     void requestRecovery(int port, Map<String, String> params);
