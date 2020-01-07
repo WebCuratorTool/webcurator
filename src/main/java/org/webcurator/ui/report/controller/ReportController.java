@@ -21,12 +21,16 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.Report;
@@ -50,10 +54,9 @@ public class ReportController {
 
 	private Log log = LogFactory.getLog(ReportController.class);
 
-    // TODO CONFIGURATION There doesn't seem to be a reportMngr bean anywhere...
-    // in the XML it's shown as 'ref bean="reportMngr"', but that doesn't exist anywhere.
-    private ReportManager reportMngr;
+    @Autowired private ReportManager reportMngr;
 
+	@RequestMapping(method = RequestMethod.GET, path = "/curator/report/report.html")
 	protected ModelAndView showForm(HttpServletRequest req) throws Exception {
 
 		// Initialise parameters selectValues
@@ -73,18 +76,16 @@ public class ReportController {
 		return mav;
 	}
 
-
-	protected ModelAndView processFormSubmission(HttpServletRequest request, Object comm, BindingResult bindingResult)
+	@RequestMapping(method = RequestMethod.POST, path = "/curator/report/report.html")
+	protected ModelAndView processFormSubmission(HttpServletRequest request, @ModelAttribute ReportCommand reportCommand, BindingResult bindingResult)
             throws Exception {
-
-		ReportCommand com = (ReportCommand) comm;
 
 		// Build parameters
 		long start = System.currentTimeMillis();
-		ArrayList<Parameter> parameters = parseParameters(com);
+		ArrayList<Parameter> parameters = parseParameters(reportCommand);
 		log.debug("Parsing parameters took " + (System.currentTimeMillis()-start) + "ms");
 
-		request.getSession().setAttribute("selectedRunReport", com.getSelectedReport());
+		request.getSession().setAttribute("selectedRunReport", reportCommand.getSelectedReport());
 		ModelAndView mav = new ModelAndView();
 		if (bindingResult.hasErrors()) {
 
@@ -98,7 +99,7 @@ public class ReportController {
 			String info = "";
 			ReportGenerator reportGenerator = null;
 			for(Report rep : reportMngr.getReports()){
-				if(rep.getName().equals(com.getSelectedReport())){
+				if(rep.getName().equals(reportCommand.getSelectedReport())){
 					info = rep.getInfo();
 					reportGenerator = rep.getReportGenerator();
 				}
@@ -106,7 +107,7 @@ public class ReportController {
 
 			// Build an AbstractReport
 			OperationalReport operationalReport = new OperationalReport(
-					com.getSelectedReport(), info, parameters, reportGenerator);
+					reportCommand.getSelectedReport(), info, parameters, reportGenerator);
 
 			// Store in session
 			request.getSession().setAttribute("operationalReport", operationalReport);
