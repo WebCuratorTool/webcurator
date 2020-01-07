@@ -1,12 +1,7 @@
 package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -206,7 +201,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	}
 
 	@Override
-	public void requestRecovery(String host, int port, String Service) {}
+	public void requestRecovery(int port, Map<String, String> params) {}
 
 	@Override
 	public void recoverHarvests(String host, int port, String Service) {
@@ -288,7 +283,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	            ahr.setTargetInstanceOid(ti.getOid());
 	            ahr.setProvenanceNote(origHarvestResult.getProvenanceNote()); 
 	            ahr.setHarvestNumber(origHarvestResult.getHarvestNumber()); 
-	            newHarvestResult = new ArcHarvestResult(ahr, ti); 
+	            newHarvestResult = new HarvestResult(ahr, ti);
             }        
             else {
             	HarvestResultDTO hr = new HarvestResultDTO();

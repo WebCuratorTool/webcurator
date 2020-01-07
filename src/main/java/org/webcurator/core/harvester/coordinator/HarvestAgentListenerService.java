@@ -13,6 +13,7 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * The Server side implmentation of the HarvestAgentListener. This Service is deployed on the core and is used by the agents to send
@@ -21,7 +22,7 @@ import java.util.Collection;
  * @author nwaight
  */
 @RestController
-@RequestMapping(consumes = "application/json", produces = "application/json")
+//@RequestMapping(consumes = "application/json", produces = "application/json")
 public class HarvestAgentListenerService implements HarvestAgentListener, CheckNotifier,
         IndexerService, DasCallback {
     /**
@@ -48,10 +49,11 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
         harvestCoordinator.heartbeat(aStatus);
     }
 
-    @PostMapping(path = HarvestCoordinatorPaths.RECOVERY)
-    public void requestRecovery(@RequestParam(value = "host") String haHost,
-                                @RequestParam(value = "port") int haPort,
-                                @RequestParam(value = "service") String haService) {
+    @RequestMapping(path = HarvestCoordinatorPaths.RECOVERY, method = {RequestMethod.POST, RequestMethod.GET})
+    public void requestRecovery(@RequestParam(value = "port") int haPort,
+                                @RequestBody Map<String, String> params) {
+        String haHost=params.get("host");
+        String haService=params.get("service");
         log.info("Received recovery request from {}:{}", haHost, haPort);
         harvestCoordinator.recoverHarvests(haHost, haPort, haService);
     }
@@ -62,7 +64,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#harvestComplete(org.webcurator.core.model.HarvestResult)
      */
     @PostMapping(path = HarvestCoordinatorPaths.HARVEST_COMPLETE)
-    public void harvestComplete(@RequestParam(value = "harvest-result") HarvestResultDTO aResult) {
+    public void harvestComplete(@RequestBody HarvestResultDTO aResult) {
         log.info("Received harvest complete for {} {}", aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
         harvestCoordinator.harvestComplete(aResult);
     }
@@ -95,7 +97,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
 
     @PostMapping(path = HarvestCoordinatorPaths.ADD_HARVEST_RESULT)
     public void addToHarvestResult(@PathVariable(value = "harvest-result-oid") Long harvestResultOid,
-                                   @RequestParam(value = "harvest-file") ArcHarvestFileDTO ahf) {
+                                   @RequestBody ArcHarvestFileDTO ahf) {
         try {
             log.info("Received addToHarvestResult({},{})", harvestResultOid, ahf.getName());
             harvestCoordinator.addToHarvestResult(harvestResultOid, ahf);
@@ -106,8 +108,8 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
 
     }
 
-    @PutMapping(path = HarvestCoordinatorPaths.CREATE_HARVEST_RESULT)
-    public Long createHarvestResult(@RequestParam(value = "harvest-result") HarvestResultDTO harvestResultDTO) {
+    @PostMapping(path = HarvestCoordinatorPaths.CREATE_HARVEST_RESULT)
+    public Long createHarvestResult(@RequestBody HarvestResultDTO harvestResultDTO) {
         try {
             log.info("Received createHarvestResult for Target Instance {}", harvestResultDTO.getTargetInstanceOid());
             return harvestCoordinator.createHarvestResult(harvestResultDTO);
@@ -141,7 +143,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
 
     @PostMapping(path = HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES)
     public void addHarvestResources(@PathVariable(value = "harvest-result-oid") Long harvestResultOid,
-                                    @RequestParam(value = "harvest-resources") Collection<HarvestResourceDTO> harvestResources) {
+                                    @RequestBody Collection<HarvestResourceDTO> harvestResources) {
         try {
             log.info("Received addHarvestResources for Harvest Result {}", harvestResultOid);
             harvestCoordinator.addHarvestResources(harvestResultOid, harvestResources);
@@ -175,6 +177,5 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
             log.error("Exception in failedArchiving", ex);
             throw ex;
         }
-
     }
 }
