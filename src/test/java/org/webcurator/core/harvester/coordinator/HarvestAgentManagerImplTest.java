@@ -60,7 +60,7 @@ public class HarvestAgentManagerImplTest {
 
 		WebApplicationContext context = mock(WebApplicationContext.class);
 		when(context.getBean("environmentWCT")).thenReturn(mockEnvironment);
-		ApplicationContextFactory.setWebApplicationContext(context);
+		ApplicationContextFactory.setApplicationContext(context);
 	}
 
 	@Test
