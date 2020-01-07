@@ -6,10 +6,15 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
@@ -43,18 +48,30 @@ public class WCTIndexer extends IndexerBase
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     protected Long createIndex() {
-		// Step 1. Save the Harvest Result to the database.
+        Long harvestResultOid = Long.MIN_VALUE;
+        // Step 1. Save the Harvest Result to the database.
 		log.info("Initialising index for job " + getResult().getTargetInstanceOid());
 
-        RestTemplate restTemplate = restTemplateBuilder.build();
+		try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonStr = objectMapper.writeValueAsString(getResult());
+            log.debug(jsonStr);
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.CREATE_HARVEST_RESULT))
-                .queryParam("harvest-result", getResult());
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Long harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null,
-                Long.class);
-        log.info("Initialised index for job " + getResult().getTargetInstanceOid());
+            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
 
+            RestTemplate restTemplate = restTemplateBuilder.build();
+
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.CREATE_HARVEST_RESULT));
+
+            harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Long.class);
+            log.info("Initialised index for job " + getResult().getTargetInstanceOid());
+        }catch (JsonProcessingException e){
+            log.error("Parsing json failed.");
+            log.error(e);
+        }
         return harvestResultOid;
 	}
 	
@@ -114,29 +131,53 @@ public class WCTIndexer extends IndexerBase
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     protected void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO arcHarvestFileDTO) {
-        // Submit to the server.
-        log.info("Sending Arc Harvest File " + arcHarvestFileDTO.getName());
+        try {
+            // Submit to the server.
+            log.info("Sending Arc Harvest File " + arcHarvestFileDTO.getName());
 
-        RestTemplate restTemplate = restTemplateBuilder.build();
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonStr = objectMapper.writeValueAsString(arcHarvestFileDTO);
+            log.debug(jsonStr);
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESULT))
-                .queryParam("harvest-file", arcHarvestFileDTO);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
+            RestTemplate restTemplate = restTemplateBuilder.build();
+
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESULT));
+
+            Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, Void.class);
+        }catch (JsonProcessingException e){
+            log.error("Parsing json failed.");
+            log.error(e);
+        }
     }
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     protected void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> harvestResourceDTOS) {
-        RestTemplate restTemplate = restTemplateBuilder.build();
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonStr = objectMapper.writeValueAsString(harvestResourceDTOS);
+            log.debug(jsonStr);
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES))
-                .queryParam("harvest-resources", harvestResourceDTOS);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
+            RestTemplate restTemplate = restTemplateBuilder.build();
+
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES));
+
+            Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, Void.class);
+        }catch (JsonProcessingException e){
+            log.error("Parsing json failed.");
+            log.error(e);
+        }
     }
 
     @Override
