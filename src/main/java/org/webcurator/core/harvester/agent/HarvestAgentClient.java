@@ -1,10 +1,14 @@
 package org.webcurator.core.harvester.agent;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -53,11 +57,11 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
     }
 
     public String baseUrl() {
-        return host + ":" + port;
+        return "http://" + host + ":" + port;
     }
 
     public String getUrl(String appendUrl) {
-        return "http://" + baseUrl() + appendUrl;
+        return baseUrl() + appendUrl;
     }
 
     /**
@@ -75,11 +79,23 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
 
     public void recoverHarvests(List<String> activeJobs) {
         RestTemplate restTemplate = restTemplateBuilder.build();;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RECOVER_HARVESTS))
-                .queryParam("active-jobs", activeJobs);
 
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Void.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr= null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(activeJobs);
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage());
+            return;
+        }
+        log.debug(jsonStr);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
+        restTemplate.postForObject(getUrl(HarvestAgentPaths.RECOVER_HARVESTS), request, Void.class);
     }
 
     /**
@@ -253,12 +269,25 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#purgeAbortedTargetInstances(List<String>)
      */
     public void purgeAbortedTargetInstances(List<String> targetInstanceNames) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PURGE_ABORTED_TARGET_INSTANCES))
-                .queryParam("target-instance-names", targetInstanceNames);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonStr = null;
+        try {
+            jsonStr = objectMapper.writeValueAsString(targetInstanceNames);
+            log.debug(jsonStr);
+        } catch (JsonProcessingException e) {
+            log.error(e);
+            return;
+        }
 
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Void.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();;
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PURGE_ABORTED_TARGET_INSTANCES));
+
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Void.class);
     }
 
     public boolean isValidProfile(String profile) {
