@@ -49,10 +49,19 @@ public class AuthUtil {
     	if(user!=null) {
     		return user;
     	}
+
         Authentication auth =  SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            return (User)auth.getDetails();
+    	if(auth == null){
+    	    return null;
         }
+
+        //Some access without authentication can not be casted to User
+        try {
+            return (User) auth.getDetails();
+        }catch (ClassCastException e){
+            e.printStackTrace();
+        }
+
         return null;
     }
 
