@@ -35,6 +35,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -72,6 +76,7 @@ public class CreateFlagController {
         log = LogFactory.getLog(CreateFlagController.class);
     }
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
     	// enable null values for long and float fields
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -84,20 +89,19 @@ public class CreateFlagController {
         return null;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
+	@RequestMapping(method = RequestMethod.POST, path = "/curator/admin/create-flag.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute CreateFlagCommand createFlagCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = null;
-        CreateFlagCommand flagCmd = (CreateFlagCommand) aCommand;
 
-
-        if (flagCmd != null) {
+        if (createFlagCommand != null) {
             if (bindingResult.hasErrors()) {
                 mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateFlagCommand.MDL_AGENCIES, agencies);
 
-                String mode = flagCmd.getMode();
+                String mode = createFlagCommand.getMode();
                 if (CreateFlagCommand.ACTION_EDIT.equals(mode)) {
                     mav.addObject(CreateFlagCommand.ACTION_EDIT, mode);
                 }
@@ -105,57 +109,57 @@ public class CreateFlagController {
                 mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 mav.setViewName("newFlag");
 
-            } else if (CreateFlagCommand.ACTION_NEW.equals(flagCmd.getAction())) {
+            } else if (CreateFlagCommand.ACTION_NEW.equals(createFlagCommand.getAction())) {
                 mav = new ModelAndView();
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateFlagCommand.MDL_AGENCIES, agencies);
                 mav.setViewName("newFlag");
 
-            } else if (CreateFlagCommand.ACTION_VIEW.equals(flagCmd.getAction()) ||
-            		CreateFlagCommand.ACTION_EDIT.equals(flagCmd.getAction())) {
+            } else if (CreateFlagCommand.ACTION_VIEW.equals(createFlagCommand.getAction()) ||
+            		CreateFlagCommand.ACTION_EDIT.equals(createFlagCommand.getAction())) {
                 //View/Edit an existing flag
                 mav = new ModelAndView();
-                Long flagOid = flagCmd.getOid();
+                Long flagOid = createFlagCommand.getOid();
                 Flag flag = agencyUserManager.getFlagByOid(flagOid);
                 CreateFlagCommand editCmd = new CreateFlagCommand();
                 editCmd.setOid(flagOid);
                 editCmd.setAgencyOid(flag.getAgency().getOid());
                 editCmd.setName(flag.getName());
                 editCmd.setRgb(flag.getRgb());
-                editCmd.setMode(flagCmd.getAction());
+                editCmd.setMode(createFlagCommand.getAction());
 
                 List agencies = agencyUserManager.getAgenciesForLoggedInUser();
                 mav.addObject(CreateFlagCommand.MDL_AGENCIES, agencies);
                 mav.addObject(Constants.GBL_CMD_DATA, editCmd);
                 mav.setViewName("newFlag");
 
-            } else if (CreateFlagCommand.ACTION_SAVE.equals(flagCmd.getAction())) {
+            } else if (CreateFlagCommand.ACTION_SAVE.equals(createFlagCommand.getAction())) {
 
 
                     try {
                         Flag flag = new Flag();
-                        boolean update = (flagCmd.getOid() != null);
+                        boolean update = (createFlagCommand.getOid() != null);
                         if (update == true) {
                             // Update an existing flag object by loading it in first
-                        	flag = agencyUserManager.getFlagByOid(flagCmd.getOid());
+                        	flag = agencyUserManager.getFlagByOid(createFlagCommand.getOid());
                         } else {
                         	// Save the newly created flag object
 
                             //load Agency
-                            Long agencyOid = flagCmd.getAgencyOid();
+                            Long agencyOid = createFlagCommand.getAgencyOid();
                             Agency agency = agencyUserManager.getAgencyByOid(agencyOid);
                             flag.setAgency(agency);
                         }
 
-                        flag.setRgb(flagCmd.getRgb());
+                        flag.setRgb(createFlagCommand.getRgb());
                         String complementColour = null;
-                        if (flagCmd.getRgb().equals("000000")) {
+                        if (createFlagCommand.getRgb().equals("000000")) {
                         	complementColour = "ffffff";
                         } else {
-                        	complementColour = getComplementColour(flagCmd.getRgb());
+                        	complementColour = getComplementColour(createFlagCommand.getRgb());
                         }
                         flag.setComplementRgb(complementColour);
-                        flag.setName(flagCmd.getName());
+                        flag.setName(createFlagCommand.getName());
 
                         agencyUserManager.updateFlag(flag, update);
 
@@ -173,9 +177,9 @@ public class CreateFlagController {
                         mav = new ModelAndView();
                         String message;
                         if (update == true) {
-                            message = messageSource.getMessage("flag.updated", new Object[] { flagCmd.getName() }, Locale.getDefault());
+                            message = messageSource.getMessage("flag.updated", new Object[] { createFlagCommand.getName() }, Locale.getDefault());
                         } else {
-                            message = messageSource.getMessage("flag.created", new Object[] { flagCmd.getName() }, Locale.getDefault());
+                            message = messageSource.getMessage("flag.created", new Object[] { createFlagCommand.getName() }, Locale.getDefault());
                         }
                         String agencyFilter = (String)aReq.getSession().getAttribute(FlagCommand.MDL_AGENCYFILTER);
                         if(agencyFilter == null)
