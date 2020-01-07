@@ -33,6 +33,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.auth.AuthorityManager;
@@ -67,6 +70,7 @@ public class RejReasonController {
         log = LogFactory.getLog(RejReasonController.class);
     }
 
+    @RequestMapping(method = RequestMethod.GET, path = "/curator/admin/rejreason.html")
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         ModelAndView mav = new ModelAndView();
         String agencyFilter = (String)aReq.getSession().getAttribute(RejReasonCommand.MDL_AGENCYFILTER);
@@ -79,16 +83,17 @@ public class RejReasonController {
         return mav;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
+    @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/rejreason.html")
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute RejReasonCommand rejReasonCommand, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = new ModelAndView();
-        RejReasonCommand reasonCmd = (RejReasonCommand) aCommand;
-        if (reasonCmd != null) {
 
-        	if (RejReasonCommand.ACTION_DELETE.equals(reasonCmd.getCmd())) {
+        if (rejReasonCommand != null) {
+
+        	if (RejReasonCommand.ACTION_DELETE.equals(rejReasonCommand.getCmd())) {
                 // Attempt to delete a rejection reason from the system
-                Long reasonOid = reasonCmd.getOid();
+                Long reasonOid = rejReasonCommand.getOid();
                 RejReason reason = agencyUserManager.getRejReasonByOid(reasonOid);
                 String name = reason.getName();
                 try {
@@ -98,7 +103,7 @@ public class RejReasonController {
                     Object[] args = new Object[1];
                     args[0] = reason.getName();
                     if (bindingResult == null) {
-                        bindingResult = new BindException(reasonCmd, "command");
+                        bindingResult = new BindException(rejReasonCommand, "command");
                     }
                     bindingResult.addError(new ObjectError("command",codes,args,"Rejection Reason owns objects in the system and can't be deleted."));
                     mav.addObject(Constants.GBL_ERRORS, bindingResult);
@@ -107,9 +112,9 @@ public class RejReasonController {
                 }
                 populateRejReasonList(mav);
                 mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("rejreason.deleted", new Object[] { name }, Locale.getDefault()));
-            } else if (RejReasonCommand.ACTION_FILTER.equals(reasonCmd.getCmd())) {
+            } else if (RejReasonCommand.ACTION_FILTER.equals(rejReasonCommand.getCmd())) {
                 //Just filtering reasons by agency - if we change the default, store it in the session
-            	aReq.getSession().setAttribute(RejReasonCommand.MDL_AGENCYFILTER, reasonCmd.getAgencyFilter());
+            	aReq.getSession().setAttribute(RejReasonCommand.MDL_AGENCYFILTER, rejReasonCommand.getAgencyFilter());
             	populateRejReasonList(mav);
             }
         } else {
