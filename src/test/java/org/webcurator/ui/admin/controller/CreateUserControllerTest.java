@@ -49,21 +49,6 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 		}
 	}
 
-	@Test
-	public final void testShowForm() {
-		try
-		{
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
-			testInstance.setAgencyUserManager(manager);
-			testInstance.showForm();
-		}
-		catch (Exception e)
-		{
-			String message = e.getClass().toString() + " - " + e.getMessage();
-			log.debug(message);
-			fail(message);
-		}
-	}
 
 	@Test
 	public final void testProcessFormSubmission() {
