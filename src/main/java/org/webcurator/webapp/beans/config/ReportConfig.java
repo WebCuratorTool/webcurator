@@ -46,7 +46,7 @@ public class ReportConfig {
         Report bean = new Report();
         bean.setName("System Usage Report");
         bean.setDescription("A report showing who logged in to the system.");
-        bean.setInfo("&lt;FONT size=&quot;1&quot;&gt; &lt;I&gt;Start Date is inclusive.&lt;BR&gt;End Date is exclusive&lt;/I&gt; &lt;/FONT&gt;");
+        bean.setInfo("<FONT size=\"1\"> <I>Start Date is inclusive.<BR>End Date is exclusive.</I> </FONT>");
         bean.setReportGenerator(systemUsageReportGeneratorImpl());
 
         List<Parameter> parameters = new ArrayList<>();
@@ -73,7 +73,7 @@ public class ReportConfig {
         Report bean = new Report();
         bean.setName("System Activity Report");
         bean.setDescription("A report showing the actions performed by users of the system.");
-        bean.setInfo("&lt;FONT size=&quot;1&quot;&gt; &lt;I&gt;Start Date is inclusive.&lt;BR&gt;End Date is exclusive&lt;/I&gt; &lt;/FONT&gt;");
+        bean.setInfo("<FONT size=\"1\"> <I>Start Date is inclusive.<BR>End Date is exclusive.</I> </FONT>");
         bean.setReportGenerator(systemActivityReportGeneratorImpl());
 
         List<Parameter> parameters = new ArrayList<>();
@@ -101,7 +101,7 @@ public class ReportConfig {
         Report bean = new Report();
         bean.setName("Crawler Activity Report");
         bean.setDescription("A report showing which sites have been crawled, and some statistics on those crawls.");
-        bean.setInfo("&lt;FONT size=&quot;1&quot;&gt; &lt;I&gt;Start Date is inclusive.&lt;BR&gt;End Date is exclusive&lt;/I&gt; &lt;/FONT&gt;");
+        bean.setInfo("<FONT size=\"1\"> <I>Start Date is inclusive.<BR>End Date is exclusive.</I> </FONT>");
         bean.setReportGenerator(crawlerReportGenerator());
 
         List<Parameter> parameters = new ArrayList<>();
