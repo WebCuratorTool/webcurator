@@ -23,6 +23,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.report.FileFactory;
 import org.webcurator.core.report.OperationalReport;
@@ -44,33 +47,34 @@ public class ReportPreviewController {
 
 	private Log log = LogFactory.getLog(ReportPreviewController.class);
 
+	@RequestMapping(method = RequestMethod.GET, path = "/curator/report/report-preview.html")
 	protected ModelAndView showForm() throws Exception {
 
 		return null;
 	}
 
-	protected ModelAndView processFormSubmission(HttpServletRequest req, Object comm) throws Exception {
+	@RequestMapping(method = RequestMethod.POST, path = "/curator/report/report-preview.html")
+	protected ModelAndView processFormSubmission(HttpServletRequest req, @ModelAttribute ReportPreviewCommand reportPreviewCommand) throws Exception {
 
 		log.debug("process...");
 
-		ReportPreviewCommand com = (ReportPreviewCommand)comm;
 		ModelAndView mav = new ModelAndView();
 		OperationalReport operationalReport =
 			(OperationalReport) req.getSession().getAttribute("operationalReport");
 
-		log.debug("action=" + com.getActionCmd());
+		log.debug("action=" + reportPreviewCommand.getActionCmd());
 
-		if(com.getActionCmd().equals(ACTION_PRINT)){
+		if(reportPreviewCommand.getActionCmd().equals(ACTION_PRINT)){
 			mav.setViewName("reporting-preview");
 		}
 
-		else if(com.getActionCmd().equals(ACTION_SAVE)){
+		else if(reportPreviewCommand.getActionCmd().equals(ACTION_SAVE)){
 			mav.addObject("formats", FileFactory.getFormats());
 			mav.addObject("operationalReport", operationalReport);
 			mav.setViewName("reporting-save");
 		}
 
-		else if(com.getActionCmd().equals(ACTION_EMAIL)){
+		else if(reportPreviewCommand.getActionCmd().equals(ACTION_EMAIL)){
 			mav.addObject("formats", FileFactory.getFormats());
 			mav.addObject("subject", operationalReport.getName());
 			mav.setViewName("reporting-email");

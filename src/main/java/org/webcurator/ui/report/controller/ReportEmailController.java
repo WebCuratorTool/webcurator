@@ -26,6 +26,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.notification.MailServer;
 import org.webcurator.core.notification.Mailable;
@@ -52,17 +55,17 @@ public class ReportEmailController {
     @Autowired
 	private MailServer mailServer;
 
+	@RequestMapping(method = RequestMethod.GET, path = "/curator/report/report-email.html")
 	protected ModelAndView showForm() throws Exception {
 		return null;
 	}
 
+	@RequestMapping(method = RequestMethod.POST, path = "/curator/report/report-email.html")
+	protected ModelAndView processFormSubmission(HttpServletRequest req, @ModelAttribute ReportEmailCommand reportEmailCommand) throws Exception {
 
-	protected ModelAndView processFormSubmission(HttpServletRequest req, Object comm) throws Exception {
-
-		ReportEmailCommand com = (ReportEmailCommand) comm;
 		ModelAndView mav = new ModelAndView();
 
-		if(com.getActionCmd().equals(ACTION_EMAIL)){
+		if(reportEmailCommand.getActionCmd().equals(ACTION_EMAIL)){
 
 			OperationalReport operationalReport = (OperationalReport) req.getSession().getAttribute("operationalReport");
 
@@ -82,30 +85,30 @@ public class ReportEmailController {
 	        String userEmailAddress = user.getEmail();
 
 	        // Build attachment content
-			String dataAttachment = operationalReport.getRendering(com.getFormat());
+			String dataAttachment = operationalReport.getRendering(reportEmailCommand.getFormat());
 
 			// E-mail
 			Mailable email = new Mailable();
-			email.setRecipients(com.getRecipient());
+			email.setRecipients(reportEmailCommand.getRecipient());
 			email.setSender(userEmailAddress);
-			email.setSubject(com.getSubject());
-			email.setMessage(com.getMessage());
+			email.setSubject(reportEmailCommand.getSubject());
+			email.setMessage(reportEmailCommand.getMessage());
 			mailServer.send(email,
-					"report" + FileFactory.getFileExtension(com.getFormat()),
-					FileFactory.getMIMEType(com.getFormat()),
+					"report" + FileFactory.getFileExtension(reportEmailCommand.getFormat()),
+					FileFactory.getMIMEType(reportEmailCommand.getFormat()),
 					dataAttachment );
 
 			log.debug("email sent:");
 			log.debug("  from:" + userEmailAddress);
-			log.debug("  format=" + com.getFormat());
-			log.debug("  to=" + com.getRecipient());
-			log.debug("  subject=" + com.getSubject());
-			log.debug("  msg=" + com.getMessage());
+			log.debug("  format=" + reportEmailCommand.getFormat());
+			log.debug("  to=" + reportEmailCommand.getRecipient());
+			log.debug("  subject=" + reportEmailCommand.getSubject());
+			log.debug("  msg=" + reportEmailCommand.getMessage());
 
 			mav.setViewName("reporting-preview");
 
 		} else {
-			log.error("Did not get send request: " + com.getActionCmd());
+			log.error("Did not get send request: " + reportEmailCommand.getActionCmd());
 			mav.setViewName("reporting-preview");
 		}
 
