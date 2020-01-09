@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
@@ -24,7 +25,6 @@ import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.web.context.WebApplicationContext;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.admin.PermissionTemplateManagerImpl;
@@ -35,6 +35,7 @@ import org.webcurator.core.check.BandwidthChecker;
 import org.webcurator.core.check.CheckProcessor;
 import org.webcurator.core.check.Checker;
 import org.webcurator.core.check.CoreCheckNotifier;
+import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentClient;
@@ -78,6 +79,7 @@ import java.util.*;
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
+@SuppressWarnings("all")
 @Configuration
 @EnableTransactionManagement
 @PropertySource(value = "classpath:wct-webapp.properties")
@@ -85,7 +87,7 @@ public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    private ApplicationContext applicationContext;
 
     @Autowired
     private  RestTemplateBuilder restTemplateBuilder;
@@ -521,7 +523,7 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestCoordinatorDAO harvestCoordinatorDao() {
+    public HarvestCoordinatorDAOImpl harvestCoordinatorDao() {
         HarvestCoordinatorDAOImpl bean = new HarvestCoordinatorDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
@@ -711,7 +713,7 @@ public class BaseConfig {
     }
 
     @Bean
-    public EnvironmentImpl environmentWCT() {
+    public Environment environmentWCT() {
         EnvironmentImpl bean = new EnvironmentImpl();
         bean.setDaysToSchedule(harvestAgentDaysToSchedule);
         bean.setSchedulesPerBatch(targetInstancesTriggerSchedulesPerBatch);
@@ -720,7 +722,7 @@ public class BaseConfig {
 
         //Init environment
         EnvironmentFactory.setEnvironment(bean);
-        ApplicationContextFactory.setWebApplicationContext(webApplicationContext);
+        ApplicationContextFactory.setApplicationContext(applicationContext);
 
         return bean;
     }
