@@ -15,10 +15,14 @@
  */
 package org.webcurator.core.harvester.coordinator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -27,7 +31,9 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
-import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
+
+import java.net.URI;
+import java.util.Map;
 
 /**
  * The HarvestCoordinatorNotifier uses SOAP to send messages back to the core.
@@ -52,7 +58,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
     protected RestTemplateBuilder restTemplateBuilder;
 
     public String baseUrl() {
-        return protocol + "://" + host + ":" + port;
+        return String.format("%s://%s:%d",protocol, host, port);
     }
 
     public String getUrl(String appendUrl) {
@@ -62,35 +68,32 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
     /* (non-Javadoc)
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(org.webcurator.core.harvester.agent.HarvestAgentStatus)
      */
-    public void heartbeat(HarvestAgentStatusDTO aStatus) throws HttpClientErrorException, IllegalArgumentException{
-         try{
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of heartbeat");
-            }
-            log.info("WCT: Start of heartbeat");
+    public void heartbeat(HarvestAgentStatusDTO aStatus) {
+        try {
+            log.debug("WCT: Start of heartbeat");
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HEARTBEAT))
-                    .queryParam("harvest-agent-status", aStatus);
 
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                    null, Void.class);
+            String uri=getUrl(HarvestCoordinatorPaths.HEARTBEAT);
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: End of heartbeat");
-            }
-            log.info("WCT: End of heartbeat");
-        }
-            catch(HttpClientErrorException ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Heartbeat failed.");
-            }
-            throw new HttpClientErrorException(ex.getStatusCode());
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonStr=objectMapper.writeValueAsString(aStatus);
+            log.debug(jsonStr);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
+            restTemplate.postForObject(uri,request,Void.class);
+            log.debug("WCT: End of heartbeat");
+        }catch(Exception ex) {
+            log.error("Heartbeat Notification failed : " + ex.getMessage(), ex);
         }
     }
 
-    public void requestRecovery(String haHost, int haPort, String haService) throws HttpClientErrorException, IllegalArgumentException{
+    public void requestRecovery(int haPort, Map<String, String> params) throws HttpClientErrorException, IllegalArgumentException{
         try {
 
             if(attemptRecovery()){
@@ -102,12 +105,10 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
 
                 RestTemplate restTemplate = restTemplateBuilder.build();
                 UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.RECOVERY))
-                        .queryParam("host", haHost)
-                        .queryParam("port", haPort)
-                        .queryParam("service", haService);
+                        .queryParam("port", haPort);
 
-                restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                        null, Void.class);
+                URI uri=uriComponentsBuilder.buildAndExpand().toUri();
+                restTemplate.postForObject(uri, params, Void.class);
 
                 if (log.isDebugEnabled()) {
                     log.debug("WCT: End of requestRecovery");
@@ -116,9 +117,8 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
             }
         }
         catch(HttpClientErrorException ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Recovery Request failed.");
-            }
+            log.error("Recovery Request failed.");
+
             throw new HttpClientErrorException(ex.getStatusCode());
         }
     }
@@ -128,25 +128,29 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
      */
     public void harvestComplete(HarvestResultDTO aResult) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of harvestComplete");
-            }
+            log.debug("WCT: Start of harvestComplete");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonStr=objectMapper.writeValueAsString(aResult);
+            log.debug(jsonStr);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
+
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HARVEST_COMPLETE))
-                    .queryParam("harvest-result", aResult);
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HARVEST_COMPLETE));
 
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                    null, Void.class);
+            URI uri=uriComponentsBuilder.buildAndExpand().toUri();
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: End of HarvestComplete");
-            }
+            restTemplate.postForObject(uri, request, Void.class);
+
+            log.debug("WCT: End of HarvestComplete");
         }
         catch(Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Harvest Complete Notification failed : " + ex.getMessage(), ex);
-            } 
+            log.error("Harvest Complete Notification failed : " + ex.getMessage(), ex);
             throw new WCTRuntimeException(ex);
         }
     }
@@ -156,9 +160,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
      */
     public void notification(Long aTargetInstanceOid, int notificationCategory, String aMessageType) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of notification");
-            }
+            log.debug("WCT: Start of notification");
 
             RestTemplate restTemplate = restTemplateBuilder.build();
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION_BY_OID))
@@ -166,17 +168,12 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
                     .queryParam("notification-category", notificationCategory)
                     .queryParam("message-type", aMessageType);
 
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                    null, Void.class);
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null, Void.class);
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: End of notification");
-            }
+            log.debug("WCT: End of notification");
         }
         catch (Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Notification failed : " + ex.getMessage(), ex);
-            }  
+            log.error("Notification failed : " + ex.getMessage(), ex);
         }        
     }
     
@@ -185,9 +182,7 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
      */
     public void notification(String aSubject, int notificationCategory, String aMessage) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of notification");
-            }
+            log.debug("WCT: Start of notification");
 
             RestTemplate restTemplate = restTemplateBuilder.build();
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION_BY_SUBJECT))
