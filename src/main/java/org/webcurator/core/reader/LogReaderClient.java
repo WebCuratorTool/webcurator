@@ -244,9 +244,11 @@ public class LogReaderClient implements LogReader {
             URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
 
             File file = File.createTempFile("wct", "tmp");
-            StreamUtils.copy(url.openStream(),new FileOutputStream(file));
-
-            return file;
+            int bytes = StreamUtils.copy(url.openStream(),new FileOutputStream(file));
+            if(bytes > 0){
+                return file;
+            }
+            return null;
         } catch (IOException ex) {
             throw new WCTRuntimeException("Failed to retrieve logfile " + filename + " for " + job + ": " + ex.getMessage(), ex);
         }
