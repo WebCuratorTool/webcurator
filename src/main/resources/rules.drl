@@ -5,7 +5,7 @@ import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.AbstractTarget;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvesterStatus;
-import org.webcurator.domain.model.core.HarvestResult;
+import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorReportLine;
 import org.webcurator.core.rules.WordCounter;
