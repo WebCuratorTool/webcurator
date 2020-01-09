@@ -59,7 +59,7 @@ public class AuthUtil {
         try {
             return (User) auth.getDetails();
         }catch (ClassCastException e){
-            e.printStackTrace();
+            //Do nothing
         }
 
         return null;
@@ -72,6 +72,4 @@ public class AuthUtil {
 	public static void setUser(User user) {
 		AuthUtil.user = user;
 	}
-
-    
 }
