@@ -5,10 +5,12 @@ import nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositFormMapping;
 import org.archive.io.CDXIndexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ListFactoryBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -24,6 +26,7 @@ import org.webcurator.core.store.arc.ArcDigitalAssetStoreService;
 import org.webcurator.core.store.arc.DasFileMover;
 import org.webcurator.core.store.arc.InputStreamDasFileMover;
 import org.webcurator.core.store.arc.RenameDasFileMover;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 
 import java.util.*;
@@ -33,10 +36,14 @@ import java.util.*;
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
+@SuppressWarnings("all")
 @Configuration
 @PropertySource(value = "classpath:wct-das.properties")
 public class DasConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(DasConfig.class);
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @Value("${wctCoreWsEndpoint.host}")
     private String wctCoreWsEndpointHost;
@@ -462,6 +469,8 @@ public class DasConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public DPSArchive dpsArchive() {
+        ApplicationContextFactory.setApplicationContext(applicationContext);
+
         DPSArchive bean = new DPSArchive();
         bean.setPdsUrl(dpsArchivePdsUrl);
         bean.setFtpHost(dpsArchiveFtpHost);

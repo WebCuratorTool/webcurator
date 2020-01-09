@@ -4,7 +4,7 @@
 <%@page import="java.util.HashMap"%>
 
 <%
-	DPSArchive dpsArchive = (DPSArchive)ApplicationContextFactory.getWebApplicationContext().getBean("dpsArchive");
+	DPSArchive dpsArchive = (DPSArchive)ApplicationContextFactory.getApplicationContext().getBean(DPSArchive.class);
 	response.addHeader("Cache-Control", "no-store");
 	String query = request.getParameter("query");
 	if ("getProducerName".equals(query)) {
