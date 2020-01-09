@@ -28,7 +28,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class ManualEnd {
@@ -74,7 +74,7 @@ public class ManualEnd {
 	        }
 		        
 	        System.out.print("Creating index... ");
-	        ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
+	        HarvestResultDTO ahr = new HarvestResultDTO();
 	        Set<ArcHarvestFileDTO>fileset = new HashSet<ArcHarvestFileDTO>();
 	        
 	        File[] fileList = dir.listFiles();
