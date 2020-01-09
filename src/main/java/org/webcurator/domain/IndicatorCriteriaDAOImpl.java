@@ -25,6 +25,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.IndicatorCriteria;
@@ -34,6 +35,7 @@ import org.webcurator.domain.model.core.IndicatorCriteria;
  * querying any objects related to indicator criteria. 
  * @author oakleigh_sk
  */
+@Transactional
 public class IndicatorCriteriaDAOImpl extends HibernateDaoSupport implements IndicatorCriteriaDAO{
     
     private Log log = LogFactory.getLog(IndicatorCriteriaDAOImpl.class);
