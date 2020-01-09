@@ -36,13 +36,7 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
-import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.DublinCore;
-import org.webcurator.domain.model.core.Flag;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.RejReason;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
@@ -161,7 +155,7 @@ public class TargetInstanceResultHandler extends TabHandler {
 					}
 				}
 
-				targetInstanceManager.save(hr);
+				targetInstanceManager.save((ArcHarvestResult) hr);
 			}
 
         	targetInstanceManager.save(ti);
@@ -183,7 +177,7 @@ public class TargetInstanceResultHandler extends TabHandler {
         	for (HarvestResult hr : ti.getHarvestResults()) {
 				hr.setState(0);
 
-				targetInstanceManager.save(hr);
+				targetInstanceManager.save((ArcHarvestResult) hr);
 			}
 
         	targetInstanceManager.save(ti);
@@ -223,7 +217,7 @@ public class TargetInstanceResultHandler extends TabHandler {
 		        		harvestCoordinator.removeIndexes(hr);
 					}
 
-					targetInstanceManager.save(hr);
+					targetInstanceManager.save((ArcHarvestResult) hr);
 				}
 			}
 
