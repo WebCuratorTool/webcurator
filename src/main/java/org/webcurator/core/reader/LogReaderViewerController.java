@@ -134,7 +134,9 @@ public class LogReaderViewerController {
                                                     HttpServletResponse response) {
         try {
             File file=logReader.retrieveLogfile(job, filename);
-            StreamUtils.copy(new FileInputStream(file), response.getOutputStream());
+            if(file != null) {
+                StreamUtils.copy(new FileInputStream(file), response.getOutputStream());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
