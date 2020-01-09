@@ -25,6 +25,8 @@ import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
+
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -59,7 +61,10 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
             HarvestAgentStatusDTO status = harvestAgent.getStatus();
             notifier.heartbeat(status);
 
-            notifier.requestRecovery(status.getHost(), status.getPort(), status.getService());
+            Map<String, String> params=new HashMap<String, String>();
+            params.put("host", status.getHost());
+            params.put("service", status.getService());
+            notifier.requestRecovery(status.getPort(), params);
 
             /* H3 polling begin*/
 

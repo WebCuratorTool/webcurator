@@ -27,7 +27,7 @@ import org.webcurator.core.harvester.agent.filter.FileFilter;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListener;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
@@ -43,6 +43,7 @@ import java.util.*;
  *
  * @author nwaight
  */
+@SuppressWarnings("all")
 public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider {
     private static final String VALIDATING_JOB_NAME_PREFIX = "validateJob-";
     private static final String VALIDATING_JOB_DATE_FORMAT = "yyyy-MM-dd--HH-mm-ss.SSS";
@@ -119,18 +120,21 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     }
 
     /**
-     * @see HarvestAgent#initiateHarvest(String, String, String).
+     * @see AbstractHarvestAgent#initiateHarvest(String, Map<String, String>).
      */
-    public void initiateHarvest(String aJob, String aProfile, String aSeeds) {
+    public void initiateHarvest(String aJob, Map<String, String> params) {
         Harvester harvester = null;
 
         if (log.isDebugEnabled()) {
-            log.debug("Initiating harvest for " + aJob + " " + aSeeds);
+            log.debug("Initiating harvest for " + aJob + " " + params.get("seeds"));
         }
 
         try {
-            super.initiateHarvest(aJob, aProfile, aSeeds);
+            super.initiateHarvest(aJob, params);
             //TODO - what to do with profile and seeds files when harvests aborted? Where are these files actually created?
+            String aProfile=params.get("profile");
+            String aSeeds=params.get("seeds");
+
             File profile = createProfile(aJob, aProfile);
             createSeedsFile(profile, aSeeds);
             harvester = getHarvester(aJob);
@@ -156,7 +160,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      * Check existence of activeJobs within H3 instance.
      * If found attempt recovery.
      *
-     * @see HarvestAgent#recoverHarvests(java.util.List).
+     * @see AbstractHarvestAgent#recoverHarvests(java.util.List).
      */
     public void recoverHarvests(List<String> activeCoreJobs) {
         try {
@@ -179,7 +183,10 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
                             if (h3JobState.equals("RUNNING") || h3JobState.equals("PAUSED") || h3JobState.equals("FINISHED")) {
                                 log.info("Harves Agent recovering job " + jobName + " from H3 in state: " + h3JobState);
-                                super.initiateHarvest(jobName, "", "");
+                                Map<String, String> params=new HashMap<String, String>();
+                                params.put("profile", "");
+                                params.put("seeds", "");
+                                super.initiateHarvest(jobName, params);
                                 harvester = getHarvester(jobName);
                                 harvester.recover();
                                 harvester.setAlertThreshold(alertThreshold);
@@ -200,7 +207,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     }
 
     /**
-     * @see HarvestAgent#abort(String).
+     * @see AbstractHarvestAgent#abort(String).
      */
     public void abort(String aJob) {
         if (log.isDebugEnabled()) {
@@ -257,7 +264,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     }
 
     /**
-     * @see HarvestAgent#stop(String).
+     * @see AbstractHarvestAgent#stop(String).
      */
     public void stop(String aJob) {
         if (log.isDebugEnabled()) {
@@ -267,8 +274,8 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         harvester.stop();
     }
 
-    private ArcHarvestResultDTO createIndex(String aJob) throws IOException {
-        ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
+    private HarvestResultDTO createIndex(String aJob) throws IOException {
+        HarvestResultDTO ahr = new HarvestResultDTO();
         ahr.setCreationDate(new Date());
         return ahr;
     }
@@ -326,7 +333,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
 
     /**
-     * @see HarvestAgent#completeHarvest(String, int).
+     * @see AbstractHarvestAgent#completeHarvest(String, int).
      */
     public int completeHarvest(String aJob, int aFailureStep) {
         Harvester harvester = getHarvester(aJob);
@@ -344,7 +351,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         }
 
         List das = getHarvester(aJob).getHarvestDigitalAssetsDirs();
-        ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
+        HarvestResultDTO ahr = new HarvestResultDTO();
 
 
         // Make sure that the files are not longer in use.
@@ -417,7 +424,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         if (aFailureStep <= FAILED_ON_SEND_RESULT) {
             try {
                 log.info("Sending harvest result to WCT for job " + aJob);
-                ahr = new ArcHarvestResultDTO();
+                ahr = new HarvestResultDTO();
                 ahr.setCreationDate(new Date());
                 ahr.setTargetInstanceOid(new Long(aJob));
                 ahr.setProvenanceNote(provenanceNote);
@@ -437,7 +444,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
 
     /**
-     * @see HarvestAgent#getStatus().
+     * @see AbstractHarvestAgent#getStatus().
      */
     public HarvestAgentStatusDTO getStatus() {
         //TODO - might need adjustment for when harvest has stopped/gone
@@ -499,7 +506,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     }
 
     /**
-     * @see HarvestAgent#loadSettings(String).
+     * @see AbstractHarvestAgent#loadSettings(String).
      */
     public void loadSettings(String aJob) {
         Harvester harvester = getHarvester(aJob);
@@ -873,7 +880,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     }
 
     /**
-     * @see HarvestAgent#purgeAbortedTargetInstances(List<String>).
+     * @see AbstractHarvestAgent#purgeAbortedTargetInstances(List<String>).
      */
     public void purgeAbortedTargetInstances(List<String> targetInstanceNames) {
 
@@ -912,7 +919,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         boolean isValid;
 
         // create and build job
-        super.initiateHarvest(jobName, null, null);
+        super.initiateHarvest(jobName, null);
         HarvesterH3 harvester = (HarvesterH3) getHarvester(jobName);
         log.info("Validating profile, jobName=" + jobName);
         try {
