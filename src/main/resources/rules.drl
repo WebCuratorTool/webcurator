@@ -15,7 +15,7 @@ import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
-import org.webcurator.ui.common.HeritrixStatusDescription;
+import org.webcurator.common.ui.HeritrixStatusDescription;
 
 import java.text.MessageFormat;
 import javax.activation.MimetypesFileTypeMap;
@@ -552,7 +552,7 @@ rule "Set Robots.txt entries disallowed (RCI)"
 					Integer wordCount = 0;
 					// fetch the robots.txt file
 					try {
-						File file = $qrf.getResource(resource);
+						File file = $qrf.getResource(resource).toFile();
 						wordCount = WordCounter.count("Disallow", file);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -598,7 +598,7 @@ rule "Set Robots.txt entries disallowed for ti"
 					Integer wordCount = 0;
 					// fetch the robots.txt file
 					try {
-						File file = $qrf.getResource(resource);
+						File file = $qrf.getResource(resource).toFile();
 						wordCount = WordCounter.count("Disallow", file);
 					} catch (Exception e) {
 						e.printStackTrace();
