@@ -1,24 +1,22 @@
 package org.webcurator.harvestagent.h3.webapp.beans.config;
 
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.Trigger;
+import org.quartz.*;
+
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.webcurator.core.check.*;
@@ -30,6 +28,7 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreClient;
+import org.webcurator.core.util.ApplicationContextFactory;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -37,15 +36,20 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+
 /**
  * Contains configuration that used to be found in {@code wct-agent.xml}. This
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
+@SuppressWarnings({"all"})
 @Configuration
 @PropertySource(value = "classpath:wct-agent.properties")
 public class AgentConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(AgentConfig.class);
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     // Name of the directory where the temporary harvest data is stored.
     @Value("${harvestAgent.baseHarvestDirectory}")
@@ -104,7 +108,7 @@ public class AgentConfig {
     private String h3WrapperUserName;
 
     // The password for the H3 instance.
-    @Value("{h3Wrapper.password}")
+    @Value("${h3Wrapper.password}")
     private String h3WrapperPassword;
 
     // The name of the core harvest agent listener web service.
@@ -199,6 +203,7 @@ public class AgentConfig {
         // Avoid circular bean dependencies
         harvestCoordinatorNotifier().setAgent(harvestAgent());
         harvestAgent().setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
+        ApplicationContextFactory.setApplicationContext(applicationContext);
     }
 
 
@@ -230,7 +235,11 @@ public class AgentConfig {
         Heritrix3WrapperConfiguration bean = new Heritrix3WrapperConfiguration();
         bean.setHost(h3WrapperHost);
         bean.setPort(h3WrapperPort);
-        bean.setKeyStoreFile(h3WrapperKeyStoreFile);
+        if(h3WrapperKeyStoreFile==null || h3WrapperKeyStoreFile.getName().trim().length()==0 || h3WrapperKeyStoreFile.getName().equals("''")) {
+            bean.setKeyStoreFile(null);
+        }else{
+            bean.setKeyStoreFile(h3WrapperKeyStoreFile);
+        }
         bean.setKeyStorePassword(h3WrapperKeyStorePassword);
         bean.setUserName(h3WrapperUserName);
         bean.setPassword(h3WrapperPassword);
@@ -256,8 +265,8 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public DigitalAssetStore digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort,
-                new RestTemplateBuilder());
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort, new RestTemplateBuilder());
+
         return bean;
     }
 
@@ -299,7 +308,6 @@ public class AgentConfig {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
         bean.setJobDetails(heartbeatJob(), checkProcessorJob().getObject());
         bean.setTriggers(heartbeatTrigger(), checkProcessorTrigger());
-
         return bean;
     }
 
@@ -318,7 +326,6 @@ public class AgentConfig {
         bean.setWaitOnFailureLevelOneSecs(harvestCompleteConfigWaitOnFailureLevelOneSecs);
         bean.setWaitOnFailureLevelTwoSecs(harvestCompleteConfigWaitOnFailureLevelTwoSecs);
         bean.setWaitOnCompleteSeconds(harvestCompleteConfigWaitOnCompleteSeconds);
-
         return bean;
     }
 
@@ -403,7 +410,7 @@ public class AgentConfig {
 
         List<Checker> checksList = new ArrayList<>();
         checksList.add(memoryChecker());
-//        checksList.add(diskSpaceChecker());
+        //checksList.add(diskSpaceChecker());
         bean.setChecks(checksList);
 
         return bean;
