@@ -20,19 +20,20 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.tools.QualityReviewFacade;
@@ -47,6 +48,7 @@ import org.webcurator.ui.tools.command.BrowseCommand;
  *
  * @author bbeaumont
  */
+@Controller
 public class BrowseController {
 	/** Logger for the BrowseController. **/
 	private static Log log = LogFactory.getLog(BrowseController.class);
@@ -70,11 +72,23 @@ public class BrowseController {
 
 	private static Charset CHARSET_LATIN_1 = Charset.forName("ISO-8859-1");
 
+
 	/**
 	 * Map containing tokens (eg: browser redirect fragment) that will be
 	 * replaced during the browser helper fix operation
 	 */
 	private static Map<String, String> fixTokens = null;
+
+	@PostConstruct
+	public void initialize() {
+		if(fixTokens == null){
+			fixTokens = new HashMap<>();
+			fixTokens.put("top.location", "//top.location");
+			fixTokens.put("window.location", "//window.location");
+			// Ensure that meta refresh redirect to the root path "/" is replaced by a relative path "./"
+			fixTokens.put("http-equiv=&quot;refresh&quot; content=&quot;0; url=/",	"http-equiv=&quot;refresh&quot; content=&quot;0; url=./");
+		}
+	}
 
 	/**
 	 * Sets the BrowseHelper for the controller. This is primarily called from
@@ -134,10 +148,11 @@ public class BrowseController {
 	/**
 	 * The handle method is the entry method into the browse controller.
 	 */
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm) throws Exception {
+	@RequestMapping(path = "/curator/tools/browse/**", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, BrowseCommand command) throws Exception {
 
 		// Cast the command to the correct command type.
-		BrowseCommand command = (BrowseCommand) comm;
+//		BrowseCommand command = (BrowseCommand) comm;
 
 		// Build a command with the items from the URL.
 		String base = req.getContextPath() + req.getServletPath();
