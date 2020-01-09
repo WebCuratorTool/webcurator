@@ -25,7 +25,6 @@ import org.apache.commons.httpclient.Header;
 import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -65,7 +64,7 @@ public class ArcHarvestFile {
 	/** The HarvestResult that this file belong to. */
 	@ManyToOne
 	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID", foreignKey = @ForeignKey(name = "FK_AHR_ARC_HARVEST_RESULT_ID"))
-	private HarvestResult harvestResult;
+	private ArcHarvestResult arcHarvestResult;
 
 	/**
 	 * No-arg constructor.
@@ -77,10 +76,10 @@ public class ArcHarvestFile {
     /**
      * Creates an ArcHarvestFile from a DTO and HarvestResult.
      * @param aHarvestFile   The DTO object to create the object from.
-     * @param aHarvestResult The HarvestResult that this ARC file belongs to.
+     * @param aArcHarvestResult The HarvestResult that this ARC file belongs to.
      */
-    public ArcHarvestFile(ArcHarvestFileDTO aHarvestFile, HarvestResult aHarvestResult) {
-        harvestResult = aHarvestResult;
+    public ArcHarvestFile(ArcHarvestFileDTO aHarvestFile, ArcHarvestResult aArcHarvestResult) {
+        arcHarvestResult = aArcHarvestResult;
         name = aHarvestFile.getName();
         compressed = aHarvestFile.isCompressed();
     }
@@ -138,16 +137,16 @@ public class ArcHarvestFile {
 	 * Returns the HarvestResult that this ARC file belongs to.
 	 * @return the HarvestResult that this ARC file belongs to
 	 */	
-	public HarvestResult getHarvestResult() {
-		return harvestResult;
+	public ArcHarvestResult getArcHarvestResult() {
+		return arcHarvestResult;
 	}
 
 	/**
 	 * Sets the HarvestResult that this ARC file belongs to.
-	 * @param harvestResult The HarvestResult that this ARC file belongs to.
+	 * @param arcHarvestResult The HarvestResult that this ARC file belongs to.
 	 */
-	public void setHarvestResult(HarvestResult harvestResult) {
-		this.harvestResult = harvestResult;
+	public void setArcHarvestResult(ArcHarvestResult arcHarvestResult) {
+		this.arcHarvestResult = arcHarvestResult;
 	}
 	
 

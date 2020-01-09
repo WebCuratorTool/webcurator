@@ -337,9 +337,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	
 	/**
-	 * Fetch the HarvestResult whose harvestNumber is specified.
+	 * Fetch the ArcHarvestResult whose harvestNumber is specified.
 	 * @param harvestNumber the harvest number to fetch
-	 * @return the HarvestResult, or null if not found
+	 * @return the ArcHarvestResult, or null if not found
 	 */
 	public HarvestResult getHarvestResult(int harvestNumber)
 	{

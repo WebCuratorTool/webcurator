@@ -1,6 +1,5 @@
 package org.webcurator.core.store;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,7 +115,7 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 		this.checkIndexing = checkIndexing;
 	}
 	
-	public List<ArcHarvestResultDTO> getRemovedIndexes() {
+	public List<HarvestResultDTO> getRemovedIndexes() {
 		return removedIndexes;
 	}
 	

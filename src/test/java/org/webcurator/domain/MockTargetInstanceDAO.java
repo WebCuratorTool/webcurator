@@ -21,17 +21,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.AbstractTarget;
-import org.webcurator.domain.model.core.ArcHarvestFile;
-import org.webcurator.domain.model.core.ArcHarvestResource;
-import org.webcurator.domain.model.core.HarvestResource;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.HarvesterStatus;
-import org.webcurator.domain.model.core.ProfileOverrides;
-import org.webcurator.domain.model.core.Schedule;
-import org.webcurator.domain.model.core.Target;
-import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
@@ -47,7 +38,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     private DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 	private Map<Long,TargetInstance> tiOids = new HashMap<Long, TargetInstance>();
 	private Map<Long,HarvesterStatus> hsOids = new HashMap<Long, HarvesterStatus>();
-	private Map<Long,HarvestResult> hrOids = new HashMap<Long, HarvestResult>();
+	private Map<Long, HarvestResult> hrOids = new HashMap<Long, HarvestResult>();
 	private Map<Long,HarvestResource> hrsOids = new HashMap<Long, HarvestResource>();
 	private Map<Long,ArcHarvestFile> ahfOids = new HashMap<Long, ArcHarvestFile>();
 	
@@ -326,7 +317,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 	}
 
 	public HarvestResult getHarvestResult(Long harvestResultOid,
-			boolean loadFully) {
+                                             boolean loadFully) {
 		return getHarvestResult(harvestResultOid);
 	}
 
@@ -389,9 +380,9 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 			}
 			log.debug("Saved TargetInstance "+ti.getOid());
 		}
-		else if(object instanceof HarvestResult)
+		else if(object instanceof ArcHarvestResult)
 		{
-			HarvestResult hr = (HarvestResult)object;
+			HarvestResult hr = (ArcHarvestResult)object;
 			if(hr.getOid() == null)
 			{
 				hr.setOid(baseHarvestResultOid + hrOids.size());
@@ -449,7 +440,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 	public void deleteHarvestResultFiles(Long harvestResultId) 
 	{
 		//fully load the harvest result
-		HarvestResult hr = getHarvestResult(harvestResultId, true);
+		ArcHarvestResult hr = (ArcHarvestResult)getHarvestResult(harvestResultId, true);
 
 		//delete all the associated resources
 		if(hr.getArcFiles() != null)
@@ -625,17 +616,17 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 
     protected List<HarvestResult> loadHarvestResultsFromNodeList(TargetInstance ti, NodeList hrNodes)
     {
-    	List<HarvestResult> harvestResults = new ArrayList<HarvestResult>();
+    	List<HarvestResult> arcHarvestResults = new ArrayList<HarvestResult>();
     	for (int i = 0; i < hrNodes.getLength(); i++)
     	{
     		Node hrNode = hrNodes.item(i);
     		if(hrNode.getNodeType() == Node.ELEMENT_NODE)
     		{
-    			harvestResults.add(loadHarvestResultFromNode(ti, hrNode));
+    			arcHarvestResults.add(loadHarvestResultFromNode(ti, hrNode));
     		}
     	}
     	
-    	return harvestResults;
+    	return arcHarvestResults;
     }
     
     
@@ -677,7 +668,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	Long oid = getOid(hrNode);
     	if(oid != null &&  hrNode.hasChildNodes() && !hrOids.containsKey(oid))
     	{
-    		HarvestResult hr = new HarvestResult();
+			ArcHarvestResult hr = new ArcHarvestResult();
     		hr.setOid(oid);
     		hr.setTargetInstance(ti);
     		
@@ -756,7 +747,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	{
     		ArcHarvestResource hrs = new ArcHarvestResource();
     		hrs.setOid(oid);
-    		hrs.setResult(hr);
+    		hrs.setResult((ArcHarvestResult)hr);
     		
 	 		NodeList children = hrsNode.getChildNodes();
 			for(int i = 0; i < children.getLength(); i++)
@@ -808,7 +799,7 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	{
     		ArcHarvestFile ahf = new ArcHarvestFile();
     		ahf.setOid(oid);
-    		ahf.setHarvestResult(hr);
+    		ahf.setArcHarvestResult((ArcHarvestResult)hr);
     		
 	 		NodeList children = ahfNode.getChildNodes();
 			for(int i = 0; i < children.getLength(); i++)

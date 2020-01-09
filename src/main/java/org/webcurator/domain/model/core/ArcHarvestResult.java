@@ -15,9 +15,6 @@
  */
 package org.webcurator.domain.model.core;
 
-import org.webcurator.core.notification.UserInTrayResource;
-import org.webcurator.domain.model.auth.User;
-
 import javax.persistence.*;
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +29,7 @@ import java.util.*;
 @Entity
 @Table(name = "ARC_HARVEST_RESULT")
 @PrimaryKeyJoinColumn(name = "AHRS_HARVEST_RESULT_OID")
-public class HarvestResult extends AbstractHarvestResult {
+public class ArcHarvestResult extends HarvestResult {
 	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
 	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID")
 	private Set<ArcHarvestFile> arcFiles = new HashSet<ArcHarvestFile>();
@@ -40,11 +37,11 @@ public class HarvestResult extends AbstractHarvestResult {
 	/**
 	 * Construct a new HarvestResult.
 	 */
-	public HarvestResult() {
+	public ArcHarvestResult() {
         super();
 	}
 
-	public HarvestResult(TargetInstance aTargetInstance, int harvestNumber) {
+	public ArcHarvestResult(TargetInstance aTargetInstance, int harvestNumber) {
 		super(aTargetInstance, harvestNumber);
 	}
 
@@ -54,7 +51,7 @@ public class HarvestResult extends AbstractHarvestResult {
 	 * @param aTargetInstance The TargetInstance that this HarvestResult
 	 * 						  belongs to.
 	 */
-	public HarvestResult(HarvestResultDTO aResultDTO, TargetInstance aTargetInstance) {
+	public ArcHarvestResult(HarvestResultDTO aResultDTO, TargetInstance aTargetInstance) {
 		super(aResultDTO, aTargetInstance);
 
 		aResultDTO.getResources().forEach((key,value)->{

@@ -236,14 +236,14 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	}
 	
 
-	public HarvestResult getHarvestResult(final Long harvestResultOid) {
+	public ArcHarvestResult getHarvestResult(final Long harvestResultOid) {
 		return getHarvestResult(harvestResultOid, true);
 	}
 
-	public HarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
-		HarvestResult hr = (HarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
+	public ArcHarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
+		ArcHarvestResult hr = (ArcHarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) {
-				HarvestResult hr = aSession.load(HarvestResult.class, harvestResultOid);
+				ArcHarvestResult hr = aSession.load(ArcHarvestResult.class, harvestResultOid);
 
 				// Force population of the resources and target instance
 				if(loadFully) {
@@ -293,7 +293,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	
 	@SuppressWarnings("unchecked")
 	public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
-		return (List<HarvestResult>) getHibernateTemplate().find("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
+		return (List<HarvestResult>) getHibernateTemplate().find("select hr from ArcHarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
 	}
 	
 	public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {

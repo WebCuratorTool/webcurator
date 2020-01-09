@@ -303,8 +303,8 @@
 	<target-instances>
 		<target-instance id="5000">
 			<target id="4000"/>
-			<harvestResults>
-			</harvestResults>
+			<arcHarvestResults>
+			</arcHarvestResults>
 			<schedule id="11000"/>
 		    <scheduledTime/>
 		    <actualStartTime/>    
@@ -333,8 +333,8 @@
 		</target-instance>
 		<target-instance id="5001">
 			<target id="4000"/>
-			<harvestResults>
-			</harvestResults>
+			<arcHarvestResults>
+			</arcHarvestResults>
 			<schedule id="11000"/>
 		    <scheduledTime/>
 		    <actualStartTime/>    
@@ -363,8 +363,8 @@
 		</target-instance>
 		<target-instance id="5002">
 			<target id="4000"/>
-			<harvestResults>
-			</harvestResults>
+			<arcHarvestResults>
+			</arcHarvestResults>
 			<schedule id="11000"/>
 		    <scheduledTime/>
 		    <actualStartTime/>    
@@ -402,8 +402,8 @@
 		</target-instance>
 		<target-instance id="5003">
 			<target id="4001"/>
-			<harvestResults>
-			</harvestResults>
+			<arcHarvestResults>
+			</arcHarvestResults>
 			<schedule id="11003"/>
 		    <scheduledTime/>
 		    <actualStartTime>18/10/2008 00:52:03</actualStartTime>    

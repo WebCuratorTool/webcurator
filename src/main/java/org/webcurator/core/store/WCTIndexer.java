@@ -3,6 +3,7 @@ package org.webcurator.core.store;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
+import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 
@@ -157,10 +159,15 @@ public class WCTIndexer extends IndexerBase
     }
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-    protected void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> harvestResourceDTOS) {
+    protected void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> harvestResourceDTOs) {
         try {
+            Collection<ArcHarvestResourceDTO> arcHarvestResourceDTOs = new ArrayList<ArcHarvestResourceDTO>();
+            harvestResourceDTOs.forEach(dto->{
+                arcHarvestResourceDTOs.add((ArcHarvestResourceDTO)dto);
+            });
+
             ObjectMapper objectMapper = new ObjectMapper();
-            String jsonStr = objectMapper.writeValueAsString(harvestResourceDTOS);
+            String jsonStr = objectMapper.writeValueAsString(arcHarvestResourceDTOs);
             log.debug(jsonStr);
 
             HttpHeaders headers = new HttpHeaders();

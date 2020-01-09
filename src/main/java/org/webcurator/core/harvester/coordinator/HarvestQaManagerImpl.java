@@ -22,12 +22,7 @@ import org.webcurator.core.rules.QaRecommendationService;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.HarvestResource;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.IndicatorCriteria;
-import org.webcurator.domain.model.core.Seed;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 
 public class HarvestQaManagerImpl implements HarvestQaManager {
@@ -78,24 +73,24 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 			Iterator<HarvestResult> harvestResults = targetInstanceManager.getHarvestResults(historyDto.getOid()).iterator();
 
 			boolean resultFound = false;
-			HarvestResult harvestResult = null;
+			HarvestResult arcHarvestResult = null;
 
 			// fetch the previous original harvest resources
 			Iterator<HarvestResource> originalHarvestResources = null;
 
 			// find the last endorsed result
 			while (harvestResults.hasNext() && !resultFound) {
-				harvestResult = harvestResults.next();
-				if (harvestResult.getHarvestNumber() == 1) {
-					originalHarvestResources = harvestResult.getResources().values().iterator();
+				arcHarvestResult = harvestResults.next();
+				if (arcHarvestResult.getHarvestNumber() == 1) {
+					originalHarvestResources = arcHarvestResult.getResources().values().iterator();
 				}
-				if (harvestResult.getState() == HarvestResult.STATE_ENDORSED)
+				if (arcHarvestResult.getState() == ArcHarvestResult.STATE_ENDORSED)
 					resultFound = true;
 			}
 
 			if (resultFound) {
 				// fetch the harvest resources for this result
-				Iterator<HarvestResource> prunedHarvestResources = harvestResult.getResources().values().iterator();
+				Iterator<HarvestResource> prunedHarvestResources = arcHarvestResult.getResources().values().iterator();
 
 				// we can now identify the previously pruned resources by
 				// subtracting the set of uris for
@@ -169,7 +164,7 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 	}
 
 	@Override
-	public void triggerAutoQA(HarvestResult ahr) {
+	public void triggerAutoQA(ArcHarvestResult ahr) {
 		TargetInstance ti = ahr.getTargetInstance();
 
 		if (autoQAUrl != null && autoQAUrl.length() > 0 && ti.isUseAQA()) {

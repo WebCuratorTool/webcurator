@@ -34,7 +34,6 @@ public interface TargetInstanceDAO {
 	 * Retrurn a list of TargetInstances that match the specified criteria.
 	 * As this method does not return a pagination it should not be used when 
 	 * rendering a ui search result.
-	 * @see #search(TargetInstanceCriteria, int)
 	 * @param aCriteria the search criteria
 	 * @return the list of TargetInstances
 	 */

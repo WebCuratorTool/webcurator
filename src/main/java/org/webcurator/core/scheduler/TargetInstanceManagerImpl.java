@@ -32,15 +32,8 @@ import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.Annotation;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Indicator;
-import org.webcurator.domain.model.core.IndicatorCriteria;
-import org.webcurator.domain.model.core.IndicatorReportLine;
-import org.webcurator.domain.model.core.Profile;
-import org.webcurator.domain.model.core.ProfileOverrides;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
@@ -211,8 +204,8 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
 		}
 	}    
 	
-	public void save(HarvestResult aHarvestResult) {
-		targetInstanceDao.save(aHarvestResult);
+	public void save(ArcHarvestResult aArcHarvestResult) {
+		targetInstanceDao.save(aArcHarvestResult);
 	}
 	
 	public void saveOrUpdate(Indicator indicator) {

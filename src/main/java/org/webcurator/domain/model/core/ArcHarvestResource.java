@@ -47,7 +47,7 @@ public class ArcHarvestResource extends HarvestResource {
      * @param aResourceDTO The ArcHarvestResourceDTO to construct this object from.
      * @param aResult The HarvestResult this resource belongs to.
      */
-    public ArcHarvestResource(ArcHarvestResourceDTO aResourceDTO, HarvestResult aResult) {
+    public ArcHarvestResource(ArcHarvestResourceDTO aResourceDTO, ArcHarvestResult aResult) {
         super(aResourceDTO, aResult);
         resourceOffset = aResourceDTO.getResourceOffset();
         resourceLength = aResourceDTO.getResourceLength();

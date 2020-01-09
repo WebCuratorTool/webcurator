@@ -6,19 +6,13 @@ import java.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.domain.*;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.BandwidthRestriction;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.HarvestResultDTO;
-import org.webcurator.domain.model.core.LogFilePropertiesDTO;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.core.reader.*;
 
+@SuppressWarnings("all")
 public class MockHarvestCoordinator implements HarvestCoordinator {
-
 	private static Log log = LogFactory.getLog(MockHarvestCoordinator.class);
 	private LogReader logReader = null;
 	private boolean queuePaused = false;
@@ -240,7 +234,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	}
 
 	public void addHarvestResources(Long harvestResultOid,
-			Collection<HarvestResourceDTO> harvestResources) {
+			Collection<ArcHarvestResourceDTO> harvestResources) {
 		// TODO Auto-generated method stub
 	}
 
@@ -270,28 +264,28 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		this.reIndexHarvestResultReturnValue = reIndexHarvestResultReturnValue;
 	}
 	
-	public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
+	public Boolean reIndexHarvestResult(HarvestResult origArcHarvestResult) {
 		if(reIndexHarvestResultReturnValue)
 		{
-			TargetInstance ti = origHarvestResult.getTargetInstance();
+			TargetInstance ti = origArcHarvestResult.getTargetInstance();
 
 			HarvestResultDTO hr = new HarvestResultDTO();
 			hr.setCreationDate(new Date());
 			hr.setTargetInstanceOid(ti.getOid());
-			hr.setProvenanceNote(origHarvestResult.getProvenanceNote());
-			hr.setHarvestNumber(origHarvestResult.getHarvestNumber());
-			HarvestResult newHarvestResult = new HarvestResult(hr, ti);
+			hr.setProvenanceNote(origArcHarvestResult.getProvenanceNote());
+			hr.setHarvestNumber(origArcHarvestResult.getHarvestNumber());
+			ArcHarvestResult newArcHarvestResult = new ArcHarvestResult(hr, ti);
 
-            origHarvestResult.setState(HarvestResult.STATE_ABORTED);
-            newHarvestResult.setState(HarvestResult.STATE_INDEXING);
+            origArcHarvestResult.setState(ArcHarvestResult.STATE_ABORTED);
+            newArcHarvestResult.setState(ArcHarvestResult.STATE_INDEXING);
 	                
 	        List<HarvestResult> hrs = ti.getHarvestResults();
-	        hrs.add(newHarvestResult);
-	        ti.setHarvestResults(hrs);        
+	        hrs.add(newArcHarvestResult);
+	        ti.setHarvestResults(hrs);
 	
 	        ti.setState(TargetInstance.STATE_HARVESTED);
 	        
-	        targetInstanceDao.save(newHarvestResult);
+	        targetInstanceDao.save(newArcHarvestResult);
 	        targetInstanceDao.save(ti);
 		}
 		return reIndexHarvestResultReturnValue;
@@ -305,7 +299,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 			while(it.hasNext())
 			{
 				HarvestResult result = it.next();
-				if(result.getState() != HarvestResult.STATE_REJECTED)
+				if(result.getState() != ArcHarvestResult.STATE_REJECTED)
 				{
 					removeIndexes(result);
 				}
