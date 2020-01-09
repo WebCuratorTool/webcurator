@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "org.webcurator.webapp", "org.webcurator.ui", "org.webcurator.core.harvester",
-        "org.webcurator.core.rest" }//,
+@ComponentScan(basePackages = {"org.webcurator.webapp", "org.webcurator.ui", "org.webcurator.core.harvester.coordinator",
+        "org.webcurator.core.rest", "org.webcurator.core.reader", "org.webcurator.core.harvester.agent.HarvestAgentClient"}//,
         // Put any exclusions here.
         //excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ClassToExclude.class)
 )
@@ -17,6 +17,10 @@ import org.springframework.context.annotation.ComponentScan;
 public class WebappApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(WebappApplication.class, args);
+        try {
+            SpringApplication.run(WebappApplication.class, args);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 }
