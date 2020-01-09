@@ -717,6 +717,7 @@ function clickEndorse(hrOid) {
 		</tr>
 		<tr>
 			<td class="tableHead"><input type="checkbox" name="selectall" id="selectall" disabled="disabled" onclick="jqCheckAll(this.id, 'resultsTable');" /></td>
+			<td class="tableHead">Id</td>
 			<td class="tableHead">Thumbnail</td>
 			<td class="tableHead"><img src="images/flag-icon-grey.gif"/></td>
 			<td class="tableHead"></td>
@@ -778,6 +779,9 @@ function clickEndorse(hrOid) {
 		disabled="disabled" />
 		
 		</td>
+
+		<td class="tableRowLite"><c:out value="${instance.oid}"/></td>
+
 		<td class="tableRowLite" style="cellpadding: 0px; cellspacing: 0px;">
 		<c:choose>				
 		<c:when test="${instance.state eq 'Harvested' || instance.state eq 'Endorsed' || instance.state eq 'Archived'}">
