@@ -50,6 +50,7 @@ public class HarvesterH3 implements Harvester {
      * The logger for this class.
      */
     private static Log log = LogFactory.getLog(HarvesterH3.class);
+
     /**
      * The name of this harvester.
      */
@@ -146,9 +147,8 @@ public class HarvesterH3 implements Harvester {
     }
 
     private static Heritrix3Wrapper getH3WrapperInstance() {
-        ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-        Heritrix3WrapperConfiguration heritrix3WrapperConfiguration = (Heritrix3WrapperConfiguration)
-                context.getBean(Constants.HERITRIX3_WRAPPER_CONFIGURATION);
+        ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+        Heritrix3WrapperConfiguration heritrix3WrapperConfiguration = context.getBean(Heritrix3WrapperConfiguration.class);
 
         String hostname = heritrix3WrapperConfiguration.getHost();
         int port = heritrix3WrapperConfiguration.getPort();
@@ -855,6 +855,4 @@ public class HarvesterH3 implements Harvester {
         }
         return heritrix.ExecuteShellScriptInJob(jobName, engine, shellScript);
     }
-
-
 }

@@ -44,7 +44,7 @@ public class HarvestAgentH3Test {
         hah3 = new HarvestAgentH3();
 
         when(context.getBean("environment")).thenReturn(mockEnvironment);
-        ApplicationContextFactory.setWebApplicationContext(context);
+        ApplicationContextFactory.setApplicationContext(context);
 
         // We mock the previous behaviour before the bean existed.
         when(context.getBean("heritrix3WrapperConfiguration")).thenReturn(mockHeritrix3WrapperConfiguration);

@@ -46,10 +46,10 @@ public class HarvesterListener implements NotificationListener {
 	/** @see javax.management.NotificationListener#handleNotification(javax.management.Notification, java.lang.Object) */
 	public void handleNotification(Notification notification, Object handback) {
 		String message = notification.getMessage();
-		log.info("Notification {} recieved from {}", message, handback);
+		log.info("Notification {} received from {}", message, handback);
 
-		ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-		HarvestAgent agent = (HarvestAgent) context.getBean(Constants.BEAN_HARVEST_AGENT);
+		ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+		HarvestAgent agent = (HarvestAgent) context.getBean(HarvesterH3.class);
 		// When the agent moves into the running state grab the settings we need at
 		// Job completion as some of these may no longer be available when the job is finished.
 		if (message.equals(CrawlJob.STATUS_RUNNING)) {
