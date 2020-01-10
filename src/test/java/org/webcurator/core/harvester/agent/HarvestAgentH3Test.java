@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.util.ApplicationContextFactory;
@@ -29,7 +30,7 @@ import java.util.Map;
 public class HarvestAgentH3Test {
 
     @Mock
-    WebApplicationContext context;
+    ApplicationContext context;
     @Mock
     private Environment mockEnvironment;
     @Mock
@@ -43,11 +44,11 @@ public class HarvestAgentH3Test {
         log.debug("Setting up HarvestAgentH3Test.");
         hah3 = new HarvestAgentH3();
 
-        when(context.getBean("environment")).thenReturn(mockEnvironment);
+//        when(context.getBean("environment")).thenReturn(mockEnvironment);
         ApplicationContextFactory.setApplicationContext(context);
 
         // We mock the previous behaviour before the bean existed.
-        when(context.getBean("heritrix3WrapperConfiguration")).thenReturn(mockHeritrix3WrapperConfiguration);
+        when(context.getBean(Heritrix3WrapperConfiguration.class)).thenReturn(mockHeritrix3WrapperConfiguration);
         when(mockHeritrix3WrapperConfiguration.getHost()).thenReturn("localhost");
         when(mockHeritrix3WrapperConfiguration.getPort()).thenReturn(8443);
         when(mockHeritrix3WrapperConfiguration.getKeyStoreFile()).thenReturn(null);
