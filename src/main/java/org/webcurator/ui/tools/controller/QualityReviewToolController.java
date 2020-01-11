@@ -15,11 +15,7 @@
  */
 package org.webcurator.ui.tools.controller;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -150,12 +146,13 @@ public class QualityReviewToolController {
         	element.setPrimary(loadPrimary);
         	if(attr.enableBrowseTool)
         	{
-        		element.setBrowseUrl("curator/tools/browse/" + String.valueOf(result.getOid()) + "/" + seed.getUrlEncodedSeed() );
+				//Encode BrowserURL to base64 chars
+        		element.setBrowseUrl("curator/tools/browse/" + String.valueOf(result.getOid()) + "/" +Base64.getEncoder().encodeToString(seed.getSeed().getBytes()));
         	}
 
         	if(attr.enableAccessTool && attr.harvestResourceUrlMapper != null)
         	{
-                HarvestResourceDTO hRsr = attr.targetInstanceDao.getHarvestResourceDTO(result.getOid(), seed.getUrlEncodedSeed());
+                HarvestResourceDTO hRsr = attr.targetInstanceDao.getHarvestResourceDTO(result.getOid(), seed.getSeed());
         		if(hRsr != null)
         		{
         			element.setAccessUrl(attr.harvestResourceUrlMapper.generateUrl(result, hRsr));

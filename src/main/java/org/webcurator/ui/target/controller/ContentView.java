@@ -92,7 +92,11 @@ public class ContentView extends AbstractView {
 		os.flush();
 
 		if(deleteAfterSend) {
-			if(!file.delete()) {
+			if (file == null){
+				log.error("File is null.");
+			}else if(!file.exists()){
+				log.error("File does not exist: " + file.getAbsolutePath());
+			}else if(!file.delete()){
 				log.error("Could not delete file " + file.getAbsolutePath());
 			}
 		}

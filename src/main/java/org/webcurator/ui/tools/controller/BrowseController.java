@@ -28,10 +28,13 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -39,6 +42,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.ui.tools.command.BrowseCommand;
+import org.webcurator.webapp.beans.config.BaseConfig;
 
 /**
  * The BrowseController is responsible for handling the Browse Quality Review
@@ -54,10 +58,12 @@ public class BrowseController {
 	private static Log log = LogFactory.getLog(BrowseController.class);
 
 	/** The BrowseHelper handles replacement of URLs in the resources. **/
-	private BrowseHelper browseHelper = null;
+	@Autowired
+	private BrowseHelper browseHelper;
 
 	/** The QualityReviewFacade for this controller. **/
-	private QualityReviewFacade qualityReviewFacade = null;
+	@Autowired
+	private QualityReviewFacade qualityReviewFacade;
 
 	private final int MAX_MEMORY_SIZE = 1024 * 1024;
 	// private final int MAX_MEMORY_SIZE = 0;
@@ -71,7 +77,6 @@ public class BrowseController {
 			.compile(";\\s+charset=([A-Za-z0-9].[A-Za-z0-9_\\-\\.:]*)");
 
 	private static Charset CHARSET_LATIN_1 = Charset.forName("ISO-8859-1");
-
 
 	/**
 	 * Map containing tokens (eg: browser redirect fragment) that will be
@@ -148,13 +153,17 @@ public class BrowseController {
 	/**
 	 * The handle method is the entry method into the browse controller.
 	 */
-	@RequestMapping(path = "/curator/tools/browse/**", method = {RequestMethod.POST, RequestMethod.GET})
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, BrowseCommand command) throws Exception {
+	@RequestMapping(path = "/curator/tools/browse/{hrOid}/{seedUrl}", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(@PathVariable("hrOid") Long hrOid, @PathVariable("seedUrl") String seedUrl, HttpServletRequest req, HttpServletResponse res) throws Exception {
 
 		// Cast the command to the correct command type.
 //		BrowseCommand command = (BrowseCommand) comm;
 
 		// Build a command with the items from the URL.
+		BrowseCommand command = new BrowseCommand();
+		command.setHrOid(hrOid);
+		command.setResource(new String(Base64.getDecoder().decode(seedUrl)));
+
 		String base = req.getContextPath() + req.getServletPath();
 
 		String line = req.getRequestURI().substring(base.length());
