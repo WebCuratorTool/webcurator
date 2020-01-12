@@ -116,6 +116,9 @@ public class BaseConfig {
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
 
+    @Value("${digitalAssetStore.scheme}")
+    private String digitalAssetStoreScheme;
+
     @Value("${digitalAssetStore.host}")
     private String digitalAssetStoreHost;
 
@@ -349,7 +352,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public DigitalAssetStoreClient digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort, new RestTemplateBuilder());
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
         return bean;
     }
 
@@ -358,8 +361,6 @@ public class BaseConfig {
     @Lazy(false)
     public DigitalAssetStoreFactoryImpl digitalAssetStoreFactory() {
         DigitalAssetStoreFactoryImpl bean = new DigitalAssetStoreFactoryImpl();
-        bean.setDigitalAssetStoreConfig(digitalAssetStore());
-
         return bean;
     }
 
@@ -574,8 +575,6 @@ public class BaseConfig {
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
 
-        LogReaderClient.setRootRestTemplateBuilder(restTemplateBuilder);
-        HarvestAgentClient.setRestTemplateBuilder(restTemplateBuilder);
         return bean;
     }
 

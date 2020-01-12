@@ -179,7 +179,7 @@ public class ServletConfig {
         mappings.put("/curator/admin/templates.html", "templateController");
         //mappings.put("/curator/target/log-viewer.html", "logReaderController");
         //mappings.put("/curator/target/content-viewer.html", "contentReaderController");
-        mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");
+//        mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");
         //mappings.put("/curator/target/aqa-viewer.html", "aqaReaderController");
         //mappings.put("/curator/target/log-retriever.html", "logRetrieverController");
         //mappings.put("/curator/target/show-hop-path.html", "showHopPathController");
