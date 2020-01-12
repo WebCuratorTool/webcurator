@@ -193,10 +193,10 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	}
 
 	@Override
-	public void requestRecovery(int port, Map<String, String> params) {}
+	public void requestRecovery(HarvestAgentStatusDTO harvestAgentStatusDTO) {}
 
 	@Override
-	public void recoverHarvests(String host, int port, String Service) {
+	public void recoverHarvests(String scheme, String host, int port, String Service) {
 		// TODO Auto-generated method stub
 	}
 

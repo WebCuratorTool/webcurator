@@ -79,11 +79,12 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
 
     /**
      * Send recover harvest information to Harvest Agent
+     * @param scheme
      * @param host
      * @param port
      * @param service
      */
-    void recoverHarvests(String host, int port, String service);
+    void recoverHarvests(String scheme, String host, int port, String service);
 
     /**
      * Allocate the target instance to the specified harvest agent.

@@ -9,12 +9,10 @@ import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.common.Constants;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * The Server side implmentation of the HarvestAgentListener. This Service is deployed on the core and is used by the agents to send
@@ -23,7 +21,6 @@ import java.util.Map;
  * @author nwaight
  */
 @RestController
-//@RequestMapping(consumes = "application/json", produces = "application/json")
 public class HarvestAgentListenerService implements HarvestAgentListener, CheckNotifier, IndexerService, DasCallback {
     /**
      * the logger.
@@ -45,17 +42,14 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
      */
     @PostMapping(path = HarvestCoordinatorPaths.HEARTBEAT)
     public void heartbeat(@RequestBody HarvestAgentStatusDTO aStatus) {
-        log.info("Received heartbeat from {}:{}", aStatus.getHost(), aStatus.getPort());
+        log.info("Received heartbeat from {}://{}:{}", aStatus.getScheme(), aStatus.getHost(), aStatus.getPort());
         harvestCoordinator.heartbeat(aStatus);
     }
 
     @RequestMapping(path = HarvestCoordinatorPaths.RECOVERY, method = {RequestMethod.POST, RequestMethod.GET})
-    public void requestRecovery(@RequestParam(value = "port") int haPort,
-                                @RequestBody Map<String, String> params) {
-        String haHost=params.get("host");
-        String haService=params.get("service");
-        log.info("Received recovery request from {}:{}", haHost, haPort);
-        harvestCoordinator.recoverHarvests(haHost, haPort, haService);
+    public void requestRecovery(@RequestBody HarvestAgentStatusDTO aStatus) {
+        log.info("Received recovery request from {}://{}:{}", aStatus.getScheme(), aStatus.getHost(), aStatus.getPort());
+        harvestCoordinator.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService());
     }
 
     /*

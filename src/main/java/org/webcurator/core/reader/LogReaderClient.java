@@ -26,6 +26,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
@@ -40,35 +41,14 @@ import java.util.Map;
 /**
  * Log Reader client for communicating with a remote log reader.
  */
-public class LogReaderClient implements LogReader {
-    /** the logger. */
-    private static Log log = LogFactory.getLog(LogReaderClient.class);
-    /** The name of the host to communicate with. */
-    private String host;
-    /** the port to communicate on. */
-    private int port;
-
-    private static RestTemplateBuilder rootRestTemplateBuilder;
-
-    private RestTemplateBuilder restTemplateBuilder;
-
+public class LogReaderClient extends AbstractRestClient implements LogReader {
     /**
      * Constructor to initialise the host, port and service.
      * @param host the name of the host
      * @param port the port number
      */
-    public LogReaderClient(String host, int port) {
-        this.host = host;
-        this.port = port;
-        restTemplateBuilder=rootRestTemplateBuilder.errorHandler(new RestClientResponseHandler());
-    }
-
-    public String baseUrl() {
-        return "http://" + host + ":" + port;
-    }
-
-    public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
+    public LogReaderClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
+       super(scheme, host, port, restTemplateBuilder);
     }
 
     /* (non-Javadoc)
@@ -257,9 +237,5 @@ public class LogReaderClient implements LogReader {
     public File retrieveAQAFile(String job, String filename) {
         // TODO This does not seem to be implemented anywhere as a service.
         throw new WCTRuntimeException("Failed to retrieve logfile " + filename + " for " + job + ": NOT IMPLEMENTED");
-    }
-
-    public static void setRootRestTemplateBuilder(RestTemplateBuilder rootRestTemplateBuilder){
-        LogReaderClient.rootRestTemplateBuilder=rootRestTemplateBuilder;
     }
 }

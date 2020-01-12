@@ -63,7 +63,6 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 @Component("harvestCoordinator")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class HarvestCoordinatorImpl implements HarvestCoordinator {
-
 	private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
 
     @Autowired
@@ -130,18 +129,18 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	}
 
 	@Override
-	public void requestRecovery(int haPort, Map<String, String> params) {	}
+	public void requestRecovery(HarvestAgentStatusDTO aStatus) {
+		//Do nothing
+	}
 
 	/**
 	 * Execute search of Target Instances in 'Running' or 'Paused' states. Add any
 	 * active job names to List for Harvest Agent attempting recovery.
 	 *
 	 * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#recoverHarvests(String, int, String)
-	 * @param haPort harvest agent port requesting attempting recovery
-	 * @param haHost harvest agent host requesting attempting recovery
-	 * @param haService harvest agent service requesting attempting recovery
+	 * @param aStatus harvest agent scheme/host/port/service requesting attempting recovery
 	 */
-	public void recoverHarvests(String haHost, int haPort, String haService) {
+	public void recoverHarvests(HarvestAgentStatusDTO aStatus) {
 		TargetInstanceCriteria criteria = new TargetInstanceCriteria();
 		Set<String> states = new HashSet<String>();
 		states.add("Running");
@@ -153,7 +152,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 //			log.info("RecoverHarvests: sending data back for TI: " + ti.getJobName());
 			activeJobs.add(ti.getJobName());
 		}
-		harvestAgentManager.recoverHarvests(haHost, haPort, haService, activeJobs);
+		harvestAgentManager.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService(), activeJobs);
 	}
 
 	/**
@@ -1265,6 +1264,16 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	@Override
 	public HashMap<String, HarvestAgentStatusDTO> getHarvestAgents() {
 		return harvestAgentManager.getHarvestAgents();
+	}
+
+	@Override
+	public void recoverHarvests(String scheme, String host, int port, String service) {
+		HarvestAgentStatusDTO tempHarvestAgentStatusDTO = new HarvestAgentStatusDTO();
+		tempHarvestAgentStatusDTO.setScheme(scheme);
+		tempHarvestAgentStatusDTO.setHost(host);
+		tempHarvestAgentStatusDTO.setPort(port);
+		tempHarvestAgentStatusDTO.setService(service);
+		this.recoverHarvests(tempHarvestAgentStatusDTO);
 	}
 
 	public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
