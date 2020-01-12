@@ -51,6 +51,9 @@ public class AgentConfig {
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private  RestTemplateBuilder restTemplateBuilder;
+
     // Name of the directory where the temporary harvest data is stored.
     @Value("${harvestAgent.baseHarvestDirectory}")
     private String harvestAgentBaseHarvestDirectory;
@@ -87,6 +90,10 @@ public class AgentConfig {
     @Value("${harvestAgent.alertThreshold}")
     private int harvestAgentAlertThreshold;
 
+    // H3 instance scheme for the H3 agent.
+    @Value("${h3Wrapper.scheme}")
+    private String h3WrapperScheme;
+
     // H3 instance host name or ip address for the H3 agent.
     @Value("${h3Wrapper.host}")
     private String h3WrapperHost;
@@ -115,13 +122,13 @@ public class AgentConfig {
     @Value("${harvestCoordinatorNotifier.service}")
     private String harvestCoordinatorNotifierService;
 
+    // The protocol for the core host name or ip address.
+    @Value("${harvestCoordinatorNotifier.scheme}")
+    private String harvestCoordinatorNotifierScheme;
+
     // The host name or ip address of the core.
     @Value("${harvestCoordinatorNotifier.host}")
     private String harvestCoordinatorNotifierHost;
-
-    // The protocol for the core host name or ip address.
-    @Value("${harvestCoordinatorNotifier.protocol}")
-    private String harvestCoordinatorNotifierProtocol;
 
     // The port that the core is listening on for http connections.
     @Value("${harvestCoordinatorNotifier.port}")
@@ -133,6 +140,10 @@ public class AgentConfig {
     // The name of the digital asset store web service.
     @Value("${digitalAssetStore.service}")
     private String digitalAssetStoreService;
+
+    // The host protocol type of the digital asset store.
+    @Value("${digitalAssetStore.scheme}")
+    private String digitalAssetStoreScheme;
 
     // The host name or ip address of the digital asset store.
     @Value("${digitalAssetStore.host}")
@@ -206,7 +217,6 @@ public class AgentConfig {
         ApplicationContextFactory.setApplicationContext(applicationContext);
     }
 
-
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
@@ -233,6 +243,7 @@ public class AgentConfig {
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public Heritrix3WrapperConfiguration heritrix3WrapperConfiguration() {
         Heritrix3WrapperConfiguration bean = new Heritrix3WrapperConfiguration();
+        bean.setScheme(h3WrapperScheme);
         bean.setHost(h3WrapperHost);
         bean.setPort(h3WrapperPort);
         if(h3WrapperKeyStoreFile==null || h3WrapperKeyStoreFile.getName().trim().length()==0 || h3WrapperKeyStoreFile.getName().equals("''")) {
@@ -251,10 +262,7 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
-        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier();
-        bean.setProtocol(harvestCoordinatorNotifierProtocol);
-        bean.setHost(harvestCoordinatorNotifierHost);
-        bean.setPort(harvestCoordinatorNotifierPort);
+        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierScheme, harvestCoordinatorNotifierHost, harvestCoordinatorNotifierPort, restTemplateBuilder);
         //bean.setAgent(harvestAgent());
         bean.setAttemptRecovery(harvestAgentAttemptHarvestRecovery);
 
@@ -265,7 +273,7 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public DigitalAssetStore digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort, new RestTemplateBuilder());
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
 
         return bean;
     }

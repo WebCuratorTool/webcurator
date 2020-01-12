@@ -64,7 +64,7 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
             Map<String, String> params=new HashMap<String, String>();
             params.put("host", status.getHost());
             params.put("service", status.getService());
-            notifier.requestRecovery(status.getPort(), params);
+            notifier.requestRecovery(status);
 
             /* H3 polling begin*/
 

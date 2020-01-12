@@ -3,6 +3,8 @@ package org.webcurator.core.harvester.agent;
 import java.io.File;
 
 public class Heritrix3WrapperConfiguration {
+    /** H3 instance protocol type that the core knows about. */
+    private String scheme = "";
     /** H3 instance host name or ip address that the core knows about. */
     private String host = "";
     /** The port the H3 instance is listening on for http connections */
@@ -15,6 +17,14 @@ public class Heritrix3WrapperConfiguration {
     private String userName = "admin";
     /** The password for the keystore file. */
     private String password = "admin";
+
+    public String getScheme() {
+        return scheme;
+    }
+
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
+    }
 
     public String getHost() {
         return host;
