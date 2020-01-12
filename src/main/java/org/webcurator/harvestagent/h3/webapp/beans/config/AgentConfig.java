@@ -58,6 +58,10 @@ public class AgentConfig {
     @Value("${harvestAgent.baseHarvestDirectory}")
     private String harvestAgentBaseHarvestDirectory;
 
+    // Agent host protocol type that the core knows about.
+    @Value("${harvestAgent.scheme}")
+    private String harvestAgentScheme;
+
     // Agent host name or ip address that the core knows about.
     @Value("${harvestAgent.host}")
     private String harvestAgentHost;
@@ -223,6 +227,7 @@ public class AgentConfig {
     public HarvestAgentH3 harvestAgent() {
         HarvestAgentH3 bean = new HarvestAgentH3();
         bean.setBaseHarvestDirectory(harvestAgentBaseHarvestDirectory);
+        bean.setScheme(harvestAgentScheme);
         bean.setHost(harvestAgentHost);
         bean.setMaxHarvests(harvestAgentMaxHarvests);
         bean.setPort(harvestAgentPort);

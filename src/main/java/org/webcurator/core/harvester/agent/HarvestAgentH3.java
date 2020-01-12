@@ -65,6 +65,10 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      */
     private HarvesterType harvesterType;
     /**
+     * the protocol type of the harvest agent.
+     */
+    private String scheme = "";
+    /**
      * the host name of the harvest agent.
      */
     private String host = "";
@@ -449,6 +453,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     public HarvestAgentStatusDTO getStatus() {
         //TODO - might need adjustment for when harvest has stopped/gone
         HarvestAgentStatusDTO status = new HarvestAgentStatusDTO();
+        status.setScheme(scheme);
         status.setHost(host);
         status.setPort(port);
         status.setService(service);
@@ -622,6 +627,14 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     public void resume(String aJob) {
         super.resume(aJob);
         harvestCoordinatorNotifier.heartbeat(getStatus());
+    }
+
+    public String getScheme() {
+        return scheme;
+    }
+
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
     }
 
     /**
