@@ -16,7 +16,7 @@
 
     <appender name="GeneralLog"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/wct-agent-h1.log</file>
+        <file>${LOG_PATH}/wct-agent-h3.log</file>
         <encoder
                 class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <!-- Note that brackets are special characters in the pattern and must be escaped -->
