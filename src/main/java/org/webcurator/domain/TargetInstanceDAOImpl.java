@@ -194,7 +194,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before deleting harvest result files");
-							currentSession().createQuery("DELETE ArcHarvestFile WHERE harvestResult.oid=:hrOid").setLong("hrOid", harvestResultId)
+							currentSession().createQuery("DELETE ArcHarvestFile WHERE arcHarvestResult.oid=:hrOid").setLong("hrOid", harvestResultId)
 									.executeUpdate();
                             log.debug("After deleting harvest result files");
                         }
