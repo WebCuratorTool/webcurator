@@ -38,7 +38,6 @@ import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
-import org.webcurator.core.harvester.agent.HarvestAgentClient;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
