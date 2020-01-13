@@ -13,12 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.webcurator.ui.target.validator;
+package org.webcurator.ui.common.validation;
 
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
-import org.webcurator.ui.common.validation.AbstractBaseValidator;
-import org.webcurator.ui.target.command.FormCredentialsCommand;
+import org.webcurator.ui.common.command.FormCredentialsCommand;
 
 /**
  * Validate saving a form credntials profile override.
