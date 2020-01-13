@@ -361,6 +361,8 @@ public class BaseConfig {
     @Lazy(false)
     public DigitalAssetStoreFactoryImpl digitalAssetStoreFactory() {
         DigitalAssetStoreFactoryImpl bean = new DigitalAssetStoreFactoryImpl();
+        bean.setDAS(digitalAssetStore());
+        bean.setLogReader(new LogReaderClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder));
         return bean;
     }
 
