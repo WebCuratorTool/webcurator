@@ -1,61 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2020-01-08T16:29:22" hostname="kb006561I" time="0.317">
+<testsuite name="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" tests="44" skipped="0" failures="0" errors="0" timestamp="2020-01-14T15:16:58" hostname="kb006561I" time="0.092">
   <properties/>
-  <testcase name="testStop" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.317">
-    <failure message="java.lang.NullPointerException" type="java.lang.NullPointerException">java.lang.NullPointerException
-	at org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl.stop(HarvestAgentManagerImpl.java:268)
-	at org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest.testStop(HarvestAgentManagerImplTest.java:74)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:497)
-	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
-	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
-	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
-	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
-	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
-	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
-	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
-	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
-	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
-	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
-	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
-	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
-	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
-	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.runTestClass(JUnitTestClassExecutor.java:110)
-	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:58)
-	at org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.execute(JUnitTestClassExecutor.java:38)
-	at org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor.processTestClass(AbstractJUnitTestClassProcessor.java:62)
-	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.processTestClass(SuiteTestClassProcessor.java:51)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:497)
-	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
-	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
-	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
-	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
-	at com.sun.proxy.$Proxy2.processTestClass(Unknown Source)
-	at org.gradle.api.internal.tasks.testing.worker.TestWorker.processTestClass(TestWorker.java:118)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:497)
-	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
-	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
-	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:182)
-	at org.gradle.internal.remote.internal.hub.MessageHubBackedObjectConnection$DispatchWrapper.dispatch(MessageHubBackedObjectConnection.java:164)
-	at org.gradle.internal.remote.internal.hub.MessageHub$Handler.run(MessageHub.java:412)
-	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
-	at org.gradle.internal.concurrent.ManagedExecutorImpl$1.run(ManagedExecutorImpl.java:48)
-	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
-	at org.gradle.internal.concurrent.ThreadFactoryImpl$ManagedThreadRunnable.run(ThreadFactoryImpl.java:56)
-	at java.lang.Thread.run(Thread.java:745)
-</failure>
-  </testcase>
-  <system-out><![CDATA[SETUP CALLED!
+  <testcase name="testHeartbeatUpdatesTiWithStatusPaused" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.021"/>
+  <testcase name="testGetHarvestAgentStatusForTiAgentDoesntHaveJob" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testGetHarvestAgentStatusForTiAgentHasJob" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testResumeAllOneHarvestAgentNoHarvests" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.008"/>
+  <testcase name="testPauseAllMultipleHarvestAgents" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testPauseAllOneHarvestAgent" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testResumeAllOneHarvestAgent" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testResumeAllMultipleHarvestAgents" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testResumeAllOneHarvestAgentNullHarvests" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testHeartbeatUpdatesTiAlreadyPaused" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testHeartbeatNewJobNoHarvests" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testStop" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.045"/>
+  <testcase name="testHeartbeatReconnectAcceptTasksReset" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testAgentHasJobsButNotThisOne" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testGetHarvestAgentStatusForTiAgentHasNullStatus" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testRunningOrPaused" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testHeartbeatUpdatesTiAbortedNotRunning" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testPauseAgentQueueNotFound" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testResumeTargetInstanceNoStatus" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testResumeAgentQueueNotFound" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testAbortTargetInstanceRuntimeException" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testHeartbeatUpdatesTiStoppingFromRunning" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testGetHarvestAgentStatusForTiNoAgents" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testPauseAllOneHarvestAgentNoHarvests" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testResumeTargetInstance" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testHeartbeatUpdatesTiAbortedFromRunning" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testUpdateProfileOverridesNoAgent" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testHeartbeatUpdatesTiStoppingAlreadyStopped" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testPauseTargetInstance" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testPauseAgentQueue" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testAbortTargetInstanceNoStatus" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testHeartbeatUpdatesTiRunningFromPaused" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testHeartbeatUpdatesTiRunningFromQueued" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testAgentHasJobButNotThisOne" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testPauseAllNoHarvestAgents" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testResumeAllNoHarvestAgents" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testResumeAgentQueue" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testPauseTargetInstanceNoStatus" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testAgentHasJobsFindsJob" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testStopJobDoesntExist" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testAgentHasJobNoJobs" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testUpdateProfileOverrides" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.001"/>
+  <testcase name="testAbortTargetInstance" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <testcase name="testPauseAllOneHarvestAgentNullHarvests" classname="org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest" time="0.0"/>
+  <system-out><![CDATA[16:16:59.005 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.005 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.005 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.016 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.016 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.016 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.017 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent status1
+16:16:59.061 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Updating status for reconnect
+16:16:59.062 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Updating status for reconnect
+16:16:59.063 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.063 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.063 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.064 [Test worker] WARN org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - RESUME Failed. Failed to find the Harvest Agent for the Job null.
+16:16:59.066 [Test worker] WARN org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - ABORT Failed. Failed Abort the Job 123 on the Harvest Agent null.
+16:16:59.066 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.066 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.067 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.069 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.069 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.069 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.070 [Test worker] WARN org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Update Profile Overrides Failed. Failed to find the Harvest Agent for the Job null.
+16:16:59.070 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.070 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.070 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.071 [Test worker] WARN org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - ABORT Failed. Failed to find the Harvest Agent for the Job null.
+16:16:59.071 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.071 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.071 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - HarvestCoordinator: Target Instance start time set for target instance 0
+16:16:59.071 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.072 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Registering harvest agent test
+16:16:59.072 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Obtained lock for ti 123
+16:16:59.072 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - HarvestCoordinator: Target Instance state changed from Queued to Running for target instance 0
+16:16:59.072 [Test worker] INFO org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - HarvestCoordinator: Target Instance start time set for target instance 0
+16:16:59.072 [Test worker] DEBUG org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - Released lock for ti 123
+16:16:59.074 [Test worker] WARN org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - PAUSE Failed. Failed to find the Harvest Agent for the Job null.
+16:16:59.074 [Test worker] WARN org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl - STOP Failed. Failed to find the Harvest Agent for the Job nonexistant.
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.config.TestBaseConfig;
@@ -600,7 +601,7 @@ public class HarvestAgentManagerImplTest {
 		underTest.resume(mockTargetInstance);
 		verifyNoMoreInteractions(mockTargetInstanceDAO, mockHarvestAgent);
 	}
-	
+
 	@Test
 	public void testAbortTargetInstance() {
 		Long tOid = 123L;
@@ -642,7 +643,7 @@ public class HarvestAgentManagerImplTest {
 
 	// Sets up a new harvest agent and adds a harvest status to it
 	private HarvestAgentStatusDTO setupHarvestAgentWithHarvestState(Long tOid, String harvestState,
-			TargetInstance mockTargetInstance) {
+																	TargetInstance mockTargetInstance) {
 		String tOidString = String.valueOf(tOid);
 		when(mockTargetInstance.getJobName()).thenReturn(tOidString);
 		when(mockTargetInstanceDAO.load(tOid)).thenReturn(mockTargetInstance);

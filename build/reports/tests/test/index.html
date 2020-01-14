@@ -20,25 +20,25 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">1</div>
+<div class="counter">335</div>
 <p>tests</p>
 </div>
 </td>
 <td>
 <div class="infoBox" id="failures">
-<div class="counter">1</div>
+<div class="counter">0</div>
 <p>failures</p>
 </div>
 </td>
 <td>
 <div class="infoBox" id="ignored">
-<div class="counter">0</div>
+<div class="counter">4</div>
 <p>ignored</p>
 </div>
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.317s</div>
+<div class="counter">15.064s</div>
 <p>duration</p>
 </div>
 </td>
@@ -47,8 +47,8 @@
 </div>
 </td>
 <td>
-<div class="infoBox failures" id="successRate">
-<div class="percent">0%</div>
+<div class="infoBox skipped" id="successRate">
+<div class="percent">100%</div>
 <p>successful</p>
 </div>
 </td>
@@ -58,7 +58,7 @@
 <div id="tabs">
 <ul class="tabLinks">
 <li>
-<a href="#tab0">Failed tests</a>
+<a href="#tab0">Ignored tests</a>
 </li>
 <li>
 <a href="#tab1">Packages</a>
@@ -68,11 +68,23 @@
 </li>
 </ul>
 <div id="tab0" class="tab">
-<h2>Failed tests</h2>
+<h2>Ignored tests</h2>
 <ul class="linkList">
 <li>
-<a href="classes/org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest.html">HarvestAgentManagerImplTest</a>.
-<a href="classes/org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest.html#testStop">testStop</a>
+<a href="classes/org.archive.io.CDXIndexerTest.html">CDXIndexerTest</a>.
+<a href="classes/org.archive.io.CDXIndexerTest.html#testIndexFiles">testIndexFiles</a>
+</li>
+<li>
+<a href="classes/org.webcurator.core.targets.TargetManagerImplTest.html">TargetManagerImplTest</a>.
+<a href="classes/org.webcurator.core.targets.TargetManagerImplTest.html#testSaveTargetListOfGroupMemberDTO">testSaveTargetListOfGroupMemberDTO</a>
+</li>
+<li>
+<a href="classes/org.webcurator.domain.model.core.ArcHarvestFileDTOTest.html">ArcHarvestFileDTOTest</a>.
+<a href="classes/org.webcurator.domain.model.core.ArcHarvestFileDTOTest.html#testIndexCompressedARCFile">testIndexCompressedARCFile</a>
+</li>
+<li>
+<a href="classes/org.webcurator.domain.model.core.ArcHarvestFileDTOTest.html">ArcHarvestFileDTOTest</a>.
+<a href="classes/org.webcurator.domain.model.core.ArcHarvestFileDTOTest.html#testIndexCompressedWARCFile">testIndexCompressedWARCFile</a>
 </li>
 </ul>
 </div>
@@ -91,14 +103,104 @@
 </thead>
 <tbody>
 <tr>
-<td class="failures">
+<td class="skipped">
+<a href="packages/org.archive.io.html">org.archive.io</a>
+</td>
+<td>3</td>
+<td>0</td>
+<td>1</td>
+<td>0s</td>
+<td class="skipped">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="packages/org.webcurator.core.archive.html">org.webcurator.core.archive</a>
+</td>
+<td>20</td>
+<td>0</td>
+<td>0</td>
+<td>0.559s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
 <a href="packages/org.webcurator.core.harvester.coordinator.html">org.webcurator.core.harvester.coordinator</a>
 </td>
-<td>1</td>
-<td>1</td>
+<td>128</td>
 <td>0</td>
-<td>0.317s</td>
-<td class="failures">0%</td>
+<td>0</td>
+<td>5.939s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="packages/org.webcurator.core.profiles.html">org.webcurator.core.profiles</a>
+</td>
+<td>33</td>
+<td>0</td>
+<td>0</td>
+<td>0.962s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="packages/org.webcurator.core.reader.html">org.webcurator.core.reader</a>
+</td>
+<td>10</td>
+<td>0</td>
+<td>0</td>
+<td>0.159s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="packages/org.webcurator.core.report.html">org.webcurator.core.report</a>
+</td>
+<td>5</td>
+<td>0</td>
+<td>0</td>
+<td>0.077s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="packages/org.webcurator.core.scheduler.html">org.webcurator.core.scheduler</a>
+</td>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td>0.203s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="packages/org.webcurator.core.store.html">org.webcurator.core.store</a>
+</td>
+<td>9</td>
+<td>0</td>
+<td>0</td>
+<td>6.161s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="skipped">
+<a href="packages/org.webcurator.core.targets.html">org.webcurator.core.targets</a>
+</td>
+<td>99</td>
+<td>0</td>
+<td>1</td>
+<td>0.724s</td>
+<td class="skipped">100%</td>
+</tr>
+<tr>
+<td class="skipped">
+<a href="packages/org.webcurator.domain.model.core.html">org.webcurator.domain.model.core</a>
+</td>
+<td>25</td>
+<td>0</td>
+<td>2</td>
+<td>0.280s</td>
+<td class="skipped">100%</td>
 </tr>
 </tbody>
 </table>
@@ -118,14 +220,214 @@
 </thead>
 <tbody>
 <tr>
-<td class="failures">
+<td class="skipped">
+<a href="classes/org.archive.io.CDXIndexerTest.html">org.archive.io.CDXIndexerTest</a>
+</td>
+<td>3</td>
+<td>0</td>
+<td>1</td>
+<td>0s</td>
+<td class="skipped">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.archive.ArchiveAdapterImplTest.html">org.webcurator.core.archive.ArchiveAdapterImplTest</a>
+</td>
+<td>6</td>
+<td>0</td>
+<td>0</td>
+<td>0.090s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.archive.SipBuilderTest.html">org.webcurator.core.archive.SipBuilderTest</a>
+</td>
+<td>14</td>
+<td>0</td>
+<td>0</td>
+<td>0.469s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.harvester.coordinator.BandwidthCalculatorImplTest.html">org.webcurator.core.harvester.coordinator.BandwidthCalculatorImplTest</a>
+</td>
+<td>8</td>
+<td>0</td>
+<td>0</td>
+<td>0.001s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
 <a href="classes/org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest.html">org.webcurator.core.harvester.coordinator.HarvestAgentManagerImplTest</a>
 </td>
-<td>1</td>
+<td>44</td>
+<td>0</td>
+<td>0</td>
+<td>0.084s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.harvester.coordinator.HarvestBandwidthManagerImplTest.html">org.webcurator.core.harvester.coordinator.HarvestBandwidthManagerImplTest</a>
+</td>
+<td>22</td>
+<td>0</td>
+<td>0</td>
+<td>0.030s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.harvester.coordinator.HarvestCoordinatorImplTest.html">org.webcurator.core.harvester.coordinator.HarvestCoordinatorImplTest</a>
+</td>
+<td>54</td>
+<td>0</td>
+<td>0</td>
+<td>5.824s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.profiles.Heritrix3ProfileTest.html">org.webcurator.core.profiles.Heritrix3ProfileTest</a>
+</td>
+<td>10</td>
+<td>0</td>
+<td>0</td>
+<td>0.638s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.profiles.HeritrixProfileTest.html">org.webcurator.core.profiles.HeritrixProfileTest</a>
+</td>
+<td>23</td>
+<td>0</td>
+<td>0</td>
+<td>0.324s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.reader.LogReaderImplTest.html">org.webcurator.core.reader.LogReaderImplTest</a>
+</td>
+<td>10</td>
+<td>0</td>
+<td>0</td>
+<td>0.159s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.report.OperationalReportTest.html">org.webcurator.core.report.OperationalReportTest</a>
+</td>
+<td>5</td>
+<td>0</td>
+<td>0</td>
+<td>0.077s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.scheduler.TargetInstanceManagerImplTest.html">org.webcurator.core.scheduler.TargetInstanceManagerImplTest</a>
+</td>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td>0.203s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.store.CrawlLogIndexerTest.html">org.webcurator.core.store.CrawlLogIndexerTest</a>
+</td>
+<td>3</td>
+<td>0</td>
+<td>0</td>
+<td>0.045s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.store.DigitalAssetStoreClientTest.html">org.webcurator.core.store.DigitalAssetStoreClientTest</a>
+</td>
 <td>1</td>
 <td>0</td>
-<td>0.317s</td>
-<td class="failures">0%</td>
+<td>0</td>
+<td>0.002s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.store.WaybackIndexerTest.html">org.webcurator.core.store.WaybackIndexerTest</a>
+</td>
+<td>5</td>
+<td>0</td>
+<td>0</td>
+<td>6.114s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.core.targets.MembersRemovedEventPropagatorTest.html">org.webcurator.core.targets.MembersRemovedEventPropagatorTest</a>
+</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0.092s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="skipped">
+<a href="classes/org.webcurator.core.targets.TargetManagerImplTest.html">org.webcurator.core.targets.TargetManagerImplTest</a>
+</td>
+<td>98</td>
+<td>0</td>
+<td>1</td>
+<td>0.632s</td>
+<td class="skipped">100%</td>
+</tr>
+<tr>
+<td class="skipped">
+<a href="classes/org.webcurator.domain.model.core.ArcHarvestFileDTOTest.html">org.webcurator.domain.model.core.ArcHarvestFileDTOTest</a>
+</td>
+<td>3</td>
+<td>0</td>
+<td>2</td>
+<td>0.012s</td>
+<td class="skipped">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.domain.model.core.BusinessObjectFactoryTest.html">org.webcurator.domain.model.core.BusinessObjectFactoryTest</a>
+</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>0.026s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.domain.model.core.OldProfileOverridesTest.html">org.webcurator.domain.model.core.OldProfileOverridesTest</a>
+</td>
+<td>10</td>
+<td>0</td>
+<td>0</td>
+<td>0.088s</td>
+<td class="success">100%</td>
+</tr>
+<tr>
+<td class="success">
+<a href="classes/org.webcurator.domain.model.core.ProfileOverridesTest.html">org.webcurator.domain.model.core.ProfileOverridesTest</a>
+</td>
+<td>10</td>
+<td>0</td>
+<td>0</td>
+<td>0.154s</td>
+<td class="success">100%</td>
 </tr>
 </tbody>
 </table>
@@ -138,7 +440,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 5.6</a> at 08-Jan-2020 17:29:22</p>
+<a href="http://www.gradle.org">Gradle 5.6</a> at 14-Jan-2020 16:16:59</p>
 </div>
 </div>
 </body>
