@@ -13,7 +13,7 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 import java.util.Arrays;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "org.webcurator.harvestagent.h1", "org.webcurator.core.harvester", "org.webcurator.core.rest" },
+@ComponentScan(basePackages = { "org.webcurator.harvestagent.h1", "org.webcurator.core.harvester", "org.webcurator.core.rest", "org.webcurator.core.reader"},
         // HarvestAgentListenerService should be running on webcurator-webapp.
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = { HarvestAgentListenerService.class, HarvestCoordinatorImpl.class })
