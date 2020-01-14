@@ -19,12 +19,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,7 +34,7 @@ import org.webcurator.core.harvester.agent.filter.*;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListener;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
@@ -49,6 +44,7 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
  * engine to perform the harvesting of the web sites.
  * @author nwaight
  */
+@SuppressWarnings("all")
 public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogProvider {       
     /** The name of the profile file. */
     private static final String PROFILE_NAME = "order.xml";    
@@ -58,6 +54,8 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
     private String name = "";
     /** the harvester type of the harvest agent. */
     private HarvesterType harvesterType;
+    /** the protocol type of the harvest agent.*/
+    private String scheme = "";
     /** the host name of the harvest agent. */
     private String host = "";
     /** the harvest agent control port. */
@@ -89,32 +87,34 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         log = LogFactory.getLog(getClass());
     }
 
-    /** @see HarvestAgent#initiateHarvest(String, String, String). */
-    public void initiateHarvest(String aJob, String aProfile, String aSeeds) {  
+    /** @see HarvestAgent#initiateHarvest(String, Map<String, String>). */
+    public void initiateHarvest(String job, Map<String, String> params) {
         Harvester harvester = null;
-        
+        String aProfile = params.get("profile");
+        String aSeeds = params.get("seeds");
+
         if (log.isDebugEnabled()) {
-    		log.debug("Initiating harvest for " + aJob + " " + aSeeds);
+    		log.debug("Initiating harvest for " + job + " " + aSeeds);
     	}
         
         try {
-            super.initiateHarvest(aJob, aProfile, aSeeds);
+            super.initiateHarvest(job, aProfile, aSeeds);
             
-            File profile = createProfile(aJob, aProfile);
+            File profile = createProfile(job, aProfile);
             createSeedsFile(profile, aSeeds);
             
-            harvester = getHarvester(aJob);
-            harvester.start(profile, aJob);
+            harvester = getHarvester(job);
+            harvester.start(profile, job);
             harvester.setAlertThreshold(alertThreshold);
         }
         catch (Exception e) {
             if (log.isErrorEnabled()) {
-                log.error("Failed to initiate harvest for " + aJob + " : " + e.getMessage(), e);
+                log.error("Failed to initiate harvest for " + job + " : " + e.getMessage(), e);
             }
             
-            abort(aJob);
+            abort(job);
             
-            throw new HarvestAgentException("Failed to initiate harvest for " + aJob + " : " + e.getMessage(), e);            
+            throw new HarvestAgentException("Failed to initiate harvest for " + job + " : " + e.getMessage(), e);
         }  
         
         harvestCoordinatorNotifier.heartbeat(getStatus());
@@ -177,8 +177,8 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         harvester.stop();
     }
     
-    private ArcHarvestResultDTO createIndex(String aJob) throws IOException {
-        ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
+    private HarvestResultDTO createIndex(String aJob) throws IOException {
+        HarvestResultDTO ahr = new HarvestResultDTO();
         ahr.setCreationDate(new Date());    
     	return ahr;
     }
@@ -251,7 +251,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         }
         
         List das = getHarvester(aJob).getHarvestDigitalAssetsDirs();
-        ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
+        HarvestResultDTO ahr = new HarvestResultDTO();
          
 
         // Make sure that the files are not longer in use.
@@ -318,7 +318,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         if (aFailureStep <= FAILED_ON_SEND_RESULT) {
 	        try {            
                 log.debug("Sending harvest result to WCT for job " + aJob);
-                ahr = new ArcHarvestResultDTO();
+                ahr = new HarvestResultDTO();
                 ahr.setCreationDate(new Date());    
 	            ahr.setTargetInstanceOid(new Long(aJob));
 	            ahr.setProvenanceNote(provenanceNote); 
@@ -340,6 +340,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
     /** @see org.webcurator.core.harvester.agent.HarvestAgent#getStatus(). */
     public HarvestAgentStatusDTO getStatus() {
         HarvestAgentStatusDTO status = new HarvestAgentStatusDTO();
+        status.setScheme(scheme);
         status.setHost(host);
         status.setPort(port);
         status.setService(service);
@@ -503,7 +504,15 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         super.resume(aJob);
         harvestCoordinatorNotifier.heartbeat(getStatus());
     }
-	
+
+    public String getScheme() {
+        return scheme;
+    }
+
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
+    }
+
     /**
      * @param aHost The host to set.
      */

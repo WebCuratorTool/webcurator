@@ -8,6 +8,7 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -38,14 +39,22 @@ import java.util.List;
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
+@SuppressWarnings("all")
 @Configuration
 @PropertySource(value = "classpath:wct-agent.properties")
 public class AgentConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(AgentConfig.class);
 
+    @Autowired
+    private  RestTemplateBuilder restTemplateBuilder;
+
     // Name of the directory where the temporary harvest data is stored.
     @Value("${harvestAgent.baseHarvestDirectory}")
     private String harvestAgentBaseHarvestDirectory;
+
+    // Agent host protocol type that the core knows about.
+    @Value("${harvestAgent.scheme}")
+    private String harvestAgentScheme;
 
     // Agent host name or ip address that the core knows about.
     @Value("${harvestAgent.host}")
@@ -83,13 +92,13 @@ public class AgentConfig {
     @Value("${harvestCoordinatorNotifier.service}")
     private String harvestCoordinatorNotifierService;
 
+    // The protocol type of the core.
+    @Value("${harvestCoordinatorNotifier.scheme}")
+    private String harvestCoordinatorNotifierScheme;
+
     // The host name or ip address of the core.
     @Value("${harvestCoordinatorNotifier.host}")
     private String harvestCoordinatorNotifierHost;
-
-    // The protocol for the core host name or ip address.
-    @Value("${harvestCoordinatorNotifier.protocol}")
-    private String harvestCoordinatorNotifierProtocol;
 
     // The port that the core is listening on for http connections.
     @Value("${harvestCoordinatorNotifier.port}")
@@ -98,6 +107,10 @@ public class AgentConfig {
     // The name of the digital asset store web service.
     @Value("${digitalAssetStore.service}")
     private String digitalAssetStoreService;
+
+    // The host protocol type of the digital asset store.
+    @Value("${digitalAssetStore.scheme}")
+    private String digitalAssetStoreScheme;
 
     // The host name or ip address of the digital asset store.
     @Value("${digitalAssetStore.host}")
@@ -176,6 +189,7 @@ public class AgentConfig {
     public HarvestAgentHeritrix harvestAgent() {
         HarvestAgentHeritrix bean = new HarvestAgentHeritrix();
         bean.setBaseHarvestDirectory(harvestAgentBaseHarvestDirectory);
+        bean.setScheme(harvestAgentScheme);
         bean.setHost(harvestAgentHost);
         bean.setMaxHarvests(harvestAgentMaxHarvests);
         bean.setPort(harvestAgentPort);
@@ -195,10 +209,7 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
-        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier();
-        bean.setProtocol(harvestCoordinatorNotifierProtocol);
-        bean.setHost(harvestCoordinatorNotifierHost);
-        bean.setPort(harvestCoordinatorNotifierPort);
+        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierScheme, harvestCoordinatorNotifierHost, harvestCoordinatorNotifierPort, restTemplateBuilder);
         //bean.setAgent(harvestAgent());
 
         return bean;
@@ -208,8 +219,7 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public DigitalAssetStore digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort,
-                new RestTemplateBuilder());
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
 
         return bean;
     }
