@@ -60,9 +60,9 @@ public final class SchedulerUtil {
 	 * @throws SchedulerException thrown if there is a problem scheduling the quartz job
 	 */
 	public static final void scheduleHarvestCompleteJob(String aHarvestName, int aFailueStep, boolean aMessageSent, int aRetries) throws SchedulerException {
-		ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-		Scheduler scheduler = (Scheduler) context.getBean(Constants.BEAN_SCHEDULER_FACTORY);
-		HarvestCompleteConfig hcc = (HarvestCompleteConfig) context.getBean(Constants.BEAN_HARVEST_COMPLETE_CONFIG);
+		ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+		Scheduler scheduler =  context.getBean(Scheduler.class);
+		HarvestCompleteConfig hcc = context.getBean(HarvestCompleteConfig.class);
 
         JobDataMap jdm = new JobDataMap();
         jdm.put(HarvestCompleteJob.PARAM_JOB_NAME, aHarvestName);

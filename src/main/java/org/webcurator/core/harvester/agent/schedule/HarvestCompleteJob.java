@@ -67,8 +67,8 @@ public class HarvestCompleteJob implements Job {
                 log.info("Processing job completion for " + jobName);
             }
 
-            ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-            HarvestAgent ha = (HarvestAgent) context.getBean(Constants.BEAN_HARVEST_AGENT);                               
+            ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+            HarvestAgent ha = context.getBean(HarvestAgent.class);
 
             int failedOn = ha.completeHarvest(jobName, failureStep);
             if (failedOn != HarvestAgent.NO_FAILURES) {
