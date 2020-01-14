@@ -39,6 +39,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -66,6 +70,7 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping(path = "/curator/target/qa-indicator-robots-report.html")
 public class QaIndicatorRobotsReportController {
 	/** the logger. */
 	private Log log = null;
@@ -94,6 +99,7 @@ public class QaIndicatorRobotsReportController {
 		log = LogFactory.getLog(QaIndicatorRobotsReportController.class);
 	}
 
+	@InitBinder
 	protected void initBinder(HttpServletRequest request,
 			ServletRequestDataBinder binder) {
 		// enable null values for long and float fields
@@ -141,6 +147,7 @@ public class QaIndicatorRobotsReportController {
 
 	}
 
+	@GetMapping
 	protected ModelAndView showForm(HttpServletRequest request)
 			throws Exception {
 
@@ -177,6 +184,7 @@ public class QaIndicatorRobotsReportController {
 
 	}
 
+	@PostMapping
 	protected ModelAndView processFormSubmission(HttpServletRequest request) throws Exception {
 		return showForm(request);
 	}

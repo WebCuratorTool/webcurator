@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -62,9 +62,11 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  *
  * @author twoods
  */
+@SuppressWarnings("all")
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping(path = "/curator/target/qa-indicator-report.html")
 public class QaIndicatorReportController {
 	/** the logger. */
 	private Log log = null;
@@ -104,6 +106,7 @@ public class QaIndicatorReportController {
         setExcludedIndicators(excludedIndicators);
     }
 
+    @InitBinder
 	protected void initBinder(HttpServletRequest request,
 			ServletRequestDataBinder binder) {
 		// enable null values for long and float fields
@@ -115,93 +118,94 @@ public class QaIndicatorReportController {
 				new CustomNumberEditor(java.lang.Float.class, nf, true));
 	}
 
+	@GetMapping
 	protected ModelAndView showForm(HttpServletRequest request)
 			throws Exception {
-
 		ModelAndView mav = new ModelAndView();
 
-		// fetch the indicator oid from the request (hyperlinked from QA Summary Page)
 		String iOid = request.getParameter("indicatorOid");
+		if(iOid == null){
+			return mav;
+		}
 
-		if (iOid != null) {
+		// prepare the indicator oid
+		Long indicatorOid = Long.parseLong(iOid);
 
-			// prepare the indicator oid
-			Long indicatorOid = Long.parseLong(iOid);
+		// get the indicator
+		Indicator indicator = indicatorDAO.getIndicatorByOid(indicatorOid);
 
-			// get the indicator
-			Indicator indicator = indicatorDAO.getIndicatorByOid(indicatorOid);
+		// add it to the ModelAndView so that we can access it within the jsp
+		mav.addObject("indicator", indicator);
 
-			// add it to the ModelAndView so that we can access it within the jsp
-			mav.addObject("indicator", indicator);
+		// add the target instance
+		TargetInstance instance = targetInstanceManager.getTargetInstance(indicator.getTargetInstanceOid());
+		mav.addObject(TargetInstanceCommand.MDL_INSTANCE, instance);
 
-			// add the target instance
-			TargetInstance instance = targetInstanceManager.getTargetInstance(indicator.getTargetInstanceOid());
-			mav.addObject(TargetInstanceCommand.MDL_INSTANCE, instance);
+		// ensure that the user belongs to the agency that created the indicator
+		if (agencyUserManager.getAgenciesForLoggedInUser().contains(indicator.getAgency())) {
+			// summarise the indicator values in the reportLines
+			HashMap<String, Integer> summary = new HashMap<String, Integer>();
+			NavigableMap<String, Integer> sortedSummary = null;
+			int total = 0;
+			// if the indicator is not in the exclusion list ...
+			if (!excludedIndicators.containsKey(indicator.getName())) {
+				// fetch the report lines for this indicator
+				List<IndicatorReportLine> reportLines = indicator.getIndicatorReportLines();
+				// add them ti the model
+				mav.addObject("reportLines", reportLines);
 
-			// ensure that the user belongs to the agency that created the indicator
-			if (agencyUserManager.getAgenciesForLoggedInUser().contains(indicator.getAgency())) {
-				// summarise the indicator values in the reportLines
-				HashMap<String, Integer> summary = new HashMap<String, Integer>();
-				NavigableMap<String, Integer> sortedSummary = null;
-				int total = 0;
-				// if the indicator is not in the exclusion list ...
-				if (!excludedIndicators.containsKey(indicator.getName())) {
-					// fetch the report lines for this indicator
-					List<IndicatorReportLine> reportLines = indicator.getIndicatorReportLines();
-					// add them ti the model
-					mav.addObject("reportLines", reportLines);
+				Comparator comparitor = null;
 
-					Comparator comparitor = null;
+				Iterator<IndicatorReportLine> lines = reportLines.iterator();
 
-					Iterator<IndicatorReportLine> lines = reportLines.iterator();
-
-					if (sortOrder.equals("countdesc")) {
-						comparitor = new DescendingValueComparator(summary);
-						sortedSummary = new TreeMap<String, Integer>(comparitor);
-					} else if (sortOrder.equals("countasc")) {
-						comparitor = new AscendingValueComparator(summary);
-						sortedSummary = new TreeMap<String, Integer>(comparitor);
-					} else if (sortOrder.equals("indicatorvaluedesc")) {
-						sortedSummary = new TreeMap<String, Integer>().descendingMap();
-					} else if (sortOrder.equals("indicatorvalueasc")) {
-						sortedSummary = new TreeMap<String, Integer>();
-					}
-
-					while (lines.hasNext()) {
-						IndicatorReportLine line = lines.next();
-						if (summary.containsKey(line.getLine())) {
-							// increment the current entry value
-							summary.put(line.getLine(),
-									summary.get(line.getLine()) + 1);
-						} else {
-							// initialise the value for the entry
-							summary.put(line.getLine(), 1);
-						}
-						total++;
-					}
-					sortedSummary.putAll(summary);
-					mav.addObject("sortedSummary", sortedSummary);
-					mav.addObject("total", total);
-					mav.addObject("sortorder", sortOrder);
-
-					mav.setViewName("QaIndicatorReport");
-				} else {
-					// otherwise redirect to the configured view
-			      	StringBuilder queryString = new StringBuilder("redirect:");
-			      	queryString.append(excludedIndicators.get(indicator.getName()));
-			      	queryString.append("?");
-			      	queryString.append("indicatorOid=");
-            		queryString.append(indicatorOid);
-
-            		return new ModelAndView(queryString.toString());
+				if (sortOrder.equals("countdesc")) {
+					comparitor = new DescendingValueComparator(summary);
+					sortedSummary = new TreeMap<String, Integer>(comparitor);
+				} else if (sortOrder.equals("countasc")) {
+					comparitor = new AscendingValueComparator(summary);
+					sortedSummary = new TreeMap<String, Integer>(comparitor);
+				} else if (sortOrder.equals("indicatorvaluedesc")) {
+					sortedSummary = new TreeMap<String, Integer>().descendingMap();
+				} else if (sortOrder.equals("indicatorvalueasc")) {
+					sortedSummary = new TreeMap<String, Integer>();
 				}
 
+				while (lines.hasNext()) {
+					IndicatorReportLine line = lines.next();
+					if (summary.containsKey(line.getLine())) {
+						// increment the current entry value
+						summary.put(line.getLine(),
+								summary.get(line.getLine()) + 1);
+					} else {
+						// initialise the value for the entry
+						summary.put(line.getLine(), 1);
+					}
+					total++;
+				}
+				sortedSummary.putAll(summary);
+				mav.addObject("sortedSummary", sortedSummary);
+				mav.addObject("total", total);
+				mav.addObject("sortorder", sortOrder);
+
+				mav.setViewName("QaIndicatorReport");
+			} else {
+				// otherwise redirect to the configured view
+				StringBuilder queryString = new StringBuilder("redirect:");
+				queryString.append(excludedIndicators.get(indicator.getName()));
+				queryString.append("?");
+				queryString.append("indicatorOid=");
+				queryString.append(indicatorOid);
+
+				return new ModelAndView(queryString.toString());
 			}
+
 		}
+
 		return mav;
 
 	}
 
+	@PostMapping
 	protected ModelAndView processFormSubmission(@RequestParam(value = "sortorder") String requestSortOrder,
                                                  HttpServletRequest request) throws Exception {
 		sortOrder = requestSortOrder;
