@@ -18,8 +18,13 @@ import java.util.HashMap;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.config.TestBaseConfig;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.harvester.agent.HarvestAgent;
@@ -33,6 +38,9 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
 import com.google.common.collect.Maps;
 
+@Import(TestBaseConfig.class)
+@RunWith(SpringRunner.class)
+@AutoConfigureMockMvc
 public class HarvestAgentManagerImplTest {
 
 	private HarvestAgentManagerImpl underTest;
@@ -659,9 +667,12 @@ public class HarvestAgentManagerImplTest {
 
 	private HarvestAgentStatusDTO createRandomHarvestAgentStatusDTO(){
 		HarvestAgentStatusDTO agentStatusDTO = new HarvestAgentStatusDTO();
-		agentStatusDTO.setScheme(anyString());
-		agentStatusDTO.setHost(anyString());
-		agentStatusDTO.setPort(anyInt());
+		String scheme = "http";
+		String host = "www.nlnz.org";
+		int port = 8080;
+		agentStatusDTO.setScheme(scheme);
+		agentStatusDTO.setHost(host);
+		agentStatusDTO.setPort(port);
 
 		return agentStatusDTO;
 	}
