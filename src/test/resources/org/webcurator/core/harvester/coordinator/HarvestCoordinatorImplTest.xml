@@ -3,7 +3,7 @@
 	<current-user id="1000"/>
 	<agencies>
 		<agency id="2000">
-		   <name>British Library</name>
+		   <name>National Library New Zealand</name>
 		    <address/>
 		    <phone/>
 		    <agencyURL/>
@@ -12,7 +12,7 @@
 		    <fax/>
 			<roles>
 				<role id="3000">
-					<name>BL-Admin</name>
+					<name>NLNZ-Admin</name>
 					<description>Test Role</description>
 					<role-privileges>
 						<!-- SCOPE_ALL = 0; SCOPE_AGENCY = 100; SCOPE_OWNER = 200; SCOPE_NONE = 500; -->
@@ -336,8 +336,8 @@
 	<target-instances>
 		<target-instance id="5000">
 			<target id="4000"/>
-			<arcHarvestResults>
-				<arcHarvestResult id="21000">
+			<harvestResults>
+				<harvestResult id="21000">
 					<harvestNumber>1</harvestNumber>
 					<resources></resources>
 					<provenanceNote>A note</provenanceNote>
@@ -347,8 +347,8 @@
 					<modificationNotes/>
 					<derivedFrom></derivedFrom>
 					<arcFiles></arcFiles>
-				</arcHarvestResult>
-			</arcHarvestResults>
+				</harvestResult>
+			</harvestResults>
 			<schedule id="11000"/>
 		    <scheduledTime/>
 		    <actualStartTime/>    
@@ -379,8 +379,8 @@
 		</target-instance>
 		<target-instance id="5001">
 			<target id="4000"/>
-			<arcHarvestResults>
-			</arcHarvestResults>
+			<harvestResults>
+			</harvestResults>
 			<schedule id="11000"/>
 		    <scheduledTime/>
 		    <actualStartTime/>    
@@ -411,8 +411,8 @@
 		</target-instance>
 		<target-instance id="5002">
 			<target id="4000"/>
-			<arcHarvestResults>
-			</arcHarvestResults>
+			<harvestResults>
+			</harvestResults>
 			<schedule id="11000"/>
 		    <scheduledTime/>
 		    <actualStartTime/>    
