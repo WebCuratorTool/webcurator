@@ -266,8 +266,4 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
                 null, HarvestAgentScriptResult.class);
         return harvestAgentScriptResult;
     }
-
-//    public static void setRestTemplateBuilder(RestTemplateBuilder tmpRestTempBuilder){
-//        restTemplateBuilder=tmpRestTempBuilder;
-//    }
 }
