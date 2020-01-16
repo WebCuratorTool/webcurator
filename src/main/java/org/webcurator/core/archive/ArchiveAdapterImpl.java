@@ -48,7 +48,7 @@ public class ArchiveAdapterImpl implements ArchiveAdapter {
 	/** the manager for accessing target and group data. */
 	private TargetManager targetManager;
 
-	private Map<String, String> accessStatusMap;
+	private Map<String, String> accessStatusMap = new HashMap<String, String>();
 	private boolean targetReferenceMandatory = true;
 	
 	/** @see ArchiveAdapter#submitToArchive(TargetInstance, String, Map, int). */
