@@ -49,7 +49,7 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 			testInstance.indexFiles(testInstance.getResult().getOid());
 			
 			//Check the ARC CDX index was generated
-			File cdxFile = new File(archivePath+"/"+TestCARC_CDX);
+			File cdxFile = WCTTestUtils.getResourceAsFile(archivePath+"/"+TestCARC_CDX); // new File(archivePath+"/"+TestCARC_CDX);
 			assertTrue(cdxFile.exists());
 	
 			//Check the number of records in the CDX matches the arc file

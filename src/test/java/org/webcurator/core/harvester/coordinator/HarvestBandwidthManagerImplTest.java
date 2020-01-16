@@ -19,6 +19,10 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.config.TestBaseConfig;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.HarvestCoordinatorDAO;
@@ -31,7 +35,10 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-@RunWith(MockitoJUnitRunner.class)
+//@RunWith(MockitoJUnitRunner.class)
+@Import(TestBaseConfig.class)
+@RunWith(SpringRunner.class)
+@AutoConfigureMockMvc
 public class HarvestBandwidthManagerImplTest {
 	@Mock private Auditor mockAuditor;
 	@Mock private HarvestAgentManager mockHarvestAgentManager;
