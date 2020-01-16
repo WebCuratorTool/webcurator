@@ -6,11 +6,11 @@ plugins {
 repositories {
     mavenLocal()
     maven {
-        url = 'http://repo.spring.io/plugins-release/'
+        url = 'https://repo.spring.io/plugins-release/'
     }
 
     maven {
-        url = 'http://repo.maven.apache.org/maven2'
+        url = 'https://repo.maven.apache.org/maven2'
     }
 }
 
