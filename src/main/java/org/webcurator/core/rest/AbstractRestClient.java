@@ -87,7 +87,7 @@ abstract public class AbstractRestClient {
     }
 
     public String toString() {
-        return String.format("%s@%s", this.baseUrl());
+        return String.format("%s@%s",this.getClass().getName(), this.baseUrl());
     }
 
     public String getScheme() {
