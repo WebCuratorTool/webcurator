@@ -15,105 +15,83 @@
  */
 package org.webcurator.core.harvester.coordinator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.agent.HarvestAgent;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
-import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
+
+import java.net.URI;
 
 /**
  * The HarvestCoordinatorNotifier uses SOAP to send messages back to the core.
  * These include notifications, heartbeats and job completions messages.
+ *
  * @author nwaight
  */
-public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNotifier {
-	/** The harvest agent that the this notifier is running on. */
-	HarvestAgent agent;	
-    /** the host name or ip-address for the wct. */
-    private String host = "localhost";
-    /** the port number for the wct. */
-    private int port = 8080;
-    /** Flag used to control a harvest recovery attempt on startup. */
+public class HarvestCoordinatorNotifier extends AbstractRestClient implements HarvestAgentListener, CheckNotifier {
+    /**
+     * The harvest agent that the this notifier is running on.
+     */
+    HarvestAgent agent;
+
+    /**
+     * Flag used to control a harvest recovery attempt on startup.
+     */
     public String attemptRecovery = "false";
-    /** the logger. */
-    private static Log log = LogFactory.getLog(HarvestCoordinatorNotifier.class);
 
-    @Autowired
-    protected RestTemplateBuilder restTemplateBuilder;
-
-    public String baseUrl() {
-        return host + ":" + port;
-    }
-
-    public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
+    public HarvestCoordinatorNotifier(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
+        super(scheme, host, port, restTemplateBuilder);
     }
 
     /* (non-Javadoc)
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(org.webcurator.core.harvester.agent.HarvestAgentStatus)
      */
+
     public void heartbeat(HarvestAgentStatusDTO aStatus) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of heartbeat");
-            }
-            log.info("WCT: Start of heartbeat");
+            log.debug("WCT: Start of heartbeat");
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HEARTBEAT))
-                    .queryParam("harvest-agent-status", aStatus);
 
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                    null, Void.class);
+            String uri = getUrl(HarvestCoordinatorPaths.HEARTBEAT);
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: End of heartbeat");
-            }
-            log.info("WCT: End of heartbeat");
-        }
-        catch(Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Heartbeat Notification failed : " + ex.getMessage(), ex);
-            }
+            HttpEntity<String> request = this.createHttpRequestEntity(aStatus);
+
+            restTemplate.postForObject(uri, request, Void.class);
+            log.debug("WCT: End of heartbeat");
+        } catch (Exception ex) {
+            log.error("Heartbeat Notification failed : " + ex.getMessage(), ex);
         }
     }
 
-    public void requestRecovery(String haHost, int haPort, String haService) {
+    @Override
+    public void requestRecovery(HarvestAgentStatusDTO aStatus) throws HttpClientErrorException, IllegalArgumentException {
         try {
-
-            if(attemptRecovery()){
+            if (attemptRecovery()) {
                 log.info("Harvest Agent attempting a recovery request");
 
-                if (log.isDebugEnabled()) {
-                    log.debug("WCT: Start of requestRecovery");
-                }
+                HttpEntity<String> request = this.createHttpRequestEntity(aStatus);
 
                 RestTemplate restTemplate = restTemplateBuilder.build();
-                UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.RECOVERY))
-                        .queryParam("host", haHost)
-                        .queryParam("port", haPort)
-                        .queryParam("service", haService);
+                UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.RECOVERY));
+                URI uri = uriComponentsBuilder.buildAndExpand().toUri();
 
-                restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                        null, Void.class);
+                restTemplate.postForObject(uri, request, Void.class);
+                log.debug("WCT: End of requestRecovery");
 
-                if (log.isDebugEnabled()) {
-                    log.debug("WCT: End of requestRecovery");
-                }
                 setAttemptRecovery("false");
             }
-        }
-        catch(Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Recovery Request failed : " + ex.getMessage(), ex);
-            }
+        } catch (HttpClientErrorException ex) {
+            log.error("Recovery Request failed.");
+
+            throw new HttpClientErrorException(ex.getStatusCode());
         }
     }
 
@@ -122,25 +100,19 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
      */
     public void harvestComplete(HarvestResultDTO aResult) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of harvestComplete");
-            }
+            log.debug("WCT: Start of harvestComplete");
+
+            HttpEntity<String> request = this.createHttpRequestEntity(aResult);
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HARVEST_COMPLETE))
-                    .queryParam("harvest-result", aResult);
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.HARVEST_COMPLETE));
+            URI uri = uriComponentsBuilder.buildAndExpand().toUri();
 
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                    null, Void.class);
+            restTemplate.postForObject(uri, request, Void.class);
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: End of HarvestComplete");
-            }
-        }
-        catch(Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Harvest Complete Notification failed : " + ex.getMessage(), ex);
-            } 
+            log.debug("WCT: End of HarvestComplete");
+        } catch (Exception ex) {
+            log.error("Harvest Complete Notification failed : " + ex.getMessage(), ex);
             throw new WCTRuntimeException(ex);
         }
     }
@@ -150,83 +122,55 @@ public class HarvestCoordinatorNotifier implements HarvestAgentListener, CheckNo
      */
     public void notification(Long aTargetInstanceOid, int notificationCategory, String aMessageType) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of notification");
-            }
+            log.debug("WCT: Start of notification");
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION))
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION_BY_OID))
                     .queryParam("target-instance-oid", aTargetInstanceOid)
                     .queryParam("notification-category", notificationCategory)
                     .queryParam("message-type", aMessageType);
 
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                    null, Void.class);
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null, Void.class);
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: End of notification");
-            }
+            log.debug("WCT: End of notification");
+        } catch (Exception ex) {
+            log.error("Notification failed : " + ex.getMessage(), ex);
         }
-        catch (Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Notification failed : " + ex.getMessage(), ex);
-            }  
-        }        
     }
-    
+
     /* (non-Javadoc)
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#notification(String, String)
      */
     public void notification(String aSubject, int notificationCategory, String aMessage) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: Start of notification");
-            }
+            log.debug("WCT: Start of notification");
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION))
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.NOTIFICATION_BY_SUBJECT))
                     .queryParam("subject", agent.getName() + " " + aSubject)
                     .queryParam("notification-category", notificationCategory)
                     .queryParam("message", aMessage);
 
-            if (log.isDebugEnabled()) {
-                log.debug("WCT: End of notification");
-            }
+            log.debug("WCT: End of notification");
+        } catch (Exception ex) {
+            log.error("Notification failed : " + ex.getMessage(), ex);
         }
-        catch (Exception ex) {
-            if (log.isErrorEnabled()) {
-                log.error("Notification failed : " + ex.getMessage(), ex);
-            }  
-        }        
-    }
-    
-    /**
-     * @param aHost The host to set.
-     */
-    public void setHost(String aHost) {
-        this.host = aHost;
     }
 
     /**
-     * @param aPort The port to set.
+     * @param agent the agent to set
      */
-    public void setPort(int aPort) {
-        this.port = aPort;
+    public void setAgent(HarvestAgent agent) {
+        this.agent = agent;
     }
-
-	/**
-	 * @param agent the agent to set
-	 */
-	public void setAgent(HarvestAgent agent) {
-		this.agent = agent;
-	}
 
     /**
      * Return boolean value of attemptRecovery String
+     *
      * @return boolean
      */
     public boolean attemptRecovery() {
-        if(attemptRecovery.equals("true")){
+        if (attemptRecovery.equals("true")) {
             return true;
         }
         return false;

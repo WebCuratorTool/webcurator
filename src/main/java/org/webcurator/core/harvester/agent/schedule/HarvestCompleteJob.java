@@ -24,6 +24,8 @@ import org.quartz.JobExecutionException;
 import org.springframework.context.ApplicationContext;
 import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.agent.HarvestAgent;
+import org.webcurator.core.harvester.agent.HarvestAgentH3;
+import org.webcurator.core.harvester.agent.HarvesterH3;
 import org.webcurator.core.harvester.agent.exception.HarvestAgentException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.core.notification.MessageType;
@@ -67,8 +69,8 @@ public class HarvestCompleteJob implements Job {
                 log.info("Processing job completion for " + jobName);
             }
             
-            ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-            HarvestAgent ha = (HarvestAgent) context.getBean(Constants.BEAN_HARVEST_AGENT);                               
+            ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+            HarvestAgent ha = context.getBean(HarvestAgentH3.class);
             
             int failedOn = ha.completeHarvest(jobName, failureStep);
             if (failedOn != HarvestAgent.NO_FAILURES) {
