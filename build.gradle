@@ -41,7 +41,7 @@ task sourcesJar(type: Jar) {
 }
 
 // just an alias
-task install(dependsOn: ['build', 'publishToMavenLocal'])
+task install(dependsOn: ['bootJar', 'publishToMavenLocal'])
 
 publishing {
     publications {
