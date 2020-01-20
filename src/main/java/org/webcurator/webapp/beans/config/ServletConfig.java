@@ -433,7 +433,7 @@ public class ServletConfig {
         theTab.setJsp("../target-instance-display.jsp");
         theTab.setCommandClass(TargetInstanceCommand.class);
         theTab.setValidator(new TargetInstanceValidator());
-        theTab.setTabHandler(targetInstanceAnnotationHandler());
+        theTab.setTabHandler(targetInstanceDisplayHandler());
         tabs.add(theTab);
 
         bean.setTabs(tabs);
