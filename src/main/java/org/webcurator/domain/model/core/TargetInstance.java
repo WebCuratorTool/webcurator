@@ -132,7 +132,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     // TODO @hibernate.collection-index column="HR_INDEX"
 	private List<HarvestResult> harvestResults = new LinkedList<HarvestResult>();
 	/** the target or group that this instance belongs to. */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "TI_TARGET_ID", foreignKey = @ForeignKey(name = "FK_TI_TARGET_ID"))
     private AbstractTarget target;
     /** the schedule that this target instance belongs to. */
