@@ -11,19 +11,19 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class WaybackIndexer extends IndexerBase {
 
 	//Static variables
-	private static Log log = LogFactory.getLog(WaybackIndexer.class);
+	private static Logger log = LoggerFactory.getLogger(WaybackIndexer.class);
 	public static enum FileStatus {INITIAL, COPIED, INDEXED, REMOVED, FAILED};
 
 	//Passed in variables
-	private ArcHarvestResultDTO result;
+	private HarvestResultDTO result;
 	private File directory;
 	
 	//Spring initialised variables (to be copied in copy constructor)
@@ -62,7 +62,7 @@ public class WaybackIndexer extends IndexerBase {
 	}
 
 	@Override
-	protected ArcHarvestResultDTO getResult() {
+	protected HarvestResultDTO getResult() {
 		return result;
 	}
 
@@ -164,7 +164,7 @@ public class WaybackIndexer extends IndexerBase {
 	}
 	
 	@Override
-	public void initialise(ArcHarvestResultDTO result, File directory) {
+	public void initialise(HarvestResultDTO result, File directory) {
 		this.result = result;
 		this.directory = directory;
 	}
@@ -331,6 +331,7 @@ public class WaybackIndexer extends IndexerBase {
 			OutputStream os = null;
 
 			try {
+				log.debug("Copy file: {} --> {}", source.getAbsolutePath(), destination.getAbsolutePath());
 				is = new BufferedInputStream(new FileInputStream(source));
 				os = new BufferedOutputStream(new FileOutputStream(destination));
 

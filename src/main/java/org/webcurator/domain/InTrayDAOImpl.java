@@ -35,6 +35,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.core.notification.AgencyInTrayResource;
@@ -51,6 +52,7 @@ import org.webcurator.domain.model.core.Task;
  * The implementation of the InTrayDAO interface.
  * @author bprice
  */
+@Transactional
 public class InTrayDAOImpl extends HibernateDaoSupport implements InTrayDAO {
 
     private Log log = LogFactory.getLog(InTrayDAOImpl.class);

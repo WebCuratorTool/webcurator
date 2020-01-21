@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public class MockHarvestAgent implements HarvestAgent {
 
@@ -32,9 +33,9 @@ public class MockHarvestAgent implements HarvestAgent {
 		return sdto;
 	}
 
-	public void initiateHarvest(String job, String profile, String seeds) 
+	public void initiateHarvest(String job, Map<String, String> params)
 	{
-		_profile = profile;
+		_profile = params.get("profile");
 		log.debug("initiate harvest - "+job);
 	}
 

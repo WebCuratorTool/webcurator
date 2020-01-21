@@ -1,16 +1,22 @@
 package org.webcurator.core.harvester.agent;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -20,76 +26,48 @@ import java.util.Map;
  *
  * @author nwaight
  */
-public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
-
-    /**
-     * the logger.
-     */
-    private static Log log = LogFactory.getLog(HarvestAgentClient.class);
-    /**
-     * the host name or ip-address for the harvest agent.
-     */
-    private String host = "localhost";
-    /**
-     * the port number for the harvest agent.
-     */
-    private int port = 8080;
-
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
-
+@SuppressWarnings("all")
+public class HarvestAgentClient extends AbstractRestClient implements HarvestAgent {
     /**
      * Constructor to initialise the host, port and service.
      *
      * @param host the name of the host
      * @param port the port number
      */
-    public HarvestAgentClient(String host, int port) {
-        this.host = host;
-        this.port = port;
-        restTemplateBuilder.errorHandler(new RestClientResponseHandler());
+    public HarvestAgentClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
+        super(scheme, host, port, restTemplateBuilder);
     }
 
-    public String baseUrl() {
-        return host + ":" + port;
-    }
-
-    public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
-    }
 
     /**
      * @see HarvestAgent#initiateHarvest(String, String, String)
      */
-    public void initiateHarvest(String job, String profile, String seeds) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.INITIATE_HARVEST))
-                .queryParam("profile", profile)
-                .queryParam("seeds", seeds);
-
+    public void initiateHarvest(String job, Map<String, String> params) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.INITIATE_HARVEST));
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+        URI uri=uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        restTemplate.postForObject(uri, params, Void.class);
     }
 
     public void recoverHarvests(List<String> activeJobs) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RECOVER_HARVESTS))
-                .queryParam("active-jobs", activeJobs);
+        HttpEntity<String> request = this.createHttpRequestEntity(activeJobs);
 
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Void.class);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        restTemplate.postForObject(getUrl(HarvestAgentPaths.RECOVER_HARVESTS), request, Void.class);
     }
 
     /**
      * @see HarvestAgent#restrictBandwidth(String, int)
      */
     public void restrictBandwidth(String job, int bandwidthLimit) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RESTRICT_BANDWIDTH))
                 .queryParam("bandwidth-limit", bandwidthLimit);
 
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
@@ -98,10 +76,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#pause(String)
      */
     public void pause(String job) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PAUSE));
-
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
@@ -110,10 +88,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#resume(String)
      */
     public void resume(String job) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RESUME));
-
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
@@ -122,10 +100,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#abort(String)
      */
     public void abort(String job) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.ABORT));
-
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
@@ -134,10 +112,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#stop(String)
      */
     public void stop(String job) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.STOP));
-
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
@@ -153,10 +131,11 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#loadSettings(String)
      */
     public void loadSettings(String job) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.LOAD_SETTINGS));
 
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
@@ -165,9 +144,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#pauseAll()
      */
     public void pauseAll() {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PAUSE_ALL));
 
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 null, Void.class);
     }
@@ -176,9 +155,9 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#resumeAll()
      */
     public void resumeAll() {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.RESUME_ALL));
 
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 null, Void.class);
     }
@@ -187,13 +166,11 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#getStatus()
      */
     public HarvestAgentStatusDTO getStatus() {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
-
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.STATUS));
 
+        RestTemplate restTemplate = restTemplateBuilder.build();
         HarvestAgentStatusDTO harvestAgentStatusDTO = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 HarvestAgentStatusDTO.class);
-
         return harvestAgentStatusDTO;
     }
 
@@ -201,11 +178,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#getName()
      */
     public String getName() {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.NAME));
 
+        RestTemplate restTemplate = restTemplateBuilder.build();
         String name = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand().toUri(), String.class);
-
         return name;
     }
 
@@ -213,11 +189,10 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#getMemoryWarning()
      */
     public boolean getMemoryWarning() {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.MEMORY_WARNING));
 
+        RestTemplate restTemplate = restTemplateBuilder.build();
         Boolean memoryWarning = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand().toUri(), Boolean.class);
-
         return memoryWarning;
     }
 
@@ -225,12 +200,12 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#setMemoryWarning(boolean memoryWarning)
      */
     public void setMemoryWarning(boolean memoryWarning) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.MEMORY_WARNING))
                 .queryParam("memory-warning", memoryWarning);
 
         // The service itself should throw the error if the call is unsupported (whereas it originally would throw the
         // exception on the client.
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
                 null, Void.class);
     }
@@ -239,11 +214,12 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#updateProfileOverrides(String, String)
      */
     public void updateProfileOverrides(String job, String profile) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.UPDATE_PROFILE_OVERRIDES))
                 .queryParam("profile", profile);
 
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, Void.class);
     }
@@ -252,22 +228,21 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @see HarvestAgent#purgeAbortedTargetInstances(List<String>)
      */
     public void purgeAbortedTargetInstances(List<String> targetInstanceNames) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PURGE_ABORTED_TARGET_INSTANCES))
-                .queryParam("target-instance-names", targetInstanceNames);
+        HttpEntity<String> request = this.createHttpRequestEntity(targetInstanceNames);
 
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Void.class);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PURGE_ABORTED_TARGET_INSTANCES));
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Void.class);
     }
 
     public boolean isValidProfile(String profile) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.IS_VALID_PROFILE));
-
         Map<String, String> pathVariables = ImmutableMap.of("profile", profile);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         Boolean result = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 Boolean.class);
-
         return result;
     }
 
@@ -280,39 +255,15 @@ public class HarvestAgentClient implements HarvestAgent, HarvestAgentConfig {
      * @return the script result
      */
     public HarvestAgentScriptResult executeShellScript(String jobName, String engine, String shellScript) {
-        RestTemplate restTemplate = restTemplateBuilder.build();;
-
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.EXECUTE_SHELL_SCRIPT))
                 .queryParam("engine", engine)
                 .queryParam("shell-script", shellScript);
-
         Map<String, String> pathVariables = ImmutableMap.of("job-name", jobName);
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
         HarvestAgentScriptResult harvestAgentScriptResult = restTemplate.postForObject(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
                 null, HarvestAgentScriptResult.class);
-
         return harvestAgentScriptResult;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * @param host The host to set.
-     */
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port The port to set.
-     */
-    public void setPort(int port) {
-        this.port = port;
     }
 }

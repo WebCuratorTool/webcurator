@@ -130,7 +130,7 @@ public class ProfileOverrides {
 	@ElementCollection()
 	@CollectionTable(name = "PO_EXCLUSION_URI", joinColumns = @JoinColumn(name = "PEU_PROF_OVER_OID"))
 	@Column(name = "PEU_FILTER")
-	// TODO @hibernate.collection-index column="PEU_IX"
+	@OrderColumn(name = "PEU_IX")
 	private List<String> excludeUriFilters = new LinkedList<String>();
 	/** True to override the exclude filters; otherwise false */
 	@Column(name = "PO_OR_EXCLUSION_URI")
@@ -140,7 +140,7 @@ public class ProfileOverrides {
 	@ElementCollection()
 	@CollectionTable(name = "PO_INCLUSION_URI", joinColumns = @JoinColumn(name = "PEU_PROF_OVER_OID"))
 	@Column(name = "PEU_FILTER")
-	// TODO @hibernate.collection-index column="PEU_IX"
+	@OrderColumn(name = "PEU_IX")
 	private List<String> includeUriFilters = new LinkedList<String>();
 	/** True to override the include filters; otherwise false */
 	@Column(name = "PO_OR_INCLUSION_URI")
@@ -238,7 +238,7 @@ public class ProfileOverrides {
 	@ElementCollection()
 	@CollectionTable(name = "PO_H3_BLOCK_URL", joinColumns = @JoinColumn(name = "PBU_PROF_OVER_OID"))
 	@Column(name = "PBU_FILTER")
-	// TODO @hibernate.collection-index column="PBU_IX"
+	@OrderColumn(name = "PBU_IX")
 	private List<String> h3BlockedUrls = new LinkedList<String>();
 	/** True to override the blocked urls; otherwise false */
 	@Column(name = "PO_H3_OR_BLOCK_URL")
@@ -248,7 +248,7 @@ public class ProfileOverrides {
 	@ElementCollection()
 	@CollectionTable(name = "PO_H3_INCLUDE_URL", joinColumns = @JoinColumn(name = "PIU_PROF_OVER_OID"))
 	@Column(name = "PIU_FILTER")
-	// TODO @hibernate.collection-index column="PIU_IX"
+	@OrderColumn(name = "PIU_IX")
 	private List<String> h3IncludedUrls = new LinkedList<String>();
 	/** True to override the included urls; otherwise false */
 	@Column(name = "PO_H3_OR_INCL_URL")

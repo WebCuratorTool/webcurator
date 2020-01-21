@@ -21,7 +21,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
@@ -42,6 +40,7 @@ import javax.persistence.*;
  * to change its profile overrides, etc. 
  **/
 // lazy="false"
+@SuppressWarnings("unused")
 @Entity
 @Table(name = "TARGET_INSTANCE")
 @NamedQueries({
@@ -133,11 +132,11 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     // TODO @hibernate.collection-index column="HR_INDEX"
 	private List<HarvestResult> harvestResults = new LinkedList<HarvestResult>();
 	/** the target or group that this instance belongs to. */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "TI_TARGET_ID", foreignKey = @ForeignKey(name = "FK_TI_TARGET_ID"))
     private AbstractTarget target;
     /** the schedule that this target instance belongs to. */
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.REFRESH})
     @JoinColumn(name = "TI_SCHEDULE_ID", foreignKey = @ForeignKey(name = "FK_TI_SCHEDULE_ID"))
     private Schedule schedule;
     /** the scheduled time of the harvest. */
@@ -205,13 +204,11 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Column(name = "TI_HARVEST_SERVER", length = 255)
     private String harvestServer;
     /** The parts of the SIP generated at time of harvest. */
-    // TODO where do you specify cascade="all"
     @ElementCollection
-    @JoinTable(name="SIP_PART_ELEMENT", joinColumns=@JoinColumn(name="ID"))
-    @MapKeyColumn (name="SPE_TARGET_INSTANCE_OID")
+    @CollectionTable(name="SIP_PART_ELEMENT", joinColumns=@JoinColumn(name="SPE_TARGET_INSTANCE_OID"))
+    @MapKeyColumn (name="SPE_KEY")
     @Column(name="SPE_VALUE")
     @Lob // column="SPE_VALUE" type="materialized_clob"
-    // TODO @hibernate.collection-index column="SPE_KEY" type="java.lang.String"
     private Map<String,String> sipParts = new HashMap<String, String>();
     /** The original seeds */
     // TODO cascade="all"
@@ -255,9 +252,10 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Transient
     private boolean annotationsSet = false;
     /** The profile overrides for this target instance. */
-    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH }) // WAS cascade="save-update"
+    @OneToOne(cascade = { CascadeType.ALL }) // WAS cascade="save-update"
     @JoinColumn(name = "TI_PROF_OVERRIDE_OID", foreignKey = @ForeignKey(name = "FK_TI_PROF_OVERRIDE_OID"))
     private ProfileOverrides overrides;
+
     @Column(name = "TI_ARCHIVE_ID", length = 40, unique = true, nullable = true)
     private String archiveIdentifier; 
     /** Flag to indicate that this instances digital assets have been purged from the store. */
@@ -290,7 +288,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	 * Get the database OID of the TargetInstance.
 	 * @return the primary key
 	 */
-	public Long getOid() {
+	@Override
+    public Long getOid() {
 		return oid;
 	}
 	
@@ -338,9 +337,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
 	
 	/**
-	 * Fetch the HarvestResult whose harvestNumber is specified.
+	 * Fetch the ArcHarvestResult whose harvestNumber is specified.
 	 * @param harvestNumber the harvest number to fetch
-	 * @return the HarvestResult, or null if not found
+	 * @return the ArcHarvestResult, or null if not found
 	 */
 	public HarvestResult getHarvestResult(int harvestNumber)
 	{
@@ -537,17 +536,17 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     public static HashMap<String, Integer> getOrderedStates() {
         HashMap<String, Integer> stateOrder = new HashMap<String, Integer>();
-        stateOrder.put(STATE_ABORTED, new Integer(70));
-        stateOrder.put(STATE_ARCHIVING, new Integer(89));
-        stateOrder.put(STATE_ARCHIVED, new Integer(90));
-        stateOrder.put(STATE_ENDORSED, new Integer(60));
-        stateOrder.put(STATE_HARVESTED, new Integer(50));
-        stateOrder.put(STATE_PAUSED, new Integer(20));
-        stateOrder.put(STATE_QUEUED, new Integer(30));
-        stateOrder.put(STATE_REJECTED, new Integer(80));
-        stateOrder.put(STATE_RUNNING, new Integer(1));
-        stateOrder.put(STATE_STOPPING, new Integer(10));
-        stateOrder.put(STATE_SCHEDULED, new Integer(40));
+        stateOrder.put(STATE_ABORTED, 70);
+        stateOrder.put(STATE_ARCHIVING, 89);
+        stateOrder.put(STATE_ARCHIVED, 90);
+        stateOrder.put(STATE_ENDORSED, 60);
+        stateOrder.put(STATE_HARVESTED, 50);
+        stateOrder.put(STATE_PAUSED, 20);
+        stateOrder.put(STATE_QUEUED, 30);
+        stateOrder.put(STATE_REJECTED, 80);
+        stateOrder.put(STATE_RUNNING, 1);
+        stateOrder.put(STATE_STOPPING, 10);
+        stateOrder.put(STATE_SCHEDULED, 40);
         
         return stateOrder;
     }
@@ -765,15 +764,14 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 		annotationsSorted = true;
 	}
 		
-	/** 
-	 * @see Overrideable#getOverrides().
-	 */
-	public ProfileOverrides getProfileOverrides() {		
+	/**
+     */
+	public ProfileOverrides getProfileOverrides() {
 		if (null == overrides) {
 			return getTarget().getOverrides();
 		}
 		return overrides;
-	}	
+	}
 
 	/**
 	 * Get the overrides for Hibernate ONLY. Application code should use the getProfileOverrides()
@@ -782,14 +780,13 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	 * target instance is deleted (the override may still be referenced). I have therefore changed the cascade
 	 * option for hibernate from "all" to "save-update"
 	 */
-	public ProfileOverrides getOverrides() {		
+	public ProfileOverrides getOverrides() {
 		return overrides;
 	}
 	
 	/** 
 	 * set the profile overrides for the target instance
 	 * @param aOverrides the profile overrides
-	 * @see Overrideable#getOverrides().
 	 */
 	public void setOverrides(ProfileOverrides aOverrides) {
 		overrides = aOverrides;
@@ -1048,7 +1045,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	}
 	
 	/**
-	 * @param Flag the Flag to set
+	 * @param flag the Flag to set
 	 */
 	public void setFlag(Flag flag) {
 		this.flag = flag;

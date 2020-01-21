@@ -29,6 +29,7 @@ import org.hibernate.Session;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.BandwidthRestriction;
@@ -37,6 +38,7 @@ import org.webcurator.domain.model.core.BandwidthRestriction;
  * The implementation of the HarvestCoordinatorDAO interface.
  * @author nwaight
  */
+@Transactional
 public class HarvestCoordinatorDAOImpl extends HibernateDaoSupport implements HarvestCoordinatorDAO {
     /** the logger. */
     private Log log = LogFactory.getLog(HarvestCoordinatorDAOImpl.class);    

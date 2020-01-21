@@ -3,6 +3,7 @@ package org.webcurator.core.profiles;
 import static org.junit.Assert.*;
 
 import org.archive.crawler.settings.*;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.test.WCTTestUtils;
@@ -250,6 +251,7 @@ public class HeritrixProfileTest extends BaseWCTTest<HeritrixProfile>{
 		}
 	}
 
+	@Ignore //It's unnecessary to do unit test for Crawler
 	@Test
 	public final void testGetOptionsForType() {
 		try

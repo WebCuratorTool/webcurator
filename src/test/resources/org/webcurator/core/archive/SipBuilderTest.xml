@@ -2,7 +2,7 @@
 <sipbuildertest>
 	<agencies>
 		<agency id="2000">
-		   <name>British Library</name>
+		   <name>National Library New Zealand</name>
 		    <address/>
 		    <phone/>
 		    <agencyURL/>
@@ -11,7 +11,7 @@
 		    <fax/>
 			<roles>
 				<role id="3000">
-					<name>BL-Admin</name>
+					<name>NLNZ-Admin</name>
 					<description>Test Role</description>
 					<role-privileges>
 						<!-- SCOPE_ALL = 0; SCOPE_AGENCY = 100; SCOPE_OWNER = 200; SCOPE_NONE = 500; -->

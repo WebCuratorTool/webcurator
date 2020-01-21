@@ -2,7 +2,7 @@ package org.webcurator.core.store;
 
 import java.io.File;
 
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public interface RunnableIndex extends Runnable {
 
@@ -10,7 +10,7 @@ public interface RunnableIndex extends Runnable {
 	String getName();
 	RunnableIndex getCopy();
 	void setMode(Mode mode);
-	void initialise(ArcHarvestResultDTO result, File directory);
+	void initialise(HarvestResultDTO result, File directory);
 	Long begin();
 	void indexFiles(Long harvestResultOid);
 	void markComplete(Long harvestResultOid);

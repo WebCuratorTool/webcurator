@@ -9,7 +9,6 @@ import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.test.BaseWCTTest;
 
 public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreClient>{
-
 	public DigitalAssetStoreClientTest() {
 		super(DigitalAssetStoreClient.class, "", false);
 	}
@@ -17,7 +16,7 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
-        testInstance = new DigitalAssetStoreClient("wctstore.natlib.govt.nz", 19090, new RestTemplateBuilder());
+        testInstance = new DigitalAssetStoreClient("http","wctstore.natlib.govt.nz", 19090, new RestTemplateBuilder());
 	}
 
 	@Test

@@ -40,7 +40,6 @@ import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
-import org.webcurator.core.harvester.agent.HarvestAgentConfig;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.profiles.Heritrix3Profile;
@@ -60,10 +59,10 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
  * 
  * @author nwaight
  */
+@SuppressWarnings("all")
 @Component("harvestCoordinator")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class HarvestCoordinatorImpl implements HarvestCoordinator {
-
 	private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
 
     @Autowired
@@ -129,18 +128,19 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		harvestAgentManager.heartbeat(aStatus);
 	}
 
-	public void requestRecovery(String haHost, int port, String haService) {}
+	@Override
+	public void requestRecovery(HarvestAgentStatusDTO aStatus) {
+		//Do nothing
+	}
 
 	/**
 	 * Execute search of Target Instances in 'Running' or 'Paused' states. Add any
 	 * active job names to List for Harvest Agent attempting recovery.
 	 *
 	 * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#recoverHarvests(String, int, String)
-	 * @param haHost harvest agent host requesting attempting recovery
-	 * @param haPort harvest agent port requesting attempting recovery
-	 * @param haService harvest agent service requesting attempting recovery
+	 * @param aStatus harvest agent scheme/host/port/service requesting attempting recovery
 	 */
-	public void recoverHarvests(String haHost, int haPort, String haService) {
+	public void recoverHarvests(HarvestAgentStatusDTO aStatus) {
 		TargetInstanceCriteria criteria = new TargetInstanceCriteria();
 		Set<String> states = new HashSet<String>();
 		states.add("Running");
@@ -152,7 +152,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 //			log.info("RecoverHarvests: sending data back for TI: " + ti.getJobName());
 			activeJobs.add(ti.getJobName());
 		}
-		harvestAgentManager.recoverHarvests(haHost, haPort, haService, activeJobs);
+		harvestAgentManager.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService(), activeJobs);
 	}
 
 	/**
@@ -180,22 +180,16 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
 		log.info("'Harvest Complete' message received for job: " + ti.getOid() + ".");
 
-		HarvestResult harvestResult = null;
-		if (aResult instanceof ArcHarvestResultDTO) {
-			harvestResult = new ArcHarvestResult((ArcHarvestResultDTO) aResult, ti);
-		} else {
-			harvestResult = new HarvestResult(aResult, ti);
-		}
-
-		harvestResult.setState(HarvestResult.STATE_INDEXING);
+		HarvestResult arcHarvestResult = new ArcHarvestResult(aResult, ti);
+		arcHarvestResult.setState(ArcHarvestResult.STATE_INDEXING);
 
 		List<HarvestResult> hrs = ti.getHarvestResults();
-		hrs.add(harvestResult);
+		hrs.add(arcHarvestResult);
 		ti.setHarvestResults(hrs);
 
 		ti.setState(TargetInstance.STATE_HARVESTED);
 
-		targetInstanceDao.save(harvestResult);
+		targetInstanceDao.save(arcHarvestResult);
 		targetInstanceDao.save(ti);
 		harvestBandwidthManager.sendBandWidthRestrictions();
 
@@ -229,8 +223,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		// Ask the DigitalAssetStore to index the ARC
 		try {
 			digitalAssetStoreFactory.getDAS().initiateIndexing(
-					new ArcHarvestResultDTO(harvestResult.getOid(), harvestResult.getTargetInstance().getOid(), harvestResult
-							.getCreationDate(), harvestResult.getHarvestNumber(), harvestResult.getProvenanceNote()));
+					new HarvestResultDTO(arcHarvestResult.getOid(), arcHarvestResult.getTargetInstance().getOid(), arcHarvestResult
+							.getCreationDate(), arcHarvestResult.getHarvestNumber(), arcHarvestResult.getProvenanceNote()));
 		} catch (DigitalAssetStoreException ex) {
 			log.error("Could not send initiateIndexing message to the DAS", ex);
 		}
@@ -256,8 +250,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		// auto-prune if this option is enabled on the target and the ti has
 		// only one harvest result
 		try {
-			List<HarvestResult> harvestResults = targetInstanceManager.getHarvestResults(ti.getOid());
-			if (harvestResults.size() == 1) {
+			List<HarvestResult> arcHarvestResults = targetInstanceManager.getHarvestResults(ti.getOid());
+			if (arcHarvestResults.size() == 1) {
 				harvestQaManager.autoPrune(ti);
 			}
 		} catch (DigitalAssetStoreException ex) {
@@ -271,23 +265,21 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 				targetInstanceDao.deleteHarvestResultResources(harvestResult.getOid());
 			}
 
-			if (harvestResult instanceof ArcHarvestResult) {
-				targetInstanceDao.deleteHarvestResultFiles(harvestResult.getOid());
-			}
+			targetInstanceDao.deleteHarvestResultFiles(harvestResult.getOid());
 		}
 	}
 
 	/**
 	 * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#reIndexHarvestResult(HarvestResult)
 	 */
-	public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
-		TargetInstance ti = origHarvestResult.getTargetInstance();
+	public Boolean reIndexHarvestResult(HarvestResult origArcHarvestResult) {
+		TargetInstance ti = origArcHarvestResult.getTargetInstance();
 
 		// Assume we are already indexing
 		Boolean reIndex = false;
 
 		try {
-			reIndex = !digitalAssetStoreFactory.getDAS().checkIndexing(origHarvestResult.getOid());
+			reIndex = !digitalAssetStoreFactory.getDAS().checkIndexing(origArcHarvestResult.getOid());
 		} catch (DigitalAssetStoreException ex) {
 			log.error("Could not send checkIndexing message to the DAS", ex);
 		}
@@ -297,44 +289,34 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 			targetInstanceDao.save(ti);
 
 			// remove any HarvestResources and ArcHarvestFiles
-			cleanHarvestResult(origHarvestResult);
+			cleanHarvestResult(origArcHarvestResult);
 
 			// reload the targetInstance
 			ti = targetInstanceDao.load(ti.getOid());
 
-			HarvestResult newHarvestResult = null;
-			if (origHarvestResult instanceof ArcHarvestResult) {
-				ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
-				ahr.setCreationDate(new Date());
-				ahr.setTargetInstanceOid(ti.getOid());
-				ahr.setProvenanceNote(origHarvestResult.getProvenanceNote());
-				ahr.setHarvestNumber(origHarvestResult.getHarvestNumber());
-				newHarvestResult = new ArcHarvestResult(ahr, ti);
-			} else {
-				HarvestResultDTO hr = new HarvestResultDTO();
-				hr.setCreationDate(new Date());
-				hr.setTargetInstanceOid(ti.getOid());
-				hr.setProvenanceNote(origHarvestResult.getProvenanceNote());
-				hr.setHarvestNumber(origHarvestResult.getHarvestNumber());
-				newHarvestResult = new HarvestResult(hr, ti);
-			}
+			HarvestResultDTO hr = new HarvestResultDTO();
+			hr.setCreationDate(new Date());
+			hr.setTargetInstanceOid(ti.getOid());
+			hr.setProvenanceNote(origArcHarvestResult.getProvenanceNote());
+			hr.setHarvestNumber(origArcHarvestResult.getHarvestNumber());
+			HarvestResult newArcHarvestResult = new ArcHarvestResult(hr, ti);
 
-			origHarvestResult.setState(HarvestResult.STATE_ABORTED);
-			newHarvestResult.setState(HarvestResult.STATE_INDEXING);
+			origArcHarvestResult.setState(ArcHarvestResult.STATE_ABORTED);
+			newArcHarvestResult.setState(ArcHarvestResult.STATE_INDEXING);
 
 			List<HarvestResult> hrs = ti.getHarvestResults();
-			hrs.add(newHarvestResult);
+			hrs.add(newArcHarvestResult);
 			ti.setHarvestResults(hrs);
 
 			ti.setState(TargetInstance.STATE_HARVESTED);
 
-			targetInstanceDao.save(newHarvestResult);
+			targetInstanceDao.save(newArcHarvestResult);
 			targetInstanceDao.save(ti);
 
 			try {
 				digitalAssetStoreFactory.getDAS().initiateIndexing(
-						new ArcHarvestResultDTO(newHarvestResult.getOid(), newHarvestResult.getTargetInstance().getOid(),
-								newHarvestResult.getCreationDate(), newHarvestResult.getHarvestNumber(), newHarvestResult
+						new HarvestResultDTO(newArcHarvestResult.getOid(), newArcHarvestResult.getTargetInstance().getOid(),
+								newArcHarvestResult.getCreationDate(), newArcHarvestResult.getHarvestNumber(), newArcHarvestResult
 										.getProvenanceNote()));
 
 				inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC,
@@ -464,10 +446,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
 		// Get the profile.
 		String profile = getHarvestProfileString(aTargetInstance);
+		long targetInstanceId=aTargetInstance.getOid();
 
 		// Initiate harvest on the remote harvest agent
 		harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
 
+		// Data maybe changed in asynchronized threads, so refresh entity
+		aTargetInstance = targetInstanceDao.load(targetInstanceId);
 		// Update the state of the allocated Target Instance
 		aTargetInstance.setActualStartTime(new Date());
 		aTargetInstance.setState(TargetInstance.STATE_RUNNING);
@@ -1113,38 +1098,34 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	}
 
 	public void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO ahf) {
-		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getHarvestResult(harvestResultOid, false);
-		ArcHarvestFile f = new ArcHarvestFile(ahf, ahr);
+		HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
+		ArcHarvestFile f = new ArcHarvestFile(ahf, (ArcHarvestResult) ahr);
 		targetInstanceDao.save(f);
 	}
 
-	public void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> dtos) {
-		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getHarvestResult(harvestResultOid, false);
+	public void addHarvestResources(Long harvestResultOid, Collection<ArcHarvestResourceDTO> dtos) {
+		HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
 		Collection<ArcHarvestResource> resources = new ArrayList<ArcHarvestResource>(dtos.size());
 		for (HarvestResourceDTO dto : dtos) {
-			resources.add(new ArcHarvestResource((ArcHarvestResourceDTO) dto, ahr));
+			resources.add(new ArcHarvestResource((ArcHarvestResourceDTO) dto, (ArcHarvestResult) ahr));
 		}
 		targetInstanceDao.saveAll(resources);
 	}
 
 	public Long createHarvestResult(HarvestResultDTO harvestResultDTO) {
-		if (harvestResultDTO instanceof ArcHarvestResultDTO) {
-			TargetInstance ti = targetInstanceDao.load(harvestResultDTO.getTargetInstanceOid());
-			ArcHarvestResult result = new ArcHarvestResult((ArcHarvestResultDTO) harvestResultDTO, ti);
-			ti.getHarvestResults().add(result);
-			result.setState(HarvestResult.STATE_INDEXING);
+		TargetInstance ti = targetInstanceDao.load(harvestResultDTO.getTargetInstanceOid());
+		HarvestResult result = new ArcHarvestResult(harvestResultDTO, ti);
+		ti.getHarvestResults().add(result);
+		result.setState(ArcHarvestResult.STATE_INDEXING);
 
-			targetInstanceDao.save(result);
-			return result.getOid();
-		} else {
-			throw new IllegalArgumentException("Only supports ArcHarvestResults");
-		}
+		targetInstanceDao.save(result);
+		return result.getOid();
 	}
 
 	public void finaliseIndex(Long harvestResultOid) {
-		ArcHarvestResult ahr = (ArcHarvestResult) targetInstanceDao.getHarvestResult(harvestResultOid, false);
+		HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
 		ahr.setState(0);
-		harvestQaManager.triggerAutoQA(ahr);
+		harvestQaManager.triggerAutoQA((ArcHarvestResult) ahr);
 		targetInstanceDao.save(ahr);
 		// run the QA recommendation service to derive the Quality Indicators
 		harvestQaManager.initialiseQaRecommentationService(harvestResultOid);
@@ -1179,7 +1160,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 			Iterator<HarvestResult> it = results.iterator();
 			while (it.hasNext()) {
 				HarvestResult hr = it.next();
-				if (hr.getState() != HarvestResult.STATE_REJECTED) {
+				if (hr.getState() != ArcHarvestResult.STATE_REJECTED) {
 					// Rejected HRs have already had their indexes removed
 					// The endorsing process should mean there is only one none
 					// rejected HR
@@ -1194,7 +1175,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		try {
 			log.info("Attempting to remove indexes for TargetInstance " + hr.getTargetInstance().getOid() + " HarvestNumber "
 					+ hr.getHarvestNumber());
-			das.initiateRemoveIndexes(new ArcHarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr.getCreationDate(),
+			das.initiateRemoveIndexes(new HarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr.getCreationDate(),
 					hr.getHarvestNumber(), hr.getProvenanceNote()));
 		} catch (DigitalAssetStoreException e) {
 			log.error(MessageFormat.format(
@@ -1283,6 +1264,16 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	@Override
 	public HashMap<String, HarvestAgentStatusDTO> getHarvestAgents() {
 		return harvestAgentManager.getHarvestAgents();
+	}
+
+	@Override
+	public void recoverHarvests(String scheme, String host, int port, String service) {
+		HarvestAgentStatusDTO tempHarvestAgentStatusDTO = new HarvestAgentStatusDTO();
+		tempHarvestAgentStatusDTO.setScheme(scheme);
+		tempHarvestAgentStatusDTO.setHost(host);
+		tempHarvestAgentStatusDTO.setPort(port);
+		tempHarvestAgentStatusDTO.setService(service);
+		this.recoverHarvests(tempHarvestAgentStatusDTO);
 	}
 
 	public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {

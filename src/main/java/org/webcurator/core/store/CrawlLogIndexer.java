@@ -13,15 +13,14 @@ import java.io.PrintWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class CrawlLogIndexer extends IndexerBase {
-
 	//Static variables
 	private static Log log = LogFactory.getLog(CrawlLogIndexer.class);
 
 	//Passed in variables
-	private ArcHarvestResultDTO result;
+	private HarvestResultDTO result;
 	private File directory;
 	
 	//Spring initialised variables (to be copied in copy constructor)
@@ -56,7 +55,7 @@ public class CrawlLogIndexer extends IndexerBase {
 	}
 
 	@Override
-	protected ArcHarvestResultDTO getResult() {
+	protected HarvestResultDTO getResult() {
 		return result;
 	}
 
@@ -138,7 +137,7 @@ public class CrawlLogIndexer extends IndexerBase {
 	}
 	
 	@Override
-	public void initialise(ArcHarvestResultDTO result, File directory) {
+	public void initialise(HarvestResultDTO result, File directory) {
 		this.result = result;
 		this.directory = directory;
 	}

@@ -18,87 +18,58 @@ package org.webcurator.domain.model.core;
 import javax.persistence.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * An ARC Harvest Result is the content harvested by a Target Instance, or an
- * altered version of that content created through something like the copy
- * and prune use case.
+ * The <code>HarvestResult</code> class describes the result of a harvest. It
+ * contains and manages the resources. 
  * 
- * @author bbeaumont
- */
+ **/
+@SuppressWarnings("all")
 @Entity
 @Table(name = "ARC_HARVEST_RESULT")
 @PrimaryKeyJoinColumn(name = "AHRS_HARVEST_RESULT_OID")
 public class ArcHarvestResult extends HarvestResult {
-	/** The set of ARC files that make up this HarvestResult */
-	// cascade="save-update"
 	@OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
 	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID")
-	private Set<ArcHarvestFile> arcFiles;
-	
+	private Set<ArcHarvestFile> arcFiles = new HashSet<ArcHarvestFile>();
+
 	/**
-	 * No-arg constructor for this object.
+	 * Construct a new HarvestResult.
 	 */
-    public ArcHarvestResult() {
+	public ArcHarvestResult() {
         super();
-        arcFiles = new HashSet<ArcHarvestFile>();
-    }
-    
-    public ArcHarvestResult(TargetInstance aTargetInstance, int harvestNumber) { 
-    	this.targetInstance = aTargetInstance;
-    	this.creationDate = new Date();
-    	this.createdBy = aTargetInstance.getOwner();
-    	this.harvestNumber = harvestNumber;
-    }
-    
-    /**
-     * Create an ArcHarvestResult from its DTO.
-     * @param aResultDTO The DTO.
-     * @param aTargetInstance The TargetInstance that this HarvestResult
-     * 						  belongs to.
-     */
-    public ArcHarvestResult(ArcHarvestResultDTO aResultDTO, TargetInstance aTargetInstance) {
-        super();
-        arcFiles = new HashSet<ArcHarvestFile>();
-        targetInstance = aTargetInstance;
-        harvestNumber = aResultDTO.getHarvestNumber();
-        provenanceNote = aResultDTO.getProvenanceNote();
-        creationDate = aResultDTO.getCreationDate();
-        createdBy = aTargetInstance.getOwner();
-        
-        ArcHarvestResource harvestResource = null;
-        ArcHarvestResourceDTO harvestResourceDTO = null;
-        String key = "";        
-        Map resourceDtos = aResultDTO.getResources();
-        Iterator it = resourceDtos.keySet().iterator();
-        while (it.hasNext()) {
-            key = (String) it.next();
-            harvestResourceDTO = (ArcHarvestResourceDTO) resourceDtos.get(key);
-            harvestResource = new ArcHarvestResource(harvestResourceDTO, this);
-            resources.put(key, harvestResource);
-        }
-        
-        ArcHarvestFile file = null;
-        ArcHarvestFileDTO fileDTO = null;
-        
-        if(aResultDTO.getArcFiles() != null) { 
-	        Set arcDTOs = aResultDTO.getArcFiles();
-	        it = arcDTOs.iterator();
-	        while (it.hasNext()) {
-	            fileDTO = (ArcHarvestFileDTO) it.next();
-	            file = new ArcHarvestFile(fileDTO, this);
-	            arcFiles.add(file);
-	        }
-        }
-    }
-    
+	}
+
+	public ArcHarvestResult(TargetInstance aTargetInstance, int harvestNumber) {
+		super(aTargetInstance, harvestNumber);
+	}
+
 	/**
-	 * Get the set of ARC files that make up this HarvestResult. 
+	 * Create an HarvestResult from its DTO.
+	 * @param aResultDTO The DTO.
+	 * @param aTargetInstance The TargetInstance that this HarvestResult
+	 * 						  belongs to.
+	 */
+	public ArcHarvestResult(HarvestResultDTO aResultDTO, TargetInstance aTargetInstance) {
+		super(aResultDTO, aTargetInstance);
+
+		aResultDTO.getResources().forEach((key,value)->{
+			ArcHarvestResourceDTO harvestResourceDTO = (ArcHarvestResourceDTO)value;
+			ArcHarvestResource harvestResource = new ArcHarvestResource(harvestResourceDTO, this);
+			this.getResources().put(key, harvestResource);
+		});
+
+		if(aResultDTO.getArcFiles() != null) {
+			aResultDTO.getArcFiles().forEach(value->{
+				ArcHarvestFile file = new ArcHarvestFile(value, this);
+				this.arcFiles.add(file);
+			});
+		}
+	}
+
+	/**
+	 * Get the set of ARC files that make up this HarvestResult.
 	 * @return the set of ARC files that make up this HarvestResult
 	 */
 	public Set<ArcHarvestFile> getArcFiles() {
@@ -112,7 +83,7 @@ public class ArcHarvestResult extends HarvestResult {
 	public void setArcFiles(Set<ArcHarvestFile> arcFiles) {
 		this.arcFiles = arcFiles;
 	}
-	
+
 	/**
 	 * Create an index for this HarvestResult, assuming that all ARC Files
 	 * are in the basedir provided.
@@ -124,15 +95,15 @@ public class ArcHarvestResult extends HarvestResult {
 			this.getResources().putAll(ahf.index(baseDir));
 		}
 	}
-    
+
 	/**
-	 * Create an index for this HarvestResult, assuming that each ARC File is 
+	 * Create an index for this HarvestResult, assuming that each ARC File is
 	 * in the base directory that it states in the ArcHarvestFile object.
 	 * @throws IOException if the indexing fails.
 	 */
-    public void index() throws IOException {
-        for(ArcHarvestFile ahf: arcFiles) {
-            this.getResources().putAll(ahf.index());
-        }
-    }
+	public void index() throws IOException {
+		for(ArcHarvestFile ahf: arcFiles) {
+			this.getResources().putAll(ahf.index());
+		}
+	}
 }

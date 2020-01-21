@@ -32,15 +32,8 @@ import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.Annotation;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Indicator;
-import org.webcurator.domain.model.core.IndicatorCriteria;
-import org.webcurator.domain.model.core.IndicatorReportLine;
-import org.webcurator.domain.model.core.Profile;
-import org.webcurator.domain.model.core.ProfileOverrides;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
@@ -50,6 +43,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  * The implementation of the Target Instance Manager interface.
  * @author nwaight
  */
+@SuppressWarnings("all")
 public class TargetInstanceManagerImpl implements TargetInstanceManager {
 	/** The Data access object for target instances. */
     private TargetInstanceDAO targetInstanceDao;
@@ -135,11 +129,12 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
     /** @see TargetInstanceManager#delete(TargetInstance). */
     public void delete(TargetInstance aTargetInstance) {
     	aTargetInstance.setTarget(null);
-    	if(aTargetInstance.getSchedule() != null)
-    	{
+    	//TODO: to be refined, uncessary remove from schedule entity
+//    	if(aTargetInstance.getSchedule() != null)
+//    	{
     		//remove this target instance from any schedules it is associated with
-    		aTargetInstance.getSchedule().getTargetInstances().remove(aTargetInstance);
-    	}
+//    		aTargetInstance.getSchedule().getTargetInstances().remove(aTargetInstance);
+//    	}
     	
     	targetInstanceDao.delete(aTargetInstance);
     	auditor.audit(TargetInstance.class.getName(), aTargetInstance.getOid(), Auditor.ACTION_DELETE_TARGET_INSTANCE, "The TargetInstance '"+ aTargetInstance.getOid() +"' has been deleted");
@@ -185,8 +180,6 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
 			}
 		}
 
-		
-		
 		targetInstanceDao.save(aTargetInstance);
 
 		if (aTargetInstance.getAnnotations() != null && !aTargetInstance.getAnnotations().isEmpty()) {
@@ -211,8 +204,8 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
 		}
 	}    
 	
-	public void save(HarvestResult aHarvestResult) {
-		targetInstanceDao.save(aHarvestResult);
+	public void save(ArcHarvestResult aArcHarvestResult) {
+		targetInstanceDao.save(aArcHarvestResult);
 	}
 	
 	public void saveOrUpdate(Indicator indicator) {

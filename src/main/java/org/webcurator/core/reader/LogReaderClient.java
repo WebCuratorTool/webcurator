@@ -18,21 +18,22 @@ package org.webcurator.core.reader;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
-import javax.activation.DataHandler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -40,33 +41,14 @@ import java.util.Map;
 /**
  * Log Reader client for communicating with a remote log reader.
  */
-public class LogReaderClient implements LogReader {
-    /** the logger. */
-    private static Log log = LogFactory.getLog(LogReaderClient.class);
-    /** The name of the host to communicate with. */
-    private String host;
-    /** the port to communicate on. */
-    private int port;
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
-
+public class LogReaderClient extends AbstractRestClient implements LogReader {
     /**
      * Constructor to initialise the host, port and service.
      * @param host the name of the host
      * @param port the port number
      */
-    public LogReaderClient(String host, int port) {
-        this.host = host;
-        this.port = port;
-        restTemplateBuilder.errorHandler(new RestClientResponseHandler());
-    }
-
-    public String baseUrl() {
-        return host + ":" + port;
-    }
-
-    public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
+    public LogReaderClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
+       super(scheme, host, port, restTemplateBuilder);
     }
 
     /* (non-Javadoc)
@@ -85,11 +67,13 @@ public class LogReaderClient implements LogReader {
      * @see org.webcurator.core.reader.LogReader#listLogFileAttributes(java.lang.String)
      */
     public List<LogFilePropertiesDTO> listLogFileAttributes(String job) {
+        Map<String, String> pathVariables = ImmutableMap.of("job", job);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_PROPERTIES));
+
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        Map<String, String> pathVariables = ImmutableMap.of("job", job);
         ResponseEntity<List<LogFilePropertiesDTO>> listResponse = restTemplate.exchange(
-                getUrl(LogReaderPaths.LOG_FILE_PROPERTIES),
+                uriComponentsBuilder.buildAndExpand(pathVariables).toUriString(),
                 HttpMethod.GET, null, new ParameterizedTypeReference<List<LogFilePropertiesDTO>>() { },
                 pathVariables);
 
@@ -234,21 +218,17 @@ public class LogReaderClient implements LogReader {
     }
 
     public File retrieveLogfile(String job, String filename) {
-        RestTemplate restTemplate = restTemplateBuilder.build();
+         try {
+            Map<String, String> pathVariables = ImmutableMap.of("job", job);
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_RETRIEVE_LOG_FILE)).queryParam("filename", filename);
+            URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_RETRIEVE_LOG_FILE))
-                .queryParam("filename", filename);
-
-        Map<String, String> pathVariables = ImmutableMap.of("job", job);
-        ResponseEntity<DataHandler> listResponse = restTemplate.exchange(
-                uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                HttpMethod.GET, null, new ParameterizedTypeReference<DataHandler>() { });
-        DataHandler dataHandler = listResponse.getBody();
-
-        try {
             File file = File.createTempFile("wct", "tmp");
-            dataHandler.writeTo(new FileOutputStream(file));
-            return file;
+            int bytes = StreamUtils.copy(url.openStream(),new FileOutputStream(file));
+            if(bytes > 0){
+                return file;
+            }
+            return null;
         } catch (IOException ex) {
             throw new WCTRuntimeException("Failed to retrieve logfile " + filename + " for " + job + ": " + ex.getMessage(), ex);
         }

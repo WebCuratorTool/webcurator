@@ -16,26 +16,26 @@
 package org.webcurator.core.harvester.agent;
 
 import org.webcurator.core.reader.LogReader;
+import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 /**
  * Interface for a factory to create instances of a HarvestAgent.
+ *
  * @author nwaight
  */
 public interface HarvestAgentFactory {
     /**
-     * Return an instance of the harvest agent running on the 
+     * Return an instance of the harvest agent running on the
      * specified host, port and service name.
-     * @param aHost the name of the host
-     * @param aPort the port
+     *
      * @return the Harvest Agent
      */
-    HarvestAgent getHarvestAgent(String aHost, int aPort);
-    
+    HarvestAgent getHarvestAgent(HarvestAgentStatusDTO harvestAgentStatusDTO);
+
     /**
      * Return an instance of the log reader running on the specified host and port
-     * @param aHost the name of the host
-     * @param aPort the port
+     *
      * @return the log reader
      */
-    LogReader getLogReader(String aHost, int aPort);
+    LogReader getLogReader(HarvestAgentStatusDTO harvestAgentStatusDTO);
 }

@@ -32,6 +32,8 @@ public class HarvestAgentStatusDTO {
     private String name;
     /** the harvester type of the harvest agent. */
     private String harvesterType;
+    /** the protocol type of the harvest agent. */
+    private String scheme;
     /** the host name of the harvest agent. */
     private String host;
     /** the port of the harvest agent. */
@@ -101,6 +103,20 @@ public class HarvestAgentStatusDTO {
         }
         
         return harvesterStatus.size();
+    }
+
+    /**
+     * @return Returns the scheme
+     */
+    public String getScheme() {
+        return scheme;
+    }
+
+    /**
+     * @param scheme The scheme of the harvest agent
+     */
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
     }
 
     /**

@@ -15,7 +15,6 @@
  */
 package org.webcurator.core.store.tools;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
@@ -28,12 +27,7 @@ import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.ArcHarvestResult;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
-import org.webcurator.domain.model.core.HarvestResource;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 
 /**
  * This facade provides the methods required for the Quality Review Tools.
@@ -210,12 +204,12 @@ public class QualityReviewFacade {
 		digialAssetStore.copyAndPrune(ti.getJobName(), res.getHarvestNumber(), ti.getHarvestResults().size()+1, urisToDelete, hrsToImport);
 		
 		// Create the base record.
-        ArcHarvestResult hr = new ArcHarvestResult(ti, ti.getHarvestResults().size()+1);
+        HarvestResult hr = new ArcHarvestResult(ti, ti.getHarvestResults().size()+1);
 		hr.setDerivedFrom(res.getHarvestNumber());
         hr.setProvenanceNote(provenanceNote);
         hr.addModificationNotes(modificationNotes);
 		hr.setTargetInstance(ti);
-		hr.setState(HarvestResult.STATE_INDEXING);
+		hr.setState(ArcHarvestResult.STATE_INDEXING);
 		if (AuthUtil.getRemoteUserObject() != null) {
 			hr.setCreatedBy(AuthUtil.getRemoteUserObject());
 		} else {
@@ -229,13 +223,13 @@ public class QualityReviewFacade {
 		targetInstanceDao.save(ti);
 		
 		// Ask the Digital Asset Store to create the index.
-		digialAssetStore.initiateIndexing(new ArcHarvestResultDTO( hr.getOid(), hr.getTargetInstance().getOid(), hr.getCreationDate(), hr.getHarvestNumber(), hr.getProvenanceNote() ));
+		digialAssetStore.initiateIndexing(new HarvestResultDTO( hr.getOid(), hr.getTargetInstance().getOid(), hr.getCreationDate(), hr.getHarvestNumber(), hr.getProvenanceNote() ));
 		
 		// Audit the completion of the copy and prune.
 		auditor.audit(ArcHarvestResult.class.getName(), hr.getOid(), Auditor.ACTION_COPY_AND_PRUNE_HARVEST_RESULT, "Created pruned harvest result " + ti.getHarvestResults().size() + " from harvest result " + res.getHarvestNumber() + " for target instance " + ti.getOid());
 		
 		// Return the HarvestResult.
-		return hr;        
+		return hr;
 	}
 
 	/**

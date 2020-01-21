@@ -18,9 +18,13 @@ package org.webcurator.core.harvester.coordinator;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
+import java.util.Map;
+
 /**
  * The <code>HarvestAgentListener</code> is a service that 
- * listens for messages from a <code>HarvestAgent</code>.
+ * listens for messages from a <code>Crawler</code> and
+ * forward the messages to a <code>Store</code> and a
+ * <code>Webapp</code>.
  * The messages may either be the current status of the agent
  * or a <code>HarvestResult</code> for a completed harvest.
  * @author nwaight
@@ -33,12 +37,10 @@ public interface HarvestAgentListener {
     void heartbeat(HarvestAgentStatusDTO aStatus);
 
     /**
-     *
-     * @param haHost
-     * @param haPort
-     * @param haService
+     * Recover connection
+     * @param aStatus: the current agent status (scheme, host, port, service)
      */
-    void requestRecovery(String haHost, int haPort, String haService);
+    void requestRecovery(HarvestAgentStatusDTO aStatus);
     
     /** 
      * Gets the result of a complete harvest.

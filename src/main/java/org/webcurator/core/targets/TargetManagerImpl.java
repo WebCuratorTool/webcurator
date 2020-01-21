@@ -75,11 +75,12 @@ import org.webcurator.common.ui.target.TargetEditorContext;
  * @see TargetManager
  * @author bbeaumont
  */
+@SuppressWarnings("all")
 public class TargetManagerImpl implements TargetManager {
 	/** The logger for the Target Manager */
 	private static Log log = LogFactory.getLog(TargetManagerImpl.class);
 	/** The DAO for saving targets. */
-	private TargetDAO targetDao = null;;
+	private TargetDAO targetDao = null;
 	/** The DAO for loading sites & permissions */
 	private SiteDAO siteDao = null;
 	/** The DAO for loading/saving annotations */
@@ -131,8 +132,20 @@ public class TargetManagerImpl implements TargetManager {
 		boolean newSchedulesAddedByNonOwner = false;
 		boolean wasHarvestNowSelected = aTarget.isHarvestNow();
 
-		// If dirty and the current state is approved, we need to change the
-		// state back to nominated.
+		// Load the original target so we can do auditing afterwards.
+		AbstractTargetDTO originalTarget = null;
+		if (!aTarget.isNew()) {
+			originalTarget = targetDao.loadAbstractTargetDTO(aTarget.getOid());
+			// targetDao.evict(originalTarget);
+		}
+
+		// Get the original parents
+		Set<AbstractTargetDTO> origParents = Collections.EMPTY_SET;
+		if (!aTarget.isNew()) {
+			origParents = targetDao.getAncestorDTOs(aTarget.getOid());
+		}
+
+		// If dirty and the current state is approved, we need to change the state back to nominated.
 		if (aTarget.isDirty() && aTarget.getOriginalState() == Target.STATE_APPROVED
 				&& !authMgr.hasPrivilege(aTarget, Privilege.APPROVE_TARGET)) {
 			log.debug("Target state changed to nominated due to changes");
@@ -149,14 +162,30 @@ public class TargetManagerImpl implements TargetManager {
 
 		// Deal with removed schedules
 		for (Schedule schedule : aTarget.getRemovedSchedules()) {
-			targetInstanceDao.deleteScheduledInstances(schedule);
-			schedule.setTargetInstances(new HashSet<TargetInstance>());
-			targetInstanceDao.save(schedule);
+			//			TODO: for debug
+//			targetInstanceDao.deleteScheduledInstances(schedule);
+//			schedule.setTargetInstances(new HashSet<TargetInstance>());
+//			targetInstanceDao.save(schedule);
+
+			schedule.getTargetInstances().forEach(targetInstance -> {
+				if(targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)){
+					targetInstanceDao.delete(targetInstance);
+				}else{
+				    //Set the existing entity to null
+				    targetInstance.setSchedule(null);
+				    targetInstanceDao.save(targetInstance);
+                }
+			});
+			targetDao.delete(schedule);
+			log.debug("Delete schedule: "+schedule.getOid());
 		}
 
+		// TODO: To be refined
 		// Deal with new schedules
+        Set<Schedule> schedules=aTarget.getSchedules();
+
 		List<Schedule> newSchedules = new LinkedList<Schedule>();
-		for (Schedule schedule : aTarget.getSchedules()) {
+		for (Schedule schedule : schedules) {
 			if(schedule.isNew()) {
 				// Record the schedule for auditing after save.
 				newSchedules.add(schedule);
@@ -164,42 +193,34 @@ public class TargetManagerImpl implements TargetManager {
 				// Flag that this schedule is going to be processed (only used when Target saved in Annotations tab)
 				schedule.setSavedInThisSession(true);
 				
-				// Send a notification if the schedule owner is not the same as
-				// the owner of the target.
+				// Send a notification if the schedule owner is not the same as the owner of the target.
 				if (!schedule.getOwningUser().equals(aTarget.getOwningUser())) {
 					newSchedulesAddedByNonOwner = true;
 				}
+			} else if(schedule.isSavedInThisSession()){ // If this schedule is not new and has already been saved via adding an annotation then it is in a buggy state.
+					//TODO: for debug
+//					targetInstanceDao.deleteScheduledInstances(schedule);
+					schedule.getTargetInstances().forEach(targetInstance -> {
+						if(targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)){
+							targetInstanceDao.delete(targetInstance);
+						}else{
+                            //Set the existing entity to null
+                            targetInstance.setSchedule(null);
+                            targetInstanceDao.save(targetInstance);
+                        }
+					});
+                    targetDao.delete(schedule);
+                    log.debug("schedule.isSavedInThisSession: "+schedule.getOid());
 			}
-			else {
-				// If this schedule is not new and has already been saved via adding an annotation then it is in a buggy state.
-				if(schedule.isSavedInThisSession()){
-					targetInstanceDao.deleteScheduledInstances(schedule);
-					schedule.setTargetInstances(new HashSet<TargetInstance>());
-					targetInstanceDao.save(schedule);
-				}
-			}
-		}
+        }
 		
 		if(aTarget.getState()==Target.STATE_COMPLETED && newSchedules.size()!=0) {
 			aTarget.changeState(Target.STATE_APPROVED);
-		}
-		
-		// Load the original target so we can do auditing afterwards.
-		AbstractTargetDTO originalTarget = null;
-		if (!aTarget.isNew()) {
-			originalTarget = targetDao.loadAbstractTargetDTO(aTarget.getOid());
-			// targetDao.evict(originalTarget);
 		}
 
 		/* ---------------------------------------------------------------- */
 		/* Deal with the scheduling state changes */
 		/* ---------------------------------------------------------------- */
-
-		// Get the original parents
-		Set<AbstractTargetDTO> origParents = Collections.EMPTY_SET;
-		if (!aTarget.isNew()) {
-			origParents = targetDao.getAncestorDTOs(aTarget.getOid());
-		}
 
 		// Save the target.
 		log.debug("Saving Target");
@@ -580,7 +601,7 @@ public class TargetManagerImpl implements TargetManager {
 	/**
 	 * @param addedParents
 	 * @param removedParents
-	 * @return
+	 * @return notifications
 	 */
 	private HashMap<Long, GroupChangeNotification> getChanges(Set<AbstractTargetDTO> addedParents,
 			Set<AbstractTargetDTO> removedParents) {
@@ -740,34 +761,16 @@ public class TargetManagerImpl implements TargetManager {
 		int[] emptyArray = new int[] { };
 		switch (aTarget.getOriginalState()) {
 		case Target.STATE_PENDING:
-			return authMgr.hasPrivilege(aTarget, Privilege.APPROVE_TARGET) ? 
-    				new int[] { Target.STATE_NOMINATED, Target.STATE_APPROVED, Target.STATE_REJECTED } :
-    				new int[] { Target.STATE_NOMINATED };
 		case Target.STATE_REINSTATED:
-    		return authMgr.hasPrivilege(aTarget, Privilege.APPROVE_TARGET) ?
-    				new int[] { Target.STATE_NOMINATED, Target.STATE_APPROVED, Target.STATE_REJECTED } :
-    				new int[] { Target.STATE_NOMINATED };
+			return authMgr.hasPrivilege(aTarget, Privilege.APPROVE_TARGET) ? new int[] { Target.STATE_NOMINATED, Target.STATE_APPROVED, Target.STATE_REJECTED } : new int[] { Target.STATE_NOMINATED };
 		case Target.STATE_NOMINATED:
-    		return authMgr.hasPrivilege(aTarget, Privilege.APPROVE_TARGET) ?
-    				new int[] { Target.STATE_APPROVED, Target.STATE_REJECTED } :
-    				emptyArray;
-		case Target.STATE_REJECTED:
-    		return authMgr.hasPrivilege(aTarget, Privilege.REINSTATE_TARGET) ?
-    				new int[] { Target.STATE_REINSTATED } :
-    				emptyArray;
+    		return authMgr.hasPrivilege(aTarget, Privilege.APPROVE_TARGET) ? new int[] { Target.STATE_APPROVED, Target.STATE_REJECTED } : emptyArray;
 		case Target.STATE_APPROVED:
-    		return authMgr.hasPrivilege(aTarget, Privilege.CANCEL_TARGET) ?
-    				new int[] { Target.STATE_CANCELLED } :
-    				emptyArray;
+    		return authMgr.hasPrivilege(aTarget, Privilege.CANCEL_TARGET) ?	new int[] { Target.STATE_CANCELLED } :	emptyArray;
+		case Target.STATE_REJECTED:
 		case Target.STATE_CANCELLED:
-    		return authMgr.hasPrivilege(aTarget, Privilege.REINSTATE_TARGET) ?
-    				new int[] { Target.STATE_REINSTATED } :
-    				emptyArray;
 		case Target.STATE_COMPLETED:
-    		return authMgr.hasPrivilege(aTarget, Privilege.REINSTATE_TARGET) ?
-    				new int[] { Target.STATE_REINSTATED } :
-    				emptyArray;
-
+			return authMgr.hasPrivilege(aTarget, Privilege.REINSTATE_TARGET) ? new int[] { Target.STATE_REINSTATED } : emptyArray;
 		default:
 			return emptyArray;
 		}
@@ -944,7 +947,7 @@ public class TargetManagerImpl implements TargetManager {
 		}
 	}
 
-	/** @see TargetManager#isTargetUsingAQA(Long targetOid). */
+	/** */
 	public boolean isTargetUsingAQA(Long targetOid) {
 
 		Target target = targetDao.load(targetOid, false);
@@ -984,35 +987,30 @@ public class TargetManagerImpl implements TargetManager {
 	}
 
 	/**
-	 * @see TargetManager#getMembers(TargetGroup, int)
 	 */
 	public Pagination getMembers(TargetGroup aTargetGroup, int pageNum, int pageSize) {
 		return targetDao.getMembers(aTargetGroup, pageNum, pageSize);
 	}
 
 	/**
-	 * @see TargetManager#getParents(AbstractTarget, int)
 	 */
 	public Pagination getParents(AbstractTarget aTarget, int pageNum, int pageSize) {
 		return targetDao.getParents(aTarget, pageNum, pageSize);
 	}
 
 	/**
-	 * @see TargetManager#getAbstractTargetDTOs(String, int)
 	 */
 	public Pagination getAbstractTargetDTOs(String name, int pageNumber, int pageSize) {
 		return targetDao.getAbstractTargetDTOs(name, pageNumber, pageSize);
 	}
 
 	/**
-	 * @see TargetManager#getAbstractTargetDTOs(String, int)
 	 */
 	public Pagination getGroupDTOs(String name, int pageNumber, int pageSize) {
 		return targetDao.getGroupDTOs(name, pageNumber, pageSize);
 	}
 
 	/**
-	 * @see TargetManager#getAbstractTargetDTOs(String, int)
 	 */
 	public Pagination getSubGroupParentDTOs(String name, int pageNumber, int pageSize) {
 
@@ -1027,7 +1025,6 @@ public class TargetManagerImpl implements TargetManager {
 	}
 
 	/**
-	 * @see TargetManager#getAbstractTargetDTOs(String, int)
 	 */
 	public Pagination getNonSubGroupDTOs(String name, int pageNumber, int pageSize) {
 
@@ -1051,7 +1048,6 @@ public class TargetManagerImpl implements TargetManager {
 	}
 
 	/**
-	 * @see TargetManager#searchGroups(int, int, Long, String, String, String, String, String)
 	 */
 	public Pagination searchGroups(int pageNumber, int pageSize, Long searchOid, String name, String owner, String agency,
 			String memberOf, String groupType, boolean nondisplayonly) {

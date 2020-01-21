@@ -22,13 +22,8 @@ import java.util.List;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.Annotation;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Indicator;
-import org.webcurator.domain.model.core.IndicatorCriteria;
-import org.webcurator.domain.model.core.IndicatorReportLine;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 
@@ -130,9 +125,9 @@ public interface TargetInstanceManager {
 
     /**
      * Save the specified HarvestResult.
-     * @param aHarvestResult the HarvestResult to save
+     * @param aArcHarvestResult the HarvestResult to save
      */
-    void save(HarvestResult aHarvestResult);    
+    void save(ArcHarvestResult aArcHarvestResult);
     
     /**
      * Save the specified <code>Indicator</code>.

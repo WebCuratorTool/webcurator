@@ -31,6 +31,7 @@ import java.util.*;
  * @author bbeaumont
  */
 // lazy="true"
+@SuppressWarnings("all")
 @Entity
 @Table(name = "ABSTRACT_TARGET")
 @NamedQueries({
@@ -106,7 +107,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @Column(name = "AT_DESC", length = 4000)
     private String description;
     /** The schedules related to the target. */
-	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
+	@OneToMany(cascade = CascadeType.ALL) // default fetch type is LAZY {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
 	@JoinColumn(name = "S_ABSTRACT_TARGET_ID")
     private Set<Schedule> schedules = new HashSet<Schedule>();
     /** Owner of the target **/
@@ -173,7 +174,6 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     /** The Profile Note */
     @Column(name = "AT_PROFILE_NOTE", length = 255)
     private String profileNote = null;
-
 
 	@Transient
 	private List<GroupMember> newParents = new LinkedList<GroupMember>();
@@ -561,7 +561,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 			removedSchedules.add(aSchedule);
 		}
 	}	
-	
+
 	/**
 	 * Gets the set of persisted schedules that have been removed from the 
 	 * AbstractTarget and therefore need to be removed from the database. 
@@ -615,7 +615,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	 * @return The set of seeds that belong to this target.
 	 */
 	public abstract Set<Seed> getSeeds();
-	
+
 	/**
 	 * Is the target now schedulable?
 	 * @return True if the new state of the target is schedulable.

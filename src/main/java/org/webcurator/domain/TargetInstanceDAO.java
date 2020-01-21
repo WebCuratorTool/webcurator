@@ -20,11 +20,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.webcurator.domain.model.core.AbstractTarget;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Schedule;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
@@ -38,7 +34,6 @@ public interface TargetInstanceDAO {
 	 * Retrurn a list of TargetInstances that match the specified criteria.
 	 * As this method does not return a pagination it should not be used when 
 	 * rendering a ui search result.
-	 * @see #search(TargetInstanceCriteria, int)
 	 * @param aCriteria the search criteria
 	 * @return the list of TargetInstances
 	 */
@@ -78,15 +73,15 @@ public interface TargetInstanceDAO {
      * @return the HarvestResult
      */
 	HarvestResult getHarvestResult(final Long harvestResultOid);
-	
+
     /**
      * Load the specified harvest result from the persistent data store.
      * @param harvestResultOid the id of the harvest result to load.
      * @param loadFully true to load the target instance and resources.
      * @return the HarvestResult
      */
-	HarvestResult getHarvestResult(final Long harvestResultOid, boolean loadFully);	
-	
+	HarvestResult getHarvestResult(final Long harvestResultOid, boolean loadFully);
+
 	/**
 	 * Return the Harvest Resource DTO specified from the persistent data store.
 	 * @param harvestResultOid the id of the harvest result the resource belongs to
@@ -180,8 +175,8 @@ public interface TargetInstanceDAO {
 	void deleteHarvestResultResources(final Long harvestResultId); 
 	
 	/**
-	 * Remove the harvest files for a specified ArcHarvestResult.
-	 * @param harvestResultId the ArcHarvestResult for which to delete files
+	 * Remove the harvest files for a specified HarvestResult.
+	 * @param harvestResultId the HarvestResult for which to delete files
 	 */
 	void deleteHarvestResultFiles(final Long harvestResultId); 
 	

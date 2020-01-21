@@ -1,18 +1,12 @@
 package org.webcurator.core.harvester.agent;
 
 import org.webcurator.core.reader.*;
+import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 public class MockHarvestAgentFactory implements HarvestAgentFactory {
-
 	static MockHarvestAgent agent = null;
-	
-	public HarvestAgent getHarvestAgent(String host, int port) {
-		
-		return getMockHarvestAgent();
-	}
 
 	public MockHarvestAgent getMockHarvestAgent() {
-		
 		if(agent == null)
 		{
 			agent = new MockHarvestAgent(); 
@@ -20,9 +14,13 @@ public class MockHarvestAgentFactory implements HarvestAgentFactory {
 		return agent;
 	}
 
-	public LogReader getLogReader(String host, int port) {
-		// TODO Auto-generated method stub
-		return new MockLogReader();
+	@Override
+	public HarvestAgent getHarvestAgent(HarvestAgentStatusDTO harvestAgentStatusDTO) {
+		return getMockHarvestAgent();
 	}
 
+	@Override
+	public LogReader getLogReader(HarvestAgentStatusDTO harvestAgentStatusDTO) {
+		return new MockLogReader();
+	}
 }

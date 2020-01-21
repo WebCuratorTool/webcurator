@@ -1,36 +1,31 @@
 package org.webcurator.core.store;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.webcurator.core.reader.LogReaderClient;
 import org.webcurator.core.reader.LogReader;
 
+
 /**
- * Factory to create DigitalAssetStore instances that use SOAP to communicate 
+ * Factory to store DigitalAssetStore and LogReader instances that use Restful API to communicate
  * with a remote DigitalAssetStore
+ *
  * @author kurwin
  */
 public class DigitalAssetStoreFactoryImpl implements DigitalAssetStoreFactory {
-	private DigitalAssetStoreConfig digitalAssetStoreConfig;
+    private DigitalAssetStore digitalAssetStore;
+    private LogReader logReader;
 
     public DigitalAssetStore getDAS() {
-        DigitalAssetStoreClient store = new DigitalAssetStoreClient(digitalAssetStoreConfig.getHost(),
-                digitalAssetStoreConfig.getPort(),
-                new RestTemplateBuilder());
+        return this.digitalAssetStore;
+    }
 
-        return store;
+    public void setDAS(DigitalAssetStore digitalAssetStore){
+        this.digitalAssetStore = digitalAssetStore;
     }
-    
+
     public LogReader getLogReader() {
-        return new LogReaderClient(digitalAssetStoreConfig.getHost(), digitalAssetStoreConfig.getPort());
+        return this.logReader;
     }
-    
-    public void setDigitalAssetStoreConfig(DigitalAssetStoreConfig digitalAssetStoreConfig)
-    {
-        this.digitalAssetStoreConfig = digitalAssetStoreConfig;
-    }
-    
-    public DigitalAssetStoreConfig getDigitalAssetStoreConfig()
-    {
-    	return digitalAssetStoreConfig;
+
+    public void setLogReader(LogReader logReader){
+        this.logReader = logReader;
     }
 }

@@ -8,12 +8,12 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.IndexerBase;
 import org.webcurator.core.store.RunnableIndex;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class CDXIndexer extends IndexerBase{
 	private static Log log = LogFactory.getLog(CDXIndexer.class);
 
-	private ArcHarvestResultDTO result;
+	private HarvestResultDTO result;
 	private File directory;
 	private boolean enabled = false;
 
@@ -76,13 +76,13 @@ public class CDXIndexer extends IndexerBase{
 	}
 
 	@Override
-	public void initialise(ArcHarvestResultDTO result, File directory) {
+	public void initialise(HarvestResultDTO result, File directory) {
 		this.result = result;
 		this.directory = directory;
 	}
 
 	@Override
-	protected ArcHarvestResultDTO getResult() {
+	protected HarvestResultDTO getResult() {
 		return result;
 	}
 

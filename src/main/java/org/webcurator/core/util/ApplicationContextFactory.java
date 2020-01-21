@@ -15,12 +15,12 @@
  */
 package org.webcurator.core.util;
 
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 
 /**
- * The ApplicationContextFactory holds a reference to the WebApplicationContext so that
- * the Spring WebApplicationContext can be accessed by objects that do not have access 
+ * The ApplicationContextFactory holds a reference to the ApplicationContext so that
+ * the Spring ApplicationContext can be accessed by objects that do not have access
  * to the ServletContext.
  * @author nwaight
  */
@@ -30,48 +30,48 @@ public class ApplicationContextFactory {
     /** the singleton instance of the ApplicationContextFactory. */
     private static ApplicationContextFactory instance = null;
     /** the spring application context. */
-    private WebApplicationContext wac = null;
+    private ApplicationContext ctx = null;
     
     /**
-     * private constructor taking the WebApplicationContext
-     * @param aWebApplicationContext the applications WebApplicationContext
+     * private constructor taking the ApplicationContext
+     * @param argCtx the applications ApplicationContext
      */ 
-    private ApplicationContextFactory(WebApplicationContext aWebApplicationContext) {
+    private ApplicationContextFactory(ApplicationContext argCtx) {
         super();
-        wac = aWebApplicationContext;
+        ctx = argCtx;
     }
     
     /**
-     * Set the WebApplicationContext.
-     * @param aWebApplicationContext the WebApplicationContext to set
+     * Set the ApplicationContext.
+     * @param argCtx the ApplicationContext to set
      */
-    public static void setWebApplicationContext(WebApplicationContext aWebApplicationContext) {
+    public static void setApplicationContext(ApplicationContext argCtx) {
         synchronized (mutex) {
             if (instance == null) {
-                instance = new ApplicationContextFactory(aWebApplicationContext);
+                instance = new ApplicationContextFactory(argCtx);
             }
             else {
-                instance.wac = aWebApplicationContext;
+                instance.ctx = argCtx;
             }
         }
     }
 
     /**
-     * @return the WebApplicationContext.
+     * @return the ApplicationContext.
      */
-    public static WebApplicationContext getWebApplicationContext() {
+    public static ApplicationContext getApplicationContext() {
        return instance.getContext();
     }
     
     /** 
-     * Return the WebApplicationContext stored by this instance.
-     * @return the WebApplicationContext
+     * Return the ApplicationContext stored by this instance.
+     * @return the ApplicationContext
      */
-    private WebApplicationContext getContext() {
-        if (wac != null) {
-            return wac;
+    private ApplicationContext getContext() {
+        if (ctx != null) {
+            return ctx;
         }
         
-        throw new WCTRuntimeException("The ApplicationContextFactory has not been intitalised.");
+        throw new WCTRuntimeException("The ApplicationContextFactory has not been initialised.");
     }    
 }

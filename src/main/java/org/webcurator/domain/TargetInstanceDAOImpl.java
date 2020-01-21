@@ -31,14 +31,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
+import org.hibernate.criterion.*;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Expression;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
@@ -48,14 +43,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.Auditor;
-import org.webcurator.domain.model.core.AbstractTarget;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.GroupMember;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Schedule;
-import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
@@ -64,6 +52,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  * The implementation of the TargetInstanceDAO interface.
  * @author nwaight
  */
+@SuppressWarnings("all")
 @Transactional
 public class TargetInstanceDAOImpl extends HibernateDaoSupport implements TargetInstanceDAO {
 	
@@ -205,7 +194,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     public Object doInTransaction(TransactionStatus ts) {
                         try { 
                             log.debug("Before deleting harvest result files");
-							currentSession().createQuery("DELETE ArcHarvestFile WHERE harvestResult.oid=:hrOid").setLong("hrOid", harvestResultId)
+							currentSession().createQuery("DELETE ArcHarvestFile WHERE arcHarvestResult.oid=:hrOid").setLong("hrOid", harvestResultId)
 									.executeUpdate();
                             log.debug("After deleting harvest result files");
                         }
@@ -246,30 +235,29 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		return (TargetInstance) getHibernateTemplate().load(TargetInstance.class, targetInstanceOid);
 	}
 	
-	
-	
-	public HarvestResult getHarvestResult(final Long harvestResultOid) {
+
+	public ArcHarvestResult getHarvestResult(final Long harvestResultOid) {
 		return getHarvestResult(harvestResultOid, true);
 	}
-	
-	public HarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
-		HarvestResult hr = (HarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
+
+	public ArcHarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
+		ArcHarvestResult hr = (ArcHarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) {
-				HarvestResult hr = (HarvestResult)aSession.load(HarvestResult.class, harvestResultOid);
-				
+				ArcHarvestResult hr = aSession.load(ArcHarvestResult.class, harvestResultOid);
+
 				// Force population of the resources and target instance
 				if(loadFully) {
 					hr.getResources().values();
 					hr.getTargetInstance();
 				}
-				
+
 				return hr;
 			}
 		});
-		
+
 		return hr;
 	}
-	
+
 	/**
 	 * TODO This should be moved to an ArcHarvestResultDAO.
 	 */
@@ -305,7 +293,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	
 	@SuppressWarnings("unchecked")
 	public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
-		return (List<HarvestResult>) getHibernateTemplate().find("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
+		return (List<HarvestResult>) getHibernateTemplate().find("select hr from ArcHarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
 	}
 	
 	public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {
@@ -314,7 +302,11 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 				public Object doInHibernate(Session session) {					
 					Criteria query = session.createCriteria(TargetInstance.class);
 					Criteria cntQuery = session.createCriteria(TargetInstance.class);
-					
+
+					//To ignore duplicated data
+					query.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
+					cntQuery.setResultTransformer(CriteriaSpecification.DISTINCT_ROOT_ENTITY);
+
 					Date from = aCriteria.getFrom();										
 					if(null == from) {						
 						try {

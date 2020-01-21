@@ -67,6 +67,7 @@ import javax.persistence.criteria.Root;
  * @author bbeaumont
  * @see TargetDAO
  */
+@SuppressWarnings("all")
 @Transactional
 public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
     private Log log = LogFactory.getLog(TargetDAOImpl.class);
@@ -610,8 +611,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 
                         Query q = session.getNamedQuery(AbstractTarget.QUERY_DTO_BY_NAME);
                         Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_DTO_BY_NAME);
-                        q.setParameter(0, name);
-                        cq.setParameter(0, name);
+                        q.setParameter(1, name);
+                        cq.setParameter(1, name);
 
                         return new Pagination(cq, q, pageNumber, pageSize);
                     }
@@ -626,8 +627,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 
                         Query q = session.getNamedQuery(AbstractTarget.QUERY_GROUP_DTOS_BY_NAME);
                         Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_GROUP_DTOS_BY_NAME);
-                        q.setParameter(0, name);
-                        cq.setParameter(0, name);
+                        q.setParameter(1, name);
+                        cq.setParameter(1, name);
 
                         return new Pagination(cq, q, pageNumber, pageSize);
                     }
@@ -757,7 +758,7 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
     public Set<Seed> getSeeds(final Target aTarget) {
         List<Seed> rst = (List<Seed>) getHibernateTemplate().execute(new HibernateCallback() {
             public Object doInHibernate(Session aSession) {
-                Query q = aSession.createNamedQuery("from Seed s where s.target.oid = :targetOid", Seed.class);
+                Query q = aSession.createNamedQuery(Seed.QUERY_SEED_BY_TARGET_ID, Seed.class);
                 q.setLong("targetOid", aTarget.getOid());
                 return q.list();
             }
@@ -1092,6 +1093,27 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
         );
     }
 
+    /**
+     * Delete a schedule
+     * @param schedule
+     */
+    public void delete(final Schedule schedule){
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Deleting Object");
+                            currentSession().delete(schedule);
+                            log.debug("Object deleted successfully");
+                        } catch (Exception ex) {
+                            log.error("Setting Rollback Only");
+                            ts.setRollbackOnly();
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
     /**
      * Delete a TargetGroup as long as it has no Target Instances associated
      * with it.

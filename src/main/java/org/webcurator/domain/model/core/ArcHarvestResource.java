@@ -45,7 +45,7 @@ public class ArcHarvestResource extends HarvestResource {
     /**
      * Create an ArcHarvestResource from its DTO.
      * @param aResourceDTO The ArcHarvestResourceDTO to construct this object from.
-     * @param aResult The ArcHarvestResult this resource belongs to.
+     * @param aResult The HarvestResult this resource belongs to.
      */
     public ArcHarvestResource(ArcHarvestResourceDTO aResourceDTO, ArcHarvestResult aResult) {
         super(aResourceDTO, aResult);
@@ -130,7 +130,7 @@ public class ArcHarvestResource extends HarvestResource {
 		dto.setLength(this.getLength());
 		dto.setName(this.getName());
 		dto.setOid(this.getOid());
-		dto.setTargetInstanceOid(result.targetInstance.getOid());
+		dto.setTargetInstanceOid(result.getTargetInstance().getOid());
 		
 		dto.setArcFileName(this.arcFileName);
 		dto.setCompressed(this.compressed);

@@ -91,7 +91,7 @@ public class BaseWCTTest<T> {
 			SecurityContextHolder.setContext(securityContext);
 			
 			// Create a MockApplicationContext
-			ApplicationContextFactory.setWebApplicationContext(new MockWebApplicationContext());
+			ApplicationContextFactory.setApplicationContext(new MockWebApplicationContext());
 		}
 		catch(Exception e)
 		{

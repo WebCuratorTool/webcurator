@@ -23,15 +23,15 @@ import org.webcurator.core.util.ApplicationContextFactory;
  * @author bbeaumont
  */
 public class EnvironmentFactory {
-	
 	static Environment environment;
 	/** 
 	 * @return The Environment object of the Core.
 	 */
 	public static Environment getEnv() {
 		if(environment==null) {
-			ApplicationContext ctx = ApplicationContextFactory.getWebApplicationContext();
-			environment = (Environment) ctx.getBean("environmentWCT");
+			ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+//			environment = (Environment) ctx.getBean("environmentWCT");
+			environment = (Environment) ctx.getBean(Environment.class);
 		}
 		return environment;
 	}

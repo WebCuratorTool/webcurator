@@ -16,8 +16,6 @@
 package org.webcurator.domain.model.core;
 
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 
 /**
@@ -60,7 +58,7 @@ public class HarvestResource {
 	/** The HarvestResult that this resource belongs to */
 	@ManyToOne
 	@JoinColumn(name = "HRC_HARVEST_RESULT_OID")
-	protected HarvestResult result;
+	protected ArcHarvestResult result;
 
 	
 	/**
@@ -75,7 +73,7 @@ public class HarvestResource {
      * @param aResource The DTO to create the HarvestResource object from.
      * @param aResult   The HarvestResult that this resource belongs to.
      */
-    public HarvestResource(HarvestResourceDTO aResource, HarvestResult aResult) {
+    public HarvestResource(HarvestResourceDTO aResource, ArcHarvestResult aResult) {
         super();
         name = aResource.getName();
         length = aResource.getLength();
@@ -139,7 +137,7 @@ public class HarvestResource {
 	 * Get the harvest result that this resource belongs to.
 	 * @return The HarvestResult that this resource belongs to.
 	 */
-	public HarvestResult getResult() {
+	public ArcHarvestResult getResult() {
 		return result;
 	}
 	
@@ -147,7 +145,7 @@ public class HarvestResource {
 	 * Set the harvest result that this resource belongs to.
 	 * @param result The HarvesetResult that this resource belongs to.
 	 */
-	public void setResult(HarvestResult result) {
+	public void setResult(ArcHarvestResult result) {
 		this.result = result;
 	}
 	
@@ -175,7 +173,7 @@ public class HarvestResource {
 		dto.setName(this.getName());
 		dto.setOid(this.getOid());
 		dto.setStatusCode(this.getStatusCode());
-		dto.setTargetInstanceOid(this.result.targetInstance.getOid());
+		dto.setTargetInstanceOid(this.result.getTargetInstance().getOid());
 		return dto;
 	}
 

@@ -21,11 +21,11 @@ import java.util.List;
 
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.domain.HarvestCoordinatorDAO;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
 
 /**
  * The HarvestCoordinator is responsible for managing the scheduling, monitoring and completion
@@ -79,11 +79,12 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
 
     /**
      * Send recover harvest information to Harvest Agent
+     * @param scheme
      * @param host
      * @param port
      * @param service
      */
-    void recoverHarvests(String host, int port, String service);
+    void recoverHarvests(String scheme, String host, int port, String service);
 
     /**
      * Allocate the target instance to the specified harvest agent.
@@ -271,10 +272,10 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      
     /**
      * Force re-indexing of the specified HarvestResult
-    * @param aHarvestResult The result to re-index.
+    * @param aArcHarvestResult The result to re-index.
     * @return true if a reIndex was initialised
      */
-    Boolean reIndexHarvestResult(HarvestResult aHarvestResult);
+    Boolean reIndexHarvestResult(HarvestResult aArcHarvestResult);
     
     /**
      * Remove indexes for the target instance. Most indexers do no action, however 

@@ -78,7 +78,7 @@ public class Target extends AbstractTarget implements Optimizable {
 	@Column(name = "T_HARVEST_TYPE", length = 255)
 	private String harvestType;
     /** The seeds. **/
-	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
+	@OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY
 	@JoinColumn(name = "S_TARGET_ID")
     private Set<Seed> seeds = new HashSet<Seed>();
     

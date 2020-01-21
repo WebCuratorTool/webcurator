@@ -15,7 +15,7 @@ import java.util.Date;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.test.WCTTestUtils;
 
@@ -108,7 +108,7 @@ public class CrawlLogIndexerTest extends BaseWCTTest<CrawlLogIndexer>{
 		testInstance.setCrawlLogFileName("crawl.log");
 		testInstance.setSortedLogFileName("sortedcrawl.log");
 		testInstance.setStrippedLogFileName("strippedcrawl.log");
-		ArcHarvestResultDTO result = new ArcHarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
+		HarvestResultDTO result = new HarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
 		testInstance.initialise(result, archiveFolder);
 	}
 

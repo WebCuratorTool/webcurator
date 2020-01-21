@@ -19,16 +19,15 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.HibernateException;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.dao.DataAccessException;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.model.core.Indicator;
 
 /**
@@ -81,6 +80,7 @@ public class IndicatorDAOImpl extends HibernateDaoSupport implements IndicatorDA
         );    
     }
 
+    @Transactional
     public Indicator getIndicatorByOid(final Long indicatorOid) {
         return (Indicator)getHibernateTemplate().execute(
                 new HibernateCallback() {

@@ -16,6 +16,8 @@
 package org.webcurator.domain.model.core;
 
 import javax.persistence.*;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +30,11 @@ import java.util.Set;
 // lazy="false"
 @Entity
 @Table(name = "SEED")
+@NamedQueries(
+        @NamedQuery(name = "org.webcurator.domain.model.core.Seed.Target.oid",query = "from Seed s where s.target.oid = :targetOid")
+)
 public class Seed extends AbstractIdentityObject {
+    public final static String QUERY_SEED_BY_TARGET_ID = "org.webcurator.domain.model.core.Seed.Target.oid";
     /**
      * The unique ID of the seed
      **/
@@ -53,7 +59,7 @@ public class Seed extends AbstractIdentityObject {
     /**
      * The seed's target
      **/
-    @ManyToOne(cascade = CascadeType.REFRESH)
+    @ManyToOne
     @JoinColumn(name = "S_TARGET_ID", foreignKey = @ForeignKey(name = "FK_SEED_TARGET_ID"))
     private Target target;
     /**
@@ -105,6 +111,15 @@ public class Seed extends AbstractIdentityObject {
      */
     public String getSeed() {
         return seed;
+    }
+
+    public String getUrlEncodedSeed() {
+        try {
+            return URLEncoder.encode(this.seed, "UTF-8");
+        }catch (UnsupportedEncodingException e){
+            e.printStackTrace();
+        }
+        return this.seed;
     }
 
     /**
