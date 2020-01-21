@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class MockIndexer extends Indexer 
 {
@@ -51,7 +51,7 @@ public class MockIndexer extends Indexer
 	}	
 
 	
-	public void runIndex(ArcHarvestResultDTO dto, File directory) { 
+	public void runIndex(HarvestResultDTO dto, File directory) { 
 		log.debug("Indexing: "+dto.getTargetInstanceOid()+" - "+directory.getName());
 	}	
 	
