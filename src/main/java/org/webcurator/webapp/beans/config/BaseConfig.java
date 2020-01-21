@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
@@ -35,6 +35,8 @@ import org.webcurator.core.check.BandwidthChecker;
 import org.webcurator.core.check.CheckProcessor;
 import org.webcurator.core.check.Checker;
 import org.webcurator.core.check.CoreCheckNotifier;
+import org.webcurator.core.common.Environment;
+import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
@@ -46,6 +48,9 @@ import org.webcurator.core.permissionmapping.PermMappingSiteListener;
 import org.webcurator.core.permissionmapping.PermissionMappingStrategy;
 import org.webcurator.core.profiles.PolitenessOptions;
 import org.webcurator.core.profiles.ProfileManager;
+import org.webcurator.core.reader.LogReader;
+import org.webcurator.core.reader.LogReaderClient;
+import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.report.LogonDurationDAOImpl;
 import org.webcurator.core.rules.QaRecommendationServiceImpl;
 import org.webcurator.core.scheduler.ScheduleJob;
@@ -56,15 +61,13 @@ import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.core.targets.TargetManagerImpl;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.SchedulePattern;
-import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
-import org.webcurator.ui.tools.controller.QualityReviewToolController;
-import org.webcurator.ui.tools.controller.TreeToolController;
-import org.webcurator.ui.tools.controller.TreeToolControllerAJAX;
+import org.webcurator.ui.tools.controller.*;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -75,11 +78,18 @@ import java.util.*;
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
+@SuppressWarnings("all")
 @Configuration
 @EnableTransactionManagement
 @PropertySource(value = "classpath:wct-webapp.properties")
 public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private  RestTemplateBuilder restTemplateBuilder;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -104,6 +114,9 @@ public class BaseConfig {
 
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
+
+    @Value("${digitalAssetStore.scheme}")
+    private String digitalAssetStoreScheme;
 
     @Value("${digitalAssetStore.host}")
     private String digitalAssetStoreHost;
@@ -280,7 +293,7 @@ public class BaseConfig {
 
         //bean.setMappingJarLocations(getHibernateConfigurationResources());
 //        bean.setPackagesToScan(new String[]{"org.webcurator.domain.model","org.webcurator.domain"});
-        bean.setPackagesToScan(new String[]{"org.webcurator.domain.model"});
+        bean.setPackagesToScan("org.webcurator.domain.model");
 
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
@@ -329,10 +342,16 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public DigitalAssetStoreClient digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort,
-                new RestTemplateBuilder());
+    public LogReader logReader(){
+        LogReader bean=new LogReaderImpl();
+        return bean;
+    }
 
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false)
+    public DigitalAssetStoreClient digitalAssetStore() {
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
         return bean;
     }
 
@@ -341,8 +360,8 @@ public class BaseConfig {
     @Lazy(false)
     public DigitalAssetStoreFactoryImpl digitalAssetStoreFactory() {
         DigitalAssetStoreFactoryImpl bean = new DigitalAssetStoreFactoryImpl();
-        bean.setDigitalAssetStoreConfig(digitalAssetStore());
-
+        bean.setDAS(digitalAssetStore());
+        bean.setLogReader(new LogReaderClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder));
         return bean;
     }
 
@@ -506,7 +525,7 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestCoordinatorDAO harvestCoordinatorDao() {
+    public HarvestCoordinatorDAOImpl harvestCoordinatorDao() {
         HarvestCoordinatorDAOImpl bean = new HarvestCoordinatorDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
@@ -694,12 +713,16 @@ public class BaseConfig {
     }
 
     @Bean
-    public EnvironmentImpl environmentWCT() {
+    public Environment environmentWCT() {
         EnvironmentImpl bean = new EnvironmentImpl();
         bean.setDaysToSchedule(harvestAgentDaysToSchedule);
         bean.setSchedulesPerBatch(targetInstancesTriggerSchedulesPerBatch);
         bean.setApplicationVersion(projectVersion);
         bean.setHeritrixVersion("Heritrix " + heritrixVersion);
+
+        //Init environment
+        EnvironmentFactory.setEnvironment(bean);
+        ApplicationContextFactory.setApplicationContext(applicationContext);
 
         return bean;
     }
@@ -1090,35 +1113,31 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public TreeToolController treeToolController() {
-        TreeToolController bean = new TreeToolController();
-        bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
+    public TreeToolControllerAttribute treeToolControllerAttribute() {
+        TreeToolControllerAttribute bean = new TreeToolControllerAttribute();
         bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
         bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
         bean.setAutoQAUrl(harvestCoordinatorAutoQAUrl);
-        bean.setHarvestLogManager(harvestLogManager());
-        bean.setTargetInstanceManager(targetInstanceManager());
-
         return bean;
     }
+
+
+    //TODO: uncheck
+//    @Bean
+//    @Scope(BeanDefinition.SCOPE_SINGLETON)
+//    @Lazy(false)
+//    public TreeToolControllerAJAX treeToolControllerAJAX() {
+//        TreeToolControllerAJAX bean = new TreeToolControllerAJAX();
+//        bean.setQualityReviewFacade(qualityReviewFacade());
+//        bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
+//        return bean;
+//    }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public TreeToolControllerAJAX treeToolControllerAJAX() {
-        TreeToolControllerAJAX bean = new TreeToolControllerAJAX();
-        bean.setQualityReviewFacade(qualityReviewFacade());
-        bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public QualityReviewToolController qualityReviewToolController() {
-        QualityReviewToolController bean = new QualityReviewToolController();
+    public QualityReviewToolControllerAttribute qualityReviewToolControllerAttribute() {
+        QualityReviewToolControllerAttribute bean = new QualityReviewToolControllerAttribute();
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetManager(targetManager());
         bean.setArchiveUrl(qualityReviewToolControllerArchiveUrl);

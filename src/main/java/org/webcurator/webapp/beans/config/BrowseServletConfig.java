@@ -59,29 +59,29 @@ public class BrowseServletConfig {
         return bean;
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public BrowseController browseController() {
-        BrowseController bean = new BrowseController();
-        bean.setQualityReviewFacade(baseConfig.qualityReviewFacade());
-        bean.setBrowseHelper(browseHelper());
-
-        // A Map of token fixes to apply. Sites sometimes use the javascript:'top.location = self.location;'
-        // or 'window.location = ..' to issue a client side redirect but this will cause the target instance
-        // list to be redirected when using the browse tool in the webpage preview (iframe).
-        // We add a comment to this javascript to prevent the redirect.
-        //  NB:     http-equiv=&quot;refresh&quot; is http-equiv="refresh";
-        Map<String, String> fixTokensMap = new HashMap<>();
-        fixTokensMap.put("top.location", "//top.location");
-        fixTokensMap.put("window.location", "//window.location");
-        // Ensure that meta refresh redirect to the root path "/" is replaced by a relative path "./"
-        fixTokensMap.put("http-equiv=&quot;refresh&quot; content=&quot;0; url=/",
-                "http-equiv=&quot;refresh&quot; content=&quot;0; url=./");
-        bean.setFixTokens(fixTokensMap);
-
-        return bean;
-    }
+//    @Bean
+//    @Scope(BeanDefinition.SCOPE_SINGLETON)
+//    @Lazy(false)
+//    public BrowseController browseController() {
+//        BrowseController bean = new BrowseController();
+//        bean.setQualityReviewFacade(baseConfig.qualityReviewFacade());
+//        bean.setBrowseHelper(browseHelper());
+//
+//        // A Map of token fixes to apply. Sites sometimes use the javascript:'top.location = self.location;'
+//        // or 'window.location = ..' to issue a client side redirect but this will cause the target instance
+//        // list to be redirected when using the browse tool in the webpage preview (iframe).
+//        // We add a comment to this javascript to prevent the redirect.
+//        //  NB:     http-equiv=&quot;refresh&quot; is http-equiv="refresh";
+//        Map<String, String> fixTokensMap = new HashMap<>();
+//        fixTokensMap.put("top.location", "//top.location");
+//        fixTokensMap.put("window.location", "//window.location");
+//        // Ensure that meta refresh redirect to the root path "/" is replaced by a relative path "./"
+//        fixTokensMap.put("http-equiv=&quot;refresh&quot; content=&quot;0; url=/",
+//                "http-equiv=&quot;refresh&quot; content=&quot;0; url=./");
+//        bean.setFixTokens(fixTokensMap);
+//
+//        return bean;
+//    }
 
     @Bean
     public BrowseHelper browseHelper() {

@@ -37,6 +37,9 @@ import org.springframework.security.web.access.intercept.FilterInvocationSecurit
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.*;
 import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.webcurator.auth.TransitionalPasswordEncoder;
@@ -124,6 +127,14 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
         return wctAuthenticationFailureHandler;
     }
 
+//    @Bean
+//    public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+////        StrictHttpFirewall firewall = new StrictHttpFirewall();
+////        firewall.setAllowUrlEncodedSlash(true);
+////        return firewall;
+//        return new DefaultHttpFirewall();
+//    }
+
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
         http
@@ -138,6 +149,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers( "/styles/**").permitAll()
                 .antMatchers( "/images/**").permitAll()
                 .antMatchers( "/scripts/**").permitAll()
+                .antMatchers("/harvest-coordinator/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
                 .loginPage("/logon.jsp")

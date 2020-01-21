@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -37,6 +39,7 @@ public class H3ScriptFileController {
     /** Logger for the H3ScriptFileController. **/
     private static Log log = LogFactory.getLog(H3ScriptFileController.class);
 
+    @RequestMapping(value = "/curator/target/h3ScriptFile.html", method = {RequestMethod.POST, RequestMethod.GET})
     public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         // get target instance oid and script file name
         String targetInstanceOid = httpServletRequest.getParameter("targetInstanceOid");

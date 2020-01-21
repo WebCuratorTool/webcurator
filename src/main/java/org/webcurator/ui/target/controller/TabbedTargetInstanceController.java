@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.target.controller;
 
+import java.text.NumberFormat;
 import java.util.Locale;
 
 import javax.annotation.PostConstruct;
@@ -26,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
@@ -33,7 +35,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -83,15 +87,22 @@ public class TabbedTargetInstanceController extends TabbedController {
         setTabConfig((TabConfig) context.getBean("targetInstanceTabConfig"));
     }
 
-    /*
+
     @Override
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+    	super.initBinder(request,binder);
     	// enable null values for long and float fields
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
         binder.registerCustomEditor(java.lang.Float.class, new CustomNumberEditor(java.lang.Float.class, nf, true));
     }
-    */
+
+
+	@Override
+	@RequestMapping(method = {RequestMethod.POST, RequestMethod.GET})
+	public ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		return super.handleRequestInternal(request, response);
+	}
 
 	@Override
 	protected void switchToEditMode(HttpServletRequest req) {

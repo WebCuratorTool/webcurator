@@ -649,7 +649,7 @@ public class QueueController {
 				hr.setState(HarvestResult.STATE_REJECTED);
 				harvestCoordinator.removeIndexes(hr);
 			}
-			targetInstanceManager.save(hr);
+			targetInstanceManager.save((ArcHarvestResult) hr);
 		}
 
 		targetInstanceManager.save(ti);
@@ -677,7 +677,7 @@ public class QueueController {
 					}
 				}
 
-				targetInstanceManager.save(hr);
+				targetInstanceManager.save((ArcHarvestResult) hr);
 			}
 		}
 

@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -42,7 +43,6 @@ import org.webcurator.ui.target.validator.ShowHopPathValidator;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@RequestMapping("/curator/target/show-hop-path.html")
 public class ShowHopPathController {
 
     @Autowired
@@ -57,9 +57,8 @@ public class ShowHopPathController {
 	public ShowHopPathController() {
 	}
 
-	protected ModelAndView handle(Object aCommand, BindingResult bindingResult) throws Exception {
-
-		ShowHopPathCommand cmd = (ShowHopPathCommand) aCommand;
+	@RequestMapping(value = "/curator/target/show-hop-path.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(ShowHopPathCommand cmd , BindingResult bindingResult) throws Exception {
 		String messageText = "";
 		int firstLine = 0;
 		List<String> lines = Arrays.asList("", "");

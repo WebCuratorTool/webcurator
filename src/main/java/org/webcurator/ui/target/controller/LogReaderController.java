@@ -25,9 +25,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -43,7 +41,6 @@ import org.webcurator.ui.target.validator.LogReaderValidator;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@RequestMapping("/curator/target/log-viewer.html")
 public class LogReaderController {
     @Autowired
 	HarvestCoordinator harvestCoordinator;
@@ -79,7 +76,7 @@ public class LogReaderController {
 		filterTypes.put(LogReaderCommand.VALUE_REGEX_CONTAIN, "Start from first line containing regex");
 	}
 
-	@GetMapping
+	@RequestMapping(path = "/curator/target/log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(@Validated @ModelAttribute("logReaderCommand") LogReaderCommand cmd,
                                   BindingResult bindingResult) throws Exception {
 		String messageText = "";
@@ -194,7 +191,7 @@ public class LogReaderController {
 				}
 				else if(LogReaderCommand.VALUE_FROM_LINE.equals(cmd.getFilterType())) {
 					//do get
-					firstLine = new Integer(cmd.getFilter()).intValue();
+					firstLine =cmd.getFilter()==null || cmd.getFilter().length()==0? 0: new Integer(cmd.getFilter()).intValue();
 					lines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
 				}
 				else if(LogReaderCommand.VALUE_HEAD.equals(cmd.getFilterType()))

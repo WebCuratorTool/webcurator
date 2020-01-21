@@ -20,24 +20,29 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.ui.tools.command.BrowseCommand;
+import org.webcurator.webapp.beans.config.BaseConfig;
 
 /**
  * The BrowseController is responsible for handling the Browse Quality Review
@@ -47,15 +52,18 @@ import org.webcurator.ui.tools.command.BrowseCommand;
  *
  * @author bbeaumont
  */
+@Controller
 public class BrowseController {
 	/** Logger for the BrowseController. **/
 	private static Log log = LogFactory.getLog(BrowseController.class);
 
 	/** The BrowseHelper handles replacement of URLs in the resources. **/
-	private BrowseHelper browseHelper = null;
+	@Autowired
+	private BrowseHelper browseHelper;
 
 	/** The QualityReviewFacade for this controller. **/
-	private QualityReviewFacade qualityReviewFacade = null;
+	@Autowired
+	private QualityReviewFacade qualityReviewFacade;
 
 	private final int MAX_MEMORY_SIZE = 1024 * 1024;
 	// private final int MAX_MEMORY_SIZE = 0;
@@ -75,6 +83,17 @@ public class BrowseController {
 	 * replaced during the browser helper fix operation
 	 */
 	private static Map<String, String> fixTokens = null;
+
+	@PostConstruct
+	public void initialize() {
+		if(fixTokens == null){
+			fixTokens = new HashMap<>();
+			fixTokens.put("top.location", "//top.location");
+			fixTokens.put("window.location", "//window.location");
+			// Ensure that meta refresh redirect to the root path "/" is replaced by a relative path "./"
+			fixTokens.put("http-equiv=&quot;refresh&quot; content=&quot;0; url=/",	"http-equiv=&quot;refresh&quot; content=&quot;0; url=./");
+		}
+	}
 
 	/**
 	 * Sets the BrowseHelper for the controller. This is primarily called from
@@ -134,12 +153,17 @@ public class BrowseController {
 	/**
 	 * The handle method is the entry method into the browse controller.
 	 */
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm) throws Exception {
+	@RequestMapping(path = "/curator/tools/browse/{hrOid}/{seedUrl}", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(@PathVariable("hrOid") Long hrOid, @PathVariable("seedUrl") String seedUrl, HttpServletRequest req, HttpServletResponse res) throws Exception {
 
 		// Cast the command to the correct command type.
-		BrowseCommand command = (BrowseCommand) comm;
+//		BrowseCommand command = (BrowseCommand) comm;
 
 		// Build a command with the items from the URL.
+		BrowseCommand command = new BrowseCommand();
+		command.setHrOid(hrOid);
+		command.setResource(new String(Base64.getDecoder().decode(seedUrl)));
+
 		String base = req.getContextPath() + req.getServletPath();
 
 		String line = req.getRequestURI().substring(base.length());

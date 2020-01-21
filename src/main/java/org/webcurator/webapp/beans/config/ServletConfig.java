@@ -14,6 +14,8 @@ import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
 import org.springframework.web.servlet.view.tiles3.TilesView;
 import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.ui.common.validation.ProfilesBasicCredentialsValidator;
+import org.webcurator.ui.common.validation.ProfilesFormCredentialsValidator;
 import org.webcurator.ui.groups.command.GeneralCommand;
 import org.webcurator.ui.groups.command.GroupAnnotationCommand;
 import org.webcurator.ui.groups.command.MemberOfCommand;
@@ -135,19 +137,19 @@ public class ServletConfig {
 //        mappings.put("/curator/site/transfer.html", "transferSeedsController");
 //        mappings.put("/curator/site/generate.html", "generatePermissionTemplateController");
         //mappings.put("/curator/agent/harvest-agent.html", "manageHarvestAgentController");
-        //mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
-        mappings.put("/curator/tools/treetool.html", "treeToolController");
-        mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
-        mappings.put("/curator/tools/harvest-history.html", "harvestHistoryController");
-        //mappings.put("/curator/credentials/reset-password.html", "resetPasswordController");
-        mappings.put("/curator/target/quality-review-toc.html", "qualityReviewToolController");
+//        mappings.put("/curator/agent/bandwidth-restrictions.html", "bandwidthRestrictionsController");
+//        mappings.put("/curator/tools/treetool.html", "treeToolController");
+//        mappings.put("/curator/tools/treetoolAJAX.html", "treeToolControllerAJAX");
+//        mappings.put("/curator/tools/harvest-history.html", "harvestHistoryController");
+//        mappings.put("/curator/credentials/reset-password.html", "resetPasswordController");
+//        mappings.put("/curator/target/quality-review-toc.html", "qualityReviewToolController");
         mappings.put("/curator/target/deposit-form-envelope.html", "customDepositFormController");
         mappings.put("/curator/logout.html", "logoutController");
         mappings.put("/curator/home.html", "homeController");
         //mappings.put("/curator/target/queue.html", "queueController");
         // mapped via @RequestMapping mappings.put("/curator/target/qatisummary.html", "qaTiSummaryController");
-        mappings.put("/curator/target/qa-indicator-report.html", "qaIndicatorReportController");
-        mappings.put("/curator/target/qa-indicator-robots-report.html", "qaIndicatorRobotsReportController");
+//        mappings.put("/curator/target/qa-indicator-report.html", "qaIndicatorReportController");
+//        mappings.put("/curator/target/qa-indicator-robots-report.html", "qaIndicatorRobotsReportController");
         //mappings.put("/curator/target/annotation-ajax.html", "annotationAjaxController");
 //        mappings.put("/curator/target/target-instance.html", "tabbedTargetInstanceController");
         //mappings.put("/curator/target/harvest-now.html", "harvestNowController");
@@ -179,7 +181,7 @@ public class ServletConfig {
         //mappings.put("/curator/admin/templates.html", "templateController");
         //mappings.put("/curator/target/log-viewer.html", "logReaderController");
         //mappings.put("/curator/target/content-viewer.html", "contentReaderController");
-        mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");
+//        mappings.put("/curator/target/live-content-retriever.html", "liveContentRetrieverController");
         //mappings.put("/curator/target/aqa-viewer.html", "aqaReaderController");
         //mappings.put("/curator/target/log-retriever.html", "logRetrieverController");
         //mappings.put("/curator/target/show-hop-path.html", "showHopPathController");
@@ -188,8 +190,8 @@ public class ServletConfig {
         //mappings.put("/curator/target/target-form-credentials.html", "formCredentialsControllerTarget");
         //mappings.put("/curator/target/ti-basic-credentials.html", "basicCredentialsControllerTargetInstance");
         //mappings.put("/curator/target/ti-form-credentials.html", "formCredentialsControllerTargetInstance");
-        mappings.put("/curator/target/h3ScriptConsole.html", "h3ScriptConsoleController");
-        mappings.put("/curator/target/h3ScriptFile.html", "h3ScriptFileController");
+//        mappings.put("/curator/target/h3ScriptConsole.html", "h3ScriptConsoleController");
+//        mappings.put("/curator/target/h3ScriptFile.html", "h3ScriptFileController");
 //        mappings.put("/curator/intray/intray.html", "inTrayController");
         mappings.put("/curator/report/report.html", "reportController");
         mappings.put("/curator/report/report-preview.html", "reportPreviewController");
@@ -367,7 +369,7 @@ public class ServletConfig {
     @Lazy(false)
     public TabConfig targetInstanceTabConfig() {
         TabConfig bean = new TabConfig();
-        bean.setViewName("site");
+        bean.setViewName("targetInstance");
 
         List<Tab> tabs = new ArrayList<>();
 
@@ -431,7 +433,7 @@ public class ServletConfig {
         theTab.setJsp("../target-instance-display.jsp");
         theTab.setCommandClass(TargetInstanceCommand.class);
         theTab.setValidator(new TargetInstanceValidator());
-        theTab.setTabHandler(targetInstanceAnnotationHandler());
+        theTab.setTabHandler(targetInstanceDisplayHandler());
         tabs.add(theTab);
 
         bean.setTabs(tabs);

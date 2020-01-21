@@ -13,50 +13,60 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.webcurator.ui.target.command;
+package org.webcurator.ui.common.command;
 
 import java.util.List;
 
-import org.webcurator.domain.model.core.ProfileBasicCredentials;
 import org.webcurator.domain.model.core.ProfileCredentials;
+import org.webcurator.domain.model.core.ProfileFormCredentials;
 
 /**
- * The command for the basic credentials view.
+ * the command for the form credentials view.
  * @author bbeaumont
  */
-public class BasicCredentialsCommand {
+public class FormCredentialsCommand {
 	public static final String ACTION_NEW  = "new";
 	public static final String ACTION_EDIT = "edit";
 	public static final String ACTION_SAVE = "save";
 	public static final String ACTION_CANCEL = "cancel";
 
 	private String credentialsDomain;
-	private String realm;
+
+	private String httpMethod;
+	private String loginUri;
+	private String usernameField;
 	private String username;
+	private String passwordField;
 	private String password;
 
 	private Integer listIndex;
 
 	private String actionCmd;
 
-	public static BasicCredentialsCommand fromModel(List<ProfileCredentials> allCreds, Integer index) {
-		ProfileBasicCredentials model = (ProfileBasicCredentials) allCreds.get(index);
+	public static FormCredentialsCommand fromModel(List<ProfileCredentials> allCreds, Integer index) {
+		ProfileFormCredentials model = (ProfileFormCredentials) allCreds.get(index);
 
-		BasicCredentialsCommand me = new BasicCredentialsCommand();
+		FormCredentialsCommand me = new FormCredentialsCommand();
 		me.credentialsDomain = model.getCredentialsDomain();
-		me.realm = model.getRealm();
+		me.loginUri = model.getLoginUri();
+		me.httpMethod = model.getHttpMethod();
+		me.usernameField = model.getUsernameField();
 		me.username = model.getUsername();
+		me.passwordField = model.getPasswordField();
 		me.password = model.getPassword();
 		me.listIndex = index;
 
 		return me;
 	}
 
-	public ProfileBasicCredentials toModelObject() {
-		ProfileBasicCredentials creds = new ProfileBasicCredentials();
+	public ProfileFormCredentials toModelObject() {
+		ProfileFormCredentials creds = new ProfileFormCredentials();
 		creds.setCredentialsDomain(credentialsDomain);
-		creds.setRealm(realm);
+		creds.setLoginUri(loginUri);
+		creds.setHttpMethod(httpMethod);
+		creds.setUsernameField(usernameField);
 		creds.setUsername(username);
+		creds.setPasswordField(passwordField);
 		creds.setPassword(password);
 
 		return creds;
@@ -120,20 +130,6 @@ public class BasicCredentialsCommand {
 	}
 
 	/**
-	 * @return Returns the realm.
-	 */
-	public String getRealm() {
-		return realm;
-	}
-
-	/**
-	 * @param realm The realm to set.
-	 */
-	public void setRealm(String realm) {
-		this.realm = realm;
-	}
-
-	/**
 	 * @return Returns the username.
 	 */
 	public String getUsername() {
@@ -145,6 +141,62 @@ public class BasicCredentialsCommand {
 	 */
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	/**
+	 * @return Returns the httpMethod.
+	 */
+	public String getHttpMethod() {
+		return httpMethod;
+	}
+
+	/**
+	 * @param httpMethod The httpMethod to set.
+	 */
+	public void setHttpMethod(String httpMethod) {
+		this.httpMethod = httpMethod;
+	}
+
+	/**
+	 * @return Returns the loginUri.
+	 */
+	public String getLoginUri() {
+		return loginUri;
+	}
+
+	/**
+	 * @param loginUri The loginUri to set.
+	 */
+	public void setLoginUri(String loginUri) {
+		this.loginUri = loginUri;
+	}
+
+	/**
+	 * @return Returns the passwordField.
+	 */
+	public String getPasswordField() {
+		return passwordField;
+	}
+
+	/**
+	 * @param passwordField The passwordField to set.
+	 */
+	public void setPasswordField(String passwordField) {
+		this.passwordField = passwordField;
+	}
+
+	/**
+	 * @return Returns the usernameField.
+	 */
+	public String getUsernameField() {
+		return usernameField;
+	}
+
+	/**
+	 * @param usernameField The usernameField to set.
+	 */
+	public void setUsernameField(String usernameField) {
+		this.usernameField = usernameField;
 	}
 
 

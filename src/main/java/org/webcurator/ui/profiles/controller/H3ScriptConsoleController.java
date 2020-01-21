@@ -24,6 +24,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.harvester.agent.HarvestAgent;
@@ -85,9 +87,10 @@ public class H3ScriptConsoleController {
 	/* (non-Javadoc)
 	 * @see org.springframework.web.servlet.mvc.AbstractCommandController#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.Object, org.springframework.validation.BindException)
 	 */
-	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, Object comm,
+	@RequestMapping(value = "/curator/target/h3ScriptConsole.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, H3ScriptConsoleCommand command,
                                   BindingResult bindingResult) throws Exception {
-		H3ScriptConsoleCommand command = (H3ScriptConsoleCommand) comm;
+//		H3ScriptConsoleCommand command = (H3ScriptConsoleCommand) comm;
 		TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceOid(), true);
 		String result = "";
 		// Retrieve the list of script file names and types

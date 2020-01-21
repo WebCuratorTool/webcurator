@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.webcurator.core.harvester.coordinator.HarvestBandwidthManagerImpl;
 import org.webcurator.core.permissionmapping.UrlUtils;
 import org.apache.commons.logging.LogFactory;
 import org.apache.oro.text.regex.MalformedPatternException;
@@ -35,9 +36,12 @@ import org.webcurator.core.common.Constants;
 import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.targets.TargetManager;
+import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.HarvestCoordinatorDAO;
+import org.webcurator.domain.HarvestCoordinatorDAOImpl;
 import org.webcurator.domain.model.core.BandwidthRestriction;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.agent.command.BandwidthRestrictionsCommand;
@@ -193,8 +197,8 @@ public final class ValidatorUtil {
      */
     public static void validateNoBandwidthPeriodOverlaps(Errors aErrors, BandwidthRestrictionsCommand aCmd,  String aErrorCode, Object[] aValues, String aFailureMessage) {
         if (aCmd != null && aCmd.getStart() != null && aCmd.getEnd() != null && aCmd.getDay() != null) {
-            ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-            HarvestCoordinatorDAO hcDao = (HarvestCoordinatorDAO) context.getBean(Constants.BEAN_HARVEST_COORDINATOR_DAO);
+            ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+            HarvestCoordinatorDAO hcDao = context.getBean(HarvestCoordinatorDAOImpl.class);
             HashMap<String, List<BandwidthRestriction>> allRestrictions = hcDao.getBandwidthRestrictions();
             List restrictions = allRestrictions.get(aCmd.getDay());
             if (restrictions != null && !restrictions.isEmpty()) {
@@ -253,9 +257,9 @@ public final class ValidatorUtil {
      */
     public static void validateMinimumBandwidthAvailable(Errors aErrors, Long aTargetInstanceOid, String aErrorCode, Object[] aValues, String aFailureMessage) {
         if (aTargetInstanceOid != null) {
-            ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-            TargetInstanceManager targetInstanceManager = (TargetInstanceManager) context.getBean(Constants.BEAN_TARGET_INSTANCE_MNGR);
-            HarvestBandwidthManager harvestBandwidthManager  = (HarvestBandwidthManager) context.getBean(Constants.BEAN_HARVEST_BANDWIDTH_MANAGER);
+            ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+            TargetInstanceManager targetInstanceManager = context.getBean(TargetInstanceManagerImpl.class);
+            HarvestBandwidthManager harvestBandwidthManager = context.getBean(HarvestBandwidthManagerImpl.class);
 
             TargetInstance ti = targetInstanceManager.getTargetInstance(aTargetInstanceOid);
         	if (!harvestBandwidthManager.isMiniumBandwidthAvailable(ti)) {
@@ -273,8 +277,8 @@ public final class ValidatorUtil {
      * @param aPercentage the percentage to check.
      */
     public static void validateMaxBandwidthPercentage(Errors aErrors, int aPercentage, String aErrorCode) {
-        ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-        HarvestBandwidthManager harvestBandwidthManager  = (HarvestBandwidthManager) context.getBean(Constants.BEAN_HARVEST_BANDWIDTH_MANAGER);
+        ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+        HarvestBandwidthManager harvestBandwidthManager  = context.getBean(HarvestBandwidthManagerImpl.class);
 
         if (aPercentage > harvestBandwidthManager.getMaxBandwidthPercent()) {
         	// failure bandwidth percentage setting is too high.
@@ -291,9 +295,9 @@ public final class ValidatorUtil {
      * @param aErrorCode the error code for a vaildation failure
      */
     public static void validateTargetApproved(Errors aErrors, Long aTargetInstanceOid, String aErrorCode) {
-        ApplicationContext context = ApplicationContextFactory.getWebApplicationContext();
-        TargetInstanceManager tiManager = (TargetInstanceManager) context.getBean(Constants.BEAN_TARGET_INSTANCE_MNGR);
-        TargetManager targetManager = (TargetManager) context.getBean(Constants.BEAN_TARGET_MNGR);
+        ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+        TargetInstanceManager tiManager = context.getBean(TargetInstanceManagerImpl.class);
+        TargetManager targetManager = context.getBean(TargetManagerImpl.class);
 
         TargetInstance ti = tiManager.getTargetInstance(aTargetInstanceOid);
         if (!targetManager.isTargetHarvestable(ti)) {

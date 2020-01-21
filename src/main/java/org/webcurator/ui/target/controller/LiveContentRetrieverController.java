@@ -12,10 +12,13 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.ui.target.command.LiveContentRetrieverCommand;
 
@@ -31,10 +34,20 @@ public class LiveContentRetrieverController {
 		LiveContentRetrieverCommand cmd = new LiveContentRetrieverCommand();
 		cmd.setUrl(url);
 		cmd.setContentFileName(contentFileName);
-		
-		File f = downloadTemporaryFile(cmd.getUrl());
+
+		File f = null;
+
+		try {
+			f = downloadTemporaryFile(cmd.getUrl());
+		}catch (WCTRuntimeException e){
+			//Do nothing
+		}
+
 		AttachmentView v = new AttachmentView(cmd.getContentFileName(), f, true);
-		return new ModelAndView(v);
+
+		ModelAndView mav = new ModelAndView(v);
+
+		return mav;
 	}
 
 	private File downloadTemporaryFile(String url)
@@ -79,6 +92,4 @@ public class LiveContentRetrieverController {
 			bufOutStr.close();
 		}
 	}
-
-
 }

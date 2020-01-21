@@ -40,10 +40,15 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomBooleanEditor;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
@@ -71,6 +76,8 @@ import org.xml.sax.SAXException;
  * harvest web site as a tree structure.
  * @author bbeaumont
  */
+@SuppressWarnings("all")
+@Controller
 public class TreeToolController {
 
 	public class AQAElement
@@ -108,27 +115,33 @@ public class TreeToolController {
 
 	private static Log log = LogFactory.getLog(TreeToolController.class);
 
-	private QualityReviewFacade qualityReviewFacade = null;
+	@Autowired
+	private HarvestLogManager harvestLogManager;
+
+	@Autowired
+	private TargetInstanceManager targetInstanceManager;
+
+	@Autowired
+	private QualityReviewFacade qualityReviewFacade;
+
+	@Autowired
+	private HarvestResourceUrlMapper harvestResourceUrlMapper;
+
+	@Autowired
+	private TreeToolControllerAttribute treeToolControllerAttribute;
 
 	private String successView = "TreeTool";
-
-	private HarvestResourceUrlMapper harvestResourceUrlMapper;
-	private boolean enableAccessTool = false;
-	private String uploadedFilesDir;
-
+	
     /** Automated QA Url */
-    private String autoQAUrl = "";
 
     /** the name of the content directory. */
     public static final String DIR_CONTENT = "content";
 
 
-	HarvestLogManager harvestLogManager;
-	TargetInstanceManager targetInstanceManager;
-
 	public TreeToolController() {
 	}
 
+	@InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		// Determine the necessary formats.
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -145,10 +158,9 @@ public class TreeToolController {
     }
 
 	@SuppressWarnings("unchecked")
-	protected ModelAndView handle(HttpServletRequest req, Object comm, BindingResult bindingResult)
-			throws Exception {
-
-		TreeToolCommand command = (TreeToolCommand) comm;
+	@RequestMapping(path = "/curator/tools/treetool.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest req, TreeToolCommand command, BindingResult bindingResult)	throws Exception {
+//		TreeToolCommand command = (TreeToolCommand) comm;
 		TargetInstance ti = (TargetInstance) req.getSession().getAttribute("sessionTargetInstance");
 
 		// If the tree is not loaded then load the tree into session
@@ -163,7 +175,7 @@ public class TreeToolController {
 			command.setHrOid(command.getLoadTree());
 			log.info("Tree complete");
 
-			if(autoQAUrl != null && autoQAUrl.length() > 0) {
+			if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 
 				List<AQAElement> candidateElements = new ArrayList<AQAElement>();
 
@@ -211,7 +223,7 @@ public class TreeToolController {
 			mav.addObject( "command", command);
 			mav.addObject( "aqaImports", imports);
 			mav.addObject( Constants.GBL_ERRORS, bindingResult);
-			if(autoQAUrl != null && autoQAUrl.length() > 0) {
+			if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 				mav.addObject("showAQAOption", 1);
 			} else {
 				mav.addObject("showAQAOption", 0);
@@ -247,7 +259,7 @@ public class TreeToolController {
 					mav.addObject( "command", command);
 					mav.addObject( "aqaImports", imports);
 					mav.addObject( Constants.GBL_ERRORS, bindingResult);
-					if(autoQAUrl != null && autoQAUrl.length() > 0) {
+					if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 						mav.addObject("showAQAOption", 1);
 					} else {
 						mav.addObject("showAQAOption", 0);
@@ -271,7 +283,7 @@ public class TreeToolController {
 					// save uploaded file as tempFileName in configured uploadedFilesDir
 					String tempFileName = UUID.randomUUID().toString();
 
-					File xfrFile = new File(uploadedFilesDir+tempFileName);
+					File xfrFile = new File(treeToolControllerAttribute.uploadedFilesDir+tempFileName);
 
 					StringBuffer buf = new StringBuffer();
 			        buf.append("HTTP/1.1 200 OK\n");
@@ -302,7 +314,7 @@ public class TreeToolController {
 					// save uploaded file as tempFileName in configured uploadedFilesDir
 					String tempFileName = UUID.randomUUID().toString();
 
-					File xfrFile = new File(uploadedFilesDir+tempFileName);
+					File xfrFile = new File(treeToolControllerAttribute.uploadedFilesDir+tempFileName);
 					FileOutputStream fos = new FileOutputStream(xfrFile);
 
 					//String contentType = null;
@@ -319,7 +331,7 @@ public class TreeToolController {
 						mav.addObject( "aqaImports", imports);
 						mav.addObject( "command", command);
 						mav.addObject( Constants.GBL_ERRORS, bindingResult);
-						if(autoQAUrl != null && autoQAUrl.length() > 0) {
+						if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 							mav.addObject("showAQAOption", 1);
 						} else {
 							mav.addObject("showAQAOption", 0);
@@ -338,7 +350,7 @@ public class TreeToolController {
 			mav.addObject( "tree", tree);
 			mav.addObject( "aqaImports", imports);
 			mav.addObject( "command", command);
-			if(autoQAUrl != null && autoQAUrl.length() > 0) {
+			if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 				mav.addObject("showAQAOption", 1);
 			} else {
 				mav.addObject("showAQAOption", 0);
@@ -352,7 +364,7 @@ public class TreeToolController {
             Long resultOid = resource.getResult().getOid();
             String url = resource.getName();
 
-            if (enableAccessTool && harvestResourceUrlMapper != null)
+            if (treeToolControllerAttribute.enableAccessTool && harvestResourceUrlMapper != null)
             {
             	return new ModelAndView("redirect:" + harvestResourceUrlMapper.generateUrl(resource.getResult(), resource.buildDTO()));
             }
@@ -404,7 +416,7 @@ public class TreeToolController {
 								// save imported file using a random tempFileName in configured uploadedFilesDir
 								String tempFileName = UUID.randomUUID().toString();
 
-								File xfrFile = new File(uploadedFilesDir+tempFileName);
+								File xfrFile = new File(treeToolControllerAttribute.uploadedFilesDir+tempFileName);
 
 								StringBuffer buf = new StringBuffer();
 						        buf.append("HTTP/1.1 200 OK\n");
@@ -447,7 +459,7 @@ public class TreeToolController {
 			mav.addObject( "tree", tree);
 			mav.addObject( "aqaImports", imports);
 			mav.addObject( "command", command);
-			if(autoQAUrl != null && autoQAUrl.length() > 0) {
+			if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 				mav.addObject("showAQAOption", 1);
 			} else {
 				mav.addObject("showAQAOption", 0);
@@ -497,7 +509,7 @@ public class TreeToolController {
 			mav.addObject( "command", command);
 			mav.addObject( "aqaImports", imports);
 			if(bindingResult.hasErrors()){mav.addObject( Constants.GBL_ERRORS, bindingResult);}
-			if(autoQAUrl != null && autoQAUrl.length() > 0) {
+			if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 				mav.addObject("showAQAOption", 1);
 			} else {
 				mav.addObject("showAQAOption", 0);
@@ -605,65 +617,18 @@ public class TreeToolController {
 		return XMLConverter.StringToDocument(sb.toString());
 	}
 
-	public void setQualityReviewFacade(QualityReviewFacade qrf) {
-		this.qualityReviewFacade = qrf;
-	}
+
 
     public String getSuccessView()
     {
         return successView;
     }
 
-    public void setSuccessView(String successView)
-    {
-        this.successView = successView;
-    }
-
-	public HarvestResourceUrlMapper getHarvestResourceUrlMapper() {
-		return harvestResourceUrlMapper;
+	public void setSuccessView(String successView) {
+		this.successView = successView;
 	}
 
-	public void setHarvestResourceUrlMapper(
-			HarvestResourceUrlMapper harvestResourceUrlMapper) {
-		this.harvestResourceUrlMapper = harvestResourceUrlMapper;
-	}
-
-	public void setEnableAccessTool(boolean enableAccessTool) {
-		this.enableAccessTool = enableAccessTool;
-	}
-
-	public boolean isEnableAccessTool() {
-		return enableAccessTool;
-	}
-
-	public String getUploadedFilesDir() {
-		return uploadedFilesDir;
-	}
-
-	public void setUploadedFilesDir(String uploadedFilesDir) {
-		this.uploadedFilesDir = uploadedFilesDir;
-	}
-
-	public void setAutoQAUrl(String autoQAUrl) {
-		this.autoQAUrl = autoQAUrl;
-	}
-
-	public String getAutoQAUrl() {
-		return autoQAUrl;
-	}
-
-	/**
-	 * @param harvestLogManager the harvestLogManager to set
-	 */
-	public void setHarvestLogManager(HarvestLogManager harvestLogManager) {
-		this.harvestLogManager = harvestLogManager;
-	}
-
-	/**
-	 * @param targetInstanceManager the targetInstanceManager to set
-	 */
-	public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
-		this.targetInstanceManager = targetInstanceManager;
-	}
-
+//	public HarvestResourceUrlMapper getHarvestResourceUrlMapper() {
+//		return harvestResourceUrlMapper;
+//	}
 }

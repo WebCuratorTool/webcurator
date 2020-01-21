@@ -22,13 +22,14 @@ import javax.servlet.http.HttpSessionListener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.context.WebApplicationContext;
-import org.webcurator.core.common.Constants;
 import org.webcurator.core.report.LogonDurationDAO;
+import org.webcurator.core.report.LogonDurationDAOImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
+import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.model.auth.User;
@@ -58,7 +59,7 @@ public class WctLogoutListener implements HttpSessionListener {
         log.info("Detected Logout Event");
 
 		// Get the Spring Application Context.
-		WebApplicationContext ctx = ApplicationContextFactory.getWebApplicationContext();
+		ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
 
 		// We need to get the authentication context out of the event, as it doesn't necessarily exist through the
         // standard Spring security tools.
@@ -77,14 +78,14 @@ public class WctLogoutListener implements HttpSessionListener {
         }
 
 		// Actions to perform on logout.
-		lockManager = (LockManager) ctx.getBean("lockManager");
+		lockManager = ctx.getBean(LockManager.class);
 		lockManager.releaseLocksForOwner(remoteUser);
 
         if (auth != null) {
             Object blob = auth.getDetails();
             if (blob instanceof User) {
                 User user = (User) auth.getDetails();
-                Auditor auditor = (Auditor) ctx.getBean(Constants.BEAN_AUDITOR);
+                Auditor auditor = ctx.getBean(AuditDAOUtil.class);
                 auditor.audit(user, User.class.getName(), user.getOid(), Auditor.ACTION_LOGOUT, "User " + remoteUser + " has logged out.");
             }
 
@@ -93,7 +94,7 @@ public class WctLogoutListener implements HttpSessionListener {
 
             // logout for duration
             String sessionId = event.getSession().getId();
-            LogonDurationDAO logonDurationDAO = (LogonDurationDAO) ctx.getBean(Constants.BEAN_LOGON_DURATION_DAO);
+            LogonDurationDAO logonDurationDAO = ctx.getBean(LogonDurationDAOImpl.class);
             logonDurationDAO.setLoggedOut(sessionId, new Date());
         }
 

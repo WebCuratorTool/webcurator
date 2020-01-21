@@ -46,10 +46,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -65,19 +62,7 @@ import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.Annotation;
-import org.webcurator.domain.model.core.BusinessObjectFactory;
-import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
-import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.DublinCore;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Indicator;
-import org.webcurator.domain.model.core.LogFilePropertiesDTO;
-import org.webcurator.domain.model.core.Profile;
-import org.webcurator.domain.model.core.RejReason;
-import org.webcurator.domain.model.core.Schedule;
-import org.webcurator.domain.model.core.Target;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.common.validation.ValidatorUtil;
@@ -163,6 +148,7 @@ public class QaTiSummaryController {
         log = LogFactory.getLog(getClass());
     }
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
 
@@ -447,11 +433,7 @@ public class QaTiSummaryController {
 
 	@PostMapping
 	protected ModelAndView processFormSubmission(@Validated @ModelAttribute("targetInstanceSummaryCommand") TargetInstanceSummaryCommand command,
-												 HttpServletRequest request) throws Exception {
-        ServletRequestDataBinder binder = new ServletRequestDataBinder(command);
-        initBinder(request, binder);
-        BindingResult error = binder.getBindingResult();
-
+												 BindingResult error, HttpServletRequest request) throws Exception {
     	if (log.isDebugEnabled()) {
             log.debug("process command " + command.getCmd());
         }
@@ -763,7 +745,7 @@ public class QaTiSummaryController {
 				}
 			}
 
-			targetInstanceManager.save(hr);
+			targetInstanceManager.save((ArcHarvestResult) hr);
 		}
 
     	targetInstanceManager.save(ti);
@@ -787,7 +769,7 @@ public class QaTiSummaryController {
 	        		harvestCoordinator.removeIndexes(hr);
 				}
 
-				targetInstanceManager.save(hr);
+				targetInstanceManager.save((ArcHarvestResult) hr);
 			}
 		}
 

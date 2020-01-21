@@ -40,11 +40,7 @@ import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
-import org.webcurator.domain.model.core.AbstractTarget;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Target;
-import org.webcurator.domain.model.core.TargetGroup;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 
@@ -231,7 +227,7 @@ public class ArchiveController {
 		int count = 0;
 		int returnVal = 0;
 		for (Iterator<HarvestResult> it = results.iterator(); it.hasNext(); ) {
-			HarvestResult hr = (HarvestResult)it.next();
+			HarvestResult hr = it.next();
 			if(hr.getState() == HarvestResult.STATE_ENDORSED)
 			{
 				count = count + 1;
