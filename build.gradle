@@ -25,11 +25,8 @@ dependencies {
     compile 'net.sf.ehcache:ehcache:2.10.6'
     compile 'wsdl4j:wsdl4j:1.6.1'
     compile 'org.webcurator:webcurator-submit-to-rosetta:3.0.0-SNAPSHOT'
-    //compile 'org.springframework.boot:spring-boot-starter-web:2.1.6.RELEASE'
     compile 'joda-time:joda-time:2.10.5'
     testCompile 'junit:junit:4.12'
-    //testCompile 'org.springframework.boot:spring-boot-starter-test:2.1.6.RELEASE'
-    //compileOnly 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'
 }
 
 group = 'org.webcurator'
