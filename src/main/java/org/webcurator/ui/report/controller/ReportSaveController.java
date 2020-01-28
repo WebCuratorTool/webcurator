@@ -24,6 +24,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.ui.report.command.ReportSaveCommand;
@@ -44,19 +47,18 @@ public class ReportSaveController {
 
 	private Log log = LogFactory.getLog(ReportSaveController.class);
 
-
+	@RequestMapping(method = RequestMethod.GET, path = "/curator/report/report-save.html")
 	protected ModelAndView showForm() throws Exception {
 
 		return null;
 	}
 
-
-	protected ModelAndView processFormSubmission(HttpServletRequest req, HttpServletResponse resp, Object comm)
+	@RequestMapping(method = RequestMethod.POST, path = "/curator/report/report-save.html")
+	protected ModelAndView processFormSubmission(HttpServletRequest req, HttpServletResponse resp, @ModelAttribute ReportSaveCommand reportSaveCommand)
             throws Exception {
 
-		ReportSaveCommand com = (ReportSaveCommand) comm;
-		String format = com.getFormat();
-		String action = com.getActionCmd();
+		String format = reportSaveCommand.getFormat();
+		String action = reportSaveCommand.getActionCmd();
 
 		String dest = resp.encodeRedirectURL(req.getContextPath() + "/curator/report/report.html");
 
