@@ -63,10 +63,7 @@ import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.core.store.tools.WCTNode;
 import org.webcurator.core.store.tools.WCTNodeTree;
 import org.webcurator.core.util.XMLConverter;
-import org.webcurator.domain.model.core.HarvestResource;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.tools.command.TreeToolCommand;
 import org.xml.sax.SAXException;
@@ -131,31 +128,31 @@ public class TreeToolController {
 	private TreeToolControllerAttribute treeToolControllerAttribute;
 
 	private String successView = "TreeTool";
-	
-    /** Automated QA Url */
 
-    /** the name of the content directory. */
-    public static final String DIR_CONTENT = "content";
+	/** Automated QA Url */
+
+	/** the name of the content directory. */
+	public static final String DIR_CONTENT = "content";
 
 
 	public TreeToolController() {
 	}
 
 	@InitBinder
-    public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		// Determine the necessary formats.
-        NumberFormat nf = NumberFormat.getInstance(request.getLocale());
+		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
 
-        // Register the binders.
-        binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, nf, true));
-        binder.registerCustomEditor(Boolean.class, "propagateDelete", new CustomBooleanEditor(true));
+		// Register the binders.
+		binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, nf, true));
+		binder.registerCustomEditor(Boolean.class, "propagateDelete", new CustomBooleanEditor(true));
 
-        // to actually be able to convert Multipart instance to byte[]
-        // we have to register a custom editor (in this case the
-        // ByteArrayMultipartEditor
-        binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
-        // now Spring knows how to handle multipart object and convert them
-    }
+		// to actually be able to convert Multipart instance to byte[]
+		// we have to register a custom editor (in this case the
+		// ByteArrayMultipartEditor
+		binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
+		// now Spring knows how to handle multipart object and convert them
+	}
 
 	@SuppressWarnings("unchecked")
 	@RequestMapping(path = "/curator/tools/treetool.html", method = {RequestMethod.POST, RequestMethod.GET})
@@ -179,7 +176,7 @@ public class TreeToolController {
 
 				List<AQAElement> candidateElements = new ArrayList<AQAElement>();
 
-		    	// load AQA 'importable items' (if any)..
+				// load AQA 'importable items' (if any)..
 				File xmlFile;
 				try {
 					xmlFile = harvestLogManager.getLogfile(ti, command.getLogFileName());
@@ -201,9 +198,9 @@ public class TreeToolController {
 							Element element = (Element)elementNodes.item(i);
 							if (element.getAttribute("statuscode").equals("200")) {
 								candidateElements.add(new AQAElement(element.getAttribute("url"),
-										                             element.getAttribute("contentfile"),
-										                             element.getAttribute("contentType"),
-										                             Long.parseLong(element.getAttribute("contentLength"))));
+										element.getAttribute("contentfile"),
+										element.getAttribute("contentType"),
+										Long.parseLong(element.getAttribute("contentLength"))));
 							}
 						}
 					}
@@ -286,16 +283,16 @@ public class TreeToolController {
 					File xfrFile = new File(treeToolControllerAttribute.uploadedFilesDir+tempFileName);
 
 					StringBuffer buf = new StringBuffer();
-			        buf.append("HTTP/1.1 200 OK\n");
-			        buf.append("Content-Type: ");
-			        buf.append(uploadedFile.getContentType()+"\n");
-			        buf.append("Content-Length: ");
-			        buf.append(uploadedFile.getSize()+"\n");
-			        buf.append("Connection: close\n\n");
+					buf.append("HTTP/1.1 200 OK\n");
+					buf.append("Content-Type: ");
+					buf.append(uploadedFile.getContentType()+"\n");
+					buf.append("Content-Length: ");
+					buf.append(uploadedFile.getSize()+"\n");
+					buf.append("Connection: close\n\n");
 
 					FileOutputStream fos = new FileOutputStream(xfrFile);
 					fos.write(buf.toString().getBytes());
-			        fos.write(uploadedFile.getBytes());
+					fos.write(uploadedFile.getBytes());
 
 					fos.close();
 
@@ -359,39 +356,49 @@ public class TreeToolController {
 		}
 
 		// Handle browse action.
-        else if(command.isAction(TreeToolCommand.ACTION_VIEW)) {
-            HarvestResource resource = tree.getNodeCache().get(command.getSelectedRow()).getSubject();
-            Long resultOid = resource.getResult().getOid();
-            String url = resource.getName();
+		else if(command.isAction(TreeToolCommand.ACTION_VIEW)) {
+			if(tree == null || tree.getNodeCache().get(command.getSelectedRow()).getSubject() == null || tree.getNodeCache().get(command.getSelectedRow()).getSubject().getResult() == null){
+				bindingResult.reject("Null Pointer", "Can't find harvest result.");
+				ModelAndView mav = new ModelAndView(getSuccessView());
+				mav.addObject( "tree", tree);
+				mav.addObject( "command", command);
+				mav.addObject( "aqaImports", imports);
+				mav.addObject( Constants.GBL_ERRORS, bindingResult);
+				if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
+					mav.addObject("showAQAOption", 1);
+				} else {
+					mav.addObject("showAQAOption", 0);
+				}
+				return mav;
+			}
 
-            if (treeToolControllerAttribute.enableAccessTool && harvestResourceUrlMapper != null)
-            {
-            	return new ModelAndView("redirect:" + harvestResourceUrlMapper.generateUrl(resource.getResult(), resource.buildDTO()));
-            }
-            else
-            {
-            	return new ModelAndView("redirect:/curator/tools/browse/" + resultOid + "/" +url);
-            }
+			HarvestResource resource = tree.getNodeCache().get(command.getSelectedRow()).getSubject();
+			Long resultOid = resource.getResult().getOid();
+			String url = resource.getName();
 
-        }
-
+			if (treeToolControllerAttribute.enableAccessTool && harvestResourceUrlMapper != null) {
+				return new ModelAndView("redirect:" + harvestResourceUrlMapper.generateUrl(resource.getResult(), resource.buildDTO()));
+			} else {
+				return new ModelAndView("redirect:/curator/tools/browse/" + resultOid + "/" + url);
+			}
+		}
 		// Handle show hop path action.
-        else if(command.isAction(TreeToolCommand.ACTION_SHOW_HOP_PATH)) {
+		else if(command.isAction(TreeToolCommand.ACTION_SHOW_HOP_PATH)) {
 
-        	TargetInstance tinst = (TargetInstance) req.getSession().getAttribute("sessionTargetInstance");
-        	Long instanceOid = tinst.getOid();
-        	String url = command.getSelectedUrl();
+			TargetInstance tinst = (TargetInstance) req.getSession().getAttribute("sessionTargetInstance");
+			Long instanceOid = tinst.getOid();
+			String url = command.getSelectedUrl();
 
-        	return new ModelAndView("redirect:/curator/target/show-hop-path.html?targetInstanceOid=" + instanceOid + "&logFileName=sortedcrawl.log&url=" +url);
-        }
+			return new ModelAndView("redirect:/curator/target/show-hop-path.html?targetInstanceOid=" + instanceOid + "&logFileName=sortedcrawl.log&url=" +url);
+		}
 
 		// handle import of one or more AQA items..
-        else if(command.isAction(TreeToolCommand.IMPORT_AQA_FILE)) {
+		else if(command.isAction(TreeToolCommand.IMPORT_AQA_FILE)) {
 
-        	// iterate over the selected (checked) items..
+			// iterate over the selected (checked) items..
 			if (command.getAqaImports() != null) {
 
-	        	List<AQAElement> removeElements = new ArrayList<AQAElement>();
+				List<AQAElement> removeElements = new ArrayList<AQAElement>();
 
 				String[] aqaImportUrls = command.getAqaImports();
 				for(int i=0;i<aqaImportUrls.length;i++) {
@@ -419,12 +426,12 @@ public class TreeToolController {
 								File xfrFile = new File(treeToolControllerAttribute.uploadedFilesDir+tempFileName);
 
 								StringBuffer buf = new StringBuffer();
-						        buf.append("HTTP/1.1 200 OK\n");
-						        buf.append("Content-Type: ");
-						        buf.append(elem.getContentType()+"\n");
-						        buf.append("Content-Length: ");
-						        buf.append(elem.getContentLength()+"\n");
-						        buf.append("Connection: close\n\n");
+								buf.append("HTTP/1.1 200 OK\n");
+								buf.append("Content-Type: ");
+								buf.append(elem.getContentType()+"\n");
+								buf.append("Content-Length: ");
+								buf.append(elem.getContentLength()+"\n");
+								buf.append("Connection: close\n\n");
 
 								FileOutputStream fos = new FileOutputStream(xfrFile);
 								fos.write(buf.toString().getBytes());
@@ -545,48 +552,50 @@ public class TreeToolController {
 
 	private byte[] fetchHTTPResponse(String url, String[] outStrings)
 	{
-	    GetMethod getMethod = new GetMethod(url);
-	    HttpClient client = new HttpClient();
-	    try
-	    {
-	        int result = client.executeMethod(getMethod);
-	        if(result != HttpURLConnection.HTTP_OK)
-	        {
-	        	throw new HTTPGetException("HTTP GET Status="+result);
-	        }
-	        Header[] headers = getMethod.getResponseHeaders();
-	        StringBuffer buf = new StringBuffer();
-	        buf.append("HTTP/1.1 200 OK\n");
-	        for (int i=0; i<headers.length; i++) {
-	        	buf.append(headers[i].getName()+": ");
-	        	buf.append(headers[i].getValue()+"\n");
-	        	if (headers[i].getName().equalsIgnoreCase("content-type")) {outStrings[0]=headers[i].getValue();}
-	        }
-	        buf.append("\n");
+		GetMethod getMethod = new GetMethod(url);
+		HttpClient client = new HttpClient();
+		try
+		{
+			int result = client.executeMethod(getMethod);
+			if(result != HttpURLConnection.HTTP_OK)
+			{
+				throw new HTTPGetException("HTTP GET Status="+result);
+			}
+			Header[] headers = getMethod.getResponseHeaders();
+			StringBuffer buf = new StringBuffer();
+			buf.append("HTTP/1.1 200 OK\n");
+			for (int i=0; i<headers.length; i++) {
+				buf.append(headers[i].getName()+": ");
+				buf.append(headers[i].getValue()+"\n");
+				if (headers[i].getName().equalsIgnoreCase("content-type")) {outStrings[0]=headers[i].getValue();}
+			}
+			buf.append("\n");
 
-	        ByteArrayOutputStream os = new ByteArrayOutputStream();
-	        os.write(buf.toString().getBytes());
-	        os.write(getMethod.getResponseBody());
+			ByteArrayOutputStream os = new ByteArrayOutputStream();
+			os.write(buf.toString().getBytes());
+			os.write(getMethod.getResponseBody());
 
-	        return os.toByteArray();
-	    }
-	    catch (HTTPGetException je)
-	    {
-	    	throw je;
-	    }
-	    catch (Exception e)
-	    {
+			return os.toByteArray();
+		}
+		catch (HTTPGetException je)
+		{
+			throw je;
+		}
+		catch (Exception e)
+		{
 			throw new HTTPGetException("Unable to fetch content at "+url+".", e);
-	    }
-	    finally
-	    {
-	    	getMethod.releaseConnection();
-	    }
+		}
+		finally
+		{
+			getMethod.releaseConnection();
+		}
 	}
 
 	private void removeTree(HttpServletRequest req) {
 		WCTNodeTree tree = (WCTNodeTree) req.getSession().getAttribute("tree");
-		tree.clear();
+		if (tree!=null) {
+			tree.clear();
+		}
 		req.getSession().removeAttribute("tree");
 		System.gc();
 	}
@@ -599,30 +608,30 @@ public class TreeToolController {
 	private Document readXMLDocument(File f) throws SAXException, IOException, ParserConfigurationException
 	{
 		StringBuffer sb = new StringBuffer();
-        BufferedReader in = new BufferedReader(new FileReader(f));
+		BufferedReader in = new BufferedReader(new FileReader(f));
 
-        try
-        {
-	        String str;
-	        while ((str = in.readLine()) != null)
-	        {
-	               sb.append(str);
-	        }
-        }
-        finally
-        {
-        	in.close();
-        }
+		try
+		{
+			String str;
+			while ((str = in.readLine()) != null)
+			{
+				sb.append(str);
+			}
+		}
+		finally
+		{
+			in.close();
+		}
 
 		return XMLConverter.StringToDocument(sb.toString());
 	}
 
 
 
-    public String getSuccessView()
-    {
-        return successView;
-    }
+	public String getSuccessView()
+	{
+		return successView;
+	}
 
 	public void setSuccessView(String successView) {
 		this.successView = successView;
