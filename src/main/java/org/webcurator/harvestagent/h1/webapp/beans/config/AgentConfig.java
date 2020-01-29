@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -28,6 +29,7 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreClient;
+import org.webcurator.core.util.ApplicationContextFactory;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -176,8 +178,13 @@ public class AgentConfig {
     @Value("${checkProcessorTrigger.repeatInterval}")
     private long checkProcessorTriggerRepeatInterval;
 
+    @Autowired
+    ApplicationContext ctx;
+
     @PostConstruct
     public void postConstruct() {
+        ApplicationContextFactory.setApplicationContext(ctx);
+
         // Avoid circular bean dependencies
         harvestCoordinatorNotifier().setAgent(harvestAgent());
         harvestAgent().setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
