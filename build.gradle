@@ -24,7 +24,8 @@ dependencies {
        exclude group: 'javax.servlet', module: 'servlet-api'
     }
     compile 'com.sleepycat:je:3.3.74'
-    compile 'com.sun.jmx:jmxri:1.2.1'
+    // artifact has been removed from public repos because of licensing issue, and we don't seem to need it
+    //compile 'com.sun.jmx:jmxri:1.2.1'
     compile 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
     compile 'javax.persistence:javax.persistence-api:2.2'
     testCompile 'junit:junit:4.12'
