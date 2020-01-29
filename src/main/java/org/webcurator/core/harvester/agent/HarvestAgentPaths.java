@@ -18,7 +18,7 @@ public class HarvestAgentPaths {
     public static final String STATUS = ROOT_PATH + "/status";
     public static final String UPDATE_PROFILE_OVERRIDES = ROOT_PATH + "/{job}/update-profile-overrides";
     public static final String PURGE_ABORTED_TARGET_INSTANCES = ROOT_PATH + "/purge-aborted-target-instances";
-    public static final String IS_VALID_PROFILE = ROOT_PATH + "/{profile}/is-valid";
+    public static final String IS_VALID_PROFILE = ROOT_PATH + "/is-valid";
     public static final String EXECUTE_SHELL_SCRIPT = ROOT_PATH + "/{job-name}/execute-shell-script";
 
     private HarvestAgentPaths() {
