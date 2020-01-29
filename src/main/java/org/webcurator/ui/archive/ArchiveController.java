@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
@@ -49,7 +50,6 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  * @author aparker
  */
 @Controller
-@RequestMapping("/curator/archive/submit.html")
 public class ArchiveController {
 	/** The archive adapter to use to archive the target instance. */
 	@Autowired
@@ -64,16 +64,16 @@ public class ArchiveController {
 	// TODO Must this be initialised like this?
 	private String webCuratorUrl = "http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd";
 	/** the version number of the heritrix harvester. */
-    @Value("${heritrix.version}")
-    private String heritrixVersion;
+	@Value("${heritrix.version}")
+	private String heritrixVersion;
 	/** the target manager to use to get Target data. */
 	@Autowired
 	private TargetManager targetManager;
 
 	@PostConstruct
-    protected void init() {
-	    setHeritrixVersion("Heritrix" + this.heritrixVersion);
-    }
+	protected void init() {
+		setHeritrixVersion("Heritrix" + this.heritrixVersion);
+	}
 
 	/** Default Constructor. */
 	public ArchiveController() {
@@ -85,12 +85,12 @@ public class ArchiveController {
 
 		//Beware of lazy loaded AbstractTargets - check and reload if necessary
 		if(target.getObjectType() == AbstractTarget.TYPE_TARGET &&
-			!(target instanceof Target))
+				!(target instanceof Target))
 		{
 			target = targetManager.load(target.getOid());
 		}
 		else if(target.getObjectType() == AbstractTarget.TYPE_GROUP &&
-			!(target instanceof TargetGroup))
+				!(target instanceof TargetGroup))
 		{
 			target = targetManager.loadGroup(target.getOid());
 		}
@@ -159,8 +159,9 @@ public class ArchiveController {
 		return customDepositFormElements;
 	}
 
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
-                                  BindingResult bindingResult) throws Exception {
+	@RequestMapping(value = "/curator/archive/submit.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, ArchiveCommand command,
+								  BindingResult bindingResult) throws Exception {
 
 		// fetch the list of target instance ids to archive from the request (includes multi-select)
 		String[] targetInstanceOids = request.getParameterValues("instanceID");
@@ -184,12 +185,12 @@ public class ArchiveController {
 				// one harvest result in the endorsed state. If there are no HRs in the
 				// endorsed state (somehow?) or if there are more than one then we'll return
 				// to the TI list view displaying an appropriate message.
-		        List<HarvestResult> results = targetInstanceManager.getHarvestResults(instance.getOid());
-		        harvestNumber = extractEndorsedHarvestNumber(results);
-		        if ( harvestNumber == 0 ) {
-		    		ModelAndView mav = new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE + "?" + TargetInstanceCommand.REQ_SHOW_SUBMITTED_MSG + "=n");
-		    		return mav;
-		        }
+				List<HarvestResult> results = targetInstanceManager.getHarvestResults(instance.getOid());
+				harvestNumber = extractEndorsedHarvestNumber(results);
+				if ( harvestNumber == 0 ) {
+					ModelAndView mav = new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE + "?" + TargetInstanceCommand.REQ_SHOW_SUBMITTED_MSG + "=n");
+					return mav;
+				}
 			}
 
 			String xmlData = buildSip(request, response, harvestNumber);
@@ -199,17 +200,16 @@ public class ArchiveController {
 			try{
 				// denote this target instance as the reference crawl if the option is set on the target
 				Target target = targetManager.load(instance.getTarget().getOid());
-		        if (target.isAutoDenoteReferenceCrawl()) {
-		        	target.setReferenceCrawlOid(instance.getOid());
-		        	targetManager.save(target);
-		        }
-		        // submit the target instance to the archive
+				if (target.isAutoDenoteReferenceCrawl()) {
+					target.setReferenceCrawlOid(instance.getOid());
+					targetManager.save(target);
+				}
+				// submit the target instance to the archive
 				archiveAdapter.submitToArchive(instance, xmlData, customDepositFormElements, harvestNumber);
 			}
 			catch(Exception e){
 				e.printStackTrace();
 				bindingResult.reject("archive.failure", new Object[]{e.getMessage()}, "Failed to submit to archive");
-				ArchiveCommand command = (ArchiveCommand) comm;
 				ModelAndView mav = new ModelAndView("submit-to-archive2");
 				mav.addObject("instance", instance);
 				mav.addObject(Constants.GBL_CMD_DATA, command);
@@ -243,27 +243,6 @@ public class ArchiveController {
 	}
 
 	/**
-	 * @param targetInstanceManager the target instance manager.
-	 */
-	public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
-		this.targetInstanceManager = targetInstanceManager;
-	}
-
-	/**
-	 * @param archiveAdapter the archive adaptor.
-	 */
-	public void setArchiveAdapter(ArchiveAdapter archiveAdapter) {
-		this.archiveAdapter = archiveAdapter;
-	}
-
-	/**
-	 * @param targetManager The target manager.
-	 */
-	public void setTargetManager(TargetManager targetManager) {
-		this.targetManager = targetManager;
-	}
-
-	/**
 	 * @param heritrixVersion The version of the harvester being used.
 	 */
 	public void setHeritrixVersion(String heritrixVersion) {
@@ -275,13 +254,6 @@ public class ArchiveController {
 	 */
 	public void setWebCuratorUrl(String webCuratorUrl) {
 		this.webCuratorUrl = webCuratorUrl;
-	}
-
-	/**
-	 * @param sipBuilder the sipBuilder to set
-	 */
-	public void setSipBuilder(SipBuilder sipBuilder) {
-		this.sipBuilder = sipBuilder;
 	}
 
 }
