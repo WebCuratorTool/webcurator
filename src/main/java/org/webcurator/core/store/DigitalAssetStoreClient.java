@@ -200,16 +200,16 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
     public void submitToArchive(String targetInstanceOid, String sip, Map xAttributes, int harvestNumber)
             throws DigitalAssetStoreException {
+        xAttributes.put("sip", sip);
+        HttpEntity<String> request = this.createHttpRequestEntity(xAttributes);
+
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.ARCHIVE))
-                .queryParam("sip", sip)
-                .queryParam("x-attributes", xAttributes)
                 .queryParam("harvest-number", harvestNumber);
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
 
-        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         RestTemplate restTemplate = restTemplateBuilder.build();
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Boolean.class);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+                request, Boolean.class);
     }
 
     public byte[] getSmallResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException {
