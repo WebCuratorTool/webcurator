@@ -113,13 +113,18 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     }
 
     @Override
-    @PostMapping(path = DigitalAssetStorePaths.ARCHIVE)
-    public void submitToArchive(@PathVariable(value = "target-instance-oid") String targetInstanceOid,
-                                @RequestParam(value = "sip") String sip,
-                                @RequestParam(value = "x-attributes") Map xAttributes,
-                                @RequestParam(value = "harvest-number") int harvestNumber) throws DigitalAssetStoreException {
+    public void submitToArchive(String targetInstanceOid, String sip, Map xAttributes, int harvestNumber) throws DigitalAssetStoreException {
         log.debug("Submit to archive, target-instance-oid: {}, sip: {}, harvest-number: {}", targetInstanceOid, sip, harvestNumber);
         arcDigitalAssetStoreService.submitToArchive(targetInstanceOid, sip, xAttributes, harvestNumber);
+    }
+
+    @PostMapping(path = DigitalAssetStorePaths.ARCHIVE)
+    public void submitToArchive(@PathVariable(value = "target-instance-oid") String targetInstanceOid,
+                                @RequestParam(value = "harvest-number") int harvestNumber,
+                                @RequestBody Map xAttributes) throws DigitalAssetStoreException {
+        String sip = (String)xAttributes.get("sip");
+        xAttributes.remove("sip");
+        this.submitToArchive(targetInstanceOid, sip, xAttributes, harvestNumber);
     }
 
     @Override
