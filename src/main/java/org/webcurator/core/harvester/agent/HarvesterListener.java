@@ -50,8 +50,10 @@ public class HarvesterListener implements NotificationListener {
 		String message = notification.getMessage();
 		log.info("Notification {} recieved from {}", message, handback);
 
+		HarvesterHeritrix.wakeupAfterReceivedStatus((String) handback, message);
+
 		ApplicationContext context = ApplicationContextFactory.getApplicationContext();
-		HarvestAgent agent =  context.getBean(HarvestAgent.class);
+		HarvestAgent agent =  context.getBean(HarvestAgentHeritrix.class);
 		// When the agent moves into the running state grab the settings we need at
 		// Job completion as some of these may no longer be available when the job is finished.
 		if (message.equals(CrawlJob.STATUS_RUNNING)) {

@@ -17,15 +17,11 @@ package org.webcurator.core.harvester.agent;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.management.Attribute;
 import javax.management.InvalidAttributeValueException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.archive.crawler.Heritrix;
 import org.archive.crawler.admin.CrawlJob;
 import org.archive.crawler.admin.CrawlJobHandler;
@@ -38,6 +34,8 @@ import org.archive.crawler.settings.MapType;
 import org.archive.crawler.settings.XMLSettingsHandler;
 import org.archive.crawler.writer.ARCWriterProcessor;
 import org.archive.crawler.writer.WARCWriterProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.webcurator.core.harvester.agent.exception.HarvesterException;
 import org.webcurator.core.harvester.util.AlertLogger;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
@@ -50,6 +48,8 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 public class HarvesterHeritrix implements Harvester { 
     /** The name of the profile file. */
     private static final String PROFILE_NAME = "order.xml";
+    /** The queue of threads waiting for notification from Crawler for asynchronous message.*/
+    private static final Map<String, HarvesterHeritrix> JOB_QUEUE = new Hashtable<>();
     /** The name of this harvester. */
     private String name = null;
     /** harvester. */
@@ -67,7 +67,7 @@ public class HarvesterHeritrix implements Harvester {
     /** the flag to indicate that the arc files are compressed. */
     private Boolean compressed = null;
     /** The logger for this class. */
-    private Log log = null;
+    private static Logger log = LoggerFactory.getLogger(HarvesterHeritrix.class);
     /** flag to indicate that the stop is an abort .*/
     private boolean aborted = false;
     /** the alert threshold.*/
@@ -75,16 +75,14 @@ public class HarvesterHeritrix implements Harvester {
     /** flag to indicate that the alert threshold message has been sent .*/
     private boolean alertThresholdMsgSent = false;
     /** the logger for alerts from heritrix. */
-    private AlertLogger alertLogger = null;       
-    
+    private AlertLogger alertLogger = null;
+
     /** init
      * HarvesterHeritrix Constructor.
      * @param aHarvesterName the name of this harvester 
      */
     public HarvesterHeritrix(String aHarvesterName) throws HarvesterException {
         super();
-        log = LogFactory.getLog(HarvesterHeritrix.class);      
-        
         name = aHarvesterName;        
         try {
             heritrix = new Heritrix(name, true);
@@ -115,7 +113,6 @@ public class HarvesterHeritrix implements Harvester {
         	}
             throw new HarvesterException("Failed to create an instance of Heritrix " + e.getMessage(), e);
         }
-        log = LogFactory.getLog(HarvesterHeritrix.class);
         if (log.isDebugEnabled()) {
         	log.debug("Created new harvester " + name);
         }
@@ -433,13 +430,14 @@ public class HarvesterHeritrix implements Harvester {
                     log.info("Launched harvester " + name + " " + launchStatus);
                 }
             }
-            
-            heritrix.addCrawlJob("file:///" + aProfile.getAbsoluteFile(), aJobName, aJobName, "");            
+
+            heritrix.addCrawlJob("file:///" + aProfile.getAbsoluteFile(), aJobName, aJobName, "");
             CrawlJob tmpJob = null;
-            CrawlJobHandler cjw = heritrix.getJobHandler();                                                                
+            CrawlJobHandler cjw = heritrix.getJobHandler();
             Iterator it = cjw.getPendingJobs().iterator();
+
             while (it.hasNext()) {
-                tmpJob = (CrawlJob) it.next();                
+                tmpJob = (CrawlJob) it.next();
                 if (tmpJob.getJobName().equals(aJobName)) {
                     job = tmpJob;
                     job.getSettingsHandler().initialize();
@@ -457,21 +455,24 @@ public class HarvesterHeritrix implements Harvester {
                     cjw.deleteJob(tmpJob.getJobName());
                 }
             }           
-            
+
+            JOB_QUEUE.put(job.getJobName(), this);
             heritrix.startCrawling();
-            
-            boolean started = false;
-            while (!started) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Waiting for job to start where state is " + job.getStatus());
-                }
-                Thread.sleep(1000);
-                if (!CrawlJob.STATUS_CREATED.equals(job.getStatus())
-                    && !CrawlJob.STATUS_PENDING.equals(job.getStatus())
-                    && !CrawlJob.STATUS_PREPARING.equals(job.getStatus())) {
-                    started = true;                    
-                }
-            } 
+            log.debug("Waiting for job to start where state is " + job.getStatus());
+
+            // Waiting until woken up by a notification
+            synchronized (this) {
+                this.wait(3600 * 1000);
+            }
+
+            log.debug("Continue to run, jobName: {}, status: {}.", job.getJobName(), job.getStatus());
+
+            if(JOB_QUEUE.containsKey(job.getJobName())){
+                JOB_QUEUE.remove(job.getJobName());
+                String errMsg = String.format("Waited timeout, jobName: %s, status: %s.", job.getJobName(), job.getStatus());
+                log.error(errMsg);
+                throw new Exception(errMsg);
+            }
         }
         catch (Exception e) {
         	if (log.isErrorEnabled()) {
@@ -487,6 +488,32 @@ public class HarvesterHeritrix implements Harvester {
 			}
         	
             throw new HarvesterException("Failed to start harvester " + name + ": " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Wakeup a waiting HarvesterHeritrix thread when received a running status from Crawler.
+     * @param jobName: the name of a job
+     * @param message: message received from Crawler, mainly means Status of a job
+     */
+    public static void wakeupAfterReceivedStatus(String jobName, String message) {
+        log.debug("Received notification, jobName: {}, message: {}", jobName, message);
+        if (message == null || message.equals(CrawlJob.STATUS_CREATED) || message.equals(CrawlJob.STATUS_PENDING) || message.equals(CrawlJob.STATUS_PREPARING))
+        {
+            log.debug("Keep waiting on status: {}", message);
+            return;
+        }
+
+        HarvesterHeritrix that = JOB_QUEUE.get(jobName);
+        if(that == null){
+            log.debug("Can not find job processor, jobName: {}, message: {}", jobName, message);
+            return;
+        }
+
+        synchronized (that){
+            log.debug("Notify the HarvesterHeritrix thread to continue, jobName: {}, message: {}", jobName, message);
+            JOB_QUEUE.remove(jobName); //Removed
+            that.notifyAll();
         }
     }
     
@@ -531,4 +558,14 @@ public class HarvesterHeritrix implements Harvester {
 	public void setAlertThreshold(int alertThreshold) {
 		this.alertThreshold = alertThreshold;
 	}
+
+//	public static void main(String[] args){
+//	    String userAgent="Mozilla/5.0 (Crawler1+http://lql.haha.nz)";
+//	    String from="lql@qq.com";
+//        String ACCEPTABLE_USER_AGENT = "\\S+.*\\(.*\\+http(s)?://\\S+\\.\\S+.*\\).*";
+//        String ACCEPTABLE_FROM = "\\S+@\\S+\\.\\S+";
+//
+//        System.out.println(userAgent.matches(ACCEPTABLE_USER_AGENT));
+//        System.out.println(from.matches(ACCEPTABLE_FROM));
+//    }
 }
