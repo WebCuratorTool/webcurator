@@ -1,19 +1,13 @@
 package org.webcurator.core.harvester.agent;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.rest.AbstractRestClient;
-import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 import java.net.URI;
@@ -237,11 +231,13 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
     }
 
     public boolean isValidProfile(String profile) {
+        HttpEntity<String> request = this.createHttpRequestEntity(profile);
+
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.IS_VALID_PROFILE));
-        Map<String, String> pathVariables = ImmutableMap.of("profile", profile);
+        //Map<String, String> pathVariables = ImmutableMap.of("profile", profile);
 
         RestTemplate restTemplate = restTemplateBuilder.build();
-        Boolean result = restTemplate.getForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
+        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),request,
                 Boolean.class);
         return result;
     }
