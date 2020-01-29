@@ -21,7 +21,8 @@ repositories {
 }
 
 dependencies {
-    compile 'com.sun.jmx:jmxri:1.2.1'
+    // This artifact no longer exists in public repos and we don't seem to need it
+    //compile 'com.sun.jmx:jmxri:1.2.1'
     compile 'log4j:log4j:1.2.17'
     compile 'org.quartz-scheduler:quartz:2.3.1'
     compile 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
