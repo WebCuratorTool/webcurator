@@ -109,17 +109,11 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/commons-pool/commons-pool -->
 		<dependency>
-			<groupId>org.archive</groupId>
-			<artifactId>heritrix</artifactId>
-			<version>1.14.2-webcuratortool-2.0.1</version>
-			<scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
+			<groupId>commons-pool</groupId>
+			<artifactId>commons-pool</artifactId>
+			<version>1.3.1-heritrix-1.14.2-webcuratortool-2.0.1</version>
 		</dependency>
 		<!-- Note that commons-httpclient and commons-pool versions specific to heritrix will be pulled in by
 			 heritrix. This new version of heritrix also includes a pom that pulls in many other dependencies.
@@ -149,20 +143,13 @@
 			<version>3.0.0-SNAPSHOT</version>
 			<scope>compile</scope>
 			<exclusions>
-				<!-- Exclude commons-httpclient brought in via webcurator-core. We want the version that is tied to
-				     heritrix 1.14.2...
-				-->
-				<exclusion>
-					<groupId>commons-httpclient</groupId>
-					<artifactId>commons-httpclient</artifactId>
-				</exclusion>
                 <!-- Exclude hibernate as harvest-agent-h1 does not need hibernate at all -->
                 <exclusion>
                     <groupId>org.hibernate</groupId>
                     <artifactId>hibernate-core</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>org.hibernate</groupId>
+                    <groupId>org.hgibernate</groupId>
                     <artifactId>hibernate-ehcache</artifactId>
                 </exclusion>
                 <exclusion>
