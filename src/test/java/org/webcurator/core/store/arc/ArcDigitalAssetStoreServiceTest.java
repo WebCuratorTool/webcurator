@@ -54,7 +54,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 	public void setUp() throws Exception {
 		super.setUp();
 		testInstance.setBaseDir(baseDir);
-		testInstance.setArchive(new MockArchive());
+//		testInstance.setArchive(new MockArchive());
 		testInstance.setDasFileMover(new MockDasFileMover());
 		testInstance.setIndexer(new MockIndexer());
 	}
