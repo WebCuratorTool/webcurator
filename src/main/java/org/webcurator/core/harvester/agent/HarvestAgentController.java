@@ -146,7 +146,7 @@ public class HarvestAgentController implements HarvestAgent {
 
     @Override
     @GetMapping(path = HarvestAgentPaths.IS_VALID_PROFILE)
-    public boolean isValidProfile(@PathVariable(value = "profile") String profile) {
+    public boolean isValidProfile(@RequestBody String profile) {
         log.debug("Is valid profile");
         return harvestAgent.isValidProfile(profile);
     }
