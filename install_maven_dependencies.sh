@@ -36,6 +36,12 @@ git clone https://github.com/WebCuratorTool/heritrix-1-14-adjust.git \
   ./wct-core/target/heritrix-1-14-adjust
 mvn install:install-file -Dfile=./wct-core/target/heritrix-1-14-adjust/release_archive/heritrix-1.14.2-webcuratortool-2.0.2.jar \
   -DpomFile=./wct-core/target/heritrix-1-14-adjust/release_archive/heritrix-1.14.2-webcuratortool-2.0.2.pom
+## The dependency resolver claims this should be in the repo as well
+mvn install:install-file -DgroupId=com.anotherbigidea -DartifactId=javaswf \
+      -Dversion=CVS-SNAPSHOT-1 \
+      -Dpackaging=jar \
+      -Dfile=./wct-core/target/heritrix-1-14-adjust/lib/javaswf-CVS-SNAPSHOT-1.jar
+
 
 
 ##
