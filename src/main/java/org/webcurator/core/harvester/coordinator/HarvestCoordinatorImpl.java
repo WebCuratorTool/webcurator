@@ -129,7 +129,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	}
 
 	@Override
-	public void requestRecovery(HarvestAgentStatusDTO aStatus) {
+	public  void requestRecovery(HarvestAgentStatusDTO aStatus) {
 		//Do nothing
 	}
 
@@ -416,7 +416,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
 	/**
 	 * Internal harvest method.
-	 * 
+	 *
 	 * @param aTargetInstance
 	 *            The instance to harvest.
 	 * @param aHarvestAgent
@@ -446,20 +446,19 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
 		// Get the profile.
 		String profile = getHarvestProfileString(aTargetInstance);
-		long targetInstanceId=aTargetInstance.getOid();
 
-		// Initiate harvest on the remote harvest agent
-		harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
-
-		// Data maybe changed in asynchronized threads, so refresh entity
-		aTargetInstance = targetInstanceDao.load(targetInstanceId);
 		// Update the state of the allocated Target Instance
+		long targetInstanceId=aTargetInstance.getOid();
+		aTargetInstance = targetInstanceDao.load(targetInstanceId);
 		aTargetInstance.setActualStartTime(new Date());
 		aTargetInstance.setState(TargetInstance.STATE_RUNNING);
 		aTargetInstance.setHarvestServer(aHarvestAgent.getName());
 
-		// Save the updated information.
+		// Save the updated information: to avoid asynchronous problem, update the satate before start harvesting
 		targetInstanceManager.save(aTargetInstance);
+
+		// Initiate harvest on the remote harvest agent
+		harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
 
 		log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + aTargetInstance.getOid().toString());
 
@@ -468,13 +467,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	}
 
 	/** @see HarvestCoordinator#checkForBandwidthTransition(). */
-	public synchronized void checkForBandwidthTransition() {
+	public void checkForBandwidthTransition() {
 		harvestBandwidthManager.checkForBandwidthTransition();
 	}
 
 	/**
 	 * Get the profile string with the overrides applied.
-	 * 
+	 *
 	 * @return
 	 */
 	private String getHarvestProfileString(TargetInstance aTargetInstance) {
@@ -524,7 +523,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	 * Checks if harvest optimization is permitted within the current bandwidth
 	 * restriction. Note that this is different to the
 	 * "isHarvestOptimizationEnabled" check.
-	 * 
+	 *
 	 * @return
 	 */
 	boolean isHarvestOptimizationAllowed() {
@@ -742,7 +741,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		}
 		return false;
 	}
-	
+
 	private boolean startOptimisableInstance(TargetInstance targetInstance, String agencyName) {
 		List<HarvestAgentStatusDTO> harvesters = harvestAgentManager.getAvailableHarvesters(agencyName);
 		if (harvesters.size() > numHarvestersExcludedFromOptimisation) {
@@ -768,11 +767,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	 * Run the checks to see if the target instance can be harvested or if it
 	 * must be queued. If harvest is possible and there is a harvester available
 	 * then allocate it.
-	 * 
+	 *
 	 * @param aTargetInstance
 	 *            the target instance to harvest
 	 */
-	public synchronized void harvestOrQueue(QueuedTargetInstanceDTO aTargetInstance) {
+	public void harvestOrQueue(QueuedTargetInstanceDTO aTargetInstance) {
 		TargetInstance ti = null;
 		boolean approved = true;
 
@@ -871,7 +870,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	/**
 	 * Check that the target that the instance belongs to is approved and if not
 	 * don't harvest.
-	 * 
+	 *
 	 * @param aTargetInstance
 	 *            the target instance whos target should be checked.
 	 * @return flag to indicat approval
