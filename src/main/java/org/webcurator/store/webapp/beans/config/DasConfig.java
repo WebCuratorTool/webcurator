@@ -29,6 +29,7 @@ import org.webcurator.core.store.arc.RenameDasFileMover;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 /**
@@ -263,6 +264,11 @@ public class DasConfig {
     @Value("${dpsArchive.htmlSerials.restrictAgencyType}")
     private String dpsArchiveHtmlSerialsRestrictAgencyType;
 
+    @PostConstruct
+    public void init(){
+        ApplicationContextFactory.setApplicationContext(applicationContext);
+    }
+
     @Bean
     public WebServiceEndPoint wctCoreWsEndpoint() {
         WebServiceEndPoint bean = new WebServiceEndPoint();
@@ -278,7 +284,6 @@ public class DasConfig {
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
         ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(new RestTemplateBuilder());
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-        bean.setArchive(createArcDigitalAssetStoreServiceArchive());
         bean.setIndexer(indexer());
         bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setDasFileMover(createDasFileMover());
@@ -469,8 +474,6 @@ public class DasConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public DPSArchive dpsArchive() {
-        ApplicationContextFactory.setApplicationContext(applicationContext);
-
         DPSArchive bean = new DPSArchive();
         bean.setPdsUrl(dpsArchivePdsUrl);
         bean.setFtpHost(dpsArchiveFtpHost);
