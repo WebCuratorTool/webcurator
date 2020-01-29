@@ -58,19 +58,19 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 	private String credentialUrlPrefix = "";
 
 	@Override
-    public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		// Determine the necessary formats.
-        NumberFormat nf = NumberFormat.getInstance(request.getLocale());
+		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
 
-        // Register the binders.
-        binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, nf, true));
-        binder.registerCustomEditor(Integer.class, new CustomNumberEditor(Integer.class, nf, true));
-    }
+		// Register the binders.
+		binder.registerCustomEditor(Long.class, new CustomNumberEditor(Long.class, nf, true));
+		binder.registerCustomEditor(Integer.class, new CustomNumberEditor(Integer.class, nf, true));
+	}
 
 	@Override
 	public void processTab(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindingResult bindingResult) {
+						   HttpServletRequest req, HttpServletResponse res, Object comm,
+						   BindingResult bindingResult) {
 
 		ProfileCommand command = (ProfileCommand) comm;
 		if(command.getProfileOid() != null && overrideGetter.isOverrideableEditable(req)) {
@@ -113,8 +113,11 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 				command.setH3RawProfile(o.getProfileOverrides().getH3RawProfile());
 			}
 			command.setOverrideH3RawProfile(o.getProfileOverrides().isOverrideH3RawProfile());
-			command.setHarvesterType(o.getProfile().getHarvesterType());
-			command.setImported(o.getProfile().isImported());
+
+			if(o.getProfile()!=null) {
+				command.setHarvesterType(o.getProfile().getHarvesterType());
+				command.setImported(o.getProfile().isImported());
+			}
 		}
 
 
@@ -130,8 +133,8 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 	}
 
 	public TabbedModelAndView preProcessNextTab(TabbedController tc,
-			Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-			Object comm, BindingResult bindingResult) {
+												Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
+												Object comm, BindingResult bindingResult) {
 
 		// Load the session model.
 		Overrideable o = overrideGetter.getOverrideable(req);
@@ -143,8 +146,8 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 		tmav.addObject(Constants.GBL_CMD_DATA, command);
 		List<ProfileDTO> profiles = new ArrayList<ProfileDTO>();
 		if(o.getProfile()!=null) {
-		    /*
-		     * TODO introduce (add) a getAvailableProfiles that actually gets Profiles not DTOs
+			/*
+			 * TODO introduce (add) a getAvailableProfiles that actually gets Profiles not DTOs
 			 * so we can use those in the JSP.
 			 */
 			profiles = profileManager.getAvailableProfiles(o.getProfile().getOid());
@@ -165,8 +168,8 @@ public abstract class AbstractOverrideTabHandler extends TabHandler {
 
 	@Override
 	public ModelAndView processOther(TabbedController tc, Tab currentTab,
-			HttpServletRequest req, HttpServletResponse res, Object comm,
-			BindingResult bindingResult) {
+									 HttpServletRequest req, HttpServletResponse res, Object comm,
+									 BindingResult bindingResult) {
 
 		Overrideable o = overrideGetter.getOverrideable(req);
 		ProfileCommand command = (ProfileCommand) comm;
