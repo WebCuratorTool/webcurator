@@ -31,11 +31,9 @@ public abstract class AbstractSiteHandler extends TabHandler {
 	 * @return the SiteEditorContext
 	 */
 	public SiteEditorContext getEditorContext(HttpServletRequest req) {
-		SiteEditorContext ctx = (SiteEditorContext) req.getSession().getAttribute("siteEditorContext");
-		if( ctx == null) {
+		if(req == null || req.getSession() == null || req.getSession().getAttribute("siteEditorContext") == null){
 			throw new IllegalStateException("siteEditorContext not yet bound to the session");
 		}
-
-		return ctx;
+		return  (SiteEditorContext) req.getSession().getAttribute("siteEditorContext");
 	}
 }
