@@ -129,7 +129,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	/** list of harvest results. */
     @OneToMany() // default fetch type is LAZY
     @JoinColumn(name = "HR_TARGET_INSTANCE_ID")
-    // TODO @hibernate.collection-index column="HR_INDEX"
+    @OrderColumn(name = "HR_INDEX")
 	private List<HarvestResult> harvestResults = new LinkedList<HarvestResult>();
 	/** the target or group that this instance belongs to. */
     @ManyToOne(cascade = CascadeType.ALL)
@@ -182,7 +182,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /** the list of indicators for this target instance. */
     @OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY
     @JoinColumn(name = "I_TI_OID")
-    // TODO @hibernate.collection-index column="I_INDEX"
+    @OrderColumn(name = "I_INDEX")
     private List<Indicator> indicators = new LinkedList<Indicator>();
     /** the list of deleted indicators for this target instance. */
     @Transient

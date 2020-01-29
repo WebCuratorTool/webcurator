@@ -125,7 +125,7 @@ public class Indicator {
     /** The report lines that are generated for this <code>Indicator</code>s report **/
 	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
 	@JoinColumn(name = "IRL_I_OID")
-	// TODO @hibernate.collection-index column="IRL_INDEX"
+	@OrderColumn(name = "IRL_INDEX")
 	public List<IndicatorReportLine> indicatorReportLines = new LinkedList<IndicatorReportLine>();
     
 	/**
