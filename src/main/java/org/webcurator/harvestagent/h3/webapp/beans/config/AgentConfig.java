@@ -1,23 +1,22 @@
 package org.webcurator.harvestagent.h3.webapp.beans.config;
 
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.SimpleScheduleBuilder;
-import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
+import org.quartz.*;
+
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.webcurator.core.check.*;
@@ -29,6 +28,7 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreClient;
+import org.webcurator.core.util.ApplicationContextFactory;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -36,18 +36,31 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+
 /**
  * Contains configuration that used to be found in {@code wct-agent.xml}. This
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
+@SuppressWarnings({"all"})
 @Configuration
+@PropertySource(value = "classpath:wct-agent.properties")
 public class AgentConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(AgentConfig.class);
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private  RestTemplateBuilder restTemplateBuilder;
 
     // Name of the directory where the temporary harvest data is stored.
     @Value("${harvestAgent.baseHarvestDirectory}")
     private String harvestAgentBaseHarvestDirectory;
+
+    // Agent host protocol type that the core knows about.
+    @Value("${harvestAgent.scheme}")
+    private String harvestAgentScheme;
 
     // Agent host name or ip address that the core knows about.
     @Value("${harvestAgent.host}")
@@ -81,6 +94,10 @@ public class AgentConfig {
     @Value("${harvestAgent.alertThreshold}")
     private int harvestAgentAlertThreshold;
 
+    // H3 instance scheme for the H3 agent.
+    @Value("${h3Wrapper.scheme}")
+    private String h3WrapperScheme;
+
     // H3 instance host name or ip address for the H3 agent.
     @Value("${h3Wrapper.host}")
     private String h3WrapperHost;
@@ -102,12 +119,16 @@ public class AgentConfig {
     private String h3WrapperUserName;
 
     // The password for the H3 instance.
-    @Value("{h3Wrapper.password}")
+    @Value("${h3Wrapper.password}")
     private String h3WrapperPassword;
 
     // The name of the core harvest agent listener web service.
     @Value("${harvestCoordinatorNotifier.service}")
     private String harvestCoordinatorNotifierService;
+
+    // The protocol for the core host name or ip address.
+    @Value("${harvestCoordinatorNotifier.scheme}")
+    private String harvestCoordinatorNotifierScheme;
 
     // The host name or ip address of the core.
     @Value("${harvestCoordinatorNotifier.host}")
@@ -123,6 +144,10 @@ public class AgentConfig {
     // The name of the digital asset store web service.
     @Value("${digitalAssetStore.service}")
     private String digitalAssetStoreService;
+
+    // The host protocol type of the digital asset store.
+    @Value("${digitalAssetStore.scheme}")
+    private String digitalAssetStoreScheme;
 
     // The host name or ip address of the digital asset store.
     @Value("${digitalAssetStore.host}")
@@ -188,34 +213,21 @@ public class AgentConfig {
     @Value("${checkProcessorTrigger.repeatInterval}")
     private long checkProcessorTriggerRepeatInterval;
 
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    @Bean
-    public static PropertyPlaceholderConfigurer wctDASConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-agent.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        bean.setOrder(150);
-
-        return bean;
-    }
-
     @PostConstruct
     public void postConstruct() {
         // Avoid circular bean dependencies
         harvestCoordinatorNotifier().setAgent(harvestAgent());
         harvestAgent().setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
+        ApplicationContextFactory.setApplicationContext(applicationContext);
     }
-
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestAgentH3 harvestAgent() {
         HarvestAgentH3 bean = new HarvestAgentH3();
         bean.setBaseHarvestDirectory(harvestAgentBaseHarvestDirectory);
+        bean.setScheme(harvestAgentScheme);
         bean.setHost(harvestAgentHost);
         bean.setMaxHarvests(harvestAgentMaxHarvests);
         bean.setPort(harvestAgentPort);
@@ -234,12 +246,16 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public Heritrix3WrapperConfiguration heritrix3WrapperConfiguration() {
         Heritrix3WrapperConfiguration bean = new Heritrix3WrapperConfiguration();
+        bean.setScheme(h3WrapperScheme);
         bean.setHost(h3WrapperHost);
         bean.setPort(h3WrapperPort);
-        bean.setKeyStoreFile(h3WrapperKeyStoreFile);
+        if(h3WrapperKeyStoreFile==null || h3WrapperKeyStoreFile.getName().trim().length()==0 || h3WrapperKeyStoreFile.getName().equals("''")) {
+            bean.setKeyStoreFile(null);
+        }else{
+            bean.setKeyStoreFile(h3WrapperKeyStoreFile);
+        }
         bean.setKeyStorePassword(h3WrapperKeyStorePassword);
         bean.setUserName(h3WrapperUserName);
         bean.setPassword(h3WrapperPassword);
@@ -250,11 +266,8 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
-        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier();
-        bean.setHost(harvestCoordinatorNotifierHost);
-        bean.setPort(harvestCoordinatorNotifierPort);
+        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierScheme, harvestCoordinatorNotifierHost, harvestCoordinatorNotifierPort, restTemplateBuilder);
         //bean.setAgent(harvestAgent());
         bean.setAttemptRecovery(harvestAgentAttemptHarvestRecovery);
 
@@ -264,14 +277,14 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public DigitalAssetStore digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreHost, digitalAssetStorePort, new RestTemplateBuilder());
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public JobDetail heartbeatJob() {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("harvestAgent", harvestAgent());
@@ -280,20 +293,22 @@ public class AgentConfig {
         JobDetail bean = JobBuilder.newJob(HarvestAgentHeartBeatJob.class)
                 .withIdentity("HeartBeat", "HeartBeatGroup")
                 .usingJobData(jobDataMap)
+                .storeDurably(true)
                 .build();
 
         return bean;
     }
 
     @Bean
+    @DependsOn("heartbeatJob")
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger heartbeatTrigger() {
         Date startTime = new Date(System.currentTimeMillis() + heartbeatTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("HeartBeatTrigger", "HeartBeatTriggerGroup")
-                .forJob(heartbeatJob())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInMilliseconds(heartbeatTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(heartbeatTriggerRepeatInterval))
+                .forJob(heartbeatJob())
                 .build();
 
         return bean;
@@ -302,11 +317,10 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public SchedulerFactoryBean schedulerFactory() {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
+        bean.setJobDetails(heartbeatJob(), checkProcessorJob().getObject());
         bean.setTriggers(heartbeatTrigger(), checkProcessorTrigger());
-
         return bean;
     }
 
@@ -325,14 +339,12 @@ public class AgentConfig {
         bean.setWaitOnFailureLevelOneSecs(harvestCompleteConfigWaitOnFailureLevelOneSecs);
         bean.setWaitOnFailureLevelTwoSecs(harvestCompleteConfigWaitOnFailureLevelTwoSecs);
         bean.setWaitOnCompleteSeconds(harvestCompleteConfigWaitOnCompleteSeconds);
-
         return bean;
     }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public MemoryChecker memoryChecker() {
         MemoryChecker bean = new MemoryChecker();
         bean.setWarnThreshold(memoryCheckerWarnThreshold);
@@ -353,7 +365,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public HarvestAgentMemoryChecker harvestAgentMemoryChecker() {
         HarvestAgentMemoryChecker bean = new HarvestAgentMemoryChecker();
         bean.setWarnThreshold(memoryCheckerWarnThreshold);
@@ -369,7 +380,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public ProcessorCheck processorCheck() {
         ProcessorCheck bean = new ProcessorCheck();
 
@@ -390,7 +400,6 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public DiskSpaceChecker diskSpaceChecker() {
         // List of disk mounts to check.
         ArrayList<String> diskMountsToCheck = new ArrayList<>();
@@ -409,19 +418,19 @@ public class AgentConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
-    @Autowired(required = false) // autowire="default" and default-autowire="no"
     public CheckProcessor checkProcessor() {
         CheckProcessor bean = new CheckProcessor();
 
         List<Checker> checksList = new ArrayList<>();
         checksList.add(memoryChecker());
-        checksList.add(diskSpaceChecker());
+        //checksList.add(diskSpaceChecker());
         bean.setChecks(checksList);
 
         return bean;
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkProcessorJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
         bean.setTargetObject(checkProcessor());
@@ -431,14 +440,14 @@ public class AgentConfig {
     }
 
     @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public Trigger checkProcessorTrigger() {
         Date startTime = new Date(System.currentTimeMillis() + checkProcessorTriggerStartDelay);
-        Trigger bean = TriggerBuilder.newTrigger()
+        Trigger bean = newTrigger()
                 .withIdentity("CheckProcessorTrigger", "CheckProcessorTriggerGroup")
-                .forJob(checkProcessorJob().getObject())
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
-                        .withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
                 .startAt(startTime)
+                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(checkProcessorTriggerRepeatInterval))
+                .forJob(checkProcessorJob().getObject())
                 .build();
 
         return bean;
