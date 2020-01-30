@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -624,7 +623,7 @@ public class TargetManagerImplTest {
 		when(mockGroupMemberDto.getSaveState()).thenReturn(SAVE_STATE.ORIGINAL);
 		ArrayList<GroupMemberDTO> parents = Lists.newArrayList(mockGroupMemberDto);
 		underTest.save(targetGroup15000, parents);
-		verify(targetDao, times(0)).loadGroup(anyInt());
+		verify(targetDao, times(0)).loadGroup(anyLong());
 	}
 
 	@Test
@@ -1115,7 +1114,7 @@ public class TargetManagerImplTest {
 		when(mockGroupMemberDto.getSaveState()).thenReturn(SAVE_STATE.ORIGINAL);
 		ArrayList<GroupMemberDTO> parents = Lists.newArrayList(mockGroupMemberDto);
 		underTest.save(target4000, parents);
-		verify(targetDao, times(0)).loadGroup(anyInt());
+		verify(targetDao, times(0)).loadGroup(anyLong());
 	}
 
 	@Test
