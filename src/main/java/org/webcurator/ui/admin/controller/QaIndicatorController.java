@@ -37,6 +37,10 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -54,6 +58,7 @@ import org.webcurator.common.ui.Constants;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping("/curator/admin/qaindicators.html")
 public class QaIndicatorController {
 	/** the logger. */
     private Log log = null;
@@ -71,6 +76,7 @@ public class QaIndicatorController {
         log = LogFactory.getLog(QaIndicatorController.class);
     }
 
+    @InitBinder
     protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) {
     	// enable null values for long and float fields
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -79,6 +85,7 @@ public class QaIndicatorController {
         binder.registerCustomEditor(java.lang.Float.class, new CustomNumberEditor(java.lang.Float.class, nf, true));
    }
 
+    @GetMapping
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
         ModelAndView mav = new ModelAndView();
         String agencyFilter = (String)aReq.getSession().getAttribute(QaIndicatorCommand.MDL_AGENCYFILTER);
@@ -91,11 +98,11 @@ public class QaIndicatorController {
         return mav;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
+    @PostMapping
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, QaIndicatorCommand qaIndicatorCmd, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = new ModelAndView();
-        QaIndicatorCommand qaIndicatorCmd = (QaIndicatorCommand) aCommand;
         if (qaIndicatorCmd != null) {
 
         	if (QaIndicatorCommand.ACTION_DELETE.equals(qaIndicatorCmd.getCmd())) {

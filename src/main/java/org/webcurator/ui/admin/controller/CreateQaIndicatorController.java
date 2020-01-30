@@ -35,6 +35,10 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
@@ -54,6 +58,7 @@ import org.webcurator.common.ui.Constants;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping("/curator/admin/create-qaindicator.html")
 public class CreateQaIndicatorController {
 	/** the logger. */
     private Log log = null;
@@ -73,6 +78,7 @@ public class CreateQaIndicatorController {
         log = LogFactory.getLog(CreateQaIndicatorController.class);
     }
 
+    @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
     	// enable null values for long and float fields
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -81,18 +87,17 @@ public class CreateQaIndicatorController {
         binder.registerCustomEditor(java.lang.Float.class, new CustomNumberEditor(java.lang.Float.class, floatFormat, true));
     }
 
+    @GetMapping
     protected ModelAndView showForm() throws Exception {
 
         return null;
     }
 
-    protected ModelAndView processFormSubmission(HttpServletRequest aReq, Object aCommand, BindingResult bindingResult)
+    @PostMapping
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, CreateQaIndicatorCommand indicatorCmd, BindingResult bindingResult)
             throws Exception {
 
         ModelAndView mav = null;
-        CreateQaIndicatorCommand indicatorCmd = (CreateQaIndicatorCommand) aCommand;
-
-
         if (indicatorCmd != null) {
             if (bindingResult.hasErrors()) {
                 mav = new ModelAndView();

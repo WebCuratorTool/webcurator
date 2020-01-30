@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.BindingResult;
@@ -43,11 +44,13 @@ import org.webcurator.ui.util.TabbedController;
 public class TabbedGroupController extends TabbedController {
 	/** The constant name of the group editor context. */
 	public static final String EDITOR_CONTEXT = "groupEditorContext";
+
 	/** the target groups business object factory. */
 	@Autowired
 	private BusinessObjectFactory businessObjectFactory;
 	/** the group search controller. */
-	private GroupSearchController searchController = null;
+	@Autowired
+	private GroupSearchController searchController;
 	/** the message source. */
 	@Autowired
 	private MessageSource messageSource;
@@ -227,13 +230,6 @@ public class TabbedGroupController extends TabbedController {
 	}
 
 	/**
-	 * @param searchController The searchController to set.
-	 */
-	public void setSearchController(GroupSearchController searchController) {
-		this.searchController = searchController;
-	}
-
-	/**
 	 * @param messageSource The messageSource to set.
 	 */
 	public void setMessageSource(MessageSource messageSource) {
@@ -245,5 +241,9 @@ public class TabbedGroupController extends TabbedController {
 	 */
 	public void setAuthorityManager(AuthorityManager authorityManager) {
 		this.authorityManager = authorityManager;
+	}
+
+	public void setSearchController(GroupSearchController searchController) {
+		this.searchController = searchController;
 	}
 }

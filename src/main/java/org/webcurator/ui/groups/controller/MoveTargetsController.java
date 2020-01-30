@@ -25,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
@@ -76,10 +78,9 @@ public class MoveTargetsController {
 		return ctx;
 	}
 
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+	@RequestMapping(path = "/curator/groups/move-targets.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, MoveTargetsCommand command,
                                   BindingResult bindingResult) throws Exception {
-
-		MoveTargetsCommand command = (MoveTargetsCommand) comm;
 		GroupsEditorContext ctx = getEditorContext(request);
 		if( MoveTargetsCommand.ACTION_MOVE_TARGETS.equals(command.getActionCmd())) {
 
@@ -127,7 +128,7 @@ public class MoveTargetsController {
 			}
 			else
 			{
-				return doSearch(request, response, comm, bindingResult);
+				return doSearch(request, response, command, bindingResult);
 			}
 		}
 		else if( MoveTargetsCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
@@ -138,20 +139,18 @@ public class MoveTargetsController {
 			return tmav;
 		}
 		else {
-			return doSearch(request, response, comm, bindingResult);
+			return doSearch(request, response, command, bindingResult);
 		}
 	}
 
 	/**
 	 * Perform the search for Group members.
 	 */
-	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm,
+	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, MoveTargetsCommand command,
                                   BindingResult bindingResult) {
 
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(request);
-
-		MoveTargetsCommand command = (MoveTargetsCommand) comm;
 
 		if(command.getSearch() == null) {
 			command.setSearch("");
