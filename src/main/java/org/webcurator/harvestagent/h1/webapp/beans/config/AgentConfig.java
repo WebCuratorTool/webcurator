@@ -70,14 +70,6 @@ public class AgentConfig {
     @Value("${harvestAgent.port}")
     private int harvestAgentPort;
 
-    // The name of the harvest agent web service.
-    @Value("${harvestAgent.service}")
-    private String harvestAgentService;
-
-    // The name of the harvest agent log reader web service.
-    @Value("${harvestAgent.logReaderService}")
-    private String harvestAgentLogReaderService;
-
     // The name of the agent. Must be unique.
     @Value("${harvestAgent.name}")
     private String harvestAgentName;
@@ -90,10 +82,6 @@ public class AgentConfig {
     @Value("${harvestAgent.alertThreshold}")
     private int harvestAgentAlertThreshold;
 
-    // The name of the core harvest agent listener web service.
-    @Value("${harvestCoordinatorNotifier.service}")
-    private String harvestCoordinatorNotifierService;
-
     // The protocol type of the core.
     @Value("${harvestCoordinatorNotifier.scheme}")
     private String harvestCoordinatorNotifierScheme;
@@ -105,10 +93,6 @@ public class AgentConfig {
     // The port that the core is listening on for http connections.
     @Value("${harvestCoordinatorNotifier.port}")
     private int harvestCoordinatorNotifierPort;
-
-    // The name of the digital asset store web service.
-    @Value("${digitalAssetStore.service}")
-    private String digitalAssetStoreService;
 
     // The host protocol type of the digital asset store.
     @Value("${digitalAssetStore.scheme}")
@@ -200,8 +184,8 @@ public class AgentConfig {
         bean.setHost(harvestAgentHost);
         bean.setMaxHarvests(harvestAgentMaxHarvests);
         bean.setPort(harvestAgentPort);
-        bean.setService(harvestAgentService);
-        bean.setLogReaderService(harvestAgentLogReaderService);
+//        bean.setService(harvestAgentService);
+//        bean.setLogReaderService(harvestAgentLogReaderService);
         bean.setName(harvestAgentName);
         bean.setProvenanceNote(harvestAgentProvenanceNote);
         bean.setAlertThreshold(harvestAgentAlertThreshold);
