@@ -100,7 +100,7 @@
 			<!-- Needed for com.sleepycat:je:3.374 -->
 			<id>spring-plugins</id>
 			<name>Spring Plugins</name>
-			<url>http://repo.spring.io/plugins-release/</url>
+			<url>https://repo.spring.io/plugins-release/</url>
 		</repository>
 		<repository>
 			<id>builds-archive-org</id>
