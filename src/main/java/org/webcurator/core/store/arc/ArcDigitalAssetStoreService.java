@@ -79,7 +79,7 @@ import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.ArcHarvestResultDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
@@ -417,7 +417,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             throws DigitalAssetStoreException {
         if (log.isDebugEnabled()) {
             log.debug("Start of getHeaders()");
-            log.debug("Casting the DTO to ArcHarvestResult");
+            log.debug("Casting the DTO to HarvestResult");
         }
 
         List<Header> headers;
@@ -847,7 +847,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
             log.info("copyAndPrune - Now time to reindex.");
             // Now re-index the files.
-            ArcHarvestResultDTO ahr = new ArcHarvestResultDTO();
+            HarvestResultDTO ahr = new HarvestResultDTO();
             File[] fileList = destDir.listFiles();
             Set<ArcHarvestFileDTO> fileset = new HashSet<ArcHarvestFileDTO>();
             for (File f : fileList) {
@@ -1327,7 +1327,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         this.baseDir = new File(baseDir);
     }
 
-    public void initiateIndexing(ArcHarvestResultDTO harvestResult)
+    public void initiateIndexing(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
         // Determine the source directory.
         File sourceDir = new File(this.baseDir, "/"
@@ -1338,7 +1338,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         indexer.runIndex(harvestResult, sourceDir);
     }
 
-    public void initiateRemoveIndexes(ArcHarvestResultDTO harvestResult)
+    public void initiateRemoveIndexes(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
         // Determine the source directory.
         File sourceDir = new File(this.baseDir, "/"

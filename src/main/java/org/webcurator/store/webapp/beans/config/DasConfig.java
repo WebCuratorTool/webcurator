@@ -9,13 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ListFactoryBean;
-import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
@@ -26,6 +26,7 @@ import org.webcurator.core.store.arc.ArcDigitalAssetStoreService;
 import org.webcurator.core.store.arc.DasFileMover;
 import org.webcurator.core.store.arc.InputStreamDasFileMover;
 import org.webcurator.core.store.arc.RenameDasFileMover;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 
 import java.util.*;
@@ -35,9 +36,14 @@ import java.util.*;
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
  */
+@SuppressWarnings("all")
 @Configuration
+@PropertySource(value = "classpath:wct-das.properties")
 public class DasConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(DasConfig.class);
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @Value("${wctCoreWsEndpoint.host}")
     private String wctCoreWsEndpointHost;
@@ -146,7 +152,7 @@ public class DasConfig {
     @Value("${omsArchive.agencyResponsible}")
     private String omsArchiveAgencyResponsible;
 
-    @Value("${omsArchiveInstanceRole}")
+    @Value("${omsArchive.instanceRole}")
     private String omsArchiveInstanceRole;
 
     @Value("${omsArchive.instanceCaptureSystem}")
@@ -206,7 +212,7 @@ public class DasConfig {
     @Value("${dpsArchive.htmlSerials.agencyNames}")
     private String dpsArchiveHtmlSerialsAgencyNames;
 
-    @Value("${dpsArchiveHtmlSerialsTargetDCTypes}")
+    @Value("${dpsArchive.htmlSerials.targetDCTypes}")
     private String dpsArchiveHtmlSerialsTargetDCTypes;
 
     @Value("${dpsArchive.htmlSerials.materialFlowIds}")
@@ -257,19 +263,6 @@ public class DasConfig {
     @Value("${dpsArchive.htmlSerials.restrictAgencyType}")
     private String dpsArchiveHtmlSerialsRestrictAgencyType;
 
-    // This method is declared static as BeanFactoryPostProcessor types need to be instatiated early. Instance methods
-    // interfere with other bean lifecycle instantiations. See {@link Bean} javadoc for more details.
-    @Bean
-    public static PropertyPlaceholderConfigurer wctDASConfigurer() {
-        PropertyPlaceholderConfigurer bean = new PropertyPlaceholderConfigurer();
-        bean.setLocations(new ClassPathResource("wct-das.properties"));
-        bean.setIgnoreResourceNotFound(true);
-        bean.setIgnoreUnresolvablePlaceholders(true);
-        bean.setOrder(150);
-
-        return bean;
-    }
-
     @Bean
     public WebServiceEndPoint wctCoreWsEndpoint() {
         WebServiceEndPoint bean = new WebServiceEndPoint();
@@ -282,7 +275,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
         ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(new RestTemplateBuilder());
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
@@ -429,7 +421,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public LogReaderImpl logReader() {
         LogReaderImpl bean = new LogReaderImpl();
         bean.setLogProvider(arcDigitalAssetStoreService());
@@ -440,7 +431,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public FileArchive fileArchive() {
         FileArchive bean = new FileArchive();
         bean.setArchiveRepository(fileArchiveArchiveRepository);
@@ -454,7 +444,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public OMSArchive omsArchive() {
         OMSArchive bean = new OMSArchive();
         bean.setArchiveLogReportFiles(omsArchiveArchiveLogReportFiles);
@@ -479,8 +468,9 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public DPSArchive dpsArchive() {
+        ApplicationContextFactory.setApplicationContext(applicationContext);
+
         DPSArchive bean = new DPSArchive();
         bean.setPdsUrl(dpsArchivePdsUrl);
         bean.setFtpHost(dpsArchiveFtpHost);
@@ -542,7 +532,6 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    @Autowired(required = false) // default when default-autowire="no", but no default has been set for wct-das.xml
     public CustomDepositFormMapping customDepositFormFieldMappings() {
         CustomDepositFormMapping bean = new CustomDepositFormMapping();
         Map<String, List<CustomDepositField>> customDepositFormFieldMaps = new HashMap<>();
