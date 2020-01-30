@@ -168,8 +168,8 @@ public class ServletConfig {
         //mappings.put("/curator/profiles/make-default.html", "makeDefaultProfileController");
         //mappings.put("/curator/admin/rejreason.html", "rejReasonController");
         //mappings.put("/curator/admin/create-rejreason.html", "createRejReasonController");
-        mappings.put("/curator/admin/qaindicators.html", "qaIndicatorController");
-        mappings.put("/curator/admin/create-qaindicator.html", "createQaIndicatorController");
+//        mappings.put("/curator/admin/qaindicators.html", "qaIndicatorController");
+//        mappings.put("/curator/admin/create-qaindicator.html", "createQaIndicatorController");
         //mappings.put("/curator/admin/flags.html", "flagController");
         //mappings.put("/curator/admin/create-flag.html", "createFlagController");
         //mappings.put("/curator/admin/user.html", "userController");
@@ -199,12 +199,12 @@ public class ServletConfig {
         mappings.put("/curator/report/report-email.html", "reportEmailController");
 //        mappings.put("/curator/groups/search.html", "groupSearchController");
         //mappings.put("/curator/groups/groups.html", "groupsController");
-        mappings.put("/curator/groups/add-members.html", "addMembersController");
+//        mappings.put("/curator/groups/add-members.html", "addMembersController");
         //mappings.put("/curator/groups/schedule.html", "groupsEditScheduleController");
         //mappings.put("/curator/groups/add-parents.html", "groupAddParentsController");
-        mappings.put("/curator/groups/move-targets.html", "moveTargetsController");
+//        mappings.put("/curator/groups/move-targets.html", "moveTargetsController");
         //mappings.put("/curator/archive/submit.html", "submitToArchiveController");
-        mappings.put("/curator/archive/test.html", "testArchiveController");
+//        mappings.put("/curator/archive/test.html", "testArchiveController");
         //mappings.put("/curator/target/group-basic-credentials.html", "basicCredentialsControllerGroup");
         //mappings.put("/curator/target/group-form-credentials.html", "formCredentialsControllerGroup");
         //mappings.put("/curator/target/ti-harvest-now.html", "assignToHarvesterController");
