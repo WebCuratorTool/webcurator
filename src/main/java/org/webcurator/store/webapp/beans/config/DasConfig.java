@@ -52,9 +52,6 @@ public class DasConfig {
     @Value("${wctCoreWsEndpoint.port}")
     private int wctCoreWsEndpointPort;
 
-    @Value("${wctCoreWsEndpoint.service}")
-    private String wctCoreWsEndpointService;
-
     // the base directory for the arc store
     @Value("${arcDigitalAssetStoreService.baseDir}")
     private String arcDigitalAssetStoreServiceBaseDir;
