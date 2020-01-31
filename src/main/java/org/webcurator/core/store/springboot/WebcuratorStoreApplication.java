@@ -3,6 +3,7 @@ package org.webcurator.core.store.springboot;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -12,7 +13,7 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 
 import java.util.Arrays;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @ComponentScan(basePackages = {"org.webcurator.store", "org.webcurator.core.harvester", "org.webcurator.core.rest", "org.webcurator.core.reader", "org.webcurator.core.store.arc"},
 // HarvestAgentListenerService should be running on webcurator-webapp.
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
