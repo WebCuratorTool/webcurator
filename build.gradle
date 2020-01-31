@@ -10,7 +10,11 @@ repositories {
     mavenLocal()
     maven {
         url = 'https://repo.spring.io/plugins-release'
+    }
+    maven {
         url = 'https://repo.maven.apache.org/maven2'
+    }
+    maven {
         url = 'https://repo1.maven.org/maven2'
     }
 }
