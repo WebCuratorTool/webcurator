@@ -22,11 +22,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.core.report.LogonDurationDAO;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
+
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -80,8 +83,14 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
             // Check previous records of duration
             logonDurationDAO.setProperLoggedoutForCurrentUser(wctUser.getOid(), sessionId);
 
-            // continue to redirect destination
-            super.onAuthenticationSuccess(request, response, auth);
+            // check to see if the user should change their password
+            if (wctUser.isForcePasswordChange() && !wctUser.isExternalAuth()) {
+                response.sendRedirect("/" + Constants.CNTRL_RESET_PWD);
+                auditor.audit(User.class.getName(),wctUser.getOid(),Auditor.ACTION_FORCE_PWD_CHANGE,"User has been forced to change password");
+            } else {
+                // continue to redirect destination
+                super.onAuthenticationSuccess(request, response, auth);
+            }
 
         }  else {
 

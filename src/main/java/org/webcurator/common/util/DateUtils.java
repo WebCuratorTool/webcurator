@@ -8,10 +8,11 @@ import java.util.Locale;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
+import org.springframework.context.support.ResourceBundleMessageSource;
 
 public class DateUtils implements MessageSourceAware {
 	private static DateUtils instance = null;
-	private MessageSource messageSource = null;
+	private static MessageSource messageSource = null;
 	
 	private DateUtils() { 
 	}
@@ -19,6 +20,11 @@ public class DateUtils implements MessageSourceAware {
 	public static DateUtils get() {
 		if(instance == null) { 
 			instance = new DateUtils();
+		}
+		if(messageSource == null) {
+			ResourceBundleMessageSource source = new ResourceBundleMessageSource();
+			source.setBasename("messages");
+			messageSource = source;
 		}
 		return instance;
 	}
