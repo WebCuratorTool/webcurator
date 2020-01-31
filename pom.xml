@@ -100,10 +100,12 @@
 
 	<repositories>
 		<repository>
-			<id>builds-archive-org</id>
-			<name>builds-archive-org</name>
-			<url>http://builds.archive.org:8080/maven2</url>
+			<!-- Needed for com.sleepycat:je:3.374 -->
+			<id>spring-plugins</id>
+			<name>Spring Plugins</name>
+			<url>https://repo.spring.io/plugins-release/</url>
 		</repository>
+
 	</repositories>
 	<dependencies>
 		<dependency>
