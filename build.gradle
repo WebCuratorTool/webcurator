@@ -8,9 +8,6 @@ repositories {
     mavenLocal()
     maven {
         url = 'http://builds.archive.org:8080/maven2'
-    }
-
-    maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
 }
