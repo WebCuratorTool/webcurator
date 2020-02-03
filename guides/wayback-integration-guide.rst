@@ -171,11 +171,11 @@ Open your `wct-core.properties` file and make the following changes. (`wct-core.
 Using Multiple Review Tools in WCT
 ==================================
 
-Within the Target Summary for the harvest you will have options for different Quality Review Tools.  There will be a link to Review in Access Tool, ArchiveOne, or ArchiveTwo.  All of these links are configurable via wayback.xml.  
+Within the Target Summary for the harvest you will have options for different Quality Review Tools.  There will be a link to Review in Access Tool plus other links to other archives which you can specify the name of.  All of these links are configurable via wct-core.properties.  
 
--   Review in Access Tool uses the value set in harvestResourceUrlMapper.urlMap within wct-core.properties
--   ArchiveOne uses the value set in qualityReviewToolController.archiveUrl within wct-core.properties
--   ArchiveTwo uses the value set in qualityReviewToolController.archive.alternative within wct-core.properties
+-   Review in Access Tool uses the value set in harvestResourceUrlMapper.urlMap
+-   qualityReviewToolController.archiveName uses the value set in qualityReviewToolController.archiveUrl
+-   qualityReviewToolController.archive.alternative.name uses the value set in qualityReviewToolController.archive.alternative
 
 Testing
 =======
