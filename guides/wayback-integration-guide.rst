@@ -30,15 +30,15 @@ Following this introduction, the Wayback Integration Guide includes the followin
 -   **More information** - Provides some links for more information.
 
 
-Wayback vs OpenWayback
-======================
+Wayback vs OpenWayback vs PyWayback
+===================================
 
-Two options exist currently for Wayback: `Wayback <http://archive-access.sourceforge.net/projects/wayback/>`_ from the
-Internet Archive or `OpenWayback <http://netpreserve.org/openwayback>`_ from IIPC. Web Curator Tool was originally
-developed and tested with Wayback. However OpenWayback is more actively developed at the moment.
+There are a number of options for Wayback, including `Wayback <http://archive-access.sourceforge.net/projects/wayback/>`_ from the
+Internet Archive, `OpenWayback <http://netpreserve.org/openwayback>`_ from IIPC and `PyWB <https://pywb.readthedocs.io/en/latest/>`_ from Webrecorder. Web Curator Tool was originally
+developed and tested with Wayback however OpenWayback and PyWB are more actively developed at the moment. 
 
 Here is an `explanation <https://github.com/iipc/openwayback/wiki/General-overview>`_ of the history and differences
-between the two.
+between Wayback and OpenWayback. For documentation on PyWB click `here <https://pywb.readthedocs.org/>`_.
 
 Downloading
 -----------
@@ -47,6 +47,8 @@ Download Wayback `here <http://archive-access.sourceforge.net/projects/wayback/d
 
 Download OpenWayback `here <https://github.com/iipc/openwayback/releases>`_.
 
+Download PyWB `here <https://github.com/webrecorder/pywb>`_.
+
 
 Installation
 ============
@@ -54,18 +56,22 @@ Installation
 The OpenWayback Wiki contains a useful `install guide <https://github.com/iipc/openwayback/wiki/How-to-install>`_ and
 `configuration guide <https://github.com/iipc/openwayback/wiki/How-to-configure>`_. These are also relevant for Wayback.
 
-Once you have the tool running in Tomcat and can see the homepage in your browser then you are ready to configure the
+PyWB has useful setup information to `get started <https://pywb.readthedocs.io/en/latest/manual/usage.html#getting-started>`_ and
+`configure <https://pywb.readthedocs.io/en/latest/manual/configuring.html>`_ your archive, keep in mind that PyWB is set up differently to OpenWayback.  Unlike OpenWayback, which runs in Tomcat, PyWB runs on its own Gevent server so you will need to keep in mind which port you want to run PyWB on.  You will also need to factor in the file structure of the archive and where WCT is storing the warcs.
+
+Once you have the tool running in Tomcat or Gevent and can see the homepage in your browser then you are ready to configure the
 interaction with WCT.
 
 |Wayback_home|
 
 |OpenWayback_home|
 
+|PyWB_home|
 
 Configuration
 =============
 
-*Please note: From here forward any reference to Wayback applies to OpenWayback and Wayback.*
+*Please note: From here forward any reference to Wayback applies to OpenWayback and Wayback.  This does not cover PyWB configuration.*
 
 The easiest configuration to get WCT and Wayback working together is to leave Wayback with its default setting of
 indexing using BDB (instead of CDX). As Wayback indexes by watching a folder for new files, we need to configure WCT to
@@ -139,6 +145,12 @@ the extension)::
     index-data/queue
     index-data/tmp
 
+PyWB Configuration
+==================
+
+PyWB is different to OpenWayback and Wayback in that it requires a collection to be initialised, it uses .cdxj as index files, and it runs on a separate Gevent server.  *If you intend to use PyWB along with another Wayback tool you might want to either configure the waybackIndexer.waybackInputFolder within wct-das.properties to the initialised PyWB archive directory collections/collectionName/archive or symlink the initialised PyWB archive directory with the directory you have used for waybackIndexer.waybackInputFolder.*  This way PyWB will always get a copy of the warc files that are being generated.  
+
+When you run the PyWB server you can specify the port using -p.  Using -a will ensure that the initialised PyWB archive directory is checked every 30 seconds for new warcs to index.  Any warc files that are manually added in will be indexed within *indexes/index.cdxj* and any warc files that are indexed using the autoindex setting will be indexed within *indexes/autoindex.cdxj*.
 
 Wayback as a Review Tool in WCT
 ===============================
@@ -156,6 +168,14 @@ Open your `wct-core.properties` file and make the following changes. (`wct-core.
     qualityReviewToolController.enableAccessTool=true
     qualityReviewToolController.archiveUrl=http://localhost:8080/wayback/*/
 
+Using Multiple Review Tools in WCT
+==================================
+
+Within the Target Summary for the harvest you will have options for different Quality Review Tools.  There will be a link to Review in Access Tool, ArchiveOne, or ArchiveTwo.  All of these links are configurable via wayback.xml.  
+
+-   Review in Access Tool uses the value set in harvestResourceUrlMapper.urlMap within wct-core.properties
+-   ArchiveOne uses the value set in qualityReviewToolController.archiveUrl within wct-core.properties
+-   ArchiveTwo uses the value set in qualityReviewToolController.archive.alternative within wct-core.properties
 
 Testing
 =======
@@ -198,6 +218,11 @@ The following guides can provide additional information:
    :width: 677.0px
    :height: 179.0px
    :alt: The OpenWayback banner
+
+.. |PyWB_home| image:: ../_static/wayback-integration-guide/PyWB_home.jpg
+   :width: 876.0px
+   :height: 187.0px
+   :alt: The PyWB banner
 
 .. |screenshot_TargetSummary_HarvestResults| image:: ../_static/wayback-integration-guide/screenshot_TargetSummary_HarvestResults.jpg
    :width: 646.0px
