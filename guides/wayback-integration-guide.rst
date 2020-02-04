@@ -34,7 +34,7 @@ Wayback vs OpenWayback vs PyWayback
 ===================================
 
 There are a number of options for Wayback, including `Wayback <http://archive-access.sourceforge.net/projects/wayback/>`_ from the
-Internet Archive, `OpenWayback <http://netpreserve.org/openwayback>`_ from IIPC and `PyWB <https://pywb.readthedocs.io/en/latest/>`_ from Webrecorder. Web Curator Tool was originally
+Internet Archive, `OpenWayback <http://netpreserve.org/openwayback>`_ from IIPC and `PyWB <https://pywb.readthedocs.io/en/latest/>`_ from Rhizome. Web Curator Tool was originally
 developed and tested with Wayback however OpenWayback and PyWB are more actively developed at the moment. 
 
 Here is an `explanation <https://github.com/iipc/openwayback/wiki/General-overview>`_ of the history and differences
@@ -177,6 +177,8 @@ Within the Target Summary for the harvest you will have options for different Qu
 -   qualityReviewToolController.archiveName uses the value set in qualityReviewToolController.archiveUrl
 -   qualityReviewToolController.archive.alternative.name uses the value set in qualityReviewToolController.archive.alternative
 
+|Review_Tools|
+
 Testing
 =======
 
@@ -233,3 +235,9 @@ The following guides can provide additional information:
    :width: 608.0px
    :height: 262.0px
    :alt: Target Instance - Review Tools
+
+.. |Review_Tools| image:: ../_static/wayback-integration-guide/Review_Tools.jpg
+   :width: 620.0px
+   :height: 231.0px
+   :alt: Config and links for multiple review tools
+
