@@ -208,14 +208,15 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
      * @see HarvestAgent#updateProfileOverrides(String, String)
      */
     public void updateProfileOverrides(String job, String profile) {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.UPDATE_PROFILE_OVERRIDES))
-                .queryParam("profile", profile);
+        HttpEntity<String> request = new HttpEntity<String>(profile);
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.UPDATE_PROFILE_OVERRIDES));
 
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+                request, Void.class);
     }
 
     /**
@@ -231,10 +232,9 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
     }
 
     public boolean isValidProfile(String profile) {
-        HttpEntity<String> request = this.createHttpRequestEntity(profile);
+        HttpEntity<String> request = new HttpEntity<String>(profile);
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.IS_VALID_PROFILE));
-        //Map<String, String> pathVariables = ImmutableMap.of("profile", profile);
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),request,
@@ -251,15 +251,17 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
      * @return the script result
      */
     public HarvestAgentScriptResult executeShellScript(String jobName, String engine, String shellScript) {
+        HttpEntity<String> request = new HttpEntity<String>(shellScript);
+
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.EXECUTE_SHELL_SCRIPT))
-                .queryParam("engine", engine)
-                .queryParam("shell-script", shellScript);
+                .queryParam("engine", engine);
+
         Map<String, String> pathVariables = ImmutableMap.of("job-name", jobName);
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         HarvestAgentScriptResult harvestAgentScriptResult = restTemplate.postForObject(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, HarvestAgentScriptResult.class);
+                request, HarvestAgentScriptResult.class);
         return harvestAgentScriptResult;
     }
 }
