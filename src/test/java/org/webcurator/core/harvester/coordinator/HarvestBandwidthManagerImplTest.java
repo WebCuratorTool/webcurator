@@ -3,6 +3,7 @@ package org.webcurator.core.harvester.coordinator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -45,7 +46,7 @@ public class HarvestBandwidthManagerImplTest {
 	@Mock private HarvestCoordinatorDAO mockHarvestCoordinatorDao;
 	@Mock private TargetInstanceDAO mockTargetInstanceDao;
 	@Mock private BandwidthCalculator mockBandwidthCalculator;
-	
+//	private BandwidthCalculator mockBandwidthCalculator = mock(BandwidthCalculatorImpl.class);
 	@InjectMocks private HarvestBandwidthManagerImpl underTest;
 
 	@Test
@@ -129,11 +130,15 @@ public class HarvestBandwidthManagerImplTest {
 		//BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class); -- never called
 		//long maxBandwidth = 23L;
 		//when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth); -- never called
+
 		underTest.setMinimumBandwidth(24);
-		
 		QueuedTargetInstanceDTO mockQueuedTargetInstanceDTO = mock(QueuedTargetInstanceDTO.class);
+		TargetInstance targetInstance =mock(TargetInstance.class);
+		when(mockTargetInstanceDao.load(mockQueuedTargetInstanceDTO.getOid())).thenReturn(targetInstance);
+		when(mockTargetInstanceDao.populate(targetInstance)).thenReturn(targetInstance);
+
 		boolean result = underTest.isMiniumBandwidthAvailable(mockQueuedTargetInstanceDTO);
-		assertFalse(result);
+		assertTrue(result); //There is no limitation when bandwidth configuration isn't set.
 	}
 
 	@Test
@@ -144,8 +149,10 @@ public class HarvestBandwidthManagerImplTest {
 		underTest.setMinimumBandwidth(24);
 		
 		TargetInstance mockTargetInstance = mock(TargetInstance.class);
+		when(mockTargetInstanceDao.load(mockTargetInstance.getOid())).thenReturn(mockTargetInstance);
+		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
 		boolean result = underTest.isMiniumBandwidthAvailable(mockTargetInstance);
-		assertFalse(result);
+		assertTrue(result); //There is no limitation when bandwidth configuration isn't set.
 	}
 
 

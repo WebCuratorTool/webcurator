@@ -73,7 +73,7 @@ public class HarvestBandwidthManagerImpl implements HarvestBandwidthManager {
 		return calculateBandwidthAllocation(runningTIs);
 	}
 
-	/** @see HarvestCoordinator#calculateBandwidthAllocation(TargetInstance). */
+	/** @see HarvestBandwidthManager#calculateBandwidthAllocation(TargetInstance). */
 	private HashMap<Long, TargetInstance> calculateBandwidthAllocation(List<TargetInstance> aRunningTargetInstances) {
 		// Get the global max bandwidth setting for the current period.
 		long maxBandwidth = getCurrentGlobalMaxBandwidth();
@@ -97,6 +97,9 @@ public class HarvestBandwidthManagerImpl implements HarvestBandwidthManager {
 			BandwidthRestriction br = harvestCoordinatorDao.getBandwidthRestriction(day, date);
 			if (br != null) {
 				return br.getBandwidth();
+			}else{
+				log.warn("No global max bandwidth configured. Return MAX_VALUE_OF_LONG: {}", Long.MAX_VALUE);
+				return Long.MAX_VALUE;
 			}
 		} catch (ParseException e) {
 			log.error("Failed to parse the date for the bandwith restriction : " + e.getMessage(), e);
@@ -151,7 +154,9 @@ public class HarvestBandwidthManagerImpl implements HarvestBandwidthManager {
 
 		Integer bandwidthPercent = ti.getBandwidthPercent();
 		if (bandwidthPercent == null) {
-			if (ti.getAllocatedBandwidth() < getMinimumBandwidth()) {
+			long allocatedBandWidth = ti.getAllocatedBandwidth();
+			long minimumBandWidth = getMinimumBandwidth();
+			if (allocatedBandWidth < minimumBandWidth) {
 				// failure bandwidth setting is too low.
 				return false;
 			}
