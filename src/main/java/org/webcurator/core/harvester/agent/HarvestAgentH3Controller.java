@@ -43,7 +43,7 @@ public class HarvestAgentH3Controller implements HarvestAgent {
     @Override
     @PostMapping(path = HarvestAgentPaths.UPDATE_PROFILE_OVERRIDES)
     public void updateProfileOverrides(@PathVariable(value = "job") String job,
-                                       @RequestParam(value = "profile") String profile) {
+                                       @RequestBody String profile) {
         log.debug("Update profile overrides, job: {}, profile: {}" ,job, profile);
         harvestAgent.updateProfileOverrides(job, profile);
     }
@@ -161,7 +161,7 @@ public class HarvestAgentH3Controller implements HarvestAgent {
     @PostMapping(path = HarvestAgentPaths.EXECUTE_SHELL_SCRIPT)
     public HarvestAgentScriptResult executeShellScript(@PathVariable(value = "job-name") String jobName,
                                                        @RequestParam(value = "engine") String engine,
-                                                       @RequestParam(value = "shell-script") String shellScript) {
+                                                       @RequestBody String shellScript) {
         log.debug("HarvestAgent script result, job-name: {}, engine: {}, shell-script: {}", jobName, engine, shellScript);
         return harvestAgent.executeShellScript(jobName, engine, shellScript);
     }
