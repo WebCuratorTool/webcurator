@@ -118,6 +118,15 @@ public class WCTIndexer extends IndexerBase
                     log.info("Sending Resources for " + ahf.getName());
                     addHarvestResources(harvestResultOid, dtos);
 
+                    //Release memory used by Collections///////////////
+                    dtos.clear();
+                    resources.clear();
+                    if(ahf.getHarvestResult() != null) {
+                        ahf.getHarvestResult().getArcFiles().clear();
+                        ahf.getHarvestResult().getResources().clear();
+                    }
+                    //////////////////////////////////////////////////////
+
                     log.info("Completed indexing of " + ahf.getName());
                 }
                 catch(IOException ex) { 
