@@ -23,3 +23,6 @@ subprojects {
         publishableArtifacts
     }
 }
+
+// just an alias
+task install(dependsOn: ['bootJar', 'publishToMavenLocal'])
