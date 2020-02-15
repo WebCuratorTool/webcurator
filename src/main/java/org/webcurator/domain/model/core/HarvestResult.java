@@ -49,7 +49,6 @@ public abstract class HarvestResult implements UserInTrayResource {
     // cascade="save-update"
     @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
     @JoinColumn(name = "HRC_HARVEST_RESULT_OID")
-    // TODO @hibernate.collection-index column="HRC_NAME" (might be solved by MapKeyJoinColumn)
     @MapKeyColumn(name = "HRC_NAME")
     private Map<String,HarvestResource> resources = new HashMap<String,HarvestResource>();
     /** The provenance note (how this harvest result was created */

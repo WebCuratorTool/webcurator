@@ -157,7 +157,7 @@ public class ProfileOverrides {
 	@OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
 	// TODO verify correct: @hibernate.collection-key column="PC_PROFILE_OVERIDE_OID"
 	@JoinColumn(name = "PC_PROFILE_OVERIDE_OID")
-	// TODO @hibernate.collection-index column="PC_INDEX"
+	@OrderColumn(name = "PC_INDEX")
 	private List<ProfileCredentials> credentials = new LinkedList<ProfileCredentials>();
 	/** True to override the credentials; otherwise false */
 	@Column(name = "PO_OR_CREDENTIALS")

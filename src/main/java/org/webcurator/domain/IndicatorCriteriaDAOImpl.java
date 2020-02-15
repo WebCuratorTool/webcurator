@@ -86,7 +86,7 @@ public class IndicatorCriteriaDAOImpl extends HibernateDaoSupport implements Ind
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
                         Query query = session.getNamedQuery(IndicatorCriteria.QRY_GET_INDICATOR_CRITERIA_BY_OID);
-                        query.setLong(0,indicatorCriteriaOid);
+                        query.setLong(1,indicatorCriteriaOid);
                         return query.uniqueResult();
                     }
                 }

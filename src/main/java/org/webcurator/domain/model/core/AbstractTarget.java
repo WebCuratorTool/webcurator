@@ -145,7 +145,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	/** The target's base profile. */
     @ManyToOne
     @JoinColumn(name = "T_PROFILE_ID")
-    private Profile profile;
+    private Profile profile = new Profile();
     /** The date the Target was created */
     @Column(name = "AT_CREATION_DATE", columnDefinition = "TIMESTAMP(9)")
     @Temporal(TemporalType.TIMESTAMP)

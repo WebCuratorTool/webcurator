@@ -246,7 +246,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
      */
     @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
     @JoinColumn(name = "PEX_PERMISSION_OID")
-    // TODO @hibernate.collection-index column="PEX_INDEX"
+    @OrderColumn(name = "PEX_INDEX")
     private List<PermissionExclusion> exclusions = new LinkedList<PermissionExclusion>();
 
     @ManyToMany(mappedBy = "permissions", targetEntity = Seed.class)
