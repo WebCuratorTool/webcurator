@@ -63,10 +63,12 @@ import org.archive.io.warc.WARCWriterPoolSettingsData;
 import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
+import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.rest.RestClientResponseHandler;
@@ -76,6 +78,7 @@ import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
@@ -92,6 +95,7 @@ import org.webcurator.domain.model.core.LogFilePropertiesDTO;
  *
  * @author bbeaumont
  */
+@SuppressWarnings("all")
 public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvider {
     /**
      * The logger.
@@ -106,10 +110,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      * Constant for the size of a buffer.
      */
     private final int BYTE_BUFF_SIZE = 1024;
-    /**
-     * the archive service to use.
-     */
-    private Archive archive = null;
+
     /**
      * Arc files meta data date format.
      */
@@ -1269,6 +1270,8 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     fileList.add(new ArchiveFile(f, ARC_FILE));
                 }
 
+                ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+                Archive archive = ctx.getBean(DPSArchive.class);
                 String archiveIID = archive.submitToArchive(targetInstanceOid,
                         SIP, xAttributes, fileList);
 
@@ -1310,15 +1313,11 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     public CustomDepositFormResultDTO getCustomDepositFormDetails(
             CustomDepositFormCriteriaDTO criteria)
             throws DigitalAssetStoreException {
+        ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+        Archive archive = ctx.getBean(DPSArchive.class);
         return archive.getCustomDepositFormDetails(criteria);
     }
 
-    /**
-     * @param archive the archive to use.
-     */
-    public void setArchive(Archive archive) {
-        this.archive = archive;
-    }
 
     /**
      * @param baseDir the base directory for the digital asset stores harvest files.
