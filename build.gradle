@@ -9,7 +9,13 @@ plugins {
 repositories {
     mavenLocal()
     maven {
-        url = 'http://repo.maven.apache.org/maven2'
+        url = 'https://repo.spring.io/plugins-release'
+    }
+    maven {
+        url = 'https://repo.maven.apache.org/maven2'
+    }
+    maven {
+        url = 'https://repo1.maven.org/maven2'
     }
 }
 
@@ -46,7 +52,9 @@ dependencies {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     }
-    implementation 'org.netpreserve.openwayback:openwayback-core:2.4.0'
+    implementation('org.netpreserve.openwayback:openwayback-core:2.4.0'){
+        exclude group: 'org.netpreserve.commons', module: 'webarchive-commons'
+    }
     implementation('org.apache.tiles:tiles-jsp:3.0.8') {
         // Use Spring boot logging.
         exclude group: 'org.slf4j', module: 'slf4j-api'
@@ -85,6 +93,9 @@ dependencies {
     } else {
         logger.info("Not including Postgres dependencies, includePostgres=${project.includePostgres}")
     }
+
+    implementation 'commons-pool:commons-pool:1.3.1-heritrix-1.14.2-webcuratortool-2.0.1'
+    implementation 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
 
     // NOTE: This is a workaround so that gradle brings in the tests jar.
     testImplementation group: 'org.webcurator', name: 'webcurator-core', version: '3.0.0-SNAPSHOT', classifier: 'tests', {

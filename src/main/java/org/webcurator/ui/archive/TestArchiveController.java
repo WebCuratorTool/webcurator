@@ -25,11 +25,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.AbstractView;
 import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.targets.TargetManager;
 
 /**
@@ -37,31 +42,30 @@ import org.webcurator.core.targets.TargetManager;
  * @author aparker
  */
 @Controller
-public class TestArchiveController extends ArchiveController {
-    @Value("${heritrix.version}")
-    private String testHeritrixVersion;
+public class TestArchiveController{
+	@Value("${heritrix.version}")
+	private String testHeritrixVersion;
 
-    @Autowired
-    private ApplicationContext context;
+	@Autowired
+	private ApplicationContext context;
 
-    @PostConstruct
-    protected void init() {
-        // NOTE inherits from ArchiveController
-        // But none if its access methods are public, so we're just going to replicate the values that get set
-        // as 'parent' is not replicated in Spring beans annotations.
-        // TODO These may be autowired in the superclass. Check after Spring annotation conversions are complete.
-        setTargetInstanceManager((TargetInstanceManager) context.getBean("targetInstanceManager"));
-        setTargetManager((TargetManager) context.getBean("targetManager"));
-        setSipBuilder((SipBuilder) context.getBean("sipBuilder"));
-        setArchiveAdapter((ArchiveAdapter) context.getBean("archiveAdapter"));
-        setHeritrixVersion("Heritrix" + testHeritrixVersion);
-        setWebCuratorUrl("http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd");
-    }
+	@Autowired
+	private ArchiveController archiveController;
 
+	@PostConstruct
+	protected void init() {
+		// NOTE inherits from ArchiveController
+		// But none if its access methods are public, so we're just going to replicate the values that get set
+		// as 'parent' is not replicated in Spring beans annotations.
+		archiveController.setHeritrixVersion("Heritrix" + testHeritrixVersion);
+		archiveController.setWebCuratorUrl("http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd");
+	}
+
+	@RequestMapping(value = "/curator/archive/test.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		ModelAndView mav = new ModelAndView(new XmlView());
 		int harvestNumber = 1;
-		String xmlData = buildSip(request, response, harvestNumber);
+		String xmlData = archiveController.buildSip(request, response, harvestNumber);
 
 		mav.addObject("xml", xmlData);
 		return mav;

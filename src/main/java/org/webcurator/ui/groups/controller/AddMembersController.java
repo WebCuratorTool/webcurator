@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.TargetManager;
@@ -140,10 +142,9 @@ public class AddMembersController {
 		request.getSession().removeAttribute(AddMembersCommand.SESSION_SELECTIONS);
 	}
 
-	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
+	@RequestMapping(path = "/curator/groups/add-members.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, AddMembersCommand command,
                                   BindingResult bindingResult) throws Exception {
-		AddMembersCommand command = (AddMembersCommand) comm;
-
 		if( AddMembersCommand.ACTION_ADD_MEMBERS.equals(command.getActionCmd())) {
 			TargetGroup group = getEditorContext(request).getTargetGroup();
 
@@ -182,7 +183,7 @@ public class AddMembersController {
 			}
 
 			if(bindingResult.hasErrors()) {
-				return doSearch(request, response, comm, bindingResult);
+				return doSearch(request, response, command, bindingResult);
 			}
 			else {
 				// Add the members only if the user has the appropriate privilege.
@@ -219,7 +220,7 @@ public class AddMembersController {
 		}
 		else if( AddMembersCommand.ACTION_REMOVE.equals(command.getActionCmd())) {
 			getSelections(request).remove(command.getMemberIndex());
-			return doSearch(request, response, comm, bindingResult);
+			return doSearch(request, response, command, bindingResult);
 		}
 		else {
 			long[] memberOids = command.getMemberOids();
@@ -228,18 +229,15 @@ public class AddMembersController {
 				addSelection(request, nmo);
 			}
 
-			return doSearch(request, response, comm, bindingResult);
+			return doSearch(request, response, command, bindingResult);
 		}
 	}
 
 	/**
 	 * Perform the search for Group members.
 	 */
-	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, Object comm,
+	private ModelAndView doSearch(HttpServletRequest request, HttpServletResponse response, AddMembersCommand command ,
                                   BindingResult bindingResult) {
-
-		AddMembersCommand command = (AddMembersCommand) comm;
-
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(request);
 

@@ -65,7 +65,7 @@ public class GroupSearchController {
 	private AgencyUserManager agencyUserManager = null;
 	/** The message source for localisation */
 	@Autowired
-	private MessageSource messageSource = null;
+	private MessageSource messageSource;
 	/** Default Search on Agency only (not username) */
 	@Value("${groupSearchController.defaultSearchOnAgencyOnly}")
 	private boolean defaultSearchOnAgencyOnly = false;
@@ -84,10 +84,10 @@ public class GroupSearchController {
 	}
 
 	@InitBinder
-    public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-        NumberFormat nf = NumberFormat.getInstance(request.getLocale());
-        binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
-    }
+	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
+		binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
+	}
 
 	@RequestMapping(value = "/curator/groups/search.html", method = RequestMethod.GET)
 	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -140,7 +140,7 @@ public class GroupSearchController {
 	 */
 	@SuppressWarnings("unchecked")
 	public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response,
-                                          SearchCommand command) {
+										  SearchCommand command) {
 
 		List<Agency> agencies = agencyUserManager.getAgencies();
 
@@ -154,18 +154,18 @@ public class GroupSearchController {
 		}
 
 		List owners = null;
-        if (currentAgency != null) {
-        	owners = agencyUserManager.getUserDTOs(currentAgency.getOid());
-        }
-        else {
-        	owners = agencyUserManager.getUserDTOs();
-        }
+		if (currentAgency != null) {
+			owners = agencyUserManager.getUserDTOs(currentAgency.getOid());
+		}
+		else {
+			owners = agencyUserManager.getUserDTOs();
+		}
 
 		// get value of page size cookie
 		String currentPageSize = CookieUtils.getPageSize(request);
 		if(command.getSelectedPageSize() == null)
 		{
-			 //belt and braces - should never get here if the jsp is correct
+			//belt and braces - should never get here if the jsp is correct
 			command.setSelectedPageSize(currentPageSize);
 		}
 
@@ -195,7 +195,7 @@ public class GroupSearchController {
 
 	@RequestMapping(value = "/curator/groups/search.html", method = RequestMethod.POST)
 	protected ModelAndView processFormSubmission(HttpServletRequest request, HttpServletResponse response, @ModelAttribute SearchCommand command)
-            throws Exception {
+			throws Exception {
 
 		if(command.isAction(SearchCommand.ACTION_DELETE)) {
 			TargetGroup group = targetManager.loadGroup(command.getDeletedGroupOid());

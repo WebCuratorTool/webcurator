@@ -71,6 +71,7 @@ import java.util.*;
 @Lazy(false)
 @PropertySource(value = "classpath:wct-webapp.properties")
 public class QueueController {
+	private Logger log = LoggerFactory.getLogger(getClass());
 
 	private final List<String> PAGINATION_ACTIONS = Arrays.asList(TargetInstanceCommand.ACTION_NEXT,
 			TargetInstanceCommand.ACTION_PREV, TargetInstanceCommand.ACTION_SHOW_PAGE);
@@ -83,32 +84,31 @@ public class QueueController {
 	private HarvestCoordinator harvestCoordinator;
 	/** the WCT global environment settings. */
 	@Autowired
-    @Qualifier("environmentWCT")
+	@Qualifier("environmentWCT")
 	private Environment environment;
 	/** The manager to use for user, role and agency data. */
 	@Autowired
 	private AgencyUserManager agencyUserManager;
-    @Value("${queueController.thumbnailRenderer}")
+	@Value("${queueController.thumbnailRenderer}")
 	private String thumbnailRenderer = "browseTool";
 	@Autowired
 	private HarvestResourceUrlMapper harvestResourceUrlMapper;
-
-	private Logger log = LoggerFactory.getLogger(getClass());
-	private MessageSource messageSource = null;
+	@Autowired
+	private MessageSource messageSource;
 
 	/** enables the new Target Instance and Harvest Summary pages **/
-    @Value("${queueController.enableQaModule}")
+	@Value("${queueController.enableQaModule}")
 	private boolean enableQaModule = false;
 
 	/** the configured width of the harvest preview thumb-nail **/
-    @Value("${queueController.thumbnailWidth}")
+	@Value("${queueController.thumbnailWidth}")
 	private String thumbnailWidth = "150px;";
 
 	/** the configured height of the harvest preview thumb-nail **/
-    @Value("${queueController.thumbnailHeight}")
+	@Value("${queueController.thumbnailHeight}")
 	private String thumbnailHeight = "100px;";
 
-    @InitBinder
+	@InitBinder
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
 
@@ -124,8 +124,8 @@ public class QueueController {
 
 	@RequestMapping(value = "/curator/target/queue.html", method = RequestMethod.GET)
 	public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp)
-            throws Exception {
-	    return showForm(aReq, aResp, null);
+			throws Exception {
+		return showForm(aReq, aResp, null);
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class QueueController {
 
 	@RequestMapping(value = "/curator/target/queue.html", method = RequestMethod.POST)
 	protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, @ModelAttribute TargetInstanceCommand command,
-			BindingResult bindingResult) throws Exception {
+												 BindingResult bindingResult) throws Exception {
 		if (command == null || command.getCmd() == null) {
 			throw new WCTRuntimeException("Unknown command recieved.");
 		}
@@ -226,7 +226,7 @@ public class QueueController {
 	 */
 	@SuppressWarnings("unchecked")
 	ModelAndView processFilter(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-                               BindingResult bindingResult) {
+							   BindingResult bindingResult) {
 
 		ModelAndView mav = new ModelAndView();
 		if (bindingResult != null && bindingResult.hasErrors()) {
@@ -424,7 +424,7 @@ public class QueueController {
 
 	// Package private so that this method can be unit tested reasonably cleanly
 	TargetInstanceCommand createFilterCommandFromSearchCommand(HttpServletRequest aReq, TargetInstanceCommand aCmd,
-			ModelAndView mav, TargetInstanceCommand searchCommand, String currentPageSize) {
+															   ModelAndView mav, TargetInstanceCommand searchCommand, String currentPageSize) {
 		if (aCmd == null) {
 			// we have come from another page so update the page size in case it
 			// has been changed since the searchcommand was saved
@@ -453,7 +453,7 @@ public class QueueController {
 	}
 
 	private TargetInstanceCommand createNewFilterCommand(HttpServletRequest aReq, TargetInstanceCriteria criteria,
-			String currentPageSize) {
+														 String currentPageSize) {
 		TargetInstanceCommand aCmd;
 		// Command is null and there is no search command. Need to set up the
 		// new
@@ -805,7 +805,7 @@ public class QueueController {
 	 * process the pause target instance action.
 	 */
 	private ModelAndView processPause(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindingResult bindingResult) {
+									  BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.pause(ti);
 
@@ -816,7 +816,7 @@ public class QueueController {
 	 * process the resume target instance action.
 	 */
 	private ModelAndView processResume(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindingResult bindingResult) {
+									   BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.resume(ti);
 
@@ -827,7 +827,7 @@ public class QueueController {
 	 * process the abort target instance action.
 	 */
 	private ModelAndView processAbort(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindingResult bindingResult) {
+									  BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.abort(ti);
 
@@ -838,7 +838,7 @@ public class QueueController {
 	 * process the stop target instance action.
 	 */
 	private ModelAndView processStop(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-			BindingResult bindingResult) {
+									 BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
 		harvestCoordinator.stop(ti);
 

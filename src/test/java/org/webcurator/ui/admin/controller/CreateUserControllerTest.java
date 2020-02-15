@@ -49,7 +49,6 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 		}
 	}
 
-
 	@Test
 	public final void testProcessFormSubmission() {
 		try
