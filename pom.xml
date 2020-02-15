@@ -3,12 +3,19 @@
 	<groupId>org.webcurator</groupId>
 	<artifactId>harvest-agent-h1</artifactId>
 	<version>3.0.0-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>Harvest Agent - Heritrix 1.x</name>
 
-	<properties>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.6.RELEASE</version>
+    </parent>
+
+    <properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
 	</properties>
 
 	<build>
@@ -29,116 +36,6 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>properties-maven-plugin</artifactId>
-				<version>1.0-alpha-1</version>
-				<executions>
-					<execution>
-						<phase>initialize</phase>
-						<goals>
-							<goal>read-project-properties</goal>
-						</goals>
-						<configuration>
-							<files>
-								<file>${basedir}/build/local_config.properties</file>
-							</files>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.6</version>
-				<executions>
-					<execution>
-						<id>jetty-filtered-resources</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/filtered</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${project.basedir}/src/main/webapp-filter</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
-						<id>copy-jetty-env</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}</outputDirectory>
-							<resources>
-								<resource>
-									<directory>build/jetty</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>2.3</version>
-				<configuration>
-					<webResources>
-						<resource>
-							<!-- include the license file, as per the original build process -->
-							<directory>docs</directory>
-							<includes>
-								<include>license.txt</include>
-							</includes>
-						</resource>
-						<resource>
-							<directory>${basedir}/src/main/webapp-filter</directory>
-							<includes>
-								<include>**/*</include>
-							</includes>
-							<filtering>true</filtering>
-						</resource>
-					</webResources>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-maven-plugin</artifactId>
-				<version>9.4.15.v20190215</version>
-				<configuration>
-					<jettyXml>${project.build.directory}/jetty-jmx.xml</jettyXml>
-					<webApp>
-						<contextPath>/harvest-agent-h1</contextPath>
-						<resourceBases>
-							<resourceBase>${project.build.directory}/filtered</resourceBase>
-							<resourceBase>src/main/webapp</resourceBase>
-						</resourceBases>
-					</webApp>
-					<!--See https://www.eclipse.org/jetty/documentation/9.4.x/configuring-connectors.html
-						Prior to Jetty 9, the type of the connector specified both the protocol and the implementation
-						used. Jetty 9 has a single selector-based non-blocking I/O connector, and a collection of
-						ConnectionFactories now configure the protocol on the connector. -->
-					<httpConnector>
-						<port>${agent.port}</port>
-						<idleTimeout>60000</idleTimeout>
-					</httpConnector>
-				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>commons-dbcp</groupId>
-						<artifactId>commons-dbcp</artifactId>
-						<version>1.4</version>
-					</dependency>
-				</dependencies>
-			</plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -151,6 +48,10 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 		</plugins>
 
@@ -199,7 +100,7 @@
 			<!-- Needed for com.sleepycat:je:3.374 -->
 			<id>spring-plugins</id>
 			<name>Spring Plugins</name>
-			<url>http://repo.spring.io/plugins-release/</url>
+			<url>https://repo.spring.io/plugins-release/</url>
 		</repository>
 		<repository>
 			<id>builds-archive-org</id>
@@ -208,21 +109,15 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/commons-pool/commons-pool -->
 		<dependency>
-			<groupId>org.archive</groupId>
-			<artifactId>heritrix</artifactId>
-			<version>1.14.2-webcuratortool-2.0.1</version>
-			<scope>compile</scope>
+			<groupId>commons-pool</groupId>
+			<artifactId>commons-pool</artifactId>
+			<version>1.3.1-heritrix-1.14.2-webcuratortool-2.0.1</version>
 		</dependency>
 		<!-- Note that commons-httpclient and commons-pool versions specific to heritrix will be pulled in by
 			 heritrix. This new version of heritrix also includes a pom that pulls in many other dependencies.
 		-->
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
-			<scope>compile</scope>
-		</dependency>
 		<!-- Override the version that comes in from org.archive:heritrix -->
 		<dependency>
 			<groupId>com.sleepycat</groupId>
@@ -243,37 +138,42 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.quartz-scheduler</groupId>
-			<artifactId>quartz</artifactId>
-			<version>2.3.1</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.4</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.webcurator</groupId>
 			<artifactId>webcurator-core</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
 			<scope>compile</scope>
 			<exclusions>
-				<!-- Exclude commons-httpclient brought in via webcurator-core. We want the version that is tied to
-				     heritrix 1.14.2...
-				-->
-				<exclusion>
-					<groupId>commons-httpclient</groupId>
-					<artifactId>commons-httpclient</artifactId>
-				</exclusion>
+                <!-- Exclude hibernate as harvest-agent-h1 does not need hibernate at all -->
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hgibernate</groupId>
+                    <artifactId>hibernate-ehcache</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-c3p0</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
+        <!--Even though we don't include hibernate we still need the persistence API because some classes have
+            javax.persistence annotations -->
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+            <version>2.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 </project>
