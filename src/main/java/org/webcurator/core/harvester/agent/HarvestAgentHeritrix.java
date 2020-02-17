@@ -15,12 +15,6 @@
  */
 package org.webcurator.core.harvester.agent;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.*;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.archive.crawler.framework.CrawlScope;
@@ -38,6 +32,12 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
 
 /**
  * This is an Implementation of the HarvestAgent interface that uses Heritrix as the 
@@ -98,7 +98,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
     	}
         
         try {
-            super.initiateHarvest(job, aProfile, aSeeds);
+            super.initiateHarvest(job, params);
             
             File profile = createProfile(job, aProfile);
             createSeedsFile(profile, aSeeds);
