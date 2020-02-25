@@ -230,7 +230,7 @@ public class DPSArchive extends BaseArchive {
              */
             if (isAgencyResponsibleForHtmlSerials && restrictHTMLSerialAgenciesToHTMLSerialTypes) {
                 response.setCustomDepositFormRequired(true);
-                response.setUrlForCustomDepositForm("/wct-store/customDepositForms/rosetta_custom_deposit_form_invalid_dctype.jsp");
+                response.setUrlForCustomDepositForm("/customDepositForms/rosetta_custom_deposit_form_invalid_dctype.jsp");
             }
         }
         return response;
@@ -468,7 +468,7 @@ public class DPSArchive extends BaseArchive {
                 cacheElement = producerCache.get(producerAgentUserId);
             }
             if (cacheElement == null) return null;
-            return (DepData[]) cacheElement.getValue();
+            return (DepData[]) cacheElement.getObjectValue();
         } catch (Exception e) {
             log.warn("Error getting producer data from cache for the producer agent " + producerAgentUserId, e);
             return null;
