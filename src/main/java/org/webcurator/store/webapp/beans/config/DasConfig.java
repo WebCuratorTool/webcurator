@@ -329,6 +329,7 @@ public class DasConfig {
         return archive;
     }
 
+    @SuppressWarnings("unchecked")
     @Bean
     public Indexer indexer() {
         Indexer bean = new Indexer();
@@ -539,7 +540,7 @@ public class DasConfig {
         List<CustomDepositField> rosettaList = new ArrayList<>();
         rosettaList.add(depositFieldDctermsBibliographicCitation());
         rosettaList.add(depositFieldDctermsAvailable());
-        customDepositFormFieldMaps.put("/wct-store/customDepositForms/rosetta_custom_deposit_form.jsp", rosettaList);
+        customDepositFormFieldMaps.put("/customDepositForms/rosetta_custom_deposit_form.jsp", rosettaList);
 
         List<CustomDepositField> almaList = new ArrayList<>();
         almaList.add(depositFieldVolume());
@@ -548,7 +549,7 @@ public class DasConfig {
         almaList.add(depositFieldYear());
         almaList.add(depositFieldMonth());
         almaList.add(depositFieldDay());
-        customDepositFormFieldMaps.put("/wct-store/customDepositForms/rosetta_alma_custom_deposit_form.jsp", almaList);
+        customDepositFormFieldMaps.put("/customDepositForms/rosetta_alma_custom_deposit_form.jsp", almaList);
 
         bean.setCustomDepositFormFieldMaps(customDepositFormFieldMaps);
 
