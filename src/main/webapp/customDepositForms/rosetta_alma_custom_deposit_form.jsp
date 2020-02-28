@@ -420,14 +420,13 @@ function ajaxFunction_internal(requestParams, destinationDiv, asynchronousFlag) 
 	//policy will prevent the request if it is changed to use the configured values.
 	xmlhttp.open("POST", "http://localhost:8082/customDepositForms/rosetta_interface_via_ajax.jsp", asynchronousFlag);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.setRequestHeader("Access-Control-Allow-Origin","http://localhost:8080");
-    xmlhttp.setRequestHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");
 
 	//The following two lines attempt to violate the XMLHttpRequest standard:
 	//http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader-method
 	//Section 4.6.2 (step 5).	
-	xmlhttp.setRequestHeader("Content-length", requestParams.length);
-	xmlhttp.setRequestHeader("Connection", "close");
+//	xmlhttp.setRequestHeader("Content-length", requestParams.length);
+//	xmlhttp.setRequestHeader("Connection", "close");
+
 	xmlhttp.send(requestParams);
 	return "";
 }

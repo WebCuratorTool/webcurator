@@ -6,8 +6,6 @@
 <%
 	DPSArchive dpsArchive = (DPSArchive)ApplicationContextFactory.getApplicationContext().getBean(DPSArchive.class);
 	response.addHeader("Cache-Control", "no-store");
-	response.addHeader("Access-Control-Allow-Origin","http://localhost:8080");
-	response.addHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");
 	String query = request.getParameter("query");
 	if ("getProducerName".equals(query)) {
 		String producerAgent = request.getParameter("producerAgent");

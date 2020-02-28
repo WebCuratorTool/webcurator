@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ListFactoryBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,10 +23,7 @@ import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
-import org.webcurator.core.store.arc.ArcDigitalAssetStoreService;
-import org.webcurator.core.store.arc.DasFileMover;
-import org.webcurator.core.store.arc.InputStreamDasFileMover;
-import org.webcurator.core.store.arc.RenameDasFileMover;
+import org.webcurator.core.store.arc.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 
@@ -289,6 +287,16 @@ public class DasConfig {
         bean.setFileArchive(fileArchive());
 
         return bean;
+    }
+
+    @Bean
+    public FilterRegistrationBean filterRegistration() {
+
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new CustomDepositFormFilter());
+        registration.addUrlPatterns("/customDepositForms/*");
+        registration.setOrder(1);
+        return registration;
     }
 
     public DasFileMover createDasFileMover() {
