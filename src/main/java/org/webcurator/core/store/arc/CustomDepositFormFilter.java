@@ -1,5 +1,6 @@
 package org.webcurator.core.store.arc;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
@@ -10,6 +11,12 @@ import java.io.IOException;
 @Component
 public class CustomDepositFormFilter implements Filter {
 
+    @Value("${core.host}")
+    String core;
+
+    @Value("${core.port}")
+    String corePort;
+
     public CustomDepositFormFilter(){
     }
 
@@ -19,13 +26,13 @@ public class CustomDepositFormFilter implements Filter {
         // Set CORS headers for all responses
         HttpServletResponse response = (HttpServletResponse) res;
         response.setHeader("Access-Control-Allow-Headers","Access-Control-Allow-Origin,Access-Control-Allow-Methods");
-        response.setHeader("Access-Control-Allow-Origin","http://localhost:8080");
+        response.setHeader("Access-Control-Allow-Origin","http://" + core + ":" + corePort);
         response.setHeader("Access-Control-Allow-Methods","GET,POST,HEAD,OPTIONS");
 
         // Set CORS headers for all requests
         MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest((HttpServletRequest) req);
         mutableRequest.putHeader("Access-Control-Allow-Headers","Access-Control-Allow-Origin,Access-Control-Allow-Methods");
-        mutableRequest.putHeader("Access-Control-Allow-Origin","http://localhost:8080");
+        mutableRequest.putHeader("Access-Control-Allow-Origin","http://" + core + ":" + corePort);
         mutableRequest.putHeader("Access-Control-Allow-Methods","GET,POST,HEAD,OPTIONS");
 
         chain.doFilter(mutableRequest, response);
@@ -37,14 +44,5 @@ public class CustomDepositFormFilter implements Filter {
 
     public void init(FilterConfig fConfig) throws ServletException {
     }
-
-/*    @Bean
-    public FilterRegistrationBean<CustomDepositFormFilter> filterRegistrationBean() {
-        FilterRegistrationBean<CustomDepositFormFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new CustomDepositFormFilter());
-        registrationBean.addUrlPatterns("/customDepositForms/*");
-
-        return registrationBean;
-    }*/
 
 }

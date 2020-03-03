@@ -27,7 +27,10 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 
 
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.webcurator.core.archive.BaseArchive;
 import org.webcurator.core.archive.ArchiveFile;
 import static org.webcurator.core.archive.Constants.ACCESS_RESTRICTION;
@@ -70,7 +73,15 @@ import javax.xml.ws.Service;
  *
  * @author Nicolai Moles-Benfell
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class DPSArchive extends BaseArchive {
+
+    @Value("${core.host}")
+    String core;
+
+    @Value("${server.port}")
+    String serverPort;
 
     /**
      * A very light-weight version of the com.exlibris.digitool.deposit.service.xmlbeans.DepData
@@ -436,7 +447,7 @@ public class DPSArchive extends BaseArchive {
          */
         String serviceEndpointInterfaceName = ProducerWebServices.class.getSimpleName();
         URL wsdlUrl = null;
-        String wsdlUrlStr = producerWsdlUrl;
+        String wsdlUrlStr = "http://" + core + ":" + serverPort +  producerWsdlUrl;
         try {
             wsdlUrl = new URL(wsdlUrlStr);
         } catch(Exception e) {

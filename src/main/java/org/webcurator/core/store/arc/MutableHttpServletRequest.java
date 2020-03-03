@@ -4,6 +4,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.util.*;
 
+// This is a version of the MutableHttpServletRequest class detailed in http://wilddiary.com/adding-custom-headers-java-httpservletrequest/
+
 @SuppressWarnings("unchecked")
 final class MutableHttpServletRequest extends HttpServletRequestWrapper {
 
