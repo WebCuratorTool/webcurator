@@ -57,7 +57,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @ResponseBody
     public String rosettaInterface(@RequestParam(value = "query") String query,
                                    @RequestParam(value = "producerAgent") String producerAgent,
-                                   @RequestParam(value = "producerId") String producerId,
+                                   @RequestParam(value = "producerId", required = false) String producerId,
                                    @RequestParam(value = "producer", required = false) String producer,
                                    @RequestParam(value = "fromCache", required = false) String fromCache,
                                    @RequestParam(value = "targetDcType", required = false) String targetDcType,

@@ -418,7 +418,8 @@ function ajaxFunction_internal(requestParams, destinationDiv, asynchronousFlag) 
 	}
 	//This will not work if the store is on a different host/port.  The same origin
 	//policy will prevent the request if it is changed to use the configured values.
-	xmlhttp.open("POST", "http://localhost:8082/customDepositForms/rosetta_interface_via_ajax.jsp", asynchronousFlag);
+
+	xmlhttp.open("POST", "http://localhost:" + "8082" + "/digital-asset-store/rosettaInterface", asynchronousFlag);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
 	//The following two lines attempt to violate the XMLHttpRequest standard:
