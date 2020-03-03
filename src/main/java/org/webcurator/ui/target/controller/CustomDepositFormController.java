@@ -6,6 +6,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,10 +17,12 @@ import org.webcurator.common.ui.Constants;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@CrossOrigin
 @RequestMapping("curator/target/deposit-form-envelope.html")
 public class CustomDepositFormController {
     /** the logger. */
     private Log log;
+
 	public CustomDepositFormController() {
         log = LogFactory.getLog(getClass());
 	}
@@ -33,5 +36,4 @@ public class CustomDepositFormController {
 		mav.addObject(Constants.GBL_CMD_DATA, command);
 		return mav;
 	}
-
 }
