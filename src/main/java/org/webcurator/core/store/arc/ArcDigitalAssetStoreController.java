@@ -7,16 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStorePaths;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreCopyAndPruneDTO;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
