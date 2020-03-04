@@ -298,7 +298,10 @@ public class BaseConfig {
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
         hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
-        //hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
+        // Include setting of default schema, unless the database type is mysql
+        if(!hibernateDialect.toLowerCase().contains("mysql")){
+            hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
+        }
         hibernateProperties.setProperty("hibernate.transaction.factory_class", "org.hibernate.transaction.JDBCTransactionFactory");
         hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans","true");
 
