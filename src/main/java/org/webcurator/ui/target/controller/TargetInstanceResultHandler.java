@@ -16,14 +16,15 @@
 package org.webcurator.ui.target.controller;
 
 import java.text.NumberFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -329,6 +330,13 @@ public class TargetInstanceResultHandler extends TabHandler {
 				if (response != null && response.isCustomDepositFormRequired()) {
 					String customDepositFormHTMLContent = response.getHTMLForCustomDepositForm();
 					String customDepositFormURL = response.getUrlForCustomDepositForm();
+
+					// Will be needed to access the Rosetta interface
+					Resource resource = new ClassPathResource("application-" + System.getenv("SPRING_PROFILES_ACTIVE") +  ".properties");
+					Properties properties = PropertiesLoaderUtils.loadProperties(resource);
+
+					req.getSession().setAttribute("dasPort", properties.getProperty("das.port"));
+
 					if (customDepositFormURL != null) {
 						customDepositFormRequired = true;
 						req.getSession().setAttribute("customDepositFormURL", customDepositFormURL);

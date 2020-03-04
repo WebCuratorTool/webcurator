@@ -50,6 +50,7 @@ document.onkeypress = stopRKey;
 <input type="hidden" name="customDepositForm_loggedInUser" value="<%= org.webcurator.core.util.AuthUtil.getRemoteUser() %>">
 <input type="hidden" name="customDepositForm_ProducerIdPreset" value="<c:out value="${customDepositFormProducerId}"/>">
 <input type="hidden" name="customDepositForm_targetDcType" value="<c:out value="${sessionTargetInstance.target.dublinCoreMetaData.type}"/>">
+<input id = "das" type="hidden" name="dasPort" value="<c:out value="${dasPort}"/>">
 
 <c:choose>
 <c:when test="${not empty customDepositFormURL}">
