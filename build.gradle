@@ -26,9 +26,9 @@ description = 'Web Curator Tool WebApp'
 project.ext {
     // Set these project properties by including the property with -P<property-name>, for example -PincludeH2=true
     includeH2 = (project.hasProperty('includeH2') ? project.includeH2.toBoolean() : false).toBoolean()
-    includeMysql = (project.hasProperty('includeMysql') ? project.includeH2.toBoolean() : false).toBoolean()
-    includeOracle = (project.hasProperty('includeOracle') ? project.includeH2.toBoolean() : false).toBoolean()
-    includePostgres = (project.hasProperty('includePostgres') ? project.includeH2.toBoolean() : false).toBoolean()
+    includeMysql = (project.hasProperty('includeMysql') ? project.includeMysql.toBoolean() : false).toBoolean()
+    includeOracle = (project.hasProperty('includeOracle') ? project.includeOracle.toBoolean() : false).toBoolean()
+    includePostgres = (project.hasProperty('includePostgres') ? project.includePostgres.toBoolean() : false).toBoolean()
 }
 
 apply plugin: 'eclipse'
@@ -84,7 +84,7 @@ dependencies {
     }
     if (project.includeOracle) {
         logger.info("Including Oracle dependencies, includeOracle=${project.includeOracle}")
-        implementation 'com.oracle:ojdbc14:11.2.0.3'
+        implementation 'com.oracle:ojdbc6:11.2.0.3'
     } else {
         logger.info("Not including Oracle dependencies, includeOracle=${project.includeOracle}")
     }
