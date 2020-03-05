@@ -22,9 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -35,6 +33,8 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.DigitalAssetStoreClient;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
@@ -52,7 +52,6 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * @author nwaight
  */
 public class TargetInstanceResultHandler extends TabHandler {
-
     private TargetInstanceManager targetInstanceManager;
     private HarvestCoordinator harvestCoordinator;
     /** the digital asset store containing the harvests. */
@@ -332,10 +331,10 @@ public class TargetInstanceResultHandler extends TabHandler {
 					String customDepositFormURL = response.getUrlForCustomDepositForm();
 
 					// Will be needed to access the Rosetta interface
-					Resource resource = new ClassPathResource("application-" + System.getenv("SPRING_PROFILES_ACTIVE") +  ".properties");
-					Properties properties = PropertiesLoaderUtils.loadProperties(resource);
+					ApplicationContext ctx=ApplicationContextFactory.getApplicationContext();
+					DigitalAssetStoreClient dasClient=ctx.getBean(DigitalAssetStoreClient.class);
 
-					req.getSession().setAttribute("dasPort", properties.getProperty("das.port"));
+					req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
 
 					if (customDepositFormURL != null) {
 						customDepositFormRequired = true;
