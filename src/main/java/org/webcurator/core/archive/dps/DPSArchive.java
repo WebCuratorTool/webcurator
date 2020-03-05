@@ -447,7 +447,7 @@ public class DPSArchive extends BaseArchive {
          */
         String serviceEndpointInterfaceName = ProducerWebServices.class.getSimpleName();
         URL wsdlUrl = null;
-        String wsdlUrlStr = "http://" + core + ":" + serverPort +  producerWsdlUrl;
+        String wsdlUrlStr = producerWsdlUrl;
         try {
             wsdlUrl = new URL(wsdlUrlStr);
         } catch(Exception e) {

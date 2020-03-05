@@ -13,7 +13,7 @@ public class RosettaInterfaceController {
     @PostMapping(path = "/digital-asset-store/rosettaInterface")
     @ResponseBody
     public String rosettaInterface(@RequestParam(value = "query") String query,
-                                   @RequestParam(value = "producerAgent") String producerAgent,
+                                   @RequestParam(value = "producerAgent", required = false) String producerAgent,
                                    @RequestParam(value = "producerId", required = false) String producerId,
                                    @RequestParam(value = "producer", required = false) String producer,
                                    @RequestParam(value = "fromCache", required = false) String fromCache,
