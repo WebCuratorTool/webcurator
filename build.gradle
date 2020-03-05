@@ -90,7 +90,7 @@ dependencies {
     }
     if (project.includePostgres) {
         logger.info("Including Postgres dependencies, includePostgres=${project.includePostgres}")
-        implementation 'postgresql:postgresql:9.1-901.jdbc4'
+        implementation 'postgresql:postgresql:9.3-1102.jdbc41'
     } else {
         logger.info("Not including Postgres dependencies, includePostgres=${project.includePostgres}")
     }
