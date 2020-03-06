@@ -286,7 +286,7 @@ public class DasConfig {
         bean.setDasFileMover(createDasFileMover());
         bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
-        bean.setFileArchive(fileArchive());
+        bean.setFileArchive(createFileArchive());
 
         return bean;
     }
@@ -304,29 +304,32 @@ public class DasConfig {
         return dasFileMover;
     }
 
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     // The archive type is one of: fileArchive, omsArchive, dpsArchive.
-    public Archive createArcDigitalAssetStoreServiceArchive() {
-        Archive archive = null;
+    public Archive arcDasArchive() {
+        Archive bean = null;
         String archiveType = arcDigitalAssetStoreServiceArchive;
         if ("fileArchive".equalsIgnoreCase(archiveType)) {
-            archive = new FileArchive();
+            bean = createFileArchive();
         } else if ("omsArchive".equalsIgnoreCase(archiveType)) {
-            archive = new OMSArchive();
+            bean = createOmsArchive();
         } else if ("dpsArchive".equalsIgnoreCase(archiveType)) {
-            archive = new DPSArchive();
+            bean = createDpsArchive();
         } else  {
             LOGGER.debug("Instantiating Archive class for name=" + archiveType);
             if (archiveType.trim().length() > 0) {
                 try {
                     Class<?> clazz = Class.forName(archiveType);
                     Object archiveInstance = clazz.newInstance();
-                    archive = (Archive) archiveInstance;
+                    bean = (Archive) archiveInstance;
                 } catch (InstantiationException|IllegalAccessException|ClassNotFoundException e) {
                     LOGGER.error("Unable to instantiate archive by type/class=" + archiveType, e);
                 }
             }
         }
-        return archive;
+        return bean;
     }
 
     @Bean
@@ -430,23 +433,18 @@ public class DasConfig {
         return bean;
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    public FileArchive fileArchive() {
+    private FileArchive createFileArchive() {
         FileArchive bean = new FileArchive();
         bean.setArchiveRepository(fileArchiveArchiveRepository);
         bean.setArchiveLogReportFiles(fileArchiveArchiveLogReportFiles);
         bean.setArchiveLogDirectory(fileArchiveArchiveLogDirectory);
         bean.setArchiveArcDirectory(fileArchiveArchiveArcDirectory);
+        bean.setArchiveReportDirectory(fileArchiveArchiveReportDirectory);
 
         return bean;
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    public OMSArchive omsArchive() {
+    private OMSArchive createOmsArchive() {
         OMSArchive bean = new OMSArchive();
         bean.setArchiveLogReportFiles(omsArchiveArchiveLogReportFiles);
         bean.setUrl(omsArchiveUrl);
@@ -467,10 +465,7 @@ public class DasConfig {
 
     // Configuration parameters for the Submit-To-Rosetta module which submits a harvest into Ex Libris Rosetta System
     // (a.k.a. DPS, the Digital Preservation System).
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    public DPSArchive dpsArchive() {
+    private DPSArchive createDpsArchive() {
         DPSArchive bean = new DPSArchive();
         bean.setPdsUrl(dpsArchivePdsUrl);
         bean.setFtpHost(dpsArchiveFtpHost);

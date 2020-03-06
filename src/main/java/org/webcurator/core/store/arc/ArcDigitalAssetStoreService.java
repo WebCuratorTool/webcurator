@@ -62,13 +62,13 @@ import org.archive.io.warc.WARCWriterPoolSettings;
 import org.archive.io.warc.WARCWriterPoolSettingsData;
 import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
-import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.rest.RestClientResponseHandler;
@@ -86,7 +86,6 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
 /**
@@ -131,6 +130,9 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     private FileArchive fileArchive = null;
 
+    @Autowired
+    private Archive arcDasArchive;
+
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
 
@@ -147,7 +149,8 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     public String baseUrl() {
-        return wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+        // FIXME: configurable scheme (in class WebServiceEndpoint.java)
+        return "http://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
     }
 
     public String getUrl(String appendUrl) {
@@ -1270,9 +1273,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     fileList.add(new ArchiveFile(f, ARC_FILE));
                 }
 
-                ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
-                Archive archive = ctx.getBean(DPSArchive.class);
-                String archiveIID = archive.submitToArchive(targetInstanceOid,
+                String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid,
                         SIP, xAttributes, fileList);
 
                 completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
@@ -1313,9 +1314,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     public CustomDepositFormResultDTO getCustomDepositFormDetails(
             CustomDepositFormCriteriaDTO criteria)
             throws DigitalAssetStoreException {
-        ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
-        Archive archive = ctx.getBean(DPSArchive.class);
-        return archive.getCustomDepositFormDetails(criteria);
+        return arcDasArchive.getCustomDepositFormDetails(criteria);
     }
 
 
