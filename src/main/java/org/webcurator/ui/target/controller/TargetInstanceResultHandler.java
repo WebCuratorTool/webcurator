@@ -335,6 +335,7 @@ public class TargetInstanceResultHandler extends TabHandler {
 					DigitalAssetStoreClient dasClient=ctx.getBean(DigitalAssetStoreClient.class);
 
 					req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
+					req.getSession().setAttribute("dasHost", dasClient.getHost());
 
 					if (customDepositFormURL != null) {
 						customDepositFormRequired = true;
