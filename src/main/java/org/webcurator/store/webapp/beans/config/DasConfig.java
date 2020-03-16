@@ -259,6 +259,9 @@ public class DasConfig {
     @Value("${dpsArchive.htmlSerials.restrictAgencyType}")
     private String dpsArchiveHtmlSerialsRestrictAgencyType;
 
+    @Value("${server.port}")
+    private String wctStorePort;
+
     @PostConstruct
     public void init(){
         ApplicationContextFactory.setApplicationContext(applicationContext);
@@ -548,7 +551,7 @@ public class DasConfig {
         List<CustomDepositField> rosettaList = new ArrayList<>();
         rosettaList.add(depositFieldDctermsBibliographicCitation());
         rosettaList.add(depositFieldDctermsAvailable());
-        customDepositFormFieldMaps.put("/customDepositForms/rosetta_custom_deposit_form.jsp", rosettaList);
+        customDepositFormFieldMaps.put("http://localhost:" + wctStorePort + "/customDepositForms/rosetta_custom_deposit_form.jsp", rosettaList);
 
         List<CustomDepositField> almaList = new ArrayList<>();
         almaList.add(depositFieldVolume());
@@ -557,7 +560,7 @@ public class DasConfig {
         almaList.add(depositFieldYear());
         almaList.add(depositFieldMonth());
         almaList.add(depositFieldDay());
-        customDepositFormFieldMaps.put("/customDepositForms/rosetta_alma_custom_deposit_form.jsp", almaList);
+        customDepositFormFieldMaps.put("http://localhost:" + wctStorePort + "/customDepositForms/rosetta_alma_custom_deposit_form.jsp", almaList);
 
         bean.setCustomDepositFormFieldMaps(customDepositFormFieldMaps);
 
