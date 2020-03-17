@@ -21,8 +21,10 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -336,6 +338,23 @@ public class TargetInstanceResultHandler extends TabHandler {
 
 					req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
 					req.getSession().setAttribute("dasHost", dasClient.getHost());
+
+					// Create a new class in order to get the core base url
+					@Component
+					class CoreBaseUrl {
+						@Value("${inTrayManager.wctBaseUrl}")
+						private String inTrayManagerWctBaseUrl;
+
+						public String getBaseUrl() {
+							return inTrayManagerWctBaseUrl;
+						}
+
+						public void setBaseUrl(String inTrayManagerWctBaseUrl) {
+							this.inTrayManagerWctBaseUrl = inTrayManagerWctBaseUrl;
+						}
+					}
+					CoreBaseUrl coreBaseUrl = new CoreBaseUrl();
+					req.getSession().setAttribute("coreBaseUrl", coreBaseUrl.getBaseUrl());
 
 					if (customDepositFormURL != null) {
 						customDepositFormRequired = true;
