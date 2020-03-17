@@ -17,22 +17,26 @@ public class CustomDepositFormFilter implements Filter {
     @Value("${core.port}")
     String corePort;
 
+    @Value("${core.scheme}")
+    String coreScheme;
+
     public CustomDepositFormFilter(){
     }
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
+
         // Set CORS headers for all responses
         HttpServletResponse response = (HttpServletResponse) res;
         response.setHeader("Access-Control-Allow-Headers","Access-Control-Allow-Origin,Access-Control-Allow-Methods");
-        response.setHeader("Access-Control-Allow-Origin","http://" + core + ":" + corePort);
+        response.setHeader("Access-Control-Allow-Origin", coreScheme + "://" + core + ":" + corePort);
         response.setHeader("Access-Control-Allow-Methods","GET,POST,HEAD,OPTIONS");
 
         // Set CORS headers for all requests
         MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest((HttpServletRequest) req);
         mutableRequest.putHeader("Access-Control-Allow-Headers","Access-Control-Allow-Origin,Access-Control-Allow-Methods");
-        mutableRequest.putHeader("Access-Control-Allow-Origin","http://" + core + ":" + corePort);
+        mutableRequest.putHeader("Access-Control-Allow-Origin", coreScheme + "://" + core + ":" + corePort);
         mutableRequest.putHeader("Access-Control-Allow-Methods","GET,POST,HEAD,OPTIONS");
 
         chain.doFilter(mutableRequest, response);

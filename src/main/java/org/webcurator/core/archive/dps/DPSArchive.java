@@ -77,11 +77,8 @@ import javax.xml.ws.Service;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class DPSArchive extends BaseArchive {
 
-    @Value("${core.host}")
-    String core;
-
-    @Value("${server.port}")
-    String serverPort;
+    @Value("${core.scheme}")
+    String coreScheme;
 
     /**
      * A very light-weight version of the com.exlibris.digitool.deposit.service.xmlbeans.DepData
@@ -865,4 +862,8 @@ public class DPSArchive extends BaseArchive {
         }
 
     }
+
+    public String getCoreScheme() { return coreScheme; }
+    public void setCoreScheme(String cs) {this.coreScheme = cs; }
+
 }

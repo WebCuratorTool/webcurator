@@ -146,7 +146,10 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     public String baseUrl() {
-        return wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+        ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+        DPSArchive dpsArchive = ctx.getBean(DPSArchive.class);
+
+        return dpsArchive.getCoreScheme() + "://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
     }
 
     public String getUrl(String appendUrl) {
@@ -1290,7 +1293,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     private void completeArchiving(Long targetInstanceOid, String archiveIID) {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl("http://" + getUrl(HarvestCoordinatorPaths.COMPLETE_ARCHIVING))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.COMPLETE_ARCHIVING))
                 .queryParam("archive-id", archiveIID);
 
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
