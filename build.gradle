@@ -1,5 +1,4 @@
 plugins {
-    id 'com.gradle.build-scan' version '2.4'
     id 'org.springframework.boot' version '2.1.7.RELEASE'
     id 'io.spring.dependency-management' version '1.0.8.RELEASE'
     id 'java'
@@ -23,13 +22,6 @@ group = 'org.webcurator'
 version = '3.0.0-SNAPSHOT'
 description = 'Web Curator Tool WebApp'
 
-project.ext {
-    // Set these project properties by including the property with -P<property-name>, for example -PincludeH2=true
-    includeH2 = (project.hasProperty('includeH2') ? project.includeH2.toBoolean() : false).toBoolean()
-    includeMysql = (project.hasProperty('includeMysql') ? project.includeMysql.toBoolean() : false).toBoolean()
-    includeOracle = (project.hasProperty('includeOracle') ? project.includeOracle.toBoolean() : false).toBoolean()
-    includePostgres = (project.hasProperty('includePostgres') ? project.includePostgres.toBoolean() : false).toBoolean()
-}
 
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -68,32 +60,10 @@ dependencies {
     implementation 'mysql:mysql-connector-java:5.1.6'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
-    // Specific database dependencies.
-    // Note that multiple database dependencies could be in use concurrently.
-    if (project.includeH2) {
-        logger.info("Including H2 dependencies, includeH2=${project.includeH2}")
-        implementation 'com.h2database:h2:1.4.199'
-    } else {
-        logger.info("Not including H2 dependencies, includeH2=${project.includeH2}")
-    }
-    if (project.includeMysql) {
-        logger.info("Including MySQL dependencies, includeMysql=${project.includeMysql}")
-        implementation 'mysql:mysql-connector-java:5.1.6'
-    } else {
-        logger.info("Not including MySQL dependencies, includeMysql=${project.includeMysql}")
-    }
-    if (project.includeOracle) {
-        logger.info("Including Oracle dependencies, includeOracle=${project.includeOracle}")
-        implementation 'com.oracle:ojdbc6:11.2.0.3'
-    } else {
-        logger.info("Not including Oracle dependencies, includeOracle=${project.includeOracle}")
-    }
-    if (project.includePostgres) {
-        logger.info("Including Postgres dependencies, includePostgres=${project.includePostgres}")
-        implementation 'postgresql:postgresql:9.3-1102.jdbc41'
-    } else {
-        logger.info("Not including Postgres dependencies, includePostgres=${project.includePostgres}")
-    }
+    implementation 'com.h2database:h2:1.4.199'
+    implementation 'mysql:mysql-connector-java:5.1.6'
+    implementation 'com.oracle:ojdbc6:11.2.0.3'
+    implementation 'org.postgresql:postgresql:42.2.11'
 
     implementation 'commons-pool:commons-pool:1.3.1-heritrix-1.14.2-webcuratortool-2.0.1'
     implementation 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
@@ -110,9 +80,7 @@ dependencies {
 
     providedCompile 'org.apache.taglibs:taglibs-standard-impl:1.2.5'
     providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'
-    providedCompile 'org.projectlombok:lombok:1.18.8'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
 }
 
 war {
