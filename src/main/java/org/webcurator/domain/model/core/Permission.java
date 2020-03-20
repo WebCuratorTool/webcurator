@@ -140,8 +140,9 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * Any authorising agency acceptance notes attached to the permission.
      */
-    @Column(name = "PE_NOTES")
-    @Lob // type="materialized_clob"
+    //@Column(name = "PE_NOTES")
+    //@Lob // type="materialized_clob"
+    @Column(name = "PE_NOTES", columnDefinition = "text")
     private String authResponse;
     /**
      * The access status

@@ -64,8 +64,9 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
     @Column(name = "ST_DESC", length = 4000)
     private String description;
     /** A set of notes about the site. */
-    @Column(name = "ST_NOTES")
-    @Lob // type="materialized_clob"
+    //@Column(name = "ST_NOTES")
+    //@Lob // type="materialized_clob"
+    @Column(name = "ST_NOTES", columnDefinition = "text")
     private String notes;
     /** A library order no. */
     @Column(name = "ST_LIBRARY_ORDER_NO", length = 32)

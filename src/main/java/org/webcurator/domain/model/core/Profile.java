@@ -142,8 +142,9 @@ public class Profile implements AgencyOwnable {
 	private Agency owningAgency;
 
 	/** The profile itself, as an XML string */
-	@Column(name = "P_PROFILE_STRING")
-	@Lob // type="materialized_clob"
+	//@Column(name = "P_PROFILE_STRING")
+	//@Lob // type="materialized_clob"
+	@Column(name = "P_PROFILE_STRING", columnDefinition = "text")
 	private String profile;
 	
 	/** Is this the default profile for the agency */
