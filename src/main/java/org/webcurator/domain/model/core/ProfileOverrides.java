@@ -25,6 +25,8 @@ import javax.persistence.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.MaterializedClobType;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.profiles.*;
 
@@ -254,9 +256,8 @@ public class ProfileOverrides {
 	@Column(name = "PO_H3_OR_INCL_URL")
 	private boolean overrideH3IncludedUrls = false;
 
-	//@Column(name = "PO_H3_RAW_PROFILE")
+	@Column(name = "PO_H3_RAW_PROFILE", columnDefinition = "clob")
 	//@Lob // type="materialized_clob"
-	@Column(name = "PO_H3_RAW_PROFILE", columnDefinition = "text")
 	private String h3RawProfile;
 	@Column(name = "PO_H3_OR_RAW_PROFILE")
 	private boolean overrideH3RawProfile = false;

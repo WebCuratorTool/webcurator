@@ -16,6 +16,7 @@
 package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.model.auth.Agency;
@@ -142,9 +143,8 @@ public class Profile implements AgencyOwnable {
 	private Agency owningAgency;
 
 	/** The profile itself, as an XML string */
-	//@Column(name = "P_PROFILE_STRING")
+	@Column(name = "P_PROFILE_STRING", columnDefinition = "clob")
 	//@Lob // type="materialized_clob"
-	@Column(name = "P_PROFILE_STRING", columnDefinition = "text")
 	private String profile;
 	
 	/** Is this the default profile for the agency */

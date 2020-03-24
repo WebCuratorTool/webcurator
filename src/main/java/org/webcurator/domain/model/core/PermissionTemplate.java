@@ -16,6 +16,7 @@
 package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.webcurator.domain.model.auth.Agency;
 
 import javax.persistence.*;
@@ -63,9 +64,8 @@ public class PermissionTemplate {
     @JoinColumn(name = "PRT_AGC_OID", foreignKey = @ForeignKey(name = "FK_TEMPLATE_AGENCY_OID"), nullable = false)
     private Agency agency;
     /** The template text itself */
-    //@Column(name = "PRT_TEMPLATE_TEXT", length = 10000, nullable = false)
+    @Column(name = "PRT_TEMPLATE_TEXT", length = 10000, nullable = false, columnDefinition = "clob")
     //@Lob // type="materialized_clob"
-    @Column(name = "PRT_TEMPLATE_TEXT", length = 10000, nullable = false, columnDefinition = "text")
     private String template;
     /** The type of template. One of EMAIL_TYPE_TEMPLATE or PRINT_TYPE_TEMPLATE */
     @Column(name = "PRT_TEMPLATE_TYPE", length = 40, nullable = false)

@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.Type;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
@@ -207,9 +208,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @ElementCollection
     @CollectionTable(name="SIP_PART_ELEMENT", joinColumns=@JoinColumn(name="SPE_TARGET_INSTANCE_OID"))
     @MapKeyColumn (name="SPE_KEY")
-    //@Column(name="SPE_VALUE")
+    @Column(name="SPE_VALUE", columnDefinition = "clob")
     //@Lob // column="SPE_VALUE" type="materialized_clob"
-    @Column(name="SPE_VALUE", columnDefinition = "text")
     private Map<String,String> sipParts = new HashMap<String, String>();
     /** The original seeds */
     // TODO cascade="all"

@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.Type;
 import org.webcurator.core.notification.AgencyInTrayResource;
 import org.webcurator.core.notification.InTrayResource;
 import org.webcurator.core.util.Utils;
@@ -140,9 +141,8 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * Any authorising agency acceptance notes attached to the permission.
      */
-    //@Column(name = "PE_NOTES")
+    @Column(name = "PE_NOTES", columnDefinition = "clob")
     //@Lob // type="materialized_clob"
-    @Column(name = "PE_NOTES", columnDefinition = "text")
     private String authResponse;
     /**
      * The access status
