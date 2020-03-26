@@ -245,7 +245,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * List of excluded URLs
      */
-    @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
+    @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
     @JoinColumn(name = "PEX_PERMISSION_OID")
     @OrderColumn(name = "PEX_INDEX")
     private List<PermissionExclusion> exclusions = new LinkedList<PermissionExclusion>();

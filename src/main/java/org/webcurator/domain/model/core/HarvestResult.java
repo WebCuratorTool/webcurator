@@ -67,7 +67,7 @@ public abstract class HarvestResult implements UserInTrayResource {
     private int state = 0;
     /** A list of Harvest Modification Notes */
     // TODO @hibernate.list table="HR_MODIFICATION_NOTE" cascade="all-delete-orphan" --> not sure if can do cascade
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "HR_MODIFICATION_NOTE", joinColumns = @JoinColumn(name = "HMN_HR_OID"))
     @Column(name = "HMN_NOTE", length = 2000)
     @OrderColumn(name = "HMN_INDEX")

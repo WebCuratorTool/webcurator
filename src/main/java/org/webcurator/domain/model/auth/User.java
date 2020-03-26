@@ -172,7 +172,7 @@ public class User implements Serializable {
     /**
      * The set of roles the user belongs to
      */
-    @ManyToMany(fetch = FetchType.EAGER,
+    @ManyToMany(fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
     @JoinTable(name = "USER_ROLE",
             joinColumns = {@JoinColumn(name = "URO_USR_OID")},
