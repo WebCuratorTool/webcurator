@@ -33,6 +33,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreClient;
@@ -335,26 +336,11 @@ public class TargetInstanceResultHandler extends TabHandler {
 					// Will be needed to access the Rosetta interface
 					ApplicationContext ctx=ApplicationContextFactory.getApplicationContext();
 					DigitalAssetStoreClient dasClient=ctx.getBean(DigitalAssetStoreClient.class);
+					InTrayManagerImpl inTrayManager = ctx.getBean(InTrayManagerImpl.class);
 
 					req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
 					req.getSession().setAttribute("dasHost", dasClient.getHost());
-
-					// Create a new class in order to get the core base url
-					@Component
-					class CoreBaseUrl {
-						@Value("${inTrayManager.wctBaseUrl}")
-						private String inTrayManagerWctBaseUrl;
-
-						public String getBaseUrl() {
-							return inTrayManagerWctBaseUrl;
-						}
-
-						public void setBaseUrl(String inTrayManagerWctBaseUrl) {
-							this.inTrayManagerWctBaseUrl = inTrayManagerWctBaseUrl;
-						}
-					}
-					CoreBaseUrl coreBaseUrl = new CoreBaseUrl();
-					req.getSession().setAttribute("coreBaseUrl", coreBaseUrl.getBaseUrl());
+					req.getSession().setAttribute("coreBaseUrl", inTrayManager.getWctBaseUrl());
 
 					if (customDepositFormURL != null) {
 						customDepositFormRequired = true;
