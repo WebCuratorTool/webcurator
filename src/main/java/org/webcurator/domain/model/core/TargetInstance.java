@@ -208,7 +208,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @ElementCollection
     @CollectionTable(name="SIP_PART_ELEMENT", joinColumns=@JoinColumn(name="SPE_TARGET_INSTANCE_OID"))
     @MapKeyColumn (name="SPE_KEY")
-    @Column(name="SPE_VALUE", columnDefinition = "clob")
+    @Column(name="SPE_VALUE")
     //@Lob // column="SPE_VALUE" type="materialized_clob"
     private Map<String,String> sipParts = new HashMap<String, String>();
     /** The original seeds */
