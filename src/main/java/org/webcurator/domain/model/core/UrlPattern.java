@@ -17,6 +17,8 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -34,7 +36,8 @@ public class UrlPattern extends AbstractIdentityObject {
      * The database oid of the UrlPattern.
      */
     @Id
-    @Column(name = "UP_OID", nullable = false)
+    @NotNull
+    @Column(name = "UP_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -49,13 +52,14 @@ public class UrlPattern extends AbstractIdentityObject {
     /**
      * The url pattern.
      */
-    @Column(name = "UP_PATTERN", length = 2048)
+    @Size(max=2048)
+    @Column(name = "UP_PATTERN")
     private String pattern;
     /**
      * A reference to the owning site.
      */
     @ManyToOne(cascade = CascadeType.MERGE)
-    @JoinColumn(name = "UP_SITE_ID", foreignKey = @ForeignKey(name = "FK_UP_SITE_ID"))
+    @JoinColumn(name = "UP_SITE_ID")
     private Site site;
     /**
      * A set of permissions.

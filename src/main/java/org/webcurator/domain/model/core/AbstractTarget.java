@@ -21,6 +21,8 @@ import org.webcurator.core.util.Utils;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.*;
 
@@ -88,7 +90,8 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 
     /** the primary key of the Target. */
 	@Id
-	@Column(name="AT_OID", nullable =  false)
+	@NotNull
+	@Column(name="AT_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -101,10 +104,12 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The targets name. */
-    @Column(name = "AT_NAME", length = 255, unique = true)
+    @Size(max=255)
+    @Column(name = "AT_NAME")
     private String name;
     /** the targets description. */
-    @Column(name = "AT_DESC", length = 4000)
+    @Size(max=4000)
+    @Column(name = "AT_DESC")
     private String description;
     /** The schedules related to the target. */
 	@OneToMany(cascade = CascadeType.ALL) // default fetch type is LAZY {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
@@ -116,7 +121,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     private User owner;
     /** Profile Overrides */
     @ManyToOne(cascade = CascadeType.ALL) // WAS cascade="save-update"
-    @JoinColumn(name = "AT_PROF_OVERRIDE_OID", foreignKey = @ForeignKey(name = "FK_T_PROF_OVERRIDE_OID"))
+    @JoinColumn(name = "AT_PROF_OVERRIDE_OID")
     private ProfileOverrides overrides = new ProfileOverrides();
     /** The loaded state of the target **/
     @Transient
@@ -165,14 +170,16 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @Column(name = "AT_OBJECT_TYPE")
     protected int objectType;
     /** reference number to use when storing instances to the SIP.*/
-    @Column(name = "AT_REFERENCE", length = 255)
+    @Size(max=255)
+    @Column(name = "AT_REFERENCE")
     private String referenceNumber;
     /** A cross-domain information resource description of the target.*/
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "AT_DUBLIN_CORE_OID", foreignKey = @ForeignKey(name = "FK_AT_DUBLIN_CORE_OID"))
+    @JoinColumn(name = "AT_DUBLIN_CORE_OID")
     private DublinCore dublinCoreMetaData;
     /** The Profile Note */
-    @Column(name = "AT_PROFILE_NOTE", length = 255)
+    @Size(max=255)
+    @Column(name = "AT_PROFILE_NOTE")
     private String profileNote = null;
 
 	@Transient
@@ -185,7 +192,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 
 	/** Why this target was rejected */
     @ManyToOne
-    @JoinColumn(name = "AT_RR_OID", foreignKey = @ForeignKey(name = "FK_AT_RR_OID"))
+    @JoinColumn(name = "AT_RR_OID")
 	protected RejReason rejReason;
 	
     /** The total number of crawls (<code>TargetInstance</code>s) associated with the Target **/
@@ -206,7 +213,8 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     private boolean autoDenoteReferenceCrawl = false;
     
     /** Any information that should be given to the Archivists **/
-    @Column(name = "AT_REQUEST_TO_ARCHIVISTS", length = 4000)
+    @Size(max=4000)
+    @Column(name = "AT_REQUEST_TO_ARCHIVISTS")
     private String requestToArchivists;
     
     /** The access zone of the target **/
@@ -229,11 +237,13 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     private int accessZone; 
 
     /** The Display Note */
-    @Column(name = "AT_DISPLAY_NOTE", length = 4000)
+    @Size(max=4000)
+    @Column(name = "AT_DISPLAY_NOTE")
     private String displayNote = null;
     
     /** The Display Change Reason */
-    @Column(name = "AT_DISPLAY_CHG_REASON", length = 1000)
+    @Size(max=1000)
+    @Column(name = "AT_DISPLAY_CHG_REASON")
     private String displayChangeReason = null;
 
     /**

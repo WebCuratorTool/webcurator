@@ -17,6 +17,8 @@ package org.webcurator.domain.model.report;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.Date;
 
@@ -42,7 +44,8 @@ public class LogonDuration {
 	public static final String QRY_UNPROPER_LOGGED_OUT_SESSIONS_FOR_CURRENT_USER = "org.webcurator.domain.model.report.LogonDuration.UnproperLoggedoutSessionsForCurrentUser";
 
 	@Id
-	@Column(name="LOGDUR_OID", nullable =  false)
+	@NotNull
+	@Column(name="LOGDUR_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -54,18 +57,24 @@ public class LogonDuration {
 			allocationSize = 1) // 50 is the default
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
-	@Column(name = "LOGDUR_USER_OID", nullable = false)
+	@NotNull
+	@Column(name = "LOGDUR_USER_OID")
     private Long userOid;
-	@Column(name = "LOGDUR_USERNAME", length = 80, nullable = true)
+	@Size(max=80)
+	@Column(name = "LOGDUR_USERNAME")
 	private String userName;
-	@Column(name = "LOGDUR_USER_REALNAME", length = 100, nullable = true)
+	@Size(max=100)
+	@Column(name = "LOGDUR_USER_REALNAME")
     private String userRealName;
-	@Column(name = "LOGDUR_SESSION_ID", length = 32, nullable = false)
+	@Size(max=32)
+	@NotNull
+	@Column(name = "LOGDUR_SESSION_ID")
     private String sessionId;
-	@Column(name = "LOGDUR_LOGON_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@NotNull
+	@Column(name = "LOGDUR_LOGON_TIME", columnDefinition = "TIMESTAMP(9)")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date logonTime;
-	@Column(name = "LOGDUR_LOGOUT_TIME", columnDefinition = "TIMESTAMP(9)", nullable = true)
+	@Column(name = "LOGDUR_LOGOUT_TIME", columnDefinition = "TIMESTAMP(9)")
 	@Temporal(TemporalType.TIMESTAMP)
     private Date logoutTime;
 	@Column(name = "LOGDUR_DURATION")
@@ -77,7 +86,7 @@ public class LogonDuration {
      * if session is not closed manually by the user
      * @return Logon duration (in seconds)
      */
-    @Column(name = "LOGDUR_DURATION", nullable = true)
+    @Column(name = "LOGDUR_DURATION")
 	public Long getDuration() {
 		return duration;
 	}

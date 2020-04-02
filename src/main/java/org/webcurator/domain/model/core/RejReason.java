@@ -20,6 +20,8 @@ import java.io.Serializable;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -55,7 +57,8 @@ public class RejReason implements Serializable {
 	
 	/** The database OID of the reason */
 	@Id
-	@Column(name="RR_OID", nullable =  false)
+	@NotNull
+	@Column(name="RR_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -68,11 +71,13 @@ public class RejReason implements Serializable {
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
     /** The name of the reason */
-    @Column(name = "RR_NAME", length = 100, nullable = false)
+    @Size(max=100)
+    @NotNull
+    @Column(name = "RR_NAME")
     private String name;
     /** The agency the reason belongs to */
 	@ManyToOne
-	@JoinColumn(name = "RR_AGC_OID", foreignKey = @ForeignKey(name = "FK_RR_AGENCY_OID"), nullable = false)
+	@JoinColumn(name = "RR_AGC_OID", nullable = false)
     private Agency agency;
 	/** Determines if the rejection reason is applicable to Targets. */
 	@Column(name = "RR_AVAILABLE_FOR_TARGET")

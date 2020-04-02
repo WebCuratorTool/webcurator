@@ -26,6 +26,8 @@ import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCReaderFactory;
 import org.archive.io.arc.ARCRecord;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -39,7 +41,8 @@ import javax.persistence.*;
 public class ArcHarvestFile {
 	/** An OID for the Harvest File */
 	@Id
-	@Column(name="AHF_OID", nullable =  false)
+	@NotNull
+	@Column(name="AHF_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -52,10 +55,13 @@ public class ArcHarvestFile {
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
 	/** The name of the ARC File */
-	@Column(name = "AHF_NAME", length = 100, nullable = false, unique = true)
+	@Size(max=100)
+	@NotNull
+	@Column(name = "AHF_NAME")
 	private String name;
 	/** true if the ARC file is compressed; otherwise false */
-	@Column(name = "AHF_COMPRESSED", nullable = false)
+	@NotNull
+	@Column(name = "AHF_COMPRESSED")
 	private boolean compressed;
 
 	@Transient
@@ -63,7 +69,7 @@ public class ArcHarvestFile {
 	private String baseDir;
 	/** The HarvestResult that this file belong to. */
 	@ManyToOne
-	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID", foreignKey = @ForeignKey(name = "FK_AHR_ARC_HARVEST_RESULT_ID"))
+	@JoinColumn(name = "AHF_ARC_HARVEST_RESULT_ID")
 	private ArcHarvestResult arcHarvestResult;
 
 	/**

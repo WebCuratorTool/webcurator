@@ -24,6 +24,8 @@ import org.webcurator.core.util.DateUtils;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -54,7 +56,8 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	
     /** The primary key. */
 	@Id
-	@Column(name="S_OID", nullable =  false)
+	@NotNull
+	@Column(name="S_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -67,7 +70,8 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
     /** The start date and time of the schedule. */
-    @Column(name = "S_START", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @NotNull
+    @Column(name = "S_START", columnDefinition = "TIMESTAMP(9)")
     @Temporal(TemporalType.TIMESTAMP)
 	private Date startDate;
     /** the end date of the schedule. */
@@ -75,11 +79,13 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
     /** The pattern for deciding how often to run the schedule. */
-    @Column(name = "S_CRON", length = 255, nullable = false)
+    @Size(max=255)
+    @NotNull
+    @Column(name = "S_CRON")
     private String cronPattern;
     /** the target the schedule is related to. */
     @ManyToOne(cascade = {CascadeType.REFRESH})
-    @JoinColumn(name = "S_ABSTRACT_TARGET_ID") //, foreignKey = @ForeignKey(name = "FK_S_TARGET_ID")
+    @JoinColumn(name = "S_ABSTRACT_TARGET_ID") //
     private AbstractTarget target;
     /** Set of related target instances */
     // cascade="save-update"
@@ -87,11 +93,12 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	@JoinColumn(name = "TI_SCHEDULE_ID")
     private Set<TargetInstance> targetInstances;
     /** Type Identifier for quick schedules. */
-    @Column(name = "S_TYPE", nullable = false)
+    @NotNull
+    @Column(name = "S_TYPE")
     private int scheduleType = CUSTOM_SCHEDULE; 
     /** The owner of the schedule */
 	@ManyToOne
-	@JoinColumn(name = "S_OWNER_OID", foreignKey = @ForeignKey(name = "FK_S_OWNER_OID"))
+	@JoinColumn(name = "S_OWNER_OID")
     private User owner;
     /** The first date after the currently assigned period on which this schedule should run */
 	@Column(name = "S_NEXT_SCHEDULE_TIME", columnDefinition = "TIMESTAMP(9)")

@@ -15,6 +15,8 @@
  */
 package org.webcurator.domain.model.core;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.Collections;
 import java.util.Comparator;
@@ -38,7 +40,8 @@ public class AuthorisingAgent extends AbstractIdentityObject implements Annotata
      * The database oid
      */
     @Id
-    @Column(name = "AA_OID", nullable = false)
+    @NotNull
+    @Column(name = "AA_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -53,32 +56,38 @@ public class AuthorisingAgent extends AbstractIdentityObject implements Annotata
     /**
      * The name of the agent.
      */
-    @Column(name = "AA_NAME", length = 255, unique = true)
+    @Size(max=255)
+    @Column(name = "AA_NAME")
     private String name;
     /**
      * A description of the agent.
      */
-    @Column(name = "AA_DESC", length = 2048)
+    @Size(max=2048)
+    @Column(name = "AA_DESC")
     private String description;
     /**
      * The name of the contact within the agency.
      */
-    @Column(name = "AA_CONTACT", length = 255)
+    @Size(max=255)
+    @Column(name = "AA_CONTACT")
     private String contact;
     /**
      * The phone number for the contact.
      */
-    @Column(name = "AA_PHONE_NUMBER", length = 32)
+    @Size(max=32)
+    @Column(name = "AA_PHONE_NUMBER")
     private String phoneNumber;
     /**
      * The e-mail address for the contact.
      */
-    @Column(name = "AA_EMAIL", length = 255)
+    @Size(max=255)
+    @Column(name = "AA_EMAIL")
     private String email;
     /**
      * The mailing address for the contact.
      */
-    @Column(name = "AA_ADRESS", length = 2048)
+    @Size(max=2048)
+    @Column(name = "AA_ADRESS")
     private String address;
 
 

@@ -21,6 +21,8 @@ import java.util.Set;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.AgencyOwnable;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -54,7 +56,8 @@ public class Role implements AgencyOwnable, Serializable{
    
    /** The database OID of the Role */
    @Id
-   @Column(name="ROL_OID", nullable =  false)
+   @NotNull
+   @Column(name="ROL_OID")
    // Note: From the Hibernate 4.2 documentation:
    // The Hibernate team has always felt such a construct as fundamentally wrong.
    // Try hard to fix your data model before using this feature.
@@ -67,17 +70,19 @@ public class Role implements AgencyOwnable, Serializable{
    @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
    private Long oid;
    /** The name of the role */
-   @Column(name = "ROL_NAME", length = 80, nullable = false)
+   @Size(max=80)
+   @NotNull
+   @Column(name = "ROL_NAME")
    private String name;
    /** A descrption for the role */
-   @Column(name = "ROL_DESCRIPTION", length = 255, nullable = true)
+   @Size(max=255)
+   @Column(name = "ROL_DESCRIPTION")
    private String description;
    /** The set of Users that hold this role */
    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
    @JoinTable(name = "USER_ROLE",
            joinColumns = { @JoinColumn(name = "URO_ROL_OID") },
-           inverseJoinColumns = { @JoinColumn(name = "URO_USR_OID") },
-           foreignKey = @ForeignKey(name = "FK_USERROLE_TO_USER"))
+           inverseJoinColumns = { @JoinColumn(name = "URO_USR_OID") })
    private Set<User> users;
    /** The set of privileges that this role is made up from. */
    @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}, fetch=FetchType.LAZY)
@@ -85,7 +90,7 @@ public class Role implements AgencyOwnable, Serializable{
    private Set<RolePrivilege> rolePrivileges;
    /** The agency that this role belongs to */
    @ManyToOne
-   @JoinColumn(name = "ROL_AGENCY_OID", foreignKey = @ForeignKey(name = "FK_ROLE_AGENCY_OID"), nullable = false)
+   @JoinColumn(name = "ROL_AGENCY_OID", nullable = false)
    private Agency agency;
 
 

@@ -16,6 +16,7 @@
 
 package org.webcurator.domain.model.core;
 
+import javax.validation.constraints.Size;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
@@ -66,16 +67,20 @@ public class Target extends AbstractTarget implements Optimizable {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date selectionDate;
 	/** The type of the selection */
-	@Column(name = "T_SELECTION_TYPE", length = 255)
+	@Size(max=255)
+	@Column(name = "T_SELECTION_TYPE")
 	private String selectionType;
 	/** A selection note */
-	@Column(name = "T_SELECTION_NOTE", length = 255)
+	@Size(max=255)
+	@Column(name = "T_SELECTION_NOTE")
 	private String selectionNote;
 	/** An evaluation note */
-	@Column(name = "T_EVALUATION_NOTE", length = 255)
+	@Size(max=255)
+	@Column(name = "T_EVALUATION_NOTE")
 	private String evaluationNote;
 	/** The type of harvest */
-	@Column(name = "T_HARVEST_TYPE", length = 255)
+	@Size(max=255)
+	@Column(name = "T_HARVEST_TYPE")
 	private String harvestType;
     /** The seeds. **/
 	@OneToMany(cascade = {CascadeType.ALL}) // default fetch type is LAZY

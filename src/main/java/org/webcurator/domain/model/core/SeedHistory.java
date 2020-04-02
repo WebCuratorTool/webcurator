@@ -2,6 +2,8 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -18,7 +20,8 @@ import javax.persistence.*;
 public class SeedHistory extends AbstractIdentityObject {
 	/** The unique ID of the seed **/
 	@Id
-	@Column(name="SH_OID", nullable =  false)
+	@NotNull
+	@Column(name="SH_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -31,7 +34,8 @@ public class SeedHistory extends AbstractIdentityObject {
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
 	/** The seed itself **/
-	@Column(name = "SH_SEED", length = 1024)
+	@Size(max=1024)
+	@Column(name = "SH_SEED")
 	private String seed;
 	/** The seed's target instance**/
 	@Column(name = "SH_TI_OID")

@@ -16,6 +16,8 @@
 package org.webcurator.domain.model.core;
 
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 @Entity
@@ -23,16 +25,24 @@ import javax.persistence.*;
 @PrimaryKeyJoinColumn(name = "AHRC_HARVEST_RESOURCE_OID")
 public class ArcHarvestResource extends HarvestResource {
 	/** The offset into the ARC file where this resource starts */
-	@Column(name = "AHRC_RESOURCE_OFFSET", length = 100, nullable = false)
+	@Size(max=100)
+	@NotNull
+	@Column(name = "AHRC_RESOURCE_OFFSET")
 	private long resourceOffset;
 	/** The length of the resource in the ARC file. */
-	@Column(name = "AHRC_RESOURCE_LENGTH", length = 100, nullable = false)
+	@Size(max=100)
+	@NotNull
+	@Column(name = "AHRC_RESOURCE_LENGTH")
 	private long resourceLength;
 	/** The name of the ARC file this resource is in. */
-	@Column(name = "AHRC_ARC_FILE_NAME", length = 100, nullable = false)
+	@Size(max=100)
+	@NotNull
+	@Column(name = "AHRC_ARC_FILE_NAME")
 	private String arcFileName;
 	/** Whether the resource (and ARC file) are compressed */
-	@Column(name = "AHRC_COMPRESSED_YN", length = 100, nullable = false)
+	@Size(max=100)
+	@NotNull
+	@Column(name = "AHRC_COMPRESSED_YN")
 	private boolean compressed;
 	
 	/** 

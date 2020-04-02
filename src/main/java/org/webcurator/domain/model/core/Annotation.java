@@ -21,6 +21,8 @@ import java.lang.Comparable;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.User;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -42,7 +44,8 @@ public class Annotation implements Comparable {
 	
 	/** the primary key for the annotation. */
 	@Id
-	@Column(name="AN_OID", nullable =  false)
+	@NotNull
+	@Column(name="AN_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -55,21 +58,27 @@ public class Annotation implements Comparable {
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
 	/** The date for the annotation was created. */
-	@Column(name = "AN_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@NotNull
+	@Column(name = "AN_DATE", columnDefinition = "TIMESTAMP(9)")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 	/** the annotation text. */
-	@Column(name = "AN_NOTE", length = 1000, nullable = false)
+	@Size(max=1000)
+	@NotNull
+	@Column(name = "AN_NOTE")
 	private String note;
 	/** the user that added the annotation. */
 	@ManyToOne
-	@JoinColumn(name = "AN_USER_OID", foreignKey = @ForeignKey(name = "FK_NOTE_USER_OID"), nullable = false)
+	@JoinColumn(name = "AN_USER_OID", nullable = false)
 	private User user;
 	/** the type of the annotations parent object. */
-	@Column(name = "AN_OBJ_TYPE", length = 500, nullable = false)
+	@Size(max=500)
+	@NotNull
+	@Column(name = "AN_OBJ_TYPE")
 	private String objectType;
 	/** the oid of the annotations parent object. */
-	@Column(name = "AN_OBJ_OID", nullable = false)
+	@NotNull
+	@Column(name = "AN_OBJ_OID")
 	private Long objectOid;
 	/** Is this annotation alertable */
 	@Column(name = "AN_ALERTABLE")

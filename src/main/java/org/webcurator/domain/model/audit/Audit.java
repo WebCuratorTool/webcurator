@@ -17,6 +17,8 @@ package org.webcurator.domain.model.audit;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.Date;
 
@@ -37,7 +39,8 @@ public class Audit {
 
 	/** The database OID of the audit message */
     @Id
-    @Column(name="AUD_OID", nullable =  false)
+    @NotNull
+    @Column(name="AUD_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -50,35 +53,45 @@ public class Audit {
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The date/time at which the event took place */
-    @Column(name = "AUD_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @NotNull
+    @Column(name = "AUD_DATE", columnDefinition = "TIMESTAMP(9)")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateTime;
     /** The OID of the user that performed this action */
-    @Column(name = "AUD_USER_OID", nullable = true)
+    @Column(name = "AUD_USER_OID")
     private Long userOid;
     /** The OID of the agency that performed this action */
-    @Column(name = "AUD_AGENCY_OID", nullable = true)
+    @Column(name = "AUD_AGENCY_OID")
     private Long agencyOid;
     /** The username of the user that performed this action */
-    @Column(name = "AUD_USERNAME", length = 80, nullable = true)
+    @Size(max=80)
+    @Column(name = "AUD_USERNAME")
     private String userName;
     /** The first name of the user that performed this action */
-    @Column(name = "AUD_FIRSTNAME", length = 50, nullable = true)
+    @Size(max=50)
+    @Column(name = "AUD_FIRSTNAME")
     private String firstname;
     /** The last name ofthe user that performed this action */
-    @Column(name = "AUD_LASTNAME", length = 50, nullable = true)
+    @Size(max=50)
+    @Column(name = "AUD_LASTNAME")
     private String lastname;
     /** The action that was performed */
-    @Column(name = "AUD_ACTION", length = 40, nullable = false)
+    @Size(max=40)
+    @NotNull
+    @Column(name = "AUD_ACTION")
     private String action;
     /** The type of object this event acted on */
-    @Column(name = "AUD_SUBJECT_TYPE", length = 255, nullable = false)
+    @Size(max=255)
+    @NotNull
+    @Column(name = "AUD_SUBJECT_TYPE")
     private String subjectType;
     /** The OID of the object that was affected */
-    @Column(name = "AUD_SUBJECT_OID", nullable = true)
+    @Column(name = "AUD_SUBJECT_OID")
     private Long subjectOid;
     /** The message string to go with the audit log */
-    @Column(name = "AUD_MESSAGE", length = 2000, nullable = false)
+    @Size(max=2000)
+    @NotNull
+    @Column(name = "AUD_MESSAGE")
     private String message;
     
     /**

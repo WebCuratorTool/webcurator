@@ -17,6 +17,7 @@ package org.webcurator.domain.model.core;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.validation.constraints.Size;
 import javax.persistence.*;
 
 import org.webcurator.core.profiles.DuplicateNameException;
@@ -37,16 +38,20 @@ public class ProfileFormCredentials extends ProfileCredentials {
 	public static final String METHOD_GET  = "GET";
 	
 	/** The URL of the login form */
-	@Column(name = "PFC_LOGIN_URI", length = 255)
+	@Size(max=255)
+	@Column(name = "PFC_LOGIN_URI")
 	private String loginUri      = null;
 	/** The HTTP method to use - POST or GET */
-	@Column(name = "PFC_METHOD", length = 4)
+	@Size(max=4)
+	@Column(name = "PFC_METHOD")
 	private String httpMethod    = null;
 	/** The name of the username field */
-	@Column(name = "PFC_USERNAME_FIELD", length = 255)
+	@Size(max=255)
+	@Column(name = "PFC_USERNAME_FIELD")
 	private String usernameField = null;
 	/** The name of the password field */
-	@Column(name = "PFC_PASSWORD_FIELD", length = 255)
+	@Size(max=255)
+	@Column(name = "PFC_PASSWORD_FIELD")
 	private String passwordField = null;
 	
 	/**

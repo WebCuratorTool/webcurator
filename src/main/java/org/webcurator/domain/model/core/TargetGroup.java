@@ -24,6 +24,7 @@ import java.util.Set;
 import org.webcurator.core.util.Utils;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
+import javax.validation.constraints.Size;
 import javax.persistence.*;
 
 /**
@@ -73,7 +74,8 @@ public class TargetGroup extends AbstractTarget {
 	@Temporal(TemporalType.DATE)
 	private Date toDate   = null;
 	/** The ownership meta data. */
-	@Column(name = "TG_OWNERSHIP_METADATA", length = 255)
+	@Size(max=255)
+	@Column(name = "TG_OWNERSHIP_METADATA")
 	private String ownershipMetaData = null;
 	/** Children */
 	@OneToMany // default fetch type is LAZY
@@ -87,7 +89,8 @@ public class TargetGroup extends AbstractTarget {
 	@Transient
 	private Set<Long> removedChildren = new HashSet<Long>();
 	/** The type of the group */
-	@Column(name = "TG_TYPE", length = 255)
+	@Size(max=255)
+	@Column(name = "TG_TYPE")
 	private String type;
 
 	/**

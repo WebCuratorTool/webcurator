@@ -7,6 +7,8 @@ import java.util.Set;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.User;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -30,7 +32,8 @@ public class AbstractTargetGroupTypeView {
 	
     /** the primary key of the Target. */
 	@Id
-	@Column(name="AT_OID", nullable =  false)
+	@NotNull
+	@Column(name="AT_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -43,10 +46,12 @@ public class AbstractTargetGroupTypeView {
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The targets name. */
-    @Column(name = "AT_NAME", length = 255, unique = true)
+    @Size(max=255)
+    @Column(name = "AT_NAME")
     private String name;
     /** the targets description. */
-    @Column(name = "AT_DESC", length = 4000)
+    @Size(max=4000)
+    @Column(name = "AT_DESC")
     private String description;
     /** The schedules related to the target. */
     @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY
@@ -86,14 +91,16 @@ public class AbstractTargetGroupTypeView {
     @Column(name = "AT_OBJECT_TYPE")
     protected int objectType;
     /** reference number to use when storing instances to the SIP.*/
-    @Column(name = "AT_REFERENCE", length = 255)
+    @Size(max=255)
+    @Column(name = "AT_REFERENCE")
     private String referenceNumber;
     /** A cross-domain information resource description of the target.*/
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "AT_DUBLIN_CORE_OID")
     private DublinCore dublinCoreMetaData;
     /** The Profile Note */
-    @Column(name = "AT_PROFILE_NOTE", length = 255)
+    @Size(max=255)
+    @Column(name = "AT_PROFILE_NOTE")
     private String profileNote = null;
 
     @Column(name = "AT_ACCESS_ZONE")
@@ -103,11 +110,13 @@ public class AbstractTargetGroupTypeView {
     private boolean displayTarget = true;
 
     /** The Display Note */
-    @Column(name = "AT_DISPLAY_NOTE", length = 4000)
+    @Size(max=4000)
+    @Column(name = "AT_DISPLAY_NOTE")
     private String displayNote = null;
     
 	/** The type of the group or null if a target */
-	@Column(name = "TG_TYPE", length = 255)
+	@Size(max=255)
+	@Column(name = "TG_TYPE")
 	private String type;
     
     

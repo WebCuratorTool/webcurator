@@ -17,6 +17,8 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -28,16 +30,19 @@ import javax.persistence.*;
 @Table(name = "PERMISSION_EXCLUSION")
 public class PermissionExclusion {
 	/** The URL excluded */
-	@Column(name = "PEX_URL", length = 1024)
+	@Size(max=1024)
+	@Column(name = "PEX_URL")
 	private String url;
 	
 	/** The reason for exclusion */
-	@Column(name = "PEX_REASON", length = 255)
+	@Size(max=255)
+	@Column(name = "PEX_REASON")
 	private String reason;
 	
 	/** The OID of the object */
 	@Id
-	@Column(name="PEX_OID", nullable =  false)
+	@NotNull
+	@Column(name="PEX_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.

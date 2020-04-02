@@ -30,6 +30,8 @@ import org.webcurator.core.util.Utils;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -87,7 +89,8 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
      * The database id of the permission.
      */
     @Id
-    @Column(name = "PE_OID", nullable = false)
+    @NotNull
+    @Column(name = "PE_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -112,8 +115,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     @ManyToMany(cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     @JoinTable(name = "PERMISSION_URLPATTERN",
             joinColumns = {@JoinColumn(name = "PU_PERMISSION_ID")},
-            inverseJoinColumns = {@JoinColumn(name = "PU_URLPATTERN_ID")},
-            foreignKey = @ForeignKey(name = "PU_FK_1"))
+            inverseJoinColumns = {@JoinColumn(name = "PU_URLPATTERN_ID")})
     private Set<UrlPattern> urls;
     /**
      * The date this permission starts.
@@ -147,7 +149,8 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * The access status
      */
-    @Column(name = "PE_ACCESS_STATUS", length = 255)
+    @Size(max=255)
+    @Column(name = "PE_ACCESS_STATUS")
     private String accessStatus;
     /**
      * The date at which this permission will be open access
@@ -163,7 +166,8 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * Any special requirements attached to this permission.
      */
-    @Column(name = "PE_SPECIAL_REQUIREMENTS", length = 2048)
+    @Size(max=2048)
+    @Column(name = "PE_SPECIAL_REQUIREMENTS")
     private String specialRequirements;
     /**
      * The creation date of this permission.
@@ -174,12 +178,14 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * The copyright URL to use during the access component.
      */
-    @Column(name = "PE_COPYRIGHT_URL", length = 2048)
+    @Size(max=2048)
+    @Column(name = "PE_COPYRIGHT_URL")
     private String copyrightUrl;
     /**
      * The copyright statement to display in the access system.
      */
-    @Column(name = "PE_COPYRIGHT_STATEMENT", length = 2048)
+    @Size(max=2048)
+    @Column(name = "PE_COPYRIGHT_STATEMENT")
     private String copyrightStatement;
     /**
      * The date that a permission requested was sent to the authorising agent.
@@ -197,7 +203,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
      * The site that this permission belongs to.
      */
     @ManyToOne
-    @JoinColumn(name = "PE_SITE_ID", foreignKey = @ForeignKey(name = "FK_PE_SITE_ID"))
+    @JoinColumn(name = "PE_SITE_ID")
     private Site site;
     /**
      * Whether the permission is marked as a quick pick.
@@ -207,7 +213,8 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * Quick Pick Display Name
      */
-    @Column(name = "PE_DISPLAY_NAME", length = 32)
+    @Size(max=32)
+    @Column(name = "PE_DISPLAY_NAME")
     private String displayName;
     /**
      * The agency that owns this permission.
@@ -218,7 +225,8 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * A file reference
      */
-    @Column(name = "PE_FILE_REFERENCE", length = 255)
+    @Size(max=255)
+    @Column(name = "PE_FILE_REFERENCE")
     private String fileReference;
 
     /**
