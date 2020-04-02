@@ -67,7 +67,8 @@ public class PermissionTemplate {
     private String templateDescription;
     /** The agency to which this template belongs */
     @ManyToOne
-    @JoinColumn(name = "PRT_AGC_OID", nullable = false)
+    @NotNull
+    @JoinColumn(name = "PRT_AGC_OID")
     private Agency agency;
     /** The template text itself */
     @Size(max=10000)

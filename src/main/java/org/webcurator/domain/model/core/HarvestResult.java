@@ -60,7 +60,7 @@ public abstract class HarvestResult implements UserInTrayResource {
     @Column(name = "HR_PROVENANCE_NOTE")
     private String provenanceNote;
     /** The creation date of this harvest result */
-    @Column(name = "HR_CREATED_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "HR_CREATED_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
     /** Who created this harvest result */

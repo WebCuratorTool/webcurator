@@ -63,7 +63,7 @@ public class Target extends AbstractTarget implements Optimizable {
 	/** The state constant for Completed - A target whose schedules have all reached their end dates */
 	public static final int STATE_COMPLETED = 7;
 	/** Date at which the target was first nominated or approved */
-	@Column(name = "T_SELECTION_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "T_SELECTION_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date selectionDate;
 	/** The type of the selection */

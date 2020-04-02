@@ -54,7 +54,7 @@ public class Audit {
     private Long oid;
     /** The date/time at which the event took place */
     @NotNull
-    @Column(name = "AUD_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "AUD_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateTime;
     /** The OID of the user that performed this action */

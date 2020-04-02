@@ -86,12 +86,12 @@ public class AbstractTargetScheduleView {
 
 	/** The schedule start date*/
 	@NotNull
-	@Column(name = "S_END", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "S_END")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date scheduleStartDate;
 
 	/** The schedule end date*/
-	@Column(name = "S_START", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "S_START")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date scheduleEndDate;
 

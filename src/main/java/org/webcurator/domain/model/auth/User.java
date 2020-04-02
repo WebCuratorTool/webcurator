@@ -202,7 +202,8 @@ public class User implements Serializable {
      * The agency the user belongs to
      */
     @ManyToOne
-    @JoinColumn(name = "USR_AGC_OID", nullable = false)
+    @NotNull
+    @JoinColumn(name = "USR_AGC_OID")
     private Agency agency;
     /**
      * For inactive users, the date the user was deactivated

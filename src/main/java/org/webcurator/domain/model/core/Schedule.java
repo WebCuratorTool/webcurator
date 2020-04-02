@@ -71,11 +71,11 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	private Long oid;
     /** The start date and time of the schedule. */
     @NotNull
-    @Column(name = "S_START", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "S_START")
     @Temporal(TemporalType.TIMESTAMP)
 	private Date startDate;
     /** the end date of the schedule. */
-    @Column(name = "S_END", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "S_END")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
     /** The pattern for deciding how often to run the schedule. */
@@ -101,11 +101,11 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
 	@JoinColumn(name = "S_OWNER_OID")
     private User owner;
     /** The first date after the currently assigned period on which this schedule should run */
-	@Column(name = "S_NEXT_SCHEDULE_TIME", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "S_NEXT_SCHEDULE_TIME")
 	@Temporal(TemporalType.TIMESTAMP)
     private Date nextScheduleAfterPeriod;
     /**  */
-	@Column(name = "S_LAST_PROCESSED_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "S_LAST_PROCESSED_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
     private Date lastProcessedDate;
     /** The first date after the currently assigned period on which this schedule should run */

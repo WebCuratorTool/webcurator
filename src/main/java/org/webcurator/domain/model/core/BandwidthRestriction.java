@@ -98,12 +98,12 @@ public class BandwidthRestriction {
     private String dayOfWeek;
     /** the start time of restriction. */
     @NotNull
-    @Column(name = "BR_START_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "BR_START_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
     /** the end time of  the restriction. */
     @NotNull
-    @Column(name = "BR_END_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "BR_END_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
     /** the bandwidth. */

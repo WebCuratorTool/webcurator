@@ -145,15 +145,15 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     private Schedule schedule;
     /** the scheduled time of the harvest. */
     @NotNull
-    @Column(name = "TI_SCHEDULED_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "TI_SCHEDULED_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date scheduledTime;
     /** the time the harvest actually started. */
-    @Column(name = "TI_START_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "TI_START_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date actualStartTime;
     /** the time the target instance was archived. */
-    @Column(name = "TI_ARCHIVED_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "TI_ARCHIVED_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date archivedTime;
     /** the priority of the target instance. */

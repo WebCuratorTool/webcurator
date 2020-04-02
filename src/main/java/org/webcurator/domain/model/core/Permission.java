@@ -120,13 +120,13 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * The date this permission starts.
      */
-    @Column(name = "PE_START_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "PE_START_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
     /**
      * The date this permission ends.
      */
-    @Column(name = "PE_END_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "PE_END_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
     /**
@@ -155,7 +155,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * The date at which this permission will be open access
      */
-    @Column(name = "PE_OPEN_ACCESS_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "PE_OPEN_ACCESS_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date openAccessDate;
     /**
@@ -172,7 +172,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * The creation date of this permission.
      */
-    @Column(name = "PE_CREATION_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "PE_CREATION_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
     /**
@@ -190,13 +190,13 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * The date that a permission requested was sent to the authorising agent.
      */
-    @Column(name = "PE_PERMISSION_REQUESTED_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "PE_PERMISSION_REQUESTED_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date permissionSentDate;
     /**
      * The date that permission was granted/refused.
      */
-    @Column(name = "PE_PERMISSION_GRANTED_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "PE_PERMISSION_GRANTED_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date permissionGrantedDate;
     /**

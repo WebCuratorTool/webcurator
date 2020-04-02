@@ -62,7 +62,7 @@ public class MappingView {
 	@Column(name = "UP_PATTERN")
 	private String urlPattern;
 	/** The Permission end date*/
-	@Column(name = "PE_END_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "PE_END_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date endDate;
 	/** The calculated base domain */

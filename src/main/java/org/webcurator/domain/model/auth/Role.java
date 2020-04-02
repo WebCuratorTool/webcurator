@@ -90,7 +90,8 @@ public class Role implements AgencyOwnable, Serializable{
    private Set<RolePrivilege> rolePrivileges;
    /** The agency that this role belongs to */
    @ManyToOne
-   @JoinColumn(name = "ROL_AGENCY_OID", nullable = false)
+   @NotNull
+   @JoinColumn(name = "ROL_AGENCY_OID")
    private Agency agency;
 
 

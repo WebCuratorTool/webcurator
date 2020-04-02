@@ -59,7 +59,7 @@ public class Task {
     private Long assigneeOid;
     /** The date the task was sent */
     @NotNull
-    @Column(name = "TSK_SENT_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "TSK_SENT_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date sentDate;
     /** The subject of the task */
@@ -77,7 +77,8 @@ public class Task {
     private String privilege;
     /** The agency the task should be visible to */
     @ManyToOne
-    @JoinColumn(name = "TSK_AGC_OID", nullable = false)
+    @NotNull
+    @JoinColumn(name = "TSK_AGC_OID")
     private Agency agency;
     /** The database OID of the resource to which the task is related */
     @NotNull

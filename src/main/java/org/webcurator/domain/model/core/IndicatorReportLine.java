@@ -2,6 +2,7 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -33,7 +34,8 @@ public class IndicatorReportLine {
 
 	/** unique identifier **/
 	@Id
-	@Column(name="IRL_OID", nullable =  false)
+	@NotNull
+	@Column(name="IRL_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -48,7 +50,7 @@ public class IndicatorReportLine {
 	
 	/** The <code>Indicator</code> on which this <code>IndicatorReportLine</code> is based.**/
 	@ManyToOne
-	@JoinColumn(name = "IRL_I_OID", foreignKey = @ForeignKey(name = "FK_IRL_I_OID"))
+	@JoinColumn(name = "IRL_I_OID")
 	private Indicator indicator = null;
 	
 	/** The report line (resource name etc) for this <code>IndicatorReportLine</code> **/

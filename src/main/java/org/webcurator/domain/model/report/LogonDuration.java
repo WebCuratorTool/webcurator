@@ -71,10 +71,10 @@ public class LogonDuration {
 	@Column(name = "LOGDUR_SESSION_ID")
     private String sessionId;
 	@NotNull
-	@Column(name = "LOGDUR_LOGON_TIME", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "LOGDUR_LOGON_TIME")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date logonTime;
-	@Column(name = "LOGDUR_LOGOUT_TIME", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "LOGDUR_LOGOUT_TIME")
 	@Temporal(TemporalType.TIMESTAMP)
     private Date logoutTime;
 	@Column(name = "LOGDUR_DURATION")

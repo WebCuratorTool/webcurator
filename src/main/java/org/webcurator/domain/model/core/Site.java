@@ -87,7 +87,7 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
     @Column(name = "ST_ACTIVE")
     private boolean active = true;
     /** The date the Site was created */
-    @Column(name = "ST_CREATION_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "ST_CREATION_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
     /** The set of authorising agents (those who must provide permission to

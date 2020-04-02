@@ -59,7 +59,7 @@ public class Annotation implements Comparable {
 	private Long oid;
 	/** The date for the annotation was created. */
 	@NotNull
-	@Column(name = "AN_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "AN_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 	/** the annotation text. */
@@ -69,7 +69,8 @@ public class Annotation implements Comparable {
 	private String note;
 	/** the user that added the annotation. */
 	@ManyToOne
-	@JoinColumn(name = "AN_USER_OID", nullable = false)
+	@NotNull
+	@JoinColumn(name = "AN_USER_OID")
 	private User user;
 	/** the type of the annotations parent object. */
 	@Size(max=500)

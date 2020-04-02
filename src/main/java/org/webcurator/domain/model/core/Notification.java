@@ -68,7 +68,7 @@ public class Notification {
     private Long recipientOid;
     /** The date the notification was sent */
     @NotNull
-    @Column(name = "NOT_SENT_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "NOT_SENT_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date sentDate;
     /** The subject of the notification */

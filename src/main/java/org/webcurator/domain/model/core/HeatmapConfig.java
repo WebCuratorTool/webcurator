@@ -17,6 +17,7 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -44,7 +45,8 @@ public class HeatmapConfig {
 
 	/** The primary key. */
 	@Id
-	@Column(name="HM_OID", nullable =  false)
+	@NotNull
+	@Column(name="HM_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -56,19 +58,23 @@ public class HeatmapConfig {
 			allocationSize = 1) // 50 is the default
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
-	@Column(name = "HM_NAME", nullable = false)
+	@NotNull
+	@Column(name = "HM_NAME")
 	private String name;
-	@Column(name = "HM_DISPLAY_NAME", nullable = false)
+	@NotNull
+	@Column(name = "HM_DISPLAY_NAME")
 	private String displayName;
 	/** Hexadecimal string representing the RGB color, e.g. 8FBC8F **/
-	@Column(name = "HM_COLOR", nullable = false)
+	@NotNull
+	@Column(name = "HM_COLOR")
 	private String color;
 	/**
 	 * lowest value to display this color. The upper limit is set by other
 	 * configurations, if any e.g. low=1, medium=7, high=12 - low=1 to 6,
 	 * medium=7 to 11, high=above 12. 0 in this example will be uncolored
 	 **/
-	@Column(name = "HM_THRESHOLD_LOWEST", nullable = false)
+	@NotNull
+	@Column(name = "HM_THRESHOLD_LOWEST")
 	private int thresholdLowest;
 
 	/**

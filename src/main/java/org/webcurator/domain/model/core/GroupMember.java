@@ -17,6 +17,7 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 
@@ -54,7 +55,8 @@ public class GroupMember {
 	
 	/** The database oid */
 	@Id
-	@Column(name="AT_OID", nullable =  false)
+	@NotNull
+	@Column(name="AT_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -68,11 +70,11 @@ public class GroupMember {
 	private Long oid = null;
 	/** The parent of the member */
 	@ManyToOne
-	@JoinColumn(name = "GM_PARENT_ID", foreignKey = @ForeignKey(name = "FK_GM_PARENT_ID"))
+	@JoinColumn(name = "GM_PARENT_ID")
 	private TargetGroup parent = null;
 	/** The child */
 	@ManyToOne
-	@JoinColumn(name = "GM_CHILD_ID", foreignKey = @ForeignKey(name = "FK_GM_CHILD_ID"))
+	@JoinColumn(name = "GM_CHILD_ID")
 	private AbstractTarget child = null;
 
 	

@@ -76,7 +76,7 @@ public class AbstractTargetGroupTypeView {
 	@JoinColumn(name = "T_PROFILE_ID")
     private Profile profile;
     /** The date the Target was created */
-	@Column(name = "AT_CREATION_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "AT_CREATION_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationDate;
     /** The parents of this group */

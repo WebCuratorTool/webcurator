@@ -77,7 +77,8 @@ public class RejReason implements Serializable {
     private String name;
     /** The agency the reason belongs to */
 	@ManyToOne
-	@JoinColumn(name = "RR_AGC_OID", nullable = false)
+	@NotNull
+	@JoinColumn(name = "RR_AGC_OID")
     private Agency agency;
 	/** Determines if the rejection reason is applicable to Targets. */
 	@Column(name = "RR_AVAILABLE_FOR_TARGET")
