@@ -16,14 +16,15 @@
 package org.webcurator.ui.target.controller;
 
 import java.text.NumberFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -32,8 +33,11 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.DigitalAssetStoreClient;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
@@ -51,7 +55,6 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  * @author nwaight
  */
 public class TargetInstanceResultHandler extends TabHandler {
-
     private TargetInstanceManager targetInstanceManager;
     private HarvestCoordinator harvestCoordinator;
     /** the digital asset store containing the harvests. */
@@ -329,6 +332,16 @@ public class TargetInstanceResultHandler extends TabHandler {
 				if (response != null && response.isCustomDepositFormRequired()) {
 					String customDepositFormHTMLContent = response.getHTMLForCustomDepositForm();
 					String customDepositFormURL = response.getUrlForCustomDepositForm();
+
+					// Will be needed to access the Rosetta interface
+					ApplicationContext ctx=ApplicationContextFactory.getApplicationContext();
+					DigitalAssetStoreClient dasClient=ctx.getBean(DigitalAssetStoreClient.class);
+					InTrayManagerImpl inTrayManager = ctx.getBean(InTrayManagerImpl.class);
+
+					req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
+					req.getSession().setAttribute("dasHost", dasClient.getHost());
+					req.getSession().setAttribute("coreBaseUrl", inTrayManager.getWctBaseUrl());
+
 					if (customDepositFormURL != null) {
 						customDepositFormRequired = true;
 						req.getSession().setAttribute("customDepositFormURL", customDepositFormURL);
