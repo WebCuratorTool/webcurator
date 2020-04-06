@@ -97,7 +97,7 @@ public class DPSArchiveTest {
 		result = archiver.getCustomDepositFormDetails(criteria);
 		assertNotNull(result);
 		assertEquals(true, result.isCustomDepositFormRequired());
-		assertEquals("/wct-store/customDepositForms/rosetta_custom_deposit_form_invalid_dctype.jsp", result.getUrlForCustomDepositForm());
+		assertEquals("/customDepositForms/rosetta_custom_deposit_form_invalid_dctype.jsp", result.getUrlForCustomDepositForm());
 		assertNull(result.getHTMLForCustomDepositForm());
 
 		// Agency ID is same as (ignoring case) one of the HTML serial agencies configured in DPS Archive
@@ -256,7 +256,7 @@ public class DPSArchiveTest {
 		archiver.setTargetDCTypesOfHtmlSerials("eJournal, HtmlSerialHarvest, eSerial");
 		archiver.setMaterialFlowsOfHtmlSerials("1111, anHtmlSerialMaterialFlowId, 3333");
 		archiver.setIeEntityTypesOfHtmlSerials("OneHTMLSerialIeEntityType, TwoHTMLSerialIeEntityType, ThreeHTMLSerialIeEntityType");
-		archiver.setCustomDepositFormURLsForHtmlSerialIngest("/wct-store/customDepositForms/eJournal_form.jsp, /wct-store/customDepositForms/anHtmlSerialTargetDcType_form.jsp, /wct-store/customDepositForms/eSerial_form.jsp");
+		archiver.setCustomDepositFormURLsForHtmlSerialIngest("/customDepositForms/eJournal_form.jsp, /customDepositForms/anHtmlSerialTargetDcType_form.jsp, /customDepositForms/eSerial_form.jsp");
 
 		// Custom Deposit Form Mapping
 		List<CustomDepositField> customDepositFieldsForTest = new ArrayList<CustomDepositField>();
@@ -264,7 +264,7 @@ public class DPSArchiveTest {
 		customDepositFieldsForTest.add(new CustomDepositField("customDepositForm_dctermsAvailable", "DctermsAvailable", "available", "dcterms"));
 
 		Map<String, List<CustomDepositField>> customDepositFieldMap = new HashMap<String, List<CustomDepositField>>();
-		customDepositFieldMap.put("/wct-store/customDepositForms/anHtmlSerialTargetDcType_form.jsp", customDepositFieldsForTest);
+		customDepositFieldMap.put("/customDepositForms/anHtmlSerialTargetDcType_form.jsp", customDepositFieldsForTest);
 
 		CustomDepositFormMapping testCustomDepositFormMapping = new CustomDepositFormMapping();
 		testCustomDepositFormMapping.setCustomDepositFormFieldMaps(customDepositFieldMap);

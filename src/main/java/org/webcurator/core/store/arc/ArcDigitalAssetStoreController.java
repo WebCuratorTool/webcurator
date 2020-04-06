@@ -49,7 +49,6 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
         return arcDigitalAssetStoreService.getResource(targetInstanceName, harvestResultNumber, resource);
     }
 
-
     @PostMapping(path = DigitalAssetStorePaths.SMALL_RESOURCE)
     public byte[] getSmallResourceExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
                                    @RequestParam(value = "harvest-result-number") int harvestResultNumber,

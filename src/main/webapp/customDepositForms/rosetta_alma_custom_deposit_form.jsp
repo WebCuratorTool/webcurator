@@ -418,14 +418,22 @@ function ajaxFunction_internal(requestParams, destinationDiv, asynchronousFlag) 
 	}
 	//This will not work if the store is on a different host/port.  The same origin
 	//policy will prevent the request if it is changed to use the configured values.
-	xmlhttp.open("POST", "/wct-store/customDepositForms/rosetta_interface_via_ajax.jsp", asynchronousFlag);
+	var serverPort = document.getElementById("dasport").value;
+	var serverHost = document.getElementById("dashost").value;
+	var coreBaseUrl = document.getElementById("coreBaseUrl").value;
+
+	xmlhttp.open("POST", "http://" + serverHost + ":" + serverPort + "/digital-asset-store/rosettaInterface", asynchronousFlag);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xmlhttp.setRequestHeader("Access-Control-Allow-Origin", coreBaseUrl);
+    xmlhttp.setRequestHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");
+    xmlhttp.setRequestHeader("Access-Control-Expose-Headers","Access-Control-Allow-Origin");
 
 	//The following two lines attempt to violate the XMLHttpRequest standard:
 	//http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader-method
 	//Section 4.6.2 (step 5).	
-	xmlhttp.setRequestHeader("Content-length", requestParams.length);
-	xmlhttp.setRequestHeader("Connection", "close");
+//	xmlhttp.setRequestHeader("Content-length", requestParams.length);
+//	xmlhttp.setRequestHeader("Connection", "close");
+
 	xmlhttp.send(requestParams);
 	return "";
 }

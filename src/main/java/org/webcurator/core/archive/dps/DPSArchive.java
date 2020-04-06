@@ -27,7 +27,10 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 
 
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.webcurator.core.archive.BaseArchive;
 import org.webcurator.core.archive.ArchiveFile;
 import static org.webcurator.core.archive.Constants.ACCESS_RESTRICTION;
@@ -70,7 +73,12 @@ import javax.xml.ws.Service;
  *
  * @author Nicolai Moles-Benfell
  */
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class DPSArchive extends BaseArchive {
+
+    @Value("${core.scheme}")
+    String coreScheme;
 
     /**
      * A very light-weight version of the com.exlibris.digitool.deposit.service.xmlbeans.DepData
@@ -230,7 +238,7 @@ public class DPSArchive extends BaseArchive {
              */
             if (isAgencyResponsibleForHtmlSerials && restrictHTMLSerialAgenciesToHTMLSerialTypes) {
                 response.setCustomDepositFormRequired(true);
-                response.setUrlForCustomDepositForm("/wct-store/customDepositForms/rosetta_custom_deposit_form_invalid_dctype.jsp");
+                response.setUrlForCustomDepositForm("/customDepositForms/rosetta_custom_deposit_form_invalid_dctype.jsp");
             }
         }
         return response;
@@ -468,7 +476,7 @@ public class DPSArchive extends BaseArchive {
                 cacheElement = producerCache.get(producerAgentUserId);
             }
             if (cacheElement == null) return null;
-            return (DepData[]) cacheElement.getValue();
+            return (DepData[]) cacheElement.getObjectValue();
         } catch (Exception e) {
             log.warn("Error getting producer data from cache for the producer agent " + producerAgentUserId, e);
             return null;
@@ -854,4 +862,8 @@ public class DPSArchive extends BaseArchive {
         }
 
     }
+
+    public String getCoreScheme() { return coreScheme; }
+    public void setCoreScheme(String cs) {this.coreScheme = cs; }
+
 }

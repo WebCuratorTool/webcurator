@@ -86,7 +86,6 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
 /**
@@ -147,7 +146,10 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     public String baseUrl() {
-        return wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+        ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+        DPSArchive dpsArchive = ctx.getBean(DPSArchive.class);
+
+        return dpsArchive.getCoreScheme() + "://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
     }
 
     public String getUrl(String appendUrl) {
