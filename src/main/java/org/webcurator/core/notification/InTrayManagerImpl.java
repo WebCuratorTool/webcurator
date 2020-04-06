@@ -338,6 +338,10 @@ public class InTrayManagerImpl implements InTrayManager{
     public void setWctBaseUrl(String wctBaseUrl) {
         this.wctBaseUrl = wctBaseUrl;
     }
+
+    public String getWctBaseUrl() {
+        return this.wctBaseUrl;
+    }
     
     @SuppressWarnings("unchecked")
 	public Pagination getTasks(User user, int pageNum, int pageSize) {
