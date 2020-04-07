@@ -30,6 +30,7 @@ import org.webcurator.domain.model.core.AuthorisingAgent;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.AgencySearchCommand;
+import org.webcurator.ui.site.validator.SiteAgencySearchValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
@@ -44,6 +45,8 @@ public class SiteAgencySearchController {
     private SiteManager siteManager;
     @Autowired
     private SiteController siteController;
+    @Autowired
+    private SiteAgencySearchValidator siteAgencySearchValidator;
 
     public SiteAgencySearchController() {
     }
@@ -65,6 +68,7 @@ public class SiteAgencySearchController {
 
     @RequestMapping(value = "/curator/site/site-auth-agency-search.html", method = {RequestMethod.GET, RequestMethod.POST})
     protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, AgencySearchCommand command, BindingResult bindingResult) throws Exception {
+        siteAgencySearchValidator.validate(command, bindingResult);
         if (AgencySearchCommand.ACTION_ADD.equals(command.getActionCmd())) {
             if (bindingResult.hasErrors()) {
                 return getSearchView(command, bindingResult);

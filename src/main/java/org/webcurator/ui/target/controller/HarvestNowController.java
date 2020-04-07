@@ -89,10 +89,10 @@ public class HarvestNowController {
     }
 
     @PostMapping
-    protected ModelAndView processFormSubmission(@Validated @ModelAttribute("targetInstanceCommand") TargetInstanceCommand cmd,
+    protected ModelAndView processFormSubmission(@ModelAttribute("targetInstanceCommand") TargetInstanceCommand cmd,
                                                  BindingResult bindingResult, HttpServletRequest aReq)
             throws Exception {
-
+        validator.validate(cmd, bindingResult);
     	if (!cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             aReq.getSession().removeAttribute(TargetInstanceCommand.SESSION_TI);
             return new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE);

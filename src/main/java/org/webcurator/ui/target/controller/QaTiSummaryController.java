@@ -432,11 +432,13 @@ public class QaTiSummaryController {
     }
 
 	@PostMapping
-	protected ModelAndView processFormSubmission(@Validated @ModelAttribute("targetInstanceSummaryCommand") TargetInstanceSummaryCommand command,
+	protected ModelAndView processFormSubmission(@ModelAttribute("targetInstanceSummaryCommand") TargetInstanceSummaryCommand command,
 												 BindingResult error, HttpServletRequest request) throws Exception {
     	if (log.isDebugEnabled()) {
             log.debug("process command " + command.getCmd());
         }
+
+    	validator.validate(command, error);
 
     	// fetch the ti
     	TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceOid());

@@ -59,6 +59,8 @@ public class ShowHopPathController {
 
 	@RequestMapping(value = "/curator/target/show-hop-path.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(ShowHopPathCommand cmd , BindingResult bindingResult) throws Exception {
+		validator.validate(cmd, bindingResult);
+
 		String messageText = "";
 		int firstLine = 0;
 		List<String> lines = Arrays.asList("", "");

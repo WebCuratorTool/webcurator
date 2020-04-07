@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.site.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.site.command.AgencySearchCommand;
@@ -23,6 +24,7 @@ import org.webcurator.ui.site.command.AgencySearchCommand;
  * Validate adding an authorising agency to a Harvest authorisation.
  * @author bbeaumont
  */
+@Component
 public class SiteAgencySearchValidator  extends AbstractBaseValidator {
 
 	/* (non-Javadoc)

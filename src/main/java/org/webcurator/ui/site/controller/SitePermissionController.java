@@ -49,6 +49,7 @@ import org.webcurator.ui.site.command.SitePermissionCommand;
 import org.webcurator.ui.site.editor.EditorContextObjectEditor;
 import org.webcurator.ui.site.editor.UrlPatternCollectionEditor;
 import org.webcurator.common.util.DateUtils;
+import org.webcurator.ui.site.validator.SitePermissionValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.common.util.Utils;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
@@ -80,6 +81,8 @@ public class SitePermissionController {
      */
     private List<String> accessStatusList;
 
+    @Autowired
+    private SitePermissionValidator sitePermissionValidator;
 
     /**
      * Construct a new Controller. Sets the command class.
@@ -371,6 +374,7 @@ public class SitePermissionController {
      */
     @RequestMapping(value = "/curator/site/permissions.html", method = {RequestMethod.GET, RequestMethod.POST})
     protected ModelAndView handle(HttpServletRequest req, HttpServletResponse resp, SitePermissionCommand command, BindingResult bindingResult) throws Exception {
+        sitePermissionValidator.validate(command, bindingResult);
         if (command.isAction(SitePermissionCommand.ACTION_CANCEL)) {
             return handleCancel(req, resp, command, bindingResult);
         } else if (command.isAction(SitePermissionCommand.ACTION_SAVE)) {

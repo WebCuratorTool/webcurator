@@ -127,9 +127,10 @@ public class AddParentsController {
 
 
 	@RequestMapping(value = { "/curator/targets/add-parents.html", "/curator/groups/add-parents.html" },method={RequestMethod.GET,RequestMethod.POST})
-	protected ModelAndView handle(@Validated @ModelAttribute("addParentsCommand") AddParentsCommand command,
+	protected ModelAndView handle(@ModelAttribute("addParentsCommand") AddParentsCommand command,
                                   BindingResult bindingResult,
 								  HttpServletRequest request, HttpServletResponse response) throws Exception {
+		validator.validate(command, bindingResult);
 		Target target = getEditorContext(request).getTarget();
 
 		if( AddParentsCommand.ACTION_ADD_PARENTS.equals(command.getActionCmd()))

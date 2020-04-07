@@ -77,8 +77,9 @@ public class LogReaderController {
 	}
 
 	@RequestMapping(path = "/curator/target/log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
-	protected ModelAndView handle(@Validated @ModelAttribute("logReaderCommand") LogReaderCommand cmd,
+	protected ModelAndView handle(@ModelAttribute("logReaderCommand") LogReaderCommand cmd,
                                   BindingResult bindingResult) throws Exception {
+		validator.validate(cmd, bindingResult);
 		String messageText = "";
 		int firstLine = 0;
 		List<String> lines = Arrays.asList("", "");
