@@ -35,6 +35,7 @@ import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.credentials.command.ResetPasswordCommand;
+import org.webcurator.ui.credentials.validator.ResetPasswordValidator;
 
 /**
  * Controller for managing reseting a users password.
@@ -52,6 +53,8 @@ public class ResetPasswordController {
     @Autowired
     @Qualifier("passwordEncoder")
     private PasswordEncoder encoder;
+    @Autowired
+    private ResetPasswordValidator resetPasswordValidator;
 
     /** Default Constructor. */
     public ResetPasswordController() {
@@ -66,6 +69,7 @@ public class ResetPasswordController {
     protected ModelAndView processFormSubmission(HttpServletRequest aReq,
             HttpServletResponse aRes, ResetPasswordCommand resetPasswordCommand, BindingResult bindingResult)
             throws Exception {
+        resetPasswordValidator.validate(resetPasswordCommand, bindingResult);
         return processPasswordChange(resetPasswordCommand, bindingResult);
     }
 

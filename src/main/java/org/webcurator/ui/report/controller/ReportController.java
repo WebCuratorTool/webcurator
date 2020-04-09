@@ -41,6 +41,7 @@ import org.webcurator.core.report.parameter.ParameterFactory;
 import org.webcurator.core.report.parameter.ReportCommandParsing;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.command.ReportCommand;
+import org.webcurator.ui.report.validator.ReportValidator;
 
 /**
  * ReportController
@@ -54,8 +55,10 @@ public class ReportController {
 
 	private Log log = LogFactory.getLog(ReportController.class);
 
-    @Autowired private ReportManager reportMngr;
-
+    @Autowired
+	private ReportManager reportMngr;
+	@Autowired
+	private ReportValidator reportValidator;
 	@RequestMapping(method = RequestMethod.GET, path = "/curator/report/report.html")
 	protected ModelAndView showForm(HttpServletRequest req) throws Exception {
 
@@ -79,7 +82,7 @@ public class ReportController {
 	@RequestMapping(method = RequestMethod.POST, path = "/curator/report/report.html")
 	protected ModelAndView processFormSubmission(HttpServletRequest request, @ModelAttribute ReportCommand reportCommand, BindingResult bindingResult)
             throws Exception {
-
+		reportValidator.validate(reportCommand, bindingResult);
 		// Build parameters
 		long start = System.currentTimeMillis();
 		ArrayList<Parameter> parameters = parseParameters(reportCommand);

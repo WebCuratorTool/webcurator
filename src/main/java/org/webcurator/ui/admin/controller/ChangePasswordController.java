@@ -47,6 +47,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.ChangePasswordCommand;
 import org.webcurator.ui.admin.command.UserCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.ChangePasswordValidator;
 
 /**
  * Manage the view for changing a users password.
@@ -71,6 +72,9 @@ public class ChangePasswordController {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    private ChangePasswordValidator changePasswordValidator;
+
     /** Default Constructor. */
     public ChangePasswordController() {
     }
@@ -89,6 +93,7 @@ public class ChangePasswordController {
     @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/change-password.html")
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute ChangePasswordCommand changePasswordCommand, BindingResult bindingResult)
             throws Exception {
+        changePasswordValidator.validate(changePasswordCommand, bindingResult);
         if (ChangePasswordCommand.ACTION_SAVE.equals(changePasswordCommand.getAction())) {
             //Save the Change of password action
             return processPasswordChange(aReq, changePasswordCommand, bindingResult);

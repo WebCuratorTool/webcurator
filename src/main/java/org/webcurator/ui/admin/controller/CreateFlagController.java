@@ -50,6 +50,7 @@ import org.webcurator.domain.model.core.Flag;
 import org.webcurator.ui.admin.command.CreateFlagCommand;
 import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.CreateFlagValidator;
 
 /**
  * Manages the creation flow for a Rejection Reason within WCT
@@ -70,6 +71,9 @@ public class CreateFlagController {
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+	private CreateFlagValidator createFlagValidator;
 
     /** Default Constructor. */
     public CreateFlagController() {
@@ -92,7 +96,7 @@ public class CreateFlagController {
 	@RequestMapping(method = RequestMethod.POST, path = "/curator/admin/create-flag.html")
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute CreateFlagCommand createFlagCommand, BindingResult bindingResult)
             throws Exception {
-
+		createFlagValidator.validate(createFlagCommand, bindingResult);
         ModelAndView mav = null;
 
         if (createFlagCommand != null) {
