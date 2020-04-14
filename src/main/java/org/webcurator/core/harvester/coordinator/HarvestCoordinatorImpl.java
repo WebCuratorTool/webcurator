@@ -1186,6 +1186,18 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 	public void completeArchiving(Long targetInstanceOid, String archiveIID) {
 		// Update the state.
 		TargetInstance ti = targetInstanceDao.load(targetInstanceOid);
+
+		// Sometimes the call (from store) to this method enters into a race condition with the state transition
+		// to "Archiving" triggered by the UI. We pause for 300 ms here if it looks like that's about to happen
+		if (!ti.getState().equals(TargetInstance.STATE_ARCHIVING)) {
+			log.warn(String.format("Target instance %d was not yet in state %s, pausing before setting it to %s",
+																					targetInstanceOid,
+																					TargetInstance.STATE_ARCHIVING,
+																					TargetInstance.STATE_ARCHIVED));
+			try { Thread.sleep(300); } catch (InterruptedException e) { }
+			ti = targetInstanceDao.load(targetInstanceOid); // ti will most likely be stale, reload it
+		}
+
 		ti.setArchiveIdentifier(archiveIID);
 		ti.setArchivedTime(new Date());
 		ti.setState(TargetInstance.STATE_ARCHIVED);
