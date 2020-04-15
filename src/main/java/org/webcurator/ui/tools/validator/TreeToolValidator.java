@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.tools.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
@@ -25,6 +26,7 @@ import org.webcurator.ui.tools.command.TreeToolCommand;
  * Validate that a pruned harvest contains a provenance note.
  * @author nwaight
  */
+@Component
 public class TreeToolValidator extends AbstractBaseValidator {
     /** default constructor. */
     public TreeToolValidator() {

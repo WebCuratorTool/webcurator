@@ -17,13 +17,14 @@ package org.webcurator.ui.report.validator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.webcurator.core.report.parameter.Parameter;
 import org.webcurator.core.report.parameter.ParameterFactory;
 import org.webcurator.core.report.parameter.ReportCommandParsing;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.common.ui.command.ReportCommand;
-
+@Component
 public class ReportValidator extends AbstractBaseValidator {
 
 	private Log log = LogFactory.getLog(ReportValidator.class);
