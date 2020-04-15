@@ -82,7 +82,7 @@ public class MoveTargetsController {
 	@RequestMapping(path = "/curator/groups/move-targets.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, MoveTargetsCommand command,
                                   BindingResult bindingResult) throws Exception {
-		moveTargetsValidator.validate(command, bindingResult);
+		//moveTargetsValidator.validate(command, bindingResult);
 		GroupsEditorContext ctx = getEditorContext(request);
 		if( MoveTargetsCommand.ACTION_MOVE_TARGETS.equals(command.getActionCmd())) {
 
