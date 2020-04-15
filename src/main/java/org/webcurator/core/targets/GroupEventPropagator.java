@@ -144,6 +144,16 @@ public class GroupEventPropagator {
 	 * @param propagate True to propagate scheduling; otherwise false.
 	 */
 	public void runEventChain(TargetGroup ancestor, boolean propagate) {
+		Map<Object,Object> duplicateValidator=new HashMap<>();
+		runEventChainInternal(ancestor, propagate, duplicateValidator);
+		duplicateValidator.clear();
+	}
+	private void runEventChainInternal(TargetGroup ancestor, boolean propagate, final Map<Object,Object> duplicateValidator) {
+		if(duplicateValidator.containsKey(ancestor)){
+			return;
+		}else{
+			duplicateValidator.put(ancestor, ancestor);
+		}
 		addUpdatedGroup(ancestor);
 		
 		for(AbstractTarget member: members) {
@@ -187,7 +197,7 @@ public class GroupEventPropagator {
 		
 		Set<GroupMember> parents = ancestor.getParents();
 		for(GroupMember gm: parents) {
-			runEventChain(gm.getParent(), propagate);
+			runEventChainInternal(gm.getParent(), propagate, duplicateValidator);
 		}		
 	}
 

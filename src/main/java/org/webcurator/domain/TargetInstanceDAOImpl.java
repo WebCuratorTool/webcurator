@@ -17,14 +17,7 @@ package org.webcurator.domain;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.Iterator;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -826,23 +819,44 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		private AbstractTarget target;
 		
 		private List<Schedule> schedules = new LinkedList<Schedule>();
-		
+
 		public UnscheduleTargetTransaction(AbstractTarget aTarget) {
 			target = aTarget;
 		}
-		
 		private void collectSchedules(AbstractTarget aTarget) {
+			Map<Object,Object> duplicateValidator=new HashMap<>();
+			collectSchedulesInterval(aTarget, duplicateValidator);
+			duplicateValidator.clear();
+		}
+		private void collectSchedulesInterval(AbstractTarget aTarget, Map<Object,Object> duplicateValidator) {
+			if(duplicateValidator.containsKey(aTarget)){
+				return;
+			}else{
+				duplicateValidator.put(aTarget,aTarget);
+			}
 			// Add all the schedules from this target.
 			schedules.addAll(aTarget.getSchedules());
 
 			// Get all the schedules from parents.
 			for(GroupMember gm: aTarget.getParents()) {
-				collectSchedules(gm.getParent());
+				collectSchedulesInterval(gm.getParent(), duplicateValidator);
 			}
 			
 		}
-		
+
+
 		private void removeSchedules(final AbstractTarget aTarget) {
+			Map<Object,Object> duplicateValidator=new HashMap<>();
+			removeSchedulesInternal(aTarget, duplicateValidator);
+			duplicateValidator.clear();
+		}
+		private void removeSchedulesInternal(final AbstractTarget aTarget, final Map<Object,Object> duplicateValidator) {
+			if (duplicateValidator.containsKey(aTarget)){
+				return;
+			}else {
+				duplicateValidator.put(aTarget, aTarget);
+			}
+
 			// Delete the scheduled instances from this target.			
 			getHibernateTemplate().execute(new HibernateCallback() {
 				public Object doInHibernate(Session aSession) {
@@ -871,7 +885,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 				}
 				
 				for(GroupMember child: ((TargetGroup)candidateGroup).getChildren()) {
-					removeSchedules(child.getChild());
+					removeSchedulesInternal(child.getChild(), duplicateValidator);
 				}
 			}
 		}
