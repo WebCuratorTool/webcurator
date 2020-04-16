@@ -19,6 +19,7 @@ import org.hibernate.annotations.Formula;
 import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
+import javax.validation.constraints.Size;
 import javax.persistence.*;
 
 /**
@@ -34,7 +35,8 @@ public class HarvesterStatus {
     // TODO      * @hibernate.id column="HS_OID" generator-class="assigned" --> implies the application assigns the id
     private Long oid;
     /** The name of the harvest job. */
-    @Column(name = "HS_JOB_NAME", length = 500)
+    @Size(max=500)
+    @Column(name = "HS_JOB_NAME")
     private String jobName = "";
     /** the average number of URI's processed per second. */
     @Column(name = "HS_AVG_URI")
@@ -52,7 +54,8 @@ public class HarvesterStatus {
     @Column(name = "HS_DATA_AMOUNT")
     private long dataDownloaded = 0;
     /** The status of the harvest job. */
-    @Column(name = "HS_STATUS", length = 255)
+    @Size(max=255)
+    @Column(name = "HS_STATUS")
     private String status;
     @OneToOne
     @JoinColumn(name = "HS_OID")

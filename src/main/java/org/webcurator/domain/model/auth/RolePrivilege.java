@@ -17,6 +17,8 @@ package org.webcurator.domain.model.auth;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -49,7 +51,8 @@ public class RolePrivilege implements Serializable {
 
     /** The database OID for the Role Privilege. */
     @Id
-    @Column(name="PRV_OID", nullable =  false)
+    @NotNull
+    @Column(name="PRV_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -62,14 +65,17 @@ public class RolePrivilege implements Serializable {
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The identifier of the privilege */
-    @Column(name = "PRV_CODE", length = 40, nullable = false)
+    @Size(max=40)
+    @NotNull
+    @Column(name = "PRV_CODE")
     private String privilege;
     /** The scope of the privilege - i.e. how widely the privilege applies */
-    @Column(name = "PRV_SCOPE", nullable = false)
+    @NotNull
+    @Column(name = "PRV_SCOPE")
     private int privilegeScope;
     /** The role that this privilege belongs to. */
     @ManyToOne
-    @JoinColumn(name = "PRV_ROLE_OID", foreignKey = @ForeignKey(name = "FK_PRIV_ROLE_OID"))
+    @JoinColumn(name = "PRV_ROLE_OID")
     private Role role;
     
     /**

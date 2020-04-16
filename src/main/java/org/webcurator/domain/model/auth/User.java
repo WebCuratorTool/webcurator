@@ -15,6 +15,8 @@
  */
 package org.webcurator.domain.model.auth;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
@@ -91,7 +93,8 @@ public class User implements Serializable {
      * The database OID of the User object
      */
     @Id
-    @Column(name = "USR_OID", nullable = false)
+    @NotNull
+    @Column(name = "USR_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -107,83 +110,100 @@ public class User implements Serializable {
     /**
      * The login username
      */
-    @Column(name = "USR_USERNAME", unique = true, length = 80, nullable = false)
+    @Size(max=80)
+    @NotNull
+    @Column(name = "USR_USERNAME")
     private String username;
     /**
      * The contact email address
      */
-    @Column(name = "USR_EMAIL", length = 100, nullable = false)
+    @Size(max=100)
+    @NotNull
+    @Column(name = "USR_EMAIL")
     private String email;
     /**
      * True to enable notifications to be sent by e-mail as well as to the intray
      */
-    @Column(name = "USR_NOTIFICATIONS_BY_EMAIL", nullable = false)
+    @NotNull
+    @Column(name = "USR_NOTIFICATIONS_BY_EMAIL")
     private boolean notificationsByEmail;
     /**
      * True to enable tasks to be sent by e-mail as well as to the intray
      */
-    @Column(name = "USR_TASKS_BY_EMAIL", nullable = false)
+    @NotNull
+    @Column(name = "USR_TASKS_BY_EMAIL")
     private boolean tasksByEmail;
     /**
      * The title of the user: Mr., Mrs., etc
      */
-    @Column(name = "USR_TITLE", length = 10, nullable = true)
+    @Size(max=10)
+    @Column(name = "USR_TITLE")
     private String title;
     /**
      * The first name of the user
      */
-    @Column(name = "USR_FIRSTNAME", length = 50, nullable = false)
+    @Size(max=50)
+    @NotNull
+    @Column(name = "USR_FIRSTNAME")
     private String firstname;
     /**
      * The last name of the user
      */
-    @Column(name = "USR_LASTNAME", length = 50, nullable = false)
+    @Size(max=50)
+    @NotNull
+    @Column(name = "USR_LASTNAME")
     private String lastname;
     /**
      * True if the user account is active
      */
-    @Column(name = "USR_ACTIVE", nullable = false)
+    @NotNull
+    @Column(name = "USR_ACTIVE")
     private boolean active;
     /**
      * True if the user must change their password on the next login
      */
-    @Column(name = "USR_FORCE_PWD_CHANGE", nullable = false)
+    @NotNull
+    @Column(name = "USR_FORCE_PWD_CHANGE")
     private boolean forcePasswordChange;
     /**
      * True if the user authentication should use an external authentication source such as LDAP
      */
-    @Column(name = "USR_EXTERNAL_AUTH", nullable = false)
+    @NotNull
+    @Column(name = "USR_EXTERNAL_AUTH")
     private boolean externalAuth;
     /**
      * The user's password
      */
-    @Column(name = "USR_PASSWORD", length = 255, nullable = true)
+    @Size(max=255)
+    @Column(name = "USR_PASSWORD")
     private String password;
     /**
      * The user's phone number
      */
-    @Column(name = "USR_PHONE", length = 16, nullable = true)
+    @Size(max=16)
+    @Column(name = "USR_PHONE")
     private String phone;
     /**
      * The user's address
      */
-    @Column(name = "USR_ADDRESS", length = 200, nullable = true)
+    @Size(max=200)
+    @Column(name = "USR_ADDRESS")
     private String address;
     /**
      * The set of roles the user belongs to
      */
-    @ManyToMany(fetch = FetchType.EAGER,
+    @ManyToMany(fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE})
     @JoinTable(name = "USER_ROLE",
             joinColumns = {@JoinColumn(name = "URO_USR_OID")},
-            inverseJoinColumns = {@JoinColumn(name = "URO_ROL_OID")},
-            foreignKey = @ForeignKey(name = "FK_USERROLE_TO_ROLE"))
+            inverseJoinColumns = {@JoinColumn(name = "URO_ROL_OID")})
     private Set<Role> roles;
     /**
      * The agency the user belongs to
      */
     @ManyToOne
-    @JoinColumn(name = "USR_AGC_OID", foreignKey = @ForeignKey(name = "FK_USER_AGENCY_OID"), nullable = false)
+    @NotNull
+    @JoinColumn(name = "USR_AGC_OID")
     private Agency agency;
     /**
      * For inactive users, the date the user was deactivated
@@ -194,12 +214,14 @@ public class User implements Serializable {
     /**
      * Enable notifications for changes to objects the user owns
      */
-    @Column(name = "USR_NOTIFY_ON_GENERAL", nullable = false)
+    @NotNull
+    @Column(name = "USR_NOTIFY_ON_GENERAL")
     private boolean notifyOnGeneral = true;
     /**
      * Enable notifications for harvester warnings.
      */
-    @Column(name = "USR_NOTIFY_ON_WARNINGS", nullable = false)
+    @NotNull
+    @Column(name = "USR_NOTIFY_ON_WARNINGS")
     private boolean notifyOnHarvestWarnings = false;
 
     /**

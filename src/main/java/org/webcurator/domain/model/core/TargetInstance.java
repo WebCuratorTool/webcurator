@@ -28,10 +28,13 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.Type;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -114,7 +117,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 
     /** unique identifier. */
     @Id
-    @Column(name="TI_OID", nullable =  false)
+    @NotNull
+    @Column(name="TI_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -133,29 +137,33 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
 	private List<HarvestResult> harvestResults = new LinkedList<HarvestResult>();
 	/** the target or group that this instance belongs to. */
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "TI_TARGET_ID", foreignKey = @ForeignKey(name = "FK_TI_TARGET_ID"))
+    @JoinColumn(name = "TI_TARGET_ID")
     private AbstractTarget target;
     /** the schedule that this target instance belongs to. */
     @ManyToOne(cascade = {CascadeType.REFRESH})
-    @JoinColumn(name = "TI_SCHEDULE_ID", foreignKey = @ForeignKey(name = "FK_TI_SCHEDULE_ID"))
+    @JoinColumn(name = "TI_SCHEDULE_ID")
     private Schedule schedule;
     /** the scheduled time of the harvest. */
-    @Column(name = "TI_SCHEDULED_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @NotNull
+    @Column(name = "TI_SCHEDULED_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date scheduledTime;
     /** the time the harvest actually started. */
-    @Column(name = "TI_START_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "TI_START_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date actualStartTime;
     /** the time the target instance was archived. */
-    @Column(name = "TI_ARCHIVED_TIME", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "TI_ARCHIVED_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date archivedTime;
     /** the priority of the target instance. */
-    @Column(name = "TI_PRIORITY", nullable = false)
+    @NotNull
+    @Column(name = "TI_PRIORITY")
     private int priority = PRI_NRML;
     /** The state of the target instance. */
-    @Column(name = "TI_STATE", length = 50, nullable = false)
+    @Size(max=50)
+    @NotNull
+    @Column(name = "TI_STATE")
     private String state = STATE_SCHEDULED; 
     /** the minimum percentage of the bandwidth to allocate this harvest. */
     @Column(name = "TI_BANDWIDTH_PERCENT")
@@ -168,7 +176,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     private HarvesterStatus status;
     /** the owner of this target instance. */
     @ManyToOne
-    @JoinColumn(name = "TI_OWNER_ID", foreignKey = @ForeignKey(name = "FK_TI_USER_ID"))
+    @JoinColumn(name = "TI_OWNER_ID")
     private User owner;
     /** the value for ordering the target instance on the queue and ti view. */
     @Column(name = "TI_DISPLAY_ORDER")
@@ -198,17 +206,19 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Column(name = "TI_VERSION")
     private int version;
     /** The reference number from the archive. */
-    @Column(name = "TI_REFERENCE", length = 255)
+    @Size(max=255)
+    @Column(name = "TI_REFERENCE")
     private String referenceNumber;
     /** The server that performed this harvest. */
-    @Column(name = "TI_HARVEST_SERVER", length = 255)
+    @Size(max=255)
+    @Column(name = "TI_HARVEST_SERVER")
     private String harvestServer;
     /** The parts of the SIP generated at time of harvest. */
     @ElementCollection
     @CollectionTable(name="SIP_PART_ELEMENT", joinColumns=@JoinColumn(name="SPE_TARGET_INSTANCE_OID"))
     @MapKeyColumn (name="SPE_KEY")
     @Column(name="SPE_VALUE")
-    @Lob // column="SPE_VALUE" type="materialized_clob"
+    //@Lob // column="SPE_VALUE" type="materialized_clob"
     private Map<String,String> sipParts = new HashMap<String, String>();
     /** The original seeds */
     // TODO cascade="all"
@@ -220,17 +230,19 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @Column(name = "TI_DISPLAY_TARGET_INSTANCE")
     private boolean display = true;
     /** The display note */
-    @Column(name = "TI_DISPLAY_NOTE", length = 4000, nullable = true)
+    @Size(max=4000)
+    @Column(name = "TI_DISPLAY_NOTE")
     private String displayNote = "";
     /** The display change reason */
-    @Column(name = "TI_DISPLAY_CHG_REASON", length = 1000, nullable = true)
+    @Size(max=1000)
+    @Column(name = "TI_DISPLAY_CHG_REASON")
     private String displayChangeReason = "";
     /** Is this target instance flagged*/
     @Column(name = "TI_FLAGGED")
     private boolean flagged = false;
     /** The flag group (a coloured flag) **/
     @ManyToOne
-    @JoinColumn(name = "TI_FLAG_OID", foreignKey = @ForeignKey(name = "FK_F_OID"), nullable = true)
+    @JoinColumn(name = "TI_FLAG_OID")
     private Flag flag = null;
     /** The QA recommendation derived from this target instance's indicators **/
     @Column(name = "TI_RECOMMENDATION")
@@ -253,13 +265,16 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     private boolean annotationsSet = false;
     /** The profile overrides for this target instance. */
     @OneToOne(cascade = { CascadeType.ALL }) // WAS cascade="save-update"
-    @JoinColumn(name = "TI_PROF_OVERRIDE_OID", foreignKey = @ForeignKey(name = "FK_TI_PROF_OVERRIDE_OID"))
+    @JoinColumn(name = "TI_PROF_OVERRIDE_OID")
     private ProfileOverrides overrides;
 
-    @Column(name = "TI_ARCHIVE_ID", length = 40, unique = true, nullable = true)
+    @Size(max=40)
+
+    @Column(name = "TI_ARCHIVE_ID")
     private String archiveIdentifier; 
     /** Flag to indicate that this instances digital assets have been purged from the store. */
-    @Column(name = "TI_PURGED", nullable = false)
+    @NotNull
+    @Column(name = "TI_PURGED")
     private boolean purged = false;
 	
     /** Flag to indicate that this target instance is the first to be scheduled from its owning Target. */

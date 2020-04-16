@@ -3,6 +3,7 @@ package org.webcurator.domain.model.core;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -33,7 +34,8 @@ public class Flag {
 
 	/** unique identifier **/
     @Id
-    @Column(name="F_OID", nullable =  false)
+    @NotNull
+    @Column(name="F_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -47,20 +49,24 @@ public class Flag {
 	private Long oid;
 	
 	/** The name of the <code>Flag</code> that will be displayed **/
-	@Column(name = "F_NAME", nullable = false)
+	@NotNull
+	@Column(name = "F_NAME")
 	private String name;
 	
 	/** The colour components for the flag **/
-	@Column(name = "F_RGB", nullable = false)
+	@NotNull
+	@Column(name = "F_RGB")
 	private String rgb;
 	
 	/** The complement colour components for the flag (used for a contrasting font colour) **/
-	@Column(name = "F_COMPLEMENT_RGB", nullable = false)
+	@NotNull
+	@Column(name = "F_COMPLEMENT_RGB")
 	private String complementRgb;
 
     /** The agency the <code>Flag</code> belongs to */
     @ManyToOne
-    @JoinColumn(name = "F_AGC_OID", foreignKey = @ForeignKey(name = "FK_F_AGENCY_OID"), nullable = false)
+    @NotNull
+    @JoinColumn(name = "F_AGC_OID")
     private Agency agency;
 	
 	/**

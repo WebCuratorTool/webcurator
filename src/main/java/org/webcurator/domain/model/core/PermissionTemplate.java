@@ -16,8 +16,11 @@
 package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -39,7 +42,8 @@ public class PermissionTemplate {
     
     /** The database OID of the template */
     @Id
-    @Column(name="PRT_OID", nullable =  false)
+    @NotNull
+    @Column(name="PRT_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -53,42 +57,56 @@ public class PermissionTemplate {
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The name of the template */
-    @Column(name = "PRT_TEMPLATE_NAME", length = 80, nullable = false)
+    @Size(max=80)
+    @NotNull
+    @Column(name = "PRT_TEMPLATE_NAME")
     private String templateName;
     /** The description of the template */
-    @Column(name = "PRT_TEMPLATE_DESC", length = 255, nullable = true)
+    @Size(max=255)
+    @Column(name = "PRT_TEMPLATE_DESC")
     private String templateDescription;
     /** The agency to which this template belongs */
     @ManyToOne
-    @JoinColumn(name = "PRT_AGC_OID", foreignKey = @ForeignKey(name = "FK_TEMPLATE_AGENCY_OID"), nullable = false)
+    @NotNull
+    @JoinColumn(name = "PRT_AGC_OID")
     private Agency agency;
     /** The template text itself */
-    @Column(name = "PRT_TEMPLATE_TEXT", length = 10000, nullable = false)
-    @Lob // type="materialized_clob"
+    @Size(max=10000)
+    @NotNull
+    @Column(name = "PRT_TEMPLATE_TEXT")
+    //@Lob // type="materialized_clob"
     private String template;
     /** The type of template. One of EMAIL_TYPE_TEMPLATE or PRINT_TYPE_TEMPLATE */
-    @Column(name = "PRT_TEMPLATE_TYPE", length = 40, nullable = false)
+    @Size(max=40)
+    @NotNull
+    @Column(name = "PRT_TEMPLATE_TYPE")
     private String templateType;
     /** The template text after place-holder substitution */
     @Transient
     private String parsedText;
     /** The subject of the Email*/
-    @Column(name = "PRT_TEMPLATE_SUBJECT", length = 255, nullable = true)
+    @Size(max=255)
+    @Column(name = "PRT_TEMPLATE_SUBJECT")
     private String templateSubject;
     /** A flag used to control if the from field of the email is overwritten by the templateOverwriteFrom*/
-    @Column(name = "PRT_TEMPLATE_OVERWRITE_FROM", nullable = false)
+    @NotNull
+    @Column(name = "PRT_TEMPLATE_OVERWRITE_FROM")
     private boolean templateOverwriteFrom;
     /** The email address used in the sent from field*/
-    @Column(name = "PRT_TEMPLATE_FROM", length = 255, nullable = true)
+    @Size(max=255)
+    @Column(name = "PRT_TEMPLATE_FROM")
     private String templateFrom;
     /** the email address(s) the email's are cc'd to*/
-    @Column(name = "PRT_TEMPLATE_CC", length = 2048, nullable = true)
+    @Size(max=2048)
+    @Column(name = "PRT_TEMPLATE_CC")
     private String templateCc;
     /** the email address(s) the email's are bcc'd to*/
-    @Column(name = "PRT_TEMPLATE_BCC", length = 2048, nullable = true)
+    @Size(max=2048)
+    @Column(name = "PRT_TEMPLATE_BCC")
     private String templateBcc;
     /** the replyto email address*/
-    @Column(name = "PRT_TEMPLATE_REPLY_TO", length = 255, nullable = true)
+    @Size(max=255)
+    @Column(name = "PRT_TEMPLATE_REPLY_TO")
 	private String replyTo;
     
     /**

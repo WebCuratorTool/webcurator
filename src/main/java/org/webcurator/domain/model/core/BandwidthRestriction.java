@@ -23,6 +23,8 @@ import java.util.Locale;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -76,7 +78,8 @@ public class BandwidthRestriction {
     
     /** The primary key. */
     @Id
-    @Column(name="BR_OID", nullable =  false)
+    @NotNull
+    @Column(name="BR_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -89,18 +92,23 @@ public class BandwidthRestriction {
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** the day of the week. */
-    @Column(name = "BR_DAY", length = 9, nullable = false)
+    @Size(max=9)
+    @NotNull
+    @Column(name = "BR_DAY")
     private String dayOfWeek;
     /** the start time of restriction. */
-    @Column(name = "BR_START_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @NotNull
+    @Column(name = "BR_START_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startTime;
     /** the end time of  the restriction. */
-    @Column(name = "BR_END_TIME", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @NotNull
+    @Column(name = "BR_END_TIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTime;
     /** the bandwidth. */
-    @Column(name = "BR_BANDWIDTH", nullable = false)
+    @NotNull
+    @Column(name = "BR_BANDWIDTH")
     private long bandwidth;
     @Column(name = "BR_OPTIMIZATION_ALLOWED")
     private boolean allowOptimize = true;

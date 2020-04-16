@@ -16,6 +16,8 @@
 package org.webcurator.domain.model.core;
 
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -33,17 +35,21 @@ import javax.persistence.*;
 @Table(name = "HARVEST_RESOURCE")
 public class HarvestResource {
 	/** The name of the resource */
-	@Column(name = "HRC_NAME", length = 1020, nullable = false)
+	@Size(max=1020)
+	@NotNull
+	@Column(name = "HRC_NAME")
 	protected String name;
 	/** The length of the resource */
 	@Column(name = "HRC_LENGTH")
 	protected long length;
 	/** The status code of the resource */
-	@Column(name = "HRC_STATUS_CODE", nullable = false)
+	@NotNull
+	@Column(name = "HRC_STATUS_CODE")
 	protected int statusCode;
 	/** The database OID of the object */
 	@Id
-	@Column(name="HRC_OID", nullable =  false)
+	@NotNull
+	@Column(name="HRC_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.

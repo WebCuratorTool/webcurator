@@ -17,6 +17,8 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.Date;
 
@@ -42,7 +44,8 @@ public class Notification {
     
     /** The database OID of the notification */
     @Id
-    @Column(name="NOT_OID", nullable =  false)
+    @NotNull
+    @Column(name="NOT_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -55,20 +58,27 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The sender of the notification */
-    @Column(name = "NOT_SENDER", length = 80, nullable = false)
+    @Size(max=80)
+    @NotNull
+    @Column(name = "NOT_SENDER")
     private String sender;
     /** The recipient of the notification */
-    @Column(name = "NOT_USR_OID", nullable = false)
+    @NotNull
+    @Column(name = "NOT_USR_OID")
     private Long recipientOid;
     /** The date the notification was sent */
-    @Column(name = "NOT_SENT_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @NotNull
+    @Column(name = "NOT_SENT_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date sentDate;
     /** The subject of the notification */
-    @Column(name = "NOT_SUBJECT", length = 255, nullable = false)
+    @Size(max=255)
+    @NotNull
+    @Column(name = "NOT_SUBJECT")
     private String subject;
     /** The message of the notification */
-    @Column(name = "NOT_MESSAGE", length = 2000)
+    @Size(max=2000)
+    @Column(name = "NOT_MESSAGE")
     private String message;
     /** The name of the recipient */
     private transient String recipientName;

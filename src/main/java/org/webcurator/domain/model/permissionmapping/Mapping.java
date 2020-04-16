@@ -19,6 +19,8 @@ import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrate
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.UrlPattern;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 
@@ -64,7 +66,8 @@ public class Mapping {
      * The Oid
      */
     @Id
-    @Column(name = "UPM_OID", nullable = false)
+    @NotNull
+    @Column(name = "UPM_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -87,19 +90,20 @@ public class Mapping {
 //     * The UrlPattern
 //     */
 //    @ManyToOne(cascade = CascadeType.PERSIST)
-//    @JoinColumn(name = "UPM_URL_PATTERN_ID", foreignKey = @ForeignKey(name = "FK_UPM_URL_PATTERN_ID"))
+//    @JoinColumn(name = "UPM_URL_PATTERN_ID")
 //    private UrlPattern urlPattern;
 //    /**
 //     * The Permission
 //     */
 //    @ManyToOne(cascade = CascadeType.PERSIST)
-//    @JoinColumn(name = "UPM_PERMISSION_ID", foreignKey = @ForeignKey(name = "FK_UPM_PERMISSION_ID"))
+//    @JoinColumn(name = "UPM_PERMISSION_ID")
 //    private Permission permission;
 
     /**
      * The calculate base domain
      */
-    @Column(name = "UPM_DOMAIN", length = 1024)
+    @Size(max=1024)
+    @Column(name = "UPM_DOMAIN")
     private String domain;
 
     /**

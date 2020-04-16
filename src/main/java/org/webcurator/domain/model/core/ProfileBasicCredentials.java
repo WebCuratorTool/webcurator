@@ -17,6 +17,7 @@ package org.webcurator.domain.model.core;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.validation.constraints.Size;
 import javax.persistence.*;
 
 import org.webcurator.core.profiles.DuplicateNameException;
@@ -32,7 +33,8 @@ import org.webcurator.core.profiles.HeritrixProfile;
 @PrimaryKeyJoinColumn(name = "PBC_PC_OID")
 public class ProfileBasicCredentials extends ProfileCredentials {
 	/** The realm to which the credentials apply */
-	@Column(name = "PBC_REALM", length = 255)
+	@Size(max=255)
+	@Column(name = "PBC_REALM")
 	private String realm = null;
 
 	/**

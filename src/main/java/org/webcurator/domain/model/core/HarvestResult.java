@@ -3,6 +3,8 @@ package org.webcurator.domain.model.core;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.model.auth.User;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.*;
 
@@ -26,14 +28,15 @@ public abstract class HarvestResult implements UserInTrayResource {
 
     /** The TargetInstance that this belongs to */
     @ManyToOne
-    @JoinColumn(name = "HR_TARGET_INSTANCE_ID", foreignKey = @ForeignKey(name = "FK_HRC_TARGET_INSTANCE_ID"))
+    @JoinColumn(name = "HR_TARGET_INSTANCE_ID")
     private TargetInstance targetInstance;
     /** The Harvest number; the original harvest is always number 1, the prune tool can created additional harvest results */
     @Column(name = "HR_HARVEST_NO")
     private int harvestNumber = 1;
     /** The primary key of the harvest result */
     @Id
-    @Column(name="HR_OID", nullable =  false)
+    @NotNull
+    @Column(name="HR_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -52,24 +55,27 @@ public abstract class HarvestResult implements UserInTrayResource {
     @MapKeyColumn(name = "HRC_NAME")
     private Map<String,HarvestResource> resources = new HashMap<String,HarvestResource>();
     /** The provenance note (how this harvest result was created */
-    @Column(name = "HR_PROVENANCE_NOTE", length = 1024, nullable = false)
+    @Size(max=1024)
+    @NotNull
+    @Column(name = "HR_PROVENANCE_NOTE")
     private String provenanceNote;
     /** The creation date of this harvest result */
-    @Column(name = "HR_CREATED_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "HR_CREATED_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
     /** Who created this harvest result */
     @ManyToOne
-    @JoinColumn(name = "HR_CREATED_BY_ID", foreignKey = @ForeignKey(name = "FK_HR_CREATED_BY_ID"))
+    @JoinColumn(name = "HR_CREATED_BY_ID")
     private User createdBy;
     /** The state of the HarvestResult - see the STATE_xxx constants */
     @Column(name = "HR_STATE")
     private int state = 0;
     /** A list of Harvest Modification Notes */
     // TODO @hibernate.list table="HR_MODIFICATION_NOTE" cascade="all-delete-orphan" --> not sure if can do cascade
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "HR_MODIFICATION_NOTE", joinColumns = @JoinColumn(name = "HMN_HR_OID"))
-    @Column(name = "HMN_NOTE", length = 2000)
+    @Size(max=2000)
+    @Column(name = "HMN_NOTE")
     @OrderColumn(name = "HMN_INDEX")
     private List<String> modificationNotes = new LinkedList<String>();
     /** The Harvest ID that this harvest was derived from */
@@ -77,7 +83,7 @@ public abstract class HarvestResult implements UserInTrayResource {
     private Integer derivedFrom;
     /** Why this harvest result was rejected */
     @ManyToOne
-    @JoinColumn(name = "HR_RR_OID", foreignKey = @ForeignKey(name = "FK_HR_RR_OID"))
+    @JoinColumn(name = "HR_RR_OID")
     private RejReason rejReason;
 
     /**

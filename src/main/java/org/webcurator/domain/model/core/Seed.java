@@ -15,6 +15,8 @@
  */
 package org.webcurator.domain.model.core;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -39,7 +41,8 @@ public class Seed extends AbstractIdentityObject {
      * The unique ID of the seed
      **/
     @Id
-    @Column(name = "S_OID", nullable = false)
+    @NotNull
+    @Column(name = "S_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -54,13 +57,14 @@ public class Seed extends AbstractIdentityObject {
     /**
      * The seed itself
      **/
-    @Column(name = "S_SEED", length = 1024)
+    @Size(max=1024)
+    @Column(name = "S_SEED")
     private String seed;
     /**
      * The seed's target
      **/
     @ManyToOne
-    @JoinColumn(name = "S_TARGET_ID", foreignKey = @ForeignKey(name = "FK_SEED_TARGET_ID"))
+    @JoinColumn(name = "S_TARGET_ID")
     private Target target;
     /**
      * The set of related permissions
@@ -68,8 +72,7 @@ public class Seed extends AbstractIdentityObject {
     @ManyToMany(cascade = {CascadeType.REFRESH})
     @JoinTable(name = "SEED_PERMISSION",
             joinColumns = {@JoinColumn(name = "SP_SEED_ID")},
-            inverseJoinColumns = {@JoinColumn(name = "SP_PERMISSION_ID")},
-            foreignKey = @ForeignKey(name = "FK_SP_PERMISSION_ID"))
+            inverseJoinColumns = {@JoinColumn(name = "SP_PERMISSION_ID")})
     private Set<Permission> permissions = new HashSet<Permission>();
     /**
      * Sets if the seed is primary or secondary.

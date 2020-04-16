@@ -17,6 +17,8 @@ package org.webcurator.domain.model.auth;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Set;
@@ -41,7 +43,8 @@ public class Agency implements Serializable {
     
     /** The database OID of the Agency */
     @Id
-    @Column(name="AGC_OID", nullable =  false)
+    @NotNull
+    @Column(name="AGC_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -54,25 +57,34 @@ public class Agency implements Serializable {
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The name of the agency */
-    @Column(name = "AGC_NAME", length = 80, unique = true, nullable = false)
+    @Size(max=80)
+    @NotNull
+    @Column(name = "AGC_NAME")
     private String name;
     /** The address of the agency */
-    @Column(name = "AGC_ADDRESS", length = 255, nullable = false)
+    @Size(max=255)
+    @NotNull
+    @Column(name = "AGC_ADDRESS")
     private String address;
     /** The phone number for the agency */
-    @Column(name = "AGC_PHONE", length = 20, nullable = true)
+    @Size(max=20)
+    @Column(name = "AGC_PHONE")
     private String phone;
     /** The URL for the agency - such as their home page */
-    @Column(name = "AGC_URL", length = 255, nullable = true)
+    @Size(max=255)
+    @Column(name = "AGC_URL")
     private String agencyURL;
     /** The URL to a logo that can be used in the Permission Request templates */
-    @Column(name = "AGC_LOGO_URL", length = 255, nullable = true)
+    @Size(max=255)
+    @Column(name = "AGC_LOGO_URL")
     private String agencyLogoURL;
     /** The email to use to contact the agency */
-    @Column(name = "AGC_EMAIL", length = 80, nullable = true)
+    @Size(max=80)
+    @Column(name = "AGC_EMAIL")
     private String email;
     /** The fax number to use to contact the agency */
-    @Column(name = "AGC_FAX", length = 20, nullable = true)
+    @Size(max=20)
+    @Column(name = "AGC_FAX")
     private String fax;
     /** The set of users in this agency */
     @OneToMany(mappedBy = "agency", orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY

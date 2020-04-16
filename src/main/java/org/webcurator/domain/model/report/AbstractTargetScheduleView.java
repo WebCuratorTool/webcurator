@@ -15,6 +15,8 @@
  */
 package org.webcurator.domain.model.report;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 import java.util.Date;
 
@@ -60,7 +62,8 @@ public class AbstractTargetScheduleView {
     private String objectTypeDesc;
 
     /** The target (or group) name. */
-    @Column(name = "AT_NAME", length = 255, unique = true)
+    @Size(max=255)
+    @Column(name = "AT_NAME")
     private String name;
 
     /** The state of the target (or group) */
@@ -68,11 +71,13 @@ public class AbstractTargetScheduleView {
     private int state; 
     
     /** The target (or group) owner name. */
-    @Column(name = "USR_USERNAME", length = 80)
+    @Size(max=80)
+    @Column(name = "USR_USERNAME")
     private String ownerName;
 
     /** The target (or group) owning agency name. */
-    @Column(name = "AGC_NAME", length = 80)
+    @Size(max=80)
+    @Column(name = "AGC_NAME")
     private String agencyName;
 
 	/** The oid of the schedule record. */
@@ -80,12 +85,13 @@ public class AbstractTargetScheduleView {
 	private Long scheduleOid;
 
 	/** The schedule start date*/
-	@Column(name = "S_END", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@NotNull
+	@Column(name = "S_END")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date scheduleStartDate;
 
 	/** The schedule end date*/
-	@Column(name = "S_START", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "S_START")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date scheduleEndDate;
 
@@ -94,7 +100,8 @@ public class AbstractTargetScheduleView {
     private int scheduleType; 
 	
 	/** The schedule cron pattern*/
-	@Column(name = "S_CRON", length = 255)
+	@Size(max=255)
+	@Column(name = "S_CRON")
 	private String scheduleCronPattern;
 
 	

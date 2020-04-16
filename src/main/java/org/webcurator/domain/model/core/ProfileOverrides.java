@@ -21,10 +21,14 @@ import java.util.List;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.MaterializedClobType;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.profiles.*;
 
@@ -71,7 +75,8 @@ public class ProfileOverrides {
 	
 	/** The unique database ID of the profile. */
 	@Id
-	@Column(name="PO_OID", nullable =  false)
+	@NotNull
+	@Column(name="PO_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -85,7 +90,8 @@ public class ProfileOverrides {
 	private Long oid;
 	
 	/** The robots honouring policy override */
-	@Column(name = "PO_ROBOTS_POLICY", length = 10)
+	@Size(max=10)
+	@Column(name = "PO_ROBOTS_POLICY")
 	private String robotsHonouringPolicy = null;
 	/** True to override the robots policy; otherwise false */
 	@Column(name = "PO_OR_ROBOTS_POLICY")
@@ -255,7 +261,7 @@ public class ProfileOverrides {
 	private boolean overrideH3IncludedUrls = false;
 
 	@Column(name = "PO_H3_RAW_PROFILE")
-	@Lob // type="materialized_clob"
+	//@Lob // type="materialized_clob"
 	private String h3RawProfile;
 	@Column(name = "PO_H3_OR_RAW_PROFILE")
 	private boolean overrideH3RawProfile = false;

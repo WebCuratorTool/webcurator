@@ -24,9 +24,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -45,7 +48,8 @@ import javax.persistence.*;
 public class Site extends AbstractIdentityObject implements Annotatable, AgencyOwnable {
     /** The database oid of the site */
     @Id
-    @Column(name="ST_OID", nullable =  false)
+    @NotNull
+    @Column(name="ST_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -58,26 +62,32 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The title of the site */
-    @Column(name = "ST_TITLE", length = 255, unique = true, nullable = false)
+    @Size(max=255)
+    @NotNull
+    @Column(name = "ST_TITLE")
     private String title;
     /** A description of the site */
-    @Column(name = "ST_DESC", length = 4000)
+    @Size(max=4000)
+    @Column(name = "ST_DESC")
     private String description;
     /** A set of notes about the site. */
     @Column(name = "ST_NOTES")
-    @Lob // type="materialized_clob"
+    //@Lob // type="materialized_clob"
     private String notes;
     /** A library order no. */
-    @Column(name = "ST_LIBRARY_ORDER_NO", length = 32)
+    @Size(max=32)
+    @Column(name = "ST_LIBRARY_ORDER_NO")
     private String libraryOrderNo;
     /** Whether the site has been published or not. */
-    @Column(name = "ST_PUBLISHED", nullable = false)
+    @NotNull
+    @Column(name = "ST_PUBLISHED")
     private boolean published;
     /** Site is active flag. */
-    @Column(name = "ST_ACTIVE", nullable = false)
+    @NotNull
+    @Column(name = "ST_ACTIVE")
     private boolean active = true;
     /** The date the Site was created */
-    @Column(name = "ST_CREATION_DATE", columnDefinition = "TIMESTAMP(9)")
+    @Column(name = "ST_CREATION_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
     /** The set of authorising agents (those who must provide permission to
@@ -86,8 +96,7 @@ public class Site extends AbstractIdentityObject implements Annotatable, AgencyO
     @ManyToMany
     @JoinTable(name = "SITE_AUTH_AGENCY",
             joinColumns = { @JoinColumn(name = "SA_SITE_ID") },
-            inverseJoinColumns = { @JoinColumn(name = "SA_AGENT_ID") },
-            foreignKey = @ForeignKey(name = "FK_SA_AGENT_ID"))
+            inverseJoinColumns = { @JoinColumn(name = "SA_AGENT_ID") })
     private Set<AuthorisingAgent> authorisingAgents = new HashSet<AuthorisingAgent>();
     /** A set of URL patterns that are encompassed by this site. */
     @OneToMany(orphanRemoval = true, cascade = {CascadeType.ALL}) // default fetch type is LAZY

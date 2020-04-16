@@ -15,6 +15,8 @@
  */
 package org.webcurator.domain.model.core;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -65,7 +67,8 @@ public class DublinCore {
 	
 	/** the unique id of this meta data set. */
 	@Id
-	@Column(name="DC_OID", nullable =  false)
+	@NotNull
+	@Column(name="DC_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -78,49 +81,64 @@ public class DublinCore {
 	@GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid;
 	/** A name given to the resource. */
-	@Column(name = "DC_TITLE", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_TITLE")
 	private String title;
 	/** An entity primarily responsible for making the content of the resource. */
-	@Column(name = "DC_CREATOR", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_CREATOR")
 	private String creator;
 	/** A topic of the content of the resource. */
-	@Column(name = "DC_SUBJECT", length = 2000)
+	@Size(max=2000)
+	@Column(name = "DC_SUBJECT")
 	private String subject;
 	/** An account of the content of the resource. */
-	@Column(name = "DC_DESCRIPTION", length = 2000)
+	@Size(max=2000)
+	@Column(name = "DC_DESCRIPTION")
 	private String description;
 	/** An entity responsible for making the resource available. */
-	@Column(name = "DC_PUBLISHER", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_PUBLISHER")
 	private String publisher;
 	/** An entity responsible for making contributions to the content of the resource. */
-	@Column(name = "DC_CONTRIBUTOR", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_CONTRIBUTOR")
 	private String contributor;
 	/** The nature or genre of the content of the resource. */
-	@Column(name = "DC_TYPE", length = 50)
+	@Size(max=50)
+	@Column(name = "DC_TYPE")
 	private String type;
 	/** The physical or digital manifestation of the resource. */
-	@Column(name = "DC_FORMAT", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_FORMAT")
 	private String format;
 	/** An unambiguous reference to the resource within a given context. */
-	@Column(name = "DC_IDENTIFIER", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_IDENTIFIER")
 	private String identifier;
 	/** A Reference to a resource from which the present resource is derived. */
-	@Column(name = "DC_SOURCE", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_SOURCE")
 	private String source;
 	/** A language of the intellectual content of the resource. */
-	@Column(name = "DC_LANGUAGE", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_LANGUAGE")
 	private String language;
 	/** A reference to a related resource. */
-	@Column(name = "DC_RELATION", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_RELATION")
 	private String relation;
 	/** The extent or scope of the content of the resource. */
-	@Column(name = "DC_COVERAGE", length = 255)
+	@Size(max=255)
+	@Column(name = "DC_COVERAGE")
 	private String coverage;
 	/** International Standard Serial Number. */
-	@Column(name = "DC_IDENTIFIER_ISSN", length = 9)
+	@Size(max=9)
+	@Column(name = "DC_IDENTIFIER_ISSN")
 	private String issn;
 	/** International Standard Book Number. */
-	@Column(name = "DC_IDENTIFIER_ISBN", length = 13)
+	@Size(max=13)
+	@Column(name = "DC_IDENTIFIER_ISBN")
 	private String isbn;
 	
 	/**

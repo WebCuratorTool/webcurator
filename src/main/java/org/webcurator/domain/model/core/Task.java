@@ -20,6 +20,8 @@ import java.util.Date;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -34,7 +36,8 @@ import javax.persistence.*;
 public class Task {
     /** The database OID of the task */
     @Id
-    @Column(name="TSK_OID", nullable =  false)
+    @NotNull
+    @Column(name="TSK_OID")
     // Note: From the Hibernate 4.2 documentation:
     // The Hibernate team has always felt such a construct as fundamentally wrong.
     // Try hard to fix your data model before using this feature.
@@ -47,36 +50,49 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid;
     /** The sender of the task */
-    @Column(name = "TSK_SENDER", length = 80, nullable = false)
+    @Size(max=80)
+    @NotNull
+    @Column(name = "TSK_SENDER")
     private String sender;
     /** The OID of the user the task is assigned to */
-    @Column(name = "TSK_USR_OID", nullable = true)
+    @Column(name = "TSK_USR_OID")
     private Long assigneeOid;
     /** The date the task was sent */
-    @Column(name = "TSK_SENT_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+    @NotNull
+    @Column(name = "TSK_SENT_DATE")
     @Temporal(TemporalType.TIMESTAMP)
     private Date sentDate;
     /** The subject of the task */
-    @Column(name = "TSK_SUBJECT", length = 255, nullable = false)
+    @Size(max=255)
+    @NotNull
+    @Column(name = "TSK_SUBJECT")
     private String subject;
     /** The message of the task */
-    @Column(name = "TSK_MESSAGE", length = 2000)
+    @Size(max=2000)
+    @Column(name = "TSK_MESSAGE")
     private String message;
     /** The privilege required to complete the task */
-    @Column(name = "TSK_PRIVILEGE", length = 40, nullable = true)
+    @Size(max=40)
+    @Column(name = "TSK_PRIVILEGE")
     private String privilege;
     /** The agency the task should be visible to */
     @ManyToOne
-    @JoinColumn(name = "TSK_AGC_OID", foreignKey = @ForeignKey(name = "FK_TASK_AGENCY_OID"), nullable = false)
+    @NotNull
+    @JoinColumn(name = "TSK_AGC_OID")
     private Agency agency;
     /** The database OID of the resource to which the task is related */
-    @Column(name = "TSK_RESOURCE_OID", nullable = false)
+    @NotNull
+    @Column(name = "TSK_RESOURCE_OID")
     private Long resourceOid;
     /** The classname of the resource to which the task is related */
-    @Column(name = "TSK_RESOURCE_TYPE", length = 80, nullable = false)
+    @Size(max=80)
+    @NotNull
+    @Column(name = "TSK_RESOURCE_TYPE")
     private String resourceType;
     /** The type of message */
-    @Column(name = "TSK_MSG_TYPE", length = 40, nullable = false)
+    @Size(max=40)
+    @NotNull
+    @Column(name = "TSK_MSG_TYPE")
     private String messageType;
     
     /** The name of the owner of the task */

@@ -20,6 +20,8 @@ import java.util.Date;
 import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.core.util.Utils;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 
@@ -41,7 +43,8 @@ public class MappingView {
 	
 	/** The oid of the mapping view record. */
 	@Id
-	@Column(name="UPM_OID", nullable =  false)
+	@NotNull
+	@Column(name="UPM_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -55,14 +58,16 @@ public class MappingView {
 	private Long oid;
 
 	/** The UrlPattern */
-	@Column(name = "UP_PATTERN", length = 2048)
+	@Size(max=2048)
+	@Column(name = "UP_PATTERN")
 	private String urlPattern;
 	/** The Permission end date*/
-	@Column(name = "PE_END_DATE", columnDefinition = "TIMESTAMP(9)")
+	@Column(name = "PE_END_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date endDate;
 	/** The calculated base domain */
-	@Column(name = "UPM_DOMAIN", length = 1024)
+	@Size(max=1024)
+	@Column(name = "UPM_DOMAIN")
 	private String domain;
 	/** The database id of the owning agency. */
 	@Column(name = "PE_OWNING_AGENCY_ID")
@@ -71,7 +76,8 @@ public class MappingView {
 	@Column(name = "PE_OID")
 	private Long permissionOId;
     /** Site is active flag. */
-    @Column(name = "ST_ACTIVE", nullable = false)
+    @NotNull
+    @Column(name = "ST_ACTIVE")
     private boolean siteActive = true;
 	
 	

@@ -10,6 +10,7 @@ import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.util.ConverterUtil;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 /**
@@ -41,7 +42,8 @@ public class Indicator {
 
 	/** unique identifier **/
 	@Id
-	@Column(name="I_OID", nullable =  false)
+	@NotNull
+	@Column(name="I_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -56,7 +58,8 @@ public class Indicator {
 	
 	/** The <code>Indicator</code> on which this <code>Indicator</code> is based.**/
 	@ManyToOne
-	@JoinColumn(name = "I_IC_OID", foreignKey = @ForeignKey(name = "FK_I_IC_OID"), nullable = false)
+	@NotNull
+	@JoinColumn(name = "I_IC_OID")
 	private IndicatorCriteria indicatorCriteria;
 	
 	/** The <code>TargetInstance</code> oid associated with this <code>Indicator</code> */
@@ -64,11 +67,13 @@ public class Indicator {
 	private Long targetInstanceOid;
 	
 	/** The name of the <code>Indicator</code> that will be displayed **/
-	@Column(name = "I_NAME", nullable = false)
+	@NotNull
+	@Column(name = "I_NAME")
 	private String name;
 	
 	/** The floating point value calculated for this <code>Indicator</code> by the rules engine **/
-	@Column(name = "I_FLOAT_VALUE", nullable = false)
+	@NotNull
+	@Column(name = "I_FLOAT_VALUE")
 	private Float floatValue;
 	
 	/** The upper limit set for this <code>Indicator</code> as a percentage (eg: +10%) **/
@@ -96,13 +101,15 @@ public class Indicator {
 	/**
 	 * The unit of measurement used for the <code>Indicator</code>.
 	 */
-	@Column(name = "I_UNIT", nullable = false)
+	@NotNull
+	@Column(name = "I_UNIT")
 	private String unit = null;
 	
 	/**
 	 * Display the delta between the reference crawl and the <code>TargetInstance</code> in the UI
 	 */
-	@Column(name = "I_SHOW_DELTA", nullable = false)
+	@NotNull
+	@Column(name = "I_SHOW_DELTA")
 	private Boolean showDelta = false;
 	
 	/**
@@ -114,11 +121,13 @@ public class Indicator {
 
     /** The agency the <code>Indicator</code> belongs to */
     @ManyToOne
-    @JoinColumn(name = "I_AGC_OID", foreignKey = @ForeignKey(name = "FK_I_AGENCY_OID"), nullable = false)
+    @NotNull
+    @JoinColumn(name = "I_AGC_OID")
     private Agency agency;
     
     /** The date and time on which this <code>Indicator</code> was created or updated **/
-	@Column(name = "I_DATE", columnDefinition = "TIMESTAMP(9)", nullable = false)
+	@NotNull
+	@Column(name = "I_DATE")
 	@Temporal(TemporalType.TIMESTAMP)
     private Date dateTime = null;
     

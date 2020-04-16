@@ -16,10 +16,13 @@
 package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.model.auth.Agency;
 
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 
@@ -106,7 +109,8 @@ public class Profile implements AgencyOwnable {
 		
 	/** The unique database ID of the profile. */
 	@Id
-	@Column(name="P_OID", nullable =  false)
+	@NotNull
+	@Column(name="P_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
@@ -120,11 +124,13 @@ public class Profile implements AgencyOwnable {
 	private Long oid;
 
 	/** The name of the profile. **/
-	@Column(name = "P_NAME", length = 255)
+	@Size(max=255)
+	@Column(name = "P_NAME")
 	private String name;
 	
 	/** The description of the profile. **/
-	@Column(name = "P_DESC", length = 255)
+	@Size(max=255)
+	@Column(name = "P_DESC")
 	private String description;
 	
 	/** The current status of the profile. **/
@@ -138,12 +144,12 @@ public class Profile implements AgencyOwnable {
 	
 	/** The agency that own's this profile */
 	@ManyToOne
-	@JoinColumn(name = "P_AGECNY_OID", foreignKey = @ForeignKey(name = "FK_P_AGENCY_OID"))
+	@JoinColumn(name = "P_AGECNY_OID")
 	private Agency owningAgency;
 
 	/** The profile itself, as an XML string */
 	@Column(name = "P_PROFILE_STRING")
-	@Lob // type="materialized_clob"
+	//@Lob // type="materialized_clob"
 	private String profile;
 	
 	/** Is this the default profile for the agency */

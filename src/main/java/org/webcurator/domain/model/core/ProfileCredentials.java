@@ -17,6 +17,8 @@ package org.webcurator.domain.model.core;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InvalidAttributeValueException;
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import javax.persistence.*;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -41,20 +43,24 @@ public abstract class ProfileCredentials {
 	public static final String TYPE_BASIC_CREDENTIALS = "org.archive.crawler.datamodel.credential.Rfc2617Credential";
 	
 	/** The domain to which these credentials apply. */
-	@Column(name = "PC_DOMAIN", length = 255)
+	@Size(max=255)
+	@Column(name = "PC_DOMAIN")
 	protected String credentialsDomain = null;
 	/** The username */
-	@Column(name = "PC_USERNAME", length = 255)
+	@Size(max=255)
+	@Column(name = "PC_USERNAME")
 	protected String username          = null;
 	/** The password */
-	@Column(name = "PC_PASSWORD", length = 255)
+	@Size(max=255)
+	@Column(name = "PC_PASSWORD")
 	protected String password          = null;
 	
 	
 	
 	/** The unique database ID of the profile. */
 	@Id
-	@Column(name="PC_OID", nullable =  false)
+	@NotNull
+	@Column(name="PC_OID")
 	// Note: From the Hibernate 4.2 documentation:
 	// The Hibernate team has always felt such a construct as fundamentally wrong.
 	// Try hard to fix your data model before using this feature.
