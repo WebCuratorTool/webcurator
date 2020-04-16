@@ -73,11 +73,11 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
 
+    @Value("${ldap.enable}")
+    private String ldapEnable;
+
     @Value("${ldap.url}")
     private String ldapUrl;
-
-    @Value("${ldap.dn}")
-    private String ldapDn;
 
     @Value("${ldap.usrSearchBase}")
     private String ldapUsrSearchBase;
@@ -94,8 +94,12 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${ldap.contextSource.root}")
     private String ldapContextSourceRoot;
 
-    @Value("${ldap.contextSource.ldif}")
-    private String ldapContextSourceLdif;
+    @Value("${ldap.contextSource.manager.dn}")
+    private String ldapContextSourceManagerDn;
+
+    @Value("${ldap.contextSource.managerPassword}")
+    private String ldapContextSourceManagerPassword;
+
 
     @Autowired
     private LdapContextSource ldapContextSource;
@@ -167,28 +171,20 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-
-
-//        // Local LDAP server
-//        auth.ldapAuthentication()
-//                .userSearchBase("ou=people")
-//                .userSearchFilter("(uid={0})")
-//                .groupSearchBase("ou=groups")
-//                .groupSearchFilter("(member={0})")
-//                .ldapAuthoritiesPopulator(authoritiesPopulator())
-//                .contextSource()
-//                .root("dc=baeldung,dc=com")
-//                .ldif("classpath:users.ldif");
-
-        auth.ldapAuthentication()
+        // Set optional LDAP/AD configuration
+        if(ldapEnable.toLowerCase().equals("true")){
+            auth.ldapAuthentication()
                 .userSearchBase(ldapUsrSearchBase)
                 .userSearchFilter(ldapUsrSearchFilter)
                 .groupSearchBase(ldapGroupSearchBase)
                 .groupSearchFilter(ldapGroupSearchFilter)
                 .ldapAuthoritiesPopulator(authoritiesPopulator())
                 .contextSource()
-                .root(ldapContextSourceRoot)
-                .ldif(ldapContextSourceLdif);
+                    .url(ldapUrl)
+                    .managerDn(ldapContextSourceManagerDn)
+                    .managerPassword(ldapContextSourceManagerPassword)
+                    .root(ldapContextSourceRoot);
+        }
 
         auth.authenticationProvider(authenticationProvider());
     }
