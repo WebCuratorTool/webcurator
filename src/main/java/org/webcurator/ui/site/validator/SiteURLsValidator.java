@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.site.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrategy;
@@ -26,6 +27,7 @@ import org.webcurator.ui.site.command.UrlCommand;
  * Validate adding a url to a harvest autorisation.
  * @author nwaight
  */
+@Component
 public class SiteURLsValidator extends AbstractBaseValidator {
 
 	HierarchicalPermissionMappingStrategy strategy;

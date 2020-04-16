@@ -49,6 +49,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.admin.command.UserCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.CreateUserValidator;
 
 /**
  * Manages the creation flow for a User within WCT
@@ -73,6 +74,9 @@ public class CreateUserController {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    private CreateUserValidator createUserValidator;
+
     /** Default Constructor. */
     public CreateUserController() {
         log = LogFactory.getLog(CreateUserController.class);
@@ -88,7 +92,7 @@ public class CreateUserController {
     @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/create-user.html")
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute CreateUserCommand createUserCommand, BindingResult bindingResult)
             throws Exception {
-
+        createUserValidator.validate(createUserCommand, bindingResult);
         ModelAndView mav = new ModelAndView();
         mav.addObject(UserCommand.MDL_LOGGED_IN_USER, AuthUtil.getRemoteUserObject());
         if (createUserCommand != null) {

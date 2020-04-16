@@ -34,6 +34,7 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.SiteAuthorisingAgencyCommand;
+import org.webcurator.ui.site.validator.SiteAgencyValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
@@ -59,6 +60,8 @@ public class SiteAgencyController {
      */
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
+    @Autowired
+    private SiteAgencyValidator siteAgencyValidator;
 
     public SiteAgencyController() {
     }
@@ -74,8 +77,8 @@ public class SiteAgencyController {
 
     @RequestMapping(value = "/curator/site/agencies.html", method = {RequestMethod.GET, RequestMethod.POST})
     protected ModelAndView handle(HttpServletRequest aReq, HttpServletResponse aResp, SiteAuthorisingAgencyCommand cmd, BindingResult bindingResult) throws Exception {
+        siteAgencyValidator.validate(cmd, bindingResult);
         SiteEditorContext ctx = getEditorContext(aReq);
-
         // Handle Cancel
         if (WebUtils.hasSubmitParameter(aReq, "_cancel_auth_agent")) {
             Tab membersTab = siteController.getTabConfig().getTabByID("AUTHORISING_AGENCIES");

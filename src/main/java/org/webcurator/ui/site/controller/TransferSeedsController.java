@@ -41,6 +41,7 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.command.TransferSeedsCommand;
+import org.webcurator.ui.site.validator.TransferSeedsValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
@@ -67,7 +68,8 @@ public class TransferSeedsController {
 	/** Authority Manager */
 	@Autowired
 	private AuthorityManager authorityManager;
-
+	@Autowired
+	private TransferSeedsValidator transferSeedsValidator;
 
 	/**
 	 * Set up the controller by setting the command class.
@@ -83,6 +85,7 @@ public class TransferSeedsController {
 	@RequestMapping(value = "/curator/site/transfer.html", method = {RequestMethod.GET, RequestMethod.POST})
 	protected ModelAndView handle(HttpServletRequest req, HttpServletResponse res, TransferSeedsCommand command,
                                   BindingResult bindingResult) throws Exception {
+		transferSeedsValidator.validate(command, bindingResult);
 		if(TransferSeedsCommand.ACTION_CANCEL.equals(command.getActionCmd())) {
 			return handleCancel(req, res, command, bindingResult);
 		}

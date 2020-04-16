@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.site.validator;
 
+import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
@@ -24,6 +25,7 @@ import org.webcurator.ui.site.command.TransferSeedsCommand;
  * Validate transfering seeds from one permission to another.
  * @author bbeaumont
  */
+@Component
 public class TransferSeedsValidator extends AbstractBaseValidator {
 
 	public boolean supports(Class clazz) {

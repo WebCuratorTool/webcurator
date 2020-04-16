@@ -50,6 +50,7 @@ import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.ui.admin.command.CreateQaIndicatorCommand;
 import org.webcurator.ui.admin.command.QaIndicatorCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.CreateQaIndicatorValidator;
 
 /**
  * Manages the creation flow for a QA Indicator within WCT
@@ -71,6 +72,9 @@ public class CreateQaIndicatorController {
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private CreateQaIndicatorValidator createQaIndicatorValidator;
 
     /** Default Constructor. */
     public CreateQaIndicatorController() {
@@ -96,7 +100,7 @@ public class CreateQaIndicatorController {
     @PostMapping
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, CreateQaIndicatorCommand indicatorCmd, BindingResult bindingResult)
             throws Exception {
-
+        createQaIndicatorValidator.validate(indicatorCmd, bindingResult);
         ModelAndView mav = null;
         if (indicatorCmd != null) {
             if (bindingResult.hasErrors()) {

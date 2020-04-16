@@ -61,12 +61,12 @@ public class SitePermissionValidator extends AbstractBaseValidator {
 
 			if (!aErrors.hasErrors()) {
 				ValidatorUtil.validateStartBeforeEndTime(aErrors, cmd.getStartDate(), cmd.getEndDate(), "time.range", new Object[] {"End date", "Start date"}, "The end date is before the start date");
-				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getAuthResponse(), 32000, "string.maxlength", new Object[] {"Auth. Agency Response", "32000"}, "Auth. Agency Response is too long");
-				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getSpecialRequirements(), 2048, "string.maxlength", new Object[] {"Special Requirements", "2048"}, "Special Requirements is too long");
-				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getDisplayName(), 32, "string.maxlength", new Object[] {"Display name", "32"}, "Display name is too long");
-				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getCopyrightStatement(), 2048, "string.maxlength", new Object[] {"Copyright Statement", "2048"}, "Copyright Statement is too long");
-				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getCopyrightUrl(), 2048, "string.maxlength", new Object[] {"Copyright URL", "2048"}, "Copyright URL is too long");
-				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getFileReference(), Permission.MAX_FILE_REF_LENGTH, "string.maxlength", new Object[] {"File Reference", Permission.MAX_FILE_REF_LENGTH}, "File Reference is too long");
+				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getAuthResponse(), 32000, "string.maxlength", new Object[] {"Auth. Agency Response", "32000"}, "Auth. Agency Response is too long, maximum length: 32000");
+				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getSpecialRequirements(), 2048, "string.maxlength", new Object[] {"Special Requirements", "2048"}, "Special Requirements is too long, maximum length: 2048");
+				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getDisplayName(), 32, "string.maxlength", new Object[] {"Display name", "32"}, "Display name is too long, maximum length: 32");
+				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getCopyrightStatement(), 2048, "string.maxlength", new Object[] {"Copyright Statement", "2048"}, "Copyright Statement is too long, maximum length: 2048");
+				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getCopyrightUrl(), 2048, "string.maxlength", new Object[] {"Copyright URL", "2048"}, "Copyright URL is too long, maximum length: 2048");
+				ValidatorUtil.validateStringMaxLength(aErrors, cmd.getFileReference(), Permission.MAX_FILE_REF_LENGTH, "string.maxlength", new Object[] {"File Reference", Permission.MAX_FILE_REF_LENGTH}, "File Reference is too long, maximum length: "+Permission.MAX_FILE_REF_LENGTH);
 			}
 		}
 

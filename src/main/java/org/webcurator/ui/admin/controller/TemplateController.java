@@ -44,6 +44,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.PermissionTemplate;
 import org.webcurator.ui.admin.command.TemplateCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.TemplateValidator;
 
 /**
  * The Controller for managing the creation and modification of permission templates.
@@ -66,7 +67,8 @@ public class TemplateController {
     private MessageSource messageSource;
     /** the default Subject. */
     private String defaultSubject = "Web Preservation Programme";
-
+    @Autowired
+    private TemplateValidator templateValidator;
     @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -80,6 +82,7 @@ public class TemplateController {
 
     @RequestMapping(path = "/curator/admin/templates.html", method = RequestMethod.POST)
     protected ModelAndView processFormSubmission(TemplateCommand templateCommand, BindingResult bindingResult) throws Exception {
+        templateValidator.validate(templateCommand, bindingResult);
         ModelAndView mav = null;
         if (templateCommand != null) {
             if (bindingResult.hasErrors()) {

@@ -38,6 +38,7 @@ import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.MoveTargetsCommand;
+import org.webcurator.ui.groups.validator.MoveTargetsValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
@@ -57,8 +58,8 @@ public class MoveTargetsController {
 	/** the manager for checking privleges. */
 	@Autowired
 	private AuthorityManager authorityManager;
-
-
+	@Autowired
+	private MoveTargetsValidator moveTargetsValidator;
 
 	/** Default COnstructor. */
 	public MoveTargetsController() {
@@ -81,6 +82,7 @@ public class MoveTargetsController {
 	@RequestMapping(path = "/curator/groups/move-targets.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, MoveTargetsCommand command,
                                   BindingResult bindingResult) throws Exception {
+		//moveTargetsValidator.validate(command, bindingResult);
 		GroupsEditorContext ctx = getEditorContext(request);
 		if( MoveTargetsCommand.ACTION_MOVE_TARGETS.equals(command.getActionCmd())) {
 

@@ -54,6 +54,7 @@ import org.webcurator.domain.model.dto.HeatmapConfigDTO;
 import org.webcurator.ui.agent.command.BandwidthRestrictionsCommand;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.DateUtils;
+import org.webcurator.ui.agent.validator.BandwidthRestrictionValidator;
 
 /**
  * The controller for managing the creation, modification and deletion of
@@ -78,6 +79,8 @@ public class BandwidthRestrictionsController {
 	private Log log;
     @Autowired
 	private MessageSource messageSource;
+    @Autowired
+	private BandwidthRestrictionValidator bandwidthRestrictionValidator;
 
 	/** Default Constructor. */
 	public BandwidthRestrictionsController() {
@@ -112,7 +115,7 @@ public class BandwidthRestrictionsController {
 		if (log.isDebugEnabled()) {
 			log.debug("process command " + bandwidthRestrictionsCommand.getActionCmd());
 		}
-
+		bandwidthRestrictionValidator.validate(bandwidthRestrictionsCommand, bindingResult);
 		if (bandwidthRestrictionsCommand != null && bandwidthRestrictionsCommand.getActionCmd() != null) {
 			if (authorityManager.hasPrivilege(Privilege.MANAGE_WEB_HARVESTER, Privilege.SCOPE_ALL)) {
 				if (bandwidthRestrictionsCommand.getActionCmd().equals(BandwidthRestrictionsCommand.ACTION_EDIT)) {

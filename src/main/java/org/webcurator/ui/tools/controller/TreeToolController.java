@@ -66,6 +66,7 @@ import org.webcurator.core.util.XMLConverter;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.tools.command.TreeToolCommand;
+import org.webcurator.ui.tools.validator.TreeToolValidator;
 import org.xml.sax.SAXException;
 
 /**
@@ -76,6 +77,8 @@ import org.xml.sax.SAXException;
 @SuppressWarnings("all")
 @Controller
 public class TreeToolController {
+	@Autowired
+	private TreeToolValidator treeToolValidator;
 
 	public class AQAElement
 	{
@@ -157,7 +160,8 @@ public class TreeToolController {
 	@SuppressWarnings("unchecked")
 	@RequestMapping(path = "/curator/tools/treetool.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(HttpServletRequest req, TreeToolCommand command, BindingResult bindingResult)	throws Exception {
-//		TreeToolCommand command = (TreeToolCommand) comm;
+		treeToolValidator.validate(command, bindingResult);
+		//		TreeToolCommand command = (TreeToolCommand) comm;
 		TargetInstance ti = (TargetInstance) req.getSession().getAttribute("sessionTargetInstance");
 
 		// If the tree is not loaded then load the tree into session

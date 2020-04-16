@@ -51,6 +51,8 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.ui.admin.command.QaIndicatorCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.CreateFlagValidator;
+
 /**
  * Manages the QA Indicator Administration view and the actions associated with a IndicatorCriteria
  * @author twoods
@@ -71,6 +73,9 @@ public class QaIndicatorController {
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
+    @Autowired
+    private CreateFlagValidator createFlagValidator;
+
     /** Default Constructor. */
     public QaIndicatorController() {
         log = LogFactory.getLog(QaIndicatorController.class);
@@ -101,7 +106,7 @@ public class QaIndicatorController {
     @PostMapping
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, QaIndicatorCommand qaIndicatorCmd, BindingResult bindingResult)
             throws Exception {
-
+        createFlagValidator.validate(qaIndicatorCmd, bindingResult);
         ModelAndView mav = new ModelAndView();
         if (qaIndicatorCmd != null) {
 

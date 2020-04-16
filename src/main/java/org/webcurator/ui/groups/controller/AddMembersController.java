@@ -37,6 +37,7 @@ import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddMembersCommand;
+import org.webcurator.ui.groups.validator.AddMembersValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
@@ -56,7 +57,8 @@ public class AddMembersController {
 	/** the manager for checking privleges. */
 	@Autowired
 	private AuthorityManager authorityManager;
-
+	@Autowired
+	private AddMembersValidator addMembersValidator;
 	public class MemberSelection
 	{
 		private Long oid;
@@ -145,6 +147,7 @@ public class AddMembersController {
 	@RequestMapping(path = "/curator/groups/add-members.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, AddMembersCommand command,
                                   BindingResult bindingResult) throws Exception {
+		addMembersValidator.validate(command, bindingResult);
 		if( AddMembersCommand.ACTION_ADD_MEMBERS.equals(command.getActionCmd())) {
 			TargetGroup group = getEditorContext(request).getTargetGroup();
 

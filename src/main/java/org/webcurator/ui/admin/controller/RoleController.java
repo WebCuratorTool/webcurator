@@ -54,6 +54,7 @@ import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.admin.command.RoleCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.RoleValidator;
 
 /**
  * The Controller for creation and management of Roles within the
@@ -79,6 +80,9 @@ public class RoleController {
     public RoleController() {
         log = LogFactory.getLog(RoleController.class);
     }
+
+    @Autowired
+    private RoleValidator roleValidator;
 
     @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
@@ -117,6 +121,7 @@ public class RoleController {
     @RequestMapping(path = "/curator/admin/role.html", method = RequestMethod.POST)
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute RoleCommand roleCommand, BindingResult bindingResult)
             throws Exception {
+        roleValidator.validate(roleCommand, bindingResult);
 
         if (roleCommand != null) {
             if (bindingResult.hasErrors()) {

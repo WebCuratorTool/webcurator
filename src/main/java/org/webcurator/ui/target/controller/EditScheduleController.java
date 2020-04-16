@@ -110,9 +110,10 @@ public class EditScheduleController {
 		return (AbstractTargetEditorContext) req.getSession().getAttribute(contextSessionKey);
 	}
 
-	protected ModelAndView handle(@Validated @ModelAttribute("targetSchedulesCommand") TargetSchedulesCommand command,
+	protected ModelAndView handle(@ModelAttribute("targetSchedulesCommand") TargetSchedulesCommand command,
                                   HttpServletRequest request, HttpServletResponse response, BindingResult bindingResult)
             throws Exception {
+    	validator.validate(command, bindingResult);
 		if(TargetSchedulesCommand.ACTION_EDIT.equals(command.getActionCmd())) {
 			return handleEdit(request, command, bindingResult);
 		}

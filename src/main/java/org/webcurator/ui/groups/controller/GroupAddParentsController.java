@@ -36,6 +36,7 @@ import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddParentsCommand;
+import org.webcurator.ui.groups.validator.AddParentsValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
@@ -56,7 +57,8 @@ public class GroupAddParentsController {
 	/** the manager for checking privleges. */
 	@Autowired
 	private AuthorityManager authorityManager;
-
+	@Autowired
+	private AddParentsValidator addParentsValidator;
 
 	/**
 	 * Retrive the editor context for the groups controller.
@@ -78,6 +80,7 @@ public class GroupAddParentsController {
 
 	protected ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object comm,
                                   BindingResult bindingResult) throws Exception {
+		addParentsValidator.validate(comm, bindingResult);
 
 		AddParentsCommand command = (AddParentsCommand) comm;
 		TargetGroup target = getEditorContext(request).getTargetGroup();

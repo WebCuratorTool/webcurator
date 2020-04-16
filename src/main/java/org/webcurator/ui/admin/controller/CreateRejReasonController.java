@@ -49,6 +49,7 @@ import org.webcurator.domain.model.core.RejReason;
 import org.webcurator.ui.admin.command.CreateRejReasonCommand;
 import org.webcurator.ui.admin.command.RejReasonCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.CreateRejReasonValidator;
 
 /**
  * Manages the creation flow for a Rejection Reason within WCT
@@ -69,7 +70,8 @@ public class CreateRejReasonController {
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
-
+    @Autowired
+    private CreateRejReasonValidator createRejReasonValidator;
     /** Default Constructor. */
     public CreateRejReasonController() {
         log = LogFactory.getLog(CreateRejReasonController.class);
@@ -89,7 +91,7 @@ public class CreateRejReasonController {
     @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/create-rejreason.html")
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute CreateRejReasonCommand createRejReasonCommand, BindingResult bindingResult)
             throws Exception {
-
+        createRejReasonValidator.validate(createRejReasonCommand, bindingResult);
         ModelAndView mav = null;
 
         if (createRejReasonCommand != null) {

@@ -42,6 +42,7 @@ import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.ui.admin.command.AgencyCommand;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.admin.validator.AgencyValidator;
 
 /**
  * Manages the Agency Administration view and the actions associated with a Agency
@@ -64,6 +65,9 @@ public class AgencyController {
     @Autowired
 	private WCTTreeSet dublinCoreTypesList;
 
+    @Autowired
+    private AgencyValidator agencyValidator;
+
     public AgencyController() {
         log = LogFactory.getLog(AgencyController.class);
     }
@@ -82,6 +86,7 @@ public class AgencyController {
 
     @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/agency.html")
     protected ModelAndView processFormSubmission(@ModelAttribute AgencyCommand agencyCommand, BindingResult bindingResult) throws Exception {
+        agencyValidator.validate(agencyCommand, bindingResult);
 
         ModelAndView mav = null;
         if (agencyCommand != null) {
