@@ -825,10 +825,10 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		}
 		private void collectSchedules(AbstractTarget aTarget) {
 			Map<Object,Object> duplicateValidator=new HashMap<>();
-			collectSchedulesInterval(aTarget, duplicateValidator);
+			collectSchedulesInternal(aTarget, duplicateValidator);
 			duplicateValidator.clear();
 		}
-		private void collectSchedulesInterval(AbstractTarget aTarget, Map<Object,Object> duplicateValidator) {
+		private void collectSchedulesInternal(AbstractTarget aTarget, Map<Object,Object> duplicateValidator) {
 			if(duplicateValidator.containsKey(aTarget)){
 				return;
 			}else{
@@ -839,7 +839,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 
 			// Get all the schedules from parents.
 			for(GroupMember gm: aTarget.getParents()) {
-				collectSchedulesInterval(gm.getParent(), duplicateValidator);
+				collectSchedulesInternal(gm.getParent(), duplicateValidator);
 			}
 			
 		}
