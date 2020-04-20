@@ -73,8 +73,8 @@ public class GroupMember {
 	@JoinColumn(name = "GM_PARENT_ID")
 	private TargetGroup parent = null;
 	/** The child */
-	@ManyToOne
-	@JoinColumn(name = "GM_CHILD_ID")
+	@ManyToOne(cascade = CascadeType.REFRESH)
+	@JoinColumn(name = "GM_CHILD_ID", foreignKey = @ForeignKey(name = "FK_GM_CHILD_ID"))
 	private AbstractTarget child = null;
 
 	

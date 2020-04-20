@@ -82,7 +82,8 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
                             log.debug("Before Saving of Target");
-                            currentSession().saveOrUpdate(aTarget);
+                            Session session=currentSession();
+                            session.saveOrUpdate(aTarget);
 
                             if (parents != null) {
                                 for (GroupMemberDTO parent : parents) {
@@ -94,11 +95,11 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
                                             member.setChild(aTarget);
                                             grp.getChildren().add(member);
                                             aTarget.getParents().add(member);
-                                            currentSession().save(member);
+                                            session.save(member);
                                             break;
 
                                         case DELETED:
-                                            currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+                                            session.createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
                                                     .setParameter("childOid", aTarget.getOid())
                                                     .setParameter("parentOid", parent.getParentOid())
                                                     .executeUpdate();
@@ -855,45 +856,70 @@ public class TargetDAOImpl extends BaseDAOImpl implements TargetDAO {
 
     @SuppressWarnings("unchecked")
     public Set<Long> getAncestorOids(final Long childOid) {
+        Map<Long, Long> duplicateValidator=new HashMap<>();
+        Set<Long> parents=getAncestorOidsInternal(childOid,duplicateValidator);
+        duplicateValidator.clear();
+        return parents;
+    }
+    private Set<Long> getAncestorOidsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
         if (childOid == null) {
             return Collections.EMPTY_SET;
-        } else {
-            Set<Long> parentOids = new HashSet<Long>();
-
-            List<Long> immediateParents = getHibernateTemplate().execute(session ->
-                    session.createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
-                            .setParameter("childOid", childOid)
-                            .list());
-
-            for (Long parentOid : immediateParents) {
-                parentOids.add(parentOid);
-                parentOids.addAll(getAncestorOids(parentOid));
-            }
-
-            return parentOids;
         }
-    }
 
+        if(!duplicateValidator.containsKey(childOid.longValue())){
+            duplicateValidator.put(childOid.longValue(), childOid);
+        }
+
+        Set<Long> parentOids = new HashSet<Long>();
+
+        List<Long> immediateParents = getHibernateTemplate().execute(session ->
+                session.createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
+                        .setParameter("childOid", childOid)
+                        .list());
+
+        for (Long parentOid : immediateParents) {
+            if(!duplicateValidator.containsKey(parentOid.longValue())) {
+                parentOids.add(parentOid);
+                parentOids.addAll(getAncestorOidsInternal(parentOid, duplicateValidator));
+            }
+        }
+
+        return parentOids;
+
+    }
 
     @SuppressWarnings("unchecked")
     public Set<AbstractTargetDTO> getAncestorDTOs(final Long childOid) {
+        Map<Long, Long> duplicateValidator=new HashMap<>();
+        Set<AbstractTargetDTO> parents=getAncestorDTOsInternal(childOid,duplicateValidator);
+        duplicateValidator.clear();
+        return parents;
+    }
+
+    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
         if (childOid == null) {
             return Collections.EMPTY_SET;
-        } else {
-            Set<AbstractTargetDTO> parents = new HashSet<AbstractTargetDTO>();
-
-            List<AbstractTargetDTO> immediateParents = getHibernateTemplate().execute(session ->
-                    session.createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
-                            .setParameter("childOid", childOid)
-                            .list());
-
-            for (AbstractTargetDTO parent : immediateParents) {
-                parents.add(parent);
-                parents.addAll(getAncestorDTOs(parent.getOid()));
-            }
-
-            return parents;
         }
+
+        if(!duplicateValidator.containsKey(childOid.longValue())) {
+            duplicateValidator.put(childOid.longValue(),childOid);
+        }
+
+        Set<AbstractTargetDTO> parents = new HashSet<AbstractTargetDTO>();
+
+        List<AbstractTargetDTO> immediateParents = getHibernateTemplate().execute(session ->
+                session.createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
+                        .setParameter("childOid", childOid)
+                        .list());
+
+        for (AbstractTargetDTO parent : immediateParents) {
+            if(!duplicateValidator.containsKey(parent.getOid().longValue())) {
+                parents.add(parent);
+                parents.addAll(getAncestorDTOsInternal(parent.getOid(), duplicateValidator));
+            }
+        }
+
+        return parents;
     }
 
 

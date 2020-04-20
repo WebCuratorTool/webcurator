@@ -76,7 +76,7 @@ public class MembersRemovedEventPropagator {
 	 * @param targetManager The TargetManager to use
 	 * @param instanceManager The InstanceManager to use.
 	 * @param parent The parent that the member was added to.
-	 * @param member The AbstractTarget removed.
+	 * @param item The AbstractTarget removed.
 	 */
 	public MembersRemovedEventPropagator(TargetManager targetManager, TargetInstanceManager instanceManager, TargetGroup parent, AbstractTarget item) {
 		this(targetManager, instanceManager, parent, new LinkedList<AbstractTarget>());
@@ -151,6 +151,17 @@ public class MembersRemovedEventPropagator {
 	 * @param propagate True to propagate scheduling; otherwise false.
 	 */
 	private void recurseUp(TargetGroup ancestor, boolean propagate) {
+		Map<Object,Object> duplicateValidator=new HashMap<>();
+		recurseUpInternal(ancestor,propagate,duplicateValidator);
+		duplicateValidator.clear();
+	}
+	private void recurseUpInternal(TargetGroup ancestor, boolean propagate, final Map<Object,Object> duplicateValidator) {
+		if (duplicateValidator.containsKey(ancestor)){
+			return;
+		}else{
+			duplicateValidator.put(ancestor, ancestor);
+		}
+
 		addUpdatedGroup(ancestor);
 		
 		// Scheduling must be propagated when the target group is
@@ -167,7 +178,7 @@ public class MembersRemovedEventPropagator {
 		
 		Set<GroupMember> parents = ancestor.getParents();
 		for(GroupMember gm: parents) {
-			recurseUp(gm.getParent(), propagate);
+			recurseUpInternal(gm.getParent(), propagate, duplicateValidator);
 		}		
 	}
 
