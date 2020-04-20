@@ -162,22 +162,9 @@ public class TargetManagerImpl implements TargetManager {
 
 		// Deal with removed schedules
 		for (Schedule schedule : aTarget.getRemovedSchedules()) {
-			//			TODO: for debug
-//			targetInstanceDao.deleteScheduledInstances(schedule);
-//			schedule.setTargetInstances(new HashSet<TargetInstance>());
-//			targetInstanceDao.save(schedule);
-
-			schedule.getTargetInstances().forEach(targetInstance -> {
-				if(targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)){
-					targetInstanceDao.delete(targetInstance);
-				}else{
-				    //Set the existing entity to null
-				    targetInstance.setSchedule(null);
-				    targetInstanceDao.save(targetInstance);
-                }
-			});
-			targetDao.delete(schedule);
-			log.debug("Delete schedule: "+schedule.getOid());
+			targetInstanceDao.deleteScheduledInstances(schedule);
+			schedule.setTargetInstances(new HashSet<TargetInstance>());
+			targetInstanceDao.delete(schedule);
 		}
 
 		// TODO: To be refined
@@ -197,20 +184,14 @@ public class TargetManagerImpl implements TargetManager {
 				if (!schedule.getOwningUser().equals(aTarget.getOwningUser())) {
 					newSchedulesAddedByNonOwner = true;
 				}
-			} else if(schedule.isSavedInThisSession()){ // If this schedule is not new and has already been saved via adding an annotation then it is in a buggy state.
-					//TODO: for debug
-//					targetInstanceDao.deleteScheduledInstances(schedule);
-					schedule.getTargetInstances().forEach(targetInstance -> {
-						if(targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)){
-							targetInstanceDao.delete(targetInstance);
-						}else{
-                            //Set the existing entity to null
-                            targetInstance.setSchedule(null);
-                            targetInstanceDao.save(targetInstance);
-                        }
-					});
-                    targetDao.delete(schedule);
-                    log.debug("schedule.isSavedInThisSession: "+schedule.getOid());
+			}
+			else {
+				// If this schedule is not new and has already been saved via adding an annotation then it is in a buggy state.
+				if(schedule.isSavedInThisSession()){
+					targetInstanceDao.deleteScheduledInstances(schedule);
+					schedule.setTargetInstances(new HashSet<TargetInstance>());
+					targetInstanceDao.save(schedule);
+				}
 			}
         }
 		
