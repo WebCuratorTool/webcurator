@@ -25,12 +25,10 @@ import javax.persistence.*;
 @PrimaryKeyJoinColumn(name = "AHRC_HARVEST_RESOURCE_OID")
 public class ArcHarvestResource extends HarvestResource {
 	/** The offset into the ARC file where this resource starts */
-	@Size(max=100)
 	@NotNull
 	@Column(name = "AHRC_RESOURCE_OFFSET")
 	private long resourceOffset;
 	/** The length of the resource in the ARC file. */
-	@Size(max=100)
 	@NotNull
 	@Column(name = "AHRC_RESOURCE_LENGTH")
 	private long resourceLength;
@@ -40,7 +38,6 @@ public class ArcHarvestResource extends HarvestResource {
 	@Column(name = "AHRC_ARC_FILE_NAME")
 	private String arcFileName;
 	/** Whether the resource (and ARC file) are compressed */
-	@Size(max=100)
 	@NotNull
 	@Column(name = "AHRC_COMPRESSED_YN")
 	private boolean compressed;
