@@ -35,6 +35,9 @@ local.properties
 /logs/
 /target/
 
+# the build folder is used by gradle for build artifacts
+build/
+
 *.eml
 
 ### Intellij ###
@@ -61,6 +64,8 @@ local.properties
 # IntelliJ
 /out/
 
-# Don't check in hs_err files
-hs_err*.log
-/build/
+### VS Code ###
+.vscode/
+
+## Gradle ##
+dep.txt

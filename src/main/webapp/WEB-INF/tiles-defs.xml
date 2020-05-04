@@ -1,0 +1,990 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+	<definition name=".header" template="/jsp/layouts/header.jsp">
+		<put-attribute name="page-help" value="Header Help" />
+	</definition>
+
+	<definition name=".generic-object-identifier"
+		template="/jsp/layouts/object-identifier-generic.jsp">
+		<put-attribute name="object-name" value="name" />
+	</definition>
+
+	<definition name=".subTabbedNamed" template="/jsp/layouts/sub-tabbed-named.jsp">
+		<put-attribute name="title" value="WEB CURATOR TOOL" />
+		<put-attribute name="header" value=".header" />
+		<put-attribute name="validation" value="/jsp/layouts/validation-messages.jsp" />
+		<put-attribute name="footer-nav" value="/jsp/layouts/footer-nav.jsp" />
+		<put-attribute name="footer" value="/jsp/layouts/footer.jsp" />
+		<put-attribute name="page-help" value="Subtabbed Layout Help" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="Name" />
+	</definition>
+
+	<definition name=".reportLayout" template="/jsp/layouts/basic-report.jsp">
+		<put-attribute name="title" value="Web Curator Tool" />
+		<put-attribute name="header" value=".header" />
+		<put-attribute name="validation" value="/jsp/layouts/validation-messages.jsp" />
+		<put-attribute name="footer" value="/jsp/layouts/footer.jsp" />
+		<put-attribute name="page-help" value="Report Layout Help" />
+	</definition>
+
+	<definition name=".mainLayout" template="/jsp/layouts/basic.jsp">
+		<put-attribute name="title" value="Web Curator Tool" />
+		<put-attribute name="header" value=".header" />
+		<put-attribute name="validation" value="/jsp/layouts/validation-messages.jsp" />
+		<put-attribute name="footer" value="/jsp/layouts/footer.jsp" />
+		<put-attribute name="page-help" value="Main Layout Help" />
+	</definition>
+
+	<definition name=".popup" template="/jsp/layouts/popup.jsp">
+		<put-attribute name="title" value="Web Curator Tool" />
+	</definition>
+
+
+	<definition name=".ajax" template="/jsp/layouts/blank-AJAX.jsp">
+	</definition>
+
+	<definition name="permission-popup" extends=".popup">
+		<put-attribute name="title" value="Permission Review" />
+		<put-attribute name="body" value="/jsp/permission-popup.jsp" />
+	</definition>
+
+	<definition name=".mainLayoutNew" template="/jsp/layouts/basic-new.jsp">
+		<put-attribute name="title" value="WEB CURATOR TOOL" />
+		<put-attribute name="header" value=".header" />
+		<put-attribute name="tab-nav" value="/jsp/layouts/tab-nav.jsp" />
+		<put-attribute name="validation" value="/jsp/layouts/validation-messages.jsp" />
+		<put-attribute name="footer-nav" value="/jsp/layouts/footer-nav.jsp" />
+		<put-attribute name="footer" value="/jsp/layouts/footer.jsp" />
+		<put-attribute name="page-help" value="Main Layout New Help" />
+	</definition>
+
+	<definition name=".errorLayout" template="/jsp/layouts/error-template.jsp">
+		<put-attribute name="title" value="WEB CURATOR TOOL" />
+		<put-attribute name="header" value=".header" />
+		<put-attribute name="page-icon" value="/jsp/layouts/page-icon-error.jsp" />
+		<put-attribute name="footer-nav" value="/jsp/layouts/footer-nav.jsp" />
+		<put-attribute name="footer" value="/jsp/layouts/footer.jsp" />
+		<put-attribute name="page-help" value="Error Help" />
+	</definition>
+
+	<definition name=".tabbedNew" template="/jsp/layouts/tabbed-new.jsp">
+		<put-attribute name="title" value="WEB CURATOR TOOL" />
+		<put-attribute name="header" value=".header" />
+		<put-attribute name="tab-nav" value="/jsp/layouts/tab-nav.jsp" />
+		<put-attribute name="validation" value="/jsp/layouts/validation-messages.jsp" />
+		<put-attribute name="footer-nav" value="/jsp/layouts/footer-nav.jsp" />
+		<put-attribute name="footer" value="/jsp/layouts/footer.jsp" />
+		<put-attribute name="page-help" value="Tabbed Layout Help" />
+	</definition>
+
+	<definition name=".subTabbed" template="/jsp/layouts/sub-tabbed.jsp">
+		<put-attribute name="title" value="WEB CURATOR TOOL" />
+		<put-attribute name="header" value=".header" />
+		<put-attribute name="validation" value="/jsp/layouts/validation-messages.jsp" />
+		<put-attribute name="footer-nav" value="/jsp/layouts/footer-nav.jsp" />
+		<put-attribute name="footer" value="/jsp/layouts/footer.jsp" />
+		<put-attribute name="page-help" value="Subtabbed Layout Help" />
+	</definition>
+
+	<definition name="ResetPassword" template="/jsp/reset-password.jsp">
+		<put-attribute name="validation" value="/jsp/layouts/validation-messages.jsp" />
+	</definition>
+
+	<definition name="ResetPasswordSuccess" extends=".mainLayout">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Password Changed" />
+		<put-attribute name="body" value="/jsp/reset-password-success.jsp" />
+	</definition>
+
+	<definition name="site-search" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Search Sites" />
+		<put-attribute name="body" value="/jsp/site-search.jsp" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="authorisations" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="https://github.com/DIA-NZ/webcurator/wiki" />
+	</definition>
+
+	<definition name="site" extends=".tabbedNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Harvest Authorisation" />
+		<put-attribute name="controller" value="curator/site/site.html" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="authorisations" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="https://github.com/DIA-NZ/webcurator/wiki" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-sites.jsp" />
+	</definition>
+
+	<definition name="site-agencies" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Harvest Authorisation Agencies" />
+		<put-attribute name="body" value="/jsp/auth-edit.jsp" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="authorisations" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-sites.jsp" />
+	</definition>
+
+	<definition name="site-auth-agency-search" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Harvest Authorisation Agencies" />
+		<put-attribute name="body" value="/jsp/site-auth-agency-search.jsp" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="authorisations" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-sites.jsp" />
+	</definition>
+
+	<definition name="site-permissions" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Harvest Authorisation Permissions" />
+		<put-attribute name="body" value="/jsp/site-edit-permission.jsp" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="authorisations" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-sites.jsp" />
+	</definition>
+
+	<definition name="permission-search" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Harvest Authorisation Permissions" />
+		<put-attribute name="body" value="/jsp/permission-search.jsp" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="authorisations" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-sites.jsp" />
+	</definition>
+
+	<definition name="select-permission" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Site" />
+		<put-attribute name="body" value="/jsp/view-permissions.jsp" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="authorisations" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="generate-request" extends=".reportLayout">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Site" />
+		<put-attribute name="body" value="/jsp/generate-request.jsp" />
+		<put-attribute name="activeTab" value="authorisations" />
+		<put-attribute name="pageIcon" value="templates" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-auth.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="targetInstance" extends=".tabbedNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instance" />
+		<put-attribute name="controller" value="curator/target/target-instance.html" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="deposit-form-envelope" extends=".subTabbed">
+		<put-attribute name="title" value="Custom Deposit Form" />
+		<put-attribute name="body" value="/jsp/deposit-form-envelope.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="target" extends=".tabbedNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target" />
+		<put-attribute name="controller" value="curator/target/target.html" />
+		<put-attribute name="activeTab" value="targets" />
+		<put-attribute name="pageIcon" value="targets" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-targets.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-targets.jsp" />
+	</definition>
+
+	<definition name="groups-search" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Search Groups" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="body" value="/jsp/groups-search.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="groups" extends=".tabbedNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Groups" />
+		<put-attribute name="controller" value="curator/groups/groups.html" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-groups.jsp" />
+	</definition>
+
+	<definition name="group-add-members" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Groups" />
+		<put-attribute name="controller" value="curator/groups/groups.html" />
+		<put-attribute name="body" value="/jsp/group-add-members.jsp" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-groups.jsp" />
+	</definition>
+
+	<definition name="group-add-parents" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Groups" />
+		<put-attribute name="controller" value="curator/groups/groups.html" />
+		<put-attribute name="body" value="/jsp/group-add-parents.jsp" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-groups.jsp" />
+	</definition>
+
+	<definition name="group-move-targets" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Groups" />
+		<put-attribute name="controller" value="curator/groups/groups.html" />
+		<put-attribute name="body" value="/jsp/group-move-targets.jsp" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-groups.jsp" />
+	</definition>
+
+	<definition name="target-add-parents" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Targets" />
+		<put-attribute name="controller" value="curator/target/target.html" />
+		<put-attribute name="body" value="/jsp/target-add-parents.jsp" />
+		<put-attribute name="activeTab" value="targets" />
+		<put-attribute name="pageIcon" value="targets" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-targets.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-targets.jsp" />
+	</definition>
+
+
+	<definition name="target-schedule-edit" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Edit Schedule" />
+		<put-attribute name="body" value="/jsp/schedule-edit.jsp" />
+		<put-attribute name="activeTab" value="targets" />
+		<put-attribute name="pageIcon" value="targets" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-targets.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-targets.jsp" />
+	</definition>
+
+	<definition name="groups-schedule-edit" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Edit Schedule" />
+		<put-attribute name="body" value="/jsp/schedule-edit.jsp" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-groups.jsp" />
+	</definition>
+
+	<definition name="target-basic-credentials" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target" />
+		<put-attribute name="body" value="/jsp/basic-credentials.jsp" />
+		<put-attribute name="activeTab" value="targets" />
+		<put-attribute name="pageIcon" value="targets" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-targets.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-targets.jsp" />
+	</definition>
+
+	<definition name="ti-basic-credentials" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instances" />
+		<put-attribute name="body" value="/jsp/basic-credentials.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="target-form-credentials" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target " />
+		<put-attribute name="body" value="/jsp/form-credentials.jsp" />
+		<put-attribute name="activeTab" value="targets" />
+		<put-attribute name="pageIcon" value="targets" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-targets.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-targets.jsp" />
+	</definition>
+
+	<definition name="ti-form-credentials" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instances" />
+		<put-attribute name="body" value="/jsp/form-credentials.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="group-basic-credentials" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instances" />
+		<put-attribute name="body" value="/jsp/basic-credentials.jsp" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-groups.jsp" />
+	</definition>
+
+	<definition name="group-form-credentials" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instances" />
+		<put-attribute name="body" value="/jsp/form-credentials.jsp" />
+		<put-attribute name="activeTab" value="groups" />
+		<put-attribute name="pageIcon" value="groups" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-groups.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-groups.jsp" />
+	</definition>
+
+	<definition name="profile-view" extends=".popup">
+		<put-attribute name="title" value="View Profile" />
+		<put-attribute name="body" value="/jsp/profile-view.jsp" />
+	</definition>
+
+	<definition name="h3-script-console" extends=".popup">
+		<put-attribute name="title" value="H3 Script Console" />
+		<put-attribute name="body" value="/jsp/h3-script-console.jsp" />
+	</definition>
+
+	<definition name="profile" extends=".tabbedNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Profiles" />
+		<put-attribute name="controller" value="curator/profiles/profiles.html" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-heritrix1-config.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-profiles.jsp" />
+	</definition>
+
+	<definition name="profileH3" extends=".tabbedNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Profiles H3" />
+		<put-attribute name="controller" value="curator/profiles/profilesH3.html" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-heritrix3-config.jsp" />
+		<put-attribute name="page-help"
+			 value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-profiles.jsp" />
+	</definition>
+
+	<definition name="imported-profileH3" extends=".tabbedNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Profiles H3" />
+		<put-attribute name="controller" value="curator/profiles/imported-profilesH3.html" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-heritrix3-config.jsp" />
+		<put-attribute name="page-help"
+			 value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-profiles.jsp" />
+	</definition>
+
+	<definition name="profile-list" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Profiles" />
+		<put-attribute name="body" value="/jsp/profiles-list.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-config.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="profile-targets" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Profiles" />
+		<put-attribute name="body" value="/jsp/profile-targets.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-config.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="Error" extends=".errorLayout">
+		<put-attribute name="title" value="Error" />
+		<put-attribute name="body" value="/jsp/layouts/Error.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+
+	<definition name="max-file-size-exceeeded" extends=".errorLayout">
+		<put-attribute name="title" value="Maximum File Upload Size Exceeeded" />
+		<put-attribute name="body" value="/jsp/max-file-size-exceeeded.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="NoObjectFound" extends=".errorLayout">
+		<put-attribute name="title" value="Object Not Found" />
+		<put-attribute name="body" value="/jsp/no-object-found.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<!-- Manage Harvest Agents Views -->
+	<definition name="ManageHarvestAgents" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Manage Harvest Agents" />
+		<put-attribute name="body" value="/jsp/harvest-agents.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-config.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="HarvestAgentDetail" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Harvest Agent Detail" />
+		<put-attribute name="body" value="/jsp/harvest-agent-detail.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-config.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="ManageBandwidth" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Manage Bandwidth Restrictions" />
+		<put-attribute name="body" value="/jsp/bandwidth.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-config.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="EditBandwidth" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Edit Bandwidth Restrictions" />
+		<put-attribute name="body" value="/jsp/bandwidth-edit.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="harvestConfig" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-harvest-config.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="TargetInstanceQueue" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instances" />
+		<put-attribute name="body" value="/jsp/queue.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="TargetInstanceQaQueue" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instances" />
+		<put-attribute name="body" value="/jsp/qa-queue.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="TargetInstanceQaSummary" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instance QA Summary" />
+		<put-attribute name="body" value="/jsp/qa-ti-summary.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="QaIndicatorReport" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instance QA Summary" />
+		<put-attribute name="body" value="/jsp/qa-indicator-report.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="QaIndicatorRobotsReport" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Target Instance QA Summary" />
+		<put-attribute name="body" value="/jsp/qa-indicator-robots-report.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="TargetAnnotationHistory" template="/jsp/target_annotations_via_ajax.jsp">
+	</definition>
+
+	<definition name="TIAnnotationHistory" template="/jsp/ti_annotations_via_ajax.jsp">
+	</definition>
+
+	<definition name="submit-to-archive" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Submit to archive" />
+		<put-attribute name="body" value="/jsp/submit-to-archive.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="submit-to-archive2" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Submit to archive" />
+		<put-attribute name="body" value="/jsp/submit-to-archive2.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+
+	<definition name="HarvestNow" extends=".subTabbed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Harvest Now" />
+		<put-attribute name="body" value="/jsp/harvest-now.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="LogReader" extends=".popup">
+		<put-attribute name="title" value="Log Viewer" />
+		<put-attribute name="body" value="/jsp/log-reader.jsp" />
+	</definition>
+
+	<definition name="HopPathReader" extends=".popup">
+		<put-attribute name="title" value="Hop path Viewer" />
+		<put-attribute name="body" value="/jsp/hop-path-reader.jsp" />
+	</definition>
+
+	<definition name="AQAReader" extends=".popup">
+		<put-attribute name="title" value="AQA Viewer" />
+		<put-attribute name="body" value="/jsp/aqa-reader.jsp" />
+	</definition>
+
+	<definition name="MessageView" extends=".mainLayout">
+		<put-attribute name="title" value="Message" />
+		<put-attribute name="body" value="/jsp/message.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="HomeView" extends=".mainLayout">
+		<put-attribute name="title" value="WEB CURATOR TOOL" />
+		<put-attribute name="body" value="/jsp/home.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="QaHomeView" extends=".mainLayout">
+		<put-attribute name="title" value="WEB CURATOR TOOL" />
+		<put-attribute name="body" value="/jsp/qa-home.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<!-- Browse Tool does not use any templates -->
+	<definition name="browse-tool-other" template="/jsp/browse-tool-other.jsp" />
+	<definition name="browse-tool-other-small" template="/jsp/browse-tool-other-small.jsp" />
+	<definition name="browse-tool-html" template="/jsp/browse-tool-html.jsp" />
+
+	<definition name="browse-tool-not-found" extends=".popup">
+		<put-attribute name="title" value="Resource not found" />
+		<put-attribute name="body" value="/jsp/browse-tool-not-found.jsp" />
+	</definition>
+
+	<definition name="browse-tool-error" extends=".popup">
+		<put-attribute name="title" value="Browse Error" />
+		<put-attribute name="body" value="/jsp/browse-error.jsp" />
+	</definition>
+
+	<definition name="TreeTool" extends=".subTabbed">
+		<put-attribute name="title" value="Quality Review Tree Tool" />
+		<put-attribute name="body" value="/jsp/tree-tool.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="TreeToolAJAX" extends=".ajax">
+		<put-attribute name="body" value="/jsp/tree-tool-AJAX.jsp" />
+	</definition>
+
+	<definition name="harvest-history" extends=".subTabbed">
+		<put-attribute name="title" value="Quality Review - Harvest History" />
+		<put-attribute name="body" value="/jsp/harvest-history.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="quality-review-toc" extends=".subTabbed">
+		<put-attribute name="title" value="Quality Review Tools" />
+		<put-attribute name="body" value="/jsp/quality-review-toc.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
+	<definition name="target-search" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Search Targets" />
+		<put-attribute name="body" value="/jsp/target-search.jsp" />
+		<put-attribute name="activeTab" value="targets" />
+		<put-attribute name="pageIcon" value="targets" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-targets.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="object-locked" extends=".mainLayout">
+		<put-attribute name="title" value="Object is Locked" />
+		<put-attribute name="body" value="/jsp/object-locked.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="Roles" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Manage Roles" />
+		<put-attribute name="body" value="/jsp/view-roles.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="AddRole" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Add Role" />
+		<put-attribute name="body" value="/jsp/add-role.jsp" />
+		<put-attribute name="activeTab" value="managements" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="Role" />
+	</definition>
+
+	<definition name="viewReasons" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: View Rejection Reasons" />
+		<put-attribute name="body" value="/jsp/view-rejreasons.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="newReason" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Create Rejection Reason" />
+		<put-attribute name="body" value="/jsp/add-reason.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="Rejection Reason" />
+	</definition>
+
+	<definition name="viewIndicators" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: View QA Indicators" />
+		<put-attribute name="body" value="/jsp/view-qaindicators.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title"
+			value="/jsp/layouts/page-title-users-roles-agencies-indicators.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="newIndicator" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Create QA Indicator" />
+		<put-attribute name="body" value="/jsp/add-qaindicator.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title"
+			value="/jsp/layouts/page-title-users-roles-agencies-indicators.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="QA Indicator" />
+	</definition>
+
+	<definition name="viewFlags" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: View Flags" />
+		<put-attribute name="body" value="/jsp/view-flags.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title"
+			value="/jsp/layouts/page-title-users-roles-agencies-indicators.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="newFlag" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Create Flag" />
+		<put-attribute name="body" value="/jsp/add-flag.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title"
+			value="/jsp/layouts/page-title-users-roles-agencies-indicators.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="QA Indicator" />
+	</definition>
+
+	<definition name="viewUsers" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: View Users" />
+		<put-attribute name="body" value="/jsp/view-users.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="newUser" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Register Users" />
+		<put-attribute name="body" value="/jsp/add-user.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="User" />
+	</definition>
+
+	<definition name="viewUserRoleAssociations" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: View User/Role associations" />
+		<put-attribute name="body" value="/jsp/view-userroles.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="Users Role Associations" />
+	</definition>
+
+	<definition name="viewAgencies" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Manage Agency" />
+		<put-attribute name="body" value="/jsp/view-agencies.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="newAgency" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: New Agency" />
+		<put-attribute name="body" value="/jsp/add-agency.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="Agency" />
+	</definition>
+
+	<definition name="change-password" extends=".subTabbedNamed">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Change Password" />
+		<put-attribute name="body" value="/jsp/change-password.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="users" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-users-roles-agencies.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="Change Password" />
+	</definition>
+
+	<definition name="reporting" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Reporting" />
+		<put-attribute name="body" value="/jsp/reporting.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="reports" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-reports.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="reporting-preview" extends=".reportLayout">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Reporting Preview" />
+		<put-attribute name="body" value="/jsp/reporting-preview.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="reports" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-reports.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="reporting-save" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: Save Report" />
+		<put-attribute name="body" value="/jsp/reporting-save.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="reports" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-reports.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="reporting-email" extends=".mainLayoutNew">
+		<put-attribute name="title" value="WEB CURATOR TOOL: E-mail Report" />
+		<put-attribute name="body" value="/jsp/reporting-email.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="reports" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-reports.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="intray" extends=".mainLayoutNew">
+		<put-attribute name="title" value="In Tray" />
+		<put-attribute name="body" value="/jsp/intray.jsp" />
+		<put-attribute name="activeTab" value="intray" />
+		<put-attribute name="pageIcon" value="intray" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-intray.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="intray-notification" extends=".mainLayoutNew">
+		<put-attribute name="title" value="In Tray - View Notification" />
+		<put-attribute name="body" value="/jsp/view-notification.jsp" />
+		<put-attribute name="activeTab" value="intray" />
+		<put-attribute name="pageIcon" value="intray" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-intray.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="intray-task" extends=".mainLayoutNew">
+		<put-attribute name="title" value="In Tray - View Task" />
+		<put-attribute name="body" value="/jsp/view-task.jsp" />
+		<put-attribute name="activeTab" value="intray" />
+		<put-attribute name="pageIcon" value="intray" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-intray.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="management" extends=".mainLayoutNew">
+		<put-attribute name="title" value="System Management" />
+		<put-attribute name="body" value="/jsp/management.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="management" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-management.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="Qamanagement" extends=".mainLayoutNew">
+		<put-attribute name="title" value="System Management" />
+		<put-attribute name="body" value="/jsp/qa-management.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="management" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-management.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="view-templates" extends=".mainLayoutNew">
+		<put-attribute name="title" value="Request Permission Template Management" />
+		<put-attribute name="body" value="/jsp/view-templates.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="templates" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-permissions.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="view-template" extends=".subTabbedNamed">
+		<put-attribute name="title" value="Request Permission Template Management" />
+		<put-attribute name="body" value="/jsp/view-template.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="templates" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-permissions.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="View Template" />
+	</definition>
+
+	<definition name="add-template" extends=".subTabbedNamed">
+		<put-attribute name="title" value="Request Permission Template Management" />
+		<put-attribute name="body" value="/jsp/add-template.jsp" />
+		<put-attribute name="activeTab" value="management" />
+		<put-attribute name="pageIcon" value="templates" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-permissions.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value=".generic-object-identifier" />
+		<put-attribute name="object-name" value="Add/Edit Template" />
+	</definition>
+
+	<definition name="authorisation-failure" extends=".mainLayout">
+		<put-attribute name="title" value="Authorisation Failure" />
+		<put-attribute name="body" value="/jsp/authorisation-failure.jsp" />
+		<put-attribute name="page-help"
+			value="http://dia-nz.github.io/webcurator/" />
+	</definition>
+
+	<definition name="Logout" template="/jsp/logout.jsp" />
+
+</tiles-definitions>
