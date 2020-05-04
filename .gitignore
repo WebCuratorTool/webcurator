@@ -10,12 +10,9 @@
 .xdoclet
 nbproject
 
-### Gradle specific ###
-.gradle
-build/
-
 ### Eclipse ###
 .metadata
+.gradle
 bin/
 tmp/
 *.tmp
@@ -41,8 +38,10 @@ local.properties
 *.eml
 
 ### Intellij ###
-.idea
 *.iml
+
+## Directory-based project format:
+.idea/
 # if you remove the above rule, at least ignore the following:
 
 # User-specific stuff:
@@ -62,5 +61,6 @@ local.properties
 # IntelliJ
 /out/
 
-### VS Code ###
-.vscode/
+# Don't check in hs_err files
+hs_err*.log
+/build/
