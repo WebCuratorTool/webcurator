@@ -32,10 +32,8 @@ local.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-
 /logs/
 /target/
-DpsDepositError.log
 
 *.eml
 
