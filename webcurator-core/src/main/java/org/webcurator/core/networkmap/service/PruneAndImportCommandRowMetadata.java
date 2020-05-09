@@ -1,16 +1,17 @@
 package org.webcurator.core.networkmap.service;
 
-public class PruneAndImportCommandTargetMetadata {
+public class PruneAndImportCommandRowMetadata {
     private String url;
     private String option;
     private String name;
     private long length;
     private String contentType;
-    private long srcLastModified;
+    private long lastModified;
     private String content;
     private boolean replaceFlag;
-    private int uploadedFlag;
     private String tempFileName;
+    private int respCode;
+    private String respMsg;
 
     public String getUrl() {
         return url;
@@ -52,12 +53,12 @@ public class PruneAndImportCommandTargetMetadata {
         this.contentType = contentType;
     }
 
-    public long getSrcLastModified() {
-        return srcLastModified;
+    public long getLastModified() {
+        return lastModified;
     }
 
-    public void setSrcLastModified(long srcLastModified) {
-        this.srcLastModified = srcLastModified;
+    public void setLastModified(long lastModified) {
+        this.lastModified = lastModified;
     }
 
     public String getContent() {
@@ -76,19 +77,27 @@ public class PruneAndImportCommandTargetMetadata {
         this.replaceFlag = replaceFlag;
     }
 
-    public int getUploadedFlag() {
-        return uploadedFlag;
-    }
-
-    public void setUploadedFlag(int uploadedFlag) {
-        this.uploadedFlag = uploadedFlag;
-    }
-
     public String getTempFileName() {
         return tempFileName;
     }
 
     public void setTempFileName(String tempFileName) {
         this.tempFileName = tempFileName;
+    }
+
+    public int getRespCode() {
+        return respCode;
+    }
+
+    public void setRespCode(int respCode) {
+        this.respCode = respCode;
+    }
+
+    public String getRespMsg() {
+        return respMsg;
+    }
+
+    public void setRespMsg(String respMsg) {
+        this.respMsg = respMsg;
     }
 }

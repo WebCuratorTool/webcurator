@@ -25,12 +25,12 @@ import java.util.Set;
 
 /**
  * The Object for transfering Harvest Results between the web curator components.
- * @author bbeaumont 
+ * @author bbeaumont
  */
 public class HarvestResultDTO {
-	/** The unique ID of the HarvestResult */
-	protected Long oid;
-	/** the id of the target instance that this result belongs to. */
+    /** The unique ID of the HarvestResult */
+    protected Long oid;
+    /** the id of the target instance that this result belongs to. */
     protected Long targetInstanceOid;
     /** the date the result was created. */
     protected Date creationDate;
@@ -39,30 +39,30 @@ public class HarvestResultDTO {
     /** The harvests provenance note. */
     protected String provenanceNote;
     /** the resources that belong to this result. */
-	protected Map<String,HarvestResourceDTO> resources = new HashMap<String,HarvestResourceDTO>();
+    protected Map<String,HarvestResourceDTO> resources = new HashMap<String,HarvestResourceDTO>();
     /** Set of ARC files that belong to the harvest result. */
     protected Set<ArcHarvestFileDTO> arcFiles;
 
-	public HarvestResultDTO() {
-	}
+    public HarvestResultDTO() {
+    }
 
     /**
-    * Create a HarvestResultDTO from the HarvestResult, excluding the resources.
+     * Create a HarvestResultDTO from the HarvestResult, excluding the resources.
      * @param hrOid The HarvestResult to base the DTO on.
      * @param targetInstanceOid targetInstanceOid
      * @param creationDate creationDate
      * @param harvestNumber harvestNumber
      * @param provenanceNote provenanceNote
      */
-	public HarvestResultDTO(Long hrOid, Long targetInstanceOid, Date creationDate, int harvestNumber, String provenanceNote) {
-		this.oid = hrOid;
-		this.targetInstanceOid = targetInstanceOid;
-		this.creationDate = creationDate;
-		this.harvestNumber = harvestNumber;
-		this.provenanceNote = provenanceNote;
-	}
+    public HarvestResultDTO(Long hrOid, Long targetInstanceOid, Date creationDate, int harvestNumber, String provenanceNote) {
+        this.oid = hrOid;
+        this.targetInstanceOid = targetInstanceOid;
+        this.creationDate = creationDate;
+        this.harvestNumber = harvestNumber;
+        this.provenanceNote = provenanceNote;
+    }
 
-	/**
+    /**
      * @return Returns the resources.
      */
     public Map<String, HarvestResourceDTO> getResources() {
@@ -74,7 +74,7 @@ public class HarvestResultDTO {
     public void setResources(Map<String, HarvestResourceDTO> resources) {
         this.resources = resources;
     }
-    
+
     /**
      * @return Returns the targetInstanceOid.
      */
@@ -124,19 +124,19 @@ public class HarvestResultDTO {
         this.provenanceNote = provenanceNote;
     }
 
-	/**
-	 * @return the oid
-	 */
-	public Long getOid() {
-		return oid;
-	}
+    /**
+     * @return the oid
+     */
+    public Long getOid() {
+        return oid;
+    }
 
-	/**
-	 * @param oid the oid to set
-	 */
-	public void setOid(Long oid) {
-		this.oid = oid;
-	}
+    /**
+     * @param oid the oid to set
+     */
+    public void setOid(Long oid) {
+        this.oid = oid;
+    }
 
     /**
      * @return the set of ARC file DTO's.
@@ -172,6 +172,15 @@ public class HarvestResultDTO {
     public void index() throws IOException, ParseException {
         for(ArcHarvestFileDTO ahf: arcFiles) {
             this.getResources().putAll(ahf.index());
+        }
+    }
+
+    public void clear(){
+        if(this.arcFiles!=null){
+            this.arcFiles.clear();
+        }
+        if(this.resources!=null){
+            this.resources.clear();
         }
     }
 }

@@ -76,9 +76,9 @@ public class ResourceExtractorWarc extends ResourceExtractor {
         }
 
         String type = rec.getHeader().getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
-        if (type.equals(WARCConstants.REQUEST)) {
+        if (type.equals(org.archive.format.warc.WARCConstants.WARCRecordType.request.toString())) {
             res.setRequestParseFlag(true);
-        } else if (type.equals(WARCConstants.RESPONSE)) {
+        } else if (type.equals(org.archive.format.warc.WARCConstants.WARCRecordType.response.toString())) {
             res.setResponseParseFlag(true);
             res.setUrlAndDomain(header.getUrl());
             res.setOffset(header.getOffset());
@@ -108,7 +108,7 @@ public class ResourceExtractorWarc extends ResourceExtractor {
                 res.setContentType(httpHeaders.getValue(WARCConstants.CONTENT_TYPE));
             }
             httpHeaders.clear();
-        } else if (type.equals(WARCConstants.METADATA)) {
+        } else if (type.equals(org.archive.format.warc.WARCConstants.WARCRecordType.metadata.toString())) {
             res.setMetadataParseFlag(true);
             HttpHeaders httpHeaders = new HttpHeaderParser().parseHeaders(record);
             String sFetchTimeMs = httpHeaders.getValue("fetchTimeMs");

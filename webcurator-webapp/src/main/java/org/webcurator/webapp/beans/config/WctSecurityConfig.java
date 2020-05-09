@@ -155,6 +155,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers( "/scripts/**").permitAll()
                 .antMatchers("/harvest-coordinator/**").permitAll()
                 .antMatchers("**/digital-asset-store/**").permitAll()
+                .antMatchers( "/spa/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
                 .loginPage("/logon.jsp")
@@ -167,6 +168,8 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().logout()
                 .invalidateHttpSession(true)
                 .logoutSuccessUrl("/logon.jsp");
+
+        http.headers().frameOptions().sameOrigin();
     }
 
     @Autowired

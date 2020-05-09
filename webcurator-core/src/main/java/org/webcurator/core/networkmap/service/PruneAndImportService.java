@@ -5,21 +5,21 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public interface PruneAndImportService {
+public interface PruneAndImportService extends DefaultServiceInterface{
     Logger log = LoggerFactory.getLogger(PruneAndImportService.class);
     int RESP_CODE_SUCCESS = 0;
     int RESP_CODE_FILE_EXIST = 1;
-    int RESP_CODE_INVALID_REQUEST = 1000;
-    int RESP_CODE_ERROR_FILE_IO = 2000;
-    int RESP_CODE_ERROR_NETWORK_IO = 3000;
+    int RESP_CODE_INVALID_REQUEST = -1000;
+    int RESP_CODE_ERROR_FILE_IO = -2000;
+    int RESP_CODE_ERROR_NETWORK_IO = -3000;
     int FILE_EXIST_YES = 1;
     int FILE_EXIST_NO = -1;
 
-    PruneAndImportCommandResult uploadFile(String fileName, boolean replaceFlag, byte[] doc);
+    PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, String fileName, boolean replaceFlag, byte[] doc);
 
-    PruneAndImportCommandTarget downloadFile(String fileName);
+    PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName);
 
-    List<PruneAndImportCommandTargetMetadata> checkFiles(List<PruneAndImportCommandTargetMetadata> items);
+    PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items);
 
-    PruneAndImportCommandResult pruneAndImport(long job, int harvestResultNumber, int newHarvestResultNumber, List<PruneAndImportCommandTargetMetadata> dataset);
+    PruneAndImportCommandResult pruneAndImport(long job, int harvestResultNumber, int newHarvestResultNumber, List<PruneAndImportCommandRowMetadata> dataset);
 }

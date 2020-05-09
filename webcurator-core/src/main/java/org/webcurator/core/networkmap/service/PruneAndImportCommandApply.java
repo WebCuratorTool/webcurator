@@ -4,7 +4,7 @@ import java.util.List;
 
 public class PruneAndImportCommandApply {
     private String provenanceNote;
-    private List<PruneAndImportCommandTargetMetadata> dataset;
+    private List<PruneAndImportCommandRowMetadata> dataset;
 
     public String getProvenanceNote() {
         return provenanceNote;
@@ -14,11 +14,11 @@ public class PruneAndImportCommandApply {
         this.provenanceNote = provenanceNote;
     }
 
-    public List<PruneAndImportCommandTargetMetadata> getDataset() {
+    public List<PruneAndImportCommandRowMetadata> getDataset() {
         return dataset;
     }
 
-    public void setDataset(List<PruneAndImportCommandTargetMetadata> dataset) {
+    public void setDataset(List<PruneAndImportCommandRowMetadata> dataset) {
         this.dataset = dataset;
     }
 }

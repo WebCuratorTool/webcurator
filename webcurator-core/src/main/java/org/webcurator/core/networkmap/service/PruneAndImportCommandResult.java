@@ -1,9 +1,11 @@
 package org.webcurator.core.networkmap.service;
 
+import java.util.List;
+
 public class PruneAndImportCommandResult {
     private int respCode;
     private String respMsg;
-    private PruneAndImportCommandTargetMetadata metadata;
+    private List<PruneAndImportCommandRowMetadata> metadataDataset;
 
     public int getRespCode() {
         return respCode;
@@ -21,11 +23,11 @@ public class PruneAndImportCommandResult {
         this.respMsg = respMsg;
     }
 
-    public PruneAndImportCommandTargetMetadata getMetadata() {
-        return metadata;
+    public List<PruneAndImportCommandRowMetadata> getMetadataDataset() {
+        return metadataDataset;
     }
 
-    public void setMetadata(PruneAndImportCommandTargetMetadata metadata) {
-        this.metadata = metadata;
+    public void setMetadataDataset(List<PruneAndImportCommandRowMetadata> metadataDataset) {
+        this.metadataDataset = metadataDataset;
     }
 }

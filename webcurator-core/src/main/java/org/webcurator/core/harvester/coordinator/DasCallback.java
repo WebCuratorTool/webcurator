@@ -15,6 +15,8 @@
  */
 package org.webcurator.core.harvester.coordinator;
 
+import org.webcurator.domain.model.dto.SeedHistoryDTO;
+
 /**
  * Callback interface for the DAS. The DAS calls this interface when it
  * has completed/failed to archive a harvest.
@@ -36,4 +38,12 @@ public interface DasCallback {
 	 * @param message The error message received from the archive.
 	 */
 	public void failedArchiving(Long targetInstanceOid, String message);
+
+	/**
+	 * Query history seeds from the Core
+	 * @param targetInstanceOid The OID of the instance being archived.
+	 * @param harvestNumber The order number of the harvest.
+	 * @return The history seeds
+	 */
+	public SeedHistoryDTO querySeedHistory(Long targetInstanceOid, Integer harvestNumber);
 }

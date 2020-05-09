@@ -4,8 +4,10 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
+
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
+import org.webcurator.core.networkmap.service.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.notification.MailServerImpl;
 import org.webcurator.core.permissionmapping.HierPermMappingDAOImpl;
@@ -89,7 +92,7 @@ public class BaseConfig {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private  RestTemplateBuilder restTemplateBuilder;
+    private RestTemplateBuilder restTemplateBuilder;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -299,11 +302,11 @@ public class BaseConfig {
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
         hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
         // Include setting of default schema, unless the database type is mysql
-        if(!hibernateDialect.toLowerCase().contains("mysql")){
+        if (!hibernateDialect.toLowerCase().contains("mysql")) {
             hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
         }
         hibernateProperties.setProperty("hibernate.transaction.factory_class", "org.hibernate.transaction.JDBCTransactionFactory");
-        hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans","true");
+        hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans", "true");
 
         bean.setHibernateProperties(hibernateProperties);
 
@@ -324,7 +327,7 @@ public class BaseConfig {
     @Bean
     @Autowired
     public HibernateTransactionManager transactionManager() {
-        HibernateTransactionManager hibernateTransactionManager=new HibernateTransactionManager(sessionFactory().getObject());
+        HibernateTransactionManager hibernateTransactionManager = new HibernateTransactionManager(sessionFactory().getObject());
 //        hibernateTransactionManager.setTransactionSynchronization(AbstractPlatformTransactionManager.SYNCHRONIZATION_ALWAYS);
         return hibernateTransactionManager;
     }
@@ -345,8 +348,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public LogReader logReader(){
-        LogReader bean=new LogReaderImpl();
+    public LogReader logReader() {
+        LogReader bean = new LogReaderImpl();
         return bean;
     }
 
@@ -360,12 +363,26 @@ public class BaseConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public PruneAndImportService getPruneAndImportService() {
+        PruneAndImportRemoteClient client = new PruneAndImportRemoteClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
+        return client;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public DigitalAssetStoreFactoryImpl digitalAssetStoreFactory() {
         DigitalAssetStoreFactoryImpl bean = new DigitalAssetStoreFactoryImpl();
         bean.setDAS(digitalAssetStore());
         bean.setLogReader(new LogReaderClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder));
         return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false)
+    public NetworkMapService networkMapReomoteClient() {
+        return new NetworkMapRemoteClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
     }
 
     @Bean
@@ -503,8 +520,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public PermissionDAO permissionDAO(){
-        PermissionDAOImpl bean=new PermissionDAOImpl();
+    public PermissionDAO permissionDAO() {
+        PermissionDAOImpl bean = new PermissionDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
         return bean;
     }
@@ -644,7 +661,7 @@ public class BaseConfig {
 
         PermMappingSiteListener permMappingSiteListener = new PermMappingSiteListener();
         permMappingSiteListener.setStrategy(permissionMappingStrategy());
-        List<SiteManagerListener> permMappingSiteListenerList= new ArrayList<>(
+        List<SiteManagerListener> permMappingSiteListenerList = new ArrayList<>(
                 Arrays.asList(permMappingSiteListener)
         );
         bean.setListeners(permMappingSiteListenerList);

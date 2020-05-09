@@ -17,10 +17,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
+import org.webcurator.core.networkmap.NetworkMapDomainSuffix;
+import org.webcurator.core.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.networkmap.service.NetworkMapLocalClient;
+import org.webcurator.core.networkmap.service.NetworkMapService;
+import org.webcurator.core.networkmap.service.PruneAndImportLocalClient;
+import org.webcurator.core.networkmap.service.PruneAndImportService;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
 import org.webcurator.core.store.arc.*;
@@ -28,6 +36,7 @@ import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -43,6 +52,12 @@ public class DasConfig {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
+
+    @Value("${wctCoreWsEndpoint.scheme}")
+    private String wctCoreWsEndpointScheme;
 
     @Value("${wctCoreWsEndpoint.host}")
     private String wctCoreWsEndpointHost;
@@ -263,13 +278,14 @@ public class DasConfig {
     private String wctStorePort;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         ApplicationContextFactory.setApplicationContext(applicationContext);
     }
 
     @Bean
     public WebServiceEndPoint wctCoreWsEndpoint() {
         WebServiceEndPoint bean = new WebServiceEndPoint();
+        bean.setSchema(wctCoreWsEndpointScheme);
         bean.setHost(wctCoreWsEndpointHost);
         bean.setPort(wctCoreWsEndpointPort);
 
@@ -280,7 +296,7 @@ public class DasConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(new RestTemplateBuilder());
+        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(restTemplateBuilder);
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         bean.setIndexer(indexer());
         bean.setWsEndPoint(wctCoreWsEndpoint());
@@ -328,14 +344,14 @@ public class DasConfig {
             bean = createOmsArchive();
         } else if ("dpsArchive".equalsIgnoreCase(archiveType)) {
             bean = createDpsArchive();
-        } else  {
+        } else {
             LOGGER.debug("Instantiating Archive class for name=" + archiveType);
             if (archiveType.trim().length() > 0) {
                 try {
                     Class<?> clazz = Class.forName(archiveType);
                     Object archiveInstance = clazz.newInstance();
                     bean = (Archive) archiveInstance;
-                } catch (InstantiationException|IllegalAccessException|ClassNotFoundException e) {
+                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                     LOGGER.error("Unable to instantiate archive by type/class=" + archiveType, e);
                 }
             }
@@ -350,7 +366,7 @@ public class DasConfig {
         ListFactoryBean runnableIndexers = runnableIndexers();
 
         try {
-            List<RunnableIndex> list = (List<RunnableIndex>)(List<?>) runnableIndexers.getObject();
+            List<RunnableIndex> list = (List<RunnableIndex>) (List<?>) runnableIndexers.getObject();
             bean.setIndexers(list);
         } catch (Exception e) {
             // This is to avoid an 'throws Exception' in the method signature, which would percolate to all related
@@ -379,7 +395,7 @@ public class DasConfig {
 
     @Bean
     public WCTIndexer wctIndexer() {
-        WCTIndexer bean = new WCTIndexer();
+        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
         bean.setWsEndPoint(wctCoreWsEndpoint());
 
         return bean;
@@ -560,6 +576,44 @@ public class DasConfig {
         bean.setCustomDepositFormFieldMaps(customDepositFormFieldMaps);
 
         return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public BDBNetworkMapPool getBDBDatabasePool() {
+        BDBNetworkMapPool pool = new BDBNetworkMapPool(arcDigitalAssetStoreServiceBaseDir);
+        return pool;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public NetworkMapService getNetworkMapLocalClient() {
+        NetworkMapService client = new NetworkMapLocalClient(getBDBDatabasePool());
+        return client;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public PruneAndImportService getPruneAndImportService() {
+        PruneAndImportLocalClient client = new PruneAndImportLocalClient();
+        client.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        client.setFileDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
+        return client;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public NetworkMapDomainSuffix getNetworkMapDomainSuffix() {
+        NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
+        Resource resource = new ClassPathResource("public_suffix_list.dat");
+
+        try {
+            suffixParser.init(resource.getFile().getAbsolutePath());
+        } catch (Exception e) {
+            LOGGER.error("Load domain suffix file failed.", e);
+        }
+
+        return suffixParser;
     }
 
     public CustomDepositField depositFieldDctermsBibliographicCitation() {

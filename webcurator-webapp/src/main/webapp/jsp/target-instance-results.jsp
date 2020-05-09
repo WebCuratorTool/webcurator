@@ -130,6 +130,8 @@
 				    		
 				    		<c:when test="${instance.state eq 'Harvested' && hr.state != 3}">    		
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
+					    	<a href="spa/tools/qa.html?targetInstanceOid=<c:out value="${hr.targetInstance.oid}"/>&harvestResultId=<c:out value="${hr.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return checkForHistory()">NewReview</a>
+                            &nbsp;|&nbsp;
 					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=<c:out value="${hr.targetInstance.oid}"/>&harvestResultId=<c:out value="${hr.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return checkForHistory()">Review</a>
 					    	&nbsp;|&nbsp;
 					    	<a href="#" onclick="javascript: return clickEndorse(<c:out value="${hr.oid}"/>);">Endorse</a>

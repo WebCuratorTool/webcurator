@@ -7,12 +7,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.common.Constants;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
+import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
+import org.webcurator.domain.model.dto.SeedHistoryDTO;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * The Server side implmentation of the HarvestAgentListener. This Service is deployed on the core and is used by the agents to send
@@ -32,6 +33,9 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
     @Autowired
     @Qualifier(Constants.BEAN_HARVEST_COORDINATOR)
     HarvestCoordinator harvestCoordinator;
+
+    @Autowired
+    TargetInstanceManager targetInstanceManager;
 
     /*
      * (non-Javadoc)
@@ -171,5 +175,18 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
             log.error("Exception in failedArchiving", ex);
             throw ex;
         }
+    }
+
+    @RequestMapping(path = HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED, method = {RequestMethod.POST, RequestMethod.GET})
+    public SeedHistoryDTO querySeedHistory(@RequestParam Long targetInstanceOid, @RequestParam Integer harvestNumber) {
+        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO();
+        seedHistoryDTO.setTargetInstanceId(targetInstanceOid);
+        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceOid);
+        if (ti == null) {
+            seedHistoryDTO.setSeeds(new HashSet<SeedHistory>());
+        } else {
+            seedHistoryDTO.setSeeds(ti.getSeedHistory());
+        }
+        return seedHistoryDTO;
     }
 }

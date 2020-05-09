@@ -1,8 +1,8 @@
 package org.webcurator.core.networkmap.service;
 
-public class PruneAndImportCommandTarget {
+public class PruneAndImportCommandRow {
     private byte[] content;
-    private PruneAndImportCommandTargetMetadata metadata;
+    private PruneAndImportCommandRowMetadata metadata;
 
     public byte[] getContent() {
         return content;
@@ -12,11 +12,11 @@ public class PruneAndImportCommandTarget {
         this.content = content;
     }
 
-    public PruneAndImportCommandTargetMetadata getMetadata() {
+    public PruneAndImportCommandRowMetadata getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(PruneAndImportCommandTargetMetadata metadata) {
+    public void setMetadata(PruneAndImportCommandRowMetadata metadata) {
         this.metadata = metadata;
     }
 }

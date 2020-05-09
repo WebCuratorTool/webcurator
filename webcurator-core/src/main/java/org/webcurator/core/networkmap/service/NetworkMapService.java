@@ -11,7 +11,7 @@ import org.webcurator.core.networkmap.metadata.NetworkMapNode;
 import java.io.IOException;
 import java.util.List;
 
-public interface NetworkMapService {
+public interface NetworkMapService extends DefaultServiceInterface {
     public static final Logger log = LoggerFactory.getLogger(NetworkMapService.class);
 
     public String get(long job, int harvestResultNumber, String key);
@@ -34,24 +34,6 @@ public interface NetworkMapService {
 
     public String getHierarchy(long job, int harvestResultNumber, List<Long> ids);
 
-    default public List<Long> getArrayList(String json) {
-        if (json == null) {
-            return null;
-        }
-
-//        log.debug(json);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<Long>>() {
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
     default public NetworkMapNode getNodeEntity(String json) {
         if (json == null) {
             return null;
@@ -68,17 +50,5 @@ public interface NetworkMapService {
         }
 
         return null;
-    }
-
-    default public String obj2Json(Object obj) {
-        String json = "{}";
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            json = objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return json;
     }
 }
