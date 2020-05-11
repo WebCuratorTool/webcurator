@@ -27,6 +27,7 @@ dependencies {
     compile 'org.quartz-scheduler:quartz:2.3.1'
     compile 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
     compile 'org.netarchivesuite:heritrix3-wrapper:1.0.3'
+    compile 'joda-time:joda-time:2.10.5'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.9.5'
 }

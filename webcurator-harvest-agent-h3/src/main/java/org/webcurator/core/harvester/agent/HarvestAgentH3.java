@@ -15,9 +15,9 @@
  */
 package org.webcurator.core.harvester.agent;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.archive.util.FileUtils;
 import org.netarchivesuite.heritrix3wrapper.ScriptResult;
 import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.HarvesterType;
@@ -255,7 +255,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         removeHarvester(aJob);
 
         if (harvestDir != null) {
-            boolean deleted = FileUtils.deleteDir(harvestDir);
+            boolean deleted = FileUtils.deleteQuietly(harvestDir);
             if (deleted) {
                 log.info("Deleted harvest directory=" + harvestDir.getAbsolutePath());
             } else {
@@ -907,7 +907,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
                 if (log.isDebugEnabled()) {
                     log.debug("About to purge aborted target instance dir " + toPurge.toString());
                 }
-                FileUtils.deleteDir(toPurge);
+                FileUtils.deleteDirectory(toPurge);
             }
         } catch (Exception e) {
             if (log.isDebugEnabled()) {
