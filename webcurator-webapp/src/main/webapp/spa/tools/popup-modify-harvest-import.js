@@ -1,6 +1,7 @@
 class ImportModifyHarvestProcessor{
-	constructor(jobId, harvestResultNumber){
+	constructor(jobId, harvestResultId, harvestResultNumber){
 		this.jobId=jobId;
+		this.harvestResultId=harvestResultId;
 		this.harvestResultNumber=harvestResultNumber;
 	}
 
@@ -257,6 +258,16 @@ class ImportModifyHarvestProcessor{
 				}
 
 				node.lastModified=d.getTime();
+			}
+
+
+			var gridImportNodes=gPopupModifyHarvest.gridImport.getAllNodes();
+			for(var i=0; i<gridImportNodes.length; i++){
+				var key=gridImportNodes[i].url;
+				if(newBulkTargetUrlMap[key]>=0){
+					alert("Duplicated target URL at line: " + (newBulkTargetUrlMap[key]+1));
+					return;
+				}
 			}
 
 

@@ -259,6 +259,9 @@ public class BaseConfig {
     @Value("${qualityReviewToolController.webArchiveTarget}")
     private String qualityReviewToolControllerWebArchiveTarget;
 
+    @Value("$(core.cache.dir)")
+    private String coreCacheDir;
+
     @Autowired
     private ListsConfig listsConfig;
 

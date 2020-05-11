@@ -204,15 +204,16 @@ class HierarchyTree{
 }
 
 class PopupModifyHarvest{
-	constructor(jobId, harvestResultNumber){
+	constructor(jobId, harvestResultId, harvestResultNumber){
 		this.jobId=jobId;
+		this.harvestResultId=harvestResultId;
 		this.harvestResultNumber=harvestResultNumber;
 		this.hierarchyTree=new HierarchyTree("#hierachy-tree", jobId, harvestResultNumber);
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlBasic);
 		this.gridPrune=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-prune', gridOptionsPrune, contextMenuItemsPrune);
 		this.gridImport=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-import', gridOptionsImport, contextMenuItemsImport);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, contextMenuItemsImport);
-		this.processorImport=new ImportModifyHarvestProcessor(jobId, harvestResultNumber);
+		this.processorImport=new ImportModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
 		this.uriSeedUrl="/curator/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		this.uriInvalidUrl="/curator/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 	}
@@ -546,21 +547,21 @@ class PopupModifyHarvest{
 		for(var i=0; i<pruned.length; i++){
 			var node={
 				option: 'prune',
-				targetUrl: pruned[i].url
+				url: pruned[i].url
 			}
 			dataset.push(node);
 		}
 
 		$('#popup-window-loading').show();
 		var that=this;
-		var sourceUrl="/curator/tools/apply?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		var sourceUrl="/curator/tools/apply?job=" + this.jobId + "&harvestResultId=" +this.harvestResultId + "&harvestResultNumber=" + this.harvestResultNumber + "&newHarvestResultNumber=0";
 		fetch(sourceUrl, {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify(dataset)
 		}).then((response) => {
 			return response.json();
-		}).then((rawData) => {
+		}).then((response) => {
 			
 		});
 	}

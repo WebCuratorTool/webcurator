@@ -201,7 +201,7 @@ var itemsUndo={
                 };
 
 var contextMenuItemsUrlBasic={
-                  "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
+                  "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
                   "import-current": {name: "Import Current", icon: "fas fa-file-import"},
                   "sep1": "---------",
                   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
@@ -229,11 +229,15 @@ var contextMenuItemsPrune={
     "sep1": "---------",
     "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
     "sep2": "---------",
-    "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse}
+    "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
+    "sep3": "---------",
+    "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: itemsExportLinks}
 };
 
 var contextMenuItemsImport={
   "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
+  "sep1": "---------",
+  "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: itemsExportLinks}
 };
 
 function formatModifyHavestGridRow(params){

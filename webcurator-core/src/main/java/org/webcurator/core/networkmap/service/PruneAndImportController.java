@@ -32,7 +32,7 @@ public class PruneAndImportController implements PruneAndImportService {
 
     @Override
     @RequestMapping(path = PruneAndImportServicePath.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)
-    public PruneAndImportCommandResult pruneAndImport(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("newHarvestResultNumber") int newHarvestResultNumber, @RequestBody List<PruneAndImportCommandRowMetadata> dataset) {
-        return client.pruneAndImport(job, harvestResultNumber, newHarvestResultNumber, dataset);
+    public PruneAndImportCommandResult pruneAndImport(@RequestParam("job") long job, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("newHarvestResultNumber") int newHarvestResultNumber, @RequestBody PruneAndImportCommandApply cmd) {
+        return client.pruneAndImport(job, harvestResultId, harvestResultNumber, newHarvestResultNumber, cmd);
     }
 }

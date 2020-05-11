@@ -109,7 +109,7 @@ public class PruneAndImportLocalClient implements PruneAndImportService {
     }
 
     @Override
-    public PruneAndImportCommandResult pruneAndImport(long job, int harvestResultNumber, int newHarvestResultNumber, List<PruneAndImportCommandRowMetadata> dataset) {
+    public PruneAndImportCommandResult pruneAndImport(long job, long harvestResultId, int harvestResultNumber, int newHarvestResultNumber, PruneAndImportCommandApply cmd) {
         return null;
     }
 

@@ -295,6 +295,7 @@ to get the desired effect
   </div>  <!-- /.card-header -->
   <div class="card-body">
     <div class="tab-bulk-import" id="tab-bulk-import-0">
+      <p> You could download a <a href="/spa/tools/bulk-import-template.csv">Template</a> from here.</p>
       <div class="form-group">
         <label for="specifyTargetUrlInput">Please upload a METADATA file:</label>
         <div class="custom-file">
@@ -438,11 +439,12 @@ to get the desired effect
     // $('#popup-window-loading').show();
     var urlParameters=getUrlVars();
     var jobId=parseInt(urlParameters["targetInstanceOid"]);
+    var harvestResultId=parseInt(urlParameters["harvestResultId"]);
     var harvestResultNumber=parseInt(urlParameters["harvestNumber"]);
 
     var visHopPath=new HopPath('hoppath-canvas', jobId, harvestResultNumber);
     var networkmap=new NetworkMap();
-    var gPopupModifyHarvest=new PopupModifyHarvest(jobId, harvestResultNumber);
+    var gPopupModifyHarvest=new PopupModifyHarvest(jobId, harvestResultId, harvestResultNumber);
     // var hierarchyTree=new HierarchyTree("#hierachy-tree", jobId, harvestResultNumber);
     
     $(function(){        

@@ -149,12 +149,15 @@ class NetworkMapGraph{
         return;
       }
 
-      var node = that.network.getNodeAt({x: params.pointer.DOM.x, y: params.pointer.DOM.y});
+      // var node = that.network.getNodeAt({x: params.pointer.DOM.x, y: params.pointer.DOM.y});
+      var node = that.network.getNodeAt(params.pointer.DOM);
+
       console.log(node);
 
       if(!node){
         return;
       }
+
       networkmap.switchNode(node);
       that.network.selectNodes([node]);
 
