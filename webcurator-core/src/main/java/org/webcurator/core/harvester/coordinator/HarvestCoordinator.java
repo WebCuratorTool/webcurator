@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.webcurator.core.check.CheckNotifier;
+import org.webcurator.core.networkmap.service.PruneAndImportCommandApply;
 import org.webcurator.domain.HarvestCoordinatorDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -92,7 +93,13 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param aHarvestAgent the harvest agent.
      */
     void harvest(TargetInstance aTargetInstance, HarvestAgentStatusDTO aHarvestAgent);
-        
+
+    /**
+     * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
+     * @param targetInstance: the target instance to modify
+     */
+    void modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO);
+
     /**
      * Pause a TargetInstance that is in the process or being harvested
      * @param aTargetInstance the TargetInstance being harvested

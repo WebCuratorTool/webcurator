@@ -25,6 +25,8 @@ public abstract class HarvestResult implements UserInTrayResource {
     public static final int STATE_INDEXING = 3;
     /** The state constant for a Harvest Result that has been aborted in indexing. */
     public static final int STATE_ABORTED = 4;
+    /** The state constant for a Harvest Result that is being modified. */
+    public static final int STATE_MODIFYING = 5;
 
     /** The TargetInstance that this belongs to */
     @ManyToOne

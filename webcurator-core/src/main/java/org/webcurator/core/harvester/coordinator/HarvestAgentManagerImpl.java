@@ -351,12 +351,18 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	@Override
 	public void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, TargetInstance aTargetInstance, String profile,
 			String seedsString) {
+		this.initiateHarvest(aHarvestAgent, aTargetInstance.getJobName(), profile, seedsString);
+	}
+
+	@Override
+	public void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, String jobName, String profile,
+								String seedsString) {
 		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(aHarvestAgent);
 
 		Map<String, String> params=new HashMap<String, String>();
 		params.put("profile", profile);
 		params.put("seeds", seedsString);
-		agent.initiateHarvest(aTargetInstance.getJobName(), params);
+		agent.initiateHarvest(jobName, params);
 	}
 
 	@Override

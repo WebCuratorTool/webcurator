@@ -102,6 +102,10 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     public static final String STATE_ARCHIVED = "Archived";
     /** Archiving - We have started the archiving, but not completed */
 	public static final String STATE_ARCHIVING = "Archiving";
+    /** Modifying - We have started the modifying, but not completed */
+    public static final String STATE_MODIFYING = "Modifying";
+
+
     /** value for a low priority target instance. */
 	
     public static final int PRI_LOW = 1000;
