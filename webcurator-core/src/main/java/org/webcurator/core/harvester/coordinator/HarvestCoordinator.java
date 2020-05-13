@@ -98,7 +98,17 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
      * @param targetInstance: the target instance to modify
      */
-    void modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO);
+    void modifyHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO);
+
+    /**
+     * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
+     * @param targetInstance: the target instance to modify
+     * @param harvestAgentStatusDTO the harvest agent
+     * @return the process result
+     */
+    boolean modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO);
+
+    void modifyHarvestComplete(long job, long harvestResultId, int harvestResultNumber, int newHarvestResultNumber);
 
     /**
      * Pause a TargetInstance that is in the process or being harvested

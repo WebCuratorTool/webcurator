@@ -18,6 +18,7 @@ import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistory;
 import org.webcurator.domain.model.dto.SeedHistoryDTO;
 
@@ -32,7 +33,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component("WCTResourceIndexer")
 public class WCTResourceIndexer {
     private static final Logger log = LoggerFactory.getLogger(WCTResourceIndexer.class);
-
+   private long targetInstanceId;
+   private int harvestNumber;
     private File directory;
     private Map<String, NetworkMapNode> urls = new Hashtable<>();
 
@@ -43,6 +45,8 @@ public class WCTResourceIndexer {
     public WCTResourceIndexer(File directory, BDBNetworkMap db, long targetInstanceId, int harvestNumber) throws IOException {
         this.directory = directory;
         this.db = db;
+        this.targetInstanceId=targetInstanceId;
+        this.harvestNumber=harvestNumber;
         init(targetInstanceId, harvestNumber);
     }
 
@@ -83,6 +87,10 @@ public class WCTResourceIndexer {
             }
             ArcHarvestFileDTO dto = indexFile(f, extractor);
             if (dto != null) {
+                HarvestResultDTO harvestResult=new HarvestResultDTO();
+                harvestResult.setTargetInstanceOid(this.targetInstanceId);
+                harvestResult.setHarvestNumber(this.harvestNumber);
+                dto.setHarvestResult(harvestResult);
                 arcHarvestFileDTOList.add(dto);
             }
         }

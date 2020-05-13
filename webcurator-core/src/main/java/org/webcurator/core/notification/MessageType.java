@@ -23,6 +23,8 @@ package org.webcurator.core.notification;
 public interface MessageType {
     public static final String TARGET_INSTANCE_COMPLETE = "tiComplete";
     public static final String TARGET_INSTANCE_QUEUED = "tiQueued";
+    public static final String TARGET_INSTANCE_MODIFYING = "tiModifying";
+    public static final String TARGET_INSTANCE_MODIFIED = "tiModified";
     public static final String TARGET_INSTANCE_RESCHEDULED = "tiRescheduled";
     public static final String TARGET_INSTANCE_PROCESSING_ERROR = "tiProcessError";
     public static final String NOTICE_OF_PERMISSION_CONFIRMATION = "permConfirm";

@@ -21,6 +21,7 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tools.tar.TarInputStream;
 import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
@@ -566,6 +567,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		Set<String> states = new HashSet<String>();
 		states.add(TargetInstance.STATE_SCHEDULED);
 		states.add(TargetInstance.STATE_QUEUED);
+		states.add(TargetInstance.STATE_MOD_SCHEDULED);
+		states.add(TargetInstance.STATE_MOD_QUEUED);
 		criteria.setStates(states);
 		criteria.setTo(new Date());
 		
@@ -576,7 +579,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 					StringBuffer q = new StringBuffer();
 					q.append("select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
 					q.append("from TargetInstance ti where ti.scheduledTime <= :ed ");
-					q.append("and ti.state in ('Scheduled', 'Queued') ");
+					q.append("and ti.state in ('Scheduled', 'Queued', 'ModScheduled', 'ModQueued') ");
 					q.append("order by ti.priority asc, ti.scheduledTime asc, ti.oid asc ");
 					
 					Query query = session.createQuery(q.toString());

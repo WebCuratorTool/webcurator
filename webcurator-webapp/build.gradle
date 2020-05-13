@@ -86,6 +86,9 @@ dependencies {
 
 }
 
+bootRun{
+    environment SPRING_PROFILES_ACTIVE:'local+mysql'
+}
 war {
     includeEmptyDirs = false
 }

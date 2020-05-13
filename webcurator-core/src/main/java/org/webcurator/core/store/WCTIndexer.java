@@ -102,30 +102,31 @@ public class WCTIndexer extends IndexerBase {
             log.error("Failed to create directory: {}", directory);
             return;
         }
-        List<ArcHarvestFileDTO> arcHarvestFileDTOList = null;
         try {
-            arcHarvestFileDTOList = indexer.indexFiles();
+            List<ArcHarvestFileDTO>  arcHarvestFileDTOList = indexer.indexFiles();
+            ArcIndexResultDTO arcIndexResultDTO=new ArcIndexResultDTO();
+            arcIndexResultDTO.setHarvestResultOid(harvestResultOid);
+            arcIndexResultDTO.setHarvestFileDTOs(arcHarvestFileDTOList);
+
+            addToHarvestResult(harvestResultOid, arcIndexResultDTO);
+
+            arcHarvestFileDTOList.clear();
         } catch (IOException e) {
             log.error("Failed to index files: {}", directory);
             return;
         }
 
-        arcHarvestFileDTOList.forEach(arcHarvestFileDTO -> {
-            addToHarvestResult(harvestResultOid, arcHarvestFileDTO);
-        });
-        arcHarvestFileDTOList.clear();
-
         log.info("Completed indexing for job " + getResult().getTargetInstanceOid());
     }
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-    protected void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO arcHarvestFileDTO) {
+    protected void addToHarvestResult(long harvestResultOid,ArcIndexResultDTO arcIndexResultDTO) {
         try {
             // Submit to the server.
-            log.info("Sending Arc Harvest File " + arcHarvestFileDTO.getName());
+            log.info("Sending Arc Harvest Result " + arcIndexResultDTO.getHarvestResultOid());
 
             ObjectMapper objectMapper = new ObjectMapper();
-            String jsonStr = objectMapper.writeValueAsString(arcHarvestFileDTO);
+            String jsonStr = objectMapper.writeValueAsString(arcIndexResultDTO);
             log.debug(jsonStr);
 
             HttpHeaders headers = new HttpHeaders();
@@ -171,6 +172,7 @@ public class WCTIndexer extends IndexerBase {
             log.error("Parsing json failed: {}", e.getMessage());
         }
     }
+
 
     @Override
     public String getName() {

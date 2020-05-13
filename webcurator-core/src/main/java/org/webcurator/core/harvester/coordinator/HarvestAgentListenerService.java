@@ -95,10 +95,10 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
 
     @PostMapping(path = HarvestCoordinatorPaths.ADD_HARVEST_RESULT)
     public void addToHarvestResult(@PathVariable(value = "harvest-result-oid") Long harvestResultOid,
-                                   @RequestBody ArcHarvestFileDTO ahf) {
+                                   @RequestBody ArcIndexResultDTO arcIndexResultDTO) {
         try {
-            log.info("Received addToHarvestResult({},{})", harvestResultOid, ahf.getName());
-            harvestCoordinator.addToHarvestResult(harvestResultOid, ahf);
+            log.info("Received addToHarvestResult({}, size={})", harvestResultOid, arcIndexResultDTO.getHarvestFileDTOs().size());
+            harvestCoordinator.addToHarvestResult(harvestResultOid, arcIndexResultDTO);
         } catch (RuntimeException | Error ex) {
             log.error("Exception in createHarvestResult", ex);
             throw ex;

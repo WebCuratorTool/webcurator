@@ -20,7 +20,7 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public abstract class IndexerBase extends AbstractRestClient implements RunnableIndex {
-	private static Log log = LogFactory.getLog(IndexerBase.class);
+	private static final Log log = LogFactory.getLog(IndexerBase.class);
 
 	private WebServiceEndPoint wsEndPoint;
 	private boolean defaultIndexer = false;
@@ -56,14 +56,6 @@ public abstract class IndexerBase extends AbstractRestClient implements Runnable
 		this.wsEndPoint = original.wsEndPoint;
 	}
 
-//    public String baseUrl() {
-//        return "http://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
-//    }
-//
-//    public String getUrl(String appendUrl) {
-//        return baseUrl() + appendUrl;
-//    }
-
 	protected abstract HarvestResultDTO getResult();
 
 	@Override
@@ -81,7 +73,6 @@ public abstract class IndexerBase extends AbstractRestClient implements Runnable
 			} else {
 				indexFiles(harvestResultOid);
 				markComplete(harvestResultOid);
-
 			}
 		} finally {
 			synchronized (Indexer.lock) {

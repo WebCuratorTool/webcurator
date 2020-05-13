@@ -107,6 +107,25 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 
 	}
 
+	@Override
+	public void modifyHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public boolean modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
+		// TODO Auto-generated method stub
+
+		return false;
+	}
+
+	@Override
+	public void modifyHarvestComplete(long job, long harvestResultId, int harvestResultNumber, int newHarvestResultNumber) {
+		// TODO Auto-generated method stub
+
+	}
+
 	public void harvestOrQueue(QueuedTargetInstanceDTO targetInstance) {
 		// TODO Auto-generated method stub
 
@@ -238,7 +257,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		// TODO Auto-generated method stub
 	}
 
-	public void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO ahf) {
+	public void addToHarvestResult(Long harvestResultOid, ArcIndexResultDTO arcIndexResultDTO) {
 		// TODO Auto-generated method stub
 	}
 

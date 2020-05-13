@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
+import org.webcurator.domain.model.core.ArcIndexResultDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public interface IndexerService {
@@ -18,10 +19,9 @@ public interface IndexerService {
 
     /**
      * Add an ArcHarvestFile to a HarvestResult.
-     * @param harvestResultOid The OID of the HarvestResult.
-     * @param ahf The ArcHarvestFile DTO.
+     * @param arcIndexResultDTO  The OID of the HarvestResult and the ArcHarvestFile DTO.
      */
-    void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO ahf);
+    void addToHarvestResult(Long harvestResultOid, ArcIndexResultDTO arcIndexResultDTO);
     
     /**
      * Finalise the index by marking it as complete.

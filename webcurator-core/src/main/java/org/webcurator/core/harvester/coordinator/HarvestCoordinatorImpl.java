@@ -47,6 +47,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.networkmap.service.PruneAndImportCommandApply;
+import org.webcurator.core.networkmap.service.PruneAndImportRemoteClient;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.profiles.Heritrix3Profile;
@@ -89,6 +90,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     private DigitalAssetStoreFactory digitalAssetStoreFactory;
     @Autowired
     private String coreCacheDir;
+    @Autowired
+    private PruneAndImportRemoteClient pruneAndImportRemoteClient;
 
     /**
      * The Target Manager.
@@ -179,82 +182,85 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                     + " failed to save HarvestResult.");
         }
 
-        // The result is for the original harvest, but the TI already has one or
-        // more results
-        if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
-            // This is a repeat message probably due to a timeout. Leaving this
-            // to run
-            // would generate a second 'Original Harvest' which will
-            // subsequently fail in indexing
-            // due to a duplicate file name constraint in the arc_harvest_file
-            // table
-            log.warn("Duplicate 'Harvest Complete' message received for job: " + ti.getOid() + ". Message ignored.");
-            return;
-        }
+        if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_RUNNING)) {
+            pruneAndImportRemoteClient.pushPruneAndImport(ti.getOid());
+        } else {
+            // The result is for the original harvest, but the TI already has one or
+            // more results
+            if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
+                // This is a repeat message probably due to a timeout. Leaving this
+                // to run
+                // would generate a second 'Original Harvest' which will
+                // subsequently fail in indexing
+                // due to a duplicate file name constraint in the arc_harvest_file
+                // table
+                log.warn("Duplicate 'Harvest Complete' message received for job: " + ti.getOid() + ". Message ignored.");
+                return;
+            }
 
-        log.info("'Harvest Complete' message received for job: " + ti.getOid() + ".");
+            log.info("'Harvest Complete' message received for job: " + ti.getOid() + ".");
 
-        HarvestResult arcHarvestResult = new ArcHarvestResult(aResult, ti);
-        arcHarvestResult.setState(ArcHarvestResult.STATE_INDEXING);
+            HarvestResult arcHarvestResult = new ArcHarvestResult(aResult, ti);
+            arcHarvestResult.setState(ArcHarvestResult.STATE_INDEXING);
 
-        List<HarvestResult> hrs = ti.getHarvestResults();
-        hrs.add(arcHarvestResult);
-        ti.setHarvestResults(hrs);
+            List<HarvestResult> hrs = ti.getHarvestResults();
+            hrs.add(arcHarvestResult);
+            ti.setHarvestResults(hrs);
 
-        ti.setState(TargetInstance.STATE_HARVESTED);
+            ti.setState(TargetInstance.STATE_HARVESTED);
 
-        targetInstanceDao.save(arcHarvestResult);
-        targetInstanceDao.save(ti);
-        harvestBandwidthManager.sendBandWidthRestrictions();
+            targetInstanceDao.save(arcHarvestResult);
+            targetInstanceDao.save(ti);
+            harvestBandwidthManager.sendBandWidthRestrictions();
 
-        // IF the associated target record for this TI has
-        // no active TIs remaining (scheduled, queued, running,
-        // paused, stopping)
-        // AND
-        // the target's schedule is not active (i.e we're past
-        // the schedule end date),
-        // THEN set the status of the associated target to 'complete'.
-        //
-        boolean bActiveSchedules = false;
-        AbstractTarget tiTarget = ti.getTarget();
-        Date now = new Date();
-        for (Schedule schedule : tiTarget.getSchedules()) {
-            if (schedule.getEndDate() == null) {
-                bActiveSchedules = true;
-            } else {
-                if (schedule.getEndDate().after(now)) {
+            // IF the associated target record for this TI has
+            // no active TIs remaining (scheduled, queued, running,
+            // paused, stopping)
+            // AND
+            // the target's schedule is not active (i.e we're past
+            // the schedule end date),
+            // THEN set the status of the associated target to 'complete'.
+            //
+            boolean bActiveSchedules = false;
+            AbstractTarget tiTarget = ti.getTarget();
+            Date now = new Date();
+            for (Schedule schedule : tiTarget.getSchedules()) {
+                if (schedule.getEndDate() == null) {
                     bActiveSchedules = true;
+                } else {
+                    if (schedule.getEndDate().after(now)) {
+                        bActiveSchedules = true;
+                    }
                 }
             }
+
+            if (targetInstanceDao.countActiveTIsForTarget(tiTarget.getOid()) == 0L && !bActiveSchedules) {
+                Target t = targetManager.load(tiTarget.getOid(), true);
+                t.changeState(Target.STATE_COMPLETED);
+                targetManager.save(t);
+            }
+
+            // Ask the DigitalAssetStore to index the ARC
+            try {
+                digitalAssetStoreFactory.getDAS().initiateIndexing(
+                        new HarvestResultDTO(arcHarvestResult.getOid(), arcHarvestResult.getTargetInstance().getOid(), arcHarvestResult
+                                .getCreationDate(), arcHarvestResult.getHarvestNumber(), arcHarvestResult.getProvenanceNote()));
+            } catch (DigitalAssetStoreException ex) {
+                log.error("Could not send initiateIndexing message to the DAS", ex);
+            }
+
+            inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_COMPLETE,
+                    ti);
+            inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
+
+            log.info("'Harvest Complete' message processed for job: " + ti.getOid() + ".");
+
+            //TODO WARNING - the auto prune process initiates it's own indexing, but it potentially does this
+            //while the indexing initiated above is STILL RUNNING.  The fact that it works is likely attributable
+            //to the fact that the second indexing is likely to finish after the first, but this may not always be
+            //the case.
+            runAutoPrune(ti);
         }
-
-        if (targetInstanceDao.countActiveTIsForTarget(tiTarget.getOid()) == 0L && !bActiveSchedules) {
-            Target t = targetManager.load(tiTarget.getOid(), true);
-            t.changeState(Target.STATE_COMPLETED);
-            targetManager.save(t);
-        }
-
-        // Ask the DigitalAssetStore to index the ARC
-        try {
-            digitalAssetStoreFactory.getDAS().initiateIndexing(
-                    new HarvestResultDTO(arcHarvestResult.getOid(), arcHarvestResult.getTargetInstance().getOid(), arcHarvestResult
-                            .getCreationDate(), arcHarvestResult.getHarvestNumber(), arcHarvestResult.getProvenanceNote()));
-        } catch (DigitalAssetStoreException ex) {
-            log.error("Could not send initiateIndexing message to the DAS", ex);
-        }
-
-        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_COMPLETE,
-                ti);
-        inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
-
-        log.info("'Harvest Complete' message processed for job: " + ti.getOid() + ".");
-
-        //TODO WARNING - the auto prune process initiates it's own indexing, but it potentially does this
-        //while the indexing initiated above is STILL RUNNING.  The fact that it works is likely attributable
-        //to the fact that the second indexing is likely to finish after the first, but this may not always be
-        //the case.
-        runAutoPrune(ti);
-
     }
 
     /**
@@ -484,26 +490,90 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      * @param targetInstance: the target instance to modify
      */
     @Override
-    public void modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
-        if (targetInstance == null || harvestAgentStatusDTO == null) {
-            log.error("Input parameter is null");
+    public void modifyHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+        boolean approved = true;
+
+        // lock the ti
+        Long tiOid = queuedTargetInstanceDTO.getOid();
+        if (!harvestAgentManager.lock(tiOid)) {
             return;
         }
-        if (!targetInstance.getState().equalsIgnoreCase(TargetInstance.STATE_MODIFYING)) {
-            log.error("Could not start a un-{} target instance", TargetInstance.STATE_MODIFYING);
-            return;
+
+        log.info("Obtained lock for ti " + tiOid);
+
+        TargetInstance ti = loadTargetInstance(tiOid);
+
+        boolean processed = false;
+        while (!processed) {
+            if (ti == null) {
+                ti = loadTargetInstance(tiOid);
+            }
+            // Check to see what harvester resource is available
+            HarvestAgentStatusDTO agent = harvestAgentManager.getHarvester(
+                    queuedTargetInstanceDTO.getAgencyName(),
+                    ti.getProfile().getHarvesterType());
+
+            if (agent == null) {
+                log.warn(String.format("No available harvest agent of type %s found for agency %s",
+                        ti.getProfile().getHarvesterType(),
+                        queuedTargetInstanceDTO.getAgencyName()
+                ));
+            }
+
+            if (harvestAgentCanHarvest(agent, queuedTargetInstanceDTO)) {
+                synchronized (agent) {
+                    // allocate the target instance to the agent
+                    log.info("Allocating TI " + tiOid + " to agent " + agent.getName());
+                    processed = modifyHarvest(ti, agent);
+                }
+            } else {
+                processed = true;
+                log.info("Re-modifying TI " + tiOid);
+                // if not already queued set the target instance to the
+                // queued state.
+                if (!queuedTargetInstanceDTO.getState().equals(TargetInstance.STATE_MOD_QUEUED)) {
+                    if (ti == null) {
+                        ti = loadTargetInstance(tiOid);
+                    }
+                    // Prepare the harvest for the queue.
+                    ti.setState(TargetInstance.STATE_MOD_QUEUED);
+                    targetInstanceDao.save(ti);
+                    inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC,
+                            MessageType.TARGET_INSTANCE_MODIFYING, ti);
+                }
+            }
+        }
+
+        // release the lock
+        harvestAgentManager.unLock(tiOid);
+        log.info("Released lock for ti " + tiOid);
+    }
+
+    /**
+     * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
+     *
+     * @param targetInstance:       the target instance to modify
+     * @param harvestAgentStatusDTO the harvest agent
+     */
+    @Override
+    public boolean modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
+        boolean processed = false;
+        if (targetInstance == null || harvestAgentStatusDTO == null) {
+            log.error("Input parameter is null");
+            return processed;
+        }
+        if (!targetInstance.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_SCHEDULED)
+                && !targetInstance.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_QUEUED)) {
+            log.error("Could not start a un-modifying target instance");
+            return processed;
         }
 
         PruneAndImportCommandApply cmd = null;
         try {
-            String cmdFilePath = String.format("%s%smod_%d.json", coreCacheDir, File.separator, targetInstance.getOid());
-            File cmdFile = new File(cmdFilePath);
-            byte[] cmdJsonContent = Files.readAllBytes(cmdFile.toPath());
-            ObjectMapper objectMapper = new ObjectMapper();
-            cmd = objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);
+            cmd = pruneAndImportRemoteClient.getPruneAndImportCommandApply(targetInstance.getOid());
         } catch (IOException e) {
             log.error(e.getMessage());
-            return;
+            return processed;
         }
 
         // Create the seeds file contents.
@@ -522,16 +592,67 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             profile = new String(Files.readAllBytes(resource.getFile().toPath()));
         } catch (IOException e) {
             log.error(e.getMessage());
+            return processed;
+        }
+
+        try {
+            targetInstance.setActualStartTime(new Date());
+            targetInstance.setState(TargetInstance.STATE_MOD_RUNNING);
+            targetInstance.setHarvestServer(harvestAgentStatusDTO.getName());
+            targetInstanceDao.save(targetInstance);
+
+            // Initiate harvest on the remote harvest agent
+            harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, String.format("mod_%d", targetInstance.getOid()), profile, seeds.toString());
+
+            log.info("HarvestCoordinator: Harvest initiated successfully for target instance {}", targetInstance.getOid());
+
+            // Run the bandwidth calculations.
+            harvestBandwidthManager.sendBandWidthRestrictions();
+
+            harvestAgentStatusDTO.setInTransition(true);
+            processed = true;
+        } catch (Throwable e) {
+            log.warn(MessageFormat.format("Failed to allocate harvest to agent {0}: {1}", harvestAgentStatusDTO.getName(), e.getMessage()), e);
+            harvestAgentManager.markDead(harvestAgentStatusDTO);
+        }
+        return processed;
+    }
+
+    public void modifyHarvestComplete(long job, long harvestResultId, int harvestResultNumber, int newHarvestResultNumber) {
+        TargetInstance ti = targetInstanceDao.load(job);
+        if (ti == null) {
+            log.error("Not able to load TargetInstance: {}", job);
             return;
         }
 
-        // Initiate harvest on the remote harvest agent
-        harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, targetInstance, profile, seeds.toString());
+        HarvestResult harvestResult = ti.getHarvestResult(newHarvestResultNumber);
+        if (harvestResult == null) {
+            log.error("Not able to load HarvestResult, job: {}, harvestNumber:{}", job, newHarvestResultNumber);
+            return;
+        }
 
-        log.info("HarvestCoordinator: Harvest initiated successfully for target instance {}", targetInstance.getOid());
+        harvestResult.setState(HarvestResult.STATE_INDEXING);
+        targetInstanceDao.save(harvestResult);
 
-        // Run the bandwidth calculations.
+        ti.setState(TargetInstance.STATE_HARVESTED);
+        targetInstanceDao.save(ti);
+
         harvestBandwidthManager.sendBandWidthRestrictions();
+
+        // Ask the DigitalAssetStore to index the ARC
+        try {
+            digitalAssetStoreFactory.getDAS().initiateIndexing(
+                    new HarvestResultDTO(harvestResult.getOid(), harvestResult.getTargetInstance().getOid(), harvestResult
+                            .getCreationDate(), harvestResult.getHarvestNumber(), harvestResult.getProvenanceNote()));
+        } catch (DigitalAssetStoreException ex) {
+            log.error("Could not send initiateIndexing message to the DAS", ex);
+        }
+
+        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_MODIFIED,
+                ti);
+        inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
+
+        log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
     }
 
     /**
@@ -773,8 +894,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         Iterator<QueuedTargetInstanceDTO> it = theQueue.iterator();
         while (it.hasNext()) {
             ti = it.next();
-            log.info("Processing queue entry: " + ti.toString());
-            harvestOrQueue(ti);
+            log.info("Processing queue and modify entry: " + ti.toString());
+            if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_SCHEDULED)
+                    || ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_QUEUED)) {
+                modifyHarvest(ti);
+            } else {
+                harvestOrQueue(ti);
+            }
         }
         log.info("Finished: Processing {} entries from the queue.", theQueue.size());
     }
@@ -1162,10 +1288,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         this.sipBuilder = sipBuilder;
     }
 
-    public void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO ahf) {
+    public void addToHarvestResult(Long harvestResultOid, ArcIndexResultDTO arcIndexResultDTO) {
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
-        ArcHarvestFile f = new ArcHarvestFile(ahf, (ArcHarvestResult) ahr);
-        targetInstanceDao.save(f);
+        ahr.setState(HarvestResult.STATE_ENDORSED);
+        arcIndexResultDTO.getHarvestFileDTOs().forEach(ahf->{
+            ArcHarvestFile f = new ArcHarvestFile(ahf, (ArcHarvestResult) ahr);
+            targetInstanceDao.save(f);
+        });
     }
 
     public void addHarvestResources(Long harvestResultOid, Collection<ArcHarvestResourceDTO> dtos) {
