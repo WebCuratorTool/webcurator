@@ -552,14 +552,24 @@ class PopupModifyHarvest{
 			dataset.push(node);
 		}
 
+		var applyCommand={
+			targetInstanceId: this.jobId,
+			harvestResultId: this.harvestResultId,
+			harvestResultNumber: this.harvestResultNumber,
+			newHarvestResultNumber: 0,
+			dataset: dataset,
+			provenanceNote: $('#provenance-note').val(),
+		};
+
 		$('#popup-window-loading').show();
 		var that=this;
-		var sourceUrl="/curator/tools/apply?job=" + this.jobId + "&harvestResultId=" +this.harvestResultId + "&harvestResultNumber=" + this.harvestResultNumber + "&newHarvestResultNumber=0";
+		var sourceUrl="/curator/tools/apply";
 		fetch(sourceUrl, {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify(dataset)
+			body: JSON.stringify(applyCommand)
 		}).then((response) => {
+			$('#popup-window-loading').hide();
 			return response.json();
 		}).then((response) => {
 			

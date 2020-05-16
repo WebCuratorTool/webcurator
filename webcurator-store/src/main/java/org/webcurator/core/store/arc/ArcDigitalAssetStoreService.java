@@ -99,8 +99,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     /**
      * The logger.
      */
-    private static Log log = LogFactory
-            .getLog(ArcDigitalAssetStoreService.class);
+    private static Log log = LogFactory.getLog(ArcDigitalAssetStoreService.class);
     /**
      * the base directory for the digital asset stores harvest files.
      */

@@ -259,7 +259,7 @@ public class BaseConfig {
     @Value("${qualityReviewToolController.webArchiveTarget}")
     private String qualityReviewToolControllerWebArchiveTarget;
 
-    @Value("$(core.cache.dir)")
+    @Value("${core.cache.dir}")
     private String coreCacheDir;
 
     @Autowired
@@ -366,8 +366,14 @@ public class BaseConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public PruneAndImportService getPruneAndImportService() {
-        PruneAndImportRemoteClient client = new PruneAndImportRemoteClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
+    public PruneAndImportClient getPruneAndImportService() {
+        PruneAndImportClientRemote client = new PruneAndImportClientRemote(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
+        client.setCoreCacheDir(coreCacheDir);
+        client.setAuditor(audit());
+        client.setHarvestAgentManager(harvestAgentManager());
+//        client.setHarvestCoordinator(harvestCoordinator);
+        client.setTargetInstanceDao(targetInstanceDao());
+        client.setTargetInstanceManager(targetInstanceManager());
         return client;
     }
 
@@ -384,8 +390,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public NetworkMapService networkMapReomoteClient() {
-        return new NetworkMapRemoteClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
+    public NetworkMapClient networkMapReomoteClient() {
+        return new NetworkMapClientRemote(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
     }
 
     @Bean

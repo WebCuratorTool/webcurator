@@ -180,11 +180,11 @@ to get the desired effect
       </div>
       <div class="row">
         <div class="col-11" style="padding: 10px 10px 0px 10px;">
-            <textarea class="form-control" rows="4" placeholder="Provenance Note ..." style="resize: none;"></textarea>
+            <textarea id="provenance-note" class="form-control" rows="4" placeholder="Provenance Note ..." style="resize: none;"></textarea>
         </div>
         <div class="col-1">
           <div style="width: 90px; margin: 0; position: absolute; top: 50%; left: 5px; -ms-transform: translateY(-50%); transform: translateY(-50%);">
-            <button type="button" class="btn btn-block btn-primary" onclick="applyRecrawl();">Apply</button>
+            <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.apply();">Apply</button>
             <br>
             <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modify-harvest').hide();">Close</button>
           </div>

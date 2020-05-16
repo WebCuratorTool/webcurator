@@ -25,10 +25,10 @@ import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.networkmap.service.NetworkMapLocalClient;
-import org.webcurator.core.networkmap.service.NetworkMapService;
-import org.webcurator.core.networkmap.service.PruneAndImportLocalClient;
-import org.webcurator.core.networkmap.service.PruneAndImportService;
+import org.webcurator.core.networkmap.service.NetworkMapClientLocal;
+import org.webcurator.core.networkmap.service.NetworkMapClient;
+import org.webcurator.core.networkmap.service.PruneAndImportClientLocal;
+import org.webcurator.core.networkmap.service.PruneAndImportClient;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
 import org.webcurator.core.store.arc.*;
@@ -587,15 +587,14 @@ public class DasConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public NetworkMapService getNetworkMapLocalClient() {
-        NetworkMapService client = new NetworkMapLocalClient(getBDBDatabasePool());
-        return client;
+    public NetworkMapClient getNetworkMapLocalClient() {
+        return new NetworkMapClientLocal(getBDBDatabasePool());
     }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public PruneAndImportService getPruneAndImportService() {
-        PruneAndImportLocalClient client = new PruneAndImportLocalClient();
+    public PruneAndImportClient getPruneAndImportService() {
+        PruneAndImportClientLocal client = new PruneAndImportClientLocal();
         client.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         client.setFileDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
         return client;

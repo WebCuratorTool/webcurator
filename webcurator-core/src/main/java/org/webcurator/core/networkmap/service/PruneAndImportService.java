@@ -22,5 +22,5 @@ public interface PruneAndImportService extends DefaultServiceInterface {
 
     PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items);
 
-    PruneAndImportCommandResult pruneAndImport(long job, long harvestResultId, int harvestResultNumber, int newHarvestResultNumber, PruneAndImportCommandApply cmd);
+    PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd);
 }

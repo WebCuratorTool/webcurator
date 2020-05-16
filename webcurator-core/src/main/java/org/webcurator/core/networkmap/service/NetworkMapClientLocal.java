@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class NetworkMapLocalClient implements NetworkMapService {
+public class NetworkMapClientLocal implements NetworkMapClient {
     private BDBNetworkMapPool pool;
 
-    public NetworkMapLocalClient(BDBNetworkMapPool pool) {
+    public NetworkMapClientLocal(BDBNetworkMapPool pool) {
         this.pool = pool;
     }
 

@@ -427,9 +427,20 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         if (aFailureStep <= FAILED_ON_SEND_RESULT) {
             try {
                 log.info("Sending harvest result to WCT for job " + aJob);
+                long targetInstanceId = 0;
+                int harvestResultNumber = 1;
+                if (aJob.startsWith("mod")) {
+                    String[] items = aJob.split("_");
+                    targetInstanceId = Long.parseLong(items[1]);
+                    harvestResultNumber = Integer.parseInt(items[2]);
+                } else {
+                    targetInstanceId = Long.parseLong(aJob.substring(aJob.lastIndexOf("-") + 1));
+                }
+
                 HarvestResultDTO ahr = new HarvestResultDTO();
                 ahr.setCreationDate(new Date());
-                ahr.setTargetInstanceOid(new Long(aJob.substring(aJob.indexOf('_') + 1)));
+                ahr.setTargetInstanceOid(targetInstanceId);
+                ahr.setHarvestNumber(harvestResultNumber);
                 ahr.setProvenanceNote(provenanceNote);
                 harvestCoordinatorNotifier.harvestComplete(ahr);
             } catch (Exception e) {

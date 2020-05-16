@@ -10,7 +10,7 @@ public class PruneAndImportController implements PruneAndImportService {
 
     //For store component, it's a localClient; For webapp component, it's a remote component
     @Autowired
-    private PruneAndImportService client;
+    private PruneAndImportClient client;
 
     @Override
     @RequestMapping(path = PruneAndImportServicePath.PATH_UPLOAD_FILE, method = RequestMethod.POST)
@@ -32,7 +32,7 @@ public class PruneAndImportController implements PruneAndImportService {
 
     @Override
     @RequestMapping(path = PruneAndImportServicePath.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)
-    public PruneAndImportCommandResult pruneAndImport(@RequestParam("job") long job, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("newHarvestResultNumber") int newHarvestResultNumber, @RequestBody PruneAndImportCommandApply cmd) {
-        return client.pruneAndImport(job, harvestResultId, harvestResultNumber, newHarvestResultNumber, cmd);
+    public PruneAndImportCommandResult pruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
+        return client.pruneAndImport(cmd);
     }
 }

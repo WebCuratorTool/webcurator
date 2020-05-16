@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +39,15 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.stereotype.Component;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
+import org.webcurator.core.networkmap.service.PruneAndImportClient;
 import org.webcurator.core.networkmap.service.PruneAndImportCommandApply;
-import org.webcurator.core.networkmap.service.PruneAndImportRemoteClient;
+import org.webcurator.core.networkmap.service.PruneAndImportClientRemote;
+import org.webcurator.core.networkmap.service.PruneAndImportService;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.profiles.Heritrix3Profile;
@@ -89,9 +89,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     @Autowired
     private DigitalAssetStoreFactory digitalAssetStoreFactory;
     @Autowired
-    private String coreCacheDir;
-    @Autowired
-    private PruneAndImportRemoteClient pruneAndImportRemoteClient;
+    private PruneAndImportClient pruneAndImportRemoteClient;
 
     /**
      * The Target Manager.
@@ -183,7 +181,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_RUNNING)) {
-            pruneAndImportRemoteClient.pushPruneAndImport(ti.getOid());
+            PruneAndImportClientRemote client = (PruneAndImportClientRemote) pruneAndImportRemoteClient;
+            client.pushPruneAndImport(ti.getOid());
         } else {
             // The result is for the original harvest, but the TI already has one or
             // more results
@@ -570,7 +569,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         PruneAndImportCommandApply cmd = null;
         try {
-            cmd = pruneAndImportRemoteClient.getPruneAndImportCommandApply(targetInstance.getOid());
+            PruneAndImportClientRemote client = (PruneAndImportClientRemote) pruneAndImportRemoteClient;
+            cmd = client.getPruneAndImportCommandApply(targetInstance.getOid());
         } catch (IOException e) {
             log.error(e.getMessage());
             return processed;
@@ -602,7 +602,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             targetInstanceDao.save(targetInstance);
 
             // Initiate harvest on the remote harvest agent
-            harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, String.format("mod_%d", targetInstance.getOid()), profile, seeds.toString());
+            harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, String.format("mod_%d_%d", targetInstance.getOid(), cmd.getNewHarvestResultNumber()), profile, seeds.toString());
 
             log.info("HarvestCoordinator: Harvest initiated successfully for target instance {}", targetInstance.getOid());
 
@@ -1291,7 +1291,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     public void addToHarvestResult(Long harvestResultOid, ArcIndexResultDTO arcIndexResultDTO) {
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
         ahr.setState(HarvestResult.STATE_ENDORSED);
-        arcIndexResultDTO.getHarvestFileDTOs().forEach(ahf->{
+        arcIndexResultDTO.getHarvestFileDTOs().forEach(ahf -> {
             ArcHarvestFile f = new ArcHarvestFile(ahf, (ArcHarvestResult) ahr);
             targetInstanceDao.save(f);
         });

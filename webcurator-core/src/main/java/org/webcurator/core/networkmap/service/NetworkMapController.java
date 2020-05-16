@@ -8,7 +8,7 @@ import java.util.List;
 @RestController
 public class NetworkMapController implements NetworkMapService {
     @Autowired
-    private NetworkMapService client;
+    private NetworkMapClient client;
 
     @Override
     @RequestMapping(path = NetworkMapServicePath.PATH_GET_COMMON, method = {RequestMethod.POST, RequestMethod.GET})

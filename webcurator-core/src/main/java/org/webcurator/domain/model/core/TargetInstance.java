@@ -26,13 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.Type;
 import org.webcurator.core.notification.UserInTrayResource;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
-
 import javax.validation.constraints.Size;
 import javax.validation.constraints.NotNull;
 import javax.persistence.*;
@@ -139,7 +136,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
 	private Long oid = -1L;
 	/** list of harvest results. */
-    @OneToMany() // default fetch type is LAZY
+    @OneToMany(cascade = CascadeType.ALL) // default fetch type is LAZY
     @JoinColumn(name = "HR_TARGET_INSTANCE_ID")
     @OrderColumn(name = "HR_INDEX")
 	private List<HarvestResult> harvestResults = new LinkedList<HarvestResult>();
@@ -570,6 +567,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         stateOrder.put(STATE_RUNNING, 1);
         stateOrder.put(STATE_STOPPING, 10);
         stateOrder.put(STATE_SCHEDULED, 40);
+        stateOrder.put(STATE_MOD_SCHEDULED,100);
+        stateOrder.put(STATE_MOD_QUEUED,101);
+        stateOrder.put(STATE_MOD_RUNNING,102);
 
         return stateOrder;
     }

@@ -44,7 +44,13 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 
 		HashMap<String, HarvesterStatusDTO> harvesterStatusMap = aStatus.getHarvesterStatus();
 		for (String key : harvesterStatusMap.keySet()) {
-			long tiOid = Long.parseLong(key.substring(key.lastIndexOf("-") + 1));
+			long tiOid = 0;
+			if (key.startsWith("mod")) {
+				String[] items = key.split("_");
+				tiOid = Long.parseLong(items[1]);
+			} else {
+				tiOid = Long.parseLong(key.substring(key.lastIndexOf("-") + 1));
+			}
 
 			// lock the ti for update
 			if (!lock(tiOid))
