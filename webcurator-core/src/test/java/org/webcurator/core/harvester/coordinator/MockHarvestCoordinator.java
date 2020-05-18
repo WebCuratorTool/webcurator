@@ -5,6 +5,10 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -121,10 +125,10 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	}
 
 	@Override
-	public void modifyHarvestComplete(long job, long harvestResultId, int harvestResultNumber, int newHarvestResultNumber) {
+	public void modificationComplete(long job, int harvestResultNumber) {
 		// TODO Auto-generated method stub
-
 	}
+
 
 	public void harvestOrQueue(QueuedTargetInstanceDTO targetInstance) {
 		// TODO Auto-generated method stub
@@ -375,4 +379,31 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		return 24;
 	}
 
+	@Override
+	public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, String fileName, boolean replaceFlag, byte[] doc) {
+		// TODO Auto-generated method stub
+
+		return null;
+	}
+
+	@Override
+	public PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName) {
+		// TODO Auto-generated method stub
+
+		return null;
+	}
+
+	@Override
+	public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
+		// TODO Auto-generated method stub
+
+		return null;
+	}
+
+	@Override
+	public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+		// TODO Auto-generated method stub
+
+		return null;
+	}
 }

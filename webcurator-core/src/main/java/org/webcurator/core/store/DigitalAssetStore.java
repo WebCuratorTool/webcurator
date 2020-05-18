@@ -187,4 +187,7 @@ public interface DigitalAssetStore {
 	 */
 	CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria)
             throws DigitalAssetStoreException;
+
+
+	
 }

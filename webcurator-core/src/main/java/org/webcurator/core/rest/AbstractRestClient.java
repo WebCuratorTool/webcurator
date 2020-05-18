@@ -113,4 +113,8 @@ abstract public class AbstractRestClient {
     public void setPort(int port) {
         this.port = port;
     }
+
+    public RestTemplateBuilder getRestTemplateBuilder() {
+        return restTemplateBuilder;
+    }
 }

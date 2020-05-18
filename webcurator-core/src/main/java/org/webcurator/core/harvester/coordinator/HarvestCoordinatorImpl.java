@@ -17,20 +17,13 @@ package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,15 +32,22 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
-import org.webcurator.core.networkmap.service.PruneAndImportClient;
-import org.webcurator.core.networkmap.service.PruneAndImportCommandApply;
-import org.webcurator.core.networkmap.service.PruneAndImportClientRemote;
-import org.webcurator.core.networkmap.service.PruneAndImportService;
+import org.webcurator.core.store.DigitalAssetStoreClient;
+import org.webcurator.core.util.ApplicationContextFactory;
+import org.webcurator.core.util.AuthUtil;
+import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.profiles.Heritrix3Profile;
@@ -56,6 +56,8 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.targets.TargetManager;
+import org.webcurator.core.visualization.modification.service.PruneAndImportService;
+import org.webcurator.core.visualization.modification.service.PruneAndImportServicePath;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.auth.Privilege;
@@ -89,7 +91,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     @Autowired
     private DigitalAssetStoreFactory digitalAssetStoreFactory;
     @Autowired
-    private PruneAndImportClient pruneAndImportRemoteClient;
+    private VisualizationManager visualizationManager;
 
     /**
      * The Target Manager.
@@ -181,8 +183,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_RUNNING)) {
-            PruneAndImportClientRemote client = (PruneAndImportClientRemote) pruneAndImportRemoteClient;
-            client.pushPruneAndImport(ti.getOid());
+            this.pushPruneAndImport(ti.getOid());
         } else {
             // The result is for the original harvest, but the TI already has one or
             // more results
@@ -569,8 +570,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         PruneAndImportCommandApply cmd = null;
         try {
-            PruneAndImportClientRemote client = (PruneAndImportClientRemote) pruneAndImportRemoteClient;
-            cmd = client.getPruneAndImportCommandApply(targetInstance.getOid());
+            cmd = this.getPruneAndImportCommandApply(targetInstance.getOid());
         } catch (IOException e) {
             log.error(e.getMessage());
             return processed;
@@ -596,6 +596,10 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         try {
+            HarvestResult hr=targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
+            hr.setState(HarvestResult.STATE_MOD_HARVESTING);
+            targetInstanceDao.save(hr);
+
             targetInstance.setActualStartTime(new Date());
             targetInstance.setState(TargetInstance.STATE_MOD_RUNNING);
             targetInstance.setHarvestServer(harvestAgentStatusDTO.getName());
@@ -618,16 +622,16 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return processed;
     }
 
-    public void modifyHarvestComplete(long job, long harvestResultId, int harvestResultNumber, int newHarvestResultNumber) {
+    public void modificationComplete(long job,  int harvestResultNumber) {
         TargetInstance ti = targetInstanceDao.load(job);
         if (ti == null) {
             log.error("Not able to load TargetInstance: {}", job);
             return;
         }
 
-        HarvestResult harvestResult = ti.getHarvestResult(newHarvestResultNumber);
+        HarvestResult harvestResult = ti.getHarvestResult(harvestResultNumber);
         if (harvestResult == null) {
-            log.error("Not able to load HarvestResult, job: {}, harvestNumber:{}", job, newHarvestResultNumber);
+            log.error("Not able to load HarvestResult, job: {}, harvestNumber:{}", job, harvestResultNumber);
             return;
         }
 
@@ -1484,6 +1488,227 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         this.recoverHarvests(tempHarvestAgentStatusDTO);
     }
 
+    @Override
+    public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, String fileName, boolean replaceFlag, byte[] doc) {
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_UPLOAD_FILE))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber)
+                .queryParam("fileName", fileName)
+                .queryParam("replaceFlag", replaceFlag);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        HttpEntity<Object> request = new HttpEntity<>(doc);
+        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
+
+        PruneAndImportCommandRowMetadata result;
+        result = restTemplate.postForObject(uri, request, PruneAndImportCommandRowMetadata.class);
+        return result;
+    }
+
+    @Override
+    public PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName) {
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_DOWNLOAD_FILE))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber)
+                .queryParam("fileName", fileName);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
+
+        PruneAndImportCommandRow result;
+        result = restTemplate.getForObject(uri, PruneAndImportCommandRow.class);
+        return result;
+    }
+
+    @Override
+    public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_CHECK_FILES))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        HttpEntity<String> request = digitalAssetStoreClient.createHttpRequestEntity(items);
+        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
+
+        PruneAndImportCommandResult result;
+        result = restTemplate.postForObject(uri, request, PruneAndImportCommandResult.class);
+        return result;
+    }
+
+    @Override
+    public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+
+        //Update the status of target instance
+        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
+        if (ti == null) {
+            result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg("Could not find TargetInstance: " + cmd.getTargetInstanceId());
+            log.error(result.getRespMsg());
+            return result;
+        }
+
+        synchronized (ti.getJobName()) {
+//            if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_HARVESTED)) {
+//                result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
+//                result.setRespMsg("Invalid target instance state for modification: " + ti.getState());
+//                log.error(result.getRespMsg());
+//                return result;
+//            }
+            try {
+                ti.setState(TargetInstance.STATE_MOD_SCHEDULED);
+                targetInstanceManager.save(ti);
+            } catch (Throwable e) {
+                e.printStackTrace();
+                return result;
+            }
+        }
+
+        try {
+            this.savePruneAndImportCommandApply(cmd.getTargetInstanceId(), cmd);
+        } catch (WCTRuntimeException | IOException e) {
+            result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg(e.getMessage());
+            return result;
+        }
+
+        boolean isNeedHarvest = false;
+        for (PruneAndImportCommandRowMetadata row : cmd.getDataset()) {
+            if (row.getOption().equalsIgnoreCase("url")) {
+                isNeedHarvest = true;
+                break;
+            }
+        }
+
+        if (!isNeedHarvest) {
+            ti.setState(TargetInstance.STATE_MOD_RUNNING);
+            targetInstanceManager.save(ti);
+            result = this.pushPruneAndImport(cmd);
+        } else {
+            String instanceAgencyName = ti.getOwner().getAgency().getName();
+
+            //Consider the HarvesterType of default modification profile has the same type of target instance profile
+            HarvestAgentStatusDTO allowedAgent = harvestAgentManager.getHarvester(instanceAgencyName, ti.getProfile().getHarvesterType());
+
+            result.setRespCode(RESP_CODE_SUCCESS);
+            if (allowedAgent != null) {
+                HarvestCoordinator harvestCoordinator = ApplicationContextFactory.getApplicationContext().getBean(HarvestCoordinator.class);
+                harvestCoordinator.modifyHarvest(ti, allowedAgent);
+                result.setRespMsg("Modification harvest job started");
+            } else {
+                ti.setScheduledTime(new Date());
+                ti.setState(TargetInstance.STATE_MOD_SCHEDULED);
+                targetInstanceManager.save(ti);
+                result.setRespMsg("No idle agent, modification harvest job is scheduled");
+            }
+        }
+
+        log.debug(result.getRespMsg());
+        return result;
+    }
+
+    public boolean pushPruneAndImport(long job) {
+        PruneAndImportCommandApply cmd = null;
+        try {
+            cmd = getPruneAndImportCommandApply(job);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            log.error("Could not load PruneAndImportCommandApply of target instance: {}", job);
+            return false;
+        }
+
+        PruneAndImportCommandResult result = pushPruneAndImport(cmd);
+        return result.getRespCode() == RESP_CODE_SUCCESS;
+    }
+
+    public PruneAndImportCommandResult pushPruneAndImport(PruneAndImportCommandApply cmd) {
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_APPLY_PRUNE_IMPORT));
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        HttpEntity<String> request = digitalAssetStoreClient.createHttpRequestEntity(cmd);
+        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
+        result = restTemplate.postForObject(uri, request, PruneAndImportCommandResult.class);
+
+        TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
+        if (ti == null) {
+            result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg(String.format("Target instance (OID=%d) does not exist in DB", cmd.getTargetInstanceId()));
+            return result;
+        }
+        ti.setState(TargetInstance.STATE_MOD_RUNNING);
+
+        HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
+        hr.setState(HarvestResult.STATE_MOD_MODIFYING);
+        targetInstanceDao.save(hr);
+
+        return result;
+    }
+
+    public void savePruneAndImportCommandApply(long job, PruneAndImportCommandApply cmd) throws IOException, WCTRuntimeException {
+        TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
+        HarvestResult res = targetInstanceDao.getHarvestResult(cmd.getHarvestResultId()); //Query the old Harvest Result
+        if (ti == null || res == null) {
+            throw new WCTRuntimeException(
+                    String.format("Target instance (OID=%d) or HarvestResult (IOD=%d) does not exist in DB"
+                            , cmd.getTargetInstanceId()
+                            , cmd.getHarvestResultId()));
+        }
+
+        int newHarvestResultNumber = 1;
+        List<HarvestResult> harvestResultList = ti.getHarvestResults();
+        OptionalInt maxHarvestResultNumber = harvestResultList.stream().mapToInt(HarvestResult::getHarvestNumber).max();
+        if (maxHarvestResultNumber.isPresent()) {
+            newHarvestResultNumber = maxHarvestResultNumber.getAsInt() + 1;
+        }
+
+        // Create a new harvest result.
+        HarvestResult hr = new ArcHarvestResult(ti, newHarvestResultNumber);
+        hr.setDerivedFrom(cmd.getHarvestResultNumber());
+        hr.setProvenanceNote(cmd.getProvenanceNote());
+        //        hr.addModificationNotes();
+        hr.setTargetInstance(ti);
+        hr.setState(ArcHarvestResult.STATE_MOD_SCHEDULED);
+
+        if (AuthUtil.getRemoteUserObject() != null) {
+            hr.setCreatedBy(AuthUtil.getRemoteUserObject());
+        } else {
+            hr.setCreatedBy(res.getCreatedBy());
+        }
+
+        ti.getHarvestResults().add(hr);
+
+        // Save to the database.
+        targetInstanceDao.save(hr);
+
+        targetInstanceDao.save(ti);
+
+        cmd.setNewHarvestResultNumber(newHarvestResultNumber);
+
+        String cmdFilePath = String.format("%s%smod_%d.json", visualizationManager.getUploadDir(), File.separator, job);
+        File cmdFile = new File(cmdFilePath);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        byte[] cmdJsonContent = objectMapper.writeValueAsBytes(cmd);
+        Files.write(cmdFile.toPath(), cmdJsonContent);
+    }
+
+    public PruneAndImportCommandApply getPruneAndImportCommandApply(long job) throws IOException {
+        String cmdFilePath = String.format("%s%smod_%d.json", visualizationManager.getUploadDir(), File.separator, job);
+        File cmdFile = new File(cmdFilePath);
+        byte[] cmdJsonContent = Files.readAllBytes(cmdFile.toPath());
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);
+    }
     public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
         this.harvestAgentManager = harvestAgentManager;
     }

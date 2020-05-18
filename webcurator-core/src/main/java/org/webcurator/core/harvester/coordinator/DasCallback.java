@@ -33,7 +33,7 @@ public interface DasCallback {
 	public void completeArchiving(Long targetInstanceOid, String archiveIID);
 
 	/**
-	 * Advises the Core taht the harvest failed to be archived.
+	 * Advises the Core that the harvest failed to be archived.
 	 * @param targetInstanceOid The OID of the instance being archived.
 	 * @param message The error message received from the archive.
 	 */
@@ -46,4 +46,11 @@ public interface DasCallback {
 	 * @return The history seeds
 	 */
 	public SeedHistoryDTO querySeedHistory(Long targetInstanceOid, Integer harvestNumber);
+
+	/**
+	 * Notify the core that the modification is finished
+	 * @param targetInstanceOid The OID of the instance being archived.
+	 * @param harvestNumber The order number of the harvest.
+	 */
+	public void completeModification(Long targetInstanceOid, Integer harvestNumber);
 }

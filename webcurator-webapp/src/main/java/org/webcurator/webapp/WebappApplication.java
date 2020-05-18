@@ -9,12 +9,20 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import java.util.Arrays;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"org.webcurator.webapp", "org.webcurator.ui", "org.webcurator.core.harvester.coordinator",
-        "org.webcurator.core.rest", "org.webcurator.core.reader", "org.webcurator.core.harvester.agent.HarvestAgentClient", "org.webcurator.core.networkmap.service"}//,
+@EnableJpaRepositories("org.webcurator.core.visualization.modification.service")
+@ComponentScan(basePackages = {"org.webcurator.webapp",
+        "org.webcurator.ui",
+        "org.webcurator.core.harvester.coordinator",
+        "org.webcurator.core.rest",
+        "org.webcurator.core.reader",
+        "org.webcurator.core.harvester.agent.HarvestAgentClient",
+        "org.webcurator.core.visualization",
+        "org.webcurator.core.visualization.modification.service.VisualizationImportedFileRepository"}//,
         // Put any exclusions here.
         //excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ClassToExclude.class)
 )

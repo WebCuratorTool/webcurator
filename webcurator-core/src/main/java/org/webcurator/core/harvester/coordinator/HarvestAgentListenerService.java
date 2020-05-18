@@ -189,4 +189,9 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
         }
         return seedHistoryDTO;
     }
+
+    @RequestMapping(path = HarvestCoordinatorPaths.COMPLETE_MODIFICATION, method = {RequestMethod.POST, RequestMethod.GET})
+    public void completeModification(@RequestParam Long targetInstanceOid, @RequestParam Integer harvestNumber) {
+        harvestCoordinator.modificationComplete(targetInstanceOid, harvestNumber);
+    }
 }

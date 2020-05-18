@@ -18,10 +18,10 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.webcurator.core.networkmap.WCTResourceIndexer;
+import org.webcurator.core.visualization.networkmap.WCTResourceIndexer;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
-import org.webcurator.core.networkmap.bdb.BDBNetworkMap;
-import org.webcurator.core.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.core.*;
 

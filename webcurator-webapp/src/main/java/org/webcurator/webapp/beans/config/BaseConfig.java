@@ -42,7 +42,10 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
-import org.webcurator.core.networkmap.service.*;
+import org.webcurator.core.visualization.modification.service.PruneAndImportClient;
+import org.webcurator.core.visualization.modification.service.PruneAndImportClientRemote;
+import org.webcurator.core.visualization.modification.service.VisualizationImportedFileRepository;
+import org.webcurator.core.visualization.networkmap.service.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.notification.MailServerImpl;
 import org.webcurator.core.permissionmapping.HierPermMappingDAOImpl;
@@ -268,6 +271,10 @@ public class BaseConfig {
     @Autowired
     private HarvestCoordinator harvestCoordinator;
 
+    @Autowired
+//    VisualizationImportedFileRepository importedFileRepository;
+    PruneAndImportClientRemote importClientRemote;
+
     @Bean
     public ResourceBundleMessageSource messageSource() {
         ResourceBundleMessageSource bean = new ResourceBundleMessageSource();
@@ -364,18 +371,26 @@ public class BaseConfig {
         return bean;
     }
 
+    /*
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public PruneAndImportClient getPruneAndImportService() {
-        PruneAndImportClientRemote client = new PruneAndImportClientRemote(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
-        client.setCoreCacheDir(coreCacheDir);
-        client.setAuditor(audit());
-        client.setHarvestAgentManager(harvestAgentManager());
-//        client.setHarvestCoordinator(harvestCoordinator);
-        client.setTargetInstanceDao(targetInstanceDao());
-        client.setTargetInstanceManager(targetInstanceManager());
+//        PruneAndImportClientRemote client = new PruneAndImportClientRemote(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
+//        client.setCoreCacheDir(coreCacheDir);
+//        client.setAuditor(audit());
+//        client.setHarvestAgentManager(harvestAgentManager());
+////        client.setHarvestCoordinator(harvestCoordinator);
+//        client.setTargetInstanceDao(targetInstanceDao());
+//        client.setTargetInstanceManager(targetInstanceManager());
+////        client.setImportedFileRepository(importedFileRepository);
+        importClientRemote.setScheme(digitalAssetStoreScheme);
+        importClientRemote.setHost(digitalAssetStoreHost);
+        importClientRemote.setPort(digitalAssetStorePort);
+        importClientRemote.set
         return client;
     }
+
+     */
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -390,7 +405,7 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public NetworkMapClient networkMapReomoteClient() {
+    public NetworkMapClient networkMapClientReomote() {
         return new NetworkMapClientRemote(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
     }
 
