@@ -1,5 +1,8 @@
 package org.webcurator.core.visualization.modification.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.modification.*;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
@@ -12,45 +15,46 @@ import java.nio.file.Files;
 import java.util.*;
 
 @SuppressWarnings("unused")
+@Component("pruneAndImportClient")
 public class PruneAndImportClient implements PruneAndImportService {
-    private String fileDir; //Upload files
-    private String baseDir; //Harvest WARC files
+    @Autowired
+    private VisualizationManager visualizationManager;
 
     @Override
-    public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, String fileName, boolean replaceFlag, byte[] doc) {
-        PruneAndImportCommandRowMetadata cmd = new PruneAndImportCommandRowMetadata();
-        cmd.setName(fileName);
-        File uploadedFilePath = new File(fileDir, fileName);
+    public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, PruneAndImportCommandRow cmd) {
+        PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
+        File uploadedFilePath = new File(visualizationManager.getUploadDir(), metadata.getName());
         if (uploadedFilePath.exists()) {
-            if (replaceFlag) {
+            if (metadata.isReplaceFlag()) {
                 uploadedFilePath.deleteOnExit();
             } else {
-                cmd.setRespCode(FILE_EXIST_YES);
-                cmd.setRespMsg(String.format("File %s has been exist, return without replacement.", fileName));
-                return cmd;
+                metadata.setRespCode(FILE_EXIST_YES);
+                metadata.setRespMsg(String.format("File %s has been exist, return without replacement.", metadata.getName()));
+                return metadata;
             }
         }
 
         try {
+            byte[] doc = Base64.getDecoder().decode(cmd.getContent().replace("data:image/png;base64,", ""));
             Files.write(uploadedFilePath.toPath(), doc);
         } catch (IOException e) {
             log.error(e.getMessage());
-            cmd.setRespCode(RESP_CODE_ERROR_FILE_IO);
-            cmd.setRespMsg("Failed to write upload file to " + uploadedFilePath.getAbsolutePath());
-            return cmd;
+            metadata.setRespCode(RESP_CODE_ERROR_FILE_IO);
+            metadata.setRespMsg("Failed to write upload file to " + uploadedFilePath.getAbsolutePath());
+            return metadata;
         }
 
-        cmd.setRespCode(FILE_EXIST_YES);
-        cmd.setRespMsg("OK");
-        return cmd;
+        metadata.setRespCode(FILE_EXIST_YES);
+        metadata.setRespMsg("OK");
+        return metadata;
     }
 
     @Override
     public PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName) {
         PruneAndImportCommandRow result = new PruneAndImportCommandRow();
-        File uploadedFilePath = new File(fileDir, fileName);
+        File uploadedFilePath = new File(visualizationManager.getUploadDir(), fileName);
         try {
-            result.setContent(Files.readAllBytes(uploadedFilePath.toPath()));
+            result.setContent(new String(Files.readAllBytes(uploadedFilePath.toPath())));
         } catch (IOException e) {
             log.error(e.getMessage());
         }
@@ -64,7 +68,7 @@ public class PruneAndImportClient implements PruneAndImportService {
         result.setRespMsg("OK");
         items.forEach(e -> {
             if (e.getOption().equalsIgnoreCase("file")) {
-                File uploadedFilePath = new File(fileDir, e.getName());
+                File uploadedFilePath = new File(visualizationManager.getUploadDir(), e.getName());
                 if (uploadedFilePath.exists()) {
                     e.setRespCode(FILE_EXIST_YES); //Exist
                     e.setRespMsg("OK");
@@ -87,28 +91,12 @@ public class PruneAndImportClient implements PruneAndImportService {
 
     @Override
     public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportProcessor p = new PruneAndImportProcessor(this.fileDir, this.baseDir, cmd);
+        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager.getUploadDir(), visualizationManager.getBaseDir(), cmd);
         new Thread(p).start();
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
         result.setRespCode(RESP_CODE_SUCCESS);
         result.setRespMsg("Modification task is accepted");
         return result;
-    }
-
-    public String getFileDir() {
-        return fileDir;
-    }
-
-    public void setFileDir(String fileDir) {
-        this.fileDir = fileDir;
-    }
-
-    public String getBaseDir() {
-        return baseDir;
-    }
-
-    public void setBaseDir(String baseDir) {
-        this.baseDir = baseDir;
     }
 }

@@ -205,8 +205,8 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore, PruneA
 
     @Override
     @RequestMapping(path = PruneAndImportServicePath.PATH_UPLOAD_FILE, method = RequestMethod.POST)
-    public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, @RequestParam("replaceFlag") boolean replaceFlag, @RequestBody byte[] doc) {
-        return client.uploadFile(job, harvestResultNumber, fileName, replaceFlag, doc);
+    public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody PruneAndImportCommandRow cmd) {
+        return client.uploadFile(job, harvestResultNumber, cmd);
     }
 
     @Override

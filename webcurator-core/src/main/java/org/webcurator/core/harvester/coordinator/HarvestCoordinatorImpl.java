@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,10 +61,12 @@ import org.webcurator.core.visualization.modification.service.PruneAndImportServ
 import org.webcurator.core.visualization.modification.service.PruneAndImportServicePath;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.VisualizationImportedFileDAO;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
+import org.webcurator.domain.model.visualization.VisualizationImportedFile;
 
 /**
  * @author nwaight
@@ -92,7 +95,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     private DigitalAssetStoreFactory digitalAssetStoreFactory;
     @Autowired
     private VisualizationManager visualizationManager;
-
+    @Autowired
+    private VisualizationImportedFileDAO visualizationImportedFileDAO;
     /**
      * The Target Manager.
      */
@@ -596,7 +600,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         try {
-            HarvestResult hr=targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
+            HarvestResult hr = targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
             hr.setState(HarvestResult.STATE_MOD_HARVESTING);
             targetInstanceDao.save(hr);
 
@@ -622,7 +626,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return processed;
     }
 
-    public void modificationComplete(long job,  int harvestResultNumber) {
+    public void modificationComplete(long job, int harvestResultNumber) {
         TargetInstance ti = targetInstanceDao.load(job);
         if (ti == null) {
             log.error("Not able to load TargetInstance: {}", job);
@@ -1489,26 +1493,48 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     @Override
-    public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, String fileName, boolean replaceFlag, byte[] doc) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+    public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, PruneAndImportCommandRow cmd) {
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_UPLOAD_FILE))
                 .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber)
-                .queryParam("fileName", fileName)
-                .queryParam("replaceFlag", replaceFlag);
+                .queryParam("harvestResultNumber", harvestResultNumber);
         URI uri = uriComponentsBuilder.build().toUri();
 
-        HttpEntity<Object> request = new HttpEntity<>(doc);
+        HttpEntity<Object> request = new HttpEntity<>(cmd);
         RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
 
         PruneAndImportCommandRowMetadata result;
         result = restTemplate.postForObject(uri, request, PruneAndImportCommandRowMetadata.class);
+
+        if (result == null || !(result.getRespCode() == PruneAndImportService.RESP_CODE_SUCCESS || result.getRespCode() == PruneAndImportService.RESP_CODE_FILE_EXIST)) {
+            return result;
+        }
+
+        PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
+        VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
+        if (vif == null) {
+            vif = new VisualizationImportedFile();
+        }
+
+        vif.setFileName(metadata.getName());
+        vif.setContentLength(metadata.getLength());
+        vif.setContentType(metadata.getContentType());
+        vif.setLastModifiedDate(metadata.getLastModified());
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        String uploadedDate = String.format("%04d%02d%02d", localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth());
+        String uploadedTime = String.format("%02d%02d%02d", localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond());
+
+        vif.setUploadedDate(uploadedDate);
+        vif.setUploadedTime(uploadedTime);
+
+        visualizationImportedFileDAO.save(vif);
         return result;
     }
 
     @Override
     public PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_DOWNLOAD_FILE))
                 .queryParam("job", job)
@@ -1525,7 +1551,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
     @Override
     public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_CHECK_FILES))
                 .queryParam("job", job)
@@ -1537,6 +1563,25 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         PruneAndImportCommandResult result;
         result = restTemplate.postForObject(uri, request, PruneAndImportCommandResult.class);
+
+        /**
+         * Attached file properties for existing files
+         */
+        List<PruneAndImportCommandRowMetadata> dataset = result.getMetadataDataset();
+        dataset.stream().filter(e -> {
+            return e.getRespCode() == PruneAndImportService.FILE_EXIST_YES;
+        }).forEach(e -> {
+            VisualizationImportedFile f = visualizationImportedFileDAO.findImportedFile(e.getName());
+            if (f == null) {
+                e.setRespCode(PruneAndImportService.FILE_EXIST_NO);
+                e.setRespMsg("File metadata does not exist");
+            } else {
+                e.setContentType(f.getContentType());
+                e.setLength(f.getContentLength());
+                e.setLastModified(f.getLastModifiedDate());
+            }
+        });
+
         return result;
     }
 
@@ -1627,7 +1672,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     public PruneAndImportCommandResult pushPruneAndImport(PruneAndImportCommandApply cmd) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient)digitalAssetStoreFactory.getDAS();
+        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 
@@ -1709,6 +1754,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);
     }
+
     public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
         this.harvestAgentManager = harvestAgentManager;
     }
@@ -1725,5 +1771,10 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         this.harvestQaManager = harvestQaManager;
     }
 
-
+//    public static void main(String[] args) {
+//        LocalDateTime localDateTime = LocalDateTime.now();
+//        String uploadedDate = String.format("%04d%02d%02d", localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth());
+//        String uploadedTime = String.format("%02d%02d%02d", localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond());
+//        System.out.println(uploadedDate + uploadedTime);
+//    }
 }

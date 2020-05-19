@@ -563,7 +563,7 @@ class PopupModifyHarvest{
 
 		$('#popup-window-loading').show();
 		var that=this;
-		var sourceUrl="/curator/tools/apply";
+		var sourceUrl="/curator/modification/apply";
 		fetch(sourceUrl, {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},

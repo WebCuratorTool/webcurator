@@ -9,11 +9,17 @@ class ImportModifyHarvestProcessor{
 		var that=this;
 		var reader = new FileReader();
 		reader.addEventListener("loadend", function () {
-			var url="/curator/tools/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber + "&fileName="+cmd.name+"&replaceFlag=true";
+			var req={
+				content: reader.result,
+				metadata: cmd
+			};
+
+			var url="/curator/modification/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber;
 			fetch(url, { 
 				method: 'POST',
-				headers: {'Content-Type': 'application/octet-stream'},
-				body: reader.result
+				// headers: {'Content-Type': 'application/octet-stream'},
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify(req)
 			}).then((response) => {
 				return response.json();
 			}).then((response) => {
@@ -21,8 +27,8 @@ class ImportModifyHarvestProcessor{
 			});
 		});
 
-		// reader.readAsDataURL(file);
-		reader.readAsArrayBuffer(file);
+		reader.readAsDataURL(file);
+		// reader.readAsArrayBuffer(file);
 	}
 
 	singleImport(resp, node){
@@ -308,7 +314,7 @@ class ImportModifyHarvestProcessor{
 
 	checkFilesExistAtServerSide(dataset, callback){
 		var that=this;
-		fetch("/curator/tools/check-files?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber, { 
+		fetch("/curator/modification/check-files?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber, { 
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify(dataset)

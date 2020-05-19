@@ -21,6 +21,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternUtils;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
@@ -42,9 +43,7 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
-import org.webcurator.core.visualization.modification.service.PruneAndImportClient;
-import org.webcurator.core.visualization.modification.service.PruneAndImportClientRemote;
-import org.webcurator.core.visualization.modification.service.VisualizationImportedFileRepository;
+import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.networkmap.service.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.notification.MailServerImpl;
@@ -75,6 +74,7 @@ import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.ui.tools.controller.*;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.*;
@@ -262,8 +262,8 @@ public class BaseConfig {
     @Value("${qualityReviewToolController.webArchiveTarget}")
     private String qualityReviewToolControllerWebArchiveTarget;
 
-    @Value("${core.cache.dir}")
-    private String coreCacheDir;
+    @Value("${core.uploaded.dir}")
+    private String uploadedFilesDir;
 
     @Autowired
     private ListsConfig listsConfig;
@@ -272,8 +272,12 @@ public class BaseConfig {
     private HarvestCoordinator harvestCoordinator;
 
     @Autowired
-//    VisualizationImportedFileRepository importedFileRepository;
-    PruneAndImportClientRemote importClientRemote;
+    VisualizationManager visualizationManager;
+
+    @PostConstruct
+    public void init() {
+        visualizationManager.setUploadDir(uploadedFilesDir);
+    }
 
     @Bean
     public ResourceBundleMessageSource messageSource() {
@@ -1222,5 +1226,14 @@ public class BaseConfig {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
         return new PolitenessOptions(1.0, 1000L, 10000L, 2L, 2000L);
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false)
+    public VisualizationImportedFileDAO getVisualizationImportedFileDAO() {
+        VisualizationImportedFileDAOImpl visualizationImportedFileDAO= new VisualizationImportedFileDAOImpl();
+        visualizationImportedFileDAO.setSessionFactory(sessionFactory().getObject());
+        return visualizationImportedFileDAO;
     }
 }

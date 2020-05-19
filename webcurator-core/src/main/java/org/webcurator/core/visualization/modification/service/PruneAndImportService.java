@@ -21,7 +21,7 @@ public interface PruneAndImportService extends VisualizationServiceInterface {
     int FILE_EXIST_YES = 1;
     int FILE_EXIST_NO = -1;
 
-    PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, String fileName, boolean replaceFlag, byte[] doc);
+    PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, PruneAndImportCommandRow cmd);
 
     PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName);
 

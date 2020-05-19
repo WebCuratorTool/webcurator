@@ -23,11 +23,11 @@ import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
+import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
-import org.webcurator.core.visualization.modification.service.PruneAndImportClientLocal;
 import org.webcurator.core.visualization.modification.service.PruneAndImportClient;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
@@ -277,9 +277,15 @@ public class DasConfig {
     @Value("${server.port}")
     private String wctStorePort;
 
+    @Autowired
+    private VisualizationManager visualizationManager;
+
     @PostConstruct
     public void init() {
         ApplicationContextFactory.setApplicationContext(applicationContext);
+
+        visualizationManager.setUploadDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
+        visualizationManager.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
     }
 
     @Bean
@@ -589,15 +595,6 @@ public class DasConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public NetworkMapClient getNetworkMapLocalClient() {
         return new NetworkMapClientLocal(getBDBDatabasePool());
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public PruneAndImportClient getPruneAndImportService() {
-        PruneAndImportClientLocal client = new PruneAndImportClientLocal();
-        client.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-        client.setFileDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
-        return client;
     }
 
     @Bean

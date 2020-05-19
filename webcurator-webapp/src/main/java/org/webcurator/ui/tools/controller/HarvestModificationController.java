@@ -13,7 +13,7 @@ import org.webcurator.core.visualization.modification.service.PruneAndImportServ
 import java.util.List;
 
 @RestController
-public class ModificationController implements PruneAndImportService {
+public class HarvestModificationController implements PruneAndImportService {
 
     //For store component, it's a localClient; For webapp component, it's a remote component
     @Autowired
@@ -21,8 +21,8 @@ public class ModificationController implements PruneAndImportService {
 
     @Override
     @RequestMapping(path = PruneAndImportServicePath.PATH_UPLOAD_FILE, method = RequestMethod.POST)
-    public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, @RequestParam("replaceFlag") boolean replaceFlag, @RequestBody byte[] doc) {
-        return harvestCoordinator.uploadFile(job, harvestResultNumber, fileName, replaceFlag, doc);
+    public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody PruneAndImportCommandRow cmd) {
+        return harvestCoordinator.uploadFile(job, harvestResultNumber, cmd);
     }
 
     @Override

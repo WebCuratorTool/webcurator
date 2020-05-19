@@ -1,14 +1,14 @@
 package org.webcurator.core.visualization.modification.metadata;
 
 public class PruneAndImportCommandRow {
-    private byte[] content;
+    private String content;
     private PruneAndImportCommandRowMetadata metadata;
 
-    public byte[] getContent() {
+    public String getContent() {
         return content;
     }
 
-    public void setContent(byte[] content) {
+    public void setContent(String content) {
         this.content = content;
     }
 
