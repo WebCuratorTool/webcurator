@@ -387,13 +387,6 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	}
 
 	@Override
-	public PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName) {
-		// TODO Auto-generated method stub
-
-		return null;
-	}
-
-	@Override
 	public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
 		// TODO Auto-generated method stub
 

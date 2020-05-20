@@ -110,7 +110,7 @@ public class PruneAndImportProcessor implements Runnable {
         //Process copy and file import
         for (File archiveFile : archiveFiles) {
             coordinator.copyArchiveRecords(archiveFile, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
-            coordinator.importFromFile(hrsToImport);
+            coordinator.importFromFile(cmd.getTargetInstanceId(),cmd.getNewHarvestResultNumber(), hrsToImport);
         }
 
         //Process source URL import
@@ -130,7 +130,7 @@ public class PruneAndImportProcessor implements Runnable {
     public void notifyModificationComplete(long targetInstanceId, int harvestResultNumber) {
         AbstractRestClient client = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);
         RestTemplateBuilder restTemplateBuilder = ApplicationContextFactory.getApplicationContext().getBean(RestTemplateBuilder.class);
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(HarvestCoordinatorPaths.COMPLETE_MODIFICATION))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(HarvestCoordinatorPaths.MODIFICATION_COMPLETE_PRUNE_IMPORT))
                 .queryParam("targetInstanceOid", targetInstanceId)
                 .queryParam("harvestNumber", harvestResultNumber);
         RestTemplate restTemplate = restTemplateBuilder.build();

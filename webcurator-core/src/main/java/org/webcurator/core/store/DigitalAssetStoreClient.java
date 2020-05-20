@@ -16,6 +16,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreCopyAndPruneDTO;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
@@ -37,13 +42,13 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         super(scheme, host, port, restTemplateBuilder);
     }
 
-    private void internalSave(String targetInstanceName, HarvestStoreDTO harvestStoreDTO) throws DigitalAssetStoreException{
+    private void internalSave(String targetInstanceName, HarvestStoreDTO harvestStoreDTO) throws DigitalAssetStoreException {
         try {
             HttpEntity<String> request = this.createHttpRequestEntity(harvestStoreDTO);
 
             Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SAVE));
-            URI uri=uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+            URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
             RestTemplate restTemplate = restTemplateBuilder.build();
             restTemplate.postForObject(uri, request, Void.class);
@@ -55,7 +60,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
     @Override
     public void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        HarvestStoreDTO requestBody = new HarvestStoreDTO();
         requestBody.setDirectory(directory);
         requestBody.setPathFromPath(path);
 
@@ -66,7 +71,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
     // Assuming that without any values set will keep infinitely retrying
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     public void save(String targetInstanceName, Path path) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        HarvestStoreDTO requestBody = new HarvestStoreDTO();
         requestBody.setPathFromPath(path);
 
         internalSave(targetInstanceName, requestBody);
@@ -74,7 +79,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
     @Override
     public void save(String targetInstanceName, String directory, List<Path> paths) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        HarvestStoreDTO requestBody = new HarvestStoreDTO();
         requestBody.setDirectory(directory);
         requestBody.setPathsFromPath(paths);
 
@@ -83,7 +88,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
     @Override
     public void save(String targetInstanceName, List<Path> paths) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
+        HarvestStoreDTO requestBody = new HarvestStoreDTO();
         requestBody.setPathsFromPath(paths);
 
         internalSave(targetInstanceName, requestBody);
@@ -99,7 +104,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         String url = uriComponentsBuilder.buildAndExpand(pathVariables).toUriString();
 
         WebClient client = WebClient.create(url);
-        Mono<byte[]> mono  = client.method(HttpMethod.POST)
+        Mono<byte[]> mono = client.method(HttpMethod.POST)
                 .body(BodyInserters.fromObject(jsonStr))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM)
@@ -139,7 +144,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
                 .queryParam("harvest-result-number", harvestResultNumber)
                 .queryParam("resource", resource);
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-        URI uri =  uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+        URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         ResponseEntity<List<Header>> listResponse = restTemplate.exchange(uri, HttpMethod.POST, request,
@@ -152,8 +157,10 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
                                          List<String> urisToDelete, List<HarvestResourceDTO> harvestResourcesToImport) throws DigitalAssetStoreException {
         HarvestStoreCopyAndPruneDTO dto = new HarvestStoreCopyAndPruneDTO();
         dto.setUrisToDelete(urisToDelete);
-        if(harvestResourcesToImport!=null){
-            dto.setHarvestResourcesToImport(harvestResourcesToImport.stream().map(o->{return (ArcHarvestResourceDTO)o;}).collect(Collectors.toList()));
+        if (harvestResourcesToImport != null) {
+            dto.setHarvestResourcesToImport(harvestResourcesToImport.stream().map(o -> {
+                return (ArcHarvestResourceDTO) o;
+            }).collect(Collectors.toList()));
         }
 
         HttpEntity<String> request = this.createHttpRequestEntity(dto);
@@ -298,5 +305,11 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         }
         String urlPrefix = "http://" + getHost() + ":" + getPort();
         response.setUrlForCustomDepositForm(urlPrefix + customDepositFormURL);
+    }
+
+    @Override
+    public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+        //TODO
+        return null;
     }
 }

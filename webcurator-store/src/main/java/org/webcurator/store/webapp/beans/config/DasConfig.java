@@ -28,7 +28,6 @@ import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
-import org.webcurator.core.visualization.modification.service.PruneAndImportClient;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
 import org.webcurator.core.store.arc.*;
@@ -310,7 +309,7 @@ public class DasConfig {
         bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         bean.setFileArchive(createFileArchive());
-
+        bean.setVisualizationManager(visualizationManager);
         return bean;
     }
 

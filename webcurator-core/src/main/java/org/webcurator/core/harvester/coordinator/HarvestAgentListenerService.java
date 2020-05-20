@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.common.Constants;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.dto.SeedHistoryDTO;
@@ -190,8 +192,13 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
         return seedHistoryDTO;
     }
 
-    @RequestMapping(path = HarvestCoordinatorPaths.COMPLETE_MODIFICATION, method = {RequestMethod.POST, RequestMethod.GET})
-    public void completeModification(@RequestParam Long targetInstanceOid, @RequestParam Integer harvestNumber) {
+    @RequestMapping(path = HarvestCoordinatorPaths.MODIFICATION_COMPLETE_PRUNE_IMPORT, method = {RequestMethod.POST, RequestMethod.GET})
+    public void modificationComplete(@RequestParam Long targetInstanceOid, @RequestParam Integer harvestNumber) {
         harvestCoordinator.modificationComplete(targetInstanceOid, harvestNumber);
+    }
+
+    @Override
+    public PruneAndImportCommandRow modificationDownloadFile(Long targetInstanceOid, Integer harvestNumber, PruneAndImportCommandRowMetadata cmd) {
+        return null;
     }
 }

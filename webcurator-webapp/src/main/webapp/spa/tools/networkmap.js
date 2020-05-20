@@ -8,7 +8,7 @@ class NetworkMap{
 
 
 	init(jobId, harvestResultNumber){
-		var sourceUrlDomains="/curator/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
+		var sourceUrlDomains="/visualization/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
         var that=this;
         $('#popup-window-loading').show();
         fetch(sourceUrlDomains).then((response) => {

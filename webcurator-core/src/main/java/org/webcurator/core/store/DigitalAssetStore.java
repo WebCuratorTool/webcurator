@@ -21,6 +21,8 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
@@ -188,6 +190,10 @@ public interface DigitalAssetStore {
 	CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria)
             throws DigitalAssetStoreException;
 
-
-	
+	/**
+	 * To modify ( prune and import) the harvest
+	 * @param cmd The prune and import metadata list
+	 * @return the command is accepted or not
+	 */
+	PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd);
 }

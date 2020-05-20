@@ -55,44 +55,44 @@ function sp(id){
   $("#page-"+id).show();
 }
 
-function checkUrls(domainName, contentType, statusCode){
-  var aryDomainName=[];
-  if (domainName && domainName!==null && domainName!=="null") {
-    aryDomainName.push(domainName);
-  }
+// function checkUrls(domainName, contentType, statusCode){
+//   var aryDomainName=[];
+//   if (domainName && domainName!==null && domainName!=="null") {
+//     aryDomainName.push(domainName);
+//   }
 
-  var aryContentType=[];
-  if(contentType && contentType!==null && contentType!=="null"){
-    aryContentType.push(contentType);
-  }
+//   var aryContentType=[];
+//   if(contentType && contentType!==null && contentType!=="null"){
+//     aryContentType.push(contentType);
+//   }
 
-  var aryStatusCode=[];
-  if(statusCode && statusCode > 0){
-    aryStatusCode.push(statusCode);
-  }
+//   var aryStatusCode=[];
+//   if(statusCode && statusCode > 0){
+//     aryStatusCode.push(statusCode);
+//   }
 
-  var searchCondition={
-    "domainNames": aryDomainName,
-    "contentTypes": aryContentType,
-    "statusCodes": aryStatusCode
-  }
+//   var searchCondition={
+//     "domainNames": aryDomainName,
+//     "contentTypes": aryContentType,
+//     "statusCodes": aryStatusCode
+//   }
 
-  var sourceUrl="/curator/networkmap/search/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
-  fetch(sourceUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(searchCondition)
-  }).then((response) => {
-      return response.json();
-  }).then((rawData) => {
-      var data=formatStringArrayToJsonArray(rawData);
-      drawNetworkUrlGrid(data);
+//   var sourceUrl="/visualization/networkmap/search/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+//   fetch(sourceUrl, {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify(searchCondition)
+//   }).then((response) => {
+//       return response.json();
+//   }).then((rawData) => {
+//       var data=formatStringArrayToJsonArray(rawData);
+//       drawNetworkUrlGrid(data);
 
-      sp("urls");
-  });
-}
+//       sp("urls");
+//   });
+// }
 
 function formatDataForTreeGrid(listObj){
   for(var i=0;i<listObj.length;i++){

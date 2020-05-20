@@ -57,8 +57,7 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.targets.TargetManager;
-import org.webcurator.core.visualization.modification.service.PruneAndImportService;
-import org.webcurator.core.visualization.modification.service.PruneAndImportServicePath;
+import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.VisualizationImportedFileDAO;
@@ -67,6 +66,8 @@ import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.visualization.VisualizationImportedFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author nwaight
@@ -1494,19 +1495,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
     @Override
     public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, PruneAndImportCommandRow cmd) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_UPLOAD_FILE))
-                .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber);
-        URI uri = uriComponentsBuilder.build().toUri();
-
-        HttpEntity<Object> request = new HttpEntity<>(cmd);
-        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
-
-        PruneAndImportCommandRowMetadata result;
-        result = restTemplate.postForObject(uri, request, PruneAndImportCommandRowMetadata.class);
-
-        if (result == null || !(result.getRespCode() == PruneAndImportService.RESP_CODE_SUCCESS || result.getRespCode() == PruneAndImportService.RESP_CODE_FILE_EXIST)) {
+        PruneAndImportCommandRowMetadata result = this.saveImportedFile(cmd);
+        if (result == null || !(result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS || result.getRespCode() == VisualizationConstants.RESP_CODE_FILE_EXIST)) {
             return result;
         }
 
@@ -1532,67 +1522,128 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return result;
     }
 
-    @Override
-    public PruneAndImportCommandRow downloadFile(long job, int harvestResultNumber, String fileName) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
+    private PruneAndImportCommandRowMetadata saveImportedFile(PruneAndImportCommandRow cmd) {
+        PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
+        File uploadedFilePath = new File(visualizationManager.getUploadDir(), metadata.getName());
+        if (uploadedFilePath.exists()) {
+            if (metadata.isReplaceFlag()) {
+                uploadedFilePath.deleteOnExit();
+            } else {
+                metadata.setRespCode(VisualizationConstants.FILE_EXIST_YES);
+                metadata.setRespMsg(String.format("File %s has been exist, return without replacement.", metadata.getName()));
+                return metadata;
+            }
+        }
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_DOWNLOAD_FILE))
-                .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber)
-                .queryParam("fileName", fileName);
-        URI uri = uriComponentsBuilder.build().toUri();
+        try {
+            byte[] doc = Base64.getDecoder().decode(cmd.getContent().replace("data:image/png;base64,", ""));
+            Files.write(uploadedFilePath.toPath(), doc);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            metadata.setRespCode(VisualizationConstants.RESP_CODE_ERROR_FILE_IO);
+            metadata.setRespMsg("Failed to write upload file to " + uploadedFilePath.getAbsolutePath());
+            return metadata;
+        }
 
-        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
+        metadata.setRespCode(VisualizationConstants.FILE_EXIST_YES);
+        metadata.setRespMsg("OK");
+        return metadata;
+    }
 
-        PruneAndImportCommandRow result;
-        result = restTemplate.getForObject(uri, PruneAndImportCommandRow.class);
+    public PruneAndImportCommandResult modificationDownloadFile(long job, int harvestResultNumber, PruneAndImportCommandRowMetadata metadata, HttpServletResponse resp) {
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+
+        //Ignore elements which are not 'file'
+        if (!metadata.getOption().equalsIgnoreCase("FILE")) {
+            result.setRespCode(VisualizationConstants.RESP_CODE_INVALID_REQUEST);
+            result.setRespMsg("Invalid metadata type: " + metadata.getOption());
+            return result;
+        }
+
+        //Check does file exist
+        File uploadedFilePath = new File(visualizationManager.getUploadDir(), metadata.getName());
+        VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
+        if (!uploadedFilePath.exists() || vif == null) {
+            result.setRespCode(VisualizationConstants.FILE_EXIST_NO); //Not exist
+            result.setRespMsg("File or metadata is not uploaded");
+            return result;
+        }
+
+        try {
+            Files.copy(uploadedFilePath.toPath(), resp.getOutputStream());
+        } catch (IOException e) {
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg(e.getMessage());
+            log.error(metadata.getRespMsg());
+            return result;
+        }
+
+        result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS); //Exist
+        result.setRespMsg("OK");
         return result;
     }
 
     @Override
     public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
+        return this.checkFiles(items);
+    }
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_CHECK_FILES))
-                .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber);
-        URI uri = uriComponentsBuilder.build().toUri();
-
-        HttpEntity<String> request = digitalAssetStoreClient.createHttpRequestEntity(items);
-        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
-
-        PruneAndImportCommandResult result;
-        result = restTemplate.postForObject(uri, request, PruneAndImportCommandResult.class);
+    private PruneAndImportCommandResult checkFiles(List<PruneAndImportCommandRowMetadata> items) {
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 
         /**
-         * Attached file properties for existing files
+         * Checking do files exist and attaching properties for existing files
          */
-        List<PruneAndImportCommandRowMetadata> dataset = result.getMetadataDataset();
-        dataset.stream().filter(e -> {
-            return e.getRespCode() == PruneAndImportService.FILE_EXIST_YES;
-        }).forEach(e -> {
-            VisualizationImportedFile f = visualizationImportedFileDAO.findImportedFile(e.getName());
-            if (f == null) {
-                e.setRespCode(PruneAndImportService.FILE_EXIST_NO);
-                e.setRespMsg("File metadata does not exist");
-            } else {
-                e.setContentType(f.getContentType());
-                e.setLength(f.getContentLength());
-                e.setLastModified(f.getLastModifiedDate());
+        boolean isValid = true;
+        for (PruneAndImportCommandRowMetadata metadata : items) {
+            //Ignore elements which are not 'file'
+            if (!metadata.getOption().equalsIgnoreCase("FILE")) {
+                continue;
             }
-        });
+
+            //Check do files exist: walk through all elemenets
+            File uploadedFilePath = new File(visualizationManager.getUploadDir(), metadata.getName());
+            VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
+            if (!uploadedFilePath.exists() || vif == null) {
+                metadata.setRespCode(VisualizationConstants.FILE_EXIST_NO); //Not exist
+                metadata.setRespMsg("File or metadata is not uploaded");
+                isValid = false;
+            } else {
+                metadata.setRespCode(VisualizationConstants.FILE_EXIST_YES); //Exist
+                metadata.setRespMsg("OK");
+                metadata.setContentType(vif.getContentType());
+                metadata.setLength(vif.getContentLength());
+                metadata.setLastModified(vif.getLastModifiedDate());
+            }
+        }
+
+        if (!isValid) {
+            result.setRespCode(VisualizationConstants.FILE_EXIST_NO);
+            result.setRespMsg("Not all files are uploaded");
+        } else {
+            result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+            result.setRespMsg("OK");
+        }
+        result.setMetadataDataset(items);
 
         return result;
     }
 
     @Override
     public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+        /**
+         * Checking do files exist and attaching properties for existing files
+         */
+        PruneAndImportCommandResult result = this.checkFiles(cmd.getDataset());
+        if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
+            log.error(result.getRespMsg());
+            return result;
+        }
 
         //Update the status of target instance
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
         if (ti == null) {
-            result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg("Could not find TargetInstance: " + cmd.getTargetInstanceId());
             log.error(result.getRespMsg());
             return result;
@@ -1617,7 +1668,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         try {
             this.savePruneAndImportCommandApply(cmd.getTargetInstanceId(), cmd);
         } catch (WCTRuntimeException | IOException e) {
-            result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(e.getMessage());
             return result;
         }
@@ -1640,7 +1691,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             //Consider the HarvesterType of default modification profile has the same type of target instance profile
             HarvestAgentStatusDTO allowedAgent = harvestAgentManager.getHarvester(instanceAgencyName, ti.getProfile().getHarvesterType());
 
-            result.setRespCode(RESP_CODE_SUCCESS);
+            result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
             if (allowedAgent != null) {
                 HarvestCoordinator harvestCoordinator = ApplicationContextFactory.getApplicationContext().getBean(HarvestCoordinator.class);
                 harvestCoordinator.modifyHarvest(ti, allowedAgent);
@@ -1668,7 +1719,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         PruneAndImportCommandResult result = pushPruneAndImport(cmd);
-        return result.getRespCode() == RESP_CODE_SUCCESS;
+        return result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS;
     }
 
     public PruneAndImportCommandResult pushPruneAndImport(PruneAndImportCommandApply cmd) {
@@ -1676,7 +1727,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(PruneAndImportServicePath.PATH_APPLY_PRUNE_IMPORT));
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(org.webcurator.core.visualization.VisualizationConstants.PATH_APPLY_PRUNE_IMPORT));
         URI uri = uriComponentsBuilder.build().toUri();
 
         HttpEntity<String> request = digitalAssetStoreClient.createHttpRequestEntity(cmd);
@@ -1685,7 +1736,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         if (ti == null) {
-            result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(String.format("Target instance (OID=%d) does not exist in DB", cmd.getTargetInstanceId()));
             return result;
         }

@@ -42,11 +42,11 @@ to get the desired effect
       <button type="button" class="btn btn-default" onclick="networkmap.graph.reload();">Reload</button>
       <!-- <button type="button" class="btn btn-default" onclick="networkmap.graph.reset();">Reset</button> -->
       <button type="button" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse All</button>
-      <button type="button" class="btn btn-default" onclick="networkmap.graph.save2image();">Screenshot</button>
+      <!-- <button type="button" class="btn btn-default" onclick="networkmap.graph.save2image();">Screenshot</button> -->
       <button type="button" class="btn btn-default" onclick="javascript: $('#popup-window-modify-harvest').show();"><i class="fas fa-edit"></i> &nbsp; Modify Harvest</button>
     </div>
 
-    <!-- Right Side card -->
+    <!-- Right Side Card -->
     <div class="bg-default" style="position: absolute; right: 30px; top: 0px; width: calc(25vw - 30px);" id="networkmap-side-container">
       <nav class="main-header navbar navbar-expand" style="margin: 0; height: 50px; border: solid 1px; border-color: #D3D3D3;">
         <h5 id="networkmap-side-title">Domain: root</h5>
@@ -59,13 +59,14 @@ to get the desired effect
     </div> <!-- end of card -->
 
   </div>
-</main>
 
-<div class="bg-dark" style="position: fixed;right: 0; top: 0; width: 30px; height: 100vh; writing-mode: vertical-lr; text-orientation: mixed; line-height: 30px; z-index: 2001;">
-  <a href="#" class="btn-side-label bg-black" name="summary" status="on"><span> &nbsp;Summary &nbsp;</span></a> &nbsp;&nbsp;
-  <a href="#" class="btn-side-label bg-black btn-side-label-tab" name="statuscode" status="on"><span> &nbsp;StatusCode&nbsp;</span></a>&nbsp;&nbsp;
-  <a href="#" class="btn-side-label btn-side-label-tab" name="contenttype" status="off"><span> &nbsp;ContentType&nbsp;</span></a>
-</div>
+  <!-- Right Side Buttons -->
+  <div class="bg-dark" style="position: fixed;right: 0; top: 0; width: 30px; height: 100vh; writing-mode: vertical-lr; text-orientation: mixed; line-height: 30px; z-index: 2001;">
+    <a href="#" class="btn-side-label bg-black" name="summary" status="on"><span> &nbsp;Summary &nbsp;</span></a> &nbsp;&nbsp;
+    <a href="#" class="btn-side-label bg-black btn-side-label-tab" name="statuscode" status="on"><span> &nbsp;StatusCode&nbsp;</span></a>&nbsp;&nbsp;
+    <a href="#" class="btn-side-label btn-side-label-tab" name="contenttype" status="off"><span> &nbsp;ContentType&nbsp;</span></a>
+  </div>
+</main>
 
 <div class="popup-window"  id="popup-window-modify-harvest">
   <div class="popup-content">
@@ -74,10 +75,6 @@ to get the desired effect
           <nav class="main-header navbar navbar-expand navbar-dark" style="margin: 0;">
               <!-- Left navbar links -->
               <ul class="navbar-nav">
-               <!--  <li class="nav-item">
-                  <button type="button" class="btn btn-flat btn-primary text-light"><i class="fas fa-search"></i> &nbsp; Query</button>
-                </li> -->
-                <!-- <li class="nav-divider"></li> -->
                 <li class="nav-item">
                   <div class="btn-group">
                     <button type="button" class="btn btn-primary text-light dropdown-toggle dropdown-icon" data-toggle="dropdown">

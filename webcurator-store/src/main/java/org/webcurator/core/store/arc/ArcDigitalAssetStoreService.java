@@ -80,6 +80,11 @@ import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
+import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -137,6 +142,8 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     private final RestTemplateBuilder restTemplateBuilder;
 
+    private VisualizationManager visualizationManager;
+
     public ArcDigitalAssetStoreService() {
         this(new RestTemplateBuilder());
     }
@@ -149,7 +156,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     public String baseUrl() {
         // FIXME: configurable scheme (in class WebServiceEndpoint.java)
-        return "http://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+        return wsEndPoint.getSchema() + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
     }
 
     public String getUrl(String appendUrl) {
@@ -816,7 +823,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     // Create a WARC Writer
                     // Somewhat arbitrarily use the last filename from the list of original filenames
                     // Compress the file if the (last) original file was compressed
-                    WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename +"-new", "${prefix}",
+                    WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-new", "${prefix}",
                             WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
                     WARCWriter warcWriter = new WARCWriter(aint, settings);
                     for (Iterator<HarvestResourceDTO> it = hrsToImport
@@ -1383,7 +1390,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                 if ((i = record.read()) == -1) {
                     throw new IOException("Malformed HTTP Status-Line");
                 }
-                proto[c] = (char)i;
+                proto[c] = (char) i;
             }
             if (!"HTTP".equals(new String(proto))) {
                 throw new IOException("Malformed HTTP Status-Line");
@@ -1391,7 +1398,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             char c0 = '0';
             char c1;
             while ((i = record.read()) != -1) {
-                c1 = (char)i;
+                c1 = (char) i;
                 if (c0 == '\r' && c1 == '\n') {
                     break;
                 }
@@ -1427,4 +1434,22 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         this.fileArchive = fileArchive;
     }
 
+    public VisualizationManager getVisualizationManager() {
+        return visualizationManager;
+    }
+
+    public void setVisualizationManager(VisualizationManager visualizationManager) {
+        this.visualizationManager = visualizationManager;
+    }
+
+    @Override
+    public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager.getUploadDir(), visualizationManager.getBaseDir(), cmd);
+        new Thread(p).start();
+
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+        result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+        result.setRespMsg("Modification task is accepted");
+        return result;
+    }
 }

@@ -15,42 +15,57 @@
  */
 package org.webcurator.core.harvester.coordinator;
 
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.model.dto.SeedHistoryDTO;
 
 /**
  * Callback interface for the DAS. The DAS calls this interface when it
  * has completed/failed to archive a harvest.
- * 
- * @author beaumontb
  *
+ * @author beaumontb
  */
 public interface DasCallback {
-	/**
-	 * Advises the Core that the harvest has been archived successfully.
-	 * @param targetInstanceOid The OID of the instance being archived.
-	 * @param archiveIID The IID returned by the archive system.
-	 */
-	public void completeArchiving(Long targetInstanceOid, String archiveIID);
+    /**
+     * Advises the Core that the harvest has been archived successfully.
+     *
+     * @param targetInstanceOid The OID of the instance being archived.
+     * @param archiveIID        The IID returned by the archive system.
+     */
+    public void completeArchiving(Long targetInstanceOid, String archiveIID);
 
-	/**
-	 * Advises the Core that the harvest failed to be archived.
-	 * @param targetInstanceOid The OID of the instance being archived.
-	 * @param message The error message received from the archive.
-	 */
-	public void failedArchiving(Long targetInstanceOid, String message);
+    /**
+     * Advises the Core that the harvest failed to be archived.
+     *
+     * @param targetInstanceOid The OID of the instance being archived.
+     * @param message           The error message received from the archive.
+     */
+    public void failedArchiving(Long targetInstanceOid, String message);
 
-	/**
-	 * Query history seeds from the Core
-	 * @param targetInstanceOid The OID of the instance being archived.
-	 * @param harvestNumber The order number of the harvest.
-	 * @return The history seeds
-	 */
-	public SeedHistoryDTO querySeedHistory(Long targetInstanceOid, Integer harvestNumber);
+    /**
+     * Query history seeds from the Core
+     *
+     * @param targetInstanceOid The OID of the instance being archived.
+     * @param harvestNumber     The order number of the harvest.
+     * @return The history seeds
+     */
+    public SeedHistoryDTO querySeedHistory(Long targetInstanceOid, Integer harvestNumber);
 
-	/**
-	 * Notify the core that the modification is finished
-	 * @param targetInstanceOid The OID of the instance being archived.
-	 * @param harvestNumber The order number of the harvest.
-	 */
-	public void completeModification(Long targetInstanceOid, Integer harvestNumber);
+    /**
+     * Notify the core that the modification is finished
+     *
+     * @param targetInstanceOid The OID of the instance being archived.
+     * @param harvestNumber     The order number of the harvest.
+     */
+    public void modificationComplete(Long targetInstanceOid, Integer harvestNumber);
+
+    /**
+     * Download the original imported file from the core
+     *
+     * @param targetInstanceOid The OID of the instance being archived.
+     * @param harvestNumber     The order number of the harvest.
+     * @param cmd   The metadata of the file to be downloaded, e.g.: file name
+     * @return The content and metadata of the file to be download
+     */
+    PruneAndImportCommandRow modificationDownloadFile(Long targetInstanceOid, Integer harvestNumber, PruneAndImportCommandRowMetadata cmd);
 }

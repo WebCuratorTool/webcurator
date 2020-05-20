@@ -156,6 +156,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/harvest-coordinator/**").permitAll()
                 .antMatchers("**/digital-asset-store/**").permitAll()
                 .antMatchers( "/spa/**").permitAll()
+                .antMatchers( "/visualization/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
                 .loginPage("/logon.jsp")

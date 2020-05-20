@@ -15,5 +15,6 @@ public class HarvestCoordinatorPaths {
     public static final String COMPLETE_ARCHIVING = ROOT_PATH + "/complete-archiving/{target-instance-oid}";
     public static final String FAILED_ARCHIVING = ROOT_PATH + "/failed-archiving/{target-instance-oid}";
     public static final String TARGET_INSTANCE_HISTORY_SEED = ROOT_PATH + "/query-ti-history-seed";
-    public static final String COMPLETE_MODIFICATION = ROOT_PATH + "/complete-modification";
+    public static final String MODIFICATION_COMPLETE_PRUNE_IMPORT = ROOT_PATH + "/complete-modification";
+    public static final String MODIFICATION_DOWNLOAD_IMPORTED_FILE = ROOT_PATH + "/modification-download-imported-file";
 }

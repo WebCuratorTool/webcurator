@@ -10,13 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStorePaths;
+import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
-import org.webcurator.core.visualization.modification.service.PruneAndImportClient;
-import org.webcurator.core.visualization.modification.service.PruneAndImportService;
-import org.webcurator.core.visualization.modification.service.PruneAndImportServicePath;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreCopyAndPruneDTO;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
@@ -29,15 +25,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
-public class ArcDigitalAssetStoreController implements DigitalAssetStore, PruneAndImportService {
+public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     Logger log= LoggerFactory.getLogger(getClass());
 
     @Autowired
     @Qualifier("arcDigitalAssetStoreService")
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
-
-    @Autowired
-    private PruneAndImportClient client;
 
     @PostMapping(path = DigitalAssetStorePaths.RESOURCE, produces = "application/octet-stream")
     public @ResponseBody byte[] getResourceExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
@@ -202,28 +195,9 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore, PruneA
         arcDigitalAssetStoreService.save(targetInstanceName, directory, path);
     }
 
-
     @Override
-    @RequestMapping(path = PruneAndImportServicePath.PATH_UPLOAD_FILE, method = RequestMethod.POST)
-    public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody PruneAndImportCommandRow cmd) {
-        return client.uploadFile(job, harvestResultNumber, cmd);
-    }
-
-    @Override
-    @RequestMapping(path = PruneAndImportServicePath.PATH_DOWNLOAD_FILE, method = {RequestMethod.GET, RequestMethod.POST})
-    public PruneAndImportCommandRow downloadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName) {
-        return client.downloadFile(job, harvestResultNumber, fileName);
-    }
-
-    @Override
-    @RequestMapping(path = PruneAndImportServicePath.PATH_CHECK_FILES, method = RequestMethod.POST)
-    public PruneAndImportCommandResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<PruneAndImportCommandRowMetadata> items) {
-        return client.checkFiles(job, harvestResultNumber, items);
-    }
-
-    @Override
-    @RequestMapping(path = PruneAndImportServicePath.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)
+    @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)
     public PruneAndImportCommandResult pruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
-        return client.pruneAndImport(cmd);
+        return arcDigitalAssetStoreService.pruneAndImport(cmd);
     }
 }

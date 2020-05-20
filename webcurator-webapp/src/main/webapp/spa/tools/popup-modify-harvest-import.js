@@ -14,7 +14,7 @@ class ImportModifyHarvestProcessor{
 				metadata: cmd
 			};
 
-			var url="/curator/modification/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber;
+			var url="/visualization/modification/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber;
 			fetch(url, { 
 				method: 'POST',
 				// headers: {'Content-Type': 'application/octet-stream'},
@@ -314,7 +314,7 @@ class ImportModifyHarvestProcessor{
 
 	checkFilesExistAtServerSide(dataset, callback){
 		var that=this;
-		fetch("/curator/modification/check-files?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber, { 
+		fetch("/visualization/modification/check-files?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber, { 
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify(dataset)

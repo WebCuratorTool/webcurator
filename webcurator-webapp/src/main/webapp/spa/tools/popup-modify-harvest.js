@@ -81,7 +81,7 @@ class HierarchyTree{
 		this.container=container;
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
-		this.sourceUrlRootUrls="/curator/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+		this.sourceUrlRootUrls="/visualization/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
 		this.options={
 			extensions: ["table", "wide"],
 			checkbox: true,
@@ -214,8 +214,8 @@ class PopupModifyHarvest{
 		this.gridImport=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-import', gridOptionsImport, contextMenuItemsImport);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, contextMenuItemsImport);
 		this.processorImport=new ImportModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
-		this.uriSeedUrl="/curator/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
-		this.uriInvalidUrl="/curator/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		this.uriSeedUrl="/visualization/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		this.uriInvalidUrl="/visualization/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 	}
 
 	setRowStyle(){
@@ -429,7 +429,7 @@ class PopupModifyHarvest{
 
 		$('#popup-window-loading').show();
 		var that=this;
-		var sourceUrl="/curator/networkmap/search/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		var sourceUrl="/visualization/networkmap/search/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		fetch(sourceUrl, {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},
@@ -485,23 +485,23 @@ class PopupModifyHarvest{
 	}
 
 
-	applyRecrawl(){
-	  for(var i=0; i<aryFiles.length; i++){
-	    var file=aryFiles[i];
-	    var reader = new FileReader();
+	// applyRecrawl(){
+	//   for(var i=0; i<aryFiles.length; i++){
+	//     var file=aryFiles[i];
+	//     var reader = new FileReader();
 
-	    reader.addEventListener("loadend", function () {
-	      fetch("../../curator/tools/modify-import", { 
-	        method: 'POST',
-	        headers: {'Content-Type': 'application/json'},
-	        body: reader.result });
-	      // reader.removeEventListener("loadend");
-	    });
+	//     reader.addEventListener("loadend", function () {
+	//       fetch("/visualization/modification/modify-import", { 
+	//         method: 'POST',
+	//         headers: {'Content-Type': 'application/json'},
+	//         body: reader.result });
+	//       // reader.removeEventListener("loadend");
+	//     });
 
-	    reader.readAsDataURL(file);
-	  }
-	  aryFiles=[];
-	}
+	//     reader.readAsDataURL(file);
+	//   }
+	//   aryFiles=[];
+	// }
 
 	exportData(data){
 		var lines=[], row=[];
@@ -563,7 +563,7 @@ class PopupModifyHarvest{
 
 		$('#popup-window-loading').show();
 		var that=this;
-		var sourceUrl="/curator/modification/apply";
+		var sourceUrl="/visualization/modification/apply";
 		fetch(sourceUrl, {
 			method: 'POST',
 			headers: {'Content-Type': 'application/json'},

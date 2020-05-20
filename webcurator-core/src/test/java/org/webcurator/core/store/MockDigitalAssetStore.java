@@ -9,6 +9,8 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
@@ -120,6 +122,11 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 	}
 	
 	public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
+		return null;
+	}
+
+	@Override
+	public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
 		return null;
 	}
 

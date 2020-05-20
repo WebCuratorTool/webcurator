@@ -186,17 +186,14 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             warcRecordInfo.setExtraHeaders(namedFields);
             warcRecordInfo.setContentStream(record);
             warcRecordInfo.setContentLength(contentLength);
-
             writer.writeRecord(warcRecordInfo);
         }
-
         writer.close();
-
         reader.close();
     }
 
     @Override
-    protected void importFromFile(Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException {
+    protected void importFromFile(long job, int harvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException {
         // Create a WARC Writer
         // Somewhat arbitrarily use the last filename from the list of original filenames
         // Compress the file if the (last) original file was compressed
@@ -207,8 +204,9 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             return f.getLength() > 0L;
         }).forEach(fProps -> {
             try {
-                InputStream fin = this.wrapWarcContentInput(fProps);
-                URI recordId = new URI("urn:uuid:" + fProps.getTempFileName());
+                File tempFile = this.modificationDownloadFile(job,harvestResultNumber,fProps);
+                InputStream fin = Files.newInputStream(tempFile.toPath());
+                URI recordId = new URI("urn:uuid:" + tempFile.getName());
                 ANVLRecord namedFields = new ANVLRecord();
                 namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
                 WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
@@ -221,6 +219,8 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 warcRecordInfo.setContentLength(fProps.getLength());
                 warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
                 warcWriter.writeRecord(warcRecordInfo);
+
+                Files.deleteIfExists(tempFile.toPath());
             } catch (IOException | URISyntaxException e) {
                 log.error(e.getMessage());
             }
@@ -228,33 +228,33 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         warcWriter.close();
     }
 
-    private InputStream wrapWarcContentInput(PruneAndImportCommandRowMetadata fProps) throws IOException {
-        String tempFileName = UUID.randomUUID().toString();
-        fProps.setTempFileName(tempFileName);
-
-        BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(new File(this.fileDir, tempFileName)));
-
-        StringBuilder buf = new StringBuilder();
-        buf.append("HTTP/1.1 200 OK\n");
-        buf.append("Content-Type: ");
-        buf.append(fProps.getContentType()).append("\n");
-        buf.append("Content-Length: ");
-        buf.append(fProps.getLength()).append("\n");
-        LocalDateTime ldt = LocalDateTime.ofEpochSecond(fProps.getLastModified() / 1000, 0, ZoneOffset.UTC);
-        OffsetDateTime odt = ldt.atOffset(ZoneOffset.UTC);
-        buf.append("Date: ");
-        buf.append(odt.format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("\n");
-        buf.append("Connection: close\n");
-
-        fos.write(buf.toString().getBytes());
-        fos.write("\n".getBytes());
-
-        File fin = new File(this.baseDir, fProps.getName());
-        fos.write(Files.readAllBytes(fin.toPath()));
-        fos.close();
-
-        return new FileInputStream(new File(this.fileDir, tempFileName));
-    }
+//    private InputStream wrapWarcContentInput(PruneAndImportCommandRowMetadata fProps) throws IOException {
+//        String tempFileName = UUID.randomUUID().toString();
+//        fProps.setTempFileName(tempFileName);
+//
+//        BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(new File(this.fileDir, tempFileName)));
+//
+//        StringBuilder buf = new StringBuilder();
+//        buf.append("HTTP/1.1 200 OK\n");
+//        buf.append("Content-Type: ");
+//        buf.append(fProps.getContentType()).append("\n");
+//        buf.append("Content-Length: ");
+//        buf.append(fProps.getLength()).append("\n");
+//        LocalDateTime ldt = LocalDateTime.ofEpochSecond(fProps.getLastModified() / 1000, 0, ZoneOffset.UTC);
+//        OffsetDateTime odt = ldt.atOffset(ZoneOffset.UTC);
+//        buf.append("Date: ");
+//        buf.append(odt.format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("\n");
+//        buf.append("Connection: close\n");
+//
+//        fos.write(buf.toString().getBytes());
+//        fos.write("\n".getBytes());
+//
+//        File fin = new File(this.baseDir, fProps.getName());
+//        fos.write(Files.readAllBytes(fin.toPath()));
+//        fos.close();
+//
+//        return new FileInputStream(new File(this.fileDir, tempFileName));
+//    }
 
     @Override
     protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException {
