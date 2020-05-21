@@ -314,18 +314,19 @@ var gridOptionsPrune={
   },
   columnDefs: [
     {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
-    {headerName: "Normal", children:[
-      {headerName: "URL", field: "url", width: 400, filter: true},
-      {headerName: "Type", field: "contentType", width: 120, filter: true},
-      {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
-      {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
-    ]},
-    {headerName: "Outlinks", children:[
-        {headerName: "TotUrls", field: "totUrls", width: 100, filter: 'agNumberColumnFilter'},
-        {headerName: "Failed", field: "totFailed", width: 100, filter: 'agNumberColumnFilter'},
-        {headerName: "Success", field: "totSuccess", width: 100, filter: 'agNumberColumnFilter'},
-        {headerName: "TotSize", field: "totSize", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
-     ]},
+    {headerName: "URL", field: "url", width: 1000, filter: true},
+    // {headerName: "Normal", children:[
+    //   {headerName: "URL", field: "url", width: 400, filter: true},
+    //   {headerName: "Type", field: "contentType", width: 120, filter: true},
+    //   {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
+    //   {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
+    // ]},
+    // {headerName: "Outlinks", children:[
+    //     {headerName: "TotUrls", field: "totUrls", width: 100, filter: 'agNumberColumnFilter'},
+    //     {headerName: "Failed", field: "totFailed", width: 100, filter: 'agNumberColumnFilter'},
+    //     {headerName: "Success", field: "totSuccess", width: 100, filter: 'agNumberColumnFilter'},
+    //     {headerName: "TotSize", field: "totSize", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
+    //  ]},
     // {headerName: "Cascade", field: "flagCascade", width: 40, filter: true, pinned: 'right', cellRenderer: 'renderImportOption', cellClass: 'grid-cell-centered'}
   ],
   // rowClassRules: gridRowClassRules

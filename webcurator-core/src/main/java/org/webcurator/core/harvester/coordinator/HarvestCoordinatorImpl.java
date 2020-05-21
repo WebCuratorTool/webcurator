@@ -1621,7 +1621,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             result.setRespCode(VisualizationConstants.FILE_EXIST_NO);
             result.setRespMsg("Not all files are uploaded");
         } else {
-            result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+            result.setRespCode(VisualizationConstants.RESP_CODE_FILE_EXIST);
             result.setRespMsg("OK");
         }
         result.setMetadataDataset(items);
@@ -1635,7 +1635,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
          * Checking do files exist and attaching properties for existing files
          */
         PruneAndImportCommandResult result = this.checkFiles(cmd.getDataset());
-        if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
+        if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS &&
+                result.getRespCode() != VisualizationConstants.RESP_CODE_FILE_EXIST) {
             log.error(result.getRespMsg());
             return result;
         }
