@@ -51,21 +51,22 @@ public abstract class PruneAndImportCoordinator {
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(VisualizationConstants.PATH_DOWNLOAD_FILE))
                 .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber);
+                .queryParam("harvestResultNumber", harvestResultNumber)
+                .queryParam("fileName", metadata.getName());
         URI uri = uriComponentsBuilder.build().toUri();
 
-        HttpEntity<String> reqEntity = digitalAssetStoreClient.createHttpRequestEntity(metadata);
-        reqEntity.getBody();
 
         String tempFileName = UUID.randomUUID().toString();
         File tempFile = new File(fileDir, tempFileName);
         try {
             URL url = uri.toURL();
             URLConnection conn = url.openConnection();
-            OutputStream connOutputStream = conn.getOutputStream();
-            connOutputStream.write(Objects.requireNonNull(reqEntity.getBody()).getBytes());
-            connOutputStream.flush();
-            connOutputStream.close();
+
+//            HttpEntity<String> reqEntity = digitalAssetStoreClient.createHttpRequestEntity(metadata);
+//            OutputStream connOutputStream = conn.getOutputStream();
+//            connOutputStream.write(Objects.requireNonNull(reqEntity.getBody()).getBytes());
+//            connOutputStream.flush();
+//            connOutputStream.close();
 
             OutputStream fos = Files.newOutputStream(tempFile.toPath());
 
@@ -93,5 +94,21 @@ public abstract class PruneAndImportCoordinator {
         }
 
         return tempFile;
+    }
+
+    public String getFileDir() {
+        return fileDir;
+    }
+
+    public void setFileDir(String fileDir) {
+        this.fileDir = fileDir;
+    }
+
+    public String getBaseDir() {
+        return baseDir;
+    }
+
+    public void setBaseDir(String baseDir) {
+        this.baseDir = baseDir;
     }
 }

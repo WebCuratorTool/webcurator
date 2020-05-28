@@ -6,10 +6,14 @@ function getUrlVars() {
     return vars;
 }
 
-var gUrl=null, gReq=null, gCallback=null;
-function fetchHttp(url, req, callback){
-  $('#popup-window-loading').show();
+
+var gUrl=null, gReq=null, gCallback=null, gPreventLoadingWindow=null;
+function fetchHttp(url, req, callback, preventLoadingWindow){
+  if(!preventLoadingWindow){
+    $('#popup-window-loading').show();
+  }
   var ROOT_URL='/curator';
+
   var reqUrl=ROOT_URL + url;
   var reqBodyPayload="{}";
   if(req !== null){
@@ -23,33 +27,67 @@ function fetchHttp(url, req, callback){
     headers: {'Content-Type': 'application/json'},
     body: reqBodyPayload
   }).then((response) => {
+    console.log(response);
+    console.log(response.headers.get('Content-Type'));
     if (response.redirected) {
       console.log('Need authentication');
       gUrl=url;
       gReq=req;
       gCallback=callback;
+      gPreventLoadingWindow=preventLoadingWindow;
       $('#popup-window-login').show();
-      return null;
-    }
-
-    if(response.headers.get('Content-Type').startsWith('application/json')){
-      console.log('Fetch success and callback');
-      return response.json();
     }else{
-      console.log('Fetch invalid content: ' + response.headers.get('Content-Type'));
-      fetchHttp(url, req, callback, preventLoadingWindow);
-      return null;
+      return response.json();
     }
   }).then((response) => {
+    console.log('Fetch success and callback');
+    console.log(response);
     if(response){
-      var keep=callback(response);
-      if(!keep){
-        $('#popup-window-loading').hide();
-      }
-    }else{
+      callback(response);
+    }
+    if(!preventLoadingWindow){
       $('#popup-window-loading').hide();
     }
+  }).catch(function(err) {
+    console.log(err);
   });
+}
+
+function fetchHttpInternal(url, req, callback, preventLoadingWindow){
+    if(!preventLoadingWindow){
+      $('#popup-window-loading').show();
+    }
+    var ROOT_URL='/curator';
+
+    var reqUrl=ROOT_URL + url;
+    var reqBodyPayload="{}";
+    if(req !== null){
+      reqBodyPayload = JSON.stringify(req);
+    }
+    console.log('Fetch url:' + url);
+
+    fetch(reqUrl, { 
+      method: 'POST',
+      redirect: 'follow',
+      headers: {'Content-Type': 'application/json'},
+      body: reqBodyPayload
+    }).then((response) => {
+      console.log(response);
+      console.log(response.headers.keys());    
+      console.log(response.headers.values());    
+      return response.json();
+    }).then((response) => {
+      console.log('Fetch success and callback');
+      console.log(response);
+      if(response){
+        callback(response);
+      }
+      if(!preventLoadingWindow){
+        $('#popup-window-loading').hide();
+      }
+    }).catch(function(err) {
+      console.log(err);
+    });
 }
 
 function getEmbedFlag(){
@@ -59,7 +97,7 @@ function getEmbedFlag(){
 function authCallback(){
   console.log('Auth call back');
   $('#popup-window-login').hide();
-  fetchHttp(gUrl, gReq, gCallback);
+  fetchHttpInternal(gUrl, gReq, gCallback, gPreventLoadingWindow);
 }
 
 function saveData(data, fileName) {
@@ -353,6 +391,19 @@ var gridOptionsPrune={
   columnDefs: [
     {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
     {headerName: "URL", field: "url", width: 1000, filter: true},
+    // {headerName: "Normal", children:[
+    //   {headerName: "URL", field: "url", width: 400, filter: true},
+    //   {headerName: "Type", field: "contentType", width: 120, filter: true},
+    //   {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
+    //   {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
+    // ]},
+    // {headerName: "Outlinks", children:[
+    //     {headerName: "TotUrls", field: "totUrls", width: 100, filter: 'agNumberColumnFilter'},
+    //     {headerName: "Failed", field: "totFailed", width: 100, filter: 'agNumberColumnFilter'},
+    //     {headerName: "Success", field: "totSuccess", width: 100, filter: 'agNumberColumnFilter'},
+    //     {headerName: "TotSize", field: "totSize", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
+    //  ]},
+    // {headerName: "Cascade", field: "flagCascade", width: 40, filter: true, pinned: 'right', cellRenderer: 'renderImportOption', cellClass: 'grid-cell-centered'}
   ],
   // rowClassRules: gridRowClassRules
   getRowClass: formatModifyHavestGridRow
@@ -384,6 +435,15 @@ var gridOptionsImport={
        // return dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
        return dt.format('YYYY-MM-DDTHH:mm');
     }},
+    // {headerName: "#", field: "uploadedFlag", width: 50, pinned: "right", cellClass: "import-result", cellRenderer:  (row) => {
+    //       if(row.data.uploadedFlag && row.data.uploadedFlag===1){
+    //         return '<i class="fas fa-check-circle text-success"></i>';
+    //       }else if(row.data.uploadedFlag && row.data.uploadedFlag===-1){
+    //         return '<i class="fas fa-times-circle text-danger"></i>';            
+    //       }else{
+    //         return '<i class="fas fa-cloud-upload-alt text-info"></i>'
+    //       }
+    //   }}
   ],
   // getRowClass: formatModifyHavestGridRow
   getRowClass: formatModifyHavestGridRow
@@ -402,6 +462,8 @@ var gridOptionsImportPrepare={
     renderImportOption: renderImportOption
   },
   columnDefs: [
+    // {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
+    // {headerName: "Msg", field: "respMsg", width: 400},
     {headerName: "Option", field: "option", width:80, cellClass: function(params) { return (params.value==='File'?'text-primary':'text-danger');}},
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},

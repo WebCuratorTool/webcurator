@@ -17,8 +17,10 @@ package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -1525,7 +1527,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     private PruneAndImportCommandRowMetadata saveImportedFile(PruneAndImportCommandRow cmd) {
         PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
         File uploadedFilePath = new File(visualizationManager.getUploadDir(), metadata.getName());
-        if (uploadedFilePath.exists()) {
+        if (cmd.isStart() && uploadedFilePath.exists()) {
             if (metadata.isReplaceFlag()) {
                 uploadedFilePath.deleteOnExit();
             } else {
@@ -1536,8 +1538,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         try {
-            byte[] doc = Base64.getDecoder().decode(cmd.getContent().replace("data:image/png;base64,", ""));
-            Files.write(uploadedFilePath.toPath(), doc);
+            int idx = cmd.getContent().indexOf("base64");
+            byte[] doc = Base64.getDecoder().decode(cmd.getContent().substring(idx + 7));
+            if (uploadedFilePath.exists()) {
+                Files.write(uploadedFilePath.toPath(), doc, StandardOpenOption.APPEND);
+            } else {
+                Files.write(uploadedFilePath.toPath(), doc, StandardOpenOption.CREATE_NEW);
+            }
         } catch (IOException e) {
             log.error(e.getMessage());
             metadata.setRespCode(VisualizationConstants.RESP_CODE_ERROR_FILE_IO);
@@ -1585,10 +1592,10 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
     @Override
     public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
-        return this.checkFiles(items);
+        return this.checkFiles(items, false);
     }
 
-    private PruneAndImportCommandResult checkFiles(List<PruneAndImportCommandRowMetadata> items) {
+    private PruneAndImportCommandResult checkFiles(List<PruneAndImportCommandRowMetadata> items, boolean isAttachLastModifiedDate) {
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 
         /**
@@ -1613,7 +1620,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                 metadata.setRespMsg("OK");
                 metadata.setContentType(vif.getContentType());
                 metadata.setLength(vif.getContentLength());
-                metadata.setLastModified(vif.getLastModifiedDate());
+
+                //Replace last modified date if the mode is "TBC"
+                if (isAttachLastModifiedDate && metadata.getLastModified() <= 0) {
+                    metadata.setLastModified(vif.getLastModifiedDate());
+                }
             }
         }
 
@@ -1634,7 +1645,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         /**
          * Checking do files exist and attaching properties for existing files
          */
-        PruneAndImportCommandResult result = this.checkFiles(cmd.getDataset());
+        PruneAndImportCommandResult result = this.checkFiles(cmd.getDataset(), true);
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS &&
                 result.getRespCode() != VisualizationConstants.RESP_CODE_FILE_EXIST) {
             log.error(result.getRespMsg());
@@ -1823,6 +1834,15 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         this.harvestQaManager = harvestQaManager;
     }
 
+    @Override
+    public void downloadFile(long targetInstanceId, int harvestResultNumber, String fileName, OutputStream out) {
+        File f = new File(visualizationManager.getUploadDir(), fileName);
+        try {
+            Files.copy(f.toPath(), out);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
 //    public static void main(String[] args) {
 //        LocalDateTime localDateTime = LocalDateTime.now();
 //        String uploadedDate = String.format("%04d%02d%02d", localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth());

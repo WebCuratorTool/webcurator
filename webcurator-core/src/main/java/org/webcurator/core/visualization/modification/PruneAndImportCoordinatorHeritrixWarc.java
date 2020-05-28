@@ -6,7 +6,12 @@ import org.archive.io.ArchiveReaderFactory;
 import org.archive.io.ArchiveRecord;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.arc.ARCReader;
-import org.archive.io.warc.*;
+import org.archive.io.warc.WARCReader;
+import org.archive.io.warc.WARCRecordInfo;
+import org.archive.io.warc.WARCWriter;
+import org.archive.io.warc.WARCWriterPoolSettings;
+import org.archive.io.warc.WARCWriterPoolSettingsData;
+import org.archive.io.warc.WARCRecord;
 import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
@@ -15,10 +20,6 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -204,7 +205,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             return f.getLength() > 0L;
         }).forEach(fProps -> {
             try {
-                File tempFile = this.modificationDownloadFile(job,harvestResultNumber,fProps);
+                File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
                 InputStream fin = Files.newInputStream(tempFile.toPath());
                 URI recordId = new URI("urn:uuid:" + tempFile.getName());
                 ANVLRecord namedFields = new ANVLRecord();
@@ -285,7 +286,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             metaData.append(new String(buff, 0, bytesRead));
         }
 
-
         List<String> l = new ArrayList<String>();
         l.add(metaData.toString());
 
@@ -295,7 +295,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
         headerRec.close();
         headerReader.close();
-
 
         // Bypass warc header metadata as it has been read above from a different ArchiveReader
         archiveRecordsIt.next();
@@ -363,7 +362,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                     break;
                 default:
                     log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
-
             }
             warcRecordInfo.setCreate14DigitDate(header.getDate());
             warcRecordInfo.setMimetype(header.getMimetype());

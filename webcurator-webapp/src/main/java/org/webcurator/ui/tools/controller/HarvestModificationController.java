@@ -11,6 +11,9 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.core.visualization.modification.service.PruneAndImportService;
 
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,21 +24,30 @@ public class HarvestModificationController implements PruneAndImportService {
     private HarvestCoordinator harvestCoordinator;
 
     @Override
-    @RequestMapping(path = VisualizationConstants.PATH_UPLOAD_FILE, method = RequestMethod.POST)
+    @RequestMapping(path = VisualizationConstants.PATH_UPLOAD_FILE, method = RequestMethod.POST, produces = "application/json")
     public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody PruneAndImportCommandRow cmd) {
         return harvestCoordinator.uploadFile(job, harvestResultNumber, cmd);
     }
 
 
     @Override
-    @RequestMapping(path = VisualizationConstants.PATH_CHECK_FILES, method = RequestMethod.POST)
+    @RequestMapping(path = VisualizationConstants.PATH_CHECK_FILES, method = RequestMethod.POST, produces = "application/json")
     public PruneAndImportCommandResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<PruneAndImportCommandRowMetadata> items) {
         return harvestCoordinator.checkFiles(job, harvestResultNumber, items);
     }
 
     @Override
-    @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)
+    @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST, produces = "application/json")
     public PruneAndImportCommandResult pruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
         return harvestCoordinator.pruneAndImport(cmd);
+    }
+
+    @RequestMapping(path = VisualizationConstants.PATH_DOWNLOAD_FILE, method = {RequestMethod.POST, RequestMethod.GET})
+    public void downloadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) {
+        try {
+            harvestCoordinator.downloadFile(job, harvestResultNumber, fileName, rsp.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

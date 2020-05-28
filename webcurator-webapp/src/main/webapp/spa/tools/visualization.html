@@ -13,8 +13,8 @@
   <link rel="stylesheet" href="../dist/fancytree/skin-win8/ui.fancytree.min.css">
   <!-- <link rel="stylesheet" href="../dist/fancytree/modules/plain-scrollbar.css"> -->
   <link rel="stylesheet" href="../dist/jquery/menu/jquery.contextMenu.css">
-  <!-- <link rel="stylesheet" href="../dist/plugins/tempusdominus-bootstrap-4.css"> -->
-  <link rel="stylesheet" href="../dist/plugins/datetimepicker-bootstrap-4.min.css">
+  <!-- <link rel="stylesheet" href="../dist/plugins/datetimepicker-bootstrap-4.min.css"> -->
+  <!-- <link rel="stylesheet" href="../dist/plugins/tempusdominus-bootstrap-4.min.css"> -->
   <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
   <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
   <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css">
@@ -35,7 +35,7 @@ to get the desired effect
 <main class="bd-content" name="content" role="main">
   <div style="position: relative; height: 100vh; width: 100vw;">
     <!-- Networmap Canvas -->
-    <div id="network-map-canvas" style="width: 75vw; height: 100vh; outline: none;"></div>
+    <div id="network-map-canvas" style="width: calc(100vw - 30px); height: 100vh; outline: none;"></div>
 
     <!-- Left Button Group -->
     <div class="btn-group" style="position: absolute; left: 3px; top: 5px; z-index: 1000;">
@@ -68,10 +68,11 @@ to get the desired effect
   </div>
 </main>
 
+<!-- Popup window for inspection and modification -->
 <div class="popup-window"  id="popup-window-modify-harvest">
   <div class="popup-content">
-      <div class="row" style="height: 5.5vh;">
-        <div class="col-6">
+      <div class="row bg-dark none-margin-padding" style="height: 5.5vh;">
+        <div class="col-6 none-margin-padding">
           <nav class="main-header navbar navbar-expand navbar-dark" style="margin: 0;">
               <!-- Left navbar links -->
               <ul class="navbar-nav">
@@ -86,8 +87,10 @@ to get the desired effect
                         <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-link text-primary"></i> &nbsp;Inspect Starting URLs</a>
                         <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadInvalidUrls();"><i class="fas fa-link text-warning"></i> &nbsp;Inspect Invalid URLs</a>
                         <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkPrune();"><i class="far fa-times-circle text-secondary"></i> &nbsp; Bulk Prune</a>
+                        <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-primary"></i> &nbsp; Single Import</a>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorImport.nextBulkImportTab(1); $('#popup-window-bulk-import').show();"><i class="fas fa-file-import text-warning"></i> &nbsp; Bulk Import</a>
+                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Bulk Import</a>
                         <!-- <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-file-upload text-success"></i> &nbsp;Upload File</a> -->
                         <div class="dropdown-divider"></div>
@@ -105,7 +108,7 @@ to get the desired effect
               </ul>
           </nav>
         </div>
-        <div class="col-6">
+        <div class="col-6 none-margin-padding">
           <nav class="main-header navbar navbar-expand navbar-dark" style="margin: 0;">
               <!-- Left navbar links -->
               <ul class="navbar-nav">                
@@ -196,6 +199,7 @@ to get the desired effect
         <div class="col-12">
           <div class="input-group" style="margin: 5px 2px 0 2px; width: calc(100% - 4px);">
             <textarea id="provenance-note" class="form-control" rows="2"  placeholder="Provenance Note ..."></textarea>
+            <!-- <input type="datetime-local" id="datetime-local-customizard2"> -->
           </div>
         </div>
       </div>
@@ -221,23 +225,25 @@ to get the desired effect
 </div> <!-- /.card -->
 </div>
 
-<!-- Popup Import Input-->
+<!-- Popup Single Import Input-->
 <div class="popup-window" id="popup-window-single-import">
 <div class="card card-primary popup-content">
   <div class="card-header">
-    <h3 class="card-title">Single Import</h3>
+    <h3 class="card-title">Single Import (<span id="single-impot-mode">New</span>)</h3>
     <div class="card-tools">
       <button type="button" class="btn btn-tool" onclick="$('#popup-window-single-import').hide();"><i class="fas fa-times"></i></button>
     </div>
     <!-- /.card-tools -->
   </div>
   <!-- /.card-header -->
-  <div class="card-body">
+  <div class="card-body" style="margin: 5px; padding: 5px 5px 0 5px; background-color: white;">
         <div class="form-group">
           <label for="specifyTargetUrlInput">Specify Target URL</label>
           <input type="input" class="form-control" id="specifyTargetUrlInput" placeholder="Specify Target URL">
         </div>
+  </div>
 
+  <div class="card-body" style="margin: 5px; padding: 5px 5px 0 5px; background-color: white;" id="card-body-source">
         <div class="form-group">
           <!-- <label for="importFromFileInput">Import from disk file</label> -->
           <div class="custom-control custom-radio">
@@ -267,7 +273,25 @@ to get the desired effect
             </div>
           </div>
         </div>
+  </div>
+  
+  <div class="card-body" style="margin: 5px; padding: 5px 5px 0 5px; background-color: white;" id="card-body-modified-date">
+        <label for="radio-group-modified-date">Modified Datetime</label>
+        <div class="form-group clearfix" id="radio-group-modified-date">
+          <div class="custom-control custom-radio d-inline">
+            <input type="radio" id="radioModifiedDateModeTbc" name="r1" flag="TBC" checked>
+            <label for="radioModifiedDateModeTbc" style="font-weight: normal;">TBC(Last modification date for source File or source URL)</label>
+          </div>
+          <div class="custom-control custom-radio d-inline">
+            <input type="radio" id="radioModifiedDateModeCustom" name="r1" flag="CUSTOM">
+            <label for="radioModifiedDateModeCustom" style="font-weight: normal;">Custom</label>
+          </div>
+          <div class="custom-control d-inline"  style="width: 12vw;">
+            <input type="datetime-local" id="datetime-local-customizard">
+          </div>            
+        </div>
   </div>  <!-- /.card-body -->
+
   <div class="card-footer">
     <div class="row">
       <div class="col-8">
@@ -278,7 +302,7 @@ to get the desired effect
       </div>
       <div class="col-2">
           <!-- <button type="button" class="btn btn-block btn-primary" onclick="spPrunedImported($('#tab-btn-import'));">Import</button> -->
-          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorImport.insertRecrawlItem();">Re-crawl</button>
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleImport();">Re-crawl</button>
           <!-- <input type="submit" value="Re-crawl" class="btn btn-block btn-primary" id="submit"/> -->
       </div>
       <div class="col-2">
@@ -326,7 +350,7 @@ to get the desired effect
       <p id="tip-bulk-import-prepare-invalid" class="hidden">Please upload relevant files <a href="javascript:$('#bulkImportContentFile').trigger('click');">Choose content files</a></p>
 
 
-      <input type="file" class="hidden" id="bulkImportContentFile" onchange="gPopupModifyHarvest.processorImport.bulkUploadFiles();" multiple>
+      <input type="file" class="hidden" id="bulkImportContentFile" onchange="gPopupModifyHarvest.processorModify.bulkUploadFiles();" multiple>
     </div>
 
   </div>  <!-- /.card-body -->
@@ -387,7 +411,7 @@ to get the desired effect
     <div class="row">
       <div class="col-8"></div>
       <div class="col-2">
-          <button type="button" class="btn btn-block btn-primary" id="btn-bulk-prune-submit" step="0">Prune</button>
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.bulkPrune();">Prune</button>
       </div>
       <div class="col-2">
           <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-bulk-prune').hide();">Close</button>
@@ -455,6 +479,11 @@ to get the desired effect
   <div class="spin-overlay"><i class="fas fa-circle-notch text-default"></i></div>
 </div>
 
+<!-- Login Page -->
+<div class="popup-window" id="popup-window-login">
+  <iframe src="/logon.jsp" title="Login" style="width: 100vw; height: 100vh;"></iframe>
+</div>
+
 <script src="../dist/jquery/jquery-3.4.1.min.js"></script>
 <!-- <script src="../dist/jquery/require.js"></script> -->
 <script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
@@ -475,18 +504,18 @@ to get the desired effect
 <!-- <script src="../dist/d3/d3.js"></script> -->
 <script src="../dist/plugins/moment-with-locales.min.js"></script>
 <script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script>
-<script src="../dist/plugins/datetimepicker-bootstrap-4.min.js"></script>
-
+<!-- <script src="../dist/plugins/datetimepicker-bootstrap-4.min.js"></script> -->
+<!-- <script src="../dist/plugins/tempusdominus-bootstrap-4.min.js"></script> -->
+<script src="visualization.js"></script>
 <script src="networkmap-graph.js"></script>
 <script src="networkmap-grid.js"></script>
 <script src="networkmap-menumap.js"></script>
 <!-- <script src="networkmap-sunburst.js"></script> -->
 <script src="networkmap.js"></script>
-<script src="popup-modify-harvest-import.js"></script>
+<script src="popup-modify-harvest-processor.js"></script>
 <script src="popup-modify-harvest.js"></script>
 <script src="popup-hop-path.js"></script>
 
-<script src="visualization.js"></script>
 
 <script>
     // $('#popup-window-loading').show();
@@ -580,30 +609,19 @@ to get the desired effect
           target.filter(val);
         });
 
-        $("#datetimepicker1").datetimepicker();
+        // $("#datetime-local-customizard").datetimepicker();
 
         $('#btn-bulk-import-submit').on('click', function(e){
           var step=$(this).attr('step');
           if (step==='0') {
-            gPopupModifyHarvest.processorImport.bulkImportStep0();            
+            gPopupModifyHarvest.processorModify.bulkImportStep0();            
           }else{
-            gPopupModifyHarvest.processorImport.bulkImportStep1();
+            gPopupModifyHarvest.processorModify.bulkImportStep1();
           }
         });
     });
 
     
-
-    // function spHierarchy(){
-    //   if($('#checkbox-tree-view').prop('checked')===true){
-    //     $('#grid-modify-candidate').hide();
-    //     $('#hierachy-tree').show();
-    //   }else{
-    //     $('#hierachy-tree').hide();
-    //     $('#grid-modify-candidate').show();
-    //   }
-    // }
-
     function useTargetURL(){
       var url=$("#specifyTargetUrlInput").val();
       $('#importFromUrlInput').val(url);

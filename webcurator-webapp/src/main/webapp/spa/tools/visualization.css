@@ -188,7 +188,7 @@ html,body,canvas{
 #popup-window-single-import .popup-content{
 	width: 50vw; 
 	/*height: 40vh;*/
-	margin: 30vh 25vw 30vh 25vw;
+	margin: 20vh 25vw 20vh 25vw;
 	border: 5px solid #007bff;
 	border-radius: 10px;
 	background: #F1E4E1;

@@ -8,19 +8,12 @@ class NetworkMap{
 
 
 	init(jobId, harvestResultNumber){
-		var sourceUrlDomains="/visualization/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
+		var sourceUrlDomains="/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
         var that=this;
-        $('#popup-window-loading').show();
-        fetch(sourceUrlDomains).then((response) => {
-        	// $('#popup-window-loading').hide();
-
-            // console.log(response.status); // Will show you the status
-
-            return response.json();
-        })
-        .then((data) => {
-        	that.formatData(data);
-            that.initDraw(data);		 
+     
+    	fetchHttp(sourceUrlDomains, null, function(response){
+    		that.formatData(response);
+    		that.initDraw(response);
     	});
 	}
 

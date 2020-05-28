@@ -6,6 +6,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.visualization.VisualizationConstants;
+
 import java.net.URI;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 
@@ -40,7 +41,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 
@@ -55,7 +56,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 
@@ -70,7 +71,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 
@@ -84,7 +85,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 
@@ -98,7 +99,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 
@@ -112,7 +113,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 
@@ -142,7 +143,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         String result;
-        result = restTemplate.getForObject(uri, String.class);
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 

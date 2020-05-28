@@ -46,7 +46,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  * @author nwaight
  */
 @SuppressWarnings("all")
-@Transactional
+//@Transactional
 public class TargetInstanceDAOImpl extends HibernateDaoSupport implements TargetInstanceDAO {
 	
     private static SimpleDateFormat fullFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");

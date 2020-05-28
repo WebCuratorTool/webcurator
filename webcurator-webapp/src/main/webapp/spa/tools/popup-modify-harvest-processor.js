@@ -1,37 +1,57 @@
-class ImportModifyHarvestProcessor{
+class ModifyHarvestProcessor{
 	constructor(jobId, harvestResultId, harvestResultNumber){
 		this.jobId=jobId;
 		this.harvestResultId=harvestResultId;
 		this.harvestResultNumber=harvestResultNumber;
+		this.currentEdittingNode=null;
+		this.chunk_size = 1*1024*1024; // 1Mbyte Chunk
+		this.offset = 0;
 	}
 
 	uploadFile(cmd, file, callback){
+		$('#popup-window-loading').show();
+		this.offset = 0;
+		this.recurseUploadFile(cmd, file, callback);
+	}
+
+	recurseUploadFile(cmd, file, callback){
+		if (this.offset >= file.size) {
+			return;
+		}
+
+		var blob=file.slice(this.offset, this.offset + this.chunk_size);
+		this.offset+=blob.size;
+
 		var that=this;
 		var reader = new FileReader();
 		reader.addEventListener("loadend", function () {
 			var req={
 				content: reader.result,
-				metadata: cmd
+				metadata: {
+					name: file.name,
+					length: file.size,
+					contentType: file.type,
+					lastModified: file.lastModified
+				},
+				start: (that.offset <= that.chunk_size)
 			};
 
-			var url="/visualization/modification/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber;
-			fetch(url, { 
-				method: 'POST',
-				// headers: {'Content-Type': 'application/octet-stream'},
-				headers: {'Content-Type': 'application/json'},
-				body: JSON.stringify(req)
-			}).then((response) => {
-				return response.json();
-			}).then((response) => {
-				callback(cmd, response);
-			});
+			var url="/modification/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber;
+			fetchHttp(url, req, function(response){
+				if (that.offset>=file.size) {
+					callback(cmd, response);
+				}else{
+					that.recurseUploadFile(cmd, file, callback);
+					return true;
+				}
+			}, true);
 		});
 
-		reader.readAsDataURL(file);
+		reader.readAsDataURL(blob);
 		// reader.readAsArrayBuffer(file);
 	}
 
-	singleImport(resp, node){
+	singleImportCallback(resp, node){
 		//Check result
 		if(resp && resp.respCode!=1){
 			alert(resp.respMsg);
@@ -52,7 +72,16 @@ class ImportModifyHarvestProcessor{
 		}
 	}
 
-	insertRecrawlItem(){
+	singleImport(){
+		var singleImportMode=$('#single-impot-mode').html().toUpperCase();
+		if (singleImportMode==='NEW') {
+			this.singleImportNew();
+		}else{
+			this.singleImportEdit();
+		}
+	}
+
+	singleImportNew(){
 		var that=this;
 		var node={
 			url: $("#specifyTargetUrlInput").val(),
@@ -71,11 +100,12 @@ class ImportModifyHarvestProcessor{
 				return;
 			}
 		}
-
 		node.pruneFlag=$("#checkbox-prune-of-single-import").is(":checked");
 
-		// var option=$("#customRadio1").attr("");
-		node.option=$("input[type='radio']:checked").attr("flag");
+		var lastModifiedMode=$("#card-body-modified-date input[type='radio']:checked").attr("flag");
+		var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
+
+		node.option=$("#card-body-source input[type='radio']:checked").attr("flag");
 		if(node.option==='File'){
 			if(!node.url.toLowerCase().startsWith("http://")){
 				alert("You must specify a valid target URL. Starts with: http://");
@@ -89,12 +119,16 @@ class ImportModifyHarvestProcessor{
 			node.name=file.name;
 			node.length=file.size;
 			node.contentType=file.type;
-			node.lastModified=file.lastModified;
-			// reqBody.file=file;
+
+			if (lastModifiedMode.toUpperCase() === 'TBC') {
+				node.lastModified=file.lastModified;
+			}else{
+				node.lastModified=customModifiedDate;
+			}
 
 			var that=this;
 			this.uploadFile(node, file, function(cmd, resp){
-				that.singleImport(resp, cmd);
+				that.singleImportCallback(resp, cmd);
 			});
 		}else{
 			if(!node.url.toLowerCase().startsWith("http://") &&
@@ -110,11 +144,30 @@ class ImportModifyHarvestProcessor{
 				return;
 			}
 
-			// that.uploadFile(cmd);
-			this.singleImport(null, node);
+			if (lastModifiedMode.toUpperCase() === 'TBC') {
+				node.lastModified=-1;
+			}else{
+				node.lastModified=customModifiedDate;
+			}
+
+			this.singleImportCallback(null, node);
 		}
 	}
 
+	singleImportEdit(){
+		//Only supporting lastModifiedDate
+		var lastModifiedMode=$("#card-body-modified-date input[type='radio']:checked").attr("flag");
+		if (lastModifiedMode.toUpperCase() === 'TBC') {
+			this.currentEdittingNode.lastModified=-1;
+		}else{
+			this.currentEdittingNode.lastModified=moment($("#datetime-local-customizard").val()).valueOf();
+		}
+
+		$('#popup-window-single-import').hide();
+
+		gPopupModifyHarvest.gridImport.gridOptions.api.redrawRows(true);
+	}
+	
 
 	bulkUploadFiles(){
 		var dataset=gPopupModifyHarvest.gridImportPrepare.getAllNodes();
@@ -257,13 +310,17 @@ class ImportModifyHarvestProcessor{
 					console.log('Skip invalid line: ' + line);
 				}
 
-				var d=new Date(modifydatetime);
-				if(!d){
-					alert("Invalid modification datetime at line: " + (i+1));
-					return;
-				}
+				if(modifydatetime.toUpperCase==='TBC'){
+					node.lastModified=-1;
+				}else{
+					var dt=moment(modifydatetime);
+					if(!dt){
+						alert("Invalid modification datetime at line: " + (i+1));
+						return;
+					}
 
-				node.lastModified=d.getTime();
+					node.lastModified=dt.valueOf();
+				}
 			}
 
 
@@ -286,7 +343,6 @@ class ImportModifyHarvestProcessor{
 
 		// reader.readAsDataURL(file);
 		reader.readAsText(file);
-
 	}
 
 	bulkImportStep1(){
@@ -311,16 +367,9 @@ class ImportModifyHarvestProcessor{
 		
 	}
 
-
-	checkFilesExistAtServerSide(dataset, callback){
-		var that=this;
-		fetch("/visualization/modification/check-files?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber, { 
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify(dataset)
-		}).then((response) => {
-			return response.json();
-		}).then((response) => {
+	checkFilesExistAtServerSide(dataset, callback){	
+		var url = "/modification/check-files?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		fetchHttp(url, dataset, function(response){
 			if(response.respCode!==1){
 				var html=$('#tip-bulk-import-prepare-invalid').html();
 				$('#tip-bulk-import-prepare').html(html);
@@ -329,7 +378,6 @@ class ImportModifyHarvestProcessor{
 			}
 
 			callback(response);
-			
 		});
 	}
 
@@ -349,4 +397,67 @@ class ImportModifyHarvestProcessor{
       }
     }
 
+
+    bulkPrune(){
+		var file=$('#bulkPruneMetadataFile')[0].files[0];
+		if(!file){
+			alert("You must specify a metadata file name to prune.");
+			return;
+		}
+		var ignoreInvalidURLsFlag=$("#checkbox-ignore-invalid-prune-urls").is(":checked");
+		var ignoreDuplicatedURLsFlag=$("#checkbox-ignore-duplicated-prune-urls").is(":checked");
+
+		var that=this;
+		var reader = new FileReader();
+		reader.addEventListener("loadend", function () {
+			var searchCondition={
+	          "domainNames": [],
+	          "contentTypes": [],
+	          "statusCodes": [],
+	          "urlNames": []
+	        }
+
+	        var map={};
+			var gridImportNodes=gPopupModifyHarvest.gridImport.getAllNodes();
+			for(var i=0; i<gridImportNodes.length; i++){
+				var key=gridImportNodes[i].url;
+				map[key]=2;
+			}
+
+			var text=reader.result;
+			var lines=text.split('\n');
+			for(var i=0;i<lines.length;i++){
+				var url=lines[i].trim();
+
+				console.log(url);
+
+				if(!url.toLowerCase().startsWith("http://") &&
+					!url.toLowerCase().startsWith("https://")){
+					if(!ignoreInvalidURLsFlag){
+						alert("You must specify a valid URL at line:" + (i+1));
+						return;
+					}
+				}
+
+				if(map[url]===2 || map[url]===1){
+					if(!ignoreDuplicatedURLsFlag){
+						alert('Duplicated URL: ' + url);
+						return;
+					}
+				}else{
+					map[url]=1;
+					searchCondition.urlNames.push(url);
+				}
+			}
+
+			$('#popup-window-bulk-prune').hide();
+
+			gPopupModifyHarvest.checkUrls(searchCondition, 'prune');
+
+		});
+
+		// reader.readAsDataURL(file);
+		reader.readAsText(file);
+
+	}
 }

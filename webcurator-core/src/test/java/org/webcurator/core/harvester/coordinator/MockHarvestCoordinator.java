@@ -1,6 +1,7 @@
 package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.*;
 
 import org.apache.commons.logging.Log;
@@ -377,6 +378,11 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	@Override
 	public int getHarvestOptimizationLookAheadHours() {
 		return 24;
+	}
+
+	@Override
+	public void downloadFile(long targetInstanceId, int harvestResultNumber, String fileName, OutputStream out) {
+
 	}
 
 	@Override

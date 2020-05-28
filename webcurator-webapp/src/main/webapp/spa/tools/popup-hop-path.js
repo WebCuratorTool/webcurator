@@ -24,13 +24,10 @@ class HopPath{
   }
 
   draw(nodeId){
-    var sourceUrl="/visualization/networkmap/get/hop/path?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + nodeId;
-    fetch(sourceUrl)
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-        this.drawHopPath(data);
+    var url="/networkmap/get/hop/path?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + nodeId;
+    var that=this;
+    fetchHttp(url, null, function(response){
+        that.drawHopPath(response);
         $('#popup-window-hop-path').show();
     });
   }

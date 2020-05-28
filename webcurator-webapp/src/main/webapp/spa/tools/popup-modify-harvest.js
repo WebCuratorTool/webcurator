@@ -81,7 +81,7 @@ class HierarchyTree{
 		this.container=container;
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
-		this.sourceUrlRootUrls="/visualization/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+		this.sourceUrlRootUrls="/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
 		this.options={
 			extensions: ["table", "wide"],
 			checkbox: true,
@@ -128,30 +128,14 @@ class HierarchyTree{
 		}
 
 		var that=this;
-		fetch(this.sourceUrlRootUrls, {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify(searchCondition)
-		}).then((response) => {
-		    if(response.status===200){
-		      if (response.redirected) {
-		        alert("Please login!")
-		        return null;
-		      }else{
-		      	// console.log(response.json());
-		        return response.json();
-		      }
-		    }
-		}).then((data)=>{
-		  if(data!=null){
-		  	if($.ui.fancytree.getTree(that.container)){
+		fetchHttp(this.sourceUrlRootUrls, searchCondition, function(response){
+			if($.ui.fancytree.getTree(that.container)){
 				$.ui.fancytree.getTree(that.container).destroy();
 			}
-  			that.formatDataForTreeGrid(data);
-  			console.log(data);
-  			that.options.source=data;
+  			that.formatDataForTreeGrid(response);
+  			console.log(response);
+  			that.options.source=response;
   			$(that.container).fancytree(that.options);
-		  }
 		});
 	}
 
@@ -212,10 +196,10 @@ class PopupModifyHarvest{
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlBasic);
 		this.gridPrune=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-prune', gridOptionsPrune, contextMenuItemsPrune);
 		this.gridImport=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-import', gridOptionsImport, contextMenuItemsImport);
-		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, contextMenuItemsImport);
-		this.processorImport=new ImportModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
-		this.uriSeedUrl="/visualization/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
-		this.uriInvalidUrl="/visualization/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, null);
+		this.processorModify=new ModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
+		this.uriSeedUrl="/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		this.uriInvalidUrl="/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 	}
 
 	setRowStyle(){
@@ -322,7 +306,16 @@ class PopupModifyHarvest{
 		this.setRowStyle();
 	}
 
+	showBulkPrune(){
+		$('#bulkPruneMetadataFile').val(null);
+		$('#label-bulk-prune-metadata-file').html('Choose file');
+    	$('#popup-window-bulk-prune').show();
+	}
+
 	showImport(data){
+		$('#single-impot-mode').html('New');
+		this.enableEditImport(true);
+
 		if(data){
 			$('#specifyTargetUrlInput').val(data.url);
 		}else{
@@ -332,9 +325,68 @@ class PopupModifyHarvest{
 
 		$('#sourceFile').val(null);
 		$('#label-source-file').html('Choose file');
-		$('#importFromUrlInput').val('');
+
+		var d=moment();
+		var ds=d.format('YYYY-MM-DDTHH:mm');
+		$("#datetime-local-customizard").val(ds);
+		
     	$('#popup-window-single-import').show();
-    	// this.processorImport.setNode(data);
+    	// this.processorModify.setNode(data);
+	}
+
+	editImport(node){
+		if(!node){
+			alert("Input parameter is missed");
+			return;
+		}
+
+		this.processorModify.currentEdittingNode=node;
+
+		$('#single-impot-mode').html('Edit');
+		this.enableEditImport(false);
+
+		$('#specifyTargetUrlInput').val(node.url);
+		$('#popup-window-single-import input[name="customRadio"]').prop('checked', false);
+		if(node.option.toLowerCase()==='file'){
+			$('#customRadio1').prop('checked', true);
+			$('#sourceFile').val(null);
+			$('#label-source-file').html('Choose file');
+		}else{
+			$('#customRadio2').prop('checked', true);
+			$('#importFromUrlInput').val(node.name);
+		}
+
+		//Modified Datetime
+		var lastModified=node.lastModified;
+		$('#popup-window-single-import input[name="r1"]').prop('checked', false);
+		if(lastModified <= 0){ //TBC
+			$('#radioModifiedDateModeTbc').prop('checked', true);
+			lastModified=moment();
+		}else{
+			$('#radioModifiedDateModeCustom').prop('checked', true);
+			lastModified=moment(lastModified);
+		}
+
+		var formatLastModified=lastModified.format('YYYY-MM-DDTHH:mm');
+		$("#datetime-local-customizard").val(formatLastModified);
+
+    	$('#popup-window-single-import').show();
+	}
+
+	//To make import input disabled or available 
+	enableEditImport(flag){
+		flag=!flag;
+		$('#specifyTargetUrlInput').prop('disabled', flag);
+		$('#popup-window-single-import input[name="customRadio"]').prop('disabled', flag);
+		$('#sourceFile').prop('disabled', flag);
+		$('#label-source-file').prop('disabled', flag);
+		$('#importFromUrlInput').prop('disabled', flag);
+
+	}
+
+	showBulkImport(){
+		this.processorModify.nextBulkImportTab(1);
+		$('#popup-window-bulk-import').show();
 	}
 
 	showOutlinks(data){
@@ -420,24 +472,16 @@ class PopupModifyHarvest{
         this.checkUrls(searchCondition, 'inspect');
 	}
 
-
 	checkUrls(searchCondition, flag){
 		if(!searchCondition || !flag){
 			console.log('Invalid input, searchCondition='+searchCondition+', flag='+flag);
 			return;
 		}
 
-		$('#popup-window-loading').show();
 		var that=this;
-		var sourceUrl="/visualization/networkmap/search/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
-		fetch(sourceUrl, {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify(searchCondition)
-		}).then((response) => {
-			return response.json();
-		}).then((rawData) => {
-			var data=formatStringArrayToJsonArray(rawData);
+		var url="/networkmap/search/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		fetchHttp(url, searchCondition, function(response){
+			var data=formatStringArrayToJsonArray(response);
 			if(flag==='prune'){
 				that.pruneHarvest(data);
 			}else if(flag==='inspect'){
@@ -446,32 +490,19 @@ class PopupModifyHarvest{
 				that.pruneHarvest(data);
 				$('#tab-btn-import').trigger('click');
 			}
-			$('#popup-window-loading').hide();
 			$('#popup-window-modify-harvest').show();
 		});
 	}
 
-	loadUrls(uri){
-		// var decision=confirm("The current candidates will be removed before loading URL. \n Please confirm you want to load data?");
-		// if(!decision){
-		// 	return;
-		// }
-
-		$('#popup-window-loading').show();
+	loadUrls(url){
 		var that=this;
-		fetch(uri, {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-		}).then((response) => {
-			return response.json();
-		}).then((rawData) => {
-			var data=formatStringArrayToJsonArray(rawData);
+		fetchHttp(url, null, function(response){
+			var data=formatStringArrayToJsonArray(response);
 			if(data.length===0){
 				$('#popup-window-loading').hide();	
 				alert('No data found!');
 			}else{
 				that.gridCandidate.setRowData(data);
-				$('#popup-window-loading').hide();
 			}
 		});
 	}
@@ -485,25 +516,7 @@ class PopupModifyHarvest{
 	}
 
 
-	// applyRecrawl(){
-	//   for(var i=0; i<aryFiles.length; i++){
-	//     var file=aryFiles[i];
-	//     var reader = new FileReader();
-
-	//     reader.addEventListener("loadend", function () {
-	//       fetch("/visualization/modification/modify-import", { 
-	//         method: 'POST',
-	//         headers: {'Content-Type': 'application/json'},
-	//         body: reader.result });
-	//       // reader.removeEventListener("loadend");
-	//     });
-
-	//     reader.readAsDataURL(file);
-	//   }
-	//   aryFiles=[];
-	// }
-
-	exportData(data){
+	exportInspectData(data){
 		var lines=[], row=[];
 		row.push('URL');
 		row.push('Type');
@@ -532,7 +545,49 @@ class PopupModifyHarvest{
 		
 		var content=lines.join('\r\n');
 
-		saveData(content, 'harvest_links.csv');
+		saveData(content, 'harvest_links_inspect.csv');
+	}
+
+	exportPruneData(data){
+		var lines=[], row=[];
+		row.push('URL');
+		var line=row.join('\t');
+		lines.push(line);
+
+		for(var i=0; i<data.length; i++){
+			var d=data[i];
+			row=[];
+			row.push(d.url);
+			lines.push(row.join('\t'));
+		}
+		
+		var content=lines.join('\r\n');
+
+		saveData(content, 'harvest_links_prune.csv');
+	}
+
+	exportImportData(data){
+		var lines=[], row=[];
+		row.push('Option');
+		row.push('Target');
+		row.push('Source');
+		row.push('ModifiedDate');
+		var line=row.join('\t');
+		lines.push(line);
+
+		for(var i=0; i<data.length; i++){
+			var d=data[i];
+			row=[];
+			row.push(d.option);
+			row.push(d.url);
+			row.push(d.name);
+			row.push(d.lastModified);
+			lines.push(row.join('\t'));
+		}
+		
+		var content=lines.join('\r\n');
+
+		saveData(content, 'harvest_links_import.csv');
 	}
 
 	insertImportData(dataset){
@@ -563,16 +618,13 @@ class PopupModifyHarvest{
 
 		$('#popup-window-loading').show();
 		var that=this;
-		var sourceUrl="/visualization/modification/apply";
-		fetch(sourceUrl, {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify(applyCommand)
-		}).then((response) => {
-			$('#popup-window-loading').hide();
-			return response.json();
-		}).then((response) => {
-			
+		var url="/modification/apply";
+		fetchHttp(url, applyCommand, function(response){
+			if(response.respCode !== 0){
+				alert(response.respMsg);
+			}else{
+				$("#popup-window-modify-harvest").hide();
+			}
 		});
 	}
 }

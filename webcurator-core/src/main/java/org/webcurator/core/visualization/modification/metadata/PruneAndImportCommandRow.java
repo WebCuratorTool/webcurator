@@ -3,6 +3,7 @@ package org.webcurator.core.visualization.modification.metadata;
 public class PruneAndImportCommandRow {
     private String content;
     private PruneAndImportCommandRowMetadata metadata;
+    private boolean start;
 
     public String getContent() {
         return content;
@@ -18,5 +19,13 @@ public class PruneAndImportCommandRow {
 
     public void setMetadata(PruneAndImportCommandRowMetadata metadata) {
         this.metadata = metadata;
+    }
+
+    public boolean isStart() {
+        return start;
+    }
+
+    public void setStart(boolean start) {
+        this.start = start;
     }
 }

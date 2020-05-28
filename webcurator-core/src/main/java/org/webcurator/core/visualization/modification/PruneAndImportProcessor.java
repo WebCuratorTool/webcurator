@@ -107,14 +107,18 @@ public class PruneAndImportProcessor implements Runnable {
             return;
         }
 
+        coordinator.setFileDir(this.fileDir);
+        coordinator.setBaseDir(this.baseDir);
+
         //Process copy and file import
         for (File archiveFile : archiveFiles) {
             coordinator.copyArchiveRecords(archiveFile, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
-            coordinator.importFromFile(cmd.getTargetInstanceId(),cmd.getNewHarvestResultNumber(), hrsToImport);
         }
 
+        coordinator.importFromFile(cmd.getTargetInstanceId(),cmd.getNewHarvestResultNumber(), hrsToImport);
+
         //Process source URL import
-        File patchHarvestDir = new File(this.fileDir, String.format("mod_%d_%d%s1", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), File.separator));
+        File patchHarvestDir = new File(this.baseDir, String.format("mod_%d_%d%s1", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), File.separator));
         File[] patchHarvestFiles = new File[0];
         if (patchHarvestDir.exists()) {
             patchHarvestFiles = patchHarvestDir.listFiles();

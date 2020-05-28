@@ -1,7 +1,7 @@
 package org.webcurator.core.visualization;
 
 public class VisualizationConstants {
-    public static final String PATH_ROOT = "/visualization";
+    public static final String PATH_ROOT = "/curator";
     public static final String PATH_UPLOAD_FILE = PATH_ROOT + "/modification/upload-file-stream";
     public static final String PATH_DOWNLOAD_FILE = PATH_ROOT + "/modification/download-file-stream";
     public static final String PATH_CHECK_FILES = PATH_ROOT + "/modification/check-files";
