@@ -359,11 +359,10 @@ class PopupModifyHarvest{
 		//Modified Datetime
 		var lastModified=node.lastModified;
 		$('#popup-window-single-import input[name="r1"]').prop('checked', false);
+		$('#popup-window-single-import input[flag=" + node.modifiedMode + "]').prop('checked', true);
 		if(lastModified <= 0){ //TBC
-			$('#radioModifiedDateModeTbc').prop('checked', true);
 			lastModified=moment();
 		}else{
-			$('#radioModifiedDateModeCustom').prop('checked', true);
 			lastModified=moment(lastModified);
 		}
 

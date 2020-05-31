@@ -13,12 +13,12 @@ import java.nio.file.Files;
 public class PruneAndImportProcessorTest {
     private static final String fileDir = "/usr/local/wct/store/uploadedFiles";
     private static final String baseDir = "/usr/local/wct/store";
-    private static final String coreCacheDir = "/usr/local/wct/webapp/cache";
+    private static final String coreCacheDir = "/usr/local/wct/webapp/uploadedFiles";
 
     @Test
     public void testPruneAndImport() throws IOException, URISyntaxException {
         PruneAndImportCommandApply cmd = getPruneAndImportCommandApply(5013);
-        cmd.setNewHarvestResultNumber(22);
+        cmd.setNewHarvestResultNumber(58);
 
         PruneAndImportProcessor p = new PruneAndImportProcessor(fileDir, baseDir, cmd);
 

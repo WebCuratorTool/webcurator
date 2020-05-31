@@ -101,11 +101,7 @@ class ModifyHarvestProcessor{
 			}
 		}
 		node.pruneFlag=$("#checkbox-prune-of-single-import").is(":checked");
-
-		var lastModifiedMode=$("#card-body-modified-date input[type='radio']:checked").attr("flag");
-		var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
-
-		node.option=$("#card-body-source input[type='radio']:checked").attr("flag");
+		node.option=$("#popup-window-single-import input[name='customRadio']:checked").attr("flag");
 		if(node.option==='File'){
 			if(!node.url.toLowerCase().startsWith("http://")){
 				alert("You must specify a valid target URL. Starts with: http://");
@@ -120,10 +116,18 @@ class ModifyHarvestProcessor{
 			node.length=file.size;
 			node.contentType=file.type;
 
-			if (lastModifiedMode.toUpperCase() === 'TBC') {
+			var modifiedMode=$("#radio-group-modified-date input[name='r1']:checked").attr("flag");
+			node.modifiedMode=modifiedMode;
+			if (modifiedMode.toUpperCase() === 'TBC') {
+				node.lastModified=0;
+			}else if (modifiedMode.toUpperCase() === 'FILE') {
 				node.lastModified=file.lastModified;
-			}else{
+			}else if (modifiedMode.toUpperCase() === 'CUSTOM') {
+				var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
 				node.lastModified=customModifiedDate;
+			}else{
+				alert('Invalid modified mode: ' + modifiedMode);
+				return;
 			}
 
 			var that=this;
@@ -144,11 +148,8 @@ class ModifyHarvestProcessor{
 				return;
 			}
 
-			if (lastModifiedMode.toUpperCase() === 'TBC') {
-				node.lastModified=-1;
-			}else{
-				node.lastModified=customModifiedDate;
-			}
+			node.modifiedMode='TBC';
+			node.lastModified=0;
 
 			this.singleImportCallback(null, node);
 		}
@@ -156,11 +157,18 @@ class ModifyHarvestProcessor{
 
 	singleImportEdit(){
 		//Only supporting lastModifiedDate
-		var lastModifiedMode=$("#card-body-modified-date input[type='radio']:checked").attr("flag");
-		if (lastModifiedMode.toUpperCase() === 'TBC') {
-			this.currentEdittingNode.lastModified=-1;
+		var modifiedMode=$("#radio-group-modified-date input[type='radio']:checked").attr("flag");
+		this.currentEdittingNode.modifiedMode=modifiedMode;
+		if (modifiedMode.toUpperCase() === 'TBC') {
+			this.currentEdittingNode.lastModified=0;
+		}else if (modifiedMode.toUpperCase() === 'FILE') {
+			this.currentEdittingNode.lastModified=file.lastModified;
+		}else if (modifiedMode.toUpperCase() === 'CUSTOM') {
+			var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
+			this.currentEdittingNode.lastModified=customModifiedDate;
 		}else{
-			this.currentEdittingNode.lastModified=moment($("#datetime-local-customizard").val()).valueOf();
+			alert('Invalid modified mode: ' + modifiedMode);
+			return;
 		}
 
 		$('#popup-window-single-import').hide();
@@ -266,7 +274,7 @@ class ModifyHarvestProcessor{
 					return;
 				}
 
-				var type=columns[0].trim(), target=columns[1].trim(), source=columns[2].trim(), modifydatetime=columns[3].trim();
+				var type=columns[0].trim(), target=columns[1].trim(), source=columns[2].trim(), modifydatetime=columns[3].trim().toUpperCase();
 				var node={
 					option: type,
 					url: target,
@@ -289,8 +297,25 @@ class ModifyHarvestProcessor{
 						alert("You must specify a valid target URL at line:" + (i+1) + ". URL starts with: http://");
 						return;
 					}
+
+					if(modifydatetime==='TBC' || modifydatetime==='FILE'){
+						node.modifiedMode=modifydatetime;
+						node.lastModified=0;
+					}else{
+						node.modifiedMode='CUSTOM';
+						var dt=moment(modifydatetime);
+						if(!dt){
+							alert("Invalid modification datetime at line: " + (i+1));
+							return;
+						}
+
+						node.lastModified=dt.valueOf();
+					}
+
 					dataset.push(node);
 				}else if(type.toLowerCase()==='url'){
+					node.modifiedMode='TBC';
+					node.lastModifiedDate=0;
 					node.option='URL';
 					if(!target.toLowerCase().startsWith("http://") &&
 						!target.toLowerCase().startsWith("https://")){
@@ -308,18 +333,6 @@ class ModifyHarvestProcessor{
 					//alert("Import type must be 'file' or 'url' at line: " + (i+1));
 					//return;
 					console.log('Skip invalid line: ' + line);
-				}
-
-				if(modifydatetime.toUpperCase==='TBC'){
-					node.lastModified=-1;
-				}else{
-					var dt=moment(modifydatetime);
-					if(!dt){
-						alert("Invalid modification datetime at line: " + (i+1));
-						return;
-					}
-
-					node.lastModified=dt.valueOf();
 				}
 			}
 
@@ -364,7 +377,6 @@ class ModifyHarvestProcessor{
 				}
 			}
 		});
-		
 	}
 
 	checkFilesExistAtServerSide(dataset, callback){	

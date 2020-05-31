@@ -6,6 +6,7 @@ public class PruneAndImportCommandRowMetadata {
     private String name;
     private long length;
     private String contentType;
+    private String modifiedMode;
     private long lastModified;
     private String content;
     private boolean replaceFlag;
@@ -51,6 +52,14 @@ public class PruneAndImportCommandRowMetadata {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public String getModifiedMode() {
+        return modifiedMode;
+    }
+
+    public void setModifiedMode(String modifiedMode) {
+        this.modifiedMode = modifiedMode;
     }
 
     public long getLastModified() {

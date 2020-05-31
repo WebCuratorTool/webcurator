@@ -1,5 +1,7 @@
 package org.webcurator.core.visualization.modification;
 
+import org.archive.format.http.HttpHeaderParser;
+import org.archive.format.http.HttpHeaders;
 import org.archive.format.warc.WARCConstants;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveReaderFactory;
@@ -20,12 +22,13 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordinator {
     public static final String ARCHIVE_TYPE = "WARC";
-    private String strippedImpArcFilename = null;
+    private WarcFilenameTemplate warcFilenameTemplate = null;
     private final List<String> impArcHeader = new ArrayList<String>();
     private final AtomicInteger aint = new AtomicInteger();
     private List<File> dirs;
@@ -66,7 +69,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
      * call. So it is skipped before entering the loop that copies each record.
      */
     @Override
-    protected void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, PruneAndImportCommandRowMetadata> hrsToImport, int newHarvestResultNumber) throws IOException, URISyntaxException {
+    protected void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, PruneAndImportCommandRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
             log.error("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -81,7 +84,11 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
 
         // Use the original filename
-        strippedImpArcFilename = reader.getStrippedFileName();
+        String strippedImpArcFilename = reader.getStrippedFileName();
+        if (this.warcFilenameTemplate == null) {
+            this.warcFilenameTemplate = new WarcFilenameTemplate(strippedImpArcFilename);
+        }
+
         compressed = reader.isCompressed();
         Iterator<ArchiveRecord> archiveRecordsIt = reader.iterator();
 
@@ -194,25 +201,39 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
     }
 
     @Override
-    protected void importFromFile(long job, int harvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException {
+    protected void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException {
+        // Create a WARC Writer
+        LocalDateTime timestamp = LocalDateTime.now();
+        this.warcFilenameTemplate.setTimestamp(timestamp.format(fTimestamp17));
+        this.warcFilenameTemplate.setSerialNo(aint.getAndIncrement());
+        this.warcFilenameTemplate.setHeritrixInfo("mod~import~file");
+        String strippedImpArcFilename = this.warcFilenameTemplate.toString();
+
         // Create a WARC Writer
         // Somewhat arbitrarily use the last filename from the list of original filenames
         // Compress the file if the (last) original file was compressed
-        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-new", "${prefix}",
+        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNumber, "${prefix}",
                 WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
         WARCWriter warcWriter = new WARCWriter(aint, settings);
+
         hrsToImport.values().stream().filter(f -> {
             return f.getLength() > 0L;
         }).forEach(fProps -> {
             try {
+                Date warcDate = new Date();
+                if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
+                    warcDate.setTime(fProps.getLastModified());
+                }
+                log.debug("WARC-Date: {}", writerDF.format(warcDate));
+
                 File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
                 InputStream fin = Files.newInputStream(tempFile.toPath());
                 URI recordId = new URI("urn:uuid:" + tempFile.getName());
                 ANVLRecord namedFields = new ANVLRecord();
                 namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
                 WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-                warcRecordInfo.setUrl(fProps.getName());
-                warcRecordInfo.setCreate14DigitDate(writerDF.format(new Date()));
+                warcRecordInfo.setUrl(fProps.getUrl());
+                warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
                 warcRecordInfo.setMimetype(fProps.getContentType());
                 warcRecordInfo.setRecordId(recordId);
                 warcRecordInfo.setExtraHeaders(namedFields);
@@ -229,36 +250,9 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         warcWriter.close();
     }
 
-//    private InputStream wrapWarcContentInput(PruneAndImportCommandRowMetadata fProps) throws IOException {
-//        String tempFileName = UUID.randomUUID().toString();
-//        fProps.setTempFileName(tempFileName);
-//
-//        BufferedOutputStream fos = new BufferedOutputStream(new FileOutputStream(new File(this.fileDir, tempFileName)));
-//
-//        StringBuilder buf = new StringBuilder();
-//        buf.append("HTTP/1.1 200 OK\n");
-//        buf.append("Content-Type: ");
-//        buf.append(fProps.getContentType()).append("\n");
-//        buf.append("Content-Length: ");
-//        buf.append(fProps.getLength()).append("\n");
-//        LocalDateTime ldt = LocalDateTime.ofEpochSecond(fProps.getLastModified() / 1000, 0, ZoneOffset.UTC);
-//        OffsetDateTime odt = ldt.atOffset(ZoneOffset.UTC);
-//        buf.append("Date: ");
-//        buf.append(odt.format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("\n");
-//        buf.append("Connection: close\n");
-//
-//        fos.write(buf.toString().getBytes());
-//        fos.write("\n".getBytes());
-//
-//        File fin = new File(this.baseDir, fProps.getName());
-//        fos.write(Files.readAllBytes(fin.toPath()));
-//        fos.close();
-//
-//        return new FileInputStream(new File(this.fileDir, tempFileName));
-//    }
 
     @Override
-    protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException {
+    protected void importFromRecorder(File fileFrom, List<String> urisToDelete, Map<String, List<String>> targetSourceMap, int newHarvestResultNumber) throws IOException, URISyntaxException {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
             log.error("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -271,6 +265,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             return;
         }
 
+        String strippedImpArcFilename = reader.getStrippedFileName();
         Iterator<ArchiveRecord> archiveRecordsIt = reader.iterator();
 
         // Get a another reader for the warc header metadata
@@ -299,7 +294,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         // Bypass warc header metadata as it has been read above from a different ArchiveReader
         archiveRecordsIt.next();
 
-        // Create a WARC Writer
         WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNumber, "${prefix}",
                 ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l, new UUIDGenerator());
         WARCWriter writer = new WARCWriter(aint, settings);
@@ -309,13 +303,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
             String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
-            String strRecordId = (String) header
-                    .getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_ID);
-            URI recordId = new URI(strRecordId.substring(
-                    strRecordId.indexOf("<") + 1,
-                    strRecordId.lastIndexOf(">") - 1));
-            long contentLength = header.getLength() - header.getContentBegin();
-
             if (WARCType.equals(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo.toString())) {
                 continue;
             }
@@ -335,47 +322,88 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 }
             });
 
-            WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-            switch (org.archive.format.warc.WARCConstants.WARCRecordType.valueOf(WARCType)) {
-                case warcinfo:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo);
-                    break;
-                case response:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case metadata:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.metadata);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case request:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.request);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case resource:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.resource);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case revisit:
-                    warcRecordInfo.setType(WARCConstants.WARCRecordType.revisit);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                default:
-                    log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
+            List<String> targetList = targetSourceMap.get(header.getUrl());
+            if (targetList != null && targetList.size() > 0) {
+                //For duplicated target urls, replace the target url for each one
+                for (String targetUrl : targetList) {
+                    WARCRecordInfo warcRecordInfo = this.createWarcRecordInfo(record, header, namedFields, targetUrl);
+                    warcRecordInfo.setUrl(targetUrl);
+                    writer.writeRecord(warcRecordInfo);
+                }
+            } else {
+                //Replace via url
+                ByteArrayOutputStream outputStream=null;
+                if (WARCConstants.WARCRecordType.valueOf(WARCType).equals(WARCConstants.WARCRecordType.metadata)) {
+                    HttpHeaders httpHeaders = new HttpHeaderParser().parseHeaders(record);
+                    String viaUrl = httpHeaders.getValue("via");
+                    if (viaUrl != null) {
+                        List<String> targetListVia = targetSourceMap.get(viaUrl);
+                        if (targetListVia != null && targetListVia.size() > 0) {
+                            //If there are duplicated source urls, replace with the 1st target url.
+                            String viaUrlTarget = targetListVia.get(0);
+                            httpHeaders.set("via", viaUrlTarget);
+                        }
+                    }
+                    outputStream=new ByteArrayOutputStream();
+                    httpHeaders.write(outputStream);
+                }
+                WARCRecordInfo warcRecordInfo = this.createWarcRecordInfo(record, header, namedFields, header.getUrl());
+                if (outputStream!=null){
+                    byte[] content=outputStream.toByteArray();
+                    int contentLength=content.length;
+                    ByteArrayInputStream inputStream=new ByteArrayInputStream(content);
+                    warcRecordInfo.setContentStream(inputStream);
+                    warcRecordInfo.setContentLength(contentLength);
+                }
+                writer.writeRecord(warcRecordInfo);
             }
-            warcRecordInfo.setCreate14DigitDate(header.getDate());
-            warcRecordInfo.setMimetype(header.getMimetype());
-            warcRecordInfo.setRecordId(recordId);
-            warcRecordInfo.setExtraHeaders(namedFields);
-            warcRecordInfo.setContentStream(record);
-            warcRecordInfo.setContentLength(contentLength);
-
-            writer.writeRecord(warcRecordInfo);
         }
 
         writer.close();
-
         reader.close();
+    }
+
+    private WARCRecordInfo createWarcRecordInfo(WARCRecord record, ArchiveRecordHeader header, ANVLRecord namedFields, String targetUrl) throws URISyntaxException {
+        String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
+        URI recordId = new URI(String.format("urn:uuid:%s", UUID.randomUUID().toString()));
+        long contentLength = header.getLength() - header.getContentBegin();
+
+        WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
+        switch (org.archive.format.warc.WARCConstants.WARCRecordType.valueOf(WARCType)) {
+            case warcinfo:
+                warcRecordInfo.setType(WARCConstants.WARCRecordType.warcinfo);
+                break;
+            case response:
+                warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
+                warcRecordInfo.setUrl(targetUrl);
+                break;
+            case metadata:
+                warcRecordInfo.setType(WARCConstants.WARCRecordType.metadata);
+                warcRecordInfo.setUrl(targetUrl);
+                break;
+            case request:
+                warcRecordInfo.setType(WARCConstants.WARCRecordType.request);
+                warcRecordInfo.setUrl(targetUrl);
+                break;
+            case resource:
+                warcRecordInfo.setType(WARCConstants.WARCRecordType.resource);
+                warcRecordInfo.setUrl(targetUrl);
+                break;
+            case revisit:
+                warcRecordInfo.setType(WARCConstants.WARCRecordType.revisit);
+                warcRecordInfo.setUrl(targetUrl);
+                break;
+            default:
+                log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
+        }
+        warcRecordInfo.setCreate14DigitDate(header.getDate());
+        warcRecordInfo.setMimetype(header.getMimetype());
+        warcRecordInfo.setRecordId(recordId);
+        warcRecordInfo.setExtraHeaders(namedFields);
+        warcRecordInfo.setContentStream(record);
+        warcRecordInfo.setContentLength(contentLength);
+
+        return warcRecordInfo;
     }
 
     @Override
@@ -383,24 +411,8 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         return ARCHIVE_TYPE;
     }
 
-    public String getStrippedImpArcFilename() {
-        return strippedImpArcFilename;
-    }
-
-    public void setStrippedImpArcFilename(String strippedImpArcFilename) {
-        this.strippedImpArcFilename = strippedImpArcFilename;
-    }
-
     public List<String> getImpArcHeader() {
         return impArcHeader;
-    }
-
-    public AtomicInteger getAint() {
-        return aint;
-    }
-
-    public List<File> getDirs() {
-        return dirs;
     }
 
     public boolean isCompressed() {
@@ -413,5 +425,61 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
     public void setDirs(List<File> dirs) {
         this.dirs = dirs;
+    }
+
+
+    static class WarcFilenameTemplate {
+        private String prefix;
+        private String timestamp;
+        private int serialNo;
+        private String heritrixInfo;
+
+        public WarcFilenameTemplate(String strippedImpArcFilename) throws Exception {
+            String[] items = strippedImpArcFilename.split("-");
+            if (items.length == 4) {
+                this.prefix = items[0];
+                this.timestamp = items[1];
+                this.serialNo = Integer.parseInt(items[2]);
+                this.heritrixInfo = items[3];
+            } else {
+                throw new Exception("Unsupported file template: " + strippedImpArcFilename);
+            }
+        }
+
+        public String toString() {
+            return String.format("%s-%s-%05d-%s", this.prefix, this.timestamp, this.serialNo, this.heritrixInfo);
+        }
+
+        public String getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public String getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(String timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public int getSerialNo() {
+            return serialNo;
+        }
+
+        public void setSerialNo(int serialNo) {
+            this.serialNo = serialNo;
+        }
+
+        public String getHeritrixInfo() {
+            return heritrixInfo;
+        }
+
+        public void setHeritrixInfo(String heritrixInfo) {
+            this.heritrixInfo = heritrixInfo;
+        }
     }
 }

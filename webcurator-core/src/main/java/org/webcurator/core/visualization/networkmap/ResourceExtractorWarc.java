@@ -50,23 +50,7 @@ public class ResourceExtractorWarc extends ResourceExtractor {
             return;
         }
 
-//        String key = null;
-//        String warcRecordId = header.getHeaderValue(WARCConstants.HEADER_KEY_ID).toString();
-//        if (warcRecordId == null) {
-//            return;
-//        }
-//        warcRecordId = warcRecordId.substring(1, warcRecordId.length() - 1);
-//        if (header.getHeaderValue(WARCConstants.HEADER_KEY_CONCURRENT_TO) != null) {
-//            String warcConcurrentTo = header.getHeaderValue(WARCConstants.HEADER_KEY_CONCURRENT_TO).toString();
-//            int lenDelta = warcConcurrentTo.length() - warcRecordId.length() - 2;
-//            warcConcurrentTo = warcConcurrentTo.substring(1, warcConcurrentTo.length() - 1 - lenDelta);
-//            key = warcConcurrentTo;
-//        } else {
-//            key = warcRecordId;
-//        }
-
         String key = header.getUrl();
-
         NetworkMapNode res = null;
         if (results.containsKey(key)) {
             res = results.get(key);

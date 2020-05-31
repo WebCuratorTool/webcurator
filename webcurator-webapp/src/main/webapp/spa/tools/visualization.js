@@ -77,17 +77,17 @@ function saveData(data, fileName) {
 }
 
 // var status='on';
-function toggleNetworkMapGrid(status){
-  if (status === 'on') {
-    $('#network-map-canvas').width('calc(100vw - 30px)');
-    $('#networkmap-side-container').hide();
-    // status='off';
-  }else{
-    $('#network-map-canvas').width('75vw');
-    $('#networkmap-side-container').show();
-    // status='on';
-  }
-}
+// function toggleNetworkMapGrid(status){
+//   if (status === 'on') {
+//     $('#network-map-canvas').width('calc(100vw - 30px)');
+//     $('#networkmap-side-container').hide();
+//     // status='off';
+//   }else{
+//     $('#network-map-canvas').width('75vw');
+//     $('#networkmap-side-container').show();
+//     // status='on';
+//   }
+// }
 
 function formatStringArrayToJsonArray(listStr){
   var listObj=[];
@@ -376,13 +376,17 @@ var gridOptionsImport={
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
-       if(row.data.lastModified <= 0){
-        return 'TBC';
-       }
-
-       var dt=moment(row.data.lastModified);
-       // return dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
-       return dt.format('YYYY-MM-DDTHH:mm');
+        console.log(modifiedMode);
+        console.log(row.data.lastModified);
+        var modifiedMode=row.data.modifiedMode.toUpperCase();
+        if(modifiedMode==='TBC'){
+          return 'TBC';
+        }else if(row.data.lastModified > 0){
+          var dt=moment(row.data.lastModified);
+          return dt.format('YYYY-MM-DDTHH:mm');
+        }else{
+          return modifiedMode;
+        }
     }},
   ],
   // getRowClass: formatModifyHavestGridRow
@@ -406,13 +410,17 @@ var gridOptionsImportPrepare={
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
-       if(row.data.lastModified <= 0){
-        return 'TBC';
-       }
-
-       var dt=moment(row.data.lastModified);
-       // return dt.toLocaleDateString() + " " + dt.toLocaleTimeString();
-       return dt.format('YYYY-MM-DDTHH:mm');
+        console.log(modifiedMode);
+        console.log(row.data.lastModified);
+        var modifiedMode=row.data.modifiedMode.toUpperCase();
+        if(modifiedMode==='TBC'){
+          return 'TBC';
+        }else if(row.data.lastModified > 0){
+          var dt=moment(row.data.lastModified);
+          return dt.format('YYYY-MM-DDTHH:mm');
+        }else{
+          return modifiedMode;
+        }
     }},
     {headerName: "Progress", field: "respCode", width: 200, pinned: "right", cellRenderer:  (row) => {
         var badge='';

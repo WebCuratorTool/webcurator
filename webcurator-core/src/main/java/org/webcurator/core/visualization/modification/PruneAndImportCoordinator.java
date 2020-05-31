@@ -3,7 +3,6 @@ package org.webcurator.core.visualization.modification;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
@@ -15,9 +14,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -29,7 +25,7 @@ public abstract class PruneAndImportCoordinator {
      */
     protected static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
     protected static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
+    protected static final DateTimeFormatter fTimestamp17 = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     protected String fileDir; //Upload files
     protected String baseDir; //Harvest WARC files dir
 
@@ -40,11 +36,11 @@ public abstract class PruneAndImportCoordinator {
 
     abstract protected String archiveType();
 
-    abstract protected void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, PruneAndImportCommandRowMetadata> hrsToImport, int newHarvestResultNumber) throws IOException, URISyntaxException;
+    abstract protected void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, PruneAndImportCommandRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception;
 
-    abstract protected void importFromFile(long job, int harvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException;
+    abstract protected void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException;
 
-    abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException;
+    abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, Map<String, List<String>> targetSourceMap, int newHarvestResultNumber) throws IOException, URISyntaxException;
 
     protected File modificationDownloadFile(long job, int harvestResultNumber, PruneAndImportCommandRowMetadata metadata) {
         AbstractRestClient digitalAssetStoreClient = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);
@@ -62,12 +58,6 @@ public abstract class PruneAndImportCoordinator {
             URL url = uri.toURL();
             URLConnection conn = url.openConnection();
 
-//            HttpEntity<String> reqEntity = digitalAssetStoreClient.createHttpRequestEntity(metadata);
-//            OutputStream connOutputStream = conn.getOutputStream();
-//            connOutputStream.write(Objects.requireNonNull(reqEntity.getBody()).getBytes());
-//            connOutputStream.flush();
-//            connOutputStream.close();
-
             OutputStream fos = Files.newOutputStream(tempFile.toPath());
 
             StringBuilder buf = new StringBuilder();
@@ -76,10 +66,10 @@ public abstract class PruneAndImportCoordinator {
             buf.append(metadata.getContentType()).append("\n");
             buf.append("Content-Length: ");
             buf.append(metadata.getLength()).append("\n");
-            LocalDateTime ldt = LocalDateTime.ofEpochSecond(metadata.getLastModified() / 1000, 0, ZoneOffset.UTC);
-            OffsetDateTime odt = ldt.atOffset(ZoneOffset.UTC);
-            buf.append("Date: ");
-            buf.append(odt.format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("\n");
+//            LocalDateTime ldt = LocalDateTime.ofEpochSecond(metadata.getLastModified() / 1000, 0, ZoneOffset.UTC);
+//            OffsetDateTime odt = ldt.atOffset(ZoneOffset.UTC);
+//            buf.append("Date: ");
+//            buf.append(odt.format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("\n");
             buf.append("Connection: close\n");
 
             fos.write(buf.toString().getBytes());

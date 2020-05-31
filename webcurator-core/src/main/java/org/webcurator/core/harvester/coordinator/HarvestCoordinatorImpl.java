@@ -1592,10 +1592,10 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
     @Override
     public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
-        return this.checkFiles(items, false);
+        return this.checkFiles(items);
     }
 
-    private PruneAndImportCommandResult checkFiles(List<PruneAndImportCommandRowMetadata> items, boolean isAttachLastModifiedDate) {
+    private PruneAndImportCommandResult checkFiles(List<PruneAndImportCommandRowMetadata> items) {
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 
         /**
@@ -1622,7 +1622,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                 metadata.setLength(vif.getContentLength());
 
                 //Replace last modified date if the mode is "TBC"
-                if (isAttachLastModifiedDate && metadata.getLastModified() <= 0) {
+                if (metadata.getModifiedMode().equalsIgnoreCase("FILE")) {
                     metadata.setLastModified(vif.getLastModifiedDate());
                 }
             }
@@ -1645,7 +1645,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         /**
          * Checking do files exist and attaching properties for existing files
          */
-        PruneAndImportCommandResult result = this.checkFiles(cmd.getDataset(), true);
+        PruneAndImportCommandResult result = this.checkFiles(cmd.getDataset());
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS &&
                 result.getRespCode() != VisualizationConstants.RESP_CODE_FILE_EXIST) {
             log.error(result.getRespMsg());

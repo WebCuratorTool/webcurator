@@ -261,35 +261,41 @@ to get the desired effect
             </div>
           </div>
           <br/>
-          <!-- <label for="importFromUrlInput">Import from URL</label> -->
-          <div class="custom-control custom-radio">
-            <input class="custom-control-input" type="radio" id="customRadio2" name="customRadio" flag="URL">
-            <label for="customRadio2" class="custom-control-label">Option 2: Re-crawl from URL</label>
-          </div>
-          <div class="input-group">
-            <input type="input" class="form-control" id="importFromUrlInput" placeholder="Source URL">
-            <div class="input-group-append">
-              <span class="input-group-text" onclick="useTargetURL();">Use Target URL</span>
+          
+          <div class="form-group clearfix" id="radio-group-modified-date">
+            <label for="radio-group-modified-date">Modified Datetime</label>
+            <div class="custom-control custom-radio d-inline">
+              <input type="radio" id="radioModifiedDateModeTbc" name="r1" flag="TBC" checked>
+              <label for="radioModifiedDateModeTbc" style="font-weight: normal;">TBC</label>
             </div>
+            <div class="custom-control custom-radio d-inline">
+              <input type="radio" id="radioModifiedDateModeFile" name="r1" flag="File">
+              <label for="radioModifiedDateModeFile" style="font-weight: normal;">File Modified Time</label>
+            </div>
+            <div class="custom-control custom-radio d-inline">
+              <input type="radio" id="radioModifiedDateModeCustom" name="r1" flag="CUSTOM">
+              <label for="radioModifiedDateModeCustom" style="font-weight: normal;">Custom</label>
+              <input type="datetime-local" id="datetime-local-customizard">
+            </div>
+            <!-- <div class="custom-control d-inline"  style="width: 12vw;">
+              <input type="datetime-local" id="datetime-local-customizard">
+            </div>   -->          
           </div>
         </div>
   </div>
   
   <div class="card-body" style="margin: 5px; padding: 5px 5px 0 5px; background-color: white;" id="card-body-modified-date">
-        <label for="radio-group-modified-date">Modified Datetime</label>
-        <div class="form-group clearfix" id="radio-group-modified-date">
-          <div class="custom-control custom-radio d-inline">
-            <input type="radio" id="radioModifiedDateModeTbc" name="r1" flag="TBC" checked>
-            <label for="radioModifiedDateModeTbc" style="font-weight: normal;">TBC(Last modification date for source File or source URL)</label>
-          </div>
-          <div class="custom-control custom-radio d-inline">
-            <input type="radio" id="radioModifiedDateModeCustom" name="r1" flag="CUSTOM">
-            <label for="radioModifiedDateModeCustom" style="font-weight: normal;">Custom</label>
-          </div>
-          <div class="custom-control d-inline"  style="width: 12vw;">
-            <input type="datetime-local" id="datetime-local-customizard">
-          </div>            
+        <div class="custom-control custom-radio">
+          <input class="custom-control-input" type="radio" id="customRadio2" name="customRadio" flag="URL">
+          <label for="customRadio2" class="custom-control-label">Option 2: Re-crawl from URL</label>
         </div>
+        <div class="input-group">
+          <input type="input" class="form-control" id="importFromUrlInput" placeholder="Source URL">
+          <div class="input-group-append">
+            <span class="input-group-text" onclick="useTargetURL();">Use Target URL</span>
+          </div>
+        </div>
+        <br/>
   </div>  <!-- /.card-body -->
 
   <div class="card-footer">
@@ -395,7 +401,7 @@ to get the desired effect
       </div>
       <div class="form-group">
         <div class="custom-control custom-checkbox">
-          <input class="custom-control-input" type="checkbox" id="checkbox-ignore-invalid-prune-urls" checked>
+          <input class="custom-control-input" type="checkbox" id="checkbox-ignore-invalid-prune-urls">
           <label for="checkbox-ignore-invalid-prune-urls" class="custom-control-label">Ignore invalid URLs to be pruned</label>
         </div>
       </div>
@@ -555,12 +561,12 @@ to get the desired effect
             if(status==='on'){
               $(this).attr('status', 'off');
               $(this).removeClass('bg-black');
-              $('#network-map-canvas').width('calc(100vw - 30px)');
+              // $('#network-map-canvas').width('calc(100vw - 30px)');
               $('#networkmap-side-container').hide();
             }else{
               $(this).attr('status', 'on');
               $(this).addClass('bg-black');
-              $('#network-map-canvas').width('75vw');
+              // $('#network-map-canvas').width('75vw');
               $('#networkmap-side-container').show();
             }
           }else{
@@ -575,10 +581,9 @@ to get the desired effect
             }
             $('a[name="summary"]').attr('status', 'on');
             $('a[name="summary"]').addClass('bg-black');
-            $('#network-map-canvas').width('75vw');
+            // $('#network-map-canvas').width('75vw');
             $('#networkmap-side-container').show();
           }
-
         });
 
         $(".btn-nav-tab button").on("click", function(e){

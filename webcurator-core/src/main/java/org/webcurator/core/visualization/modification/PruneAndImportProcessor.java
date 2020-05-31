@@ -112,12 +112,32 @@ public class PruneAndImportProcessor implements Runnable {
 
         //Process copy and file import
         for (File archiveFile : archiveFiles) {
-            coordinator.copyArchiveRecords(archiveFile, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
+            try {
+                coordinator.copyArchiveRecords(archiveFile, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
         }
 
-        coordinator.importFromFile(cmd.getTargetInstanceId(),cmd.getNewHarvestResultNumber(), hrsToImport);
+        coordinator.importFromFile(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), cmd.getNewHarvestResultNumber(), hrsToImport);
 
         //Process source URL import
+        Map<String, List<String>> targetSourceMap = new HashMap<>();
+        for (PruneAndImportCommandRowMetadata metadata : this.cmd.getDataset()) {
+            if (!metadata.getOption().equalsIgnoreCase("url")) {
+                continue;
+            }
+            String targetUrl = metadata.getUrl();
+            String sourceUrl = metadata.getName();
+
+            List<String> targetList = targetSourceMap.get(sourceUrl);
+            if (targetList == null) {
+                targetList = new ArrayList<>();
+                targetSourceMap.put(sourceUrl, targetList);
+            }
+            targetList.add(targetUrl);
+        }
+
         File patchHarvestDir = new File(this.baseDir, String.format("mod_%d_%d%s1", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), File.separator));
         File[] patchHarvestFiles = new File[0];
         if (patchHarvestDir.exists()) {
@@ -127,7 +147,7 @@ public class PruneAndImportProcessor implements Runnable {
             if (!patchHarvestFile.isFile() || !patchHarvestFile.getName().toUpperCase().endsWith(coordinator.getArchiveType())) {
                 continue;
             }
-            coordinator.importFromRecorder(patchHarvestFile, urisToDelete, cmd.getNewHarvestResultNumber());
+            coordinator.importFromRecorder(patchHarvestFile, urisToDelete, targetSourceMap, cmd.getNewHarvestResultNumber());
         }
     }
 
@@ -140,5 +160,31 @@ public class PruneAndImportProcessor implements Runnable {
         RestTemplate restTemplate = restTemplateBuilder.build();
         URI uri = uriComponentsBuilder.build().toUri();
         restTemplate.getForObject(uri, Void.class);
+    }
+
+    public static void main(String[] args) {
+        PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
+        cmd.setTargetInstanceId(5013);
+        cmd.setHarvestResultId(2);
+        cmd.setHarvestResultNumber(1);
+        cmd.setNewHarvestResultNumber(58);
+
+        PruneAndImportCommandRowMetadata metadata = new PruneAndImportCommandRowMetadata();
+        metadata.setUrl("https://ssl.gstatic.com/ui/v1/radiobutton/unchecked.png");
+        metadata.setName("https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Logo.max-500x500.png");
+        metadata.setModifiedMode("TBC");
+
+        cmd.getDataset().add(metadata);
+
+        PruneAndImportProcessor p = new PruneAndImportProcessor("/usr/local/wct/store/uploadedFiles",
+                "/usr/local/wct/store", cmd);
+
+        Thread t = new Thread(p);
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
