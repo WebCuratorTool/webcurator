@@ -131,7 +131,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 
 	private void doHeartbeatFinished(TargetInstance ti) {
 		String state = ti.getState();
-		if (state.equals(TargetInstance.STATE_RUNNING)||state.equals(TargetInstance.STATE_MOD_RUNNING)) {
+		if (state.equals(TargetInstance.STATE_RUNNING)||state.equals(TargetInstance.STATE_PATCHING)) {
 			ti.setState(TargetInstance.STATE_STOPPING);
 		}
 	}

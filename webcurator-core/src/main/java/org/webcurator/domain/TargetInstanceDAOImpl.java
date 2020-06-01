@@ -566,8 +566,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 		Set<String> states = new HashSet<String>();
 		states.add(TargetInstance.STATE_SCHEDULED);
 		states.add(TargetInstance.STATE_QUEUED);
-		states.add(TargetInstance.STATE_MOD_SCHEDULED);
-		states.add(TargetInstance.STATE_MOD_QUEUED);
+		states.add(TargetInstance.STATE_PATCHING);
 		criteria.setStates(states);
 		criteria.setTo(new Date());
 		

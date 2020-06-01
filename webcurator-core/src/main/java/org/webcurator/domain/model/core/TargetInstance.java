@@ -99,12 +99,12 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     public static final String STATE_ARCHIVED = "Archived";
     /** Archiving - We have started the archiving, but not completed */
 	public static final String STATE_ARCHIVING = "Archiving";
-    /** Scheduled – The Target Instance is scheduled for modifying. */
-    public static final String STATE_MOD_SCHEDULED = "ModScheduled";
-    /** Queued – The Target Instances scheduled time has past but there is no capacity process the Modification. */
-    public static final String STATE_MOD_QUEUED = "ModQueued";
-    /** Modifying - We have started the modifying, but not completed */
-    public static final String STATE_MOD_RUNNING = "ModRunning";
+    /** Scheduled – The Target Instance is patching: scheduled, harvesting, modifying. */
+    public static final String STATE_PATCHING = "Patching";
+//    /** Queued – The Target Instances scheduled time has past but there is no capacity process the Modification. */
+//    public static final String STATE_MOD_QUEUED = "ModQueued";
+//    /** Modifying - We have started the modifying, but not completed */
+//    public static final String STATE_MOD_RUNNING = "ModRunning";
 
 
     /** value for a low priority target instance. */
@@ -567,9 +567,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         stateOrder.put(STATE_RUNNING, 1);
         stateOrder.put(STATE_STOPPING, 10);
         stateOrder.put(STATE_SCHEDULED, 40);
-        stateOrder.put(STATE_MOD_SCHEDULED,100);
-        stateOrder.put(STATE_MOD_QUEUED,101);
-        stateOrder.put(STATE_MOD_RUNNING,102);
+        stateOrder.put(STATE_PATCHING,100);
+//        stateOrder.put(STATE_MOD_QUEUED,101);
+//        stateOrder.put(STATE_MOD_RUNNING,102);
 
         return stateOrder;
     }

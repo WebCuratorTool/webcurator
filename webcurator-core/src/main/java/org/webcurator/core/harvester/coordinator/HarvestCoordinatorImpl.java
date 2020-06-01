@@ -189,18 +189,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                     + " failed to save HarvestResult.");
         }
 
-        if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_RUNNING)) {
+        if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             this.pushPruneAndImport(ti.getOid());
         } else {
-            // The result is for the original harvest, but the TI already has one or
-            // more results
+            // The result is for the original harvest, but the TI already has one or more results
             if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
-                // This is a repeat message probably due to a timeout. Leaving this
-                // to run
-                // would generate a second 'Original Harvest' which will
-                // subsequently fail in indexing
-                // due to a duplicate file name constraint in the arc_harvest_file
-                // table
+                // This is a repeat message probably due to a timeout. Leaving this to run
+                // would generate a second 'Original Harvest' which will subsequently fail in indexing
+                // due to a duplicate file name constraint in the arc_harvest_file table
                 log.warn("Duplicate 'Harvest Complete' message received for job: " + ti.getOid() + ". Message ignored.");
                 return;
             }
@@ -220,14 +216,9 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             targetInstanceDao.save(ti);
             harvestBandwidthManager.sendBandWidthRestrictions();
 
-            // IF the associated target record for this TI has
-            // no active TIs remaining (scheduled, queued, running,
-            // paused, stopping)
-            // AND
-            // the target's schedule is not active (i.e we're past
-            // the schedule end date),
-            // THEN set the status of the associated target to 'complete'.
-            //
+            // IF the associated target record for this TI has no active TIs remaining (scheduled, queued, running,
+            // paused, stopping) AND the target's schedule is not active (i.e we're past
+            // the schedule end date), THEN set the status of the associated target to 'complete'.
             boolean bActiveSchedules = false;
             AbstractTarget tiTarget = ti.getTarget();
             Date now = new Date();
@@ -522,8 +513,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
             if (agent == null) {
                 log.warn(String.format("No available harvest agent of type %s found for agency %s",
-                        ti.getProfile().getHarvesterType(),
-                        queuedTargetInstanceDTO.getAgencyName()
+                        ti.getProfile().getHarvesterType(), queuedTargetInstanceDTO.getAgencyName()
                 ));
             }
 
@@ -532,21 +522,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                     // allocate the target instance to the agent
                     log.info("Allocating TI " + tiOid + " to agent " + agent.getName());
                     processed = modifyHarvest(ti, agent);
-                }
-            } else {
-                processed = true;
-                log.info("Re-modifying TI " + tiOid);
-                // if not already queued set the target instance to the
-                // queued state.
-                if (!queuedTargetInstanceDTO.getState().equals(TargetInstance.STATE_MOD_QUEUED)) {
-                    if (ti == null) {
-                        ti = loadTargetInstance(tiOid);
-                    }
-                    // Prepare the harvest for the queue.
-                    ti.setState(TargetInstance.STATE_MOD_QUEUED);
-                    targetInstanceDao.save(ti);
-                    inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC,
-                            MessageType.TARGET_INSTANCE_MODIFYING, ti);
                 }
             }
         }
@@ -569,8 +544,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             log.error("Input parameter is null");
             return processed;
         }
-        if (!targetInstance.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_SCHEDULED)
-                && !targetInstance.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_QUEUED)) {
+        if (!targetInstance.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             log.error("Could not start a un-modifying target instance");
             return processed;
         }
@@ -608,7 +582,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             targetInstanceDao.save(hr);
 
             targetInstance.setActualStartTime(new Date());
-            targetInstance.setState(TargetInstance.STATE_MOD_RUNNING);
             targetInstance.setHarvestServer(harvestAgentStatusDTO.getName());
             targetInstanceDao.save(targetInstance);
 
@@ -659,8 +632,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             log.error("Could not send initiateIndexing message to the DAS", ex);
         }
 
-        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_MODIFIED,
-                ti);
+        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_MODIFIED, ti);
         inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
 
         log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
@@ -906,8 +878,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         while (it.hasNext()) {
             ti = it.next();
             log.info("Processing queue and modify entry: " + ti.toString());
-            if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_SCHEDULED)
-                    || ti.getState().equalsIgnoreCase(TargetInstance.STATE_MOD_QUEUED)) {
+            if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
                 modifyHarvest(ti);
             } else {
                 harvestOrQueue(ti);
@@ -1662,14 +1633,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         synchronized (ti.getJobName()) {
-//            if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_HARVESTED)) {
-//                result.setRespCode(RESP_CODE_ERROR_SYSTEM_ERROR);
-//                result.setRespMsg("Invalid target instance state for modification: " + ti.getState());
-//                log.error(result.getRespMsg());
-//                return result;
-//            }
+            if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_HARVESTED)) {
+                result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_INVALID_TI_STATE);
+                result.setRespMsg("Invalid target instance state for modification: " + ti.getState());
+                log.error(result.getRespMsg());
+                return result;
+            }
             try {
-                ti.setState(TargetInstance.STATE_MOD_SCHEDULED);
+                ti.setState(TargetInstance.STATE_PATCHING);
                 targetInstanceManager.save(ti);
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -1694,8 +1665,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         if (!isNeedHarvest) {
-            ti.setState(TargetInstance.STATE_MOD_RUNNING);
-            targetInstanceManager.save(ti);
+            //If there is no source urls included, then skipping harvesting
             result = this.pushPruneAndImport(cmd);
         } else {
             String instanceAgencyName = ti.getOwner().getAgency().getName();
@@ -1710,7 +1680,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                 result.setRespMsg("Modification harvest job started");
             } else {
                 ti.setScheduledTime(new Date());
-                ti.setState(TargetInstance.STATE_MOD_SCHEDULED);
                 targetInstanceManager.save(ti);
                 result.setRespMsg("No idle agent, modification harvest job is scheduled");
             }
@@ -1750,9 +1719,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         if (ti == null) {
             result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(String.format("Target instance (OID=%d) does not exist in DB", cmd.getTargetInstanceId()));
+            log.error(result.getRespMsg());
+            return result;
+        } else if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_INVALID_TI_STATE);
+            result.setRespMsg("Invalid TargetInstance state: " + ti.getState());
+            log.error(result.getRespMsg());
             return result;
         }
-        ti.setState(TargetInstance.STATE_MOD_RUNNING);
 
         HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
         hr.setState(HarvestResult.STATE_MOD_MODIFYING);
@@ -1843,10 +1817,4 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             log.error(e.getMessage());
         }
     }
-//    public static void main(String[] args) {
-//        LocalDateTime localDateTime = LocalDateTime.now();
-//        String uploadedDate = String.format("%04d%02d%02d", localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth());
-//        String uploadedTime = String.format("%02d%02d%02d", localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond());
-//        System.out.println(uploadedDate + uploadedTime);
-//    }
 }

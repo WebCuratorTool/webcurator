@@ -23,6 +23,7 @@ public class VisualizationConstants {
     public static final int RESP_CODE_INVALID_REQUEST = -1000;
     public static final int RESP_CODE_ERROR_FILE_IO = -2000;
     public static final int RESP_CODE_ERROR_NETWORK_IO = -3000;
+    public static final int RESP_CODE_ERROR_INVALID_TI_STATE = -8000;
     public static final int RESP_CODE_ERROR_SYSTEM_ERROR = -9000;
     public static final int FILE_EXIST_YES = 1;
     public static final int FILE_EXIST_NO = -1;

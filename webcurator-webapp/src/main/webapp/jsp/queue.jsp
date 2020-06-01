@@ -223,7 +223,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						  	<label for="states_<%=TargetInstance.STATE_ARCHIVING%>">
 							<%=TargetInstance.STATE_ARCHIVING%> 
 						  	</label>
-						</td>						
+						</td>
+
+				    </tr>
+				    <tr>
+				        <td class="searchBoxLabel" valign="top">
+                            <input type="checkbox" id="states_<%=TargetInstance.STATE_PATCHING%>" name="states" value="<%=TargetInstance.STATE_PATCHING%>" ${wct:containsObj(command.states, 'Archiving') ? 'checked' : ''}>
+                            <label for="states_<%=TargetInstance.STATE_PATCHING%>">
+                            <%=TargetInstance.STATE_PATCHING%>
+                            </label>
+                        </td>
 				    </tr>
 					</table>
 				</td>				
