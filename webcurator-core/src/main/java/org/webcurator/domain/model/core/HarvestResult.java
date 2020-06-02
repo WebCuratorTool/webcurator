@@ -26,11 +26,25 @@ public abstract class HarvestResult implements UserInTrayResource {
     /** The state constant for a Harvest Result that has been aborted in indexing. */
     public static final int STATE_ABORTED = 4;
     /** The state constant for a Harvest Result that is accepted. */
-    public static final int STATE_MOD_SCHEDULED = 5;
+    public static final int STATE_PATCH_SCHEDULED = 5;
+
     /** The state constant for a Harvest Result that is harvesting the source urls. */
-    public static final int STATE_MOD_HARVESTING = 6;
+    public static final int STATE_PATCH_HARVEST_RUNNING = 6;
+    public static final int STATE_PATCH_HARVEST_PAUSED = 61;
+    public static final int STATE_PATCH_HARVEST_ABORTED = 62;
+    public static final int STATE_PATCH_HARVEST_STOPPING = 63;
+
     /** The state constant for a Harvest Result that is being modified. */
-    public static final int STATE_MOD_MODIFYING = 7;
+    public static final int STATE_PATCH_MOD_RUNNING = 7;
+    public static final int STATE_PATCH_MOD_PAUSED = 71;
+    public static final int STATE_PATCH_MOD_ABORTED = 72;
+    public static final int STATE_PATCH_MOD_STOPPING = 73;
+
+    /** The state constant for a Harvest Result that is being indexed. */
+    public static final int STATE_PATCH_INDEX_RUNNING = 8;
+    public static final int STATE_PATCH_INDEX_PAUSED = 81;
+    public static final int STATE_PATCH_INDEX_ABORTED = 82;
+    public static final int STATE_PATCH_INDEX_STOPPING = 83;
 
     /** The TargetInstance that this belongs to */
     @ManyToOne

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Harvest Result</title>
+  <link rel="stylesheet" href="../dist/font/fontawesome-free.min.css">
+  <link rel="stylesheet" href="../dist/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../dist/adminlte/css/adminlte.min.css">
+  <link rel="stylesheet" href="../dist/jquery/menu/jquery.contextMenu.css">
+  <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
+  <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
+  <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css">
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to to the body tag
+to get the desired effect
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body unselectable="on">
+
+<div id="grid-modify-prune" class="ag-theme-balham" style="width: 100%; height: 100%;"> </div>
+
+<div id="popup-window-loading">
+  <div class="spin-overlay"><i class="fas fa-circle-notch text-default"></i></div>
+</div>
+
+<!-- Login Page -->
+<div class="popup-window" id="popup-window-login">
+  <iframe src="/logon.jsp" title="Login" style="width: 100vw; height: 100vh;"></iframe>
+</div>
+
+<script src="../dist/jquery/jquery-3.4.1.min.js"></script>
+<script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../dist/adminlte/js/adminlte.js"></script>
+<script src="../dist/jquery/menu/jquery.contextMenu.js"></script>
+<script src="../dist/jquery/menu/jquery.ui.position.js"></script>
+<script src="../dist/ag-grid/ag-grid-community.js"></script>
+<script src="visualization.js"></script>
+
+<script>
+    function getRejectReasonSelector(){
+      var s='<select name="reason" id="select-reject-reason">';
+      for(var i=0; i<reasons.length; i++){
+        s+='<option value="' + reasons[i].oid + '"> + reasons[i].name + </option>';
+      }
+      s+='</select>';
+
+      return s;
+    }
+
+    // $('#popup-window-loading').show();
+    var urlParameters=getUrlVars();
+    var targetInstanceId=parseInt(urlParameters["targetInstanceOid"]);
+    var privilege={}, wct={}, reasons=[];
+
+    var gridOptions={
+      suppressRowClickSelection: false,
+      // rowSelection: 'multiple',
+      defaultColDef: {
+        resizable: true,
+        filter: true,
+        sortable: true
+      },
+      rowData: [],
+      columnDefs: [
+        {headerName: "No.", field: "harvestNumber", width: 400},
+        {headerName: "Date", field: "creationDate", width: 400},
+        {headerName: "Derived From", field: "derivedFrom", width: 160},
+        {headerName: "User", field: "createdBy.niceName", width: 200},
+        {headerName: "Notes", field: "provenanceNote", width: 400},
+        {headerName: "State", field: "state", width: 400, cellRenderer:  (row) => {
+          if(row.data.state === 1){
+            return "Endorsed";
+          }else if(row.data.state === 2){
+            return "Rejected";
+          }else if(row.data.state === 3){
+            return "Indexing";
+          }else if(row.data.state === 4){
+            return "Aborted";
+          }else if(row.data.state === 5){
+            return "Patch Scheduled";
+          }else if(row.data.state === 6){
+            return "Patch Harvesting";
+          }else if(row.data.state === 61){
+            return "Patch Harvesting Paused";
+          }else if(row.data.state === 62){
+            return "Patch Harvesting Aborted";
+          }else if(row.data.state === 7){
+            return "Patch Modifying";
+          }else if(row.data.state === 71){
+            return "Patch Modifying Paused";
+          }else if(row.data.state === 72){
+            return "Patch Modifying Aborted";
+          }else if(row.data.state === 8){
+            return "Patch Indexing";
+          }else if(row.data.state === 81){
+            return "Patch Indexing Paused";
+          }else if(row.data.state === 82){
+            return "Patch Indexing Aborted";
+          }else{
+            return "Unknown";
+          }
+        }},
+        {headerName: "Action", field: "", width: 400, pinned: "right", cellRenderer:  (row) => {
+            var action='<div class="btn-group" role="group">|&nbsp;';
+
+            if(row.data.state === 3 && privilege.isEndoseHarvest){
+              action+='<a href="#" onclick="javascript: restartIndexing(' + row.data.harvestNumber + ');">Restart Indexing</a>|&nbsp;';
+              if(wct.isHoursElapsed){
+                action+='<a href="#" onclick="javascript: reject(' + row.data.harvestNumber + ');">Reject&nbsp;(Stuck&nbsp;in&nbsp;Indexing&nbsp;State):</a>|&nbsp;';
+
+                action+=getRejectReasonSelector();
+              }
+            }
+
+            if (instance.state === 'Harvested' && row.data.state !== 3 && privilege.isEndoseHarvest) {
+                action+=''
+            }
+
+            
+        }},
+        
+      ],
+      // getRowClass: formatModifyHavestGridRow
+      getRowClass: formatModifyHavestGridRow
+    };
+
+
+    var visHopPath=new HopPath('hoppath-canvas', jobId, harvestResultNumber);
+    var networkmap=new NetworkMap();
+    var gPopupModifyHarvest=new PopupModifyHarvest(jobId, harvestResultId, harvestResultNumber);
+    // var hierarchyTree=new HierarchyTree("#hierachy-tree", jobId, harvestResultNumber);
+    
+    $(function(){        
+        bsCustomFileInput.init();
+
+        // document.addEventListener('contextmenu', event => event.preventDefault());
+        sp("networkmap");
+        
+        networkmap.init(jobId, harvestResultNumber);
+        // hierarchyTree.draw();
+
+        $("input[name=search]").on("change search", function(e){
+          var n,
+            tree = $.ui.fancytree.getTree(),
+            match = $.trim($(this).val());
+
+          // Pass a string to perform case insensitive matching
+          n = tree.filterNodes(match, { mode: "hide" });
+          $("span.matches").text(n ? "(" + n + " matches)" : "");
+        });
+
+        $(".btn-side-label").on("click", function(e){
+          var name=$(this).attr('name');          
+          if(name==='summary'){
+            var status=$(this).attr('status');
+            if(status==='on'){
+              $(this).attr('status', 'off');
+              $(this).removeClass('bg-black');
+              // $('#network-map-canvas').width('calc(100vw - 30px)');
+              $('#networkmap-side-container').hide();
+            }else{
+              $(this).attr('status', 'on');
+              $(this).addClass('bg-black');
+              // $('#network-map-canvas').width('75vw');
+              $('#networkmap-side-container').show();
+            }
+          }else{
+            $('.btn-side-label-tab').removeClass('bg-black');
+            $(this).addClass('bg-black');
+            if(name==='statuscode'){
+              $(".networkmap-insight").hide();
+              $("#networkmap-side-table-group-by-status-code").show();
+            }else if(name==='contenttype'){
+              $(".networkmap-insight").hide();
+              $("#networkmap-side-table-group-by-content-type").show();
+            }
+            $('a[name="summary"]').attr('status', 'on');
+            $('a[name="summary"]').addClass('bg-black');
+            // $('#network-map-canvas').width('75vw');
+            $('#networkmap-side-container').show();
+          }
+        });
+
+        $(".btn-nav-tab button").on("click", function(e){
+          $(".btn-nav-tab button").removeClass("btn-primary");
+          $(".btn-nav-tab button").addClass("btn-outline-primary");
+          $(this).removeClass("btn-outline-primary");
+          $(this).addClass("btn-primary");
+
+          var tab=$(this).attr("for");
+          $("#grid-tobe-modified .grid-modify-harvest").hide();
+          $("#grid-modify-"+tab).show();
+        });
+
+        // Search input filter
+        $("#popup-window-modify-harvest input[type='search']").on('input', function(e){
+          var key=$(this).attr('for');
+          var val=$(this).val();
+          var target;
+          if(key==='prune'){
+            target=gPopupModifyHarvest.gridPrune;
+          }else if(key==='import'){
+            target=gPopupModifyHarvest.gridImport;
+          }else if(key==='candidateGrid'){
+            target=gPopupModifyHarvest.gridCandidate;
+          }else if(key==='candidateTree'){
+            target=gPopupModifyHarvest.hierarchyTree;
+          }
+          target.filter(val);
+        });
+
+        // $("#datetime-local-customizard").datetimepicker();
+
+        $('#btn-bulk-import-submit').on('click', function(e){
+          var step=$(this).attr('step');
+          if (step==='0') {
+            gPopupModifyHarvest.processorModify.bulkImportStep0();            
+          }else{
+            gPopupModifyHarvest.processorModify.bulkImportStep1();
+          }
+        });
+    });
+
+    
+    function useTargetURL(){
+      var url=$("#specifyTargetUrlInput").val();
+      $('#importFromUrlInput').val(url);
+    }
+
+    function openBulkImportSchemaFile(){
+      // $("#label-bulk-import-file").trigger('click');
+      $("#bulkImportMetadataFile").trigger('click');
+
+    }
+</script>
+</body>

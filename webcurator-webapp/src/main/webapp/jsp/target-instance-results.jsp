@@ -93,18 +93,48 @@
 				    <td class="annotationsLiteRow"><c:out value="${hr.provenanceNote}"/></td>
 				    <td class="annotationsLiteRow">
 				    <c:choose>
-						<c:when test="${hr.state == 1}">
-							Endorsed
-						</c:when>
-						<c:when test="${hr.state == 2}">
-							Rejected
-						</c:when>
-						<c:when test="${hr.state == 3}">
-						    Indexing
-						</c:when>
-						<c:when test="${hr.state == 4}">
-						    Aborted
-						</c:when>
+                        <c:when test="${hr.state == 1}">
+                            Endorsed
+                        </c:when>
+                        <c:when test="${hr.state == 2}">
+                            Rejected
+                        </c:when>
+                        <c:when test="${hr.state == 3}">
+                            Indexing
+                        </c:when>
+                        <c:when test="${hr.state == 4}">
+                            Aborted
+                        </c:when>
+                        <c:when test="${hr.state == 5}">
+                            Patch Scheduled
+                        </c:when>
+                        <c:when test="${hr.state == 6}">
+                            Patch Harvesting
+                        </c:when>
+                        <c:when test="${hr.state == 61}">
+                            Patch Harvesting Paused
+                        </c:when>
+                        <c:when test="${hr.state == 62}">
+                            Patch Harvesting Aborted
+                        </c:when>
+                        <c:when test="${hr.state == 7}">
+                            Patch Modifying
+                        </c:when>
+                        <c:when test="${hr.state == 71}">
+                            Patch Modifying Paused
+                        </c:when>
+                        <c:when test="${hr.state == 72}">
+                            Patch Modifying Aborted
+                        </c:when>
+                        <c:when test="${hr.state == 8}">
+                            Patch Indexing
+                        </c:when>
+                        <c:when test="${hr.state == 81}">
+                            Patch Indexing Paused
+                        </c:when>
+                        <c:when test="${hr.state == 82}">
+                            Patch Indexing Aborted
+                        </c:when>
 				    </c:choose>  
 				    </td>
 				    <td class="annotationsLiteRow">
@@ -176,9 +206,50 @@
 					    	</c:if>
 					    	</authority:hasPrivilege>    		
 				    		</c:when>
-				    		<c:otherwise>
-				    		&nbsp;
-				    		</c:otherwise>
+
+                            <c:when test="${instance.state eq 'Patching' && hr.state == 5}">
+                                <authority:hasPrivilege privilege="<%=Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE%>" scope="<%=Privilege.SCOPE_AGENCY%>">
+                                    <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                    <a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
+                                </authority:hasPrivilege>
+                                <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
+                                    <authority:show>
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick="javascript:var proceed=confirm('Do you really want to delete this Target Instance?'); if (proceed) {document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_DELETE%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';} else { return false; }"/>
+                                    </authority:show>
+                                </authority:showControl>
+                            </c:when>
+
+
+                            <c:when test="${instance.state eq 'Patching' && hr.state != 5}">
+                                <authority:hasPrivilege privilege="<%=Privilege.MANAGE_WEB_HARVESTER%>" scope="<%=Privilege.SCOPE_AGENCY%>">
+                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8}">
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <input type="image" src="images/pause-icon.gif" title="Pause" alt="click here to Pause this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_PAUSE%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                    </c:if>
+                                    <c:if test="${hr.state == 61 || hr.state == 71 || hr.state == 81}">
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <input type="image" src="images/resume-icon.gif" title="Resume" alt="click here to Resume this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_RESUME%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                    </c:if>
+                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8 || hr.state == 61 || hr.state == 71 || hr.state == 81 || hr.state == 63 || hr.state == 73 || hr.state == 83}">
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <input type="image" src="images/abort-icon.gif" title="Abort" alt="click here to Abort this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_ABORT%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                    </c:if>
+                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8}">
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <input type="image" src="images/stop-icon.gif" title="Stop" alt="click here to Stop this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_STOP%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                    </c:if>
+                                    <c:if test="${(hr.state == 6 || hr.state == 7 || hr.state == 8) && instance.profile.isHeritrix3Profile()}">
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <a href="javascript:viewH3ScriptConsole(${instance.oid});" title="View"><img src="images/h3-script-console.png" title="H3 Script Console" alt="click here to Open H3 Script Console" width="21" height="20" border="0"></a>
+                                    </c:if>
+                                </authority:hasPrivilege>
+                            </c:when>
+
+
+                            <c:otherwise>
+                            &nbsp;
+                            </c:otherwise>
 				    	</c:choose>
 				    </c:if>
 				    <c:if test="${!editMode}">
