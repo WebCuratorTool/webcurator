@@ -11,8 +11,16 @@
 <input type="hidden" name="<%=TargetInstanceCommand.PARAM_HR_ID%>" value=""/>
 <input type="hidden" name="<%=TargetInstanceCommand.PARAM_REJREASON_ID%>" value=""/>
 
-<script>
+<div id='html-select-tag' style='display: none;'>
+    <a href="#" onclick="rejectHarvest();">Reject for Reason:</a>&nbsp;
+    <select name="<%=TargetInstanceCommand.PARAM_REASON%>">
+        <c:forEach items="${reasons}" var="o">
+            <option value="<c:out value="${o.oid}"/>"><c:out value="${o.name}"/></option>
+        </c:forEach>
+    </select>&nbsp;
+</div>
 
+<script>
   function clickReIndex(hrOid) {
     if( confirm('<spring:message code="ui.label.targetinstance.results.confirmReIndex" javaScriptEscape="true"/>')) {
   	  document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_REINDEX%>'; 
@@ -49,6 +57,38 @@
     }
     return false;
   }
+
+    function clickPause(hrOid){
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_PAUSE%>';
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+        document.forms['tabForm'].submit();
+    }
+
+    function clickResume(hrOid){
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_RESUME%>';
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+        document.forms['tabForm'].submit();
+    }
+
+    function clickAbort(hrOid){
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_ABORT%>';
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+        document.forms['tabForm'].submit();
+    }
+
+    function clickStop(hrOid){
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_STOP%>';
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+        document.forms['tabForm'].submit();
+    }
+
+    function clickDelete(hrOid){
+        if( confirm('<spring:message code="ui.label.targetinstance.results.confirmDelete" javaScriptEscape="true"/>')) {
+            document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_DELETE%>';
+            document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+            document.forms['tabForm'].submit();
+        }
+    }
 
   //When viewing this target instance from the "Harvest history" screen, clicking on "review" will 
   //cause the "Return to Harvest History Page" to forget which target instance was originally being
@@ -140,7 +180,6 @@
 				    <td class="annotationsLiteRow">
 				    <c:if test="${editMode && hr.state != 4}">
 				    	<c:choose>
-				    	
 				    		<c:when test="${hr.state eq 3}"> <!-- Indexing -->
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
 					    		<a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
@@ -159,9 +198,7 @@
 				    		</c:when>
 				    		
 				    		<c:when test="${instance.state eq 'Harvested' && hr.state != 3}">    		
-				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
-					    	<a href="spa/tools/visualization.html?targetInstanceOid=<c:out value="${hr.targetInstance.oid}"/>&harvestResultId=<c:out value="${hr.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return checkForHistory()">NewReview</a>
-                            &nbsp;|&nbsp;
+				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
 					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=<c:out value="${hr.targetInstance.oid}"/>&harvestResultId=<c:out value="${hr.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return checkForHistory()">Review</a>
 					    	&nbsp;|&nbsp;
 					    	<a href="#" onclick="javascript: return clickEndorse(<c:out value="${hr.oid}"/>);">Endorse</a>
@@ -215,7 +252,7 @@
                                 <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
                                     <authority:show>
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick="javascript:var proceed=confirm('Do you really want to delete this Target Instance?'); if (proceed) {document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_DELETE%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';} else { return false; }"/>
+                                        <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick='javascript: clickDelete("${hr.oid}");'/>
                                     </authority:show>
                                 </authority:showControl>
                             </c:when>
@@ -225,19 +262,19 @@
                                 <authority:hasPrivilege privilege="<%=Privilege.MANAGE_WEB_HARVESTER%>" scope="<%=Privilege.SCOPE_AGENCY%>">
                                     <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/pause-icon.gif" title="Pause" alt="click here to Pause this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_PAUSE%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                        <input type="image" src="images/pause-icon.gif" title="Pause" alt="click here to Pause this item" width="21" height="20" border="0" onclick='javascript: clickPause("${hr.oid}");'/>
                                     </c:if>
                                     <c:if test="${hr.state == 61 || hr.state == 71 || hr.state == 81}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/resume-icon.gif" title="Resume" alt="click here to Resume this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_RESUME%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                        <input type="image" src="images/resume-icon.gif" title="Resume" alt="click here to Resume this item" width="21" height="20" border="0" onclick='javascript: clickResume("${hr.oid}");'/>
                                     </c:if>
                                     <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8 || hr.state == 61 || hr.state == 71 || hr.state == 81 || hr.state == 63 || hr.state == 73 || hr.state == 83}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/abort-icon.gif" title="Abort" alt="click here to Abort this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_ABORT%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                        <input type="image" src="images/abort-icon.gif" title="Abort" alt="click here to Abort this item" width="21" height="20" border="0" onclick='javascript: clickAbort("${hr.oid}");'/>
                                     </c:if>
                                     <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/stop-icon.gif" title="Stop" alt="click here to Stop this item" width="21" height="20" border="0" onclick="javascript:document.targetInstance<c:out value="${count}"/>.cmd.value='<%=TargetInstanceCommand.ACTION_STOP%>'; document.targetInstance<c:out value="${count}"/>.action='<c:out value="${action}"/>';"/>
+                                        <input type="image" src="images/stop-icon.gif" title="Stop" alt="click here to Stop this item" width="21" height="20" border="0" onclick='javascript: clickStop("${hr.oid}");'/>
                                     </c:if>
                                     <c:if test="${(hr.state == 6 || hr.state == 7 || hr.state == 8) && instance.profile.isHeritrix3Profile()}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
@@ -245,7 +282,6 @@
                                     </c:if>
                                 </authority:hasPrivilege>
                             </c:when>
-
 
                             <c:otherwise>
                             &nbsp;
@@ -266,3 +302,15 @@
 		</c:choose>
 	</table>
 </div>
+
+<script src="spa/dist/jquery/jquery-3.4.1.min.js"></script>
+<script src="spa/dist/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="spa/dist/adminlte/js/adminlte.js"></script>
+<script src="spa/dist/jquery/menu/jquery.contextMenu.js"></script>
+<script src="spa/dist/jquery/menu/jquery.ui.position.js"></script>
+<script src="spa/dist/ag-grid/ag-grid-community.js"></script>
+<script src="spa/tools/visualization.js"></script>
+
+<script>
+
+</script>

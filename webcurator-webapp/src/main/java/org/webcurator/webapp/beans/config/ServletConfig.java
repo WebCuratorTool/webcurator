@@ -489,7 +489,7 @@ public class ServletConfig {
         bean.setHarvestCoordinator(harvestCoordinator);
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-
+        bean.setTargetInstanceDAO(baseConfig.targetInstanceDao());
         return bean;
     }
 
