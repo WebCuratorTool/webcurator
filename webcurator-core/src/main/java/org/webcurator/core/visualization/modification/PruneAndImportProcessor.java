@@ -1,5 +1,6 @@
 package org.webcurator.core.visualization.modification;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -21,13 +22,17 @@ import java.util.concurrent.Semaphore;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class PruneAndImportProcessor implements Runnable {
+public class PruneAndImportProcessor extends Thread {
     protected static final Logger log = LoggerFactory.getLogger(PruneAndImportProcessor.class);
 
-    private static final Semaphore ConcurrencyCount = new Semaphore(10);
+    private static final Map<String, PruneAndImportProcessor> PROCESSOR_MAP = new HashMap<>();
+    private static final Semaphore CONCURRENCY_COUNT = new Semaphore(10);
     private final String fileDir; //Upload files
     private final String baseDir; //Harvest WARC files dir
     private final PruneAndImportCommandApply cmd;
+    private PruneAndImportCoordinator coordinator = null;
+    private boolean running = true;
+    private final Semaphore stopped = new Semaphore(1);
 
     public PruneAndImportProcessor(String fileDir, String baseDir, PruneAndImportCommandApply cmd) {
         this.fileDir = fileDir;
@@ -37,16 +42,26 @@ public class PruneAndImportProcessor implements Runnable {
 
     @Override
     public void run() {
+        String key = getKey(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
         try {
-            ConcurrencyCount.acquire();
-            this.pruneAndImport();
-            log.info("Prune and import finished, {} {}", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
-            this.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
-            log.info("Notify Core that modification is finished");
+            PROCESSOR_MAP.put(key, this);
+            CONCURRENCY_COUNT.acquire();
+            stopped.acquire();
+            if (running) {
+                this.pruneAndImport();
+                log.info("Prune and import finished, {} {}", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+            }
+
+            if (running) {
+                this.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+                log.info("Notify Core that modification is finished");
+            }
         } catch (IOException | URISyntaxException | InterruptedException e) {
             e.printStackTrace();
         } finally {
-            ConcurrencyCount.release();
+            stopped.release();
+            CONCURRENCY_COUNT.release();
+            PROCESSOR_MAP.remove(key);
         }
     }
 
@@ -96,7 +111,7 @@ public class PruneAndImportProcessor implements Runnable {
             return;
         }
 
-        PruneAndImportCoordinator coordinator = null;
+
         String archiveType = extStatisticMap.keySet().iterator().next();
         if (archiveType.equalsIgnoreCase(PruneAndImportCoordinatorHeritrixWarc.ARCHIVE_TYPE)) {
             PruneAndImportCoordinatorHeritrixWarc heritrixWarcCoordinator = new PruneAndImportCoordinatorHeritrixWarc();
@@ -112,6 +127,9 @@ public class PruneAndImportProcessor implements Runnable {
 
         //Process copy and file import
         for (File archiveFile : archiveFiles) {
+            if (!running) {
+                continue;
+            }
             try {
                 coordinator.copyArchiveRecords(archiveFile, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
             } catch (Exception e) {
@@ -124,17 +142,17 @@ public class PruneAndImportProcessor implements Runnable {
         //Process source URL import
         Map<String, List<String>> targetSourceMap = new HashMap<>();
         for (PruneAndImportCommandRowMetadata metadata : this.cmd.getDataset()) {
+            if (!running) {
+                continue;
+            }
+
             if (!metadata.getOption().equalsIgnoreCase("url")) {
                 continue;
             }
             String targetUrl = metadata.getUrl();
             String sourceUrl = metadata.getName();
 
-            List<String> targetList = targetSourceMap.get(sourceUrl);
-            if (targetList == null) {
-                targetList = new ArrayList<>();
-                targetSourceMap.put(sourceUrl, targetList);
-            }
+            List<String> targetList = targetSourceMap.computeIfAbsent(sourceUrl, k -> new ArrayList<>());
             targetList.add(targetUrl);
         }
 
@@ -144,6 +162,10 @@ public class PruneAndImportProcessor implements Runnable {
             patchHarvestFiles = patchHarvestDir.listFiles();
         }
         for (File patchHarvestFile : Objects.requireNonNull(patchHarvestFiles)) {
+            if (!running) {
+                continue;
+            }
+
             if (!patchHarvestFile.isFile() || !patchHarvestFile.getName().toUpperCase().endsWith(coordinator.getArchiveType())) {
                 continue;
             }
@@ -162,29 +184,70 @@ public class PruneAndImportProcessor implements Runnable {
         restTemplate.getForObject(uri, Void.class);
     }
 
-    public static void main(String[] args) {
-        PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
-        cmd.setTargetInstanceId(5013);
-        cmd.setHarvestResultId(2);
-        cmd.setHarvestResultNumber(1);
-        cmd.setNewHarvestResultNumber(58);
+    public static PruneAndImportProcessor getProcessor(long targetInstanceId, int harvestNumber) {
+        String key = getKey(targetInstanceId, harvestNumber);
+        return PROCESSOR_MAP.get(key);
+    }
 
-        PruneAndImportCommandRowMetadata metadata = new PruneAndImportCommandRowMetadata();
-        metadata.setUrl("https://ssl.gstatic.com/ui/v1/radiobutton/unchecked.png");
-        metadata.setName("https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Logo.max-500x500.png");
-        metadata.setModifiedMode("TBC");
 
-        cmd.getDataset().add(metadata);
-
-        PruneAndImportProcessor p = new PruneAndImportProcessor("/usr/local/wct/store/uploadedFiles",
-                "/usr/local/wct/store", cmd);
-
-        Thread t = new Thread(p);
-        t.start();
+    public void delete(long targetInstanceId, int harvestNumber) {
+        this.stopModification();
         try {
-            t.join();
+            this.stopped.acquire();
         } catch (InterruptedException e) {
             e.printStackTrace();
+            log.error("Acquire token failed when stop modification task, {}, {}", targetInstanceId, harvestNumber);
+            return;
+        }
+
+        //delete harvest result
+        this.delete(baseDir + File.separator + targetInstanceId, Integer.toString(harvestNumber));
+
+        //delete patching harvest
+        this.delete(baseDir, getKey(targetInstanceId, harvestNumber));
+    }
+
+    private void delete(String rootDir, String dir) {
+        File toPurge = new File(rootDir, dir);
+        if (log.isDebugEnabled()) {
+            log.debug("About to purge dir " + toPurge.toString());
+        }
+        try {
+            FileUtils.deleteDirectory(toPurge);
+        } catch (IOException e) {
+            if (log.isWarnEnabled()) {
+                log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
+            }
+        }
+    }
+
+
+    public static String getKey(long targetInstanceId, int harvestNumber) {
+        return String.format("mod_%d_%d", targetInstanceId, harvestNumber);
+    }
+
+    public void pauseModification() {
+        if (this.getState().equals(State.RUNNABLE)) {
+            try {
+                this.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                log.error("Failed to pause");
+            }
+        }
+    }
+
+    public void resumeModification() {
+        if (this.getState().equals(State.WAITING)) {
+            this.notify();
+        }
+    }
+
+    public void stopModification() {
+        this.running = false;
+        if (this.coordinator != null) {
+            this.coordinator.running = false;
         }
     }
 }
+

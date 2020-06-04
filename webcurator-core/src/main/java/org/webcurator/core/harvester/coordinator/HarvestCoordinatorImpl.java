@@ -578,7 +578,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         try {
             HarvestResult hr = targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
-            hr.setState(HarvestResult.STATE_MOD_HARVESTING);
+            hr.setState(HarvestResult.STATE_PATCH_HARVEST_RUNNING);
             targetInstanceDao.save(hr);
 
             targetInstance.setActualStartTime(new Date());
@@ -1729,7 +1729,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
-        hr.setState(HarvestResult.STATE_MOD_MODIFYING);
+        hr.setState(HarvestResult.STATE_PATCH_MOD_RUNNING);
         targetInstanceDao.save(hr);
 
         return result;
@@ -1758,7 +1758,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         hr.setProvenanceNote(cmd.getProvenanceNote());
         //        hr.addModificationNotes();
         hr.setTargetInstance(ti);
-        hr.setState(ArcHarvestResult.STATE_MOD_SCHEDULED);
+        hr.setState(ArcHarvestResult.STATE_PATCH_SCHEDULED);
 
         if (AuthUtil.getRemoteUserObject() != null) {
             hr.setCreatedBy(AuthUtil.getRemoteUserObject());
@@ -1807,6 +1807,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     public void setHarvestQaManager(HarvestQaManager harvestQaManager) {
         this.harvestQaManager = harvestQaManager;
     }
+
 
     @Override
     public void downloadFile(long targetInstanceId, int harvestResultNumber, String fileName, OutputStream out) {

@@ -197,7 +197,7 @@
 					    	&nbsp;
 				    		</c:when>
 				    		
-				    		<c:when test="${instance.state eq 'Harvested' && hr.state != 3}">    		
+				    		<c:when test="${(instance.state eq 'Harvested' && hr.state != 3) || (instance.state eq 'Patching' && hr.state != 3 && hr.state < 5)}">
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
 					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=<c:out value="${hr.targetInstance.oid}"/>&harvestResultId=<c:out value="${hr.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return checkForHistory()">Review</a>
 					    	&nbsp;|&nbsp;
@@ -221,30 +221,30 @@
 				    		</c:when>
 				    		
 				    		<c:when test="${(instance.state eq 'Endorsed' || instance.state eq 'Rejected') && hr.state != 3}">    		   		    		
-					    	<authority:hasPrivilege privilege="<%=Privilege.ARCHIVE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
-					    	<c:if test="${hr.state == 1}">
-					    	<c:choose>
-					    	<c:when test="${customDepositFormRequired}">
-					    	<a href="curator/target/deposit-form-envelope.html?targetInstanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestResultNumber=<c:out value="${hr.harvestNumber}"/>">Next</a>
-					    	</c:when>
-					    	<c:otherwise>
-				    		<a href="curator/archive/submit.html?instanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return confirm('<spring:message code="ui.label.targetinstance.results.confirmSubmit" javaScriptEscape="true"/>');">Submit to Archive</a>
-				    		</c:otherwise>
-				    		</c:choose>
-				    		</c:if>
-					    	</authority:hasPrivilege>    		
-					    	<authority:hasPrivilege privilege="<%=Privilege.UNENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
-					    	<c:if test="${hr.state == 1}">
-					    	&nbsp;|&nbsp;
-					    	<a href="#" onclick="javascript: return clickUnEndorse(<c:out value="${hr.oid}"/>);">UnEndorse</a>
-				    		</c:if>
-					    	<c:if test="${hr.state eq 2}">
-					    	Rejection&nbsp;Reason:&nbsp;<c:out value="${hr.rejReason.name}"/>    		
-					    	</c:if>
-					    	</authority:hasPrivilege>    		
+                                <authority:hasPrivilege privilege="<%=Privilege.ARCHIVE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
+                                <c:if test="${hr.state == 1}">
+                                <c:choose>
+                                <c:when test="${customDepositFormRequired}">
+                                <a href="curator/target/deposit-form-envelope.html?targetInstanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestResultNumber=<c:out value="${hr.harvestNumber}"/>">Next</a>
+                                </c:when>
+                                <c:otherwise>
+                                <a href="curator/archive/submit.html?instanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return confirm('<spring:message code="ui.label.targetinstance.results.confirmSubmit" javaScriptEscape="true"/>');">Submit to Archive</a>
+                                </c:otherwise>
+                                </c:choose>
+                                </c:if>
+                                </authority:hasPrivilege>
+                                <authority:hasPrivilege privilege="<%=Privilege.UNENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
+                                <c:if test="${hr.state == 1}">
+                                &nbsp;|&nbsp;
+                                <a href="#" onclick="javascript: return clickUnEndorse(<c:out value="${hr.oid}"/>);">UnEndorse</a>
+                                </c:if>
+                                <c:if test="${hr.state eq 2}">
+                                Rejection&nbsp;Reason:&nbsp;<c:out value="${hr.rejReason.name}"/>
+                                </c:if>
+                                </authority:hasPrivilege>
 				    		</c:when>
 
-                            <c:when test="${instance.state eq 'Patching' && hr.state == 5}">
+                            <c:when test="${instance.state eq 'Patching' && (hr.state == 5)}">
                                 <authority:hasPrivilege privilege="<%=Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE%>" scope="<%=Privilege.SCOPE_AGENCY%>">
                                     <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                     <a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
@@ -257,28 +257,41 @@
                                 </authority:showControl>
                             </c:when>
 
+                            <c:when test="${instance.state eq 'Patching' && (hr.state == 62 || hr.state == 72)}">
+                                <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
+                                    <authority:show>
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick='javascript: clickDelete("${hr.oid}");'/>
+                                    </authority:show>
+                                </authority:showControl>
+                            </c:when>
+
 
                             <c:when test="${instance.state eq 'Patching' && hr.state != 5}">
                                 <authority:hasPrivilege privilege="<%=Privilege.MANAGE_WEB_HARVESTER%>" scope="<%=Privilege.SCOPE_AGENCY%>">
-                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8}">
+                                    <c:if test="${hr.state == 6 || hr.state == 7 }">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/pause-icon.gif" title="Pause" alt="click here to Pause this item" width="21" height="20" border="0" onclick='javascript: clickPause("${hr.oid}");'/>
                                     </c:if>
-                                    <c:if test="${hr.state == 61 || hr.state == 71 || hr.state == 81}">
+                                    <c:if test="${hr.state == 61 || hr.state == 71 }">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/resume-icon.gif" title="Resume" alt="click here to Resume this item" width="21" height="20" border="0" onclick='javascript: clickResume("${hr.oid}");'/>
                                     </c:if>
-                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8 || hr.state == 61 || hr.state == 71 || hr.state == 81 || hr.state == 63 || hr.state == 73 || hr.state == 83}">
+                                    <c:if test="${hr.state == 6 || hr.state == 61 || hr.state == 62}">
+                                        <!--
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/abort-icon.gif" title="Abort" alt="click here to Abort this item" width="21" height="20" border="0" onclick='javascript: clickAbort("${hr.oid}");'/>
+                                        -->
                                     </c:if>
-                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 8}">
+                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 61 || hr.state == 71}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/stop-icon.gif" title="Stop" alt="click here to Stop this item" width="21" height="20" border="0" onclick='javascript: clickStop("${hr.oid}");'/>
                                     </c:if>
-                                    <c:if test="${(hr.state == 6 || hr.state == 7 || hr.state == 8) && instance.profile.isHeritrix3Profile()}">
+                                    <c:if test="${(hr.state == 6 || hr.state == 61 || hr.state == 62) && instance.profile.isHeritrix3Profile()}">
+                                       <!--
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <a href="javascript:viewH3ScriptConsole(${instance.oid});" title="View"><img src="images/h3-script-console.png" title="H3 Script Console" alt="click here to Open H3 Script Console" width="21" height="20" border="0"></a>
+                                        -->
                                     </c:if>
                                 </authority:hasPrivilege>
                             </c:when>

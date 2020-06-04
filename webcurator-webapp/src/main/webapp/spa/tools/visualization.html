@@ -62,7 +62,7 @@ to get the desired effect
 
   <!-- Right Side Buttons -->
   <div class="bg-dark" style="position: fixed;right: 0; top: 0; width: 30px; height: 100vh; writing-mode: vertical-lr; text-orientation: mixed; line-height: 30px; z-index: 2001;">
-    <a href="#" class="btn-side-label bg-black" name="summary" status="on"><span> &nbsp;Summary &nbsp;</span></a> &nbsp;&nbsp;
+    <a href="#" class="btn-side-label bg-black" name="summary" status="on" id="a-link-summary"><span> &nbsp;Summary &nbsp;</span></a> &nbsp;&nbsp;
     <a href="#" class="btn-side-label bg-black btn-side-label-tab" name="statuscode" status="on"><span> &nbsp;StatusCode&nbsp;</span></a>&nbsp;&nbsp;
     <a href="#" class="btn-side-label btn-side-label-tab" name="contenttype" status="off"><span> &nbsp;ContentType&nbsp;</span></a>
   </div>
@@ -624,6 +624,8 @@ to get the desired effect
             gPopupModifyHarvest.processorModify.bulkImportStep1();
           }
         });
+
+        $("#a-link-summary").trigger('click');
     });
 
     

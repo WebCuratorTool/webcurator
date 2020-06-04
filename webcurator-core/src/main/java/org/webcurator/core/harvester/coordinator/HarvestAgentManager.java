@@ -9,52 +9,59 @@ import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 public interface HarvestAgentManager {
 
-	void heartbeat(HarvestAgentStatusDTO aStatus);
+    void heartbeat(HarvestAgentStatusDTO aStatus);
 
-	void updateProfileOverrides(TargetInstance aTargetInstance, String profileString);
+    void updateProfileOverrides(TargetInstance aTargetInstance, String profileString);
 
-	void pause(TargetInstance aTargetInstance);
+    void pause(TargetInstance aTargetInstance);
 
-	void resume(TargetInstance aTargetInstance);
+    void resume(TargetInstance aTargetInstance);
 
-	void abort(TargetInstance aTargetInstance);
+    void abort(TargetInstance aTargetInstance);
 
-	void stop(TargetInstance aTargetInstance);
+    void stop(TargetInstance aTargetInstance);
 
-	void pauseAll();
+    void pauseAll();
 
-	void resumeAll();
-	
-	public void pauseAgent(String agentName);
-	public void resumeAgent(String agentName);
+    void resumeAll();
 
-	LogReader getLogReader(TargetInstance aTargetInstance);
+    public void pauseAgent(String agentName);
 
-	boolean runningOrPaused(TargetInstance aTargetInstance);
+    public void resumeAgent(String agentName);
 
-	void restrictBandwidthFor(TargetInstance targetInstance);
+    LogReader getLogReader(TargetInstance aTargetInstance);
 
-	List<HarvestAgentStatusDTO> getHarvestersForAgency(String agencyName);
+    boolean runningOrPaused(TargetInstance aTargetInstance);
 
-	void markDead(HarvestAgentStatusDTO agent);
+    void restrictBandwidthFor(TargetInstance targetInstance);
 
-	void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, TargetInstance aTargetInstance, String profile, String seedsString);
+    List<HarvestAgentStatusDTO> getHarvestersForAgency(String agencyName);
 
-	void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, String jobName, String profile, String seedsString);
+    void markDead(HarvestAgentStatusDTO agent);
 
-	void recoverHarvests(String scheme, String host, int port, String Service, List<String> activeJobs);
+    void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, TargetInstance aTargetInstance, String profile, String seedsString);
 
-	boolean lock(Long tiOid);
+    void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, String jobName, String profile, String seedsString);
 
-	void unLock(Long tiOid);
+    void recoverHarvests(String scheme, String host, int port, String Service, List<String> activeJobs);
 
-	HashMap<String, HarvestAgentStatusDTO> getHarvestAgents();
+    boolean lock(Long tiOid);
 
-	void purgeAbortedTargetInstances(List<String> tiNames);
+    void unLock(Long tiOid);
 
-	List<HarvestAgentStatusDTO> getAvailableHarvesters(String agencyName);
+    HashMap<String, HarvestAgentStatusDTO> getHarvestAgents();
 
-	HarvestAgentStatusDTO getHarvester(String agencyName, String harvesterType);
+    void purgeAbortedTargetInstances(List<String> tiNames);
 
+    List<HarvestAgentStatusDTO> getAvailableHarvesters(String agencyName);
 
+    HarvestAgentStatusDTO getHarvester(String agencyName, String harvesterType);
+
+    void pausePatching(String jobName);
+
+    void resumePatching(String jobName);
+
+    void abortPatching(String jobName);
+
+    void stopPatching(String jobName);
 }

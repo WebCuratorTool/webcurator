@@ -130,4 +130,9 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 		return null;
 	}
 
+	@Override
+	public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+		return;
+	}
+
 }

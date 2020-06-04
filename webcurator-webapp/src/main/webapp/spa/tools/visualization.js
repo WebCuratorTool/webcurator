@@ -233,8 +233,8 @@ var contextMenuItemsUrlBasic={
                   // "clearHarvest": {name: "Clear", icon: "delete", items: itemsClearHarvest},
                   // "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "fab fa-think-peaks", items: itemsHierarchyOutlink},
                   "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "far fa-eye", items: itemsHierarchyOutlink},
-                  "sep3": "---------",
-                  "browseUrl": {name: "Browse Current", icon: "fab fa-chrome", items: itemsBrowse},
+                  // "sep3": "---------",
+                  // "browseUrl": {name: "Browse Current", icon: "fab fa-chrome", items: itemsBrowse},
                   "sep4": "---------",
                   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
                       "exportInspect-selected": {"name": "Selected"},
@@ -246,8 +246,8 @@ var contextMenuItemsUrlTree={
                   "import-current": {name: "Import", icon: "fas fa-file-import"},
                   "sep1": "---------",
                   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
-                  "sep2": "---------",
-                  "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
+                  // "sep2": "---------",
+                  // "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
                   "sep3": "---------",
                   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
                       "exportInspect-selected": {"name": "Selected"},
@@ -258,8 +258,8 @@ var contextMenuItemsPrune={
     "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
     "sep1": "---------",
     "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
-    "sep2": "---------",
-    "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
+    // "sep2": "---------",
+    // "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
     "sep3": "---------",
     "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
         "exportPrune-selected": {"name": "Selected"},

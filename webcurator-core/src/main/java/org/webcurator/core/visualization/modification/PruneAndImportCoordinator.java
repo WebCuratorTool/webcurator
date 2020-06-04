@@ -28,6 +28,7 @@ public abstract class PruneAndImportCoordinator {
     protected static final DateTimeFormatter fTimestamp17 = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
     protected String fileDir; //Upload files
     protected String baseDir; //Harvest WARC files dir
+    protected boolean running = true;
 
 
     public String getArchiveType() {
@@ -100,5 +101,9 @@ public abstract class PruneAndImportCoordinator {
 
     public void setBaseDir(String baseDir) {
         this.baseDir = baseDir;
+    }
+
+    public void stop() {
+        this.running = false;
     }
 }

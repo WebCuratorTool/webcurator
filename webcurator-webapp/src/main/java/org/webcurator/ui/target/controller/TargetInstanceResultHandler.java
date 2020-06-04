@@ -31,8 +31,11 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -60,6 +63,7 @@ public class TargetInstanceResultHandler extends TabHandler {
     private TargetInstanceManager targetInstanceManager;
     private HarvestCoordinator harvestCoordinator;
     private TargetInstanceDAO targetInstanceDAO;
+    private HarvestAgentManager harvestAgentManager;
     /**
      * the digital asset store containing the harvests.
      */
@@ -272,8 +276,14 @@ public class TargetInstanceResultHandler extends TabHandler {
             tmav.getTabStatus().setCurrentTab(currentTab);
 
             return tmav;
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_PAUSE)) {
+            return this.clickPause(tc, currentTab, req, res, cmd, bindingResult);
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_RESUME)) {
+            return this.clickResume(tc, currentTab, req, res, cmd, bindingResult);
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_STOP)) {
+            return this.clickStop(tc, currentTab, req, res, cmd, bindingResult);
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_DELETE)) {
-
+            return this.clickDelete(tc, currentTab, req, res, cmd, bindingResult);
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ARCHIVE)) {
             throw new WCTRuntimeException("Archive command processing is not implemented yet.");
         } else {
@@ -281,13 +291,149 @@ public class TargetInstanceResultHandler extends TabHandler {
         }
     }
 
-    private TabbedModelAndView clickDelete(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, TargetInstanceCommand cmd, BindingResult bindingResult) {
-        TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-        ti = targetInstanceManager.getTargetInstance(ti.getOid());         //Make sure any new HarvestResults are loaded
-
-        targetInstanceManager.getT
+    private TabbedModelAndView clickPause(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, TargetInstanceCommand cmd, BindingResult bindingResult) {
         HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
-        ti=hr.getTargetInstance();
+        TargetInstance ti = hr.getTargetInstance();
+
+        int newState = hr.getState();
+        if (hr.getState() == HarvestResult.STATE_PATCH_HARVEST_RUNNING) {
+            //Stop and delete the running harvest
+            harvestAgentManager.pausePatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+            newState = HarvestResult.STATE_PATCH_HARVEST_PAUSED;
+        } else if (hr.getState() == HarvestResult.STATE_PATCH_MOD_RUNNING) {
+            //Stop and delete the modification
+            try {
+                digitalAssetStore.operateHarvestResultModification("pause", ti.getOid(), hr.getHarvestNumber());
+                newState = HarvestResult.STATE_PATCH_MOD_PAUSED;
+            } catch (DigitalAssetStoreException e) {
+                e.printStackTrace();
+            }
+        } else {
+            bindingResult.reject("Current state of HR not allowed to be paused: " + hr.getState());
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
+            return tmav;
+        }
+
+        //Change the state of Harvest Result
+        hr.setState(newState);
+        targetInstanceDAO.save(hr);
+
+        req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+
+        //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+        TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+        tmav.getTabStatus().setCurrentTab(currentTab);
+        return tmav;
+    }
+
+    private TabbedModelAndView clickResume(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, TargetInstanceCommand cmd, BindingResult bindingResult) {
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
+        TargetInstance ti = hr.getTargetInstance();
+
+        int newState = hr.getState();
+        if (hr.getState() == HarvestResult.STATE_PATCH_HARVEST_PAUSED) {
+            //Stop and delete the running harvest
+            harvestAgentManager.resumePatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+            newState = HarvestResult.STATE_PATCH_HARVEST_RUNNING;
+        } else if (hr.getState() == HarvestResult.STATE_PATCH_MOD_PAUSED) {
+            //Stop and delete the modification
+            try {
+                digitalAssetStore.operateHarvestResultModification("resume", ti.getOid(), hr.getHarvestNumber());
+                newState = HarvestResult.STATE_PATCH_MOD_RUNNING;
+            } catch (DigitalAssetStoreException e) {
+                e.printStackTrace();
+            }
+        } else {
+            bindingResult.reject("Current state of HR not allowed to be resumed: " + hr.getState());
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
+            return tmav;
+        }
+
+        //Change the state of Harvest Result
+        hr.setState(newState);
+        targetInstanceDAO.save(hr);
+
+        req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+
+        //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+        TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+        tmav.getTabStatus().setCurrentTab(currentTab);
+        return tmav;
+    }
+
+    private TabbedModelAndView clickStop(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, TargetInstanceCommand cmd, BindingResult bindingResult) {
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
+        TargetInstance ti = hr.getTargetInstance();
+
+        int newState = hr.getState();
+        if (hr.getState() == HarvestResult.STATE_PATCH_HARVEST_RUNNING
+                || hr.getState() == HarvestResult.STATE_PATCH_HARVEST_PAUSED) {
+            //Stop and delete the running harvest
+            harvestAgentManager.stopPatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+            newState = HarvestResult.STATE_PATCH_HARVEST_STOPPED;
+        } else if (hr.getState() == HarvestResult.STATE_PATCH_MOD_RUNNING
+                || hr.getState() == HarvestResult.STATE_PATCH_MOD_PAUSED) {
+            //Stop and delete the modification
+            try {
+                digitalAssetStore.operateHarvestResultModification("stop", ti.getOid(), hr.getHarvestNumber());
+                newState = HarvestResult.STATE_PATCH_MOD_STOPPED;
+            } catch (DigitalAssetStoreException e) {
+                e.printStackTrace();
+            }
+        } else {
+            bindingResult.reject("Current state of HR not allowed to be stopped: " + hr.getState());
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
+            return tmav;
+        }
+
+        //Change the state of Harvest Result
+        hr.setState(newState);
+        targetInstanceDAO.save(hr);
+
+        req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+
+        //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+        TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+        tmav.getTabStatus().setCurrentTab(currentTab);
+        return tmav;
+    }
+
+    private TabbedModelAndView clickDelete(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, TargetInstanceCommand cmd, BindingResult bindingResult) {
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
+        TargetInstance ti = hr.getTargetInstance();
+
+        if (hr.getState() == HarvestResult.STATE_PATCH_HARVEST_RUNNING
+                || hr.getState() == HarvestResult.STATE_PATCH_HARVEST_PAUSED
+                || hr.getState() == HarvestResult.STATE_PATCH_HARVEST_STOPPED) {
+            //Stop and delete the running harvest
+            harvestAgentManager.abortPatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+        } else if (hr.getState() == HarvestResult.STATE_PATCH_MOD_RUNNING
+                || hr.getState() == HarvestResult.STATE_PATCH_MOD_PAUSED
+                || hr.getState() == HarvestResult.STATE_PATCH_MOD_STOPPED) {
+            //Stop and delete the modification
+            try {
+                digitalAssetStore.operateHarvestResultModification("delete", ti.getOid(), hr.getHarvestNumber());
+            } catch (DigitalAssetStoreException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //Change the state of Target Instance to 'Harvested'
+        ti.setState(TargetInstance.STATE_HARVESTED);
+        targetInstanceDAO.save(ti);
+
+        //Delete the selected Harvest Result
+        targetInstanceDAO.delete(hr);
+
+        req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+
+        //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+        TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+        tmav.getTabStatus().setCurrentTab(currentTab);
+        return tmav;
     }
 
     /**
@@ -324,6 +470,11 @@ public class TargetInstanceResultHandler extends TabHandler {
 
     public void setTargetInstanceDAO(TargetInstanceDAO targetInstanceDAO) {
         this.targetInstanceDAO = targetInstanceDAO;
+    }
+
+
+    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
+        this.harvestAgentManager = harvestAgentManager;
     }
 
     protected void buildCustomDepositFormDetails(HttpServletRequest req, BindingResult bindingResult, TargetInstance ti, TabbedModelAndView tmav) {

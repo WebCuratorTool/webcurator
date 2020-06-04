@@ -45,8 +45,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.archive.format.warc.WARCConstants;
 import org.archive.io.*;
 import org.archive.io.arc.ARCReader;
@@ -62,6 +60,8 @@ import org.archive.io.warc.WARCWriterPoolSettings;
 import org.archive.io.warc.WARCWriterPoolSettingsData;
 import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.ApplicationContext;
@@ -104,7 +104,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     /**
      * The logger.
      */
-    private static Log log = LogFactory.getLog(ArcDigitalAssetStoreService.class);
+    private static Logger log = LoggerFactory.getLogger(ArcDigitalAssetStoreService.class);
     /**
      * the base directory for the digital asset stores harvest files.
      */
@@ -1451,5 +1451,31 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
         result.setRespMsg("Modification task is accepted");
         return result;
+    }
+
+    @Override
+    public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+        PruneAndImportProcessor p = PruneAndImportProcessor.getProcessor(targetInstanceId, harvestNumber);
+
+        if (command.equalsIgnoreCase("delete")) {
+            if (p == null) {
+                p = new PruneAndImportProcessor(visualizationManager.getUploadDir(), visualizationManager.getBaseDir(), null);
+            }
+            p.delete(targetInstanceId, harvestNumber);
+            return;
+        }
+
+        if (p == null) {
+            log.error("Not running modification task, unable to: {}, {}, {}", command, targetInstanceId, harvestNumber);
+            return;
+        }
+
+        if (command.equalsIgnoreCase("pause")) {
+            p.pauseModification();
+        } else if (command.equalsIgnoreCase("resume")) {
+            p.resumeModification();
+        } else if (command.equalsIgnoreCase("stop")) {
+            p.stopModification();
+        }
     }
 }

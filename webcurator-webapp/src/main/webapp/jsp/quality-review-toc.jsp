@@ -80,10 +80,14 @@
 		<tr>
 			<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
 		</tr>	
-		<tr>
+		<!--tr>
 			<td width="30%"><a href="curator/tools/treetool.html?loadTree=<c:out value="${command.harvestResultId}"/>&targetInstanceOid=<c:out value="${targetInstanceOid}"/>&logFileName=aqa-report(<c:out value="${command.harvestNumber}"/>).xml">Tree View</a></td>			
 			<td width="70%">Graphical view of harvested data.</td>			
-		</tr>
+		</tr-->
+		<tr>
+            <td width="30%"><a href="/spa/tools/visualization.html?targetInstanceOid=<c:out value="${targetInstanceOid}"/>&harvestResultId=<c:out value="${command.harvestResultId}"/>&harvestNumber&=<c:out value="${command.harvestNumber}"/>">Network Map</a></td>
+            <td width="70%">Graphical view of harvested data.</td>
+        </tr>
 		<tr>
 			<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
 		</tr>

@@ -14,6 +14,7 @@ public class DigitalAssetStorePaths {
     public static final String INITIATE_REMOVE_INDEXES = ROOT_PATH + "/initiate-index-remove";
     public static final String CHECK_INDEXING = ROOT_PATH + "/check-indexing";
     public static final String CUSTOM_DEPOSIT_FORM_DETAILS = ROOT_PATH + "/custom-deposit-form-details";
+    public static final String OPERATE_HARVEST_RESULT_MODIFICATION = ROOT_PATH + "/harvest-result-modification-action";
 
     private DigitalAssetStorePaths() {
     }

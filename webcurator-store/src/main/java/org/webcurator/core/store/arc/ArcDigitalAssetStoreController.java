@@ -200,4 +200,9 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     public PruneAndImportCommandResult pruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
         return arcDigitalAssetStoreService.pruneAndImport(cmd);
     }
+
+    @Override
+    public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+
+    }
 }

@@ -127,7 +127,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
         // Iterate through all the records, skipping deleted or
         // imported URLs.
-        while (archiveRecordsIt.hasNext()) {
+        while (running && archiveRecordsIt.hasNext()) {
             WARCRecord record = (WARCRecord) archiveRecordsIt
                     .next();
             ArchiveRecordHeader header = record.getHeader();
@@ -219,32 +219,34 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         hrsToImport.values().stream().filter(f -> {
             return f.getLength() > 0L;
         }).forEach(fProps -> {
-            try {
-                Date warcDate = new Date();
-                if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
-                    warcDate.setTime(fProps.getLastModified());
+            if (running) {
+                try {
+                    Date warcDate = new Date();
+                    if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
+                        warcDate.setTime(fProps.getLastModified());
+                    }
+                    log.debug("WARC-Date: {}", writerDF.format(warcDate));
+
+                    File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
+                    InputStream fin = Files.newInputStream(tempFile.toPath());
+                    URI recordId = new URI("urn:uuid:" + tempFile.getName());
+                    ANVLRecord namedFields = new ANVLRecord();
+                    namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
+                    WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
+                    warcRecordInfo.setUrl(fProps.getUrl());
+                    warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
+                    warcRecordInfo.setMimetype(fProps.getContentType());
+                    warcRecordInfo.setRecordId(recordId);
+                    warcRecordInfo.setExtraHeaders(namedFields);
+                    warcRecordInfo.setContentStream(fin);
+                    warcRecordInfo.setContentLength(fProps.getLength());
+                    warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
+                    warcWriter.writeRecord(warcRecordInfo);
+
+                    Files.deleteIfExists(tempFile.toPath());
+                } catch (IOException | URISyntaxException e) {
+                    log.error(e.getMessage());
                 }
-                log.debug("WARC-Date: {}", writerDF.format(warcDate));
-
-                File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
-                InputStream fin = Files.newInputStream(tempFile.toPath());
-                URI recordId = new URI("urn:uuid:" + tempFile.getName());
-                ANVLRecord namedFields = new ANVLRecord();
-                namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
-                WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-                warcRecordInfo.setUrl(fProps.getUrl());
-                warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
-                warcRecordInfo.setMimetype(fProps.getContentType());
-                warcRecordInfo.setRecordId(recordId);
-                warcRecordInfo.setExtraHeaders(namedFields);
-                warcRecordInfo.setContentStream(fin);
-                warcRecordInfo.setContentLength(fProps.getLength());
-                warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
-                warcWriter.writeRecord(warcRecordInfo);
-
-                Files.deleteIfExists(tempFile.toPath());
-            } catch (IOException | URISyntaxException e) {
-                log.error(e.getMessage());
             }
         });
         warcWriter.close();
@@ -299,7 +301,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         WARCWriter writer = new WARCWriter(aint, settings);
 
         // Iterate through all the records, skipping deleted URLs.
-        while (archiveRecordsIt.hasNext()) {
+        while (running && archiveRecordsIt.hasNext()) {
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
             String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
@@ -332,7 +334,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 }
             } else {
                 //Replace via url
-                ByteArrayOutputStream outputStream=null;
+                ByteArrayOutputStream outputStream = null;
                 if (WARCConstants.WARCRecordType.valueOf(WARCType).equals(WARCConstants.WARCRecordType.metadata)) {
                     HttpHeaders httpHeaders = new HttpHeaderParser().parseHeaders(record);
                     String viaUrl = httpHeaders.getValue("via");
@@ -344,14 +346,14 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                             httpHeaders.set("via", viaUrlTarget);
                         }
                     }
-                    outputStream=new ByteArrayOutputStream();
+                    outputStream = new ByteArrayOutputStream();
                     httpHeaders.write(outputStream);
                 }
                 WARCRecordInfo warcRecordInfo = this.createWarcRecordInfo(record, header, namedFields, header.getUrl());
-                if (outputStream!=null){
-                    byte[] content=outputStream.toByteArray();
-                    int contentLength=content.length;
-                    ByteArrayInputStream inputStream=new ByteArrayInputStream(content);
+                if (outputStream != null) {
+                    byte[] content = outputStream.toByteArray();
+                    int contentLength = content.length;
+                    ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
                     warcRecordInfo.setContentStream(inputStream);
                     warcRecordInfo.setContentLength(contentLength);
                 }
