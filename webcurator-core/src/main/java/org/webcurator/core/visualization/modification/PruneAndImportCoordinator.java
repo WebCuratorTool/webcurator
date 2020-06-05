@@ -41,7 +41,7 @@ public abstract class PruneAndImportCoordinator {
 
     abstract protected void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException;
 
-    abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, Map<String, List<String>> targetSourceMap, int newHarvestResultNumber) throws IOException, URISyntaxException;
+    abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException;
 
     protected File modificationDownloadFile(long job, int harvestResultNumber, PruneAndImportCommandRowMetadata metadata) {
         AbstractRestClient digitalAssetStoreClient = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);

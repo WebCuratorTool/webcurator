@@ -648,7 +648,7 @@ function clickEndorse(hrOid) {
 				    </tr>
 				    <tr>
                         <td class="searchBoxLabel" valign="top">
-                            <input type="checkbox" id="states_<%=TargetInstance.STATE_PATCHING%>" name="states" value="<%=TargetInstance.STATE_PATCHING%>" ${wct:containsObj(command.states, 'Archiving') ? 'checked' : ''}>
+                            <input type="checkbox" id="states_<%=TargetInstance.STATE_PATCHING%>" name="states" value="<%=TargetInstance.STATE_PATCHING%>" ${wct:containsObj(command.states, 'Patching') ? 'checked' : ''}>
                             <label for="states_<%=TargetInstance.STATE_PATCHING%>">
                             <%=TargetInstance.STATE_PATCHING%>
                             </label>
@@ -952,7 +952,7 @@ function clickEndorse(hrOid) {
 			<c:if test="${instance.state eq 'Scheduled'}">
 				<authority:hasUserOwnedPriv ownedObject="${instance}" privilege="<%=Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE%>" scope="<%=Privilege.SCOPE_AGENCY%>">
 				<img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-				<a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
+				<a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}&harvestResultId=-1"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
 				</authority:hasUserOwnedPriv>
 				<authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
 				    <authority:show>

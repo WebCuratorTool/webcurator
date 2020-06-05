@@ -55,21 +55,22 @@ public class QualityReviewToolController {
 	}
 
 	@GetMapping
-	public ModelAndView getHandle(@RequestParam("targetInstanceOid") String sTargetInstanceOid, @RequestParam("harvestResultId") String sHarvestResultId) throws Exception{
-		long targetInstanceOid = -1;
-		long harvestResultId = -1;
-
-		try {
-			targetInstanceOid =Long.parseLong(sTargetInstanceOid);
-			harvestResultId = Long.parseLong(sHarvestResultId);
-		}catch (NumberFormatException e){
-			log.error("Invalid parameter", e);
-			throw e;
-		}
+	public ModelAndView getHandle(@RequestParam("targetInstanceOid") long targetInstanceOid, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception{
+//		long targetInstanceOid = -1;
+//		long harvestResultId = -1;
+//
+//		try {
+//			targetInstanceOid =Long.parseLong(sTargetInstanceOid);
+//			harvestResultId = Long.parseLong(sHarvestResultId);
+//		}catch (NumberFormatException e){
+//			log.error("Invalid parameter", e);
+//			throw e;
+//		}
 
 		QualityReviewToolCommand cmd = new QualityReviewToolCommand();
 		cmd.setTargetInstanceOid(targetInstanceOid);
 		cmd.setHarvestResultId(harvestResultId);
+		cmd.setHarvestNumber(harvestResultNumber);
 		return handle(targetInstanceOid, harvestResultId, cmd);
 	}
 

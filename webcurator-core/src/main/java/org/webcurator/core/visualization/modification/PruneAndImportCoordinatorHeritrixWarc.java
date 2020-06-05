@@ -254,7 +254,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
 
     @Override
-    protected void importFromRecorder(File fileFrom, List<String> urisToDelete, Map<String, List<String>> targetSourceMap, int newHarvestResultNumber) throws IOException, URISyntaxException {
+    protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
             log.error("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -305,6 +305,13 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
             String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
+            String strRecordId = (String) header
+                    .getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_ID);
+            URI recordId = new URI(strRecordId.substring(
+                    strRecordId.indexOf("<") + 1,
+                    strRecordId.lastIndexOf(">") - 1));
+            long contentLength = header.getLength() - header.getContentBegin();
+
             if (WARCType.equals(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo.toString())) {
                 continue;
             }
@@ -324,41 +331,42 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 }
             });
 
-            List<String> targetList = targetSourceMap.get(header.getUrl());
-            if (targetList != null && targetList.size() > 0) {
-                //For duplicated target urls, replace the target url for each one
-                for (String targetUrl : targetList) {
-                    WARCRecordInfo warcRecordInfo = this.createWarcRecordInfo(record, header, namedFields, targetUrl);
-                    warcRecordInfo.setUrl(targetUrl);
-                    writer.writeRecord(warcRecordInfo);
-                }
-            } else {
-                //Replace via url
-                ByteArrayOutputStream outputStream = null;
-                if (WARCConstants.WARCRecordType.valueOf(WARCType).equals(WARCConstants.WARCRecordType.metadata)) {
-                    HttpHeaders httpHeaders = new HttpHeaderParser().parseHeaders(record);
-                    String viaUrl = httpHeaders.getValue("via");
-                    if (viaUrl != null) {
-                        List<String> targetListVia = targetSourceMap.get(viaUrl);
-                        if (targetListVia != null && targetListVia.size() > 0) {
-                            //If there are duplicated source urls, replace with the 1st target url.
-                            String viaUrlTarget = targetListVia.get(0);
-                            httpHeaders.set("via", viaUrlTarget);
-                        }
-                    }
-                    outputStream = new ByteArrayOutputStream();
-                    httpHeaders.write(outputStream);
-                }
-                WARCRecordInfo warcRecordInfo = this.createWarcRecordInfo(record, header, namedFields, header.getUrl());
-                if (outputStream != null) {
-                    byte[] content = outputStream.toByteArray();
-                    int contentLength = content.length;
-                    ByteArrayInputStream inputStream = new ByteArrayInputStream(content);
-                    warcRecordInfo.setContentStream(inputStream);
-                    warcRecordInfo.setContentLength(contentLength);
-                }
-                writer.writeRecord(warcRecordInfo);
+            WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
+            switch (org.archive.format.warc.WARCConstants.WARCRecordType.valueOf(WARCType)) {
+                case warcinfo:
+                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo);
+                    break;
+                case response:
+                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
+                    warcRecordInfo.setUrl(header.getUrl());
+                    break;
+                case metadata:
+                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.metadata);
+                    warcRecordInfo.setUrl(header.getUrl());
+                    break;
+                case request:
+                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.request);
+                    warcRecordInfo.setUrl(header.getUrl());
+                    break;
+                case resource:
+                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.resource);
+                    warcRecordInfo.setUrl(header.getUrl());
+                    break;
+                case revisit:
+                    warcRecordInfo.setType(WARCConstants.WARCRecordType.revisit);
+                    warcRecordInfo.setUrl(header.getUrl());
+                    break;
+                default:
+                    log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
             }
+            warcRecordInfo.setCreate14DigitDate(header.getDate());
+            warcRecordInfo.setMimetype(header.getMimetype());
+            warcRecordInfo.setRecordId(recordId);
+            warcRecordInfo.setExtraHeaders(namedFields);
+            warcRecordInfo.setContentStream(record);
+            warcRecordInfo.setContentLength(contentLength);
+
+            writer.writeRecord(warcRecordInfo);
         }
 
         writer.close();

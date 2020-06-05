@@ -24,6 +24,7 @@ import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
@@ -276,6 +277,9 @@ public class DasConfig {
     @Value("${server.port}")
     private String wctStorePort;
 
+    @Value("${arcDigitalAssetStoreService.modThreads.max}")
+    private int maxConcurrencyModThreads;
+
     @Autowired
     private VisualizationManager visualizationManager;
 
@@ -285,6 +289,8 @@ public class DasConfig {
 
         visualizationManager.setUploadDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
         visualizationManager.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+
+        PruneAndImportProcessor.setMaxConcurrencyModThreads(maxConcurrencyModThreads);
     }
 
     @Bean

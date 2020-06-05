@@ -26,13 +26,17 @@ public class PruneAndImportProcessor extends Thread {
     protected static final Logger log = LoggerFactory.getLogger(PruneAndImportProcessor.class);
 
     private static final Map<String, PruneAndImportProcessor> PROCESSOR_MAP = new HashMap<>();
-    private static final Semaphore CONCURRENCY_COUNT = new Semaphore(10);
+    private static Semaphore CONCURRENCY_COUNT = new Semaphore(3);
     private final String fileDir; //Upload files
     private final String baseDir; //Harvest WARC files dir
     private final PruneAndImportCommandApply cmd;
     private PruneAndImportCoordinator coordinator = null;
     private boolean running = true;
     private final Semaphore stopped = new Semaphore(1);
+
+    public static void setMaxConcurrencyModThreads(int max) {
+        CONCURRENCY_COUNT = new Semaphore(max);
+    }
 
     public PruneAndImportProcessor(String fileDir, String baseDir, PruneAndImportCommandApply cmd) {
         this.fileDir = fileDir;
@@ -140,22 +144,6 @@ public class PruneAndImportProcessor extends Thread {
         coordinator.importFromFile(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), cmd.getNewHarvestResultNumber(), hrsToImport);
 
         //Process source URL import
-        Map<String, List<String>> targetSourceMap = new HashMap<>();
-        for (PruneAndImportCommandRowMetadata metadata : this.cmd.getDataset()) {
-            if (!running) {
-                continue;
-            }
-
-            if (!metadata.getOption().equalsIgnoreCase("url")) {
-                continue;
-            }
-            String targetUrl = metadata.getUrl();
-            String sourceUrl = metadata.getName();
-
-            List<String> targetList = targetSourceMap.computeIfAbsent(sourceUrl, k -> new ArrayList<>());
-            targetList.add(targetUrl);
-        }
-
         File patchHarvestDir = new File(this.baseDir, String.format("mod_%d_%d%s1", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), File.separator));
         File[] patchHarvestFiles = new File[0];
         if (patchHarvestDir.exists()) {
@@ -169,7 +157,7 @@ public class PruneAndImportProcessor extends Thread {
             if (!patchHarvestFile.isFile() || !patchHarvestFile.getName().toUpperCase().endsWith(coordinator.getArchiveType())) {
                 continue;
             }
-            coordinator.importFromRecorder(patchHarvestFile, urisToDelete, targetSourceMap, cmd.getNewHarvestResultNumber());
+            coordinator.importFromRecorder(patchHarvestFile, urisToDelete, cmd.getNewHarvestResultNumber());
         }
     }
 

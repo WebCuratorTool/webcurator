@@ -578,6 +578,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         try {
             HarvestResult hr = targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
+            if (hr == null || hr.getState() != HarvestResult.STATE_PATCH_SCHEDULED) {
+                log.error("Not able to start harvest at state: {}", hr.getState());
+                return false;
+            }
+            
             hr.setState(HarvestResult.STATE_PATCH_HARVEST_RUNNING);
             targetInstanceDao.save(hr);
 

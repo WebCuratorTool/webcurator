@@ -26,22 +26,23 @@ import java.util.stream.Collectors;
 
 @RestController
 public class ArcDigitalAssetStoreController implements DigitalAssetStore {
-    Logger log= LoggerFactory.getLogger(getClass());
+    Logger log = LoggerFactory.getLogger(getClass());
 
     @Autowired
     @Qualifier("arcDigitalAssetStoreService")
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
     @PostMapping(path = DigitalAssetStorePaths.RESOURCE, produces = "application/octet-stream")
-    public @ResponseBody byte[] getResourceExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                            @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                            @RequestBody ArcHarvestResourceDTO resource) throws DigitalAssetStoreException {
+    public @ResponseBody
+    byte[] getResourceExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
+                               @RequestParam(value = "harvest-result-number") int harvestResultNumber,
+                               @RequestBody ArcHarvestResourceDTO resource) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-name: {}, harvest-result-number: {}", targetInstanceName, harvestResultNumber);
-        Path path =  getResource(targetInstanceName, harvestResultNumber, resource);
+        Path path = getResource(targetInstanceName, harvestResultNumber, resource);
         byte[] buf = null;
         try {
             buf = IOUtils.toByteArray(path.toUri());
-        }catch (IOException e){
+        } catch (IOException e) {
             log.error(e.getMessage());
         }
         return buf;
@@ -54,8 +55,8 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @PostMapping(path = DigitalAssetStorePaths.SMALL_RESOURCE)
     public byte[] getSmallResourceExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                                   @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                                   @RequestBody ArcHarvestResourceDTO resource) throws DigitalAssetStoreException {
+                                           @RequestParam(value = "harvest-result-number") int harvestResultNumber,
+                                           @RequestBody ArcHarvestResourceDTO resource) throws DigitalAssetStoreException {
         log.debug("Get small resource, target-instance-name: {}, harvest-result-number: {}", targetInstanceName, harvestResultNumber);
         return getSmallResource(targetInstanceName, harvestResultNumber, resource);
     }
@@ -67,8 +68,8 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @PostMapping(path = DigitalAssetStorePaths.HEADERS)
     public List<Header> getHeadersExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                                   @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                                   @RequestBody ArcHarvestResourceDTO resource) throws DigitalAssetStoreException {
+                                           @RequestParam(value = "harvest-result-number") int harvestResultNumber,
+                                           @RequestBody ArcHarvestResourceDTO resource) throws DigitalAssetStoreException {
         log.debug("Get headers, target-instance-name: {}, harvest-result-number: {}", targetInstanceName, harvestResultNumber);
         return getHeaders(targetInstanceName, harvestResultNumber, resource);
     }
@@ -80,11 +81,13 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @PostMapping(path = DigitalAssetStorePaths.COPY_AND_PRUNE)
     public HarvestResultDTO copyAndPruneExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                                         @RequestParam(value = "original-harvest-result-number") int originalHarvestResultNumber,
-                                         @RequestParam(value = "new-harvest-result-number") int newHarvestResultNumber,
-                                         @RequestBody HarvestStoreCopyAndPruneDTO dto) throws DigitalAssetStoreException {
-        log.debug("Copy and prune, target-instance-name: {}, original-harvest-result-number: {}, new-harvest-result-number: {}",targetInstanceName, originalHarvestResultNumber, newHarvestResultNumber);
-        List<HarvestResourceDTO> harvestStoreDTOS=dto.getHarvestResourcesToImport().stream().map(hsDto->{return (HarvestResourceDTO)hsDto;}).collect(Collectors.toList());
+                                                 @RequestParam(value = "original-harvest-result-number") int originalHarvestResultNumber,
+                                                 @RequestParam(value = "new-harvest-result-number") int newHarvestResultNumber,
+                                                 @RequestBody HarvestStoreCopyAndPruneDTO dto) throws DigitalAssetStoreException {
+        log.debug("Copy and prune, target-instance-name: {}, original-harvest-result-number: {}, new-harvest-result-number: {}", targetInstanceName, originalHarvestResultNumber, newHarvestResultNumber);
+        List<HarvestResourceDTO> harvestStoreDTOS = dto.getHarvestResourcesToImport().stream().map(hsDto -> {
+            return (HarvestResourceDTO) hsDto;
+        }).collect(Collectors.toList());
         return copyAndPrune(targetInstanceName, originalHarvestResultNumber, newHarvestResultNumber, dto.getUrisToDelete(), harvestStoreDTOS);
     }
 
@@ -124,7 +127,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     public void submitToArchive(@PathVariable(value = "target-instance-oid") String targetInstanceOid,
                                 @RequestParam(value = "harvest-number") int harvestNumber,
                                 @RequestBody Map xAttributes) throws DigitalAssetStoreException {
-        String sip = (String)xAttributes.get("sip");
+        String sip = (String) xAttributes.get("sip");
         xAttributes.remove("sip");
         this.submitToArchive(targetInstanceOid, sip, xAttributes, harvestNumber);
     }
@@ -154,25 +157,25 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})
     public void saveExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                     @RequestBody HarvestStoreDTO requestBody) throws DigitalAssetStoreException{
+                             @RequestBody HarvestStoreDTO requestBody) throws DigitalAssetStoreException {
         log.debug("Save harvest, target-instance-name: {}", targetInstanceName);
-        if(requestBody.getDirectory()==null){
-            if(requestBody.getPathFromPath()!=null){
+        if (requestBody.getDirectory() == null) {
+            if (requestBody.getPathFromPath() != null) {
                 save(targetInstanceName, requestBody.getPathFromPath());
-            }else if(requestBody.getPathsFromPath()!=null){
+            } else if (requestBody.getPathsFromPath() != null) {
                 save(targetInstanceName, requestBody.getPathsFromPath());
             }
-        }else{
-            if(requestBody.getPathFromPath()!=null){
-                save(targetInstanceName,requestBody.getDirectory(), requestBody.getPathFromPath());
-            }else if(requestBody.getPathsFromPath()!=null){
-                save(targetInstanceName,requestBody.getDirectory(), requestBody.getPathsFromPath());
+        } else {
+            if (requestBody.getPathFromPath() != null) {
+                save(targetInstanceName, requestBody.getDirectory(), requestBody.getPathFromPath());
+            } else if (requestBody.getPathsFromPath() != null) {
+                save(targetInstanceName, requestBody.getDirectory(), requestBody.getPathsFromPath());
             }
         }
     }
 
     @Override
-    public void save( String targetInstanceName, List<Path> paths) throws DigitalAssetStoreException {
+    public void save(String targetInstanceName, List<Path> paths) throws DigitalAssetStoreException {
         log.debug("Save, targetInstanceName: {}, paths: {}", targetInstanceName, Arrays.toString(paths.toArray()));
         arcDigitalAssetStoreService.save(targetInstanceName, paths);
     }
@@ -185,7 +188,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @Override
     public void save(String targetInstanceName, String directory, List<Path> paths) throws DigitalAssetStoreException {
-        log.debug("Save, targetInstanceName: {}, directory: {}, paths: {}", targetInstanceName,directory, Arrays.toString(paths.toArray()));
+        log.debug("Save, targetInstanceName: {}, directory: {}, paths: {}", targetInstanceName, directory, Arrays.toString(paths.toArray()));
         arcDigitalAssetStoreService.save(targetInstanceName, directory, paths);
     }
 
@@ -202,7 +205,8 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     }
 
     @Override
+    @RequestMapping(path = DigitalAssetStorePaths.OPERATE_HARVEST_RESULT_MODIFICATION, method = RequestMethod.POST)
     public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
-
+        arcDigitalAssetStoreService.operateHarvestResultModification(command, targetInstanceId, harvestNumber);
     }
 }

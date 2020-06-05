@@ -54,10 +54,10 @@ public class AssignToHarvesterController {
 	}
 
 	@GetMapping
-	protected ModelAndView handle(@RequestParam("targetInstanceId") Long targetInstanceId) throws Exception {
+	protected ModelAndView handle(@RequestParam("targetInstanceId") Long targetInstanceId,@RequestParam("harvestResultId") Long harvestResultId) throws Exception {
 		TargetInstanceCommand command = new TargetInstanceCommand();
 		command.setTargetInstanceId(targetInstanceId);
-		
+		command.setHarvestResultId(harvestResultId);
         HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();
         TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceId());
         String instanceAgency = ti.getOwner().getAgency().getName();

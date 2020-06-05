@@ -247,7 +247,7 @@
                             <c:when test="${instance.state eq 'Patching' && (hr.state == 5)}">
                                 <authority:hasPrivilege privilege="<%=Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE%>" scope="<%=Privilege.SCOPE_AGENCY%>">
                                     <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                    <a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
+                                    <a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}&harvestResultId=${hr.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
                                 </authority:hasPrivilege>
                                 <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
                                     <authority:show>
