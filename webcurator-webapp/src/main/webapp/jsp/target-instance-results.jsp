@@ -199,7 +199,7 @@
 				    		
 				    		<c:when test="${(instance.state eq 'Harvested' && hr.state != 3) || (instance.state eq 'Patching' && hr.state != 3 && hr.state < 5)}">
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
-					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=<c:out value="${hr.targetInstance.oid}"/>&harvestResultId=<c:out value="${hr.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return checkForHistory()">Review</a>
+					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">Review</a>
 					    	&nbsp;|&nbsp;
 					    	<a href="#" onclick="javascript: return clickEndorse(<c:out value="${hr.oid}"/>);">Endorse</a>
 					    	&nbsp;|&nbsp;
@@ -243,6 +243,11 @@
                                 </c:if>
                                 </authority:hasPrivilege>
 				    		</c:when>
+
+                            <c:when test="${instance.state eq 'Patching'}">
+                                <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                <a href="curator/target/patching-view-hr.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()"><img src="images/action-icon-view.gif" title="View" alt="click here to VIEW this item" width="15" height="19" border="0"></a>
+                            </c:when>
 
                             <c:when test="${instance.state eq 'Patching' && (hr.state == 5)}">
                                 <authority:hasPrivilege privilege="<%=Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE%>" scope="<%=Privilege.SCOPE_AGENCY%>">

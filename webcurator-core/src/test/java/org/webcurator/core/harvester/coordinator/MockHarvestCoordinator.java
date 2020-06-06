@@ -1,6 +1,7 @@
 package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 
@@ -378,6 +379,12 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	@Override
 	public int getHarvestOptimizationLookAheadHours() {
 		return 24;
+	}
+
+	@Override
+	public PruneAndImportCommandApply getPruneAndImportCommandApply(long targetInstanceId) throws IOException {
+		//TODO
+		return null;
 	}
 
 	@Override

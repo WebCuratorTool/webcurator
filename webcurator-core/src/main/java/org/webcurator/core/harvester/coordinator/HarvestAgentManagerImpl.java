@@ -291,14 +291,18 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
     @Override
     public LogReader getLogReader(TargetInstance aTargetInstance) {
         // If we are harvesting then get the log files from the harvester
-        HarvestAgentStatusDTO status = getHarvestAgentStatusFor(aTargetInstance.getJobName());
+        return getLogReader(aTargetInstance.getJobName());
+    }
+
+    @Override
+    public LogReader getLogReader(String aJobName) {
+        HarvestAgentStatusDTO status = getHarvestAgentStatusFor(aJobName);
         if (status == null) {
-            log.warn("list Log Files Failed. Failed to find the Log Reader for the Job {}.", aTargetInstance.getJobName());
+            log.warn("list Log Files Failed. Failed to find the Log Reader for the Job {}.", aJobName);
             return null;
         }
 
-        LogReader logReader = harvestAgentFactory.getLogReader(status);
-        return logReader;
+        return harvestAgentFactory.getLogReader(status);
     }
 
     @Override

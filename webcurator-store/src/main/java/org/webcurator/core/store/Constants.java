@@ -25,8 +25,14 @@ public final class Constants {
     /** the name of the reports directory. */
     public static final String DIR_REPORTS = "reports";    
     /** the name of the content directory. */
-    public static final String DIR_CONTENT = "content"; 
-    
+    public static final String DIR_CONTENT = "content";
+    /** the name of the Logs directory of Indexer. */
+    public static final String DIR_LOGS_INDEX = "index";
+    /** the name of the Logs directory of modification. */
+    public static final String DIR_LOGS_MOD = "modify";
+    /** the name of the Logs directory of extension. */
+    public static final String DIR_LOGS_EXT = "attached";
+
     /** the name of the crawl.log file. */
     public static final String CRAWL_LOG_FILE = "crawl.log";
     /** the name of the 'stripped' crawl.log file. */

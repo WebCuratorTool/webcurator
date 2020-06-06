@@ -64,13 +64,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
@@ -78,7 +78,6 @@ import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationManager;
@@ -925,33 +924,39 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      */
     public File getLogFile(String aJob, String aFileName) {
         File file = null;
+        if (aJob.indexOf('@') < 0) {
+            File targetDir = new File(baseDir, aJob);
+            File logsDir = new File(targetDir, Constants.DIR_LOGS);
+            file = new File(logsDir, aFileName);
+            if (!file.exists() && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
+                // we need to create sorted crawl.log from crawl.log.
+                createSortedCrawlLogFile(logsDir);
+                file = new File(logsDir, aFileName);
+            }
+            if (!file.exists()) {
+                logsDir = new File(targetDir, Constants.DIR_REPORTS);
+                file = new File(logsDir, aFileName);
+            }
+            if (!file.exists()) {
+                logsDir = new File(targetDir, Constants.DIR_CONTENT);
+                file = new File(logsDir, aFileName);
+            }
+        } else { //For patching logs
+            File targetDir = parseLogsExtDir(aJob);
+            if (targetDir != null && targetDir.exists()) {
+                file = new File(targetDir, aFileName);
+            }
 
-        File targetDir = new File(baseDir, aJob);
-        File logsDir = new File(targetDir, Constants.DIR_LOGS);
-
-        file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
-
-        if (!file.exists()
-                && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
-            // we need to create sorted crawl.log from crawl.log.
-            createSortedCrawlLogFile(logsDir);
-            file = new File(logsDir.getAbsolutePath() + File.separator
-                    + aFileName);
+            if (file == null || !file.exists()) {
+                targetDir = parseReportsExtDir(aJob);
+                if (targetDir != null && targetDir.exists()) {
+                    file = new File(targetDir, aFileName);
+                }
+            }
         }
-        if (!file.exists()) {
-            logsDir = new File(targetDir, Constants.DIR_REPORTS);
-            file = new File(logsDir.getAbsolutePath() + File.separator
-                    + aFileName);
-        }
-        if (!file.exists()) {
-            logsDir = new File(targetDir, Constants.DIR_CONTENT);
-            file = new File(logsDir.getAbsolutePath() + File.separator
-                    + aFileName);
-        }
-        if (!file.exists()) {
+        if (file == null || !file.exists()) {
             file = null;
         }
-
         return file;
     }
 
@@ -1016,24 +1021,21 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      */
     public List<String> getLogFileNames(String aJob) {
         List<String> logFiles = new ArrayList<String>();
+        File logsDir = null;
+        if (aJob.indexOf('@') < 0) {
+            File targetDir = new File(baseDir, aJob);
 
-        File targetDir = new File(baseDir, aJob);
-        File logsDir = new File(targetDir, Constants.DIR_LOGS);
-        File[] fileList = null;
+            logsDir = new File(targetDir, Constants.DIR_LOGS);
+            this.appendLogFileNames(logFiles, logsDir);
 
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                logFiles.add(f.getName());
-            }
-        }
+            logsDir = new File(targetDir, Constants.DIR_REPORTS);
+            this.appendLogFileNames(logFiles, logsDir);
+        } else {
+            logsDir = parseLogsExtDir(aJob);
+            this.appendLogFileNames(logFiles, logsDir);
 
-        logsDir = new File(targetDir, Constants.DIR_REPORTS);
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                logFiles.add(f.getName());
-            }
+            logsDir = parseReportsExtDir(aJob);
+            this.appendLogFileNames(logFiles, logsDir);
         }
 
         return logFiles;
@@ -1043,51 +1045,93 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      * @see org.webcurator.core.reader.LogProvider#getLogFileAttributes(java.lang.String)
      */
     public List<LogFilePropertiesDTO> getLogFileAttributes(String aJob) {
-
         List<LogFilePropertiesDTO> logFiles = new ArrayList<LogFilePropertiesDTO>();
+        File logsDir = null;
+        if (aJob.indexOf('@') < 0) {
+            File targetDir = new File(baseDir, aJob);
 
-        File targetDir = new File(baseDir, aJob);
-        File logsDir = new File(targetDir, Constants.DIR_LOGS);
-        File[] fileList = null;
+            logsDir = new File(targetDir, Constants.DIR_LOGS);
+            this.appendLogFiles(logFiles, logsDir);
 
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                LogFilePropertiesDTO lf = new LogFilePropertiesDTO();
-                lf.setName(f.getName());
-                lf.setPath(f.getAbsolutePath());
-                lf.setLengthString(HarvesterStatusUtil.formatData(f.length()));
-                lf.setLastModifiedDate(new Date(f.lastModified()));
-                logFiles.add(lf);
+            logsDir = new File(targetDir, Constants.DIR_REPORTS);
+            this.appendLogFiles(logFiles, logsDir);
+        } else {
+            logsDir = parseLogsExtDir(aJob);
+            this.appendLogFiles(logFiles, logsDir);
+
+            logsDir = parseReportsExtDir(aJob);
+            this.appendLogFiles(logFiles, logsDir);
+        }
+
+        return logFiles;
+    }
+
+    private File parseLogsExtDir(String aJob) {
+        File logsDir = null;
+        String[] prefixItems = aJob.split("@");
+        String prefix = prefixItems[0];
+        String[] jobItems = prefixItems[1].split("_");
+        String sTargetInstanceId = jobItems[1];
+        String sHarvestNumberId = jobItems[2];
+
+        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_LOGS, File.separator, Constants.DIR_LOGS_EXT);
+        if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_INDEXING)) {
+            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
+        } else if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_MODIFYING)) {
+            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
+        } else {
+            log.warn("Unsupported query type {}", aJob);
+            logsDir = null;
+        }
+        return logsDir;
+    }
+
+    private File parseReportsExtDir(String aJob) {
+        File logsDir = null;
+        String[] prefixItems = aJob.split("@");
+        String prefix = prefixItems[0];
+        String[] jobItems = prefixItems[1].split("_");
+        String sTargetInstanceId = jobItems[1];
+        String sHarvestNumberId = jobItems[2];
+
+        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_REPORTS, File.separator, Constants.DIR_LOGS_EXT);
+        if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_INDEXING)) {
+            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
+        } else if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_MODIFYING)) {
+            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
+        } else {
+            log.warn("Unsupported query type {}", aJob);
+            logsDir = null;
+        }
+        return logsDir;
+    }
+
+    private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
+        if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
+            log.warn("Invalid input parameter");
+            return;
+        }
+        File[] fileList = logsDir.listFiles();
+        for (File f : fileList) {
+            if (!f.isFile()) {
+                continue;
             }
+            logFiles.add(new LogFilePropertiesDTO(f, pageImagePrefix, aqaReportPrefix));
         }
+    }
 
-        logsDir = new File(targetDir, Constants.DIR_REPORTS);
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                LogFilePropertiesDTO lf = new LogFilePropertiesDTO();
-                lf.setName(f.getName());
-                lf.setPath(f.getAbsolutePath());
-                lf.setLengthString(HarvesterStatusUtil.formatData(f.length()));
-                lf.setLastModifiedDate(new Date(f.lastModified()));
-
-                // Special case for AQA reports and images
-                if (f.getName().startsWith(pageImagePrefix)) {
-                    lf.setViewer("content-viewer.html");
-                } else if (f.getName().startsWith(aqaReportPrefix)) {
-                    lf.setViewer("aqa-viewer.html");
-                }
-
-                logFiles.add(lf);
+    private void appendLogFileNames(List<String> logFiles, File logsDir) {
+        if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
+            log.warn("Invalid input parameter");
+            return;
+        }
+        File[] fileList = logsDir.listFiles();
+        for (File f : fileList) {
+            if (!f.isFile()) {
+                continue;
             }
+            logFiles.add(f.getName());
         }
-
-        List<LogFilePropertiesDTO> result = new ArrayList<>();
-        for (LogFilePropertiesDTO r : logFiles) {
-            result.add(r);
-        }
-        return result;
     }
 
     /**

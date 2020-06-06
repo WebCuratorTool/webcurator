@@ -618,11 +618,39 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestLogManagerImpl harvestLogManager() {
+    public HarvestLogManager harvestLogManager() {
         HarvestLogManagerImpl bean = new HarvestLogManagerImpl();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
 
+        return bean;
+    }
+
+
+    @Bean(name = PatchingHarvestLogManager.TYPE_NORMAL)
+    public PatchingHarvestLogManager patchingHarvestLogManagerNormal() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+        bean.setType(PatchingHarvestLogManager.TYPE_NORMAL);
+        return bean;
+    }
+
+    @Bean(name = PatchingHarvestLogManager.TYPE_MODIFYING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerModification() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+        bean.setType(PatchingHarvestLogManager.TYPE_MODIFYING);
+        return bean;
+    }
+
+    @Bean(name = PatchingHarvestLogManager.TYPE_INDEXING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerIndex() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+        bean.setType(PatchingHarvestLogManager.TYPE_INDEXING);
         return bean;
     }
 
@@ -1231,7 +1259,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public VisualizationImportedFileDAO getVisualizationImportedFileDAO() {
-        VisualizationImportedFileDAOImpl visualizationImportedFileDAO= new VisualizationImportedFileDAOImpl();
+        VisualizationImportedFileDAOImpl visualizationImportedFileDAO = new VisualizationImportedFileDAOImpl();
         visualizationImportedFileDAO.setSessionFactory(sessionFactory().getObject());
         return visualizationImportedFileDAO;
     }

@@ -18,7 +18,7 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class Indexer {
 	private static Log log = LogFactory.getLog(Indexer.class);
-	private static Map<String, Map<Long, RunnableIndex>> runningIndexes = new HashMap<String, Map<Long, RunnableIndex>>();
+	private static final Map<String, Map<Long, RunnableIndex>> runningIndexes = new HashMap<String, Map<Long, RunnableIndex>>();
 	public static final Object lock = new Object();
 
 	public static void addRunningIndex(RunnableIndex indexer, Long harvestResultOid) {

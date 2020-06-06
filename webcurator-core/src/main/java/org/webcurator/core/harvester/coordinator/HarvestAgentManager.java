@@ -31,6 +31,8 @@ public interface HarvestAgentManager {
 
     LogReader getLogReader(TargetInstance aTargetInstance);
 
+    LogReader getLogReader(String aJobName);
+
     boolean runningOrPaused(TargetInstance aTargetInstance);
 
     void restrictBandwidthFor(TargetInstance targetInstance);

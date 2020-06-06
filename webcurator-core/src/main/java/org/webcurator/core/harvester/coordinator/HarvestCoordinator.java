@@ -16,11 +16,13 @@
 package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 
 import org.webcurator.core.check.CheckNotifier;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.modification.service.PruneAndImportService;
 import org.webcurator.domain.HarvestCoordinatorDAO;
@@ -355,6 +357,8 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
     boolean isHarvestOptimizationEnabled();
 
     int getHarvestOptimizationLookAheadHours();
+
+    PruneAndImportCommandApply getPruneAndImportCommandApply(long targetInstanceId) throws IOException;
 
     void downloadFile(long targetInstanceId, int harvestResultNumber, String fileName, OutputStream out);
 }

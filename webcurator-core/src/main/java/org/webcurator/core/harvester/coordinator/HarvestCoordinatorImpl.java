@@ -1789,8 +1789,9 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         Files.write(cmdFile.toPath(), cmdJsonContent);
     }
 
-    public PruneAndImportCommandApply getPruneAndImportCommandApply(long job) throws IOException {
-        String cmdFilePath = String.format("%s%smod_%d.json", visualizationManager.getUploadDir(), File.separator, job);
+    @Override
+    public PruneAndImportCommandApply getPruneAndImportCommandApply(long targetInstanceId) throws IOException {
+        String cmdFilePath = String.format("%s%smod_%d.json", visualizationManager.getUploadDir(), File.separator, targetInstanceId);
         File cmdFile = new File(cmdFilePath);
         byte[] cmdJsonContent = Files.readAllBytes(cmdFile.toPath());
         ObjectMapper objectMapper = new ObjectMapper();
