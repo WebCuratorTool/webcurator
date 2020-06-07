@@ -8,9 +8,7 @@ import java.io.File;
 import java.util.List;
 
 public interface PatchingHarvestLogManager {
-    String TYPE_NORMAL = "normal";
-    String TYPE_MODIFYING = "modifying";
-    String TYPE_INDEXING = "indexing";
+
 
     File getLogfile(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFilename);
 

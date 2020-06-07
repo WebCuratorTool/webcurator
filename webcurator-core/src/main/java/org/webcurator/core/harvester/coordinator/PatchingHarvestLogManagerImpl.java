@@ -213,7 +213,7 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
             throw new WCTRuntimeException("Harvest result must not be null");
         }
 
-        if (this.type == null || this.type.trim().length() == 0 || this.type.equalsIgnoreCase(TYPE_NORMAL)) {
+        if (this.type == null || this.type.trim().length() == 0 || this.type.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_NORMAL)) {
             return String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber());
         } else {
             return String.format("%s@mod_%d_%d", this.type, ti.getOid(), hr.getHarvestNumber());

@@ -37,15 +37,15 @@ public class PatchingViewHarvestResultController {
     private HarvestCoordinator harvestCoordinator;
 
     @Autowired
-    @Qualifier(PatchingHarvestLogManager.TYPE_NORMAL)
+    @Qualifier(HarvestResult.PATCH_STAGE_TYPE_NORMAL)
     private PatchingHarvestLogManager patchingHarvestLogManager;
 
     @Autowired
-    @Qualifier(PatchingHarvestLogManager.TYPE_MODIFYING)
+    @Qualifier(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
     private PatchingHarvestLogManager patchingHarvestLogManagerModification;
 
     @Autowired
-    @Qualifier(PatchingHarvestLogManager.TYPE_INDEXING)
+    @Qualifier(HarvestResult.PATCH_STAGE_TYPE_INDEXING)
     private PatchingHarvestLogManager patchingHarvestLogManagerIndex;
 
     @GetMapping

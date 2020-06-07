@@ -84,13 +84,7 @@ import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
-import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
-import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.LogFilePropertiesDTO;
+import org.webcurator.domain.model.core.*;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -1075,9 +1069,9 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         String sHarvestNumberId = jobItems[2];
 
         String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_LOGS, File.separator, Constants.DIR_LOGS_EXT);
-        if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_INDEXING)) {
+        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
             logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
-        } else if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_MODIFYING)) {
+        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
             logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
         } else {
             log.warn("Unsupported query type {}", aJob);
@@ -1095,9 +1089,9 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         String sHarvestNumberId = jobItems[2];
 
         String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_REPORTS, File.separator, Constants.DIR_LOGS_EXT);
-        if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_INDEXING)) {
+        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
             logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
-        } else if (prefix.equalsIgnoreCase(PatchingHarvestLogManager.TYPE_MODIFYING)) {
+        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
             logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
         } else {
             log.warn("Unsupported query type {}", aJob);

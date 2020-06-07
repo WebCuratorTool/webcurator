@@ -70,6 +70,7 @@ import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.ui.tools.controller.*;
 
@@ -627,30 +628,30 @@ public class BaseConfig {
     }
 
 
-    @Bean(name = PatchingHarvestLogManager.TYPE_NORMAL)
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_NORMAL)
     public PatchingHarvestLogManager patchingHarvestLogManagerNormal() {
         PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
-        bean.setType(PatchingHarvestLogManager.TYPE_NORMAL);
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_NORMAL);
         return bean;
     }
 
-    @Bean(name = PatchingHarvestLogManager.TYPE_MODIFYING)
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
     public PatchingHarvestLogManager patchingHarvestLogManagerModification() {
         PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
-        bean.setType(PatchingHarvestLogManager.TYPE_MODIFYING);
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_MODIFYING);
         return bean;
     }
 
-    @Bean(name = PatchingHarvestLogManager.TYPE_INDEXING)
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_INDEXING)
     public PatchingHarvestLogManager patchingHarvestLogManagerIndex() {
         PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
-        bean.setType(PatchingHarvestLogManager.TYPE_INDEXING);
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
         return bean;
     }
 
