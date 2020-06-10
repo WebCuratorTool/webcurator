@@ -38,20 +38,22 @@ public abstract class HarvestResult implements UserInTrayResource {
     /**
      * The state constant for a Harvest Result that is accepted.
      */
-    public static final int STATE_PATCH_SCHEDULED = 5;
+    public static final int STATE_PATCH_SCHEDULED = 50;
 
     /**
      * The state constant for a Harvest Result that is harvesting the source urls.
      */
-    public static final int STATE_PATCH_HARVEST_RUNNING = 6;
+    public static final int STATE_PATCH_HARVEST_RUNNING = 60;
     public static final int STATE_PATCH_HARVEST_PAUSED = 61;
     public static final int STATE_PATCH_HARVEST_STOPPED = 62;
+    public static final int STATE_PATCH_HARVEST_ABORTED = 63;
+    public static final int STATE_PATCH_HARVEST_FINISHED = 69;
 
 
     /**
      * The state constant for a Harvest Result that is being modified.
      */
-    public static final int STATE_PATCH_MOD_RUNNING = 7;
+    public static final int STATE_PATCH_MOD_RUNNING = 70;
     public static final int STATE_PATCH_MOD_PAUSED = 71;
     public static final int STATE_PATCH_MOD_STOPPED = 72;
 
@@ -59,12 +61,21 @@ public abstract class HarvestResult implements UserInTrayResource {
     /**
      * The state constant for a Harvest Result that is being indexed.
      */
-//    public static final int STATE_PATCH_INDEX_RUNNING = 8;
-//    public static final int STATE_PATCH_INDEX_PAUSED = 81;
-//    public static final int STATE_PATCH_INDEX_STOPPED = 82;
+    public static final int STATE_PATCH_INDEX_RUNNING = 80;
+    public static final int STATE_PATCH_INDEX_PAUSED = 81;
+    public static final int STATE_PATCH_INDEX_STOPPED = 82;
+    public static final int STATE_PATCH_INDEX_FINISHED = 89;
+
     public static final String PATCH_STAGE_TYPE_NORMAL = "normal";
     public static final String PATCH_STAGE_TYPE_MODIFYING = "modifying";
     public static final String PATCH_STAGE_TYPE_INDEXING = "indexing";
+
+    /** the name of the Logs directory of Indexer. */
+    public static final String DIR_LOGS_INDEX = "index";
+    /** the name of the Logs directory of modification. */
+    public static final String DIR_LOGS_MOD = "modify";
+    /** the name of the Logs directory of extension. */
+    public static final String DIR_LOGS_EXT = "attached";
 
     /**
      * The TargetInstance that this belongs to

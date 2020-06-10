@@ -109,7 +109,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      *
      * @param targetInstance: the target instance to modify
      */
-    void modifyHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO);
+    void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO);
 
     /**
      * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
@@ -118,7 +118,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param harvestAgentStatusDTO the harvest agent
      * @return the process result
      */
-    boolean modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO);
+    boolean patchHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO);
 
     void modificationComplete(long job, int harvestResultNumber);
 

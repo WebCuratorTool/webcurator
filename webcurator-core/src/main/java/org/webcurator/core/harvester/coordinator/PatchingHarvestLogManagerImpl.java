@@ -15,11 +15,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private HarvestAgentManager harvestAgentManager;
     private DigitalAssetStoreFactory digitalAssetStoreFactory;
     private String type = "";
-
-    private Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     public File getLogfile(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFilename) {
@@ -197,7 +197,7 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
         if (hr.getState() == HarvestResult.STATE_PATCH_HARVEST_RUNNING || hr.getState() == HarvestResult.STATE_PATCH_HARVEST_PAUSED || hr.getState() == HarvestResult.STATE_PATCH_HARVEST_STOPPED) {
             logReader = harvestAgentManager.getLogReader(getJobName(ti, hr));
             if (logReader == null) {
-                throw new WCTRuntimeException("Could not get log reader instance from Harvest Agent");
+                log.error("Could not get log reader instance from Harvest Agent");
             }
         } else {
             logReader = digitalAssetStoreFactory.getLogReader();

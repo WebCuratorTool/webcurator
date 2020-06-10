@@ -75,7 +75,8 @@ public class LogReaderCommand {
 	private String filterType = VALUE_TAIL;
 	/** log stage type */
 	private String prefix= HarvestResult.PATCH_STAGE_TYPE_NORMAL;
-
+	/** harvest result number */
+	private int harvestResultNumber;
 	/**
 	 * @return the logFileName
 	 */
@@ -190,7 +191,15 @@ public class LogReaderCommand {
         this.prefix = prefix;
     }
 
-    /**
+	public int getHarvestResultNumber() {
+		return harvestResultNumber;
+	}
+
+	public void setHarvestResultNumber(int harvestResultNumber) {
+		this.harvestResultNumber = harvestResultNumber;
+	}
+
+	/**
 	 * @return the timestamp
 	 */
 	public Long getLongTimestamp() {

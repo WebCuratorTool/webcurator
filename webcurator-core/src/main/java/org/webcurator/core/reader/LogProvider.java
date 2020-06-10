@@ -17,34 +17,53 @@ package org.webcurator.core.reader;
 
 import java.io.File;
 import java.util.List;
+
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;;
 
 /**
- * The LogProvider is implemented by an object that provides access to 
+ * The LogProvider is implemented by an object that provides access to
  * log and report files.
+ *
  * @author nwaight
  */
 public interface LogProvider {
 
-	/** 
-	 * Return the File object for the specified job and file name.
-	 * @param aJob the job to return the log file for
-	 * @param aFileName the name of the file
-	 * @return the File referred to by the specified job and file name
-	 */
-	File getLogFile(String aJob, String aFileName);
-	
-	/**
-	 * Return a list of log file names that are available for the specified Job.
-	 * @param aJob the job to return the list of file names for
-	 * @return the list of available file names
-	 */
-	List<String> getLogFileNames(String aJob);
+    /**
+     * Return the File object for the specified job and file name.
+     *
+     * @param aJob      the job to return the log file for
+     * @param aFileName the name of the file
+     * @return the File referred to by the specified job and file name
+     */
+    File getLogFile(String aJob, String aFileName);
 
-	/**
-	 * Return an array of 'log file objects' that are available for the specified Job.
-	 * @param aJob the job to return the list of file names for
-	 * @return the list of available files
-	 */
-	List<LogFilePropertiesDTO> getLogFileAttributes(String aJob);
+    /**
+     * Return a list of log file names that are available for the specified Job.
+     *
+     * @param aJob the job to return the list of file names for
+     * @return the list of available file names
+     */
+    List<String> getLogFileNames(String aJob);
+
+    /**
+     * Return an array of 'log file objects' that are available for the specified Job.
+     *
+     * @param aJob the job to return the list of file names for
+     * @return the list of available files
+     */
+    List<LogFilePropertiesDTO> getLogFileAttributes(String aJob);
+
+//    /**
+//     * Parse the job name and get the logs directory
+//     *
+//     * @param aJob: job name, the tiId or format like mod_tiId_hrNumber
+//     * @return the specific directory
+//     */
+//    File parseAttachedLogDir(String aJob);
+//
+//    File getAttachedLogDir(String prefix, long targetInstanceId, int harvestResultNumber);
+//
+//    File parseAttachedReportDir(String aJob);
+//
+//    File getAttachedReportDir(String prefix, long targetInstanceId, int harvestResultNumber);
 }

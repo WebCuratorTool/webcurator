@@ -20,7 +20,7 @@ public class PruneAndImportProcessorTest {
         PruneAndImportCommandApply cmd = getPruneAndImportCommandApply(5013);
         cmd.setNewHarvestResultNumber(58);
 
-        PruneAndImportProcessor p = new PruneAndImportProcessor(fileDir, baseDir, cmd);
+        PruneAndImportProcessor p = new PruneAndImportProcessor(fileDir, baseDir, "logs", "reports", cmd);
 
         p.pruneAndImport();
     }

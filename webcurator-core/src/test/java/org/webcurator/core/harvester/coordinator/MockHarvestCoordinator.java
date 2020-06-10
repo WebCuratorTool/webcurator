@@ -114,13 +114,13 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	}
 
 	@Override
-	public void modifyHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+	public void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public boolean modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
+	public boolean patchHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
 		// TODO Auto-generated method stub
 
 		return false;

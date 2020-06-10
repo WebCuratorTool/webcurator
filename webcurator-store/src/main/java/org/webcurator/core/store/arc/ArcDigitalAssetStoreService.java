@@ -70,11 +70,9 @@ import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
-import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
@@ -936,13 +934,13 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                 file = new File(logsDir, aFileName);
             }
         } else { //For patching logs
-            File targetDir = parseLogsExtDir(aJob);
+            File targetDir = parseAttachedLogDir(aJob);
             if (targetDir != null && targetDir.exists()) {
                 file = new File(targetDir, aFileName);
             }
 
             if (file == null || !file.exists()) {
-                targetDir = parseReportsExtDir(aJob);
+                targetDir = parseAttachedReportDir(aJob);
                 if (targetDir != null && targetDir.exists()) {
                     file = new File(targetDir, aFileName);
                 }
@@ -1025,10 +1023,10 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             logsDir = new File(targetDir, Constants.DIR_REPORTS);
             this.appendLogFileNames(logFiles, logsDir);
         } else {
-            logsDir = parseLogsExtDir(aJob);
+            logsDir = parseAttachedLogDir(aJob);
             this.appendLogFileNames(logFiles, logsDir);
 
-            logsDir = parseReportsExtDir(aJob);
+            logsDir = parseAttachedReportDir(aJob);
             this.appendLogFileNames(logFiles, logsDir);
         }
 
@@ -1050,17 +1048,18 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             logsDir = new File(targetDir, Constants.DIR_REPORTS);
             this.appendLogFiles(logFiles, logsDir);
         } else {
-            logsDir = parseLogsExtDir(aJob);
+            logsDir = parseAttachedLogDir(aJob);
             this.appendLogFiles(logFiles, logsDir);
 
-            logsDir = parseReportsExtDir(aJob);
+            logsDir = parseAttachedReportDir(aJob);
             this.appendLogFiles(logFiles, logsDir);
         }
 
         return logFiles;
     }
 
-    private File parseLogsExtDir(String aJob) {
+
+    public File parseAttachedLogDir(String aJob) {
         File logsDir = null;
         String[] prefixItems = aJob.split("@");
         String prefix = prefixItems[0];
@@ -1075,12 +1074,35 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
         } else {
             log.warn("Unsupported query type {}", aJob);
-            logsDir = null;
+            return null;
         }
+
+        logsDir = new File(logsDir, sHarvestNumberId);
+
         return logsDir;
     }
 
-    private File parseReportsExtDir(String aJob) {
+//    public File getAttachedLogDir(String prefix, long targetInstanceId, int harvestResultNumber) {
+//        String sTargetInstanceId = Long.toString(targetInstanceId);
+//        String sHarvestNumberId = Integer.toString(harvestResultNumber);
+//
+//        File logsDir = null;
+//        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_LOGS, File.separator, Constants.DIR_LOGS_EXT);
+//        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+//            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
+//        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+//            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
+//        } else {
+//            log.warn("Unsupported query type {} {} {}", prefix, targetInstanceId, harvestResultNumber);
+//            return null;
+//        }
+//
+//        logsDir = new File(logsDir, sHarvestNumberId);
+//
+//        return logsDir;
+//    }
+
+    public File parseAttachedReportDir(String aJob) {
         File logsDir = null;
         String[] prefixItems = aJob.split("@");
         String prefix = prefixItems[0];
@@ -1097,8 +1119,31 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             log.warn("Unsupported query type {}", aJob);
             logsDir = null;
         }
+
+        logsDir = new File(logsDir, sHarvestNumberId);
+
         return logsDir;
     }
+
+//    public File getAttachedReportDir(String prefix, long targetInstanceId, int harvestResultNumber) {
+//        String sTargetInstanceId = Long.toString(targetInstanceId);
+//        String sHarvestNumberId = Integer.toString(harvestResultNumber);
+//
+//        File logsDir = null;
+//        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_REPORTS, File.separator, Constants.DIR_LOGS_EXT);
+//        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+//            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
+//        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+//            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
+//        } else {
+//            log.warn("Unsupported query type {} {} {}", prefix, targetInstanceId, harvestResultNumber);
+//            return null;
+//        }
+//
+//        logsDir = new File(logsDir, sHarvestNumberId);
+//
+//        return logsDir;
+//    }
 
     private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
         if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
@@ -1482,7 +1527,10 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     @Override
     public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager.getUploadDir(), visualizationManager.getBaseDir(), cmd);
+        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager.getUploadDir(),
+                visualizationManager.getBaseDir(),
+                Constants.DIR_LOGS,
+                Constants.DIR_REPORTS, cmd);
         new Thread(p).start();
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
@@ -1497,7 +1545,11 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         if (command.equalsIgnoreCase("delete")) {
             if (p == null) {
-                p = new PruneAndImportProcessor(visualizationManager.getUploadDir(), visualizationManager.getBaseDir(), null);
+                p = new PruneAndImportProcessor(visualizationManager.getUploadDir(),
+                        visualizationManager.getBaseDir(),
+                        Constants.DIR_LOGS,
+                        Constants.DIR_REPORTS,
+                        null);
             }
             p.delete(targetInstanceId, harvestNumber);
             return;

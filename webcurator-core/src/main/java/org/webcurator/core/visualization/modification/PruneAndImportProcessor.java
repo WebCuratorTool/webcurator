@@ -7,11 +7,13 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
+import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +31,8 @@ public class PruneAndImportProcessor extends Thread {
     private static Semaphore CONCURRENCY_COUNT = new Semaphore(3);
     private final String fileDir; //Upload files
     private final String baseDir; //Harvest WARC files dir
+    private final String logsDir; //log dir
+    private final String reportsDir; //report dir
     private final PruneAndImportCommandApply cmd;
     private PruneAndImportCoordinator coordinator = null;
     private boolean running = true;
@@ -38,10 +42,12 @@ public class PruneAndImportProcessor extends Thread {
         CONCURRENCY_COUNT = new Semaphore(max);
     }
 
-    public PruneAndImportProcessor(String fileDir, String baseDir, PruneAndImportCommandApply cmd) {
+    public PruneAndImportProcessor(String fileDir, String baseDir, String logsDirName, String reportsDirName, PruneAndImportCommandApply cmd) {
         this.fileDir = fileDir;
         this.baseDir = baseDir;
         this.cmd = cmd;
+        this.logsDir = baseDir + File.separator + cmd.getTargetInstanceId() + File.separator + logsDirName + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + cmd.getNewHarvestResultNumber();
+        this.reportsDir = baseDir + File.separator + cmd.getTargetInstanceId() + File.separator + reportsDirName + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + cmd.getNewHarvestResultNumber();
     }
 
     @Override
@@ -80,7 +86,6 @@ public class PruneAndImportProcessor extends Thread {
             }
         });
 
-
         // Calculate the source and destination directories.
         File sourceDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getHarvestResultNumber());
         File destDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getNewHarvestResultNumber());
@@ -105,7 +110,6 @@ public class PruneAndImportProcessor extends Thread {
             }
         }).collect(Collectors.toList());
 
-
         Map<String, Long> extStatisticMap = extNameList.stream().filter(e -> {
             return !e.equalsIgnoreCase("CDX");
         }).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
@@ -114,7 +118,6 @@ public class PruneAndImportProcessor extends Thread {
             log.error("Multiple archive types included in dir: {}", sourceDir);
             return;
         }
-
 
         String archiveType = extStatisticMap.keySet().iterator().next();
         if (archiveType.equalsIgnoreCase(PruneAndImportCoordinatorHeritrixWarc.ARCHIVE_TYPE)) {
@@ -128,6 +131,7 @@ public class PruneAndImportProcessor extends Thread {
 
         coordinator.setFileDir(this.fileDir);
         coordinator.setBaseDir(this.baseDir);
+        coordinator.init(this.logsDir,this.reportsDir);
 
         //Process copy and file import
         for (File archiveFile : archiveFiles) {
@@ -141,6 +145,7 @@ public class PruneAndImportProcessor extends Thread {
             }
         }
 
+        //Process file import
         coordinator.importFromFile(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), cmd.getNewHarvestResultNumber(), hrsToImport);
 
         //Process source URL import
@@ -159,6 +164,9 @@ public class PruneAndImportProcessor extends Thread {
             }
             coordinator.importFromRecorder(patchHarvestFile, urisToDelete, cmd.getNewHarvestResultNumber());
         }
+
+        coordinator.writeReport();
+        coordinator.close();
     }
 
     public void notifyModificationComplete(long targetInstanceId, int harvestResultNumber) {

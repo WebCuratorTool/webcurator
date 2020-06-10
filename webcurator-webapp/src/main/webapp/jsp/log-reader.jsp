@@ -64,10 +64,12 @@ function doFilterKeyUp()
 	<tr>
 		<td align="right" width="25%">Number of lines to display</td>
 		<td align="left">
-		<input type="hidden" name="<%=CommandConstants.LOG_READER_COMMAND_PARAM_OID%>" value="<c:out value="${command.targetInstanceOid}"/>" />
-		<input type="hidden" name="<%=CommandConstants.LOG_READER_COMMAND_PARAM_LOGFILE%>" value="<c:out value="${command.logFileName}"/>" />
-		<input type="hidden" name="<%=LogReaderCommand.PARAM_NUM_LINES%>" value="<c:out value="${command.numLines}"/>" />		
-		<input type="text" name="<%=LogReaderCommand.PARAM_LINES%>" size="5" maxlength="5" value="<c:out value="${command.noOfLines}"/>" />
+		<input type="hidden" name="<%=CommandConstants.LOG_READER_COMMAND_PARAM_OID%>" value="${command.targetInstanceOid}" />
+		<input type="hidden" name="<%=CommandConstants.HARVEST_RESULT_COMMAND_PARA_NUMBER%>" value="${command.harvestResultNumber}" />
+		<input type="hidden" name="<%=CommandConstants.LOG_READER_COMMAND_PARAM_LOGFILE%>" value="${command.logFileName}" />
+		<input type="hidden" name="<%=LogReaderCommand.PARAM_NUM_LINES%>" value="${command.numLines}" />
+		<input type="hidden" name="prefix" value="${command.prefix}" />
+		<input type="text" name="<%=LogReaderCommand.PARAM_LINES%>" size="5" maxlength="5" value="${command.noOfLines}" />
 		</td>
 	</tr>
 	<tr>
@@ -81,7 +83,7 @@ function doFilterKeyUp()
 				<c:if test="${command.filterType eq type.key}">
 					<c:set var="selected" value="selected"/>
 				</c:if>
-				<option value="<c:out value="${type.key}"/>" <c:out value="${selected}"/>><c:out value="${type.value}"/></option>
+				<option value="${type.key}" ${selected}>${type.value}</option>
 			</c:forEach>
 		</select>
 		</td>
@@ -97,11 +99,11 @@ function doFilterKeyUp()
 						<c:set var="hideFilter" value="hidden"/>
 					</c:if>
 				</c:if>
-				<span id="<c:out value="${name.key}"/>" name="<c:out value="${name.key}"/>" class="<c:out value="${showhide}"/>"><c:out value="${name.value}"/></span>
+				<span id="${name.key}" name="${name.key}" class="${showhide}">${name.value}</span>
 			</c:forEach>
 		</td>
 		<td align="left">
-		<input type="text" class="<c:out value="${hideFilter}" />" id="<%=LogReaderCommand.PARAM_FILTER%>" name="<%=LogReaderCommand.PARAM_FILTER%>" onKeyUp="doFilterKeyUp()" value="<c:out value="${command.filter}"/>" />
+		<input type="text" class="${hideFilter}" id="<%=LogReaderCommand.PARAM_FILTER%>" name="<%=LogReaderCommand.PARAM_FILTER%>" onKeyUp="doFilterKeyUp()" value="${command.filter}" />
 		</td>
 	</tr>	
 	<tr>

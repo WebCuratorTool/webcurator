@@ -1,6 +1,11 @@
 package org.webcurator.core.visualization.modification.metadata;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class PruneAndImportCommandRowMetadata {
+    protected static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
     private String url;
     private String option;
     private String name;
@@ -8,6 +13,7 @@ public class PruneAndImportCommandRowMetadata {
     private String contentType;
     private String modifiedMode;
     private long lastModified;
+    private String lastModifiedPresentationString = "";
     private String content;
     private boolean replaceFlag;
     private String tempFileName;
@@ -68,6 +74,24 @@ public class PruneAndImportCommandRowMetadata {
 
     public void setLastModified(long lastModified) {
         this.lastModified = lastModified;
+    }
+
+    public String getLastModifiedPresentationString() {
+        if (modifiedMode == null) {
+            return null;
+        }
+        if (modifiedMode.equalsIgnoreCase("FILE") || modifiedMode.equalsIgnoreCase("CUSTOM")) {
+            Date warcDate = new Date();
+            warcDate.setTime(lastModified);
+            lastModifiedPresentationString = writerDF.format(warcDate);
+        } else {
+            lastModifiedPresentationString = modifiedMode;
+        }
+        return lastModifiedPresentationString;
+    }
+
+    public void setLastModifiedPresentationString(String lastModifiedPresentationString) {
+        this.lastModifiedPresentationString = lastModifiedPresentationString;
     }
 
     public String getContent() {

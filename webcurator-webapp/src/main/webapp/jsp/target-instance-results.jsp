@@ -132,6 +132,7 @@
 				    <td class="annotationsLiteRow"><c:out value="${hr.createdBy.niceName}"/></td>
 				    <td class="annotationsLiteRow"><c:out value="${hr.provenanceNote}"/></td>
 				    <td class="annotationsLiteRow">
+				    ${hr.state}
 				    <c:choose>
                         <c:when test="${hr.state == 1}">
                             Endorsed
@@ -145,10 +146,10 @@
                         <c:when test="${hr.state == 4}">
                             Aborted
                         </c:when>
-                        <c:when test="${hr.state == 5}">
+                        <c:when test="${hr.state == 50}">
                             Patch Scheduled
                         </c:when>
-                        <c:when test="${hr.state == 6}">
+                        <c:when test="${hr.state == 60}">
                             Patch Harvesting
                         </c:when>
                         <c:when test="${hr.state == 61}">
@@ -157,7 +158,7 @@
                         <c:when test="${hr.state == 62}">
                             Patch Harvesting Aborted
                         </c:when>
-                        <c:when test="${hr.state == 7}">
+                        <c:when test="${hr.state == 70}">
                             Patch Modifying
                         </c:when>
                         <c:when test="${hr.state == 71}">
@@ -166,7 +167,7 @@
                         <c:when test="${hr.state == 72}">
                             Patch Modifying Aborted
                         </c:when>
-                        <c:when test="${hr.state == 8}">
+                        <c:when test="${hr.state == 80}">
                             Patch Indexing
                         </c:when>
                         <c:when test="${hr.state == 81}">
@@ -247,34 +248,25 @@
                             <c:when test="${instance.state eq 'Patching'}">
                                 <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                 <a href="curator/target/patching-view-hr.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()"><img src="images/action-icon-view.gif" title="View" alt="click here to VIEW this item" width="15" height="19" border="0"></a>
-                            </c:when>
 
-                            <c:when test="${instance.state eq 'Patching' && (hr.state == 5)}">
                                 <authority:hasPrivilege privilege="<%=Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE%>" scope="<%=Privilege.SCOPE_AGENCY%>">
-                                    <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                    <a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}&harvestResultId=${hr.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
+                                    <c:if test="${hr.state == 50 }">
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}&harvestResultId=${hr.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
+                                    </c:if>
                                 </authority:hasPrivilege>
+
                                 <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
                                     <authority:show>
+                                    <c:if test="${hr.state == 50 || hr.state == 62 || hr.state == 72}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick='javascript: clickDelete("${hr.oid}");'/>
+                                    </c:if>
                                     </authority:show>
                                 </authority:showControl>
-                            </c:when>
 
-                            <c:when test="${instance.state eq 'Patching' && (hr.state == 62 || hr.state == 72)}">
-                                <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
-                                    <authority:show>
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick='javascript: clickDelete("${hr.oid}");'/>
-                                    </authority:show>
-                                </authority:showControl>
-                            </c:when>
-
-
-                            <c:when test="${instance.state eq 'Patching' && hr.state != 5}">
                                 <authority:hasPrivilege privilege="<%=Privilege.MANAGE_WEB_HARVESTER%>" scope="<%=Privilege.SCOPE_AGENCY%>">
-                                    <c:if test="${hr.state == 6 || hr.state == 7 }">
+                                    <c:if test="${hr.state == 60 || hr.state == 70 }">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/pause-icon.gif" title="Pause" alt="click here to Pause this item" width="21" height="20" border="0" onclick='javascript: clickPause("${hr.oid}");'/>
                                     </c:if>
@@ -282,17 +274,17 @@
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/resume-icon.gif" title="Resume" alt="click here to Resume this item" width="21" height="20" border="0" onclick='javascript: clickResume("${hr.oid}");'/>
                                     </c:if>
-                                    <c:if test="${hr.state == 6 || hr.state == 61 || hr.state == 62}">
+                                    <c:if test="${hr.state == 60 || hr.state == 61 || hr.state == 62}">
                                         <!--
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/abort-icon.gif" title="Abort" alt="click here to Abort this item" width="21" height="20" border="0" onclick='javascript: clickAbort("${hr.oid}");'/>
                                         -->
                                     </c:if>
-                                    <c:if test="${hr.state == 6 || hr.state == 7 || hr.state == 61 || hr.state == 71}">
+                                    <c:if test="${hr.state == 60 || hr.state == 70 || hr.state == 61 || hr.state == 71}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/stop-icon.gif" title="Stop" alt="click here to Stop this item" width="21" height="20" border="0" onclick='javascript: clickStop("${hr.oid}");'/>
                                     </c:if>
-                                    <c:if test="${(hr.state == 6 || hr.state == 61 || hr.state == 62) && instance.profile.isHeritrix3Profile()}">
+                                    <c:if test="${(hr.state == 60 || hr.state == 61 || hr.state == 62) && instance.profile.isHeritrix3Profile()}">
                                        <!--
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <a href="javascript:viewH3ScriptConsole(${instance.oid});" title="View"><img src="images/h3-script-console.png" title="H3 Script Console" alt="click here to Open H3 Script Console" width="21" height="20" border="0"></a>
@@ -300,7 +292,6 @@
                                     </c:if>
                                 </authority:hasPrivilege>
                             </c:when>
-
                             <c:otherwise>
                             &nbsp;
                             </c:otherwise>

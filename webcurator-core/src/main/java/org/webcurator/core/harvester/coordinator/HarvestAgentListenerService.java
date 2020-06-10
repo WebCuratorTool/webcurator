@@ -95,6 +95,12 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
         harvestCoordinator.notification(aSubject, notificationCategory, aMessage);
     }
 
+    /**
+     * The index will be saved at store component side.
+     * @param harvestResultOid --
+     * @param arcIndexResultDTO  The OID of the HarvestResult and the ArcHarvestFile DTO.
+     */
+    @Deprecated
     @PostMapping(path = HarvestCoordinatorPaths.ADD_HARVEST_RESULT)
     public void addToHarvestResult(@PathVariable(value = "harvest-result-oid") Long harvestResultOid,
                                    @RequestBody ArcIndexResultDTO arcIndexResultDTO) {

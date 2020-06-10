@@ -15,6 +15,8 @@
  */
 package org.webcurator.core.store;
 
+import org.webcurator.domain.model.core.HarvestResult;
+
 /**
  * Common constants used in the Digital Asset Store.
  * @author nwaight
@@ -27,11 +29,11 @@ public final class Constants {
     /** the name of the content directory. */
     public static final String DIR_CONTENT = "content";
     /** the name of the Logs directory of Indexer. */
-    public static final String DIR_LOGS_INDEX = "index";
+    public static final String DIR_LOGS_INDEX = HarvestResult.DIR_LOGS_INDEX;
     /** the name of the Logs directory of modification. */
-    public static final String DIR_LOGS_MOD = "modify";
+    public static final String DIR_LOGS_MOD =HarvestResult.DIR_LOGS_MOD;
     /** the name of the Logs directory of extension. */
-    public static final String DIR_LOGS_EXT = "attached";
+    public static final String DIR_LOGS_EXT = HarvestResult.DIR_LOGS_EXT;
 
     /** the name of the crawl.log file. */
     public static final String CRAWL_LOG_FILE = "crawl.log";

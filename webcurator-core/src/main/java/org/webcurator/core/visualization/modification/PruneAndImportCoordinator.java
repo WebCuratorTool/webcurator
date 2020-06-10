@@ -14,6 +14,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -30,6 +31,55 @@ public abstract class PruneAndImportCoordinator {
     protected String baseDir; //Harvest WARC files dir
     protected boolean running = true;
 
+    protected FileWriter log_modification;
+    protected FileWriter report_modification;
+
+    protected List<StatisticItem> statisticItems = new ArrayList<>();
+
+    public void init(String logsDir, String reportsDir) throws IOException {
+        File fLogsDir = new File(logsDir);
+        if (!fLogsDir.exists()) {
+            fLogsDir.mkdirs();
+        }
+        this.log_modification = new FileWriter(new File(logsDir, "modification.log"), false);
+
+        File fReportsDir = new File(reportsDir);
+        if (!fReportsDir.exists()) {
+            fReportsDir.mkdirs();
+        }
+        this.report_modification = new FileWriter(new File(reportsDir, "mod_report.txt"), false);
+
+        this.statisticItems.clear();
+    }
+
+    public void close() throws IOException {
+        this.log_modification.close();
+        this.report_modification.close();
+        this.statisticItems.clear();
+    }
+
+    public void writeLog(String content) {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        String time = localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        try {
+            log_modification.write(String.format("%s MOD %s%s", time, content, System.lineSeparator()));
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public void writeReport() {
+        try {
+            String title = StatisticItem.getPrintTitle();
+            report_modification.write(title + System.lineSeparator());
+
+            for (StatisticItem e : statisticItems) {
+                report_modification.write(e.toString() + System.lineSeparator());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public String getArchiveType() {
         return archiveType();
@@ -105,5 +155,91 @@ public abstract class PruneAndImportCoordinator {
 
     public void stop() {
         this.running = false;
+    }
+
+    static class StatisticItem {
+        private String fromFileName = null;
+        private long fromFileLength = -1;
+        private String toFileName = null;
+        private long toFileLength = -1;
+        private int totalRecords = 0;
+        private int skippedRecords = 0;
+        private int copiedRecords = 0;
+        private int prunedRecords = 0;
+        private int failedRecords = 0;
+
+        public static String getPrintTitle() {
+            return "FromFileName\tFromFileLength\tToFileName\tToFileLength\tTotalRecords\tSkippedRecords\tPrunedRecords\tCopiedRecords\tFailedRecords";
+        }
+
+        public String toString() {
+            String pFromFileName = this.fromFileName == null ? "--" : this.fromFileName;
+            String pFromFileLength = this.fromFileLength < 0 ? "--" : Long.toString(this.fromFileLength);
+            String pToFileName = this.toFileName == null ? "--" : this.toFileName;
+            String pToFileLength = this.toFileLength < 0 ? "--" : Long.toString(this.toFileLength);
+
+            return String.format("%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%d",
+                    pFromFileName,
+                    pFromFileLength,
+                    pToFileName,
+                    pToFileLength,
+                    this.totalRecords,
+                    this.skippedRecords,
+                    this.prunedRecords,
+                    this.copiedRecords,
+                    this.failedRecords);
+        }
+
+        public void setFromFileName(String fromFileName) {
+            this.fromFileName = fromFileName;
+        }
+
+        public void setFromFileLength(long fromFileLength) {
+            this.fromFileLength = fromFileLength;
+        }
+
+        public void setToFileName(String toFileName) {
+            this.toFileName = toFileName;
+        }
+
+        public void setToFileLength(long toFileLength) {
+            this.toFileLength = toFileLength;
+        }
+
+        public void increaseSkippedRecords() {
+            this.increaseSkippedRecords(1);
+        }
+
+        public void increaseSkippedRecords(int num) {
+            this.skippedRecords += num;
+            this.totalRecords += num;
+        }
+
+        public void increasePrunedRecords() {
+            this.increasePrunedRecords(1);
+        }
+
+        public void increasePrunedRecords(int num) {
+            this.prunedRecords += num;
+            this.totalRecords += num;
+        }
+
+        public void increaseCopiedRecords() {
+            this.increaseCopiedRecords(1);
+        }
+
+        public void increaseCopiedRecords(int num) {
+            this.copiedRecords += num;
+            this.totalRecords += num;
+        }
+
+        public void increaseFailedRecords() {
+            this.increaseFailedRecords(1);
+        }
+
+        public void increaseFailedRecords(int num) {
+            this.failedRecords += num;
+            this.totalRecords += num;
+        }
     }
 }

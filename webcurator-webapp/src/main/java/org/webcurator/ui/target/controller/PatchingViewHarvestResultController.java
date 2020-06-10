@@ -14,11 +14,13 @@ import org.webcurator.common.ui.Constants;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.TargetInstance;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,7 +51,7 @@ public class PatchingViewHarvestResultController {
     private PatchingHarvestLogManager patchingHarvestLogManagerIndex;
 
     @GetMapping
-    public ModelAndView getHandle( @RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception {
+    public ModelAndView getHandle(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception {
         ModelAndView mav = new ModelAndView("patching-view-hr");
 //        BindingResult bindingResult,
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
@@ -68,6 +70,19 @@ public class PatchingViewHarvestResultController {
 
 
         PruneAndImportCommandApply pruneAndImportCommandApply = harvestCoordinator.getPruneAndImportCommandApply(targetInstanceId);
+        List<PruneAndImportCommandRowMetadata> listToBePruned = new ArrayList<>();
+        List<PruneAndImportCommandRowMetadata> listToBeImportedByFile = new ArrayList<>();
+        List<PruneAndImportCommandRowMetadata> listToBeImportedByURL = new ArrayList<>();
+
+        pruneAndImportCommandApply.getDataset().forEach(e -> {
+            if (e.getOption().equalsIgnoreCase("prune")) {
+                listToBePruned.add(e);
+            } else if (e.getOption().equalsIgnoreCase("file")) {
+                listToBeImportedByFile.add(e);
+            } else if (e.getOption().equalsIgnoreCase("url")) {
+                listToBeImportedByURL.add(e);
+            }
+        });
 
         List<LogFilePropertiesDTO> logsCrawling = patchingHarvestLogManager.listLogFileAttributes(ti, hr);
         List<LogFilePropertiesDTO> logsModifying = patchingHarvestLogManagerModification.listLogFileAttributes(ti, hr);
@@ -75,7 +90,9 @@ public class PatchingViewHarvestResultController {
 
         mav.addObject("ti", ti);
         mav.addObject("hr", hr);
-        mav.addObject("pruneAndImportCommandApply", pruneAndImportCommandApply);
+        mav.addObject("listToBePruned", listToBePruned);
+        mav.addObject("listToBeImportedByFile", listToBeImportedByFile);
+        mav.addObject("listToBeImportedByURL", listToBeImportedByURL);
         mav.addObject("logsCrawling", logsCrawling);
         mav.addObject("logsModifying", logsModifying);
         mav.addObject("logsIndexing", logsIndexing);

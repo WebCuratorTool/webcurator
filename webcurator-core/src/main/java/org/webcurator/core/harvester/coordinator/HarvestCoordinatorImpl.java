@@ -485,10 +485,10 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     /**
      * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
      *
-     * @param targetInstance: the target instance to modify
+     * @param queuedTargetInstanceDTO: the target instance to modify
      */
     @Override
-    public void modifyHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+    public void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
         boolean approved = true;
 
         // lock the ti
@@ -521,7 +521,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                 synchronized (agent) {
                     // allocate the target instance to the agent
                     log.info("Allocating TI " + tiOid + " to agent " + agent.getName());
-                    processed = modifyHarvest(ti, agent);
+                    processed = patchHarvest(ti, agent);
                 }
             }
         }
@@ -538,7 +538,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      * @param harvestAgentStatusDTO the harvest agent
      */
     @Override
-    public boolean modifyHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
+    public boolean patchHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
         boolean processed = false;
         if (targetInstance == null || harvestAgentStatusDTO == null) {
             log.error("Input parameter is null");
@@ -582,7 +582,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                 log.error("Not able to start harvest at state: {}", hr.getState());
                 return false;
             }
-            
+
             hr.setState(HarvestResult.STATE_PATCH_HARVEST_RUNNING);
             targetInstanceDao.save(hr);
 
@@ -884,7 +884,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             ti = it.next();
             log.info("Processing queue and modify entry: " + ti.toString());
             if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-                modifyHarvest(ti);
+                patchHarvest(ti);
             } else {
                 harvestOrQueue(ti);
             }
@@ -1295,6 +1295,19 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
     public Long createHarvestResult(HarvestResultDTO harvestResultDTO) {
         TargetInstance ti = targetInstanceDao.load(harvestResultDTO.getTargetInstanceOid());
+        if (ti != null && ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+            HarvestResult hr = ti.getHarvestResult(harvestResultDTO.getHarvestNumber());
+            if (hr == null) {
+                log.error("Not able to find Harvest Result with harvestNumber {} of TI {}", harvestResultDTO.getHarvestNumber(), ti.getOid());
+                return new Long(0);
+            }
+
+            hr.setState(HarvestResult.STATE_PATCH_HARVEST_FINISHED);
+            targetInstanceDao.save(hr);
+
+            log.info("Update state for patching Harvest Result {} of TI {}", hr.getHarvestNumber(), ti.getOid());
+            return hr.getOid();
+        }
         HarvestResult result = new ArcHarvestResult(harvestResultDTO, ti);
         ti.getHarvestResults().add(result);
         result.setState(ArcHarvestResult.STATE_INDEXING);
@@ -1681,7 +1694,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
             if (allowedAgent != null) {
                 HarvestCoordinator harvestCoordinator = ApplicationContextFactory.getApplicationContext().getBean(HarvestCoordinator.class);
-                harvestCoordinator.modifyHarvest(ti, allowedAgent);
+                harvestCoordinator.patchHarvest(ti, allowedAgent);
                 result.setRespMsg("Modification harvest job started");
             } else {
                 ti.setScheduledTime(new Date());

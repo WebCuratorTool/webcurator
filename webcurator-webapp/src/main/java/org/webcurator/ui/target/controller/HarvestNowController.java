@@ -170,7 +170,7 @@ public class HarvestNowController {
                 if (cmd.getHarvestResultId() <= 0) {
                     harvestCoordinator.harvest(ti, has);
                 } else {
-                    harvestCoordinator.modifyHarvest(ti, has);
+                    harvestCoordinator.patchHarvest(ti, has);
                 }
             } catch (HibernateOptimisticLockingFailureException e) {
                 ti = targetInstanceManager.getTargetInstance(ti.getOid());

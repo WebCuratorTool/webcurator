@@ -32,10 +32,11 @@ function fetchHttp(url, req, callback){
       return null;
     }
 
-    if(response.headers.get('Content-Type').startsWith('application/json')){
+    if(response.headers && response.headers.get('Content-Type') && response.headers.get('Content-Type').startsWith('application/json')){
       console.log('Fetch success and callback');
       return response.json();
     }else{
+      $('#popup-window-loading').hide();
       console.log('Fetch invalid content: ' + response.headers.get('Content-Type'));
       fetchHttp(url, req, callback, preventLoadingWindow);
       return null;

@@ -1,7 +1,5 @@
 package org.webcurator.core.visualization.modification;
 
-import org.archive.format.http.HttpHeaderParser;
-import org.archive.format.http.HttpHeaders;
 import org.archive.format.warc.WARCConstants;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveReaderFactory;
@@ -71,17 +69,23 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
     @Override
     protected void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, PruneAndImportCommandRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
-            log.error("Unsupported file format: {}", fileFrom.getAbsolutePath());
+            log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
         }
 
         // Get the reader for this ARC File
         ArchiveReader reader = ArchiveReaderFactory.get(fileFrom);
         if (!(reader instanceof WARCReader)) {
-            log.error("Unsupported file format: {}", fileFrom.getAbsolutePath());
+            log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
         }
 
+        this.writeLog(String.format("Start to copy and prune a WARC file: %s size: %d", fileFrom.getName(), fileFrom.length()));
+
+        StatisticItem statisticItem = new StatisticItem();
+        statisticItems.add(statisticItem);
+        statisticItem.setFromFileName(fileFrom.getName());
+        statisticItem.setFromFileLength(fileFrom.length());
 
         // Use the original filename
         String strippedImpArcFilename = reader.getStrippedFileName();
@@ -105,7 +109,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             metaData.append(new String(buff, 0, bytesRead));
         }
 
-
         List<String> l = new ArrayList<String>();
         l.add(metaData.toString());
 
@@ -125,6 +128,8 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l, new UUIDGenerator());
         WARCWriter writer = new WARCWriter(aint, settings);
 
+        this.writeLog("Create a new WARC file, file name: " + writer.getFile());
+
         // Iterate through all the records, skipping deleted or
         // imported URLs.
         while (running && archiveRecordsIt.hasNext()) {
@@ -141,9 +146,13 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             long contentLength = header.getLength() - header.getContentBegin();
 
             if (WARCType.equals(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo.toString())) {
+                this.writeLog("Skip [warcinfo] record");
+                statisticItem.increaseSkippedRecords();
                 continue;
             }
             if (urisToDelete.contains(header.getUrl()) || hrsToImport.containsKey(header.getUrl())) {
+                this.writeLog(String.format("Prune [%s] record: %s", WARCType, header.getUrl()));
+                statisticItem.increasePrunedRecords();
                 continue;
             }
 
@@ -186,8 +195,11 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                     break;
                 default:
                     log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
-
+                    this.writeLog(String.format("Skip unrecognised [%s] record: %s", WARCType, header.getUrl()));
+                    statisticItem.increaseFailedRecords();
+                    continue;
             }
+
             warcRecordInfo.setCreate14DigitDate(header.getDate());
             warcRecordInfo.setMimetype(header.getMimetype());
             warcRecordInfo.setRecordId(recordId);
@@ -195,6 +207,16 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             warcRecordInfo.setContentStream(record);
             warcRecordInfo.setContentLength(contentLength);
             writer.writeRecord(warcRecordInfo);
+            statisticItem.increaseCopiedRecords();
+            this.writeLog(String.format("Copy [%s] record: %s", WARCType, header.getUrl()));
+        }
+
+        this.writeLog(String.format("End to copy and prune from: %s size: %d", fileFrom.getName(), fileFrom.length()));
+        if (writer.getFile() != null) {
+            this.writeLog(String.format("End to copy and prune to: %s size: %d", writer.getFile().getName(), writer.getFile().length()));
+
+            statisticItem.setToFileName(writer.getFile().getName());
+            statisticItem.setToFileLength(writer.getFile().length());
         }
         writer.close();
         reader.close();
@@ -202,6 +224,10 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
     @Override
     protected void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException {
+        this.writeLog("Start to import from file");
+        StatisticItem statisticItem = new StatisticItem();
+        statisticItems.add(statisticItem);
+
         // Create a WARC Writer
         LocalDateTime timestamp = LocalDateTime.now();
         this.warcFilenameTemplate.setTimestamp(timestamp.format(fTimestamp17));
@@ -225,6 +251,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                     if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
                         warcDate.setTime(fProps.getLastModified());
                     }
+
                     log.debug("WARC-Date: {}", writerDF.format(warcDate));
 
                     File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
@@ -244,11 +271,23 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                     warcWriter.writeRecord(warcRecordInfo);
 
                     Files.deleteIfExists(tempFile.toPath());
+
+                    this.writeLog(String.format("Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
+                    statisticItem.increaseCopiedRecords();
                 } catch (IOException | URISyntaxException e) {
                     log.error(e.getMessage());
+                    statisticItem.increaseFailedRecords();
                 }
             }
         });
+        if (warcWriter.getFile() != null) {
+            this.writeLog(String.format("End to import files, to: %s size: %d", warcWriter.getFile().getName(), warcWriter.getFile().length()));
+            statisticItem.setToFileName(warcWriter.getFile().getName());
+            statisticItem.setToFileLength(warcWriter.getFile().length());
+        } else {
+            this.writeLog("End to import files");
+            statisticItems.remove(statisticItem);
+        }
         warcWriter.close();
     }
 
@@ -256,16 +295,21 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
     @Override
     protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
-            log.error("Unsupported file format: {}", fileFrom.getAbsolutePath());
+            log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
         }
 
         // Get the reader for this ARC File
         ArchiveReader reader = ArchiveReaderFactory.get(fileFrom);
         if (!(reader instanceof WARCReader)) {
-            log.error("Unsupported file format: {}", fileFrom.getAbsolutePath());
+            log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
         }
+        this.writeLog(String.format("Start to import from source URLs, a source WARC file: %s size: %d", fileFrom.getName(), fileFrom.length()));
+        StatisticItem statisticItem = new StatisticItem();
+        statisticItems.add(statisticItem);
+        statisticItem.setFromFileName(fileFrom.getName());
+        statisticItem.setFromFileLength(fileFrom.length());
 
         String strippedImpArcFilename = reader.getStrippedFileName();
         Iterator<ArchiveRecord> archiveRecordsIt = reader.iterator();
@@ -313,11 +357,14 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             long contentLength = header.getLength() - header.getContentBegin();
 
             if (WARCType.equals(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo.toString())) {
+                this.writeLog("Skip [warcinfo] record");
+                statisticItem.increaseSkippedRecords();
                 continue;
             }
-            if (urisToDelete.contains(header.getUrl())) {
-                continue;
-            }
+//            if (urisToDelete.contains(header.getUrl())) {
+//                this.writeLog(String.format("Prune [%s] record: %s", WARCType, header.getUrl()));
+//                continue;
+//            }
 
             ANVLRecord namedFields = new ANVLRecord();
             header.getHeaderFields().forEach((key, value) -> {
@@ -358,6 +405,9 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                     break;
                 default:
                     log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
+                    this.writeLog(String.format("Skip unrecognised [%s] record: %s", WARCType, header.getUrl()));
+                    statisticItem.increaseFailedRecords();
+                    continue;
             }
             warcRecordInfo.setCreate14DigitDate(header.getDate());
             warcRecordInfo.setMimetype(header.getMimetype());
@@ -365,10 +415,18 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             warcRecordInfo.setExtraHeaders(namedFields);
             warcRecordInfo.setContentStream(record);
             warcRecordInfo.setContentLength(contentLength);
-
             writer.writeRecord(warcRecordInfo);
+
+            this.writeLog(String.format("Import [%s] record: %s", WARCType, header.getUrl()));
+            statisticItem.increaseCopiedRecords();
         }
 
+        this.writeLog(String.format("End to import URLs, from: %s size: %d", fileFrom.getName(), fileFrom.length()));
+        if (writer.getFile() != null) {
+            this.writeLog(String.format("End to import URLs, to: %s size: %d", writer.getFile().getName(), writer.getFile().length()));
+            statisticItem.setToFileName(writer.getFile().getName());
+            statisticItem.setToFileLength(writer.getFile().length());
+        }
         writer.close();
         reader.close();
     }
