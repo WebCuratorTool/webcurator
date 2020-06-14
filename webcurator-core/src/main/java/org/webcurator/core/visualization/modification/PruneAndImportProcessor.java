@@ -11,6 +11,7 @@ import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
+import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -42,12 +43,12 @@ public class PruneAndImportProcessor extends Thread {
         CONCURRENCY_COUNT = new Semaphore(max);
     }
 
-    public PruneAndImportProcessor(String fileDir, String baseDir, String logsDirName, String reportsDirName, PruneAndImportCommandApply cmd) {
-        this.fileDir = fileDir;
-        this.baseDir = baseDir;
+    public PruneAndImportProcessor(VisualizationManager visualizationManager, PruneAndImportCommandApply cmd) {
+        this.fileDir = visualizationManager.getUploadDir();
+        this.baseDir = visualizationManager.getBaseDir();
         this.cmd = cmd;
-        this.logsDir = baseDir + File.separator + cmd.getTargetInstanceId() + File.separator + logsDirName + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + cmd.getNewHarvestResultNumber();
-        this.reportsDir = baseDir + File.separator + cmd.getTargetInstanceId() + File.separator + reportsDirName + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + cmd.getNewHarvestResultNumber();
+        this.logsDir = baseDir + File.separator + cmd.getTargetInstanceId() + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + cmd.getNewHarvestResultNumber();
+        this.reportsDir = baseDir + File.separator + cmd.getTargetInstanceId() + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + cmd.getNewHarvestResultNumber();
     }
 
     @Override
@@ -131,7 +132,7 @@ public class PruneAndImportProcessor extends Thread {
 
         coordinator.setFileDir(this.fileDir);
         coordinator.setBaseDir(this.baseDir);
-        coordinator.init(this.logsDir,this.reportsDir);
+        coordinator.init(this.logsDir, this.reportsDir);
 
         //Process copy and file import
         for (File archiveFile : archiveFiles) {

@@ -1438,7 +1438,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     public Boolean checkIndexing(Long harvestResultOid)
             throws DigitalAssetStoreException {
-
         return indexer.checkIndexing(harvestResultOid);
     }
 
@@ -1527,10 +1526,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     @Override
     public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager.getUploadDir(),
-                visualizationManager.getBaseDir(),
-                Constants.DIR_LOGS,
-                Constants.DIR_REPORTS, cmd);
+        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager, cmd);
         new Thread(p).start();
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
@@ -1545,11 +1541,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         if (command.equalsIgnoreCase("delete")) {
             if (p == null) {
-                p = new PruneAndImportProcessor(visualizationManager.getUploadDir(),
-                        visualizationManager.getBaseDir(),
-                        Constants.DIR_LOGS,
-                        Constants.DIR_REPORTS,
-                        null);
+                p = new PruneAndImportProcessor(visualizationManager, null);
             }
             p.delete(targetInstanceId, harvestNumber);
             return;

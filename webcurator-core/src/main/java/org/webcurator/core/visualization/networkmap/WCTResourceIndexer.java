@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomainManager;
@@ -18,6 +19,7 @@ import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistory;
 import org.webcurator.domain.model.dto.SeedHistoryDTO;
@@ -32,8 +34,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @SuppressWarnings("all")
 public class WCTResourceIndexer {
     private static final Logger log = LoggerFactory.getLogger(WCTResourceIndexer.class);
-   private long targetInstanceId;
-   private int harvestNumber;
+    private long targetInstanceId;
+    private int harvestNumber;
     private File directory;
     private Map<String, NetworkMapNode> urls = new Hashtable<>();
 
@@ -41,11 +43,14 @@ public class WCTResourceIndexer {
 
     private Set<SeedHistory> seeds;
 
+    private String logsDir; //log dir
+    private String reportsDir; //report dir
+
     public WCTResourceIndexer(File directory, BDBNetworkMap db, long targetInstanceId, int harvestNumber) throws IOException {
         this.directory = directory;
         this.db = db;
-        this.targetInstanceId=targetInstanceId;
-        this.harvestNumber=harvestNumber;
+        this.targetInstanceId = targetInstanceId;
+        this.harvestNumber = harvestNumber;
         init(targetInstanceId, harvestNumber);
     }
 
@@ -59,6 +64,11 @@ public class WCTResourceIndexer {
         URI uri = uriComponentsBuilder.build().toUri();
         ResponseEntity<SeedHistoryDTO> seedHistoryDTO = restTemplate.getForEntity(uri, SeedHistoryDTO.class);
         this.seeds = Objects.requireNonNull(seedHistoryDTO.getBody()).getSeeds();
+
+        VisualizationManager visualizationManager = ApplicationContextFactory.getApplicationContext().getBean(VisualizationManager.class);
+        String baseDir = visualizationManager.getBaseDir();
+        this.logsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + this.harvestNumber;
+        this.reportsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + this.harvestNumber;
     }
 
     public List<ArcHarvestFileDTO> indexFiles() throws IOException {
@@ -80,13 +90,15 @@ public class WCTResourceIndexer {
         }
 
         ResourceExtractor extractor = new ResourceExtractorWarc(this.urls, this.seeds);
+        extractor.init(this.logsDir, this.reportsDir);
         for (File f : fileList) {
             if (!isWarcFormat(f.getName())) {
+                extractor.writeLog("Skipped unknown file: " + f.getName());
                 continue;
             }
             ArcHarvestFileDTO dto = indexFile(f, extractor);
             if (dto != null) {
-                HarvestResultDTO harvestResult=new HarvestResultDTO();
+                HarvestResultDTO harvestResult = new HarvestResultDTO();
                 harvestResult.setTargetInstanceOid(this.targetInstanceId);
                 harvestResult.setHarvestNumber(this.harvestNumber);
                 dto.setHarvestResult(harvestResult);
@@ -94,10 +106,10 @@ public class WCTResourceIndexer {
             }
         }
 
-        this.statAndSave();
-
+        this.statAndSave(extractor);
         this.clear();
-
+        extractor.writeReport();
+        extractor.close();
         return arcHarvestFileDTOList;
     }
 
@@ -107,9 +119,13 @@ public class WCTResourceIndexer {
         try {
             reader = ArchiveReaderFactory.get(archiveFile);
         } catch (IOException e) {
-            log.error("Failed to open archive file: {} with exception: {}", archiveFile.getAbsolutePath(), e.getMessage());
+            String err = "Failed to open archive file: " + archiveFile.getName() + " with exception: " + e.getMessage();
+            log.error(err);
+            extractor.writeLog(err);
             return null;
         }
+
+        extractor.writeLog("Start indexing from: " + archiveFile.getName());
 
         ArcHarvestFileDTO arcHarvestFileDTO = new ArcHarvestFileDTO();
         arcHarvestFileDTO.setBaseDir(archiveFile.getPath());
@@ -119,7 +135,9 @@ public class WCTResourceIndexer {
         try {
             extractor.extract(reader);
         } catch (IOException e) {
-            log.error("Failed to index archive file: {} with exception: {}", archiveFile.getAbsolutePath(), e.getMessage());
+            String err = "Failed to open index file: " + archiveFile.getName() + " with exception: " + e.getMessage();
+            log.error(err);
+            extractor.writeLog(err);
             return null;
         } finally {
             try {
@@ -128,18 +146,20 @@ public class WCTResourceIndexer {
                 log.error(e.getMessage());
             }
         }
-
+        extractor.writeLog("End indexing from: " + archiveFile.getName());
         return arcHarvestFileDTO;
     }
 
-    private void statAndSave() {
+    private void statAndSave(ResourceExtractor extractor) {
         AtomicLong domainIdGenerator = new AtomicLong();
         NetworkMapDomainManager domainManager = new NetworkMapDomainManager();
 
         //Statistic by domain
         NetworkMapDomain rootDomainNode = new NetworkMapDomain(NetworkMapDomain.DOMAIN_NAME_LEVEL_ROOT, 0);
         rootDomainNode.addChildren(this.urls.values(), domainIdGenerator, domainManager);
+        extractor.writeLog("rootDomainNode.addChildren: group by domain");
         rootDomainNode.addStatData(this.urls.values());
+        extractor.writeLog("rootDomainNode.addStatData: accumulate by content type and status code");
 
         //Process parent relationship, outlinks and domain's outlink
         this.urls.values().forEach(node -> {
@@ -174,6 +194,7 @@ public class WCTResourceIndexer {
         });
 //        db.put(BDBNetworkMap.PATH_METADATA_DOMAIN_NAME, statDomainMap.keySet());
         db.put(BDBNetworkMap.PATH_GROUP_BY_DOMAIN, rootDomainNode);
+        extractor.writeLog("Finished storing domain nodes");
 
         //Process and save url
         List<Long> rootUrls = new ArrayList<>();
@@ -193,6 +214,8 @@ public class WCTResourceIndexer {
         rootUrls.clear();
         db.put(BDBNetworkMap.PATH_MALFORMED_URLS, malformedUrls);
         malformedUrls.clear();
+
+        extractor.writeLog("Finished storing url nodes");
     }
 
     private boolean isWarcFormat(String name) {

@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 public class VisualizationManager {
     private String uploadDir;
     private String baseDir;
+    private String logsDir;
+    private String reportsDir;
 
     public String getUploadDir() {
         return uploadDir;
@@ -21,5 +23,21 @@ public class VisualizationManager {
 
     public void setBaseDir(String baseDir) {
         this.baseDir = baseDir;
+    }
+
+    public String getLogsDir() {
+        return logsDir;
+    }
+
+    public void setLogsDir(String logsDir) {
+        this.logsDir = logsDir;
+    }
+
+    public String getReportsDir() {
+        return reportsDir;
+    }
+
+    public void setReportsDir(String reportsDir) {
+        this.reportsDir = reportsDir;
     }
 }

@@ -56,7 +56,7 @@ public abstract class HarvestResult implements UserInTrayResource {
     public static final int STATE_PATCH_MOD_RUNNING = 70;
     public static final int STATE_PATCH_MOD_PAUSED = 71;
     public static final int STATE_PATCH_MOD_STOPPED = 72;
-
+    public static final int STATE_PATCH_MOD_FINISHED = 79;
 
     /**
      * The state constant for a Harvest Result that is being indexed.

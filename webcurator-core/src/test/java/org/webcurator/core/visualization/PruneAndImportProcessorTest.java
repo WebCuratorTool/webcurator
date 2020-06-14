@@ -17,16 +17,26 @@ public class PruneAndImportProcessorTest {
 
     @Test
     public void testPruneAndImport() throws IOException, URISyntaxException {
-        PruneAndImportCommandApply cmd = getPruneAndImportCommandApply(5013);
-        cmd.setNewHarvestResultNumber(58);
+        PruneAndImportCommandApply cmd = getPruneAndImportCommandApply(5010, 2);
+        cmd.setNewHarvestResultNumber(2);
 
-        PruneAndImportProcessor p = new PruneAndImportProcessor(fileDir, baseDir, "logs", "reports", cmd);
+        VisualizationManager visualizationManager = new VisualizationManager();
+        visualizationManager.setBaseDir(baseDir);
+        visualizationManager.setUploadDir(fileDir);
+        visualizationManager.setLogsDir("logs");
+        visualizationManager.setReportsDir("reports");
+        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager, cmd);
 
-        p.pruneAndImport();
+        p.start();
+        try {
+            p.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    public PruneAndImportCommandApply getPruneAndImportCommandApply(long job) throws IOException {
-        String cmdFilePath = String.format("%s%smod_%d.json", coreCacheDir, File.separator, job);
+    public PruneAndImportCommandApply getPruneAndImportCommandApply(long job, int harvestNumber) throws IOException {
+        String cmdFilePath = String.format("%s%smod_%d_%d.json", coreCacheDir, File.separator, job, harvestNumber);
         File cmdFile = new File(cmdFilePath);
         byte[] cmdJsonContent = Files.readAllBytes(cmdFile.toPath());
         ObjectMapper objectMapper = new ObjectMapper();

@@ -90,6 +90,11 @@
         }
     }
 
+    function clickStartPatching(hrOid){
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_START_PATCHING%>';
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+        document.forms['tabForm'].submit();
+    }
   //When viewing this target instance from the "Harvest history" screen, clicking on "review" will 
   //cause the "Return to Harvest History Page" to forget which target instance was originally being
   //reviewed.  Warn the user to try and prevent mistakes.
@@ -132,8 +137,10 @@
 				    <td class="annotationsLiteRow"><c:out value="${hr.createdBy.niceName}"/></td>
 				    <td class="annotationsLiteRow"><c:out value="${hr.provenanceNote}"/></td>
 				    <td class="annotationsLiteRow">
-				    ${hr.state}
 				    <c:choose>
+				        <c:when test="${hr.state == 0}">
+                            <!--Nothing-->
+                        </c:when>
                         <c:when test="${hr.state == 1}">
                             Endorsed
                         </c:when>
@@ -150,22 +157,31 @@
                             Patch Scheduled
                         </c:when>
                         <c:when test="${hr.state == 60}">
-                            Patch Harvesting
+                            Patch Harvesting Running
                         </c:when>
                         <c:when test="${hr.state == 61}">
                             Patch Harvesting Paused
                         </c:when>
                         <c:when test="${hr.state == 62}">
+                            Patch Harvesting Stopped
+                        </c:when>
+                        <c:when test="${hr.state == 63}">
                             Patch Harvesting Aborted
                         </c:when>
+                        <c:when test="${hr.state == 69}">
+                            Patch Harvesting Finished
+                        </c:when>
                         <c:when test="${hr.state == 70}">
-                            Patch Modifying
+                            Patch Modifying Running
                         </c:when>
                         <c:when test="${hr.state == 71}">
                             Patch Modifying Paused
                         </c:when>
                         <c:when test="${hr.state == 72}">
                             Patch Modifying Aborted
+                        </c:when>
+                        <c:when test="${hr.state == 79}">
+                            Patch Modifying Finished
                         </c:when>
                         <c:when test="${hr.state == 80}">
                             Patch Indexing
@@ -176,6 +192,12 @@
                         <c:when test="${hr.state == 82}">
                             Patch Indexing Aborted
                         </c:when>
+                        <c:when test="${hr.state == 89}">
+                            Patch Indexing Finished
+                        </c:when>
+                        <c:otherwise>
+                            Unknown
+                        </c:otherwise>
 				    </c:choose>  
 				    </td>
 				    <td class="annotationsLiteRow">
@@ -258,7 +280,7 @@
 
                                 <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
                                     <authority:show>
-                                    <c:if test="${hr.state == 50 || hr.state == 62 || hr.state == 72}">
+                                    <c:if test="${hr.state == 50 || hr.state == 62 || hr.state == 63 || hr.state == 72|| hr.state == 82}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick='javascript: clickDelete("${hr.oid}");'/>
                                     </c:if>
@@ -266,11 +288,11 @@
                                 </authority:showControl>
 
                                 <authority:hasPrivilege privilege="<%=Privilege.MANAGE_WEB_HARVESTER%>" scope="<%=Privilege.SCOPE_AGENCY%>">
-                                    <c:if test="${hr.state == 60 || hr.state == 70 }">
+                                    <c:if test="${hr.state == 60 || hr.state == 70 || hr.state == 80}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/pause-icon.gif" title="Pause" alt="click here to Pause this item" width="21" height="20" border="0" onclick='javascript: clickPause("${hr.oid}");'/>
                                     </c:if>
-                                    <c:if test="${hr.state == 61 || hr.state == 71 }">
+                                    <c:if test="${hr.state == 61 || hr.state == 71 || hr.state == 81}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/resume-icon.gif" title="Resume" alt="click here to Resume this item" width="21" height="20" border="0" onclick='javascript: clickResume("${hr.oid}");'/>
                                     </c:if>
@@ -280,7 +302,7 @@
                                         <input type="image" src="images/abort-icon.gif" title="Abort" alt="click here to Abort this item" width="21" height="20" border="0" onclick='javascript: clickAbort("${hr.oid}");'/>
                                         -->
                                     </c:if>
-                                    <c:if test="${hr.state == 60 || hr.state == 70 || hr.state == 61 || hr.state == 71}">
+                                    <c:if test="${hr.state == 60  || hr.state == 61 || hr.state == 70 || hr.state == 71 || hr.state == 80 || hr.state == 81}">
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <input type="image" src="images/stop-icon.gif" title="Stop" alt="click here to Stop this item" width="21" height="20" border="0" onclick='javascript: clickStop("${hr.oid}");'/>
                                     </c:if>
@@ -289,6 +311,10 @@
                                         <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
                                         <a href="javascript:viewH3ScriptConsole(${instance.oid});" title="View"><img src="images/h3-script-console.png" title="H3 Script Console" alt="click here to Open H3 Script Console" width="21" height="20" border="0"></a>
                                         -->
+                                    </c:if>
+                                    <c:if test="${hr.state == 69 || hr.state == 79}">
+                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                        <input type="image" src="images/resume-icon.gif" title="Start patching" alt="click here to Start the patching" width="21" height="20" border="0" onclick='javascript: clickStartPatching("${hr.oid}");'/>
                                     </c:if>
                                 </authority:hasPrivilege>
                             </c:when>

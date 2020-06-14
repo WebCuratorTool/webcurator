@@ -38,6 +38,7 @@ public class ResourceExtractorWarc extends ResourceExtractor {
     protected void extractRecord(ArchiveRecord rec) throws IOException {
         String mime = rec.getHeader().getMimetype();
         if (mime.equals("text/dns")) {
+            this.writeLog("Skipped MIMEType: " + mime);
             return;
         }
 
@@ -47,6 +48,7 @@ public class ResourceExtractorWarc extends ResourceExtractor {
         // If the URL length is too long for the database, skip adding the URL
         // to the index. This ensures that the harvest completes successfully.
         if (header.getUrl() == null || header.getUrl().length() > MAX_URL_LENGTH) {
+            this.writeLog("Invalid URL: " + header.getUrl());
             return;
         }
 
@@ -71,13 +73,17 @@ public class ResourceExtractorWarc extends ResourceExtractor {
             byte[] statusBytes = HttpParser.readRawLine(record);
             int eolCharCount = getEolCharsCount(statusBytes);
             if (eolCharCount <= 0) {
-                throw new RecoverableIOException("Failed to read http status where one " +
-                        " was expected: " + new String(statusBytes));
+                String err = "Failed to read http status where one " +
+                        " was expected: " + new String(statusBytes);
+                this.writeLog(err);
+                throw new RecoverableIOException(err);
             }
             String statusLine = EncodingUtil.getString(statusBytes, 0,
                     statusBytes.length - eolCharCount, WARCConstants.DEFAULT_ENCODING);
             if (!StatusLine.startsWithHTTP(statusLine)) {
-                throw new RecoverableIOException("Failed parse of http status line.");
+                String err = "Failed parse of http status line.";
+                this.writeLog(err);
+                throw new RecoverableIOException(err);
             }
             StatusLine status = new StatusLine(statusLine);
             res.setStatusCode(status.getStatusCode());
@@ -107,13 +113,14 @@ public class ResourceExtractorWarc extends ResourceExtractor {
                     } else {
                         res.setSeedType(1);
                     }
-                }else{
+                } else {
                     res.setSeedType(2);
                 }
             }
             res.setHasOutlinks(httpHeaders.get("outlink") != null);
             res.setViaUrl(httpHeaders.getValue("via"));
         }
-    }
 
+        this.writeLog("Extracted URL: " + res.getUrl() + ", results.size=" + results.size());
+    }
 }

@@ -289,6 +289,8 @@ public class DasConfig {
 
         visualizationManager.setUploadDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
         visualizationManager.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        visualizationManager.setLogsDir(Constants.DIR_LOGS);
+        visualizationManager.setReportsDir(Constants.DIR_REPORTS);
 
         PruneAndImportProcessor.setMaxConcurrencyModThreads(maxConcurrencyModThreads);
     }

@@ -284,6 +284,8 @@ public class TargetInstanceResultHandler extends TabHandler {
             return this.clickStop(tc, currentTab, req, res, cmd, bindingResult);
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_DELETE)) {
             return this.clickDelete(tc, currentTab, req, res, cmd, bindingResult);
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_START_PATCHING)) {
+            return this.clickStartPatching(tc, currentTab, req, res, cmd, bindingResult);
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ARCHIVE)) {
             throw new WCTRuntimeException("Archive command processing is not implemented yet.");
         } else {
@@ -422,11 +424,13 @@ public class TargetInstanceResultHandler extends TabHandler {
         }
 
         //Change the state of Target Instance to 'Harvested'
-        ti.setState(TargetInstance.STATE_HARVESTED);
-        targetInstanceDAO.save(ti);
-
         //Delete the selected Harvest Result
         targetInstanceDAO.delete(hr);
+
+        if (ti.getPatchingHarvestResult() == null) {
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            targetInstanceDAO.save(ti);
+        }
 
         req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
@@ -435,6 +439,32 @@ public class TargetInstanceResultHandler extends TabHandler {
         tmav.getTabStatus().setCurrentTab(currentTab);
         return tmav;
     }
+
+    private TabbedModelAndView clickStartPatching(TabbedController tc, Tab currentTab, HttpServletRequest req, HttpServletResponse res, TargetInstanceCommand cmd, BindingResult bindingResult) {
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
+        TargetInstance ti = hr.getTargetInstance();
+
+        //start modifying
+        if (hr.getState() == HarvestResult.STATE_PATCH_HARVEST_FINISHED) {
+            harvestCoordinator.pushPruneAndImport(ti);
+        } else if (hr.getState() == HarvestResult.STATE_PATCH_MOD_FINISHED) {
+            try {
+                digitalAssetStore.initiateIndexing(
+                        new HarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr
+                                .getCreationDate(), hr.getHarvestNumber(), hr.getProvenanceNote()));
+            } catch (DigitalAssetStoreException ex) {
+                bindingResult.reject("Could not send initiateIndexing message to the DAS: " + ex.getMessage());
+            }
+        }
+
+        req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+
+        //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+        TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+        tmav.getTabStatus().setCurrentTab(currentTab);
+        return tmav;
+    }
+
 
     /**
      * @param harvestCoordinator The harvestCoordinator to set.

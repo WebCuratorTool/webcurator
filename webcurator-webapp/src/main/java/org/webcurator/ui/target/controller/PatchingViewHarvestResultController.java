@@ -13,7 +13,9 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
+import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandProgress;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -53,7 +55,6 @@ public class PatchingViewHarvestResultController {
     @GetMapping
     public ModelAndView getHandle(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception {
         ModelAndView mav = new ModelAndView("patching-view-hr");
-//        BindingResult bindingResult,
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
         if (ti == null) {
 //            bindingResult.reject("Could not find Target Instance with ID: " + targetInstanceId);
@@ -68,8 +69,29 @@ public class PatchingViewHarvestResultController {
             return mav;
         }
 
+        PruneAndImportCommandProgress progress = new PruneAndImportCommandProgress();
+        if (hr.getState() >= 50) {
+            progress.setPercentageSchedule(100);
+        }
+        if (hr.getState() >= HarvestResult.STATE_PATCH_HARVEST_FINISHED) {
+            progress.setPercentageHarvest(100);
+        } else if (hr.getState() >= HarvestResult.STATE_PATCH_HARVEST_RUNNING) {
+            progress.setPercentageHarvest(50);
+        }
 
-        PruneAndImportCommandApply pruneAndImportCommandApply = harvestCoordinator.getPruneAndImportCommandApply(targetInstanceId);
+        if (hr.getState() >= HarvestResult.STATE_PATCH_MOD_FINISHED) {
+            progress.setPercentageModify(100);
+        } else if (hr.getState() >= HarvestResult.STATE_PATCH_MOD_RUNNING) {
+            progress.setPercentageModify(50);
+        }
+
+        if (hr.getState() == HarvestResult.STATE_INDEXING) {
+            progress.setPercentageIndex(50);
+        } else if (hr.getState() < HarvestResult.STATE_PATCH_SCHEDULED) {
+            progress.setPercentageHarvest(100);
+        }
+
+        PruneAndImportCommandApply pruneAndImportCommandApply = harvestCoordinator.getPruneAndImportCommandApply(ti);
         List<PruneAndImportCommandRowMetadata> listToBePruned = new ArrayList<>();
         List<PruneAndImportCommandRowMetadata> listToBeImportedByFile = new ArrayList<>();
         List<PruneAndImportCommandRowMetadata> listToBeImportedByURL = new ArrayList<>();
@@ -90,6 +112,7 @@ public class PatchingViewHarvestResultController {
 
         mav.addObject("ti", ti);
         mav.addObject("hr", hr);
+        mav.addObject("progress", progress);
         mav.addObject("listToBePruned", listToBePruned);
         mav.addObject("listToBeImportedByFile", listToBeImportedByFile);
         mav.addObject("listToBeImportedByURL", listToBeImportedByURL);

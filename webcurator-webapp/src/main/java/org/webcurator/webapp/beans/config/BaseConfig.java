@@ -614,7 +614,7 @@ public class BaseConfig {
         bean.setHarvestAgentFactory(harvestAgentFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
-
+        bean.setHarvestCoordinator(harvestCoordinator);
         return bean;
     }
 

@@ -7,6 +7,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
+import org.webcurator.core.visualization.VisualizationCoordinator;
+import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.VisualizationConstants;
 
@@ -14,11 +16,10 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public abstract class PruneAndImportCoordinator {
+public abstract class PruneAndImportCoordinator extends VisualizationCoordinator {
     protected static final Logger log = LoggerFactory.getLogger(PruneAndImportCoordinator.class);
     protected static final int BYTE_BUFF_SIZE = 1024;
     /**
@@ -31,54 +32,10 @@ public abstract class PruneAndImportCoordinator {
     protected String baseDir; //Harvest WARC files dir
     protected boolean running = true;
 
-    protected FileWriter log_modification;
-    protected FileWriter report_modification;
-
-    protected List<StatisticItem> statisticItems = new ArrayList<>();
-
     public void init(String logsDir, String reportsDir) throws IOException {
-        File fLogsDir = new File(logsDir);
-        if (!fLogsDir.exists()) {
-            fLogsDir.mkdirs();
-        }
-        this.log_modification = new FileWriter(new File(logsDir, "modification.log"), false);
-
-        File fReportsDir = new File(reportsDir);
-        if (!fReportsDir.exists()) {
-            fReportsDir.mkdirs();
-        }
-        this.report_modification = new FileWriter(new File(reportsDir, "mod_report.txt"), false);
-
-        this.statisticItems.clear();
-    }
-
-    public void close() throws IOException {
-        this.log_modification.close();
-        this.report_modification.close();
-        this.statisticItems.clear();
-    }
-
-    public void writeLog(String content) {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        String time = localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        try {
-            log_modification.write(String.format("%s MOD %s%s", time, content, System.lineSeparator()));
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    public void writeReport() {
-        try {
-            String title = StatisticItem.getPrintTitle();
-            report_modification.write(title + System.lineSeparator());
-
-            for (StatisticItem e : statisticItems) {
-                report_modification.write(e.toString() + System.lineSeparator());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.flag = "MOD";
+        this.reportTitle = StatisticItem.getPrintTitle();
+        super.init(logsDir, reportsDir);
     }
 
     public String getArchiveType() {
@@ -157,7 +114,7 @@ public abstract class PruneAndImportCoordinator {
         this.running = false;
     }
 
-    static class StatisticItem {
+    static class StatisticItem implements VisualizationStatisticItem {
         private String fromFileName = null;
         private long fromFileLength = -1;
         private String toFileName = null;
@@ -172,6 +129,7 @@ public abstract class PruneAndImportCoordinator {
             return "FromFileName\tFromFileLength\tToFileName\tToFileLength\tTotalRecords\tSkippedRecords\tPrunedRecords\tCopiedRecords\tFailedRecords";
         }
 
+        @Override
         public String toString() {
             String pFromFileName = this.fromFileName == null ? "--" : this.fromFileName;
             String pFromFileLength = this.fromFileLength < 0 ? "--" : Long.toString(this.fromFileLength);

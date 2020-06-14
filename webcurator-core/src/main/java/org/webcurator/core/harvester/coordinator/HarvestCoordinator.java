@@ -358,7 +358,9 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
 
     int getHarvestOptimizationLookAheadHours();
 
-    PruneAndImportCommandApply getPruneAndImportCommandApply(long targetInstanceId) throws IOException;
+    boolean pushPruneAndImport(TargetInstance ti);
+
+    PruneAndImportCommandApply getPruneAndImportCommandApply(TargetInstance ti) throws IOException;
 
     void downloadFile(long targetInstanceId, int harvestResultNumber, String fileName, OutputStream out);
 }

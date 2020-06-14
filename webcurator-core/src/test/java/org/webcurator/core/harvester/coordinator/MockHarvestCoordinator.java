@@ -382,8 +382,12 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	}
 
 	@Override
-	public PruneAndImportCommandApply getPruneAndImportCommandApply(long targetInstanceId) throws IOException {
-		//TODO
+	public boolean pushPruneAndImport(TargetInstance ti) {
+		return false;
+	}
+
+	@Override
+	public PruneAndImportCommandApply getPruneAndImportCommandApply(TargetInstance ti) throws IOException {
 		return null;
 	}
 

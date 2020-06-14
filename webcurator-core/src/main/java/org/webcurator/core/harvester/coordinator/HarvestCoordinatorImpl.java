@@ -190,7 +190,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            this.pushPruneAndImport(ti.getOid());
+            this.pushPruneAndImport(ti);
         } else {
             // The result is for the original harvest, but the TI already has one or more results
             if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
@@ -551,7 +551,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         PruneAndImportCommandApply cmd = null;
         try {
-            cmd = this.getPruneAndImportCommandApply(targetInstance.getOid());
+            cmd = this.getPruneAndImportCommandApply(targetInstance);
         } catch (IOException e) {
             log.error(e.getMessage());
             return processed;
@@ -620,12 +620,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             return;
         }
 
-        harvestResult.setState(HarvestResult.STATE_INDEXING);
-        targetInstanceDao.save(harvestResult);
-
-        ti.setState(TargetInstance.STATE_HARVESTED);
-        targetInstanceDao.save(ti);
-
         harvestBandwidthManager.sendBandWidthRestrictions();
 
         // Ask the DigitalAssetStore to index the ARC
@@ -633,6 +627,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             digitalAssetStoreFactory.getDAS().initiateIndexing(
                     new HarvestResultDTO(harvestResult.getOid(), harvestResult.getTargetInstance().getOid(), harvestResult
                             .getCreationDate(), harvestResult.getHarvestNumber(), harvestResult.getProvenanceNote()));
+            harvestResult.setState(HarvestResult.STATE_PATCH_INDEX_RUNNING);
+            targetInstanceDao.save(harvestResult);
         } catch (DigitalAssetStoreException ex) {
             log.error("Could not send initiateIndexing message to the DAS", ex);
         }
@@ -1319,8 +1315,16 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     public void finaliseIndex(Long harvestResultOid) {
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
         ahr.setState(0);
+
         harvestQaManager.triggerAutoQA((ArcHarvestResult) ahr);
         targetInstanceDao.save(ahr);
+
+        TargetInstance ti = ahr.getTargetInstance();
+        if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            targetInstanceDao.save(ti);
+        }
+
         // run the QA recommendation service to derive the Quality Indicators
         harvestQaManager.initialiseQaRecommentationService(harvestResultOid);
 
@@ -1667,7 +1671,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         try {
-            this.savePruneAndImportCommandApply(cmd.getTargetInstanceId(), cmd);
+            this.savePruneAndImportCommandApply(cmd);
         } catch (WCTRuntimeException | IOException e) {
             result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(e.getMessage());
@@ -1707,13 +1711,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return result;
     }
 
-    public boolean pushPruneAndImport(long job) {
+    @Override
+    public boolean pushPruneAndImport(TargetInstance ti) {
         PruneAndImportCommandApply cmd = null;
         try {
-            cmd = getPruneAndImportCommandApply(job);
+            cmd = getPruneAndImportCommandApply(ti);
         } catch (IOException e) {
             log.error(e.getMessage());
-            log.error("Could not load PruneAndImportCommandApply of target instance: {}", job);
+            log.error("Could not load PruneAndImportCommandApply of target instance: {}", ti.getJobName());
             return false;
         }
 
@@ -1721,7 +1726,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS;
     }
 
-    public PruneAndImportCommandResult pushPruneAndImport(PruneAndImportCommandApply cmd) {
+    private PruneAndImportCommandResult pushPruneAndImport(PruneAndImportCommandApply cmd) {
         DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
@@ -1732,6 +1737,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         HttpEntity<String> request = digitalAssetStoreClient.createHttpRequestEntity(cmd);
         RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
         result = restTemplate.postForObject(uri, request, PruneAndImportCommandResult.class);
+
+        if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
+            log.error("Failed to request modification, {} {}", result.getRespCode(), result.getRespMsg());
+            return result;
+        }
 
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         if (ti == null) {
@@ -1753,7 +1763,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return result;
     }
 
-    public void savePruneAndImportCommandApply(long job, PruneAndImportCommandApply cmd) throws IOException, WCTRuntimeException {
+    private void savePruneAndImportCommandApply(PruneAndImportCommandApply cmd) throws IOException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         HarvestResult res = targetInstanceDao.getHarvestResult(cmd.getHarvestResultId()); //Query the old Harvest Result
         if (ti == null || res == null) {
@@ -1793,8 +1803,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         cmd.setNewHarvestResultNumber(newHarvestResultNumber);
 
-        String cmdFilePath = String.format("%s%smod_%d.json", visualizationManager.getUploadDir(), File.separator, job);
-        File cmdFile = new File(cmdFilePath);
+        File cmdFile = new File(visualizationManager.getUploadDir(), ti.getJobName() + ".json");
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -1802,10 +1811,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         Files.write(cmdFile.toPath(), cmdJsonContent);
     }
 
-    @Override
-    public PruneAndImportCommandApply getPruneAndImportCommandApply(long targetInstanceId) throws IOException {
-        String cmdFilePath = String.format("%s%smod_%d.json", visualizationManager.getUploadDir(), File.separator, targetInstanceId);
-        File cmdFile = new File(cmdFilePath);
+    public PruneAndImportCommandApply getPruneAndImportCommandApply(TargetInstance ti) throws IOException {
+        File cmdFile = new File(visualizationManager.getUploadDir(), ti.getJobName() + ".json");
         byte[] cmdJsonContent = Files.readAllBytes(cmdFile.toPath());
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);

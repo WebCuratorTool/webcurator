@@ -5,11 +5,14 @@
 	<table width="100%" cellpadding="2" cellspacing="0" border="0">
 		<tr><td><span class="midtitleGrey">Overall</span></td></tr>
 		<tr width="100%" >
-		    <td width="30%"><b>Harvest Number: </b> ${hr.harvestNumber}</td>
-            <td width="30%"><b>Derived From: </b> ${hr.derivedFrom}</td>
-            <td width="30%">
+		    <td width="10%"><b>Harvest Number: </b> ${hr.harvestNumber}</td>
+            <td width="10%"><b>Derived From: </b> ${hr.derivedFrom}</td>
+            <td width="80%">
                 <b>State: </b>
                 <c:choose>
+                    <c:when test="${hr.state == 0}">
+                        <!--Nothing-->
+                    </c:when>
                     <c:when test="${hr.state == 1}">
                         Endorsed
                     </c:when>
@@ -26,22 +29,31 @@
                         Patch Scheduled
                     </c:when>
                     <c:when test="${hr.state == 60}">
-                        Patch Harvesting
+                        Patch Harvesting Running
                     </c:when>
                     <c:when test="${hr.state == 61}">
                         Patch Harvesting Paused
                     </c:when>
                     <c:when test="${hr.state == 62}">
+                        Patch Harvesting Stopped
+                    </c:when>
+                    <c:when test="${hr.state == 63}">
                         Patch Harvesting Aborted
                     </c:when>
+                    <c:when test="${hr.state == 69}">
+                        Patch Harvesting Finished
+                    </c:when>
                     <c:when test="${hr.state == 70}">
-                        Patch Modifying
+                        Patch Modifying Running
                     </c:when>
                     <c:when test="${hr.state == 71}">
                         Patch Modifying Paused
                     </c:when>
                     <c:when test="${hr.state == 72}">
                         Patch Modifying Aborted
+                    </c:when>
+                    <c:when test="${hr.state == 79}">
+                        Patch Modifying Finished
                     </c:when>
                     <c:when test="${hr.state == 80}">
                         Patch Indexing
@@ -52,7 +64,29 @@
                     <c:when test="${hr.state == 82}">
                         Patch Indexing Aborted
                     </c:when>
+                    <c:when test="${hr.state == 89}">
+                        Patch Indexing Finished
+                    </c:when>
                 </c:choose>
+            </td>
+        </tr>
+        <tr width="100%" >
+            <td width="10%"><b>Progress: </b></td>
+            <td colspan="2" width="90%">
+                <table cellpadding="3" cellspacing="0" border="0" width="100%">
+                    <tr>
+                        <th>Scheduled</th>
+                        <th>Patching Harvest</th>
+                        <th>Prune and Import</th>
+                        <th>Indexing</th>
+                    </tr>
+                    <tr>
+                        <td><progress value="${progress.percentageSchedule}" max="100" style="width:100%;"></progress></td>
+                        <td><progress value="${progress.percentageHarvest}" max="100" style="width:100%;"></progress></td>
+                        <td><progress value="${progress.percentageModify}" max="100" style="width:100%;"></progress></td>
+                        <td><progress value="${progress.percentageIndex}" max="100" style="width:100%;"></progress></td>
+                    </tr>
+                </table>
             </td>
         </tr>
         <tr><td colsapan="3">&nbsp;</td></tr>
@@ -61,7 +95,7 @@
     </table>
 
     <div>
-        <div style="display: inline-block; width: 30%; vertical-align:top;">
+        <div style="display: inline-block; width: 33%; vertical-align:top;">
                 <table cellpadding="3" cellspacing="0" border="0" width="100%">
                     <tr><th class="tableHead" colspan="3">Patching Crawling Logs</th></tr>
                     <c:choose>
@@ -94,7 +128,7 @@
                 </c:choose>
           </table>
         </div>
-        <div style="display: inline-block; width: 30%; vertical-align:top;">
+        <div style="display: inline-block; width: 33%; vertical-align:top;">
             <table cellpadding="3" cellspacing="0" border="0" width="100%">
                 <tr><th class="tableHead" colspan="3">Patching Modifying Logs</th></tr>
                 <c:choose>
@@ -127,7 +161,7 @@
                 </c:choose>
             </table>
         </div>
-        <div style="display: inline-block; width: 30%; vertical-align:top;">
+        <div style="display: inline-block; width: 33%; vertical-align:top;">
             <table cellpadding="3" cellspacing="0" border="0" width="100%">
                 <tr><th class="tableHead" colspan="3">Patching Indexing Logs</th></tr>
                 <c:choose>
@@ -170,14 +204,14 @@
             <td width="100%">
                     <c:choose>
                         <c:when test="${empty listToBePruned}">
-                        <table cellpadding="3" cellspacing="0" border="0">
+                        <table cellpadding="3" cellspacing="0" border="0" width="100%">
                             <tr>
                                 <td class="subBoxText">No To Be Pruned urls are available.</td>
                             </tr>
                         </table>
                         </c:when>
                         <c:otherwise>
-                        <table cellpadding="3" cellspacing="0" border="0">
+                        <table cellpadding="3" cellspacing="0" border="0" width="100%">
                             <tr>
                                 <th width="100%">Target URL</th>
                             </tr>
@@ -201,14 +235,14 @@
             <td width="100%">
                     <c:choose>
                         <c:when test="${empty listToBeImportedByFile}">
-                        <table cellpadding="3" cellspacing="0" border="0">
+                        <table cellpadding="3" cellspacing="0" border="0" width="100%">
                             <tr>
                                 <td class="subBoxText" colspan="3">No To Be Imported by Files are available.</td>
                             </tr>
                         </table>
                         </c:when>
                         <c:otherwise>
-                        <table cellpadding="3" cellspacing="0" border="0">
+                        <table cellpadding="3" cellspacing="0" border="0" width="100%">
                             <tr>
                                 <th width="70%">Target URL</th>
                                 <th width="15%">File Name</th>
@@ -240,14 +274,14 @@
             <td width="100%">
                     <c:choose>
                         <c:when test="${empty listToBeImportedByURL}">
-                        <table cellpadding="3" cellspacing="0" border="0">
+                        <table cellpadding="3" cellspacing="0" border="0" width="100%">
                             <tr>
                                 <td class="subBoxText">No To Be Imported by URLs are available.</td>
                             </tr>
                         </table>
                         </c:when>
                         <c:otherwise>
-                        <table cellpadding="3" cellspacing="0" border="0">
+                        <table cellpadding="3" cellspacing="0" border="0" width="100%">
                             <tr>
                                 <th width="100%">Target URL</th>
                             </tr>

@@ -6,16 +6,20 @@ import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.visualization.VisualizationCoordinator;
+import org.webcurator.core.visualization.VisualizationStatisticItem;
+import org.webcurator.core.visualization.modification.PruneAndImportCoordinator;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.domain.model.core.SeedHistory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-abstract public class ResourceExtractor {
+abstract public class ResourceExtractor extends VisualizationCoordinator {
     private static final Logger log = LoggerFactory.getLogger(ResourceExtractor.class);
 
     protected static final int MAX_URL_LENGTH = 1020;
@@ -32,12 +36,25 @@ abstract public class ResourceExtractor {
         });
     }
 
+    public void init(String logsDir, String reportsDir) throws IOException {
+        this.flag = "IDX";
+        this.reportTitle = StatisticItem.getPrintTitle();
+        super.init(logsDir, reportsDir);
+    }
+
     public void extract(ArchiveReader reader) throws IOException {
+        StatisticItem item = new StatisticItem();
+        item.setFromFileName(reader.getStrippedFileName());
+        statisticItems.add(item);
+
         preProcess();
         for (ArchiveRecord record : reader) {
             extractRecord(record);
             record.close();
-            log.info("Extracting, results.size:{}", results.size());
+            if (results.size() % 1000 == 0) {
+                log.info("Extracting, results.size:{}", results.size());
+            }
+            item.increaseSucceedRecords();
         }
         postProcess();
     }
@@ -86,5 +103,56 @@ abstract public class ResourceExtractor {
 
     public long getUrlCount() {
         return atomicIdGeneratorUrl.get();
+    }
+
+    static class StatisticItem implements VisualizationStatisticItem {
+        private String fromFileName = null;
+        private long fromFileLength = -1;
+        private int totalRecords = 0;
+        private int failedRecords = 0;
+        private int succeedRecords = 0;
+
+        public static String getPrintTitle() {
+            return "FromFileName\tFromFileLength\tTotalRecords\tSucceedRecords\tFailedRecords";
+        }
+
+        @Override
+        public String toString() {
+            String pFromFileName = this.fromFileName == null ? "--" : this.fromFileName;
+            String pFromFileLength = this.fromFileLength < 0 ? "--" : Long.toString(this.fromFileLength);
+
+            return String.format("%s\t%s\t%d\t%d\t%d",
+                    pFromFileName,
+                    pFromFileLength,
+                    this.totalRecords,
+                    this.succeedRecords,
+                    this.failedRecords);
+        }
+
+        public void setFromFileName(String fromFileName) {
+            this.fromFileName = fromFileName;
+        }
+
+        public void setFromFileLength(long fromFileLength) {
+            this.fromFileLength = fromFileLength;
+        }
+
+        public void increaseSucceedRecords() {
+            this.increaseSucceedRecords(1);
+        }
+
+        public void increaseSucceedRecords(int num) {
+            this.succeedRecords += num;
+            this.totalRecords += num;
+        }
+
+        public void increaseFailedRecords() {
+            this.increaseFailedRecords(1);
+        }
+
+        public void increaseFailedRecords(int num) {
+            this.failedRecords += num;
+            this.totalRecords += num;
+        }
     }
 }

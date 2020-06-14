@@ -23,11 +23,12 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
     static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<Long>());
 
     HashMap<String, HarvestAgentStatusDTO> harvestAgents = new HashMap<String, HarvestAgentStatusDTO>();
-    ;
+
     private Logger log = LoggerFactory.getLogger(getClass());
     private TargetInstanceDAO targetInstanceDao;
     private TargetInstanceManager targetInstanceManager;
     private HarvestAgentFactory harvestAgentFactory;
+    private HarvestCoordinator harvestCoordinator;
 
     @Override
     public void heartbeat(HarvestAgentStatusDTO aStatus) {
@@ -157,10 +158,15 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             ti.setState(TargetInstance.STATE_STOPPING);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr != null) {
-                hr.setState(HarvestResult.STATE_PATCH_HARVEST_FINISHED);
-                targetInstanceDao.save(hr);
+            if (hr == null) {
+                log.error("Failed to load relevant Harvest Result:{}", ti.getOid());
+                return;
             }
+
+            hr.setState(HarvestResult.STATE_PATCH_HARVEST_FINISHED);
+            targetInstanceDao.save(hr);
+
+            harvestCoordinator.pushPruneAndImport(ti);
         }
     }
 
@@ -460,6 +466,10 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 
     public void setTargetInstanceDao(TargetInstanceDAO targetInstanceDao) {
         this.targetInstanceDao = targetInstanceDao;
+    }
+
+    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
+        this.harvestCoordinator = harvestCoordinator;
     }
 
     @Override
