@@ -266,7 +266,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                     warcRecordInfo.setRecordId(recordId);
                     warcRecordInfo.setExtraHeaders(namedFields);
                     warcRecordInfo.setContentStream(fin);
-                    warcRecordInfo.setContentLength(fProps.getLength());
+                    warcRecordInfo.setContentLength(tempFile.length());
                     warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
                     warcWriter.writeRecord(warcRecordInfo);
 

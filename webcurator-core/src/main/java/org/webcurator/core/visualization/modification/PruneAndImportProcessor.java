@@ -95,6 +95,9 @@ public class PruneAndImportProcessor extends Thread {
         if (!destDir.exists() && !destDir.mkdirs()) {
             log.error("Make dir failed, path: {}", destDir.getAbsolutePath());
             return;
+        } else if (destDir.exists()) {
+            //Clean all existing files
+            FileUtils.cleanDirectory(destDir);
         }
         List<File> dirs = new LinkedList<File>();
         dirs.add(destDir);

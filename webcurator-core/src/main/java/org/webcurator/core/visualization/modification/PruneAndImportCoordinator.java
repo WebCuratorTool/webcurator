@@ -3,6 +3,7 @@ package org.webcurator.core.visualization.modification;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
@@ -51,13 +52,27 @@ public abstract class PruneAndImportCoordinator extends VisualizationCoordinator
     abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException;
 
     protected File modificationDownloadFile(long job, int harvestResultNumber, PruneAndImportCommandRowMetadata metadata) {
-        AbstractRestClient digitalAssetStoreClient = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);
+        URI uri = null;
+        ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+        if (context != null) {
+            AbstractRestClient digitalAssetStoreClient = context.getBean(WCTIndexer.class);
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(VisualizationConstants.PATH_DOWNLOAD_FILE))
-                .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber)
-                .queryParam("fileName", metadata.getName());
-        URI uri = uriComponentsBuilder.build().toUri();
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(VisualizationConstants.PATH_DOWNLOAD_FILE))
+                    .queryParam("job", job)
+                    .queryParam("harvestResultNumber", harvestResultNumber)
+                    .queryParam("fileName", metadata.getName());
+            uri = uriComponentsBuilder.build().toUri();
+        } else {
+            try {
+                uri = new URI(String.format("http://localhost:8080%s?job=%d&harvestResultNumber%d&fileName=%s",
+                        VisualizationConstants.PATH_DOWNLOAD_FILE,
+                        job,
+                        harvestResultNumber,
+                        metadata.getName()));
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }
 
 
         String tempFileName = UUID.randomUUID().toString();
@@ -66,26 +81,30 @@ public abstract class PruneAndImportCoordinator extends VisualizationCoordinator
             URL url = uri.toURL();
             URLConnection conn = url.openConnection();
 
-            OutputStream fos = Files.newOutputStream(tempFile.toPath());
+            File downloadedFile = File.createTempFile(metadata.getName(), "open");
+            IOUtils.copy(conn.getInputStream(), Files.newOutputStream(downloadedFile.toPath()));
+
 
             StringBuilder buf = new StringBuilder();
             buf.append("HTTP/1.1 200 OK\n");
             buf.append("Content-Type: ");
             buf.append(metadata.getContentType()).append("\n");
             buf.append("Content-Length: ");
-            buf.append(metadata.getLength()).append("\n");
+            buf.append(downloadedFile.length()).append("\n");
 //            LocalDateTime ldt = LocalDateTime.ofEpochSecond(metadata.getLastModified() / 1000, 0, ZoneOffset.UTC);
 //            OffsetDateTime odt = ldt.atOffset(ZoneOffset.UTC);
 //            buf.append("Date: ");
 //            buf.append(odt.format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("\n");
             buf.append("Connection: close\n");
 
+            OutputStream fos = Files.newOutputStream(tempFile.toPath());
             fos.write(buf.toString().getBytes());
             fos.write("\n".getBytes());
 
-            IOUtils.copy(conn.getInputStream(), fos);
-
+            IOUtils.copy(Files.newInputStream(downloadedFile.toPath()), fos);
             fos.close();
+
+            Files.deleteIfExists(downloadedFile.toPath());
         } catch (IOException e) {
             log.error(e.getMessage());
             return null;

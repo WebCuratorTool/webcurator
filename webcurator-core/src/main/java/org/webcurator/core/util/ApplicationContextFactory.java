@@ -22,35 +22,43 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
  * The ApplicationContextFactory holds a reference to the ApplicationContext so that
  * the Spring ApplicationContext can be accessed by objects that do not have access
  * to the ServletContext.
+ *
  * @author nwaight
  */
 public class ApplicationContextFactory {
-    /** the mutex for this singleton. */
+    /**
+     * the mutex for this singleton.
+     */
     private static final Object mutex = new Object();
-    /** the singleton instance of the ApplicationContextFactory. */
+    /**
+     * the singleton instance of the ApplicationContextFactory.
+     */
     private static ApplicationContextFactory instance = null;
-    /** the spring application context. */
+    /**
+     * the spring application context.
+     */
     private ApplicationContext ctx = null;
-    
+
     /**
      * private constructor taking the ApplicationContext
+     *
      * @param argCtx the applications ApplicationContext
-     */ 
+     */
     private ApplicationContextFactory(ApplicationContext argCtx) {
         super();
         ctx = argCtx;
     }
-    
+
     /**
      * Set the ApplicationContext.
+     *
      * @param argCtx the ApplicationContext to set
      */
     public static void setApplicationContext(ApplicationContext argCtx) {
         synchronized (mutex) {
             if (instance == null) {
                 instance = new ApplicationContextFactory(argCtx);
-            }
-            else {
+            } else {
                 instance.ctx = argCtx;
             }
         }
@@ -60,18 +68,22 @@ public class ApplicationContextFactory {
      * @return the ApplicationContext.
      */
     public static ApplicationContext getApplicationContext() {
-       return instance.getContext();
+        if (instance == null) {
+            return null;
+        }
+        return instance.getContext();
     }
-    
-    /** 
+
+    /**
      * Return the ApplicationContext stored by this instance.
+     *
      * @return the ApplicationContext
      */
     private ApplicationContext getContext() {
         if (ctx != null) {
             return ctx;
         }
-        
+
         throw new WCTRuntimeException("The ApplicationContextFactory has not been initialised.");
-    }    
+    }
 }

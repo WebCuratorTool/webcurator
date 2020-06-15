@@ -633,9 +633,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             log.error("Could not send initiateIndexing message to the DAS", ex);
         }
 
-        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_MODIFIED, ti);
-        inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
-
         log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
     }
 

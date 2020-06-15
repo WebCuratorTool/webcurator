@@ -42,6 +42,10 @@ public class VisualizationCoordinator {
     }
 
     public void writeLog(String content) {
+        if (log_modification==null){
+            return;
+        }
+
         LocalDateTime localDateTime = LocalDateTime.now();
         String time = localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         try {
@@ -52,6 +56,10 @@ public class VisualizationCoordinator {
     }
 
     public void writeReport() {
+        if (report_modification==null){
+            return;
+        }
+
         try {
             report_modification.write(this.reportTitle + System.lineSeparator());
 

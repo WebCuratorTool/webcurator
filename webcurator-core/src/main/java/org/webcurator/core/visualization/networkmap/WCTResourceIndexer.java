@@ -1,12 +1,12 @@
 package org.webcurator.core.visualization.networkmap;
 
+import org.springframework.context.ApplicationContext;
 import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
@@ -46,6 +46,10 @@ public class WCTResourceIndexer {
     private String logsDir; //log dir
     private String reportsDir; //report dir
 
+    public WCTResourceIndexer() {
+
+    }
+
     public WCTResourceIndexer(File directory, BDBNetworkMap db, long targetInstanceId, int harvestNumber) throws IOException {
         this.directory = directory;
         this.db = db;
@@ -55,20 +59,28 @@ public class WCTResourceIndexer {
     }
 
     public void init(long targetInstanceId, int harvestNumber) {
-        AbstractRestClient client = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);
-        RestTemplateBuilder restTemplateBuilder = ApplicationContextFactory.getApplicationContext().getBean(RestTemplateBuilder.class);
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
-                .queryParam("targetInstanceOid", targetInstanceId)
-                .queryParam("harvestNumber", harvestNumber);
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        URI uri = uriComponentsBuilder.build().toUri();
-        ResponseEntity<SeedHistoryDTO> seedHistoryDTO = restTemplate.getForEntity(uri, SeedHistoryDTO.class);
-        this.seeds = Objects.requireNonNull(seedHistoryDTO.getBody()).getSeeds();
+        ApplicationContext context = ApplicationContextFactory.getApplicationContext();
+        if (context != null) {
+            AbstractRestClient client = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);
+            RestTemplateBuilder restTemplateBuilder = ApplicationContextFactory.getApplicationContext().getBean(RestTemplateBuilder.class);
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
+                    .queryParam("targetInstanceOid", targetInstanceId)
+                    .queryParam("harvestNumber", harvestNumber);
+            RestTemplate restTemplate = restTemplateBuilder.build();
+            URI uri = uriComponentsBuilder.build().toUri();
+            ResponseEntity<SeedHistoryDTO> seedHistoryDTO = restTemplate.getForEntity(uri, SeedHistoryDTO.class);
+            this.seeds = Objects.requireNonNull(seedHistoryDTO.getBody()).getSeeds();
 
-        VisualizationManager visualizationManager = ApplicationContextFactory.getApplicationContext().getBean(VisualizationManager.class);
-        String baseDir = visualizationManager.getBaseDir();
-        this.logsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + this.harvestNumber;
-        this.reportsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + this.harvestNumber;
+            VisualizationManager visualizationManager = ApplicationContextFactory.getApplicationContext().getBean(VisualizationManager.class);
+            String baseDir = visualizationManager.getBaseDir();
+            this.logsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
+            this.reportsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
+        } else {
+            this.seeds = new HashSet<>();
+            this.logsDir = directory.getAbsolutePath() + File.separator + "temp_logs";
+            this.reportsDir = directory.getAbsolutePath() + File.separator + "temp_reports";
+            log.warn("Initial indexer for debug mode.");
+        }
     }
 
     public List<ArcHarvestFileDTO> indexFiles() throws IOException {
@@ -113,7 +125,7 @@ public class WCTResourceIndexer {
         return arcHarvestFileDTOList;
     }
 
-    private ArcHarvestFileDTO indexFile(File archiveFile, ResourceExtractor extractor) {
+    public ArcHarvestFileDTO indexFile(File archiveFile, ResourceExtractor extractor) {
         log.info("Indexing file: {}", archiveFile.getAbsolutePath());
         ArchiveReader reader = null;
         try {
