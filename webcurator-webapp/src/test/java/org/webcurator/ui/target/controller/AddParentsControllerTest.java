@@ -6,6 +6,7 @@ import java.util.*;
 
 import javax.servlet.http.*;
 
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.*;
 import org.springframework.mock.web.*;
@@ -98,15 +99,15 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 	public final void testHandleAddParents1() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetTargetController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
@@ -114,6 +115,8 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 			//Already a member of this group
 			long[]  oids = {15000L};
 			command.setParentOids(oids);
+
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -135,21 +138,23 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 	public final void testHandleAddParents2() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetTargetController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
 			command.setActionCmd(AddParentsCommand.ACTION_ADD_PARENTS);
 			long[]  oids = {15001L};
 			command.setParentOids(oids);
+
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -169,21 +174,23 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 	public final void testHandleCancel() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetTargetController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
 			command.setActionCmd(null);
 			long[]  oids = {15001L, 15002L};
 			command.setParentOids(oids);
+
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -221,21 +228,23 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 	public final void testHandleOther() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetTargetController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
 			command.setActionCmd(null);
 			long[]  oids = {15001L, 15002L};
 			command.setParentOids(oids);
+
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);
@@ -260,21 +269,23 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 	public final void testHandleRemove() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetTargetController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request);
 
 			command.setActionCmd(null);
 			long[]  oids = {15001L, 15002L};
 			command.setParentOids(oids);
+
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getParents().size() == 1);
 			assertTrue(testInstance.getEditorContext(request).getTarget().getParents().size() == 1);

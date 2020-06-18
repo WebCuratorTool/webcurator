@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -23,6 +24,7 @@ import org.webcurator.domain.model.core.HarvestResource;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.AgencyCommand;
 import org.webcurator.ui.tools.command.TreeToolCommand;
+import org.webcurator.ui.tools.validator.TreeToolValidator;
 
 public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJAX> {
 
@@ -54,7 +56,11 @@ public class TreeToolControllerAJAXTest extends BaseWCTTest<TreeToolControllerAJ
 		// just set up one request (this will then keep the session)
 		aReq = new MockHttpServletRequest();
 
-		testInstance.setQualityReviewFacade(qrf);
+		ReflectionTestUtils.setField(testInstance, "qualityReviewFacade", qrf);
+        TreeToolControllerAttribute mockTTCA = new TreeToolControllerAttribute();
+        mockTTCA.setAutoQAUrl("");
+        ReflectionTestUtils.setField(testInstance, "treeToolControllerAttribute", mockTTCA);
+        ReflectionTestUtils.setField(testInstance, "treeToolValidator", new TreeToolValidator());
 
 	}
 

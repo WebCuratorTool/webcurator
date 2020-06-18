@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -20,6 +21,7 @@ import org.webcurator.ui.site.command.*;
 import org.webcurator.core.sites.*;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.*;
+import org.webcurator.ui.site.validator.SitePermissionValidator;
 
 public class SitePermissionControllerTest extends BaseWCTTest<SitePermissionController>{
 
@@ -82,6 +84,7 @@ public class SitePermissionControllerTest extends BaseWCTTest<SitePermissionCont
 		{
 			HttpServletRequest aReq = new MockHttpServletRequest();
 			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			ReflectionTestUtils.setField(testInstance, "sitePermissionValidator", new SitePermissionValidator());
 
 			Site site = siteManager.getSite(9000L, true);
 			SiteEditorContext ctx = new SiteEditorContext(site);

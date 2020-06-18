@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
@@ -52,7 +51,7 @@ public class LogReaderController {
 
 	@Autowired
     @Qualifier("logReaderValidator")
-	private LogReaderValidator validator;
+	private LogReaderValidator logReaderValidator;
 
 	public LogReaderController() {
 		//Add values in reverse order of display
@@ -79,7 +78,7 @@ public class LogReaderController {
 	@RequestMapping(path = "/curator/target/log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(@ModelAttribute("logReaderCommand") LogReaderCommand cmd,
                                   BindingResult bindingResult) throws Exception {
-		validator.validate(cmd, bindingResult);
+		logReaderValidator.validate(cmd, bindingResult);
 		String messageText = "";
 		int firstLine = 0;
 		List<String> lines = Arrays.asList("", "");
