@@ -258,15 +258,6 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		// TODO Auto-generated method stub
 	}
 
-	public void addHarvestResources(Long harvestResultOid,
-			Collection<ArcHarvestResourceDTO> harvestResources) {
-		// TODO Auto-generated method stub
-	}
-
-	public void addToHarvestResult(Long harvestResultOid, ArcIndexResultDTO arcIndexResultDTO) {
-		// TODO Auto-generated method stub
-	}
-
 	public Long createHarvestResult(HarvestResultDTO harvestResultDTO) {
 		// TODO Auto-generated method stub
 		return null;
@@ -289,28 +280,28 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 		this.reIndexHarvestResultReturnValue = reIndexHarvestResultReturnValue;
 	}
 	
-	public Boolean reIndexHarvestResult(HarvestResult origArcHarvestResult) {
+	public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
 		if(reIndexHarvestResultReturnValue)
 		{
-			TargetInstance ti = origArcHarvestResult.getTargetInstance();
+			TargetInstance ti = origHarvestResult.getTargetInstance();
 
 			HarvestResultDTO hr = new HarvestResultDTO();
 			hr.setCreationDate(new Date());
 			hr.setTargetInstanceOid(ti.getOid());
-			hr.setProvenanceNote(origArcHarvestResult.getProvenanceNote());
-			hr.setHarvestNumber(origArcHarvestResult.getHarvestNumber());
-			ArcHarvestResult newArcHarvestResult = new ArcHarvestResult(hr, ti);
+			hr.setProvenanceNote(origHarvestResult.getProvenanceNote());
+			hr.setHarvestNumber(origHarvestResult.getHarvestNumber());
+			HarvestResult newHarvestResult = new HarvestResult(hr, ti);
 
-            origArcHarvestResult.setState(ArcHarvestResult.STATE_ABORTED);
-            newArcHarvestResult.setState(ArcHarvestResult.STATE_INDEXING);
+            origHarvestResult.setState(HarvestResult.STATE_ABORTED);
+            newHarvestResult.setState(HarvestResult.STATE_INDEXING);
 	                
 	        List<HarvestResult> hrs = ti.getHarvestResults();
-	        hrs.add(newArcHarvestResult);
+	        hrs.add(newHarvestResult);
 	        ti.setHarvestResults(hrs);
 	
 	        ti.setState(TargetInstance.STATE_HARVESTED);
 	        
-	        targetInstanceDao.save(newArcHarvestResult);
+	        targetInstanceDao.save(newHarvestResult);
 	        targetInstanceDao.save(ti);
 		}
 		return reIndexHarvestResultReturnValue;
@@ -324,7 +315,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 			while(it.hasNext())
 			{
 				HarvestResult result = it.next();
-				if(result.getState() != ArcHarvestResult.STATE_REJECTED)
+				if(result.getState() != HarvestResult.STATE_REJECTED)
 				{
 					removeIndexes(result);
 				}

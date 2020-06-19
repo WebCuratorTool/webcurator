@@ -15,20 +15,13 @@
  */
 package org.webcurator.core.store.arc;
 
-import java.io.File;
 import java.time.Duration;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.Properties;
-import java.util.Set;
-
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.rest.RestClientResponseHandler;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class ManualEnd {
@@ -46,67 +39,7 @@ public class ManualEnd {
 			return props.getProperty(key);
 		}
 	}
-	
-	
-	public static void main(String[] args) { 
-		CommandLine cl = new CommandLine(args);
-		
-		try {
-			String host = cl.getArg("host");
-			int port = Integer.parseInt(cl.getArg("port"));
-			String service = "/wct/services/urn:WebCuratorTool";
-			String extension = cl.getArg("ext");
-			Long targetInstanceOid = Long.parseLong(cl.getArg("ti"));
-			int hrnum = Integer.parseInt(cl.getArg("hrnum"));
-			
-			
-	        boolean compressed = "true".equalsIgnoreCase(cl.getArg("compressed"));
-	        File dir = new File(cl.getArg("baseDir"));
-	        
-	        if(host == null || dir == null) {
-	        	if(host ==null) System.out.println("Host must be specified");
-	        	if(dir == null) System.out.println("Directory must be specified");
-	        	syntax();
-	        }
-	        if(!dir.exists()) { 
-	        	System.out.println("Directory does not exist");
-	        	syntax();
-	        }
-		        
-	        System.out.print("Creating index... ");
-	        HarvestResultDTO ahr = new HarvestResultDTO();
-	        Set<ArcHarvestFileDTO>fileset = new HashSet<ArcHarvestFileDTO>();
-	        
-	        File[] fileList = dir.listFiles();
-	        for(File f: fileList) {
-	            if (f.getName().endsWith(extension)) {
-	                ArcHarvestFileDTO ahf = new ArcHarvestFileDTO();
-	                ahf.setCompressed(compressed);
-	                ahf.setName(f.getName());
-	                ahf.setBaseDir(dir.getAbsolutePath());  
-	                fileset.add(ahf);
-	            }                    
-	        }
-	        
-	        ahr.setTargetInstanceOid(targetInstanceOid);
-	        ahr.setProvenanceNote("Original Harvest");
-	        ahr.setHarvestNumber(hrnum);
-	        ahr.setArcFiles(fileset);
-	        ahr.setCreationDate(new Date());    
-	        ahr.index();
-	        System.out.println("finished.");
-	    	
-	        System.out.print("Sending to WCT Core... ");
-	        harvestComplete(host, port, ahr);
-	        System.out.println("finished.");
-		}
-		catch(NumberFormatException ex) { 
-			syntax();
-		}
-		catch(Throwable t) { 
-			t.printStackTrace();
-		}
-	}
+
 
     private static void harvestComplete(String host, int port, HarvestResultDTO harvestResultDTO) {
         RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();

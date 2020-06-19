@@ -747,7 +747,7 @@ public class QaTiSummaryController {
 				}
 			}
 
-			targetInstanceManager.save((ArcHarvestResult) hr);
+			targetInstanceManager.save((HarvestResult) hr);
 		}
 
     	targetInstanceManager.save(ti);
@@ -771,7 +771,7 @@ public class QaTiSummaryController {
 	        		harvestCoordinator.removeIndexes(hr);
 				}
 
-				targetInstanceManager.save((ArcHarvestResult) hr);
+				targetInstanceManager.save((HarvestResult) hr);
 			}
 		}
 

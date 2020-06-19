@@ -389,20 +389,22 @@ public class QueueController {
 				browseUrls.put(tiOid, null);
 			}
 		}
+
+		//TODO
 		if (thumbnailRendererName.equals("ACCESSTOOL") && lastDisplayableResult != null) {
-			HarvestResourceDTO hRsr = null;
-			try {
-				hRsr = targetInstanceManager.getHarvestResourceDTO(lastDisplayableResult.getOid(), seed);
-			} catch (Exception e) {
-				log.debug("Multiple resource instances found for seed {}, ti: {}.  Using first instance.", seed, tiOid);
-				Map<String, HarvestResource> resources = lastDisplayableResult.getResources();
-				hRsr = resources.get(seed).buildDTO();
-			}
-			if (hRsr != null) {
-				browseUrls.put(tiOid, harvestResourceUrlMapper.generateUrl(lastDisplayableResult, hRsr));
-			} else {
-				log.warn("Cannot find seed '{}' in harvest result ({}).", seed, lastDisplayableResult.getOid());
-			}
+//			HarvestResourceDTO hRsr = null;
+//			try {
+//				hRsr = targetInstanceManager.getHarvestResourceDTO(lastDisplayableResult.getOid(), seed);
+//			} catch (Exception e) {
+//				log.debug("Multiple resource instances found for seed {}, ti: {}.  Using first instance.", seed, tiOid);
+//				Map<String, HarvestResource> resources = lastDisplayableResult.getResources();
+//				hRsr = resources.get(seed).buildDTO();
+//			}
+//			if (hRsr != null) {
+//				browseUrls.put(tiOid, harvestResourceUrlMapper.generateUrl(lastDisplayableResult, hRsr));
+//			} else {
+//				log.warn("Cannot find seed '{}' in harvest result ({}).", seed, lastDisplayableResult.getOid());
+//			}
 		}
 	}
 
@@ -649,7 +651,7 @@ public class QueueController {
 				hr.setState(HarvestResult.STATE_REJECTED);
 				harvestCoordinator.removeIndexes(hr);
 			}
-			targetInstanceManager.save((ArcHarvestResult) hr);
+			targetInstanceManager.save((HarvestResult) hr);
 		}
 
 		targetInstanceManager.save(ti);
@@ -677,7 +679,7 @@ public class QueueController {
 					}
 				}
 
-				targetInstanceManager.save((ArcHarvestResult) hr);
+				targetInstanceManager.save((HarvestResult) hr);
 			}
 		}
 

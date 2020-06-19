@@ -42,14 +42,14 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
         super.init(logsDir, reportsDir);
     }
 
-    public void extract(ArchiveReader reader) throws IOException {
+    public void extract(ArchiveReader reader, String fileName) throws IOException {
         StatisticItem item = new StatisticItem();
         item.setFromFileName(reader.getStrippedFileName());
         statisticItems.add(item);
 
         preProcess();
         for (ArchiveRecord record : reader) {
-            extractRecord(record);
+            extractRecord(record, fileName);
             record.close();
             if (results.size() % 1000 == 0) {
                 log.info("Extracting, results.size:{}", results.size());
@@ -63,7 +63,7 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
 
     abstract protected void postProcess();
 
-    abstract protected void extractRecord(ArchiveRecord rec) throws IOException;
+    abstract protected void extractRecord(ArchiveRecord rec, String fileName) throws IOException;
 
     public void clear() {
     }

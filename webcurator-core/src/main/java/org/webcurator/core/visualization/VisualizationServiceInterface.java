@@ -3,6 +3,7 @@ package org.webcurator.core.visualization;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +21,7 @@ public interface VisualizationServiceInterface {
         return json;
     }
 
+
     default public List<Long> getArrayList(String json) {
         if (json == null) {
             return null;
@@ -30,6 +32,22 @@ public interface VisualizationServiceInterface {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(json, new TypeReference<List<Long>>() {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    default public List<String> getArrayListOfNetworkMapNode(String json) {
+        if (json == null) {
+            return null;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {
             });
         } catch (IOException e) {
             e.printStackTrace();

@@ -83,22 +83,6 @@ public interface TargetInstanceDAO {
 	HarvestResult getHarvestResult(final Long harvestResultOid, boolean loadFully);
 
 	/**
-	 * Return the Harvest Resource DTO specified from the persistent data store.
-	 * @param harvestResultOid the id of the harvest result the resource belongs to
-	 * @param resource the name of the resource
-	 * @return the HarvestResourceDTO
-	 */
-	HarvestResourceDTO getHarvestResourceDTO(final long harvestResultOid, final String resource);
-	
-	/**
-	 * Return the Harvest Resource DTOs specified from the persistent data store.
-	 * @param harvestResultOid the id of the harvest result the resource belongs to
-	 * @return a <code>List</code> of <code>HarvestResourceDTO</code>
-	 */
-	List<HarvestResourceDTO> getHarvestResourceDTOs(final long harvestResultOid);
-
-	
-	/**
 	 * Return a list of HarvestResults for the specified target instance.
 	 * @param targetInstanceId the target instance to return the harvest results for
 	 * @return the list of HarvestResults
@@ -161,24 +145,7 @@ public interface TargetInstanceDAO {
 	 * @param aObject the object to remove
 	 */
 	void delete(Object aObject);
-	
-	/**
-	 * Remove the harvest resources for a specified target instance.
-	 * @param targetInstanceId the target instance for which to delete resources
-	 */
-	void deleteHarvestResources(Long targetInstanceId);
-	
-	/**
-	 * Remove the harvest resources for a specified harvest result.
-	 * @param harvestResultId the harvest result for which to delete resources
-	 */
-	void deleteHarvestResultResources(final Long harvestResultId); 
-	
-	/**
-	 * Remove the harvest files for a specified HarvestResult.
-	 * @param harvestResultId the HarvestResult for which to delete files
-	 */
-	void deleteHarvestResultFiles(final Long harvestResultId); 
+
 	
 	/**
 	 * Remove any target instances that have been created for the specified schedule.

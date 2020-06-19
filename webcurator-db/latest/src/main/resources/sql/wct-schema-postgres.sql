@@ -110,7 +110,7 @@ create table DB_WCT.INDICATOR (I_OID int8 not null, I_IC_OID int8 not null, I_TI
 create table DB_WCT.INDICATOR_REPORT_LINE (IRL_OID int8, IRL_I_OID int8, IRL_LINE varchar(1024), IRL_INDEX int4);
 create table DB_WCT.PO_H3_BLOCK_URL (PBU_PROF_OVER_OID int8 not null, PBU_FILTER varchar(255), PBU_IX int4 not null, primary key (PBU_PROF_OVER_OID, PBU_IX));
 create table DB_WCT.PO_H3_INCLUDE_URL (PIU_PROF_OVER_OID int8 not null, PIU_FILTER varchar(255), PIU_IX int4 not null, primary key (PIU_PROF_OVER_OID, PIU_IX));
-
+create table DB_WCT.VISUALIZATION_IMPORTED_FILE (VIF_OID int8 not null, VIF_FILE_NAME varchar(1024) not null, VIF_CONTENT_LENGTH int8 not null, VIF_CONTENT_TYPE varchar(256), VIF_LAST_MODIFIED_DATE int8 not null, VIF_UPLOADED_DATE varchar(8), VIF_UPLOADED_TIME varchar(6), primary key (VIF_OID));
 
 alter table DB_WCT.ABSTRACT_TARGET add constraint AT_NAME_AND_TYPE unique (AT_NAME, AT_OBJECT_TYPE);
 alter table DB_WCT.ABSTRACT_TARGET add constraint FK_AT_DUBLIN_CORE_OID foreign key (AT_DUBLIN_CORE_OID) references DB_WCT.DUBLIN_CORE;
@@ -186,6 +186,7 @@ alter table DB_WCT.INDICATOR add constraint FK_I_AGENCY_OID foreign key (I_AGC_O
 alter table DB_WCT.INDICATOR_REPORT_LINE add constraint FK_IRL_I_OID foreign key (IRL_I_OID) references DB_WCT.INDICATOR (I_OID);
 alter table DB_WCT.PO_H3_BLOCK_URL add constraint PBU_FK_1 foreign key (PBU_PROF_OVER_OID) references DB_WCT.PROFILE_OVERRIDES;
 alter table DB_WCT.PO_H3_INCLUDE_URL add constraint PIU_FK_1 foreign key (PIU_PROF_OVER_OID) references DB_WCT.PROFILE_OVERRIDES;
+alter table DB_WCT.VISUALIZATION_IMPORTED_FILE add constraint IDX_VIF_FILE_NAME UNIQUE (VIF_FILE_NAME);
 
 create table DB_WCT.ID_GENERATOR ( IG_TYPE varchar(255),  IG_VALUE int4 ) ;
 

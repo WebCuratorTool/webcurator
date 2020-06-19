@@ -35,7 +35,6 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
  * @author bbeaumont
  */
 public interface DigitalAssetStore {
-
     /**
      * Retrieve a resource from the Digital Asset Store. The resource is
      * returned as a SOAP attachment and written to disk for use. This is ideal
@@ -46,10 +45,10 @@ public interface DigitalAssetStore {
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
      * @param resource            The resource to retrieve.
-     * @return The resource, as a file.
      * @throws DigitalAssetStoreException if there are any errors.
+     * @return The resource, as a file.
      */
-    Path getResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException;
+    Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
     /**
      * Retrieves a resource transferring it as a byte array, rather than as
@@ -62,10 +61,10 @@ public interface DigitalAssetStore {
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
      * @param resource            The resource to retrieve.
-     * @return The resource, as a file.
      * @throws DigitalAssetStoreException if there are any errors.
+     * @return The resource, as a file.
      */
-    byte[] getSmallResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException;
+    byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
     /**
      * Retrieve the HTTP headers for a given resource.
@@ -75,10 +74,11 @@ public interface DigitalAssetStore {
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
      * @param resource            The resource for which to retrieve the headers.
-     * @return An array of HTTP Headers.
      * @throws DigitalAssetStoreException if there are any errors.
+     * @return An array of HTTP Headers.
      */
-    List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException;
+    List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
+
 
     /**
      * Save an array of files to the digital asset store. The files are
@@ -107,24 +107,6 @@ public interface DigitalAssetStore {
     void save(String targetInstanceName, String directory, List<Path> paths) throws DigitalAssetStoreException;
 
     void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException;
-
-    /**
-     * Create a new Harvest Result by pruning resources out of an existing
-     * harvest result.
-     *
-     * @param targetInstanceName          The OID of the target instance to which the
-     *                                    harvest results belong.
-     * @param originalHarvestResultNumber The original harvest result number to prune.
-     * @param newHarvestResultNumber      The number for the new harvest result.
-     * @param urisToDelete                A List of resource URIs that should be pruned.
-     * @param harvestResourcesToImport    A List of HarvestResource that should be imported.
-     * @return The HarvestResultDTO of the pruned harvest
-     * result.
-     * @throws DigitalAssetStoreException if any errors occur.
-     */
-    HarvestResultDTO copyAndPrune(String targetInstanceName, int originalHarvestResultNumber, int newHarvestResultNumber,
-                                  List<String> urisToDelete, List<HarvestResourceDTO> harvestResourcesToImport)
-            throws DigitalAssetStoreException;
 
     /**
      * Initiate the indexing of a Harvest Result.
@@ -205,7 +187,7 @@ public interface DigitalAssetStore {
     /**
      * To clear the patching Harvest Result, Index, and the Mod Harvest Files
      *
-     * @param command: the action of the command
+     * @param command:          the action of the command
      * @param targetInstanceId: the ID of target instance
      * @param harvestNumber:    the number of harvest result
      * @throws DigitalAssetStoreException thrown if there is an error

@@ -16,11 +16,9 @@ import org.kie.internal.builder.KnowledgeBuilderFactory;
 import org.kie.api.io.ResourceType;
 import org.drools.compiler.compiler.DroolsParserException;
 import org.kie.internal.io.ResourceFactory;
-import org.kie.internal.runtime.StatefulKnowledgeSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -32,11 +30,6 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 	 */
 	//private StatefulKnowledgeSession ksession = null;
 	private KieSession ksession = null;
-
-	/**
-	 * The interface for retrieving <code>HarvestResourceDTO</code>s
-	 */
-	private QualityReviewFacade qualityReviewFacade = null;
 	
 	/**
 	 * The interface for retrieving log files from the server or digital asset store
@@ -185,9 +178,6 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 		RuleMessageMap<String, String> messageMap = new RuleMessageMap<String, String>(); 
 		ksession.insert(messageMap);
 		
-		// pass in the Quality Review Facade so that we can process the robots.txt file within the rules engine
-		ksession.insert(qualityReviewFacade);
-		
 		// pass in the Harvest Coordinator so that we can retrieve log files (eg: Heritrix Error Codes)
 		ksession.insert(harvestCoordinator);
 		
@@ -267,14 +257,7 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 		indicator.setAgency(criteria.getAgency());
 		
 	}
-	
-	/**
-	 *	Setter for the Quality Review Facade used by Spring 
-	 */
-	public void setQualityReviewFacade(QualityReviewFacade qaFacade) {
-		this.qualityReviewFacade = qaFacade;
-	}
-	
+
 	/**
 	 *	Setter for the Harvest Coordinator used by Spring 
 	 */

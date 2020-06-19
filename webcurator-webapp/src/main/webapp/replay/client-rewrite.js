@@ -1,4 +1,9 @@
-
+function encodeUrl(url){
+    if(!url || url.indexOf("base64@")==0){
+        return url;
+    }
+    return "base64@" + btoa(url);
+}
 function xResolveUrl(url) {
    var image = new Image();
    image.src = url;
@@ -19,9 +24,9 @@ function xLateUrl(aCollection, sProp) {
             } else {
                 if(aCollection[i][sProp].indexOf(sWayBackCGI) == -1) {
                     if(aCollection[i][sProp].indexOf("http") == 0) {
-                        aCollection[i][sProp] = sWayBackCGI + aCollection[i][sProp];
+                        aCollection[i][sProp] = sWayBackCGI + encodeUrl(aCollection[i][sProp]);
                     } else {
-                        aCollection[i][sProp] = sWayBackCGI + xResolveUrl(aCollection[i][sProp]);
+                        aCollection[i][sProp] = sWayBackCGI + encodeUrl(xResolveUrl(aCollection[i][sProp]));
                     }
                 }
             }
@@ -41,6 +46,8 @@ xLateUrl(document.getElementsByTagName("EMBED"),"src");
 xLateUrl(document.getElementsByTagName("IFRAME"),"src");
 xLateUrl(document.getElementsByTagName("INPUT"),"src");
 xLateUrl(document.getElementsByTagName("BODY"),"background");
+xLateUrl(document.getElementsByTagName("LINK"),"href");
+xLateUrl(document.getElementsByTagName("SCRIPT"),"src");
 var forms = document.getElementsByTagName("FORM");
 if (forms) {
 		var j = 0;

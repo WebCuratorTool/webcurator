@@ -12,7 +12,7 @@ import java.util.*;
 @Entity
 @Table(name = "HARVEST_RESULT")
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class HarvestResult implements UserInTrayResource {
+public class HarvestResult implements UserInTrayResource {
     private static final int MAX_MOD_NOTE_LENGTH = 2000;
 
     /**
@@ -70,11 +70,17 @@ public abstract class HarvestResult implements UserInTrayResource {
     public static final String PATCH_STAGE_TYPE_MODIFYING = "modifying";
     public static final String PATCH_STAGE_TYPE_INDEXING = "indexing";
 
-    /** the name of the Logs directory of Indexer. */
+    /**
+     * the name of the Logs directory of Indexer.
+     */
     public static final String DIR_LOGS_INDEX = "index";
-    /** the name of the Logs directory of modification. */
+    /**
+     * the name of the Logs directory of modification.
+     */
     public static final String DIR_LOGS_MOD = "modify";
-    /** the name of the Logs directory of extension. */
+    /**
+     * the name of the Logs directory of extension.
+     */
     public static final String DIR_LOGS_EXT = "attached";
 
     /**
@@ -105,14 +111,7 @@ public abstract class HarvestResult implements UserInTrayResource {
             allocationSize = 1) // 50 is the default
     @GeneratedValue(strategy = GenerationType.TABLE, generator = "SharedTableIdGenerator")
     private Long oid = null;
-    /**
-     * An index of the resources within this harvest
-     */
-    // cascade="save-update"
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REFRESH, CascadeType.MERGE}) // default fetch type is LAZY
-    @JoinColumn(name = "HRC_HARVEST_RESULT_OID")
-    @MapKeyColumn(name = "HRC_NAME")
-    private Map<String, HarvestResource> resources = new HashMap<String, HarvestResource>();
+
     /**
      * The provenance note (how this harvest result was created
      */
@@ -245,27 +244,6 @@ public abstract class HarvestResult implements UserInTrayResource {
      */
     public void setTargetInstance(TargetInstance targetInstance) {
         this.targetInstance = targetInstance;
-    }
-
-    /**
-     * Retrieve the map of resource names to HarvestResource objects. This can
-     * be used for generating a tree of the resources or developing the
-     * browse tool. This is essentially a name-based index of the harvest
-     * result.
-     *
-     * @return the map of resource names to HarvestResource objects.
-     */
-    public Map<String, HarvestResource> getResources() {
-        return resources;
-    }
-
-    /**
-     * Set the Map of resource name to HarvestResource objects.
-     *
-     * @param resources The Map of resource name to HarvestResource objects.
-     */
-    public void setResources(Map<String, HarvestResource> resources) {
-        this.resources = resources;
     }
 
     /**

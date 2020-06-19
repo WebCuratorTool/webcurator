@@ -18,9 +18,7 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistory;
 import org.webcurator.domain.model.dto.SeedHistoryDTO;
 
@@ -83,9 +81,7 @@ public class WCTResourceIndexer {
         }
     }
 
-    public List<ArcHarvestFileDTO> indexFiles() throws IOException {
-        List<ArcHarvestFileDTO> arcHarvestFileDTOList = new ArrayList();
-
+    public void indexFiles() throws IOException {
         File[] fileList = directory.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -98,7 +94,7 @@ public class WCTResourceIndexer {
 
         if (fileList == null) {
             log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
-            return arcHarvestFileDTOList;
+            return;
         }
 
         ResourceExtractor extractor = new ResourceExtractorWarc(this.urls, this.seeds);
@@ -108,24 +104,17 @@ public class WCTResourceIndexer {
                 extractor.writeLog("Skipped unknown file: " + f.getName());
                 continue;
             }
-            ArcHarvestFileDTO dto = indexFile(f, extractor);
-            if (dto != null) {
-                HarvestResultDTO harvestResult = new HarvestResultDTO();
-                harvestResult.setTargetInstanceOid(this.targetInstanceId);
-                harvestResult.setHarvestNumber(this.harvestNumber);
-                dto.setHarvestResult(harvestResult);
-                arcHarvestFileDTOList.add(dto);
-            }
+
+            indexFile(f, extractor);
         }
 
         this.statAndSave(extractor);
         this.clear();
         extractor.writeReport();
         extractor.close();
-        return arcHarvestFileDTOList;
     }
 
-    public ArcHarvestFileDTO indexFile(File archiveFile, ResourceExtractor extractor) {
+    public void indexFile(File archiveFile, ResourceExtractor extractor) {
         log.info("Indexing file: {}", archiveFile.getAbsolutePath());
         ArchiveReader reader = null;
         try {
@@ -134,23 +123,18 @@ public class WCTResourceIndexer {
             String err = "Failed to open archive file: " + archiveFile.getName() + " with exception: " + e.getMessage();
             log.error(err);
             extractor.writeLog(err);
-            return null;
+            return;
         }
 
         extractor.writeLog("Start indexing from: " + archiveFile.getName());
 
-        ArcHarvestFileDTO arcHarvestFileDTO = new ArcHarvestFileDTO();
-        arcHarvestFileDTO.setBaseDir(archiveFile.getPath());
-        arcHarvestFileDTO.setName(archiveFile.getName());
-        arcHarvestFileDTO.setCompressed(reader.isCompressed());
-
         try {
-            extractor.extract(reader);
+            extractor.extract(reader, archiveFile.getName());
         } catch (IOException e) {
             String err = "Failed to open index file: " + archiveFile.getName() + " with exception: " + e.getMessage();
             log.error(err);
             extractor.writeLog(err);
-            return null;
+            return;
         } finally {
             try {
                 reader.close();
@@ -159,7 +143,6 @@ public class WCTResourceIndexer {
             }
         }
         extractor.writeLog("End indexing from: " + archiveFile.getName());
-        return arcHarvestFileDTO;
     }
 
     private void statAndSave(ResourceExtractor extractor) {
@@ -212,7 +195,8 @@ public class WCTResourceIndexer {
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
         this.urls.values().forEach(e -> {
-            db.put(e.getId(), e);
+            db.put(e.getId(), e);             //Indexed by ID, ID->NODE
+            db.put(e.getUrl(), e.getId()); //Indexed by URL, URL->ID->NODE
 
             if (e.isSeed() || e.getParentId() <= 0) {
                 rootUrls.add(e.getId());

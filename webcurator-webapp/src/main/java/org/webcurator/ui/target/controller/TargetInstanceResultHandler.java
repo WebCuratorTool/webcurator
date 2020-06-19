@@ -162,7 +162,7 @@ public class TargetInstanceResultHandler extends TabHandler {
                     }
                 }
 
-                targetInstanceManager.save((ArcHarvestResult) hr);
+                targetInstanceManager.save((HarvestResult) hr);
             }
 
             targetInstanceManager.save(ti);
@@ -183,7 +183,7 @@ public class TargetInstanceResultHandler extends TabHandler {
             for (HarvestResult hr : ti.getHarvestResults()) {
                 hr.setState(0);
 
-                targetInstanceManager.save((ArcHarvestResult) hr);
+                targetInstanceManager.save((HarvestResult) hr);
             }
 
             targetInstanceManager.save(ti);
@@ -221,7 +221,7 @@ public class TargetInstanceResultHandler extends TabHandler {
                         harvestCoordinator.removeIndexes(hr);
                     }
 
-                    targetInstanceManager.save((ArcHarvestResult) hr);
+                    targetInstanceManager.save((HarvestResult) hr);
                 }
             }
 

@@ -85,15 +85,13 @@ public class TargetInstanceManagerImplTest extends BaseWCTTest<TargetInstanceMan
         List<HarvestResult> results = aTargetInstance.getHarvestResults();
         assertNotNull(results);
         assertTrue(results.size() == 1);
-        assertFalse(results.get(0).getResources().isEmpty());
-		
+
         testInstance.purgeTargetInstance(aTargetInstance);
 
         assertTrue(aTargetInstance.isPurged());
         results = aTargetInstance.getHarvestResults();
         assertNotNull(results);
         assertTrue(results.size() == 1);
-        assertTrue(results.get(0).getResources().isEmpty());
 	}
 
 }

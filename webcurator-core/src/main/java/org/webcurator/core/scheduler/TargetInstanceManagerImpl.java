@@ -33,7 +33,6 @@ import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
@@ -204,8 +203,8 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
 		}
 	}    
 	
-	public void save(ArcHarvestResult aArcHarvestResult) {
-		targetInstanceDao.save(aArcHarvestResult);
+	public void save(HarvestResult harvestResult) {
+		targetInstanceDao.save(harvestResult);
 	}
 	
 	public void saveOrUpdate(Indicator indicator) {
@@ -300,16 +299,10 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
     	return targetInstanceDao.getHarvestResults(targetInstanceOid);
     }
     
-	public HarvestResourceDTO getHarvestResourceDTO(final long harvestResultOid, final String resource) {
-		return targetInstanceDao.getHarvestResourceDTO(harvestResultOid, resource);
-	}
-
-    
     public void purgeTargetInstance(TargetInstance aTargetInstance)
     {
     	aTargetInstance.setPurged(true);
 		targetInstanceDao.save(aTargetInstance);
-		targetInstanceDao.deleteHarvestResources(aTargetInstance.getOid());
     }
 
 	public void setIndicatorDAO(IndicatorDAO indicatorDAO) {

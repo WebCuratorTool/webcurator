@@ -35,7 +35,7 @@ public class ResourceExtractorWarc extends ResourceExtractor {
     }
 
     @Override
-    protected void extractRecord(ArchiveRecord rec) throws IOException {
+    protected void extractRecord(ArchiveRecord rec, String fileName) throws IOException {
         String mime = rec.getHeader().getMimetype();
         if (mime.equals("text/dns")) {
             this.writeLog("Skipped MIMEType: " + mime);
@@ -60,6 +60,8 @@ public class ResourceExtractorWarc extends ResourceExtractor {
             res = new NetworkMapNode(atomicIdGeneratorUrl.incrementAndGet());
             results.put(key, res);
         }
+
+        res.setFileName(fileName); //Save the warc file name
 
         String type = rec.getHeader().getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
         if (type.equals(org.archive.format.warc.WARCConstants.WARCRecordType.request.toString())) {

@@ -63,7 +63,6 @@ import org.webcurator.core.sites.SiteManagerImpl;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
-import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
@@ -448,19 +447,9 @@ public class BaseConfig {
         bean.setGlobals(globalsMap);
 
         bean.setRulesFileName("rules.drl");
-        bean.setQualityReviewFacade(qualityReviewFacade());
+//        bean.setQualityReviewFacade(qualityReviewFacade());
         //bean.setHarvestCoordinator(harvestCoordinator());
         bean.setTargetInstanceManager(targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    public QualityReviewFacade qualityReviewFacade() {
-        QualityReviewFacade bean = new QualityReviewFacade();
-        bean.setDigialAssetStore(digitalAssetStore());
-        bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setAuditor(audit());
 
         return bean;
     }
@@ -675,7 +664,7 @@ public class BaseConfig {
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setAutoQAUrl(autoQAUrl);
         //bean.setQaRecommendationService(qaRecommendationService());
-        bean.setQualityReviewFacade(qualityReviewFacade());
+//        bean.setQualityReviewFacade(qualityReviewFacade());
         bean.setEnableQaModule(enableQaModule);
         bean.setAutoPrunedNote(autoPrunedNote);
 
@@ -1186,16 +1175,16 @@ public class BaseConfig {
         return bean;
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public TreeToolControllerAttribute treeToolControllerAttribute() {
-        TreeToolControllerAttribute bean = new TreeToolControllerAttribute();
-        bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
-        bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
-        bean.setAutoQAUrl(harvestCoordinatorAutoQAUrl);
-        return bean;
-    }
+//    @Bean
+//    @Scope(BeanDefinition.SCOPE_SINGLETON)
+//    @Lazy(false)
+//    public TreeToolControllerAttribute treeToolControllerAttribute() {
+//        TreeToolControllerAttribute bean = new TreeToolControllerAttribute();
+//        bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
+//        bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
+//        bean.setAutoQAUrl(harvestCoordinatorAutoQAUrl);
+//        return bean;
+//    }
 
 
     //TODO: uncheck

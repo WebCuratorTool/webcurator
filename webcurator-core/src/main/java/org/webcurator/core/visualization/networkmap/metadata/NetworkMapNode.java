@@ -1,15 +1,29 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationContext;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.URLResolverFunc;
 
+import java.io.IOException;
 import java.util.*;
 
 @SuppressWarnings("all")
 public class NetworkMapNode {
-    private static final NetworkMapDomainSuffix topDomainParser = ApplicationContextFactory.getApplicationContext().getBean(NetworkMapDomainSuffix.class);
+    private static NetworkMapDomainSuffix topDomainParser = null;
+
+    static {
+        ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+        if (ctx != null) {
+            topDomainParser = ctx.getBean(NetworkMapDomainSuffix.class);
+        } else {
+            topDomainParser = new NetworkMapDomainSuffix();
+        }
+    }
+
     protected long id;
     protected String url;
     protected String domain;
@@ -35,6 +49,7 @@ public class NetworkMapNode {
     protected long parentId = -1;
     protected long offset;
     protected long fetchTimeMs; //ms: time used to download the page
+    protected String fileName;
 
     @JsonIgnore
     protected boolean hasOutlinks; //the number of outlinks>0
@@ -50,7 +65,7 @@ public class NetworkMapNode {
 
     protected String title;
 
-    private NetworkMapNode() {
+    public NetworkMapNode() {
     }
 
     public NetworkMapNode(long id) {
@@ -366,5 +381,56 @@ public class NetworkMapNode {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public static void main(String[] args) {
+        NetworkMapNode node = new NetworkMapNode();
+        node.setUrl("http://google");
+        node.setDomain("google");
+        node.setTopDomain("g");
+
+        String json = obj2Json(node);
+        System.out.println(json);
+
+        NetworkMapNode newNode = getNodeEntity(json);
+        System.out.println(newNode.getUrl());
+    }
+
+    public static NetworkMapNode getNodeEntity(String json) {
+        if (json == null) {
+            return null;
+        }
+
+//        log.debug(json);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            return objectMapper.readValue(json, NetworkMapNode.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static String obj2Json(Object obj) {
+        String json = "{}";
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            json = objectMapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
     }
 }

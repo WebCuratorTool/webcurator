@@ -50,7 +50,7 @@ public class BrowseServletConfig {
     @Lazy(false)
     public SimpleUrlHandlerMapping simpleUrlMappingBrowse() {
         SimpleUrlHandlerMapping bean = new SimpleUrlHandlerMapping();
-        bean.setInterceptors(new Object[]{ openSessionInViewInterceptorBrowse() });
+        bean.setInterceptors(new Object[]{openSessionInViewInterceptorBrowse()});
 
         Properties properties = new Properties();
         properties.setProperty("**", "browseController");
@@ -200,6 +200,8 @@ public class BrowseServletConfig {
         // Below is an example of the tag format. However, IMG:SRC is
         // already handled in the regular expression above.
         //htmlTagPatternsList.add("IMG:SRC");
+        htmlTagPatternsList.add("LINK:HREF");
+        htmlTagPatternsList.add("SCRIPT:SRC");
         bean.setHtmlTagPatterns(htmlTagPatternsList);
 
         return bean;

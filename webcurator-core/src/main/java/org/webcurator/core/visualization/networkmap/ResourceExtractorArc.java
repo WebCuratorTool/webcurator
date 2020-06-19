@@ -42,7 +42,7 @@ public class ResourceExtractorArc extends ResourceExtractor {
     }
 
     @Override
-    protected void extractRecord(ArchiveRecord rec) throws IOException {
+    protected void extractRecord(ArchiveRecord rec, String fileName) throws IOException {
         ARCRecord record = (ARCRecord) rec;
         ArchiveRecordHeader header = record.getHeader();
 

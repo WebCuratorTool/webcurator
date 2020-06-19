@@ -42,7 +42,7 @@ import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.ArcHarvestResult;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
@@ -457,13 +457,13 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
             HarvestResult result = results.get(numResults - 1);
             assertNotNull(result);
 
-            result.setState(ArcHarvestResult.STATE_INDEXING);
+            result.setState(HarvestResult.STATE_INDEXING);
             store.setCheckIndexingReturn(true);
             assertFalse(testInstance.reIndexHarvestResult(result));
             assertEquals(ti.getState(), TargetInstance.STATE_HARVESTED);
-            assertEquals(result.getState(), ArcHarvestResult.STATE_INDEXING);
+            assertEquals(result.getState(), HarvestResult.STATE_INDEXING);
             assertEquals(results.size(), numResults);
-            assertEquals(results.get(results.size() - 1).getState(), ArcHarvestResult.STATE_INDEXING);
+            assertEquals(results.get(results.size() - 1).getState(), HarvestResult.STATE_INDEXING);
         }
         {
             TargetInstance ti = tiDao.load(5000L);
@@ -477,13 +477,13 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
             HarvestResult result = results.get(numResults - 1);
             assertNotNull(result);
 
-            result.setState(ArcHarvestResult.STATE_INDEXING);
+            result.setState(HarvestResult.STATE_INDEXING);
             store.setCheckIndexingReturn(false);
             assertTrue(testInstance.reIndexHarvestResult(result));
             assertEquals(ti.getState(), TargetInstance.STATE_HARVESTED);
-            assertEquals(result.getState(), ArcHarvestResult.STATE_ABORTED);
+            assertEquals(result.getState(), HarvestResult.STATE_ABORTED);
             assertEquals(results.size(), numResults + 1);
-            assertEquals(results.get(results.size() - 1).getState(), ArcHarvestResult.STATE_INDEXING);
+            assertEquals(results.get(results.size() - 1).getState(), HarvestResult.STATE_INDEXING);
         }
     }
 

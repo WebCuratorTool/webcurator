@@ -124,7 +124,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         archiveRecordsIt.next();
 
         // Create a WARC Writer
-        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNumber, "${prefix}",
+        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + newHarvestResultNumber, "${prefix}",
                 ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l, new UUIDGenerator());
         WARCWriter writer = new WARCWriter(aint, settings);
 
@@ -238,7 +238,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         // Create a WARC Writer
         // Somewhat arbitrarily use the last filename from the list of original filenames
         // Compress the file if the (last) original file was compressed
-        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNumber, "${prefix}",
+        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + newHarvestResultNumber, "${prefix}",
                 WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
         WARCWriter warcWriter = new WARCWriter(aint, settings);
 
@@ -340,7 +340,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         // Bypass warc header metadata as it has been read above from a different ArchiveReader
         archiveRecordsIt.next();
 
-        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNumber, "${prefix}",
+        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + newHarvestResultNumber, "${prefix}",
                 ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l, new UUIDGenerator());
         WARCWriter writer = new WARCWriter(aint, settings);
 

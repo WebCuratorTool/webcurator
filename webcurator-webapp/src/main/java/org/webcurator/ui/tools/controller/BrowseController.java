@@ -18,7 +18,9 @@ package org.webcurator.ui.tools.controller;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -28,7 +30,6 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,12 +38,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.store.tools.QualityReviewFacade;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
+import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.model.core.HarvestResult;
+import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.tools.command.BrowseCommand;
-import org.webcurator.webapp.beans.config.BaseConfig;
 
 /**
  * The BrowseController is responsible for handling the Browse Quality Review
@@ -54,372 +57,365 @@ import org.webcurator.webapp.beans.config.BaseConfig;
  */
 @Controller
 public class BrowseController {
-	/** Logger for the BrowseController. **/
-	private static Log log = LogFactory.getLog(BrowseController.class);
+    /**
+     * Logger for the BrowseController.
+     **/
+    private static final Log log = LogFactory.getLog(BrowseController.class);
 
-	/** The BrowseHelper handles replacement of URLs in the resources. **/
-	@Autowired
-	private BrowseHelper browseHelper;
+    /**
+     * The BrowseHelper handles replacement of URLs in the resources.
+     **/
+    @Autowired
+    private BrowseHelper browseHelper;
 
-	/** The QualityReviewFacade for this controller. **/
-	@Autowired
-	private QualityReviewFacade qualityReviewFacade;
+    /**
+     * The QualityReviewFacade for this controller.
+     **/
+    @Autowired
+    private DigitalAssetStore digitalAssetStore = null;
 
-	private final int MAX_MEMORY_SIZE = 1024 * 1024;
-	// private final int MAX_MEMORY_SIZE = 0;
+    @Autowired
+    private TargetInstanceDAO targetInstanceDao;
 
-	/** The buffer size for reading from the file. */
-	private final int BYTE_BUFFER_SIZE = 1024 * 8;
+    private final int MAX_MEMORY_SIZE = 1024 * 1024;
+    // private final int MAX_MEMORY_SIZE = 0;
 
-	private static Pattern p = Pattern.compile("\\/(\\d+)\\/(.*)");
+    /**
+     * The buffer size for reading from the file.
+     */
+    private static final int BYTE_BUFFER_SIZE = 1024 * 8;
 
-	private static Pattern CHARSET_PATTERN = Pattern
-			.compile(";\\s+charset=([A-Za-z0-9].[A-Za-z0-9_\\-\\.:]*)");
+    private static final Pattern p = Pattern.compile("\\/(\\d+)\\/(.*)");
 
-	private static Charset CHARSET_LATIN_1 = Charset.forName("ISO-8859-1");
+    private static final Pattern CHARSET_PATTERN = Pattern.compile(";\\s+charset=([A-Za-z0-9].[A-Za-z0-9_\\-\\.:]*)");
 
-	/**
-	 * Map containing tokens (eg: browser redirect fragment) that will be
-	 * replaced during the browser helper fix operation
-	 */
-	private static Map<String, String> fixTokens = null;
+    private static final Charset CHARSET_LATIN_1 = StandardCharsets.UTF_8; // StandardCharsets.ISO_8859_1;
 
-	@PostConstruct
-	public void initialize() {
-		if(fixTokens == null){
-			fixTokens = new HashMap<>();
-			fixTokens.put("top.location", "//top.location");
-			fixTokens.put("window.location", "//window.location");
-			// Ensure that meta refresh redirect to the root path "/" is replaced by a relative path "./"
-			fixTokens.put("http-equiv=&quot;refresh&quot; content=&quot;0; url=/",	"http-equiv=&quot;refresh&quot; content=&quot;0; url=./");
-		}
-	}
+    /**
+     * Map containing tokens (eg: browser redirect fragment) that will be
+     * replaced during the browser helper fix operation
+     */
+    private static Map<String, String> fixTokens = null;
 
-	/**
-	 * Sets the BrowseHelper for the controller. This is primarily called from
-	 * the Spring configuration.
-	 *
-	 * @param browseHelper
-	 *            The browseHelper that the controller should use.
-	 */
-	public void setBrowseHelper(BrowseHelper browseHelper) {
-		this.browseHelper = browseHelper;
-	}
+    @PostConstruct
+    public void initialize() {
+        if (fixTokens == null) {
+            fixTokens = new HashMap<>();
+            fixTokens.put("top.location", "//top.location");
+            fixTokens.put("window.location", "//window.location");
+            // Ensure that meta refresh redirect to the root path "/" is replaced by a relative path "./"
+            fixTokens.put("http-equiv=&quot;refresh&quot; content=&quot;0; url=/", "http-equiv=&quot;refresh&quot; content=&quot;0; url=./");
+        }
+    }
 
+    /**
+     * Sets the BrowseHelper for the controller. This is primarily called from
+     * the Spring configuration.
+     *
+     * @param browseHelper The browseHelper that the controller should use.
+     */
+    public void setBrowseHelper(BrowseHelper browseHelper) {
+        this.browseHelper = browseHelper;
+    }
 
-	/**
-	 * Sets the QualityReviewFacade for the controller. The facade is set by the
-	 * Spring configuration.
-	 *
-	 * @param qualityReviewFacade
-	 *            The facade the controller should use.
-	 */
-	public void setQualityReviewFacade(QualityReviewFacade qualityReviewFacade) {
-		this.qualityReviewFacade = qualityReviewFacade;
-	}
+    /**
+     * Default constructor.
+     */
+    public BrowseController() {
+    }
 
-	/**
-	 * Default constructor.
-	 */
-	public BrowseController() {
-	}
-
-	private String getHeaderValue(List<Header> headers, String key) {
-		if (headers != null) {
-			for (Header h : headers) {
-				if (key.equalsIgnoreCase(h.getName())) {
-					return h.getValue();
-				}
-			}
-		}
-		return null;
-	}
+    private String getHeaderValue(List<Header> headers, String key) {
+        if (headers != null) {
+            for (Header h : headers) {
+                if (key.equalsIgnoreCase(h.getName())) {
+                    return h.getValue().trim();
+                }
+            }
+        }
+        return null;
+    }
 
 
-	/**
-	 * Get everything before the semi-colon.
-	 *
-	 * @param realContentType
-	 *            The full content type from the Heritrix ARC file.
-	 * @return The part of the content type before the semi-colon.
-	 */
-	private String getSimpleContentType(String realContentType) {
-		return (realContentType == null || realContentType.indexOf(';') < 0) ? realContentType
-				: realContentType.substring(0, realContentType.indexOf(';'));
+    /**
+     * Get everything before the semi-colon.
+     *
+     * @param realContentType The full content type from the Heritrix ARC file.
+     * @return The part of the content type before the semi-colon.
+     */
+    private String getSimpleContentType(String realContentType) {
+        return (realContentType == null || realContentType.indexOf(';') < 0) ? realContentType
+                : realContentType.substring(0, realContentType.indexOf(';'));
 
-	}
-
-
-	/**
-	 * The handle method is the entry method into the browse controller.
-	 */
-	@RequestMapping(path = "/curator/tools/browse/{hrOid}/{seedUrl}", method = {RequestMethod.POST, RequestMethod.GET})
-	protected ModelAndView handle(@PathVariable("hrOid") Long hrOid, @PathVariable("seedUrl") String seedUrl, HttpServletRequest req, HttpServletResponse res) throws Exception {
-
-		// Cast the command to the correct command type.
-//		BrowseCommand command = (BrowseCommand) comm;
-
-		// Build a command with the items from the URL.
-		BrowseCommand command = new BrowseCommand();
-		command.setHrOid(hrOid);
-		command.setResource(new String(Base64.getDecoder().decode(seedUrl)));
-
-		String base = req.getContextPath() + req.getServletPath();
-
-		String line = req.getRequestURI().substring(base.length());
-
-		Matcher matcher = p.matcher(line);
-		if (matcher.matches()) {
-			command.setHrOid(Long.parseLong(matcher.group(1)));
-			command.setResource(matcher.group(2));
-		}
-
-		if (req.getQueryString() != null) {
-			command.setResource(command.getResource() + "?"
-					+ req.getQueryString());
-		}
+    }
 
 
-		// Check if the command is prefixed with a forward slash.
-		if (command.getResource().startsWith("/")) {
-			command.setResource(command.getResource().substring(1));
-		}
+    /**
+     * The handle method is the entry method into the browse controller.
+     */
+    @RequestMapping(path = "/curator/tools/browse/{hrOid}/**", method = {RequestMethod.POST, RequestMethod.GET})
+    protected ModelAndView handle(@PathVariable("hrOid") Long hrOid, HttpServletRequest req, HttpServletResponse res) throws Exception {
+        // Build a command with the items from the URL.
+        BrowseCommand command = new BrowseCommand();
+        command.setHrOid(hrOid);
+        String prefix = req.getContextPath() + String.format("/curator/tools/browse/%d/", hrOid);
+        String seedUrl = req.getRequestURI().substring(prefix.length());
+        String seedUrlDecoded = BrowseHelper.decodeUrl(seedUrl);
+        command.setResource(seedUrlDecoded);
 
-		// Now make sure that the domain name is in lowercase.
-		Pattern urlBreakerPattern = Pattern.compile("(.*?)://(.*?)/(.*)");
-		Matcher urlBreakerMatcher = urlBreakerPattern.matcher(command
-				.getResource());
-		if (urlBreakerMatcher.matches()) {
-			command.setResource(urlBreakerMatcher.group(1) + "://"
-					+ urlBreakerMatcher.group(2).toLowerCase() + "/"
-					+ urlBreakerMatcher.group(3));
-		}
+        String base = req.getContextPath() + req.getServletPath();
+        String line = req.getRequestURI().substring(base.length());
 
-		// Load the HarvestResourceDTO from the quality review facade.
-		HarvestResourceDTO dto = qualityReviewFacade.getHarvestResourceDTO(
-				command.getHrOid(), command.getResource());
+        Matcher matcher = p.matcher(line);
+        if (matcher.matches()) {
+            command.setHrOid(Long.parseLong(matcher.group(1)));
+            command.setResource(matcher.group(2));
+        }
 
-		// If the resource is not found, go to an error page.
-		if (dto == null) {
-			log.debug("Resource not found: " + command.getResource());
-			return new ModelAndView("browse-tool-not-found", "resourceName",
-					command.getResource());
-		} else {
-			List<Header> headers = new ArrayList<>();
-			// catch any DigitalAssetStoreException and log assumptions
-			try {
-				headers = qualityReviewFacade.getHttpHeaders(dto);
-			} catch (DigitalAssetStoreException e) {
-				log.info("Failed to get header for ti "
-						+ dto.getTargetInstanceOid());
-				// throw new DigitalAssetStoreException(e);
-			} catch (Exception e) {
-				log.error("Unexpected exception encountered when retrieving WARC headers for ti "
-						+ dto.getTargetInstanceOid());
-				throw new Exception(e);
-			}
-
-			// Send the headers for a redirect.
-			if (dto.getStatusCode() == HttpServletResponse.SC_MOVED_TEMPORARILY
-					|| dto.getStatusCode() == HttpServletResponse.SC_MOVED_PERMANENTLY) {
-				res.setStatus(dto.getStatusCode());
-				String location = getHeaderValue(headers, "Location");
-				if (location != null) {
-					String newUrl = browseHelper.convertUrl(command.getHrOid(),
-							command.getResource(), location);
-					res.setHeader("Location", newUrl);
-				}
-			}
-
-			// Get the content type.
-			String realContentType = getHeaderValue(headers, "Content-Type");
-			String simpleContentType = this
-					.getSimpleContentType(realContentType);
-
-			String charset = null;
-			if (realContentType != null) {
-				Matcher charsetMatcher = CHARSET_PATTERN
-						.matcher(realContentType);
-				if (charsetMatcher.find()) {
-					charset = charsetMatcher.group(1);
-					log.debug("Desired charset: " + charset + " for "
-							+ command.getResource());
-				} else {
-					log.debug("No charset: " + charset + " ("
-							+ command.getResource());
-				}
-			}
+        String queryString = req.getQueryString();
+        if (queryString != null && queryString.trim().length() > 0) {
+            command.setResource(command.getResource() + "?" + queryString);
+        }
+//        if (queryString != null) {
+//            int idxStart = queryString.indexOf("url=");
+//            if (idxStart > 0) {
+//                int idxEnd = queryString.indexOf("&", idxStart + 1);
+//                if (idxEnd < 0) {
+//                    queryString = queryString.substring(0, idxStart - 1);
+//                } else {
+//                    queryString = queryString.substring(0, idxStart - 1) + queryString.substring(idxEnd);
+//                }
+//            } else if (idxStart == 0) {
+//                int idxEnd = queryString.indexOf("&", idxStart + 1);
+//                if (idxEnd > 0) {
+//                    queryString = queryString.substring(idxEnd + 1);
+//                } else {
+//                    queryString = "";
+//                }
+//            }
+//
+//            if (queryString.trim().length() > 0) {
+//                command.setResource(command.getResource() + "?" + req.getQueryString());
+//            }
+//        }
 
 
-			// If the content has been registered with the browseHelper to
-			// require replacements, load the content and perform the
-			// necessary replacements.
-			if (browseHelper.isReplaceable(simpleContentType)) {
-				StringBuilder content = null;
+        // Check if the command is prefixed with a forward slash.
+        if (command.getResource().startsWith("/")) {
+            command.setResource(command.getResource().substring(1));
+        }
 
-				try {
-					content = readFile(dto, charset);
-				} catch (DigitalAssetStoreException e) {
-					if (log.isWarnEnabled()) {
-						log.warn(e.getMessage());
-					}
-				}
-				ModelAndView mav = new ModelAndView("browse-tool-html");
+        // Now make sure that the domain name is in lowercase.
+        Pattern urlBreakerPattern = Pattern.compile("(.*?)://(.*?)/(.*)");
+        Matcher urlBreakerMatcher = urlBreakerPattern.matcher(command.getResource());
+        if (urlBreakerMatcher.matches()) {
+            command.setResource(urlBreakerMatcher.group(1) + "://"
+                    + urlBreakerMatcher.group(2).toLowerCase() + "/"
+                    + urlBreakerMatcher.group(3));
+        }
 
-				if (content != null) {
-					// We might need to use a different base URL if a BASE HREF
-					// tag
-					// is used. We use the TagMagix class to perform the search.
-					// Note that TagMagix leaves leading/trailing slashes on the
-					// URL, so we need to do that
-					String baseUrl = command.getResource();
-					Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern(
-							"BASE", "HREF");
-					Matcher m = baseUrlGetter.matcher(content);
-					if (m.find()) {
-						String u = m.group(1);
-						if (u.startsWith("\"") && u.endsWith("\"")
-								|| u.startsWith("'") && u.endsWith("'")) {
+        // Load the HarvestResourceDTO from the quality review facade.
+        HarvestResult hr = targetInstanceDao.getHarvestResult(command.getHrOid());
+        if (hr == null) {        // If the resource is not found, go to an error page.
+            log.debug("Resource not found: " + command.getResource());
+            return new ModelAndView("browse-tool-not-found", "resourceName", command.getResource());
+        }
 
-							// Ensure the detected Base HREF is not commented
-							// out (unusual case, but we have seen it).
-							int lastEndComment = content.lastIndexOf("-->",
-									m.start());
-							int lastStartComment = content.lastIndexOf("<!--",
-									m.start());
-							if (lastStartComment < 0
-									|| lastEndComment > lastStartComment) {
-								baseUrl = u.substring(1, u.length() - 1);
-							}
-						}
+        TargetInstance ti = hr.getTargetInstance();
+        if (ti == null) {        // If the resource is not found, go to an error page.
+            log.debug("Resource not found: " + command.getResource());
+            return new ModelAndView("browse-tool-not-found", "resourceName", command.getResource());
+        }
 
-					}
+        List<Header> headers = new ArrayList<>();
+        try {        // catch any DigitalAssetStoreException and log assumptions
+            headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), command.getResource());
+        } catch (Exception e) {
+            log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
+            throw new Exception(e);
+        }
 
-					browseHelper.fix(content, simpleContentType,
-							command.getHrOid(), baseUrl);
-					mav.addObject("content", content.toString());
-				} else {
-					mav.addObject("content", "");
-				}
+        int statusCode = Integer.parseInt(getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE"));
 
-				mav.addObject("Content-Type", realContentType);
-				return mav;
-			}
+        // Send the headers for a redirect.
+        if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
+            res.setStatus(statusCode);
+            String location = getHeaderValue(headers, "Location");
+            if (location != null) {
+                String newUrl = browseHelper.convertUrl(command.getHrOid(), command.getResource(), location);
+                res.setHeader("Location", newUrl);
+            }
+        }
 
-			// If there are no replacements, send the content back directly.
-			else {
-				if (dto.getLength() > MAX_MEMORY_SIZE) {
-					Date dt = new Date();
-					Path path = qualityReviewFacade.getResource(dto);
-					ModelAndView mav = new ModelAndView("browse-tool-other");
-					mav.addObject("file", path);
-					mav.addObject("contentType", realContentType);
+        // Get the content type.
+        String realContentType = getHeaderValue(headers, "Content-Type");
+        String simpleContentType = this.getSimpleContentType(realContentType);
 
-					log.info("TIME TO GET RESOURCE(old): "
-							+ (new Date().getTime() - dt.getTime()));
-					return mav;
-				} else {
-					Date dt = new Date();
-					byte[] bytesBuffer = null;
-					try {
-						bytesBuffer = qualityReviewFacade.getSmallResource(dto);
-					} catch (org.webcurator.core.exceptions.DigitalAssetStoreException e) {
-						if (log.isWarnEnabled()) {
-							log.warn("Could not retrieve resource: " + dto.getName());
-						}
-					}
-					ModelAndView mav = new ModelAndView(
-							"browse-tool-other-small");
-					mav.addObject("bytesBuffer", bytesBuffer);
-					mav.addObject("contentType", realContentType);
-					log.debug("TIME TO GET RESOURCE(new): "
-							+ (new Date().getTime() - dt.getTime()));
-					return mav;
-				}
-			}
-		}
-	}
-
-	private Charset loadCharset(String charset) {
-		Charset cs = CHARSET_LATIN_1;
-		if (charset != null) {
-			try {
-				cs = Charset.forName(charset);
-			} catch (Exception ex) {
-				log.warn("Could not load desired charset " + charset
-						+ "; using ISO-8859-1");
-			}
-		}
-
-		return cs;
-	}
+        String charset = null;
+        if (realContentType != null) {
+            Matcher charsetMatcher = CHARSET_PATTERN.matcher(realContentType);
+            if (charsetMatcher.find()) {
+                charset = charsetMatcher.group(1);
+                log.debug("Desired charset: " + charset + " for " + command.getResource());
+            } else {
+                log.debug("No charset for: " + command.getResource());
+                charset = CHARSET_LATIN_1.name();
+                realContentType += ";charset=" + charset;
+            }
+        }
 
 
-	/**
-	 * Reads the contents of the HarvestResource described by the DTO.
-	 *
-	 * @param dto
-	 *            The HarvestResource to read the content of.
-	 * @return The content of the HarvestResource as a String.
-	 * @throws IOException
-	 */
-	private StringBuilder readFile(HarvestResourceDTO dto, String charset)
-			throws DigitalAssetStoreException {
+        // If the content has been registered with the browseHelper to require replacements, load the content and perform the necessary replacements.
+        if (browseHelper.isReplaceable(simpleContentType)) {
+            StringBuilder content = null;
 
-		// this is always a temp file - need to delete it before exiting
-		Path path = qualityReviewFacade.getResource(dto);
+            try {
+                content = readFile(ti.getOid(), hr.getHarvestNumber(), command.getResource(), charset);
+            } catch (DigitalAssetStoreException e) {
+                log.warn(e.getMessage());
+            }
+            ModelAndView mav = new ModelAndView("browse-tool-html");
 
-		StringBuilder content = new StringBuilder();
-		BufferedInputStream is = null;
+            if (content != null) {
+                // We might need to use a different base URL if a BASE HREF tag
+                // is used. We use the TagMagix class to perform the search.
+                // Note that TagMagix leaves leading/trailing slashes on the
+                // URL, so we need to do that
+                String baseUrl = command.getResource();
+                Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern("BASE", "HREF");
+                Matcher m = baseUrlGetter.matcher(content);
+                if (m.find()) {
+                    String u = m.group(1);
+                    if (u.startsWith("\"") && u.endsWith("\"") || u.startsWith("'") && u.endsWith("'")) {
+                        // Ensure the detected Base HREF is not commented
+                        // out (unusual case, but we have seen it).
+                        int lastEndComment = content.lastIndexOf("-->", m.start());
+                        int lastStartComment = content.lastIndexOf("<!--", m.start());
+                        if (lastStartComment < 0 || lastEndComment > lastStartComment) {
+                            baseUrl = u.substring(1, u.length() - 1);
+                        }
+                    }
+                }
 
-		try {
-			// Try to get the appropriate character set.
-			Charset cs = loadCharset(charset);
+                browseHelper.fix(content, simpleContentType, command.getHrOid(), baseUrl);
+                mav.addObject("content", content.toString());
+            } else {
+                mav.addObject("content", "");
+            }
 
-			is = new BufferedInputStream(new FileInputStream(path.toFile()));
-			byte[] buff = new byte[BYTE_BUFFER_SIZE];
-			int bytesRead = 0;
+            mav.addObject("Content-Type", realContentType);
+            return mav;
+        } else { // If there are no replacements, send the content back directly.
+            long contentLength = Long.parseLong(getHeaderValue(headers, "HTTP-RESPONSE-CONTENT_LENGTH"));
 
-			bytesRead = is.read(buff);
-			while (bytesRead > 0) {
-				content.append(new String(buff, 0, bytesRead, cs.name()));
-				bytesRead = is.read(buff);
-			}
+            Date dt = new Date();
+            if (contentLength > MAX_MEMORY_SIZE) {
+                Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
+                ModelAndView mav = new ModelAndView("browse-tool-other");
+                mav.addObject("file", path);
+                mav.addObject("contentType", realContentType);
 
-		} catch (Exception e) {
-			throw new DigitalAssetStoreException("Failed to read file : "
-					+ path.toString() + " : " + e.getMessage(), e);
-		} finally {
-			try {
-				is.close();
-				// No point deleting it if it is already gone
-				if (path.toFile().exists()) {
-					if (!path.toFile().delete()) {
-						log.error("Failed to delete temporary file: "
-								+ path.toString());
-					}
-				}
-			} catch (IOException e) {
-				if (log.isWarnEnabled()) {
-					log.warn("Failed to close input stream " + e.getMessage(),
-							e);
-				}
-			}
-		}
+                log.info("TIME TO GET RESOURCE(old): " + (new Date().getTime() - dt.getTime()));
+                return mav;
+            } else {
+                byte[] bytesBuffer = null;
+                try {
+                    bytesBuffer = digitalAssetStore.getSmallResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
+                } catch (org.webcurator.core.exceptions.DigitalAssetStoreException e) {
+                    log.warn("Could not retrieve resource: " + command.getResource());
+                }
+                ModelAndView mav = new ModelAndView("browse-tool-other-small");
+                mav.addObject("bytesBuffer", bytesBuffer);
+                mav.addObject("contentType", realContentType);
+                log.debug("TIME TO GET RESOURCE(new): " + (new Date().getTime() - dt.getTime()));
+                return mav;
+            }
+        }
 
-		return content;
-	}
+    }
 
-	/**
-	 * @param fixTokens
-	 *            the fixTokens to set
-	 */
-	public void setFixTokens(Map<String, String> fixTokens) {
-		this.fixTokens = fixTokens;
-	}
+    private Charset loadCharset(String charset) {
+        Charset cs = CHARSET_LATIN_1;
+        if (charset != null) {
+            try {
+                cs = Charset.forName(charset);
+            } catch (Exception ex) {
+                log.warn("Could not load desired charset " + charset + "; using ISO-8859-1");
+            }
+        }
 
-	public static Map<String, String> getFixTokens() {
-		return fixTokens;
-	}
+        return cs;
+    }
+
+
+    /**
+     * Reads the contents of the HarvestResource described by the DTO.
+     *
+     * @param dto The HarvestResource to read the content of.
+     * @return The content of the HarvestResource as a String.
+     * @throws IOException
+     */
+
+    /**
+     * Reads the contents of the HarvestResource described by the DTO.
+     *
+     * @param targetInstanceId    Target Instance Oid
+     * @param harvestResultNumber Harvest Result Number
+     * @param resourceUrl         Resource URL requested
+     * @param charset             charset for response
+     * @return content related to request URL
+     * @throws DigitalAssetStoreException error happens
+     */
+    private StringBuilder readFile(long targetInstanceId, int harvestResultNumber, String resourceUrl, String charset)
+            throws DigitalAssetStoreException {
+
+        // this is always a temp file - need to delete it before exiting
+        Path path = digitalAssetStore.getResource(targetInstanceId, harvestResultNumber, resourceUrl);
+
+        StringBuilder content = new StringBuilder();
+        BufferedInputStream is = null;
+
+        try {
+            // Try to get the appropriate character set.
+            Charset cs = loadCharset(charset);
+
+            is = new BufferedInputStream(new FileInputStream(path.toFile()));
+            byte[] buff = new byte[BYTE_BUFFER_SIZE];
+            int bytesRead = 0;
+
+            bytesRead = is.read(buff);
+            while (bytesRead > 0) {
+                content.append(new String(buff, 0, bytesRead, cs.name()));
+                bytesRead = is.read(buff);
+            }
+
+        } catch (Exception e) {
+            throw new DigitalAssetStoreException("Failed to read file : " + path.toString() + " : " + e.getMessage(), e);
+        } finally {
+            try {
+                is.close();
+                // No point deleting it if it is already gone
+                if (path.toFile().exists()) {
+                    if (!path.toFile().delete()) {
+                        log.error("Failed to delete temporary file: " + path.toString());
+                    }
+                }
+            } catch (IOException e) {
+                log.warn("Failed to close input stream " + e.getMessage(), e);
+            }
+        }
+
+        return content;
+    }
+
+    /**
+     * @param fixTokens the fixTokens to set
+     */
+    public void setFixTokens(Map<String, String> fixTokens) {
+        this.fixTokens = fixTokens;
+    }
+
+    public static Map<String, String> getFixTokens() {
+        return fixTokens;
+    }
 
 }

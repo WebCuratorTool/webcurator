@@ -143,11 +143,6 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 				{
 					final HarvestResult hr = it.next();
 					getHibernateTemplate().initialize(hr);
-					//delete all the associated resources
-					if(hr.getResources() != null)
-					{
-						deleteHarvestResultResources(hr.getOid()); 
-					}
 				}
 				return null;
 			}     
@@ -229,18 +224,17 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 	}
 	
 
-	public ArcHarvestResult getHarvestResult(final Long harvestResultOid) {
+	public HarvestResult getHarvestResult(final Long harvestResultOid) {
 		return getHarvestResult(harvestResultOid, true);
 	}
 
-	public ArcHarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
-		ArcHarvestResult hr = (ArcHarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
+	public HarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
+		HarvestResult hr = (HarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
 			public Object doInHibernate(Session aSession) {
-				ArcHarvestResult hr = aSession.load(ArcHarvestResult.class, harvestResultOid);
+				HarvestResult hr = aSession.load(HarvestResult.class, harvestResultOid);
 
 				// Force population of the resources and target instance
 				if(loadFully) {
-					hr.getResources().values();
 					hr.getTargetInstance();
 				}
 
@@ -250,43 +244,10 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 
 		return hr;
 	}
-
-	/**
-	 * TODO This should be moved to an ArcHarvestResultDAO.
-	 */
-	public HarvestResourceDTO getHarvestResourceDTO(final long harvestResultOid, final String resource) {
-		HarvestResourceDTO dto = (HarvestResourceDTO) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session aSession) {
-                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=?1 and ahr.name=?2");
-				q.setParameter(1, harvestResultOid);
-				q.setParameter(2, resource);
-				ArcHarvestResourceDTO dto = (ArcHarvestResourceDTO) q.uniqueResult();
-				
-				return dto;
-			}
-		});		
-		
-		
-		return dto;
-	}
-	
-	public List<HarvestResourceDTO> getHarvestResourceDTOs(final long harvestResultOid) {
-		List<HarvestResourceDTO> resources = (List<HarvestResourceDTO>) getHibernateTemplate().execute(new HibernateCallback() {
-			public Object doInHibernate(Session aSession) {
-                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=?1");
-				q.setParameter(1, harvestResultOid);
-				List<HarvestResourceDTO> resources = q.list();
-				
-				return resources;
-			}
-		});		
-				
-		return resources;
-	}
 	
 	@SuppressWarnings("unchecked")
 	public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
-		return (List<HarvestResult>) getHibernateTemplate().find("select hr from ArcHarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
+		return (List<HarvestResult>) getHibernateTemplate().find("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
 	}
 	
 	public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {

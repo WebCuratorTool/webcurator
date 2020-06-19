@@ -95,25 +95,6 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
         harvestCoordinator.notification(aSubject, notificationCategory, aMessage);
     }
 
-    /**
-     * The index will be saved at store component side.
-     * @param harvestResultOid --
-     * @param arcIndexResultDTO  The OID of the HarvestResult and the ArcHarvestFile DTO.
-     */
-    @Deprecated
-    @PostMapping(path = HarvestCoordinatorPaths.ADD_HARVEST_RESULT)
-    public void addToHarvestResult(@PathVariable(value = "harvest-result-oid") Long harvestResultOid,
-                                   @RequestBody ArcIndexResultDTO arcIndexResultDTO) {
-        try {
-            log.info("Received addToHarvestResult({}, size={})", harvestResultOid, arcIndexResultDTO.getHarvestFileDTOs().size());
-            harvestCoordinator.addToHarvestResult(harvestResultOid, arcIndexResultDTO);
-        } catch (RuntimeException | Error ex) {
-            log.error("Exception in createHarvestResult", ex);
-            throw ex;
-        }
-
-    }
-
     @PostMapping(path = HarvestCoordinatorPaths.CREATE_HARVEST_RESULT)
     public Long createHarvestResult(@RequestBody HarvestResultDTO harvestResultDTO) {
         try {
@@ -145,19 +126,6 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
             log.error("Exception in notifyAQAComplete", ex);
             throw ex;
         }
-    }
-
-    @PostMapping(path = HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES)
-    public void addHarvestResources(@PathVariable(value = "harvest-result-oid") Long harvestResultOid,
-                                    @RequestBody Collection<ArcHarvestResourceDTO> harvestResources) {
-        try {
-            log.info("Received addHarvestResources for Harvest Result {}", harvestResultOid);
-            harvestCoordinator.addHarvestResources(harvestResultOid, harvestResources);
-        } catch (RuntimeException | Error ex) {
-            log.error("Exception in createHarvestResult", ex);
-            throw ex;
-        }
-
     }
 
     @PostMapping(path = HarvestCoordinatorPaths.COMPLETE_ARCHIVING)

@@ -28,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -57,6 +58,9 @@ public class LogReaderController {
     @Autowired
     @Qualifier("logReaderValidator")
     private LogReaderValidator validator;
+
+    @Autowired
+    private HarvestLogManager harvestLogManager;
 
     @Autowired
     @Qualifier(HarvestResult.PATCH_STAGE_TYPE_NORMAL)
@@ -97,8 +101,9 @@ public class LogReaderController {
                                   BindingResult bindingResult) throws Exception {
         validator.validate(cmd, bindingResult);
 
+        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
         //Go to patching log reading process
-        if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
+        if (ti != null && ti.getState().equals(TargetInstance.STATE_PATCHING)) {
             return handlePatchingLogReader(cmd, bindingResult);
         }
 
@@ -114,8 +119,6 @@ public class LogReaderController {
                 messageText += err.getDefaultMessage();
             }
         } else if (cmd.getTargetInstanceOid() != null) {
-            TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
-
             cmd.setTargetName(ti.getTarget().getName());
 
             //Count the log lines first time in
@@ -220,7 +223,7 @@ public class LogReaderController {
         return mav;
     }
 
-    //@RequestMapping(path = "/curator/target/patching-log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
+    //    @RequestMapping(path = "/curator/target/patching-log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
     protected ModelAndView handlePatchingLogReader(@ModelAttribute("logReaderCommand") LogReaderCommand cmd,
                                                    BindingResult bindingResult) throws Exception {
         validator.validate(cmd, bindingResult);

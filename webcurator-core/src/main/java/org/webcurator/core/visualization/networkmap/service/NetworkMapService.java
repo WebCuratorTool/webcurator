@@ -28,16 +28,18 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     public String searchUrl(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand);
 
+    public List<String> searchUrlNames(long job, int harvestResultNumber, String substring);
+
     public String getHopPath(long job, int harvestResultNumber, long id);
 
     public String getHierarchy(long job, int harvestResultNumber, List<Long> ids);
+
+    public String getUrlByName(long job, int harvestResultNumber, String urlName);
 
     default public NetworkMapNode getNodeEntity(String json) {
         if (json == null) {
             return null;
         }
-
-//        log.debug(json);
 
         ObjectMapper objectMapper = new ObjectMapper();
 

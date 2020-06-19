@@ -318,6 +318,7 @@ public class DasConfig {
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         bean.setFileArchive(createFileArchive());
         bean.setVisualizationManager(visualizationManager);
+        bean.setNetworkMapClient(getNetworkMapLocalClient());
         return bean;
     }
 

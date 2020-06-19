@@ -6,11 +6,10 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class NetworkMapClientLocal implements NetworkMapClient {
-    private BDBNetworkMapPool pool;
+    private final BDBNetworkMapPool pool;
 
     public NetworkMapClientLocal(BDBNetworkMapPool pool) {
         this.pool = pool;
@@ -94,6 +93,16 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return json;
     }
 
+    @Override
+    public List<String> searchUrlNames(long job, int harvestResultNumber, String substring) {
+        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null || substring == null) {
+            return null;
+        }
+
+        return db.searchKeys(substring);
+    }
+
 
     private void searchUrlInternal(long job, int harvestResultNumber, BDBNetworkMap db, NetworkMapServiceSearchCommand searchCommand, List<Long> linkIds, final List<String> result) {
         if (linkIds == null) {
@@ -172,20 +181,27 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return json;
     }
 
-    private void combineHierarchy(BDBNetworkMap db, Map<Long, NetworkMapNode> walkedNodes, long urlId) {
-        if (walkedNodes.containsKey(urlId)) {
-            return;
-        }
-
-        NetworkMapNode node = getNodeEntity(db.get(urlId));
-        if (node == null) {
-            return;
-        } else {
-            walkedNodes.put(urlId, node);
-        }
-
-        combineHierarchy(db, walkedNodes, node.getParentId());
+    @Override
+    public String getUrlByName(long job, int harvestResultNumber, String urlName) {
+        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        String keyId = db.get(urlName);
+        return keyId == null ? null : db.get(keyId);
     }
+
+//    private void combineHierarchy(BDBNetworkMap db, Map<Long, NetworkMapNode> walkedNodes, long urlId) {
+//        if (walkedNodes.containsKey(urlId)) {
+//            return;
+//        }
+//
+//        NetworkMapNode node = getNodeEntity(db.get(urlId));
+//        if (node == null) {
+//            return;
+//        } else {
+//            walkedNodes.put(urlId, node);
+//        }
+//
+//        combineHierarchy(db, walkedNodes, node.getParentId());
+//    }
 
     private String combineUrlResultFromArrayIDs(long job, int harvestResultNumber, List<Long> ids) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
@@ -221,7 +237,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return true;
         }
 
-        List<SearchCommandItem> domainNameCondition=searchCommand.getDomainNames().stream().map(SearchCommandItem::new).collect(Collectors.toList());
+        List<SearchCommandItem> domainNameCondition = searchCommand.getDomainNames().stream().map(SearchCommandItem::new).collect(Collectors.toList());
         for (SearchCommandItem e : domainNameCondition) {
             if (e.match(domainName)) {
                 return true;
@@ -236,7 +252,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return true;
         }
 
-        List<SearchCommandItem> urlNameCondition=searchCommand.getUrlNames().stream().map(SearchCommandItem::new).collect(Collectors.toList());
+        List<SearchCommandItem> urlNameCondition = searchCommand.getUrlNames().stream().map(SearchCommandItem::new).collect(Collectors.toList());
         for (SearchCommandItem e : urlNameCondition) {
             if (e.match(urlName)) {
                 return true;
@@ -251,7 +267,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return true;
         }
 
-        List<SearchCommandItem> contentTypeCondition=searchCommand.getContentTypes().stream().map(SearchCommandItem::new).collect(Collectors.toList());
+        List<SearchCommandItem> contentTypeCondition = searchCommand.getContentTypes().stream().map(SearchCommandItem::new).collect(Collectors.toList());
         for (SearchCommandItem e : contentTypeCondition) {
             if (e.match(contentType)) {
                 return true;

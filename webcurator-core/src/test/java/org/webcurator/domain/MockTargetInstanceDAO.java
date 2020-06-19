@@ -39,8 +39,6 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 	private Map<Long,TargetInstance> tiOids = new HashMap<Long, TargetInstance>();
 	private Map<Long,HarvesterStatus> hsOids = new HashMap<Long, HarvesterStatus>();
 	private Map<Long, HarvestResult> hrOids = new HashMap<Long, HarvestResult>();
-	private Map<Long,HarvestResource> hrsOids = new HashMap<Long, HarvestResource>();
-	private Map<Long,ArcHarvestFile> ahfOids = new HashMap<Long, ArcHarvestFile>();
 	
 	private Long baseTargetInstanceOid = 5000L;
 	private Long baseHarvestResultOid = 21000L;
@@ -286,30 +284,6 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 		return hhdtos;
 	}
 
-	public HarvestResourceDTO getHarvestResourceDTO(long harvestResultOid,
-			String resource) {
-		HarvestResult hr = hrOids.get(harvestResultOid);
-		HarvestResource hrs = hr.getResources().get(resource);
-		return hrs.buildDTO();
-	}
-	
-	@Override
-	public List<HarvestResourceDTO> getHarvestResourceDTOs(long harvestResultOid) {
-		HarvestResult hr = hrOids.get(harvestResultOid);
-		Iterator<HarvestResource> it = hr.getResources().values().iterator();
-		
-		List<HarvestResourceDTO> resources = new ArrayList<HarvestResourceDTO>();
-		
-		while (it.hasNext()) {
-			HarvestResource hrc = it.next();
-			// build the DTO
-			HarvestResourceDTO hrcDTO = hrc.buildDTO();
-			// add to the resources list
-			resources.add(hrcDTO);
-		}
-		
-		return resources;
-	}
 
 	public HarvestResult getHarvestResult(Long harvestResultOid) {
 		
@@ -381,9 +355,9 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 			}
 			log.debug("Saved TargetInstance "+ti.getOid());
 		}
-		else if(object instanceof ArcHarvestResult)
+		else if(object instanceof HarvestResult)
 		{
-			HarvestResult hr = (ArcHarvestResult)object;
+			HarvestResult hr = (HarvestResult)object;
 			if(hr.getOid() == null)
 			{
 				hr.setOid(baseHarvestResultOid + hrOids.size());
@@ -411,44 +385,11 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 		return null;
 	}
 	
-	public void deleteHarvestResources(Long targetInstanceId) 
-	{
-		List<HarvestResult> hrs = getHarvestResults(targetInstanceId);
-		Iterator<HarvestResult> it = hrs.iterator();
-		while(it.hasNext())
-		{
-			deleteHarvestResultResources(it.next().getOid());
-		}
-	}
-	
 	public void deleteIndicators() 
 	{
 		indicatorDAO.deleteIndicators();
 	}
 
-	public void deleteHarvestResultResources(Long harvestResultId) 
-	{
-		//fully load the harvest result
-		HarvestResult hr = getHarvestResult(harvestResultId, true);
-		
-		//delete all the associated resources
-		if(hr.getResources() != null)
-		{
-			hr.getResources().clear();
-		}
-	}
-
-	public void deleteHarvestResultFiles(Long harvestResultId) 
-	{
-		//fully load the harvest result
-		ArcHarvestResult hr = (ArcHarvestResult)getHarvestResult(harvestResultId, true);
-
-		//delete all the associated resources
-		if(hr.getArcFiles() != null)
-		{
-			hr.getArcFiles().clear();
-		}
-	}
 
     protected Set<TargetInstance> loadTargetInstancesFromNodeList(NodeList tiNodes)
     {
@@ -629,47 +570,14 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	
     	return arcHarvestResults;
     }
-    
-    
-    protected Map<String,HarvestResource> loadHarvestResourcesFromNodeList(HarvestResult hr, NodeList hrsNodes)
-    {
-    	Map<String,HarvestResource> harvestResources = new Hashtable<String,HarvestResource>();
-    	for (int i = 0; i < hrsNodes.getLength(); i++)
-    	{
-    		Node hrsNode = hrsNodes.item(i);
-    		if(hrsNode.getNodeType() == Node.ELEMENT_NODE)
-    		{
-    			HarvestResource hrs = loadHarvestResourceFromNode(hr, hrsNode);
-    			harvestResources.put(hrs.getName(), hrs);
-    		}
-    	}
-    	
-    	return harvestResources;
-    }
-    
-    protected Set<ArcHarvestFile> loadArcFilesFromNodeList(HarvestResult hr, NodeList hrsNodes)
-    {
-    	Set<ArcHarvestFile> harvestFiles = new HashSet<ArcHarvestFile>();
-    	for (int i = 0; i < hrsNodes.getLength(); i++)
-    	{
-    		Node hrsNode = hrsNodes.item(i);
-    		if(hrsNode.getNodeType() == Node.ELEMENT_NODE)
-    		{
-    			ArcHarvestFile ahf = loadArcFileFromNode(hr, hrsNode);
-    			harvestFiles.add(ahf);
-    		}
-    	}
-    	
-    	return harvestFiles;
-    }
-    
+
     protected HarvestResult loadHarvestResultFromNode(TargetInstance ti, Node hrNode)
     {
        	//Check the oid first
     	Long oid = getOid(hrNode);
     	if(oid != null &&  hrNode.hasChildNodes() && !hrOids.containsKey(oid))
     	{
-			ArcHarvestResult hr = new ArcHarvestResult();
+			HarvestResult hr = new HarvestResult();
     		hr.setOid(oid);
     		hr.setTargetInstance(ti);
     		
@@ -682,10 +590,6 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 					if(child.getNodeName().equals("harvestNumber"))
 					{
 						hr.setHarvestNumber(getInteger(child));
-					}
-					else if(child.getNodeName().equals("resources"))
-					{
-						hr.setResources(loadHarvestResourcesFromNodeList(hr, child.getChildNodes()));
 					}
 					else if(child.getNodeName().equals("provenanceNote"))
 					{
@@ -722,10 +626,6 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 					{
 						hr.setDerivedFrom(getInteger(child));
 					}
-					else if(child.getNodeName().equals("arcFiles"))
-					{
-						hr.setArcFiles(loadArcFilesFromNodeList(hr, child.getChildNodes()));
-					}
 				}
 			}
 			
@@ -739,94 +639,6 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
     	}
      	
     	return hrOids.get(oid);
-    }
-    
-    protected HarvestResource loadHarvestResourceFromNode(HarvestResult hr, Node hrsNode)
-    {
-    	Long oid = getOid(hrsNode);
-    	if(oid != null &&  hrsNode.hasChildNodes() && !hrsOids.containsKey(oid))
-    	{
-    		ArcHarvestResource hrs = new ArcHarvestResource();
-    		hrs.setOid(oid);
-    		hrs.setResult((ArcHarvestResult)hr);
-    		
-	 		NodeList children = hrsNode.getChildNodes();
-			for(int i = 0; i < children.getLength(); i++)
-			{
-				Node child = children.item(i);
-				if(child.getNodeType() == Node.ELEMENT_NODE)
-				{
-					if(child.getNodeName().equals("length"))
-					{
-						hrs.setLength(getLong(child));
-					}
-					else if(child.getNodeName().equals("name"))
-					{
-						hrs.setName(getString(child));
-					}
-					else if(child.getNodeName().equals("statusCode"))
-					{
-						hrs.setStatusCode(getInteger(child));
-					}
-					else if(child.getNodeName().equals("arcFileName"))
-					{
-						hrs.setArcFileName(getString(child));
-					}
-					else if(child.getNodeName().equals("compressed"))
-					{
-						hrs.setCompressed(getBool(child));
-					}
-					else if(child.getNodeName().equals("resourceLength"))
-					{
-						hrs.setResourceLength(getLong(child));
-					}
-					else if(child.getNodeName().equals("resourceOffset"))
-					{
-						hrs.setResourceOffset(getLong(child));
-					}
-				}
-			}
-			
-			hrsOids.put(oid, hrs);
-    	}
-     	
-    	return hrsOids.get(oid);
-    }
-
-    protected ArcHarvestFile loadArcFileFromNode(HarvestResult hr, Node ahfNode)
-    {
-    	Long oid = getOid(ahfNode);
-    	if(oid != null &&  ahfNode.hasChildNodes() && !ahfOids.containsKey(oid))
-    	{
-    		ArcHarvestFile ahf = new ArcHarvestFile();
-    		ahf.setOid(oid);
-    		ahf.setArcHarvestResult((ArcHarvestResult)hr);
-    		
-	 		NodeList children = ahfNode.getChildNodes();
-			for(int i = 0; i < children.getLength(); i++)
-			{
-				Node child = children.item(i);
-				if(child.getNodeType() == Node.ELEMENT_NODE)
-				{
-					if(child.getNodeName().equals("name"))
-					{
-						ahf.setName(getString(child));
-					}
-					else if(child.getNodeName().equals("compressed"))
-					{
-						ahf.setCompressed(getBool(child));
-					}
-					else if(child.getNodeName().equals("baseDir"))
-					{
-						ahf.setBaseDir(getString(child));
-					}
-				}
-			}
-			
-			ahfOids.put(oid, ahf);
-    	}
-     	
-    	return ahfOids.get(oid);
     }
 
     protected HarvesterStatus loadHarvesterStatusFromNode(Node hsNode)

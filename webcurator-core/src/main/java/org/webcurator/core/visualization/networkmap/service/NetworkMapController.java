@@ -60,6 +60,12 @@ public class NetworkMapController implements NetworkMapService {
     }
 
     @Override
+    @RequestMapping(path = VisualizationConstants.PATH_SEARCH_URL_NAMES, method = {RequestMethod.POST}, produces = "application/json")
+    public List<String> searchUrlNames(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("substring") String substring) {
+        return null;
+    }
+
+    @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_HOP_PATH, method = {RequestMethod.POST}, produces = "application/json")
     public String getHopPath(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
         return client.getHopPath(job, harvestResultNumber, id);
@@ -69,5 +75,11 @@ public class NetworkMapController implements NetworkMapService {
     @RequestMapping(path = VisualizationConstants.PATH_GET_HIERARCHY_URLS, method = {RequestMethod.POST}, produces = "application/json")
     public String getHierarchy(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<Long> ids) {
         return client.getHierarchy(job, harvestResultNumber, ids);
+    }
+
+    @Override
+    @RequestMapping(path = VisualizationConstants.PATH_GET_URL_BY_NAME, method = {RequestMethod.POST}, produces = "application/json")
+    public String getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("urlName") String urlName) {
+        return client.getUrlByName(job, harvestResultNumber, urlName);
     }
 }

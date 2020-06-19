@@ -15,10 +15,8 @@
  */
 package org.webcurator.ui.target.controller;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -46,14 +44,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.store.tools.QualityReviewFacade;
+import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.AuthUtil;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.IndicatorDAO;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorCriteria;
@@ -72,214 +71,219 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
 @Lazy(false)
 @RequestMapping(path = "/curator/target/qa-indicator-robots-report.html")
 public class QaIndicatorRobotsReportController {
-	/** the logger. */
-	private Log log = null;
-    /** The manager to use to access the target instance. */
+    /**
+     * the logger.
+     */
+    private Log log = null;
+    /**
+     * The manager to use to access the target instance.
+     */
     @Autowired
     private TargetInstanceManager targetInstanceManager;
-	/** The Data access object for indicators. */
-	@Autowired
-	private IndicatorDAO indicatorDAO;
-	/** the agency user manager. */
-	@Autowired
-	private AgencyUserManager agencyUserManager;
-	/** the authority manager. */
-	@Autowired
-	private AuthorityManager authorityManager;
+    /**
+     * The Data access object for indicators.
+     */
+    @Autowired
+    private IndicatorDAO indicatorDAO;
+    /**
+     * the agency user manager.
+     */
+    @Autowired
+    private AgencyUserManager agencyUserManager;
+    /**
+     * the authority manager.
+     */
+    @Autowired
+    private AuthorityManager authorityManager;
 
-	private Map<String, String> excludedIndicators = null;
-	/** interface for retrieving data for excluded indicators **/
-	@Autowired
-	private QualityReviewFacade qualityReviewFacade;
-	/** message displayed if the robots.txt file is not found **/
-	private String fileNotFoundMessage = "robots.txt file not found";
+    private Map<String, String> excludedIndicators = null;
+    /**
+     * interface for retrieving data for excluded indicators
+     **/
+    @Autowired
+    private DigitalAssetStore digitalAssetStore;
 
-	/** Default Constructor. */
-	public QaIndicatorRobotsReportController() {
-		log = LogFactory.getLog(QaIndicatorRobotsReportController.class);
-	}
+    @Autowired
+    private NetworkMapClient networkMapClient;
 
-	@InitBinder
-	protected void initBinder(HttpServletRequest request,
-			ServletRequestDataBinder binder) {
-		// enable null values for long and float fields
-		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
-		NumberFormat floatFormat = new DecimalFormat("##############.##");
-		binder.registerCustomEditor(java.lang.Long.class,
-				new CustomNumberEditor(java.lang.Long.class, nf, true));
-		binder.registerCustomEditor(java.lang.Float.class,
-				new CustomNumberEditor(java.lang.Float.class, nf, true));
-	}
+    /**
+     * message displayed if the robots.txt file is not found
+     **/
+    private String fileNotFoundMessage = "robots.txt file not found";
 
-	private final void ShowRobotsDotTxtFile(ModelAndView mav, Indicator indicator, TargetInstance ti) throws IOException {
-		List<HarvestResult> results = ti.getHarvestResults();
- 		// get the latest HarvestResult for the ti (may have applied auto-prune)
- 		HarvestResult result = results.get(results.size()-1);
-     	// iterate over the harvest resources
-     	Iterator<HarvestResourceDTO> resources = qualityReviewFacade.getHarvestResourceDTOs(result.getOid()).iterator();
-     	List<String> lines = new ArrayList<String>();
-     	while (resources.hasNext()) {
-     		HarvestResourceDTO resource = resources.next();
-     		if (resource.getName().toLowerCase().contains("robots.txt")) {
-				try {
-					Path path = qualityReviewFacade.getResource(resource);
-					// read the file for reporting
-					BufferedReader bout = new BufferedReader (new FileReader (path.toFile()));
-					String line = null;
+    /**
+     * Default Constructor.
+     */
+    public QaIndicatorRobotsReportController() {
+        log = LogFactory.getLog(QaIndicatorRobotsReportController.class);
+    }
 
-					while ((line = bout.readLine()) != null) {
-						if (!line.equals("")) {
-							// add the line to the model
-							lines.add(line);
-						}
-					}
+    @InitBinder
+    protected void initBinder(HttpServletRequest request,
+                              ServletRequestDataBinder binder) {
+        // enable null values for long and float fields
+        NumberFormat nf = NumberFormat.getInstance(request.getLocale());
+        NumberFormat floatFormat = new DecimalFormat("##############.##");
+        binder.registerCustomEditor(java.lang.Long.class,
+                new CustomNumberEditor(java.lang.Long.class, nf, true));
+        binder.registerCustomEditor(java.lang.Float.class,
+                new CustomNumberEditor(java.lang.Float.class, nf, true));
+    }
 
-				} catch (org.webcurator.core.exceptions.DigitalAssetStoreException e) {
-					e.printStackTrace();
-				}
-     		}
-     	}
-     	if (lines.size() == 0) {
-     		lines.add(fileNotFoundMessage);
-     	}
-		// add the lines to the ModelAndView
-		mav.addObject("lines", lines);
+    private final void ShowRobotsDotTxtFile(ModelAndView mav, Indicator indicator, TargetInstance ti) throws IOException {
+        List<HarvestResult> results = ti.getHarvestResults();
+        // get the latest HarvestResult for the ti (may have applied auto-prune)
+        HarvestResult hr = results.get(results.size() - 1);
 
-	}
+        //Get the "robots.txt" resource urls
+        List<String> robotUrls = networkMapClient.searchUrlNames(ti.getOid(), hr.getHarvestNumber(), "robots.txt");
+        List<String> lines = new ArrayList<String>();
+        robotUrls.forEach(resourceUrl -> {
+            try {
+                Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), resourceUrl);
+                // read the file for reporting
+                Files.readAllLines(path).stream().filter(line -> {
+                    return line != null && line.trim().length() > 0;
+                }).forEach(lines::add);
+            } catch (DigitalAssetStoreException | IOException e) {
+                e.printStackTrace();
+            }
+        });
 
-	@GetMapping
-	protected ModelAndView showForm(HttpServletRequest request)
-			throws Exception {
+        if (lines.size() == 0) {
+            lines.add(fileNotFoundMessage);
+        }
+        // add the lines to the ModelAndView
+        mav.addObject("lines", lines);
+    }
 
-		ModelAndView mav = new ModelAndView();
+    @GetMapping
+    protected ModelAndView showForm(HttpServletRequest request)
+            throws Exception {
 
-		// fetch the indicator oid from the request (hyper-linked from QA Summary Page)
-		String iOid = request.getParameter("indicatorOid");
+        ModelAndView mav = new ModelAndView();
 
-		if (iOid != null) {
+        // fetch the indicator oid from the request (hyper-linked from QA Summary Page)
+        String iOid = request.getParameter("indicatorOid");
 
-			// prepare the indicator oid
-			Long indicatorOid = Long.parseLong(iOid);
+        if (iOid != null) {
 
-			// get the indicator
-			Indicator indicator = indicatorDAO.getIndicatorByOid(indicatorOid);
+            // prepare the indicator oid
+            Long indicatorOid = Long.parseLong(iOid);
 
-			// add it to the ModelAndView so that we can access it within the jsp
-			mav.addObject("indicator", indicator);
+            // get the indicator
+            Indicator indicator = indicatorDAO.getIndicatorByOid(indicatorOid);
 
-			// add the target instance
-			TargetInstance instance = targetInstanceManager.getTargetInstance(indicator.getTargetInstanceOid());
-			mav.addObject(TargetInstanceCommand.MDL_INSTANCE, instance);
+            // add it to the ModelAndView so that we can access it within the jsp
+            mav.addObject("indicator", indicator);
 
-			ShowRobotsDotTxtFile(mav, indicator, instance);
+            // add the target instance
+            TargetInstance instance = targetInstanceManager.getTargetInstance(indicator.getTargetInstanceOid());
+            mav.addObject(TargetInstanceCommand.MDL_INSTANCE, instance);
 
-			// ensure that the user belongs to the agency that created the indicator
-			if (agencyUserManager.getAgenciesForLoggedInUser().contains(indicator.getAgency())) {
-				// otherwise redirect to the configured view
-				mav.setViewName("QaIndicatorRobotsReport");
-			}
+            ShowRobotsDotTxtFile(mav, indicator, instance);
 
-		}
-		return mav;
+            // ensure that the user belongs to the agency that created the indicator
+            if (agencyUserManager.getAgenciesForLoggedInUser().contains(indicator.getAgency())) {
+                // otherwise redirect to the configured view
+                mav.setViewName("QaIndicatorRobotsReport");
+            }
 
-	}
+        }
+        return mav;
 
-	@PostMapping
-	protected ModelAndView processFormSubmission(HttpServletRequest request) throws Exception {
-		return showForm(request);
-	}
+    }
 
-	/**
-	 * Populate the Indicator Criteria list model object in the model and view
-	 * provided.
-	 *
-	 * @param mav
-	 *            the model and view to add the user list to.
-	 */
-	private void populateIndicatorCriteriaList(ModelAndView mav) {
-		List<IndicatorCriteria> indicators = agencyUserManager
-				.getIndicatorCriteriaForLoggedInUser();
-		List<Agency> agencies = null;
-		if (authorityManager.hasPrivilege(Privilege.MANAGE_INDICATORS,
-				Privilege.SCOPE_ALL)) {
-			agencies = agencyUserManager.getAgencies();
-		} else {
-			User loggedInUser = AuthUtil.getRemoteUserObject();
-			Agency usersAgency = loggedInUser.getAgency();
-			agencies = new ArrayList<Agency>();
-			agencies.add(usersAgency);
-		}
+    @PostMapping
+    protected ModelAndView processFormSubmission(HttpServletRequest request) throws Exception {
+        return showForm(request);
+    }
 
-		mav.addObject(QaIndicatorCommand.MDL_QA_INDICATORS, indicators);
-		mav.addObject(QaIndicatorCommand.MDL_LOGGED_IN_USER,
-				AuthUtil.getRemoteUserObject());
-		mav.addObject(QaIndicatorCommand.MDL_AGENCIES, agencies);
-		mav.setViewName("viewIndicators");
-	}
+    /**
+     * Populate the Indicator Criteria list model object in the model and view
+     * provided.
+     *
+     * @param mav the model and view to add the user list to.
+     */
+    private void populateIndicatorCriteriaList(ModelAndView mav) {
+        List<IndicatorCriteria> indicators = agencyUserManager.getIndicatorCriteriaForLoggedInUser();
+        List<Agency> agencies = null;
+        if (authorityManager.hasPrivilege(Privilege.MANAGE_INDICATORS, Privilege.SCOPE_ALL)) {
+            agencies = agencyUserManager.getAgencies();
+        } else {
+            User loggedInUser = AuthUtil.getRemoteUserObject();
+            Agency usersAgency = loggedInUser.getAgency();
+            agencies = new ArrayList<Agency>();
+            agencies.add(usersAgency);
+        }
 
-	class DescendingValueComparator implements Comparator {
-		Map base;
+        mav.addObject(QaIndicatorCommand.MDL_QA_INDICATORS, indicators);
+        mav.addObject(QaIndicatorCommand.MDL_LOGGED_IN_USER,
+                AuthUtil.getRemoteUserObject());
+        mav.addObject(QaIndicatorCommand.MDL_AGENCIES, agencies);
+        mav.setViewName("viewIndicators");
+    }
 
-		public DescendingValueComparator(Map base) {
-			this.base = base;
-		}
+    class DescendingValueComparator implements Comparator {
+        Map base;
 
-		public int compare(Object a, Object b) {
-			if ((Integer) base.get(a) <= (Integer) base.get(b)) {
-				return 1;
-			} else if ((Integer) base.get(a) == (Integer) base.get(b)) {
-				return 0;
-			} else {
-				return -1;
-			}
-		}
-	}
+        public DescendingValueComparator(Map base) {
+            this.base = base;
+        }
 
-	class AscendingValueComparator implements Comparator {
-		Map base;
+        public int compare(Object a, Object b) {
+            if ((Integer) base.get(a) <= (Integer) base.get(b)) {
+                return 1;
+            } else if ((Integer) base.get(a) == (Integer) base.get(b)) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+    }
 
-		public AscendingValueComparator(Map base) {
-			this.base = base;
-		}
+    class AscendingValueComparator implements Comparator {
+        Map base;
 
-		public int compare(Object a, Object b) {
-			if ((Integer) base.get(a) >= (Integer) base.get(b)) {
-				return 1;
-			} else if ((Integer) base.get(a) == (Integer) base.get(b)) {
-				return 0;
-			} else {
-				return -1;
-			}
-		}
-	}
+        public AscendingValueComparator(Map base) {
+            this.base = base;
+        }
 
-	/**
-	 * Spring setter method for the <code>IndicatorDAO</code>.
-	 *
-	 * @param indicatorDAO
-	 *            The indicatorDAO to set.
-	 */
-	public void setIndicatorDAO(IndicatorDAO indicatorDAO) {
-		this.indicatorDAO = indicatorDAO;
-	}
+        public int compare(Object a, Object b) {
+            if ((Integer) base.get(a) >= (Integer) base.get(b)) {
+                return 1;
+            } else if ((Integer) base.get(a) == (Integer) base.get(b)) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+    }
 
-	/**
-	 * @param agencyUserManager
-	 *            the agency user manager.
-	 */
-	public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
-		this.agencyUserManager = agencyUserManager;
-	}
+    /**
+     * Spring setter method for the <code>IndicatorDAO</code>.
+     *
+     * @param indicatorDAO The indicatorDAO to set.
+     */
+    public void setIndicatorDAO(IndicatorDAO indicatorDAO) {
+        this.indicatorDAO = indicatorDAO;
+    }
 
-	/**
-	 * Spring setter method for the Authority Manager.
-	 *
-	 * @param authorityManager
-	 *            The authorityManager to set.
-	 */
-	public void setAuthorityManager(AuthorityManager authorityManager) {
-		this.authorityManager = authorityManager;
-	}
+    /**
+     * @param agencyUserManager the agency user manager.
+     */
+    public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
+        this.agencyUserManager = agencyUserManager;
+    }
+
+    /**
+     * Spring setter method for the Authority Manager.
+     *
+     * @param authorityManager The authorityManager to set.
+     */
+    public void setAuthorityManager(AuthorityManager authorityManager) {
+        this.authorityManager = authorityManager;
+    }
 
     /**
      * @param aTargetInstanceManager The targetInstanceManager to set.
@@ -288,24 +292,17 @@ public class QaIndicatorRobotsReportController {
         targetInstanceManager = aTargetInstanceManager;
     }
 
-	/**
-	 * @param qualityReviewFacade the qualityReviewFacade to set
-	 */
-	public void setQualityReviewFacade(QualityReviewFacade qualityReviewFacade) {
-		this.qualityReviewFacade = qualityReviewFacade;
-	}
+    /**
+     * @param excludedIndicators the excludedIndicators to set
+     */
+    public void setExcludedIndicators(Map<String, String> excludedIndicators) {
+        this.excludedIndicators = excludedIndicators;
+    }
 
-	/**
-	 * @param excludedIndicators the excludedIndicators to set
-	 */
-	public void setExcludedIndicators(Map<String, String> excludedIndicators) {
-		this.excludedIndicators = excludedIndicators;
-	}
-
-	/**
-	 * @param fileNotFoundMessage the fileNotFoundMessage to set
-	 */
-	public void setFileNotFoundMessage(String fileNotFoundMessage) {
-		this.fileNotFoundMessage = fileNotFoundMessage;
-	}
+    /**
+     * @param fileNotFoundMessage the fileNotFoundMessage to set
+     */
+    public void setFileNotFoundMessage(String fileNotFoundMessage) {
+        this.fileNotFoundMessage = fileNotFoundMessage;
+    }
 }

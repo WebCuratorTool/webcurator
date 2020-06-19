@@ -38,10 +38,8 @@ public class HarvestResultDTO {
     protected int harvestNumber = 1;
     /** The harvests provenance note. */
     protected String provenanceNote;
-    /** the resources that belong to this result. */
-    protected Map<String,HarvestResourceDTO> resources = new HashMap<String,HarvestResourceDTO>();
     /** Set of ARC files that belong to the harvest result. */
-    protected Set<ArcHarvestFileDTO> arcFiles;
+
 
     public HarvestResultDTO() {
     }
@@ -62,18 +60,6 @@ public class HarvestResultDTO {
         this.provenanceNote = provenanceNote;
     }
 
-    /**
-     * @return Returns the resources.
-     */
-    public Map<String, HarvestResourceDTO> getResources() {
-        return resources;
-    }
-    /**
-     * @param resources The resources to set.
-     */
-    public void setResources(Map<String, HarvestResourceDTO> resources) {
-        this.resources = resources;
-    }
 
     /**
      * @return Returns the targetInstanceOid.
@@ -136,51 +122,5 @@ public class HarvestResultDTO {
      */
     public void setOid(Long oid) {
         this.oid = oid;
-    }
-
-    /**
-     * @return the set of ARC file DTO's.
-     */
-    public Set<ArcHarvestFileDTO> getArcFiles() {
-        return arcFiles;
-    }
-
-    /**
-     * @param arcFiles the set of ARC file DTO's.
-     */
-    public void setArcFiles(Set<ArcHarvestFileDTO> arcFiles) {
-        this.arcFiles = arcFiles;
-    }
-
-    /**
-     * Perform an index on all the ARC files in the specified base directory
-     * @param baseDir the directory containing the ARC files to index
-     * @throws IOException thrown if there is an error
-     * @throws ParseException thrown if there is an error
-     */
-    public void index(File baseDir) throws IOException, ParseException {
-        for(ArcHarvestFileDTO ahf: arcFiles) {
-            this.getResources().putAll(ahf.index(baseDir));
-        }
-    }
-
-    /**
-     * Perform an index on all the ARC files referred to by this result.
-     * @throws IOException thrown if there is an error
-     * @throws ParseException thrown if there is an error
-     */
-    public void index() throws IOException, ParseException {
-        for(ArcHarvestFileDTO ahf: arcFiles) {
-            this.getResources().putAll(ahf.index());
-        }
-    }
-
-    public void clear(){
-        if(this.arcFiles!=null){
-            this.arcFiles.clear();
-        }
-        if(this.resources!=null){
-            this.resources.clear();
-        }
     }
 }

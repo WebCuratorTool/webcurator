@@ -1,5 +1,5 @@
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ page import="org.webcurator.domain.model.core.ArcHarvestResult" %>
+<%@ page import="org.webcurator.domain.model.core.HarvestResult" %>
 
 <div id="resultsTable">
 	<table width="100%" cellpadding="2" cellspacing="0" border="0">
@@ -116,8 +116,8 @@
                                     <c:out value="${logFile.name}"/>
                                 </td>
                                 <td class="subBoxText">
-                                    <a href="curator/target/${logFile.viewer}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${ArcHarvestResult.PATCH_STAGE_TYPE_NORMAL}" target="_blank">View</a> |
-                                    <a href="curator/target/${logFile.retriever}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${ArcHarvestResult.PATCH_STAGE_TYPE_NORMAL}">Download</a>
+                                    <a href="curator/target/${logFile.viewer}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${HarvestResult.PATCH_STAGE_TYPE_NORMAL}" target="_blank">View</a> |
+                                    <a href="curator/target/${logFile.retriever}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${HarvestResult.PATCH_STAGE_TYPE_NORMAL}">Download</a>
                                 </td>
                                 <td class="subBoxText">
                                     <c:out value="${logFile.lengthString}"/>
@@ -147,10 +147,10 @@
                         <tr>
                             <td class="subBoxText">
                                 <c:out value="${logFile.name}"/>
-                            </td>
+                            </td>q
                             <td class="subBoxText">
-                                <a href="curator/target/${logFile.viewer}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${ArcHarvestResult.PATCH_STAGE_TYPE_MODIFYING}" target="_blank">View</a> |
-                                <a href="curator/target/${logFile.retriever}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${ArcHarvestResult.PATCH_STAGE_TYPE_MODIFYING}">Download</a>
+                                <a href="curator/target/${logFile.viewer}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${HarvestResult.PATCH_STAGE_TYPE_MODIFYING}" target="_blank">View</a> |
+                                <a href="curator/target/${logFile.retriever}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${HarvestResult.PATCH_STAGE_TYPE_MODIFYING}">Download</a>
                             </td>
                             <td class="subBoxText">
                                 <c:out value="${logFile.lengthString}"/>
@@ -182,8 +182,8 @@
                                 <c:out value="${logFile.name}"/>
                             </td>
                             <td class="subBoxText">
-                                <a href="curator/target/${logFile.viewer}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${ArcHarvestResult.PATCH_STAGE_TYPE_INDEXING}" target="_blank">View</a> |
-                                <a href="curator/target/${logFile.retriever}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${ArcHarvestResult.PATCH_STAGE_TYPE_INDEXING}">Download</a>
+                                <a href="curator/target/${logFile.viewer}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${HarvestResult.PATCH_STAGE_TYPE_INDEXING}" target="_blank">View</a> |
+                                <a href="curator/target/${logFile.retriever}?targetInstanceOid=${ti.oid}&harvestResultNumber=${hr.harvestNumber}&logFileName=${logFile.name}&prefix=${HarvestResult.PATCH_STAGE_TYPE_INDEXING}">Download</a>
                             </td>
                             <td class="subBoxText">
                                 <c:out value="${logFile.lengthString}"/>

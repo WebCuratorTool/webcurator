@@ -2,6 +2,7 @@ package org.webcurator.core.visualization.networkmap.service;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
@@ -133,6 +134,21 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
     }
 
     @Override
+    public List<String> searchUrlNames(long job, int harvestResultNumber, String substring) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_SEARCH_URL_NAMES))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber)
+                .queryParam("substring", substring);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        ResponseEntity<String> json = restTemplate.postForEntity(uri, null, String.class);
+
+        return getArrayListOfNetworkMapNode(json.getBody());
+    }
+
+    @Override
     public String getHopPath(long job, int harvestResultNumber, long id) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_HOP_PATH))
                 .queryParam("job", job)
@@ -159,6 +175,21 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
 
         String result;
         result = restTemplate.postForObject(uri, request, String.class);
+        return result;
+    }
+
+    @Override
+    public String getUrlByName(long job, int harvestResultNumber, String urlName) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_URL_BY_NAME))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber)
+                .queryParam("urlName", urlName);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        String result;
+        result = restTemplate.postForObject(uri, null, String.class);
         return result;
     }
 }

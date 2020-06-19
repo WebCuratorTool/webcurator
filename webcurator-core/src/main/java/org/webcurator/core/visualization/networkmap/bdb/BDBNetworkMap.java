@@ -11,7 +11,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -204,6 +206,38 @@ public class BDBNetworkMap {
         db.delete(null, new DatabaseEntry(stringToBytes(keyStr)));
     }
 
+    public List<String> searchKeys(String substring) {
+        List<String> result = new ArrayList<>();
+
+        // Open the cursor.
+        Cursor cursor = db.openCursor(null, null);
+
+        // Cursors need a pair of DatabaseEntry objects to operate. These hold
+        // the key and data found at any given position in the database.
+        DatabaseEntry foundKey = new DatabaseEntry();
+        DatabaseEntry foundData = new DatabaseEntry();
+
+        // To iterate, just call getNext() until the last database record has been
+        // read. All cursor operations return an OperationStatus, so just read
+        // until we no longer see OperationStatus.SUCCESS
+        while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+            // getData() on the DatabaseEntry objects returns the byte array
+            // held by that object. We use this to get a String value. If the
+            // DatabaseEntry held a byte array representation of some other data
+            // type (such as a complex object) then this operation would look
+            // considerably different.
+            String keyString = new String(foundKey.getData());
+            if (keyString.toUpperCase().contains(substring.toUpperCase())) {
+                result.add(keyString);
+            }
+        }
+
+        //Close the cursor
+        cursor.close();
+
+        return result;
+    }
+
     /**
      * @return Returns the dbName.
      */
@@ -231,6 +265,7 @@ public class BDBNetworkMap {
     public void setDbName(String dbName) {
         this.dbName = dbName;
     }
+
 
     public static void main(String[] args) throws IOException {
         BDBNetworkMap db = new BDBNetworkMap();
