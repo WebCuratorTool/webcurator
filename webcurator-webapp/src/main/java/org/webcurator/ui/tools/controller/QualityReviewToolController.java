@@ -15,8 +15,6 @@
  */
 package org.webcurator.ui.tools.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.*;
 
 import org.apache.commons.logging.Log;
@@ -53,17 +51,6 @@ public class QualityReviewToolController {
 
     @GetMapping
     public ModelAndView getHandle(@RequestParam("targetInstanceOid") long targetInstanceOid, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception {
-//		long targetInstanceOid = -1;
-//		long harvestResultId = -1;
-//
-//		try {
-//			targetInstanceOid =Long.parseLong(sTargetInstanceOid);
-//			harvestResultId = Long.parseLong(sHarvestResultId);
-//		}catch (NumberFormatException e){
-//			log.error("Invalid parameter", e);
-//			throw e;
-//		}
-
         QualityReviewToolCommand cmd = new QualityReviewToolCommand();
         cmd.setTargetInstanceOid(targetInstanceOid);
         cmd.setHarvestResultId(harvestResultId);
@@ -162,7 +149,7 @@ public class QualityReviewToolController {
             element.setPrimary(loadPrimary);
             if (attr.enableBrowseTool) {
                 //Encode BrowserURL to base64 chars:
-                element.setBrowseUrl("curator/tools/browse/" + String.valueOf(result.getOid()) + "/" + BrowseHelper.encodeUrl(seed.getSeed()));
+                element.setBrowseUrl("curator/tools/browse/" + String.valueOf(result.getOid()) + "/?url=" + BrowseHelper.encodeUrl(seed.getSeed()));
             }
 
             if (attr.enableAccessTool && attr.harvestResourceUrlMapper != null) {

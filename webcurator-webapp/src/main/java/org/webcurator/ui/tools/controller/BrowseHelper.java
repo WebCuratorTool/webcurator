@@ -16,18 +16,19 @@
 package org.webcurator.ui.tools.controller;
 
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
-//import org.archive.wayback.replay.TagMagix;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,7 +53,7 @@ public class BrowseHelper {
     /**
      * The logger for the BrowseHelper.
      **/
-    private static final Log log = LogFactory.getLog(BrowseHelper.class);
+    private static final Logger log = LoggerFactory.getLogger(BrowseHelper.class);
 
     /**
      * The prefix that will be used in the replacements.
@@ -146,14 +147,14 @@ public class BrowseHelper {
 
         } catch (NoSuchMethodException ex) {
             // Should never occur since we know the method is there.
-            log.fatal("Could not find 'getPattern' method on TagMagix");
+            log.error("Could not find 'getPattern' method on TagMagix");
         } catch (IllegalAccessException ex) {
             // Should never occur since we've changed to accessibility.
-            log.fatal("Could not access 'getPattern' method on TagMagix");
+            log.error("Could not access 'getPattern' method on TagMagix");
         } catch (InvocationTargetException ex) {
-            log.fatal("Error invoking 'getPattern' method", ex);
+            log.error("Error invoking 'getPattern' method", ex);
         } catch (SecurityException ex) {
-            log.fatal("Failed to allow access to 'getPattern' method on TagMagix");
+            log.error("Failed to allow access to 'getPattern' method on TagMagix");
         }
 
         // Receive an exception, so return null
@@ -184,7 +185,7 @@ public class BrowseHelper {
      */
     public void fix(StringBuilder content, String contentType, long hrOid, String currentResource) {
 
-        String resourcePrefix = prefix + "/" + hrOid + "/";
+        String resourcePrefix = prefix + "/" + hrOid + "/?url=";
         String jsPrefix = prefix.replaceFirst("curator/tools/browse", "replay/client-rewrite.js");
 
         // The Wayback 1.2 tool adds a <base href="..."> tag after the <head> tag
@@ -270,7 +271,7 @@ public class BrowseHelper {
     }
 
     public String convertUrl(Long hrOid, String currentResource, String urlToConvert) {
-        String resourcePrefix = prefix + "/" + hrOid + "/";
+        String resourcePrefix = prefix + "/" + hrOid + "/?url=";
         String absUrl = getAbsURL(currentResource, urlToConvert);
 
         if (useUrlConversionReplacements) {
@@ -401,16 +402,20 @@ public class BrowseHelper {
     }
 
     public static String encodeUrl(String s) {
-        if (s == null || s.startsWith("base64@")) {
-            return s;
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Failed to encode: {}, error: {}", s, e.getMessage());
         }
-        return "base64@" + Base64.getEncoder().encodeToString(s.getBytes());
+        return s;
     }
 
     public static String decodeUrl(String s) {
-        if (s == null || !s.startsWith("base64@")) {
-            return s;
+        try {
+            return URLDecoder.decode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Failed to decode: {}, error: {}", s, e.getMessage());
         }
-        return new String(Base64.getDecoder().decode(s.substring("base64@".length())));
+        return s;
     }
 }

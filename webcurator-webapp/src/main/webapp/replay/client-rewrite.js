@@ -1,8 +1,5 @@
 function encodeUrl(url){
-    if(!url || url.indexOf("base64@")==0){
-        return url;
-    }
-    return "base64@" + btoa(url);
+    return encodeURIComponent(url);
 }
 function xResolveUrl(url) {
    var image = new Image();
@@ -22,7 +19,7 @@ function xLateUrl(aCollection, sProp) {
             var wmSpecial = aCollection[i].getAttribute("wmSpecial");
             if(wmSpecial && wmSpecial.length > 0) {
             } else {
-                if(aCollection[i][sProp].indexOf(sWayBackCGI) == -1) {
+                if(aCollection[i][sProp].indexOf(sWayBackCGI) == -1 && aCollection[i][sProp].indexOf("data") != 0) {
                     if(aCollection[i][sProp].indexOf("http") == 0) {
                         aCollection[i][sProp] = sWayBackCGI + encodeUrl(aCollection[i][sProp]);
                     } else {
@@ -46,8 +43,8 @@ xLateUrl(document.getElementsByTagName("EMBED"),"src");
 xLateUrl(document.getElementsByTagName("IFRAME"),"src");
 xLateUrl(document.getElementsByTagName("INPUT"),"src");
 xLateUrl(document.getElementsByTagName("BODY"),"background");
-xLateUrl(document.getElementsByTagName("LINK"),"href");
-xLateUrl(document.getElementsByTagName("SCRIPT"),"src");
+//xLateUrl(document.getElementsByTagName("LINK"),"href");
+//xLateUrl(document.getElementsByTagName("SCRIPT"),"src");
 var forms = document.getElementsByTagName("FORM");
 if (forms) {
 		var j = 0;

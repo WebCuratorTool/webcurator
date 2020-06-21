@@ -18,7 +18,6 @@ package org.webcurator.ui.tools.controller;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -33,13 +32,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -159,9 +156,13 @@ public class BrowseController {
         BrowseCommand command = new BrowseCommand();
         command.setHrOid(hrOid);
         String prefix = req.getContextPath() + String.format("/curator/tools/browse/%d/", hrOid);
-        String seedUrl = req.getRequestURI().substring(prefix.length());
-        String seedUrlDecoded = BrowseHelper.decodeUrl(seedUrl);
-        command.setResource(seedUrlDecoded);
+
+        String queryString = req.getQueryString();
+        if (queryString != null && queryString.startsWith("url=")) {
+            command.setResource(BrowseHelper.decodeUrl(queryString.substring("url=".length())));
+        } else {
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
 
         String base = req.getContextPath() + req.getServletPath();
         String line = req.getRequestURI().substring(base.length());
@@ -171,34 +172,6 @@ public class BrowseController {
             command.setHrOid(Long.parseLong(matcher.group(1)));
             command.setResource(matcher.group(2));
         }
-
-        String queryString = req.getQueryString();
-        if (queryString != null && queryString.trim().length() > 0) {
-            command.setResource(command.getResource() + "?" + queryString);
-        }
-//        if (queryString != null) {
-//            int idxStart = queryString.indexOf("url=");
-//            if (idxStart > 0) {
-//                int idxEnd = queryString.indexOf("&", idxStart + 1);
-//                if (idxEnd < 0) {
-//                    queryString = queryString.substring(0, idxStart - 1);
-//                } else {
-//                    queryString = queryString.substring(0, idxStart - 1) + queryString.substring(idxEnd);
-//                }
-//            } else if (idxStart == 0) {
-//                int idxEnd = queryString.indexOf("&", idxStart + 1);
-//                if (idxEnd > 0) {
-//                    queryString = queryString.substring(idxEnd + 1);
-//                } else {
-//                    queryString = "";
-//                }
-//            }
-//
-//            if (queryString.trim().length() > 0) {
-//                command.setResource(command.getResource() + "?" + req.getQueryString());
-//            }
-//        }
-
 
         // Check if the command is prefixed with a forward slash.
         if (command.getResource().startsWith("/")) {
