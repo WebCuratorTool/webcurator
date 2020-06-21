@@ -391,18 +391,18 @@ public class NetworkMapNode {
         this.fileName = fileName;
     }
 
-    public static void main(String[] args) {
-        NetworkMapNode node = new NetworkMapNode();
-        node.setUrl("http://google");
-        node.setDomain("google");
-        node.setTopDomain("g");
-
-        String json = obj2Json(node);
-        System.out.println(json);
-
-        NetworkMapNode newNode = getNodeEntity(json);
-        System.out.println(newNode.getUrl());
-    }
+//    public static void main(String[] args) {
+//        NetworkMapNode node = new NetworkMapNode();
+//        node.setUrl("http://google");
+//        node.setDomain("google");
+//        node.setTopDomain("g");
+//
+//        String json = obj2Json(node);
+//        System.out.println(json);
+//
+//        NetworkMapNode newNode = getNodeEntity(json);
+//        System.out.println(newNode.getUrl());
+//    }
 
     public static NetworkMapNode getNodeEntity(String json) {
         if (json == null) {

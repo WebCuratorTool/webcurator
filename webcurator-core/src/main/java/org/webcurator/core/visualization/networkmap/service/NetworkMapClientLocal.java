@@ -151,16 +151,6 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public String getHierarchy(long job, int harvestResultNumber, List<Long> ids) {
-//        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-//        Map<Long, NetworkMapNode> walkedNodes = new HashMap<>();
-//        for (long urlId : ids) {
-//            combineHierarchy(db, walkedNodes, urlId);
-//        }
-//
-//        String json = obj2Json(walkedNodes);
-//        walkedNodes.values().forEach(NetworkMapNode::clear);
-//        walkedNodes.clear();
-//        return json;
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
         List<NetworkMapNode> result = new ArrayList<>();
         for (long urlId : ids) {
@@ -185,7 +175,11 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     public String getUrlByName(long job, int harvestResultNumber, String urlName) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
         String keyId = db.get(urlName);
-        return keyId == null ? null : db.get(keyId);
+        if (keyId == null) {
+            log.warn("Can not find Url Node: {} {} {}", job, harvestResultNumber, urlName);
+            return null;
+        }
+        return db.get(keyId);
     }
 
 //    private void combineHierarchy(BDBNetworkMap db, Map<Long, NetworkMapNode> walkedNodes, long urlId) {

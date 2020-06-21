@@ -267,40 +267,40 @@ public class BDBNetworkMap {
     }
 
 
-    public static void main(String[] args) throws IOException {
-        BDBNetworkMap db = new BDBNetworkMap();
-        db.initializeDB("/usr/local/wct/store/_db_temp", "resource.db");
-
-        long MAX_TRY = 1000000;
-
-        long startTime = System.currentTimeMillis();
-        for (long id = 1; id <= MAX_TRY; id++) {
-            db.put(id, "Content:" + id);
-            if (id % 1000 == 0) {
-                long endTime = System.currentTimeMillis();
-                System.out.println("Running write:" + id + ", time used:" + (endTime - startTime));
-                startTime = endTime;
-            }
-        }
-
-        db.shutdownDB();
-
-        db.initializeDB("/usr/local/wct/store/_db_temp", "resource.db");
-
-        startTime = System.currentTimeMillis();
-        for (long id = 1; id <= MAX_TRY; id++) {
-            String str = db.get(id);
-            if (str == null) {
-                System.out.println("Error:" + id);
-            }
-
-            if (id % 1000 == 0) {
-                long endTime = System.currentTimeMillis();
-                System.out.println("Running read:" + id + ", time used:" + (endTime - startTime));
-                startTime = endTime;
-            }
-        }
-
-        db.shutdownDB();
-    }
+//    public static void main(String[] args) throws IOException {
+//        BDBNetworkMap db = new BDBNetworkMap();
+//        db.initializeDB("/usr/local/wct/store/_db_temp", "resource.db");
+//
+//        long MAX_TRY = 1000000;
+//
+//        long startTime = System.currentTimeMillis();
+//        for (long id = 1; id <= MAX_TRY; id++) {
+//            db.put(id, "Content:" + id);
+//            if (id % 1000 == 0) {
+//                long endTime = System.currentTimeMillis();
+//                System.out.println("Running write:" + id + ", time used:" + (endTime - startTime));
+//                startTime = endTime;
+//            }
+//        }
+//
+//        db.shutdownDB();
+//
+//        db.initializeDB("/usr/local/wct/store/_db_temp", "resource.db");
+//
+//        startTime = System.currentTimeMillis();
+//        for (long id = 1; id <= MAX_TRY; id++) {
+//            String str = db.get(id);
+//            if (str == null) {
+//                System.out.println("Error:" + id);
+//            }
+//
+//            if (id % 1000 == 0) {
+//                long endTime = System.currentTimeMillis();
+//                System.out.println("Running read:" + id + ", time used:" + (endTime - startTime));
+//                startTime = endTime;
+//            }
+//        }
+//
+//        db.shutdownDB();
+//    }
 }

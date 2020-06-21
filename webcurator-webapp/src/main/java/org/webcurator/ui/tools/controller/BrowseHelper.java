@@ -15,10 +15,9 @@
  */
 package org.webcurator.ui.tools.controller;
 
-import java.io.UnsupportedEncodingException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
-import org.archive.wayback.replay.TagMagix;
+//import org.archive.wayback.replay.TagMagix;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,6 +47,7 @@ import java.net.URLEncoder;
  *
  * @author bbeaumont
  */
+@SuppressWarnings("all")
 public class BrowseHelper {
     /**
      * The logger for the BrowseHelper.
@@ -139,7 +139,7 @@ public class BrowseHelper {
         // is private, so we need to use special reflection techniques to
         // get access to it.
         try {
-            Class<TagMagix> c = TagMagix.class;
+            Class<CustomizedTagMagix> c = CustomizedTagMagix.class;
             Method m = c.getDeclaredMethod("getPattern", String.class, String.class);
             m.setAccessible(true);
             return (Pattern) m.invoke(null, tag, attr);
@@ -190,7 +190,7 @@ public class BrowseHelper {
         // The Wayback 1.2 tool adds a <base href="..."> tag after the <head> tag
         // provided there is not one already there. So we'll do the same.
         if ("text/html".equals(contentType)) {
-            String existingBaseHref = TagMagix.getBaseHref(content);
+            String existingBaseHref = CustomizedTagMagix.getBaseHref(content);
             if (existingBaseHref == null) {
                 insertAtStartOfHead(content, "<base href=\"" + encodeUrl(currentResource) + "\" />");
             } else {
@@ -200,10 +200,14 @@ public class BrowseHelper {
 
         // Perform TagMagix replacements for html content.
         ArchivalUrlResultURIConverter resURIConverter = new ArchivalUrlResultURIConverter();
-        resURIConverter.setReplayURIPrefix(resourcePrefix);
+        if (resourcePrefix.endsWith("/")) {
+            resURIConverter.setReplayURIPrefix(resourcePrefix.substring(0, resourcePrefix.length() - 1));
+        } else {
+            resURIConverter.setReplayURIPrefix(resourcePrefix);
+        }
         if ("text/html".equals(contentType)) {
             for (TagMagixHelper helper : htmlTagPatterns) {
-                TagMagix.markupTagREURIC(content, resURIConverter, "", currentResource, helper.tag, helper.attribute);
+                CustomizedTagMagix.markupTagREURIC(content, resURIConverter, "", currentResource, helper.tag, helper.attribute);
             }
         }
 
@@ -355,7 +359,7 @@ public class BrowseHelper {
      * @param toInsert
      */
     public void insertAtStartOfHead(StringBuilder sb, String toInsert) {
-        int insertPoint = TagMagix.getEndOfFirstTag(sb, "head");
+        int insertPoint = CustomizedTagMagix.getEndOfFirstTag(sb, "head");
         if (-1 == insertPoint) {
             insertPoint = 0;
         }
@@ -381,7 +385,7 @@ public class BrowseHelper {
      * @param toInsert
      */
     public void insertAtStartOfBody(StringBuilder sb, String toInsert) {
-        int insertPoint = TagMagix.getEndOfFirstTag(sb, "body");
+        int insertPoint = CustomizedTagMagix.getEndOfFirstTag(sb, "body");
         if (-1 == insertPoint) {
             insertPoint = 0;
         }

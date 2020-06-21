@@ -16,7 +16,12 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
+import javax.activation.URLDataSource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -30,20 +35,28 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @Qualifier("arcDigitalAssetStoreService")
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
-    @PostMapping(path = DigitalAssetStorePaths.RESOURCE, produces = "application/octet-stream")
-    public @ResponseBody
-    byte[] getResourceExternal(@PathVariable(value = "target-instance-id") long targetInstanceId,
-                               @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                               @RequestParam(value = "resource-url") String resourceUrl) throws DigitalAssetStoreException {
+    //    @PostMapping(path = DigitalAssetStorePaths.RESOURCE, produces = "application/octet-stream")
+//    public @ResponseBody
+    @RequestMapping(path = DigitalAssetStorePaths.RESOURCE, method = {RequestMethod.POST, RequestMethod.GET})
+    void getResourceExternal(@PathVariable(value = "target-instance-id") long targetInstanceId,
+                             @RequestParam(value = "harvest-result-number") int harvestResultNumber,
+                             @RequestParam(value = "resource-url") String resourceUrl,
+                             HttpServletRequest req,
+                             HttpServletResponse rsp) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        Path path = getResource(targetInstanceId, harvestResultNumber, resourceUrl);
-        byte[] buf = null;
+        Path path = getResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
         try {
-            buf = IOUtils.toByteArray(path.toUri());
+            Files.copy(path, rsp.getOutputStream());
         } catch (IOException e) {
-            log.error(e.getMessage());
+            throw new DigitalAssetStoreException(e.getMessage());
         }
-        return buf;
+//        byte[] buf = null;
+//        try {
+//            buf = IOUtils.toByteArray(path.toUri());
+//        } catch (IOException e) {
+//            log.error(e.getMessage());
+//        }
+//        return buf;
     }
 
     @Override
@@ -56,7 +69,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                                            @RequestParam(value = "harvest-result-number") int harvestResultNumber,
                                            @RequestParam(value = "resource-url") String resourceUrl) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        return getSmallResource(targetInstanceId, harvestResultNumber, resourceUrl);
+        return getSmallResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
     }
 
     @Override
@@ -69,7 +82,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                                            @RequestParam(value = "harvest-result-number") int harvestResultNumber,
                                            @RequestParam(value = "resource-url") String resourceUrl) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        return getHeaders(targetInstanceId, harvestResultNumber, resourceUrl);
+        return getHeaders(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
     }
 
     @Override

@@ -1,21 +1,12 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'org.springframework.boot' version '2.1.7.RELEASE'
+    id 'org.springframework.boot' version '2.3.1.RELEASE'
 }
 
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = 'https://repo.spring.io/plugins-release'
-    }
-    maven {
-        url = 'http://builds.archive.org:8080/maven2'
-    }
-    maven {
-        url = 'https://repo.maven.apache.org/maven2'
-    }
 }
 
 dependencies {

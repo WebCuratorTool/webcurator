@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -231,7 +232,8 @@ public class BrowseController {
             headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), command.getResource());
         } catch (Exception e) {
             log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
-            throw new Exception(e);
+//            throw new Exception(e);
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
 
         int statusCode = Integer.parseInt(getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE"));

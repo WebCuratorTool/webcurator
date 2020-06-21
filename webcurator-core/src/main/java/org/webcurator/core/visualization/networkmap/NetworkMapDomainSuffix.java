@@ -54,13 +54,13 @@ public class NetworkMapDomainSuffix {
         return String.join(".", result);
     }
 
-    public static void main(String[] args) throws Exception {
-        NetworkMapDomainSuffix suf = new NetworkMapDomainSuffix();
-        suf.init("D:\\Downloads\\public_suffix_list.dat");
-        String domain = "www.google.com";
-        String topDomain = suf.getTopDomainName(domain);
-        System.out.println(domain + ": " + topDomain);
-    }
+//    public static void main(String[] args) throws Exception {
+//        NetworkMapDomainSuffix suf = new NetworkMapDomainSuffix();
+//        suf.init("D:\\Downloads\\public_suffix_list.dat");
+//        String domain = "www.google.com";
+//        String topDomain = suf.getTopDomainName(domain);
+//        System.out.println(domain + ": " + topDomain);
+//    }
 }
 
 class NetworkMapDomainSuffixNode {
