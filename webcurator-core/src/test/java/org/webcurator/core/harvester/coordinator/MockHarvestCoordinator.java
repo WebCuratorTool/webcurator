@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
@@ -405,6 +406,11 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 	public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
 		// TODO Auto-generated method stub
 
+		return null;
+	}
+
+	@Override
+	public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
 		return null;
 	}
 }

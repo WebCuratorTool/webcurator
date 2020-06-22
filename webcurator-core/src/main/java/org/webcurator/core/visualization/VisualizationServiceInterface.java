@@ -55,4 +55,6 @@ public interface VisualizationServiceInterface {
 
         return null;
     }
+
+    VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber);
 }

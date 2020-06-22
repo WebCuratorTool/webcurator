@@ -1,5 +1,7 @@
 package org.webcurator.core.visualization.networkmap.service;
 
+import org.webcurator.core.visualization.VisualizationProgressBar;
+import org.webcurator.core.visualization.networkmap.WCTResourceIndexer;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -283,6 +285,11 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
 
         return false;
+    }
+
+    @Override
+    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
+        return WCTResourceIndexer.getProgress(targetInstanceId, harvestResultNumber);
     }
 }
 

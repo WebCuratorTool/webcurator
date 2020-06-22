@@ -5,12 +5,10 @@ import com.google.common.primitives.Bytes;
 import org.apache.commons.httpclient.Header;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
-//import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
-//import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
@@ -18,10 +16,8 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
-//import reactor.core.publisher.Mono;
 
 import java.io.*;
-//import java.io.FileOutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -97,48 +93,15 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
                 .queryParam("harvest-result-number", harvestResultNumber)
                 .queryParam("resource-url", URLEncoder.encode(resourceUrl));
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-id", targetInstanceId);
-//        String url = uriComponentsBuilder.buildAndExpand(pathVariables).toUriString();
-
         try {
             URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
             URLConnection connection = url.openConnection();
             File file = File.createTempFile("wctd", "tmp");
-//            file.deleteOnExit();
             Files.copy(connection.getInputStream(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file.toPath();
         } catch (IOException ex) {
             throw new DigitalAssetStoreException("Failed to get resource for " + targetInstanceId + " " + harvestResultNumber + ": " + ex.getMessage(), ex);
         }
-
-//        WebClient client = WebClient.create(url);
-//        Mono<byte[]> mono = client.method(HttpMethod.POST)
-//                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-//                .accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM)
-//                .exchange()
-//                .flatMap(response -> response.bodyToMono(ByteArrayResource.class))
-//                .map(ByteArrayResource::getByteArray);
-//        byte[] buf = mono.block();
-//
-//        FileOutputStream fos = null;
-//        try {
-//            File file = File.createTempFile("wctd", "tmp");
-//            fos = new FileOutputStream(file);
-//            fos.write(buf);
-//            fos.flush();
-//            return file.toPath();
-//        } catch (IOException ex) {
-//            throw new DigitalAssetStoreException("Failed to get resource for " + targetInstanceId + " " +
-//                    harvestResultNumber + ": " + ex.getMessage(), ex);
-//        } finally {
-//            if (fos != null) {
-//                try {
-//                    fos.close();
-//                } catch (IOException ex) {
-//                    throw new DigitalAssetStoreException("Failed to get resource for " + targetInstanceId + " " +
-//                            harvestResultNumber + ": " + ex.getMessage(), ex);
-//                }
-//            }
-//        }
     }
 
     @Override

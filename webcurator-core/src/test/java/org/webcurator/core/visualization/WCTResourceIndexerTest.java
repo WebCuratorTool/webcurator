@@ -1,35 +1,64 @@
 package org.webcurator.core.visualization;
 
 import org.junit.Test;
-import org.webcurator.core.visualization.networkmap.ResourceExtractor;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorWarc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.webcurator.core.visualization.networkmap.WCTResourceIndexer;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public class WCTResourceIndexerTest {
+    private static final Logger log = LoggerFactory.getLogger(WCTResourceIndexerTest.class);
+
     private static final String baseDir = "/usr/local/wct/store";
+    private static final BDBNetworkMapPool pool = new BDBNetworkMapPool(baseDir);
+    private long targetInstanceId = 5010;
+    private int harvestResultNumber = 1;
+
+    private void initTest() {
+        String dbPath = pool.getDbPath(targetInstanceId, harvestResultNumber);
+        File f = new File(dbPath);
+        f.deleteOnExit(); //Clear the existing db
+    }
 
     @Test
-    public void testIndexFile() throws IOException {
-        Map<String, NetworkMapNode> results = new HashMap<>();
-        Set<SeedHistory> seeds = new HashSet<>();
+    public void testWCTResourceIndexer() throws IOException {
+        String directory = String.format("%s/%d/%d", baseDir, targetInstanceId, harvestResultNumber);
+        BDBNetworkMap db = pool.createInstance(targetInstanceId, harvestResultNumber);
+        WCTResourceIndexer indexer = new WCTResourceIndexer(new File(directory), db, targetInstanceId, harvestResultNumber);
 
-        ResourceExtractor extractor = new ResourceExtractorWarc(results, seeds);
+        indexer.indexFiles();
 
+        VisualizationProgressBar progressBar = WCTResourceIndexer.getProgress(targetInstanceId, harvestResultNumber);
+        assert progressBar != null;
+        log.debug(progressBar.toString());
 
-        File directory = new File(baseDir, "5010");
-//        WCTResourceIndexer indexer = new WCTResourceIndexer(directory, null, 5010, 2);
-        WCTResourceIndexer indexer = new WCTResourceIndexer();
+        assert progressBar.getProgressPercentage() == 100;
 
-        File archiveFile = new File(directory, String.format("%d%s%s", 2, File.separator, "IAH-20200612141024691-00001-mod~import~file-2.warc"));
-        indexer.indexFile(archiveFile, extractor);
+        indexer.clear();
+        progressBar = WCTResourceIndexer.getProgress(targetInstanceId, harvestResultNumber);
+        assert progressBar == null;
     }
+
+//    @Test
+//    public void testIndexFile() throws IOException {
+//        Map<String, NetworkMapNode> results = new HashMap<>();
+//        Set<SeedHistory> seeds = new HashSet<>();
+//
+//        long targetInstanceId = 5010;
+//        int harvestResultNumber = 1;
+//
+//        ResourceExtractor extractor = new ResourceExtractorWarc(results, seeds);
+//
+//
+//        File directory = new File(baseDir, Long.toString(targetInstanceId));
+////        WCTResourceIndexer indexer = new WCTResourceIndexer(directory, null, 5010, 2);
+//        WCTResourceIndexer indexer = new WCTResourceIndexer();
+//
+//        File archiveFile = new File(directory, String.format("%d%s%s", 2, File.separator, "IAH-20200612141024691-00001-mod~import~file-2.warc"));
+//        indexer.indexFile(archiveFile, extractor);
+//    }
 }

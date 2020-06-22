@@ -7,6 +7,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 
 import java.net.URI;
 import java.util.List;
@@ -190,6 +191,20 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
 
         String result;
         result = restTemplate.postForObject(uri, null, String.class);
+        return result;
+    }
+
+    @Override
+    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_PROGRESS))
+                .queryParam("targetInstanceId", targetInstanceId)
+                .queryParam("harvestResultNumber", harvestResultNumber);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        VisualizationProgressBar result;
+        result = restTemplate.postForObject(uri, null, VisualizationProgressBar.class);
         return result;
     }
 }

@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomainManager;
@@ -32,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @SuppressWarnings("all")
 public class WCTResourceIndexer {
     private static final Logger log = LoggerFactory.getLogger(WCTResourceIndexer.class);
+    private static final Map<String, WCTResourceIndexer> RUNNING_INDEXER = new HashMap<>();
     private long targetInstanceId;
     private int harvestNumber;
     private File directory;
@@ -44,19 +47,23 @@ public class WCTResourceIndexer {
     private String logsDir; //log dir
     private String reportsDir; //report dir
 
-    public WCTResourceIndexer() {
-
-    }
+    private VisualizationProgressBar progressBar = new VisualizationProgressBar("INDEXING");
 
     public WCTResourceIndexer(File directory, BDBNetworkMap db, long targetInstanceId, int harvestNumber) throws IOException {
         this.directory = directory;
         this.db = db;
         this.targetInstanceId = targetInstanceId;
         this.harvestNumber = harvestNumber;
-        init(targetInstanceId, harvestNumber);
+        init();
+        String key = getKey(this.targetInstanceId, this.harvestNumber);
+        RUNNING_INDEXER.put(key, this);
     }
 
-    public void init(long targetInstanceId, int harvestNumber) {
+    private static String getKey(long targetInstanceId, int harvestNumber) {
+        return String.format("KEY_%d_%d", targetInstanceId, harvestNumber);
+    }
+
+    private void init() {
         ApplicationContext context = ApplicationContextFactory.getApplicationContext();
         if (context != null) {
             AbstractRestClient client = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);
@@ -81,35 +88,48 @@ public class WCTResourceIndexer {
         }
     }
 
-    public void indexFiles() throws IOException {
-        File[] fileList = directory.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return (name.toLowerCase().endsWith(".arc") ||
-                        name.toLowerCase().endsWith(".arc.gz") ||
-                        name.toLowerCase().endsWith(".warc") ||
-                        name.toLowerCase().endsWith(".warc.gz"));
-            }
-        });
+    public static VisualizationProgressBar getProgress(long targetInstanceId, int harvestNumber) {
+        String key = getKey(targetInstanceId, harvestNumber);
+        WCTResourceIndexer indexer = RUNNING_INDEXER.get(key);
+        if (indexer != null) {
+            return indexer.progressBar;
+        }
+        return null;
+    }
 
-        if (fileList == null) {
+    public void indexFiles() throws IOException {
+        List<File> fileList = VisualizationCoordinator.grepWarcFiles(directory);
+        if (fileList == null || fileList.size() == 0) {
             log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
             return;
         }
 
+        VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
+        for (File f : fileList) {
+            if (!isWarcFormat(f.getName())) {
+                continue;
+            }
+            VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
+            progressItem.setMaxLength(f.length());
+            progressItemStat.setMaxLength(progressItemStat.getMaxLength() + f.length());
+        }
+
+        log.debug(progressBar.toString());
+
         ResourceExtractor extractor = new ResourceExtractorWarc(this.urls, this.seeds);
-        extractor.init(this.logsDir, this.reportsDir);
+        extractor.init(this.logsDir, this.reportsDir, this.progressBar);
         for (File f : fileList) {
             if (!isWarcFormat(f.getName())) {
                 extractor.writeLog("Skipped unknown file: " + f.getName());
                 continue;
             }
-
             indexFile(f, extractor);
+            VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
+            progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
         }
 
         this.statAndSave(extractor);
-        this.clear();
+        progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
         extractor.writeReport();
         extractor.close();
     }
@@ -222,5 +242,9 @@ public class WCTResourceIndexer {
     public void clear() {
         this.urls.values().forEach(NetworkMapNode::clear);
         this.urls.clear();
+        this.progressBar.clear();
+
+        String key = getKey(this.targetInstanceId, this.harvestNumber);
+        RUNNING_INDEXER.remove(key);
     }
 }

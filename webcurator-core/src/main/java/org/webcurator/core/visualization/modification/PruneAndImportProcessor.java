@@ -7,11 +7,12 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
-import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
+import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -19,16 +20,14 @@ import org.webcurator.domain.model.core.HarvestResult;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.Semaphore;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PruneAndImportProcessor extends Thread {
     protected static final Logger log = LoggerFactory.getLogger(PruneAndImportProcessor.class);
 
-    private static final Map<String, PruneAndImportProcessor> PROCESSOR_MAP = new HashMap<>();
+    private static final Map<String, PruneAndImportProcessor> RUNNING_PROCESSOR = new HashMap<>();
     private static Semaphore CONCURRENCY_COUNT = new Semaphore(3);
     private final String fileDir; //Upload files
     private final String baseDir; //Harvest WARC files dir
@@ -38,6 +37,7 @@ public class PruneAndImportProcessor extends Thread {
     private PruneAndImportCoordinator coordinator = null;
     private boolean running = true;
     private final Semaphore stopped = new Semaphore(1);
+    private VisualizationProgressBar progressBar = new VisualizationProgressBar("MODIFYING");
 
     public static void setMaxConcurrencyModThreads(int max) {
         CONCURRENCY_COUNT = new Semaphore(max);
@@ -55,7 +55,7 @@ public class PruneAndImportProcessor extends Thread {
     public void run() {
         String key = getKey(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
         try {
-            PROCESSOR_MAP.put(key, this);
+            RUNNING_PROCESSOR.put(key, this);
             CONCURRENCY_COUNT.acquire();
             stopped.acquire();
             if (running) {
@@ -67,16 +67,25 @@ public class PruneAndImportProcessor extends Thread {
                 this.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
                 log.info("Notify Core that modification is finished");
             }
-        } catch (IOException | URISyntaxException | InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             stopped.release();
             CONCURRENCY_COUNT.release();
-            PROCESSOR_MAP.remove(key);
+            RUNNING_PROCESSOR.remove(key);
         }
     }
 
-    public void pruneAndImport() throws IOException, URISyntaxException {
+    public void pruneAndImport() throws Exception {
+        //Initial derived archive file list
+        File derivedDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getHarvestResultNumber());
+        List<File> derivedArchiveFiles = VisualizationCoordinator.grepWarcFiles(derivedDir);
+
+        //Initial patching archive file list
+        File patchHarvestDir = new File(this.baseDir, String.format("mod_%d_%d%s1", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), File.separator));
+        List<File> patchArchiveFiles = VisualizationCoordinator.grepWarcFiles(patchHarvestDir);
+
+        //Initial to be pruned and to be imported list
         final List<String> urisToDelete = new LinkedList<>();
         final Map<String, PruneAndImportCommandRowMetadata> hrsToImport = new HashMap<>();
         cmd.getDataset().forEach(e -> {
@@ -87,8 +96,29 @@ public class PruneAndImportProcessor extends Thread {
             }
         });
 
+        //Initial progress data: derived files
+        derivedArchiveFiles.forEach(f -> {
+            VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
+            item.setMaxLength(f.length());
+        });
+
+        //Initial progress data: patch harvesting files
+        patchArchiveFiles.forEach(f -> {
+            VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
+            item.setMaxLength(f.length());
+        });
+
+        //Initial progress data: to be imported files
+        VisualizationProgressBar.ProgressItem progressItemFileImported = progressBar.getProgressItem("ImportedFiles");
+        final AtomicLong totMaxLength = new AtomicLong(0);
+        hrsToImport.values().forEach(toImportFile -> {
+            if (toImportFile.getOption().equalsIgnoreCase("file")) {
+                totMaxLength.addAndGet(toImportFile.getLength());
+            }
+        });
+        progressItemFileImported.setMaxLength(totMaxLength.get());
+
         // Calculate the source and destination directories.
-        File sourceDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getHarvestResultNumber());
         File destDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getNewHarvestResultNumber());
 
         // Ensure the destination directory exists.
@@ -102,72 +132,35 @@ public class PruneAndImportProcessor extends Thread {
         List<File> dirs = new LinkedList<File>();
         dirs.add(destDir);
 
-        // Get all the files from the source dir.
-        File[] archiveFiles = sourceDir.listFiles();
-
-        List<String> extNameList = Arrays.stream(Objects.requireNonNull(archiveFiles)).filter(File::isFile).map(f -> {
-            int idx = f.getName().lastIndexOf(".");
-            if (idx <= 0) {
-                return "UNKNOWN";
-            } else {
-                return f.getName().substring(idx + 1);
-            }
-        }).collect(Collectors.toList());
-
-        Map<String, Long> extStatisticMap = extNameList.stream().filter(e -> {
-            return !e.equalsIgnoreCase("CDX");
-        }).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-        if (extStatisticMap.size() != 1) {
-            log.error("Multiple archive types included in dir: {}", sourceDir);
-            return;
-        }
-
-        String archiveType = extStatisticMap.keySet().iterator().next();
-        if (archiveType.equalsIgnoreCase(PruneAndImportCoordinatorHeritrixWarc.ARCHIVE_TYPE)) {
-            PruneAndImportCoordinatorHeritrixWarc heritrixWarcCoordinator = new PruneAndImportCoordinatorHeritrixWarc();
-            heritrixWarcCoordinator.setDirs(dirs);
-            coordinator = heritrixWarcCoordinator;
-        } else {
-            log.error("Not supported archive file format");
-            return;
-        }
-
-        coordinator.setFileDir(this.fileDir);
-        coordinator.setBaseDir(this.baseDir);
-        coordinator.init(this.logsDir, this.reportsDir);
+        // Initial processor.
+        PruneAndImportCoordinatorHeritrixWarc heritrixWarcCoordinator = new PruneAndImportCoordinatorHeritrixWarc();
+        heritrixWarcCoordinator.setDirs(dirs);
+        heritrixWarcCoordinator.setFileDir(this.fileDir);
+        heritrixWarcCoordinator.setBaseDir(this.baseDir);
+        heritrixWarcCoordinator.init(this.logsDir, this.reportsDir, this.progressBar);
+        this.coordinator = heritrixWarcCoordinator;
 
         //Process copy and file import
-        for (File archiveFile : archiveFiles) {
-            if (!running) {
-                continue;
+        for (File f : derivedArchiveFiles) {
+            if (running) {
+                coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
+                VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
+                item.setCurLength(f.length());
             }
-            try {
-                coordinator.copyArchiveRecords(archiveFile, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
-            } catch (Exception e) {
-                log.error(e.getMessage());
+        }
+
+        //Process source URL import
+        for (File f : patchArchiveFiles) {
+            if (running) {
+                coordinator.importFromRecorder(f, urisToDelete, cmd.getNewHarvestResultNumber());
+                VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
+                item.setCurLength(f.length());
             }
         }
 
         //Process file import
         coordinator.importFromFile(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), cmd.getNewHarvestResultNumber(), hrsToImport);
-
-        //Process source URL import
-        File patchHarvestDir = new File(this.baseDir, String.format("mod_%d_%d%s1", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), File.separator));
-        File[] patchHarvestFiles = new File[0];
-        if (patchHarvestDir.exists()) {
-            patchHarvestFiles = patchHarvestDir.listFiles();
-        }
-        for (File patchHarvestFile : Objects.requireNonNull(patchHarvestFiles)) {
-            if (!running) {
-                continue;
-            }
-
-            if (!patchHarvestFile.isFile() || !patchHarvestFile.getName().toUpperCase().endsWith(coordinator.getArchiveType())) {
-                continue;
-            }
-            coordinator.importFromRecorder(patchHarvestFile, urisToDelete, cmd.getNewHarvestResultNumber());
-        }
+        progressItemFileImported.setCurLength(progressItemFileImported.getMaxLength());
 
         coordinator.writeReport();
         coordinator.close();
@@ -186,9 +179,18 @@ public class PruneAndImportProcessor extends Thread {
 
     public static PruneAndImportProcessor getProcessor(long targetInstanceId, int harvestNumber) {
         String key = getKey(targetInstanceId, harvestNumber);
-        return PROCESSOR_MAP.get(key);
+        return RUNNING_PROCESSOR.get(key);
     }
 
+    public static VisualizationProgressBar getProgress(long targetInstanceId, int harvestNumber) {
+        String key = getKey(targetInstanceId, harvestNumber);
+        PruneAndImportProcessor processor = RUNNING_PROCESSOR.get(key);
+        return processor == null ? null : processor.getProgress();
+    }
+
+    public VisualizationProgressBar getProgress() {
+        return this.progressBar;
+    }
 
     public void delete(long targetInstanceId, int harvestNumber) {
         this.stopModification();
@@ -220,7 +222,6 @@ public class PruneAndImportProcessor extends Thread {
             }
         }
     }
-
 
     public static String getKey(long targetInstanceId, int harvestNumber) {
         return String.format("mod_%d_%d", targetInstanceId, harvestNumber);

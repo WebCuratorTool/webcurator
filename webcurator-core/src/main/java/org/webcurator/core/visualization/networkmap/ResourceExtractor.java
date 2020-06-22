@@ -7,6 +7,7 @@ import org.archive.io.ArchiveRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.visualization.VisualizationCoordinator;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.modification.PruneAndImportCoordinator;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -36,10 +37,10 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
         });
     }
 
-    public void init(String logsDir, String reportsDir) throws IOException {
+    public void init(String logsDir, String reportsDir, VisualizationProgressBar progressBar) throws IOException {
         this.flag = "IDX";
         this.reportTitle = StatisticItem.getPrintTitle();
-        super.init(logsDir, reportsDir);
+        super.init(logsDir, reportsDir, progressBar);
     }
 
     public void extract(ArchiveReader reader, String fileName) throws IOException {
@@ -47,12 +48,17 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
         item.setFromFileName(reader.getStrippedFileName());
         statisticItems.add(item);
 
+        VisualizationProgressBar.ProgressItem progressItem = this.progressBar.getProgressItem(fileName);
+
         preProcess();
         for (ArchiveRecord record : reader) {
             extractRecord(record, fileName);
+            progressItem.setCurLength(record.getHeader().getOffset());
             record.close();
             if (results.size() % 1000 == 0) {
-                log.info("Extracting, results.size:{}", results.size());
+                log.debug("Extracting, results.size:{}", results.size());
+                log.debug(progressItem.toString());
+                writeLog(progressItem.toString());
             }
             item.increaseSucceedRecords();
         }

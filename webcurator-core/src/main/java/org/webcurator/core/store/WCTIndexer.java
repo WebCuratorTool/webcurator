@@ -105,6 +105,8 @@ public class WCTIndexer extends IndexerBase {
         } catch (IOException e) {
             log.error("Failed to index files: {}", directory);
             return;
+        } finally {
+            indexer.clear();
         }
 
         log.info("Completed indexing for job " + getResult().getTargetInstanceOid());

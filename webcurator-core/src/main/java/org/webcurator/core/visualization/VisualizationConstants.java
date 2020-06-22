@@ -19,6 +19,7 @@ public class VisualizationConstants {
     public static final String PATH_GET_HOP_PATH = PATH_ROOT + "/networkmap/get/hop/path";
     public static final String PATH_GET_HIERARCHY_URLS = PATH_ROOT + "/networkmap/get/hierarchy/urls";
     public static final String PATH_GET_URL_BY_NAME = PATH_ROOT + "/networkmap/get/query-url-by-name";
+    public static final String PATH_GET_PROGRESS = PATH_ROOT + "/networkmap/get/progress";
 
     public static final int RESP_CODE_SUCCESS = 0;
     public static final int RESP_CODE_FILE_EXIST = 1;

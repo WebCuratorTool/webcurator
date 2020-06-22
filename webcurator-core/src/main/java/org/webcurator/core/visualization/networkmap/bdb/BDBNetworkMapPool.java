@@ -119,11 +119,11 @@ public class BDBNetworkMapPool {
         }
     }
 
-    private String getDbPath(long job, int harvestResultNumber) {
+    public String getDbPath(long job, int harvestResultNumber) {
         return String.format("%s%s%d%s%d%s_resource", this.dbRootPath, File.separator, job, File.separator, harvestResultNumber, File.separator);
     }
 
-    private String getDbName(long job, int harvestResultNumber) {
+    public String getDbName(long job, int harvestResultNumber) {
         return String.format("%d_%d", job, harvestResultNumber);
     }
 }

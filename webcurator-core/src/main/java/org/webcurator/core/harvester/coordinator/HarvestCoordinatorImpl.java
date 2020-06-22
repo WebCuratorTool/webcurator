@@ -47,6 +47,7 @@ import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
@@ -1284,7 +1285,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
         ahr.setState(0);
 
-        harvestQaManager.triggerAutoQA( ahr);
+        harvestQaManager.triggerAutoQA(ahr);
         targetInstanceDao.save(ahr);
 
         TargetInstance ti = ahr.getTargetInstance();
@@ -1811,5 +1812,17 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    /**
+     * Here get progress of modification. The indexing progress is implemented at NetworkMapClient
+     *
+     * @param targetInstanceId
+     * @param harvestResultNumber
+     * @return
+     */
+    @Override
+    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
+        return null;
     }
 }

@@ -9,6 +9,7 @@ import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.WCTIndexer;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.visualization.VisualizationCoordinator;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.VisualizationConstants;
@@ -33,10 +34,10 @@ public abstract class PruneAndImportCoordinator extends VisualizationCoordinator
     protected String baseDir; //Harvest WARC files dir
     protected boolean running = true;
 
-    public void init(String logsDir, String reportsDir) throws IOException {
+    public void init(String logsDir, String reportsDir, VisualizationProgressBar progressBar) throws IOException {
         this.flag = "MOD";
         this.reportTitle = StatisticItem.getPrintTitle();
-        super.init(logsDir, reportsDir);
+        super.init(logsDir, reportsDir, progressBar);
     }
 
     public String getArchiveType() {

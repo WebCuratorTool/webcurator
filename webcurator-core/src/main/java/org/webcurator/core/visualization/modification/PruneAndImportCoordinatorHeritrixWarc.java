@@ -14,6 +14,7 @@ import org.archive.io.warc.WARCWriterPoolSettingsData;
 import org.archive.io.warc.WARCRecord;
 import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 
 import java.io.*;
@@ -79,13 +80,16 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
         }
-
         this.writeLog(String.format("Start to copy and prune a WARC file: %s size: %d", fileFrom.getName(), fileFrom.length()));
 
+        //Summary
         StatisticItem statisticItem = new StatisticItem();
         statisticItems.add(statisticItem);
         statisticItem.setFromFileName(fileFrom.getName());
         statisticItem.setFromFileLength(fileFrom.length());
+
+        //Progress
+        VisualizationProgressBar.ProgressItem progressItem = this.progressBar.getProgressItem(fileFrom.getName());
 
         // Use the original filename
         String strippedImpArcFilename = reader.getStrippedFileName();
@@ -119,7 +123,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         headerRec.close();
         headerReader.close();
 
-
         // Bypass warc header metadata as it has been read above from a different ArchiveReader
         archiveRecordsIt.next();
 
@@ -130,19 +133,13 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
         this.writeLog("Create a new WARC file, file name: " + writer.getFile());
 
-        // Iterate through all the records, skipping deleted or
-        // imported URLs.
+        // Iterate through all the records, skipping deleted or imported URLs.
         while (running && archiveRecordsIt.hasNext()) {
-            WARCRecord record = (WARCRecord) archiveRecordsIt
-                    .next();
+            WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
-            String WARCType = (String) header
-                    .getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
-            String strRecordId = (String) header
-                    .getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_ID);
-            URI recordId = new URI(strRecordId.substring(
-                    strRecordId.indexOf("<") + 1,
-                    strRecordId.lastIndexOf(">") - 1));
+            String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
+            String strRecordId = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_ID);
+            URI recordId = new URI(strRecordId.substring(strRecordId.indexOf("<") + 1, strRecordId.lastIndexOf(">") - 1));
             long contentLength = header.getLength() - header.getContentBegin();
 
             if (WARCType.equals(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo.toString())) {
@@ -161,8 +158,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 if (key.equals(org.archive.format.warc.WARCConstants.ABSOLUTE_OFFSET_KEY)) {
                     value = Long.toString(writer.getPosition());
                 }
-                // we exclude all but three fields to avoid
-                // duplication / erroneous data
+                // we exclude all but three fields to avoid duplication / erroneous data
                 if (key.equals("WARC-IP-Address") || key.equals("WARC-Payload-Digest") || key.equals("WARC-Concurrent-To")) {
                     namedFields.addLabelValue(key, value.toString());
                 }
@@ -209,6 +205,8 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             writer.writeRecord(warcRecordInfo);
             statisticItem.increaseCopiedRecords();
             this.writeLog(String.format("Copy [%s] record: %s", WARCType, header.getUrl()));
+
+            progressItem.setCurLength(header.getOffset()); //Increase Progress
         }
 
         this.writeLog(String.format("End to copy and prune from: %s size: %d", fileFrom.getName(), fileFrom.length()));
@@ -227,6 +225,8 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         this.writeLog("Start to import from file");
         StatisticItem statisticItem = new StatisticItem();
         statisticItems.add(statisticItem);
+
+        VisualizationProgressBar.ProgressItem progressItemFileImported = progressBar.getProgressItem("ImportedFiles");
 
         // Create a WARC Writer
         LocalDateTime timestamp = LocalDateTime.now();
@@ -274,6 +274,8 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
                     this.writeLog(String.format("Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
                     statisticItem.increaseCopiedRecords();
+
+                    progressItemFileImported.setCurLength(progressItemFileImported.getCurLength() + fProps.getLength());
                 } catch (IOException | URISyntaxException e) {
                     log.error(e.getMessage());
                     statisticItem.increaseFailedRecords();
@@ -306,10 +308,15 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
             return;
         }
         this.writeLog(String.format("Start to import from source URLs, a source WARC file: %s size: %d", fileFrom.getName(), fileFrom.length()));
+
+        //Summary
         StatisticItem statisticItem = new StatisticItem();
         statisticItems.add(statisticItem);
         statisticItem.setFromFileName(fileFrom.getName());
         statisticItem.setFromFileLength(fileFrom.length());
+
+        //Progress
+        VisualizationProgressBar.ProgressItem progressItem = this.progressBar.getProgressItem(fileFrom.getName());
 
         String strippedImpArcFilename = reader.getStrippedFileName();
         Iterator<ArchiveRecord> archiveRecordsIt = reader.iterator();
@@ -419,6 +426,8 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
             this.writeLog(String.format("Import [%s] record: %s", WARCType, header.getUrl()));
             statisticItem.increaseCopiedRecords();
+
+            progressItem.setCurLength(header.getOffset());
         }
 
         this.writeLog(String.format("End to import URLs, from: %s size: %d", fileFrom.getName(), fileFrom.length()));
