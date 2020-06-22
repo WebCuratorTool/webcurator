@@ -6,11 +6,10 @@ Introduction
 =====================
 
 This guide, designed for a System Administrator, covers installation and
-setup of the Web Curator Tool. An electronic copy can be downloaded from
-the WCT Github site: http://dia-nz.github.io/webcurator/
+setup of the Web Curator Tool.
 
 For information on using the Web Curator Tool, see the Web Curator Tool
-Quick Start Guide and the Web Curator Tool online help.
+Quick Start Guide and the Web Curator Tool User Manual.
 
 Contents of this document
 ------------------------------
@@ -25,10 +24,8 @@ Guide includes the following sections:
 -  **Setting up the WCT database** - procedures for setup using
    Oracle, MySQL and PostgreSQL.
 
--  **JMX setup** - procedures for setting up JMX for different WCT components.
-
--  **Setting up the WCT Application Servers** - procedures for
-   deploying WCT to Tomcat, includes configuration options and
+-  **Setting up the WCT Application** - procedures for
+   deploying WCT, includes configuration options and
    troubleshooting.
 
 -  **Setting up Heritrix 3** - procedures for building and running
@@ -54,16 +51,9 @@ Curator Tool:
 
 -  Java 1.8 JDK or above (64bit recommended)
 
-   *During development of the latest version it was noted that large harvests
-   would sometimes fail to transfer from the Harvest Agent to Store on
-   completion. This was resolved by running Apache Tomcat with 64 bit Java.*
-
--  Apache Tomcat 8.x.x or above (the application has been tested on
-   Tomcat 8.5.32)
-
 -  A database server (select one of the databases below)
 
-   -  Oracle 11g or newer
+   -  Oracle 12c or newer
 
    -  PostgreSQL 8.4.9 or newer
 
@@ -73,7 +63,7 @@ Other versions of the required products may be compatible with the Web
 Curator Tool but they have not been tested. Due to the products use of
 Hibernate for database persistence other database platforms should work,
 if the product is rebuilt with the correct database dialect. However
-only Postgesql, Oracle 11g, and MySQL have been tested.
+only Postgesql, Oracle 12c, MySQL and MariaDB have been tested.
 
 Supported platforms
 -------------------
@@ -81,13 +71,11 @@ Supported platforms
 The following platforms have been used during the development of the Web
 Curator Tool:
 
--  Sun Solaris 10
-
 -  Red Hat Linux EL3.
 
 -  Ubuntu GNU/Linux 16.04 LTS
 
--  Windows 7 Ultimate
+-  Windows 7 Ultimate, Windows 10
 
 Other platforms
 ---------------
@@ -95,7 +83,7 @@ Other platforms
 The following platforms were used during the Development of the Web
 Curator tool but are not explicitly supported:
 
--  Windows 2000, Windows XP Pro, Windows Server 2003
+-  Sun Solaris 10
 
 Optional prerequisites
 ----------------------
@@ -146,24 +134,17 @@ template data for the new QA module for each agency, and should be run*
 **once all agencies have been added to WCT**. *Note that if the script is
 re-run, it will clear out any existing template data.*
 
-3. Locate the correct JDBC driver for Oracle, which should be
-   distributed with the Oracle install media.
+3. A password strategy should be defined for the system, and the
+   db_wct & usr_wct passwords should be changed in the scripts and
+   application property files to conform to this strategy. To encourage
+   this, the passwords in the supplied database creation script are set
+   to 'password'.
 
-   - The JDBC driver should be called ojdbc1411g.jar
-   - The driver will need to be placed into the $TOMCAT_HOME/common/lib/ directory.
-   - Also required in this directory is the jta.jar
-
-*Notes: A password strategy should be defined for the system, and the
-db_wct & usr_wct passwords should be changed in the scripts and
-application property files to conform to this strategy. To encourage
-this, the passwords in the supplied database creation script are set
-to 'password'.*
-
-*The bootstrap user script creates a User with a name of ‘bootstrap' and
-a password of 'password'. Use this account to login to the application
-once it is up and running. You can use the bootstrap account to create
-other users and agencies. Once you have setup valid users, it is best to
-disable the bootstrap user for security reasons.*
+   The bootstrap user script creates a User with a name of 'bootstrap' and
+   a password of 'password'. Use this account to login to the application
+   once it is up and running. You can use the bootstrap account to create
+   other users and agencies. Once you have setup valid users, it is best to
+   disable the bootstrap user for security reasons.
 
 Setup using PostgreSQL
 ----------------------------
@@ -193,24 +174,17 @@ template data for the new QA module for each agency, and should be run*
 **once all agencies have been added to WCT**. *Note that if the script is
 re-run, it will clear out any existing template data.*
 
-3. The Postgres JDBC driver is included in the Github repository under
-   /etc/ directory.
+3. A password strategy should be defined for the system, and the
+   db_wct & usr_wct passwords should be changed in the scripts and
+   application property files to conform to this strategy. To encourage
+   this, the passwords in the supplied database creation script are set
+   to 'password'.
 
-   - The Postgres driver is called postgresql-8.1-404.jdbc3.jar
-   - The driver will need to be placed into the $TOMCAT_HOME/common/lib/ directory.
-   - Also required in the $TOMCAT_HOME/common/lib/ directory is the jta.jar
-
-*Notes: A password strategy should be defined for the system, and the
-usr_wct password should be changed in the scripts and application
-property files to conform to this strategy. To encourage this, the
-password in the supplied database creation script is set to
-'password'.*
-
-*The bootstrap user script creates a User with a name of 'bootstrap' and
-a password of 'password'. Use this account to login to the application
-once it is up and running. You can use the bootstrap account to create
-other users and agencies. Once you have setup valid users, it is best to
-disable the bootstrap user for security reasons.*
+   The bootstrap user script creates a User with a name of 'bootstrap' and
+   a password of 'password'. Use this account to login to the application
+   once it is up and running. You can use the bootstrap account to create
+   other users and agencies. Once you have setup valid users, it is best to
+   disable the bootstrap user for security reasons.
 
 Setup using MySQL
 -----------------
@@ -241,87 +215,71 @@ data for the new QA module for each agency, and should be run* **once all
 agencies have been added to WCT**. *Note that if the script is re-run, it
 will clear out any existing template data.*
 
-3. Download the MySQL JDBC driver from the MySQL website.
+3. A password strategy should be defined for the system, and the
+   db_wct & usr_wct passwords should be changed in the scripts and
+   application property files to conform to this strategy. To encourage
+   this, the passwords in the supplied database creation script are set
+   to 'password'.
 
-   -  The driver will need to be placed into the $TOMCAT_HOME/common/lib/ directory.
-   -  Also required in the $TOMCAT_HOME/common/lib/ directory is the jta.jar
-
-*Notes: A password strategy should be defined for the system, and the
-usr_wct password should be changed in the scripts and application
-property files to conform to this strategy. To encourage this, the
-password in the supplied database creation script is set to
-'password'.*
-
-*The bootstrap user script creates a User with a name of ‘bootstrap' and
-a password of 'password'. Use this account to login to the application
-once it is up and running. You can use the bootstrap account to create
-other users and agencies. Once you have setup valid users, it is best to
-disable the bootstrap user for security reasons.*
+   The bootstrap user script creates a User with a name of 'bootstrap' and
+   a password of 'password'. Use this account to login to the application
+   once it is up and running. You can use the bootstrap account to create
+   other users and agencies. Once you have setup valid users, it is best to
+   disable the bootstrap user for security reasons.
 
 
-JMX setup
-=========
+Setting up the WCT Application
+==============================
 
-WCT core and every Harvest Agent require JMX Remote access. This means that
-JMX Remote control and access files will need to be setup for the JVM. This is
-done with the following steps:
+Downloading WCT
+---------------
+The binaries for the WCT components can be downloaded from the
+`releases page in the Github repository <https://github.com/WebCuratorTool/webcurator/releases>`_.
 
-#.  Create a `jmxremote.password` file by copying the file
-    `jmxremote.password.template` to the jmx remote password file that your
-    installation will use. This template file will be in your JDK's
-    `jre\lib\management` directory.
+Building WCT
+------------
+Alternatively, WCT can be built from source.
 
-    *You can use the property
-    `-Dcom.sun.management.jmxremote.password.file=<property-file>` to point to a
-    different location.*
+To build WCT:
 
-    The monitor role and control role have passwords associated with them. These
-    are setting withing hte jmx remote password file::
+- Make sure you have installed and configured Java 1.8 JDK, Maven 3+, and Git.
 
-        monitorRole  apassword
-        controlRole  apassword
+- Clone the code repository from Github using Git::
 
-#.  It is important that this file is protected. If using Windows, refer to the
-    following link to protect the file using the O/S:
-    http://java.sun.com/j2se/1.5.0/docs/guide/management/security-windows.html
+   git clone https://github.com/WebCuratorTool/webcurator.git
 
-    If using \*nix platform, protect the file using::
+- Navigate to the *webcurator-legacy-lib-dependencies/* sub-directory, and run either of
+  the following scripts (depending on your operating system) to install the required
+  legacy dependencies::
 
-        chmod 600 jmxremote.password.
+   - install_maven_dependencies.bat
+   - install_maven_dependencies.sh
 
-#.  Enable the JMX Remote port used in the JVM's startup. Any high port can be
-    used as long as it is unique on the machine that is running the component.
-    The example here uses port `9004`, but if multiple components are running
-    on the same machine, then each component will need a different and unique
-    port number.
+- Navigate back to the root *webcurator* directory, and build the project using Gradle::
 
-    For Tomcat, this is done by adding the following to your
-    `$TOMCAT_HOME/bin/catalina.sh script`::
+   gradle clean bootWar --project-prop include<database-type>=true
 
-        JAVA_OPTS=-Dcom.sun.management.jmxremote.port=9004
+  *Replace* **<database-type>** *with the type of database you intend to use*::
 
+   - includeMysql=true
+   - includeOracle=true
+   - includePostgres=true
 
-    For a Harvest Agent, the Harvest Agent would need to include the
-    `-Dcom.sun.management.jmxremote.port=9004` as part of the Java command
-    line or by including it in the Java environment variable `JAVA_OPTS`.
+- Once built, the binary for each component will be located under the following paths::
 
-    **IMPORTANT:** *Make sure your JMX port is unique. Different components of
-    WCT will be running JMX so they will need to be configured to use
-    different ports.*
+   - webcurator-webapp/build/libs/webcurator-webapp.war
+   - webcurator-store/build/libs/webcurator-store.war
+   - webcurator-harvest-agent-h3/build/libs/webcurator-harvest-agent-h3.war
 
-
-Setting up the WCT Application Servers
-======================================
-
-Deploying WCT to Tomcat
------------------------
+Deploying WCT
+-------------
 
 There are three major components to the deployment of the Web Curator
 Tool:
 
--  the web curator core (wct.war)
--  the web curator harvest agent (wct-harvest-agent.war)
--  the web curator digital asset store (wct-store.war).
+-  the web curator webapp (webcurator-webapp.war)
+-  the web curator harvest agent (harvest-agent-h3.jar, harvest-agent-h1.jar)
+-  the web curator digital asset store (webcurator-store.war).
 
 Each of these three components must be deployed for the Web Curator
 Tool to be fully functional and more than one harvest agent can be
@@ -329,111 +287,75 @@ deployed if necessary. Each Harvest Agent is capable of carrying out
 harvest actions. The more harvest agents deployed the more harvesting
 that can be done at any one point in time. The harvest agents and
 digital asset store can reside on any machine within the network, as
-they use SOAP over HTTP to communicate with each other.
+they use REST over HTTP to communicate with each other.
 
-To deploy WCT to Tomcat:
+To deploy WCT:
 
--  Make sure you have installed and configured both Java 1.8 JDK and
-   Apache-Tomcat 8.x.x successfully.
+-  Make sure you have installed and configured Java 1.8 JDK.
 
--  Set up the JMX Remote control and access files for the WCT core as described
-   in the section `JMX setup`_.
+-  Make sure you have installed and configured your database of choice, and
+   that it is now running.
 
--  Deploy the WAR files into Tomcat. The simplest deployment is to
-   deploy all three WAR files into the same Tomcat container.
+-  Place the webapp, harvest-agent and store deployment files in the location
+   you wish to run them from. An additional logs directory will be created here
+   on startup.
 
-   -  You can copy the WAR files into the $TOMCAT_HOME/webapps/ directory.
-   -  Provided Tomcat is configured correctly, when you start Tomcat the
-      WAR files will be exploded and the application will start.
+-  Start the WCT files using a standard Java command::
 
--  Shut down Tomcat once the WAR files have been extracted. This will
-   allow you to modify the configuration files in the following steps.
+    java -jar webcurator-webapp.war
+    java -jar webcurator-store.war
+    java -jar harvest-agent-h3.war
+
+   These commands can be run in the foreground for testing, but it is
+   recommended to run them in the background, using a tool like Unix's
+   *nohup* command.
+
+-  To stop any WCT component, simply terminate the running process, or if running
+   in the foreground, simply use *Ctrl+c*.
+
+-  Before logging into WCT, *ensuring all components are shutdown*, modify the
+   configuration files in the following steps.
 
 Configure the Database Connection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The open source version of the Web Curator Tool is configured to use a
-local PostgreSQL database. If you are using any other database, or are
-using a database server, you will need to change the database
-configuration.
+-  Inside webcurator-webapp.war, open the **application.properties** file for editing. Set
+   the *spring.profiles.active* property to one of the following, depending on your database type::
 
--  Set the correct database dialect in
-   TOMCAT/webapps/wct/WEB-INF/classes/\ **wct-core.properties**::
+      - spring.profiles.active=local+h2
+      - spring.profiles.active=local+mysql
+      - spring.profiles.active=local+oracle
+      - spring.profiles.active=local+postgres
 
-    #Hibernate Settings
+   Update the **application.properties** file inside webcurator-webapp.war with this change.
 
-    hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-    hibernate.default_schema=DB_WCT
+-  Inside webcurator-webapp.war, open one of the following properties files that corresponds
+   to the database type you are using::
 
+      - application-local+mysql.properties
+      - application-local+oracle.properties
+      - application-local+postgres.properties
 
-   The appropriate dialects are shown in the table below.
+   Adjust the following properties to match your database installation::
 
-   ==========  =======
-   Database    Dialect
-   ==========  =======
-   Oracle      org.hibernate.dialect.OracleDialect
-   PostgreSQL  org.hibernate.dialect.PostgreSQLDialect
-   MySQL       org.hibernate.dialect.MySQLDialect
-   ==========  =======
+      # Database properties
+      databaseType=postgres
+      schema.name=db_wct
+      schema.url=jdbc:postgresql://localhost:5432/Dwct
+      schema.user=usr_wct
+      schema.password=password
+      schema.driver=org.postgresql.Driver
+      schema.dialect=org.hibernate.dialect.PostgreSQL82Dialect
+      schema.query=select 1+1
+      schema.maxIdle=2
+      schema.maxActive=4
 
+   *If the default WCT database scripts have been used to setup the database then the* **name**, **user**,
+   *and* **password** *properties should* **not** *need to be changed. Verify the* **url** *and* **dialect**
+   *properties match the location and version of your database.*
 
+   Update this properties file inside webcurator-webapp.war with any changes.
 
--  Edit the context.xml file in TOMCAT/webapps/wct/META-INF::
-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <Context>
-        <Resource
-            name="jdbc/wctDatasource"
-            type="javax.sql.DataSource"
-            password="**PASSWORD**"
-            driverClassName="**DRIVER**"
-            maxIdle="2"
-            maxWait="5000"
-            validationQuery="**VALIDATION_QUERY**"
-            username="**USERNAME**"
-            url="**JDBC_URL**"
-            maxActive="10 "/>
-    </Context>
-
-   Set the username and password properties as appropriate for your
-   database. If you have followed the defaults, then these should remain
-   as USR_WCT/USR_WCT.
-
-   The remaining properties should be set as follows:
-
-   **Oracle**
-
-   ================ ================
-   Attribute        Value
-   ================ ================
-   DRIVER           oracle.jdbc.driver.OracleDriver
-   VALIDATION_QUERY select count(1) from DUAL
-   JDBC_URL         jdbc:oracle:thin:@servername:port/SID
-   ================ ================
-
-   **PostgreSQL**
-
-   ================ ================
-   Attribute        Value
-   ================ ================
-   DRIVER           org.postgresql.Driver
-   VALIDATION_QUERY select 1+1
-   JDBC_URL         jdbc:postgresql://servername:port/database
-   ================ ================
-
-   **MySQL**
-
-   ================ ================
-   Attribute        Value
-   ================ ================
-   DRIVER           com.mysql.jdbc.Driver
-   VALIDATION_QUERY select 1+1
-   JDBC_URL         jdbc:mysql://servername:port/database
-   ================ ================
-
--  Copy the context.xml file to the TOMCAT/conf/Catalina/localhost
-   directory. Delete the existing wct.xml file if it exists. Now rename
-   the context.xml file to wct.xml.
 
 Configure LDAP Authentication (Unencrypted)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
