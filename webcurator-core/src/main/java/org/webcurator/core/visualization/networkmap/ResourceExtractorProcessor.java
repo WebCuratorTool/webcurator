@@ -15,6 +15,7 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomainMan
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -153,7 +154,7 @@ public class ResourceExtractorProcessor {
 
             NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
             NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
-            if (node.isSeed()) {
+            if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
                 domainNodeHigh.setSeed(true);
                 domainNodeLower.setSeed(true);
             }

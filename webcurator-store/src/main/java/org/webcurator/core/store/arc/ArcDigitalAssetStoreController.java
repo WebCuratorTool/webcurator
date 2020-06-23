@@ -1,7 +1,6 @@
 package org.webcurator.core.store.arc;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,12 +10,12 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStorePaths;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
-import javax.activation.URLDataSource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -200,7 +199,13 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @Override
     @RequestMapping(path = DigitalAssetStorePaths.OPERATE_HARVEST_RESULT_MODIFICATION, method = RequestMethod.POST)
-    public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+    public void operateHarvestResultModification(@RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
         arcDigitalAssetStoreService.operateHarvestResultModification(command, targetInstanceId, harvestNumber);
+    }
+
+    @Override
+    @RequestMapping(path = DigitalAssetStorePaths.PROGRESS_QUERY, method = RequestMethod.POST)
+    public VisualizationProgressBar getProgress(@RequestParam("stage") String stage, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) {
+        return null;
     }
 }

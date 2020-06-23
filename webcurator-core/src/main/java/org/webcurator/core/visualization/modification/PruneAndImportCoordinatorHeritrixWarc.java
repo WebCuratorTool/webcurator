@@ -147,7 +147,9 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 statisticItem.increaseSkippedRecords();
                 continue;
             }
-            if (urisToDelete.contains(header.getUrl()) || hrsToImport.containsKey(header.getUrl())) {
+
+            //TODO: to confirm should imported urls to be pruned: hrsToImport.containsKey(header.getUrl())
+            if (urisToDelete.contains(header.getUrl())) {
                 this.writeLog(String.format("Prune [%s] record: %s", WARCType, header.getUrl()));
                 statisticItem.increasePrunedRecords();
                 continue;
@@ -368,10 +370,10 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
                 statisticItem.increaseSkippedRecords();
                 continue;
             }
-//            if (urisToDelete.contains(header.getUrl())) {
-//                this.writeLog(String.format("Prune [%s] record: %s", WARCType, header.getUrl()));
-//                continue;
-//            }
+            if (urisToDelete.contains(header.getUrl())) {
+                this.writeLog(String.format("Prune [%s] record: %s", WARCType, header.getUrl()));
+                continue;
+            }
 
             ANVLRecord namedFields = new ANVLRecord();
             header.getHeaderFields().forEach((key, value) -> {

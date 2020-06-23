@@ -1,6 +1,7 @@
 package org.webcurator.core.visualization.modification;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.thirdparty.guava.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -37,7 +38,7 @@ public class PruneAndImportProcessor extends Thread {
     private PruneAndImportCoordinator coordinator = null;
     private boolean running = true;
     private final Semaphore stopped = new Semaphore(1);
-    private VisualizationProgressBar progressBar = new VisualizationProgressBar("MODIFYING");
+    private final VisualizationProgressBar progressBar = new VisualizationProgressBar("MODIFYING");
 
     public static void setMaxConcurrencyModThreads(int max) {
         CONCURRENCY_COUNT = new Semaphore(max);
@@ -143,9 +144,15 @@ public class PruneAndImportProcessor extends Thread {
         //Process copy and file import
         for (File f : derivedArchiveFiles) {
             if (running) {
-                coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
+                if (urisToDelete.size() == 0) {
+                    coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
+                } else {
+                    //Copy file directly
+                    File to = new File(destDir, f.getName());
+                    Files.copy(f, to);
+                }
                 VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
-                item.setCurLength(f.length());
+                item.setCurLength(item.getMaxLength());
             }
         }
 
@@ -154,7 +161,7 @@ public class PruneAndImportProcessor extends Thread {
             if (running) {
                 coordinator.importFromRecorder(f, urisToDelete, cmd.getNewHarvestResultNumber());
                 VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
-                item.setCurLength(f.length());
+                item.setCurLength(item.getMaxLength());
             }
         }
 

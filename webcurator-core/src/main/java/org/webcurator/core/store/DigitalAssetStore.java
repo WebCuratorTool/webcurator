@@ -21,11 +21,11 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 /**
@@ -45,8 +45,8 @@ public interface DigitalAssetStore {
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
      * @param resource            The resource to retrieve.
-     * @throws DigitalAssetStoreException if there are any errors.
      * @return The resource, as a file.
+     * @throws DigitalAssetStoreException if there are any errors.
      */
     Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
@@ -61,8 +61,8 @@ public interface DigitalAssetStore {
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
      * @param resource            The resource to retrieve.
-     * @throws DigitalAssetStoreException if there are any errors.
      * @return The resource, as a file.
+     * @throws DigitalAssetStoreException if there are any errors.
      */
     byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
@@ -74,8 +74,8 @@ public interface DigitalAssetStore {
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
      * @param resource            The resource for which to retrieve the headers.
-     * @throws DigitalAssetStoreException if there are any errors.
      * @return An array of HTTP Headers.
+     * @throws DigitalAssetStoreException if there are any errors.
      */
     List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
@@ -193,4 +193,14 @@ public interface DigitalAssetStore {
      * @throws DigitalAssetStoreException thrown if there is an error
      */
     void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException;
+
+    /**
+     * Query progress of indexer or modification
+     *
+     * @param stage:           modify or index
+     * @param targetInstanceId target instance id
+     * @param harvestNumber    harvest result number
+     * @return progress
+     */
+    VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestNumber);
 }

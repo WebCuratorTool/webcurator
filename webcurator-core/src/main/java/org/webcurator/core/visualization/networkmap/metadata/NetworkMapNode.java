@@ -13,6 +13,10 @@ import java.util.*;
 
 @SuppressWarnings("all")
 public class NetworkMapNode {
+    public static final int SEED_TYPE_PRIMARY = 0;
+    public static final int SEED_TYPE_SECONDARY = 1;
+    public static final int SEED_TYPE_OTHER = 2;
+
     private static NetworkMapDomainSuffix topDomainParser = null;
 
     static {
@@ -153,7 +157,11 @@ public class NetworkMapNode {
 
     @JsonIgnore
     public boolean isFinished() {
-        return requestParseFlag && responseParseFlag && metadataParseFlag;
+        if (fileName.indexOf("mod~import~file") > 0) { //For warc files imported from local files, there are only response records
+            return responseParseFlag;
+        } else {
+            return requestParseFlag && responseParseFlag && metadataParseFlag;
+        }
     }
 
     public long getId() {

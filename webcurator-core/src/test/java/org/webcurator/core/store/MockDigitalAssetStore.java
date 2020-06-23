@@ -9,11 +9,11 @@ import org.apache.commons.httpclient.Header;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class MockDigitalAssetStore implements DigitalAssetStore {
@@ -122,6 +122,11 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
     @Override
     public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
         return;
+    }
+
+    @Override
+    public VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestNumber) {
+        return null;
     }
 
 }

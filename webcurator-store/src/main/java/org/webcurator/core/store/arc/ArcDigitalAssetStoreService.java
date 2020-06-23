@@ -63,9 +63,11 @@ import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -1184,6 +1186,17 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             p.resumeModification();
         } else if (command.equalsIgnoreCase("stop")) {
             p.stopModification();
+        }
+    }
+
+    @Override
+    public VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestNumber) {
+        if (stage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+            return ResourceExtractorProcessor.getProgress(targetInstanceId, harvestNumber);
+        } else if (stage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+            return PruneAndImportProcessor.getProgress(targetInstanceId, harvestNumber);
+        } else {
+            return null;
         }
     }
 }

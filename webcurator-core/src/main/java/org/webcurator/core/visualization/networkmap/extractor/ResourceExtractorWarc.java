@@ -111,12 +111,12 @@ public class ResourceExtractorWarc extends ResourceExtractor {
             if (res.isSeed()) {
                 if (seeds.containsKey(key)) {
                     if (seeds.get(key)) {
-                        res.setSeedType(0);
+                        res.setSeedType(NetworkMapNode.SEED_TYPE_PRIMARY);  //Primary Seed Url
                     } else {
-                        res.setSeedType(1);
+                        res.setSeedType(NetworkMapNode.SEED_TYPE_SECONDARY);  //Secondary Seed Url
                     }
                 } else {
-                    res.setSeedType(2);
+                    res.setSeedType(NetworkMapNode.SEED_TYPE_OTHER); //Other kind Seed Url. e.g. patching source urls.
                 }
             }
             res.setHasOutlinks(httpHeaders.get("outlink") != null);

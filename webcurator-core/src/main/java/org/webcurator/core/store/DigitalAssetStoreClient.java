@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.*;
@@ -267,5 +268,20 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null, Void.class);
+    }
+
+    @Override
+    public VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestNumber) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.PROGRESS_QUERY))
+                .queryParam("stage", stage)
+                .queryParam("targetInstanceId", targetInstanceId)
+                .queryParam("harvestNumber", harvestNumber);
+
+        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        VisualizationProgressBar result;
+        result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null, VisualizationProgressBar.class);
+        return result;
     }
 }

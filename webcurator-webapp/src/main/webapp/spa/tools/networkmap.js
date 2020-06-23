@@ -16,6 +16,8 @@ class NetworkMap{
     			var data=JSON.parse(response.payload);
     			that.formatData(data);
     			that.initDraw(data);
+    		}else if(response.rspCode === -1 && confirm("Index file is missing. Would you reindex the harvest result?")){
+    			
     		}else{
     			alert(response.rspMsg);
     		}
