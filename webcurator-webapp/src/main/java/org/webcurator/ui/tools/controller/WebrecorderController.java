@@ -20,15 +20,22 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.CustomBooleanEditor;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
@@ -38,6 +45,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.tools.HarvestResourceNodeTreeBuilder;
 import org.webcurator.core.store.tools.QualityReviewFacade;
@@ -131,8 +139,6 @@ public class WebrecorderController {
 	public static final String DIR_CONTENT = "content";
 
 
-	public WebrecorderController() {
-	}
 
 	@InitBinder
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
@@ -157,12 +163,17 @@ public class WebrecorderController {
 		ModelAndView mav = new ModelAndView("webrecorder");
 		command.setSelectedUrl("https://www.kb.nl");
 		mav.addObject( "command", command);
+
+		// Set up anonymous webrecorder session
+        WrSession wrSession = setupWrSession("https://www.kb.nl");
 		if(bindingResult.hasErrors()){mav.addObject( Constants.GBL_ERRORS, bindingResult);}
+		/*
 		if(treeToolControllerAttribute.autoQAUrl != null && treeToolControllerAttribute.autoQAUrl.length() > 0) {
 			mav.addObject("showAQAOption", 1);
 		} else {
 			mav.addObject("showAQAOption", 0);
 		}
+		 */
 		return mav;
 
 		/*
@@ -649,4 +660,67 @@ public class WebrecorderController {
 //	public HarvestResourceUrlMapper getHarvestResourceUrlMapper() {
 //		return harvestResourceUrlMapper;
 //	}
+
+	/**
+	 * Initiates an anonymous webrecorder capture session
+	 * using the supplied url as its seed
+	 * @param url seed url
+	 */
+	private WrSession setupWrSession(String url) throws Exception {
+
+		WrSession wrSession = new WrSession();
+
+		// start session
+		String initUrl = "http://localhost:8089/api/v1/auth/anon_user";
+		RestTemplate restTemplate = new RestTemplate(); // FIXME reuse template
+		HttpEntity<String> requestEntity = new HttpEntity<String>("");
+		ResponseEntity<String> responseEntity = restTemplate.exchange(initUrl, HttpMethod.POST, requestEntity, String.class);
+
+		if (!requestEntity.getHeaders().containsKey("Set-Cookie")) {
+			// TODO panic
+		}
+		JSONObject jsonResponse = new JSONObject(responseEntity.getBody());
+		String userName = jsonResponse.getJSONObject("user").getString("username");
+		String cookie = responseEntity.getHeaders().get("Set-Cookie").get(0);
+
+		// create temp collection
+        // TODO
+
+		// start recording session
+		// TODO
+
+		return wrSession;
+
+	}
+
+
+	class WrSession {
+	    private String captureUrl;
+		private String sessionCookie;
+		private String userName;
+
+		public String getCaptureUrl() {
+			return captureUrl;
+		}
+
+		public void setCaptureUrl(String captureUrl) {
+			this.captureUrl = captureUrl;
+		}
+
+		public String getSessionCookie() {
+			return sessionCookie;
+		}
+
+		public void setSessionCookie(String sessionCookie) {
+			this.sessionCookie = sessionCookie;
+		}
+
+		public String getUserName() {
+			return userName;
+		}
+
+		public void setUserName(String userName) {
+			this.userName = userName;
+		}
+	}
 }
