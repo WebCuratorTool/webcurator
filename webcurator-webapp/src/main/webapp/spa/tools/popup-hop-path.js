@@ -27,8 +27,14 @@ class HopPath{
     var url="/networkmap/get/hop/path?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + nodeId;
     var that=this;
     fetchHttp(url, null, function(response){
-        that.drawHopPath(response);
-        $('#popup-window-hop-path').show();
+        if (response.rspCode === 0) {
+          var data=JSON.parse(response.payload);
+          that.drawHopPath(data);
+          $('#popup-window-hop-path').show();
+        }else{
+          alert(response.rspMsg);
+        }
+        
     });
   }
 

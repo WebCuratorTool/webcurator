@@ -1,40 +1,29 @@
 package org.webcurator.core.visualization.networkmap;
 
-import org.springframework.context.ApplicationContext;
 import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
+import org.webcurator.core.visualization.networkmap.extractor.ResourceExtractor;
+import org.webcurator.core.visualization.networkmap.extractor.ResourceExtractorWarc;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomainManager;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.core.rest.AbstractRestClient;
-import org.webcurator.core.store.WCTIndexer;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistory;
-import org.webcurator.domain.model.dto.SeedHistoryDTO;
-
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("all")
-public class WCTResourceIndexer {
-    private static final Logger log = LoggerFactory.getLogger(WCTResourceIndexer.class);
-    private static final Map<String, WCTResourceIndexer> RUNNING_INDEXER = new HashMap<>();
+public class ResourceExtractorProcessor {
+    private static final Logger log = LoggerFactory.getLogger(ResourceExtractorProcessor.class);
+    private static final Map<String, ResourceExtractorProcessor> RUNNING_INDEXER = new HashMap<>();
     private long targetInstanceId;
     private int harvestNumber;
     private File directory;
@@ -49,12 +38,17 @@ public class WCTResourceIndexer {
 
     private VisualizationProgressBar progressBar = new VisualizationProgressBar("INDEXING");
 
-    public WCTResourceIndexer(File directory, BDBNetworkMap db, long targetInstanceId, int harvestNumber) throws IOException {
+    public ResourceExtractorProcessor(File directory, BDBNetworkMap db, long targetInstanceId, int harvestNumber, Set<SeedHistory> seeds, VisualizationManager visualizationManager) throws IOException {
         this.directory = directory;
         this.db = db;
         this.targetInstanceId = targetInstanceId;
         this.harvestNumber = harvestNumber;
-        init();
+        this.seeds = seeds;
+
+        String baseDir = visualizationManager.getBaseDir();
+        this.logsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
+        this.reportsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
+
         String key = getKey(this.targetInstanceId, this.harvestNumber);
         RUNNING_INDEXER.put(key, this);
     }
@@ -63,34 +57,9 @@ public class WCTResourceIndexer {
         return String.format("KEY_%d_%d", targetInstanceId, harvestNumber);
     }
 
-    private void init() {
-        ApplicationContext context = ApplicationContextFactory.getApplicationContext();
-        if (context != null) {
-            AbstractRestClient client = ApplicationContextFactory.getApplicationContext().getBean(WCTIndexer.class);
-            RestTemplateBuilder restTemplateBuilder = ApplicationContextFactory.getApplicationContext().getBean(RestTemplateBuilder.class);
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
-                    .queryParam("targetInstanceOid", targetInstanceId)
-                    .queryParam("harvestNumber", harvestNumber);
-            RestTemplate restTemplate = restTemplateBuilder.build();
-            URI uri = uriComponentsBuilder.build().toUri();
-            ResponseEntity<SeedHistoryDTO> seedHistoryDTO = restTemplate.getForEntity(uri, SeedHistoryDTO.class);
-            this.seeds = Objects.requireNonNull(seedHistoryDTO.getBody()).getSeeds();
-
-            VisualizationManager visualizationManager = ApplicationContextFactory.getApplicationContext().getBean(VisualizationManager.class);
-            String baseDir = visualizationManager.getBaseDir();
-            this.logsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
-            this.reportsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
-        } else {
-            this.seeds = new HashSet<>();
-            this.logsDir = directory.getAbsolutePath() + File.separator + "temp_logs";
-            this.reportsDir = directory.getAbsolutePath() + File.separator + "temp_reports";
-            log.warn("Initial indexer for debug mode.");
-        }
-    }
-
     public static VisualizationProgressBar getProgress(long targetInstanceId, int harvestNumber) {
         String key = getKey(targetInstanceId, harvestNumber);
-        WCTResourceIndexer indexer = RUNNING_INDEXER.get(key);
+        ResourceExtractorProcessor indexer = RUNNING_INDEXER.get(key);
         if (indexer != null) {
             return indexer.progressBar;
         }

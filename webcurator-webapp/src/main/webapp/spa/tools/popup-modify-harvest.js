@@ -129,12 +129,17 @@ class HierarchyTree{
 
 		var that=this;
 		fetchHttp(this.sourceUrlRootUrls, searchCondition, function(response){
+			if (response.rspCode != 0) {
+				alert(response.rspMsg);
+				return;	 
+	        }
+	        var data=JSON.parse(response.payload);
 			if($.ui.fancytree.getTree(that.container)){
 				$.ui.fancytree.getTree(that.container).destroy();
 			}
-  			that.formatDataForTreeGrid(response);
-  			console.log(response);
-  			that.options.source=response;
+  			that.formatDataForTreeGrid(data);
+  			console.log(data);
+  			that.options.source=data;
   			$(that.container).fancytree(that.options);
 		});
 	}
@@ -480,7 +485,12 @@ class PopupModifyHarvest{
 		var that=this;
 		var url="/networkmap/search/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		fetchHttp(url, searchCondition, function(response){
-			var data=formatStringArrayToJsonArray(response);
+			if (response.rspCode != 0) {
+				alert(response.rspMsg);
+				return;	 
+	        }
+
+			var data=formatStringArrayToJsonArray(JSON.parse(response.payload));
 			if(flag==='prune'){
 				that.pruneHarvest(data);
 			}else if(flag==='inspect'){
@@ -496,7 +506,12 @@ class PopupModifyHarvest{
 	loadUrls(url){
 		var that=this;
 		fetchHttp(url, null, function(response){
-			var data=formatStringArrayToJsonArray(response);
+			if (response.rspCode != 0) {
+				alert(response.rspMsg);
+				return;	 
+	        }
+
+			var data=formatStringArrayToJsonArray(JSON.parse(response.payload));
 			if(data.length===0){
 				$('#popup-window-loading').hide();	
 				alert('No data found!');

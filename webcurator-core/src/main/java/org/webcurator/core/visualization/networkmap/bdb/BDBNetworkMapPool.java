@@ -3,7 +3,6 @@ package org.webcurator.core.visualization.networkmap.bdb;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.webcurator.core.visualization.networkmap.WCTResourceIndexer;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,8 +13,7 @@ public class BDBNetworkMapPool {
     private final static Logger log = LoggerFactory.getLogger(BDBNetworkMapPool.class);
     private final List<BDBNetworkMap> queue = new ArrayList<>();
     private final Map<String, BDBNetworkMap> map = new Hashtable<>();
-
-    private String dbRootPath;
+    private final String dbRootPath;
 
     public BDBNetworkMapPool(String dbRootPath) {
         this.dbRootPath = dbRootPath;
@@ -72,16 +70,18 @@ public class BDBNetworkMapPool {
         String dbPath = this.getDbPath(job, harvestResultNumber);
         File dbPathFile = new File(dbPath);
         if (!dbPathFile.exists()) {  //
-            System.out.println("Indexing: job=" + job + ", harvestResultNumber=" + harvestResultNumber);
-            try {
-                WCTResourceIndexer indexer = new WCTResourceIndexer(dbPathFile.getParentFile(), createInstance(job, harvestResultNumber), job, harvestResultNumber);
-                indexer.indexFiles();
-                indexer.clear();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            System.out.println("Indexing finished");
+            log.warn("Could not find Index DB: {}", dbPath);
+            return null;
+//            System.out.println("Indexing: job=" + job + ", harvestResultNumber=" + harvestResultNumber);
+//            try {
+//                ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(dbPathFile.getParentFile(), createInstance(job, harvestResultNumber), job, harvestResultNumber);
+//                indexer.indexFiles();
+//                indexer.clear();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//            System.out.println("Indexing finished");
         }
         String dbName = getDbName(job, harvestResultNumber);
         if (map.containsKey(dbName)) {

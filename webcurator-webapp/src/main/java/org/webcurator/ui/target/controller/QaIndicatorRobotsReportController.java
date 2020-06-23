@@ -22,7 +22,6 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +47,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.AuthUtil;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.IndicatorDAO;
 import org.webcurator.domain.model.auth.Agency;
@@ -136,7 +136,12 @@ public class QaIndicatorRobotsReportController {
         HarvestResult hr = results.get(results.size() - 1);
 
         //Get the "robots.txt" resource urls
-        List<String> robotUrls = networkMapClient.searchUrlNames(ti.getOid(), hr.getHarvestNumber(), "robots.txt");
+        NetworkMapResult networkMapResult=networkMapClient.searchUrlNames(ti.getOid(), hr.getHarvestNumber(), "robots.txt");
+        if (networkMapResult.getRspCode()!=NetworkMapResult.RSP_CODE_SUCCESS){
+            log.warn(networkMapResult.getRspMsg());
+            return;
+        }
+        List<String> robotUrls = networkMapClient.getArrayListOfNetworkMapNode(networkMapResult.getPayload());;
         List<String> lines = new ArrayList<String>();
         robotUrls.forEach(resourceUrl -> {
             try {

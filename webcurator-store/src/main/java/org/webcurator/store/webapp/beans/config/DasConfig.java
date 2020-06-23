@@ -411,7 +411,8 @@ public class DasConfig {
     public WCTIndexer wctIndexer() {
         WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
         bean.setWsEndPoint(wctCoreWsEndpoint());
-
+        bean.setVisualizationManager(visualizationManager);
+        bean.setBDBNetworkMapPool(getBDBDatabasePool());
         return bean;
     }
 

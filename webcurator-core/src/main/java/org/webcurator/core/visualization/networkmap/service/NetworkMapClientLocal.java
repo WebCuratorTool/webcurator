@@ -1,10 +1,11 @@
 package org.webcurator.core.visualization.networkmap.service;
 
 import org.webcurator.core.visualization.VisualizationProgressBar;
-import org.webcurator.core.visualization.networkmap.WCTResourceIndexer;
+import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,93 +19,145 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     }
 
     @Override
-    public String get(long job, int harvestResultNumber, String key) {
+    public NetworkMapResult get(long job, int harvestResultNumber, String key) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        return db.get(key);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(db.get(key));
+        return result;
     }
 
     @Override
-    public String getNode(long job, int harvestResultNumber, long id) {
+    public NetworkMapResult getNode(long job, int harvestResultNumber, long id) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        return db.get(id);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(db.get(id));
+        return result;
     }
 
     @Override
-    public String getOutlinks(long job, int harvestResultNumber, long id) {
+    public NetworkMapResult getOutlinks(long job, int harvestResultNumber, long id) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
 
         NetworkMapNode parentNode = this.getNodeEntity(db.get(id));
         if (parentNode == null) {
-            return null;
+            return NetworkMapResult.getNodeNotExistResult("Could not find parent node, id: " + id);
         }
 
-        String result = combineUrlResultFromArrayIDs(job, harvestResultNumber, parentNode.getOutlinks());
+        NetworkMapResult result = new NetworkMapResult();
+        String outlinks = combineUrlResultFromArrayIDs(job, harvestResultNumber, parentNode.getOutlinks());
         parentNode.clear();
 
+        result.setPayload(outlinks);
         return result;
     }
 
     @Override
-    public String getChildren(long job, int harvestResultNumber, long id) {
+    public NetworkMapResult getChildren(long job, int harvestResultNumber, long id) {
         //TODO
-        return "{}";
+        return new NetworkMapResult();
     }
 
     @Override
-    public String getAllDomains(long job, int harvestResultNumber) {
+    public NetworkMapResult getAllDomains(long job, int harvestResultNumber) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
 
-        return db.get(BDBNetworkMap.PATH_GROUP_BY_DOMAIN);
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(db.get(BDBNetworkMap.PATH_GROUP_BY_DOMAIN));
+        return result;
     }
 
     @Override
-    public String getSeedUrls(long job, int harvestResultNumber) {
+    public NetworkMapResult getSeedUrls(long job, int harvestResultNumber) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
 
         List<Long> ids = this.getArrayList(db.get(BDBNetworkMap.PATH_ROOT_URLS));
-        String result = combineUrlResultFromArrayIDs(job, harvestResultNumber, ids);
+        if (ids == null) {
+            return NetworkMapResult.getNodeNotExistResult("Could not find seed urls");
+        }
+        String seedUrls = combineUrlResultFromArrayIDs(job, harvestResultNumber, ids);
         ids.clear();
+
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(seedUrls);
         return result;
     }
 
     @Override
-    public String getMalformedUrls(long job, int harvestResultNumber) {
+    public NetworkMapResult getMalformedUrls(long job, int harvestResultNumber) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
 
         List<Long> ids = this.getArrayList(db.get(BDBNetworkMap.PATH_MALFORMED_URLS));
-        String result = combineUrlResultFromArrayIDs(job, harvestResultNumber, ids);
+        if (ids == null) {
+            return NetworkMapResult.getNodeNotExistResult("Could not find malformed urls");
+        }
+        String malformedUrls = combineUrlResultFromArrayIDs(job, harvestResultNumber, ids);
         ids.clear();
+
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(malformedUrls);
         return result;
     }
 
     @Override
-    public String searchUrl(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        if (searchCommand == null || db == null) {
-            return null;
+    public NetworkMapResult searchUrl(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
+        if (searchCommand == null) {
+            return NetworkMapResult.getBadRequestResult("Search command could not be null");
         }
 
-        final List<String> result = new ArrayList<>();
+        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        final List<String> urls = new ArrayList<>();
 
         List<Long> ids = this.getArrayList(db.get(BDBNetworkMap.PATH_ROOT_URLS));
-        searchUrlInternal(job, harvestResultNumber, db, searchCommand, ids, result);
+        searchUrlInternal(job, harvestResultNumber, db, searchCommand, ids, urls);
 
-        String json = this.obj2Json(result);
-        result.clear();
+        String json = this.obj2Json(urls);
+        urls.clear();
 
-        return json;
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(json);
+        return result;
     }
 
     @Override
-    public List<String> searchUrlNames(long job, int harvestResultNumber, String substring) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        if (db == null || substring == null) {
-            return null;
+    public NetworkMapResult searchUrlNames(long job, int harvestResultNumber, String substring) {
+        if (substring == null) {
+            return NetworkMapResult.getBadRequestResult("substring could not be null");
         }
 
-        return db.searchKeys(substring);
-    }
+        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
 
+        List<String> urlNameList = db.searchKeys(substring);
+        String json = obj2Json(urlNameList);
+
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(json);
+        return result;
+    }
 
     private void searchUrlInternal(long job, int harvestResultNumber, BDBNetworkMap db, NetworkMapServiceSearchCommand searchCommand, List<Long> linkIds, final List<String> result) {
         if (linkIds == null) {
@@ -127,10 +180,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     }
 
     @Override
-    public String getHopPath(long job, int harvestResultNumber, long id) {
+    public NetworkMapResult getHopPath(long job, int harvestResultNumber, long id) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
-            return null;
+            return NetworkMapResult.getDBMissingErrorResult();
         }
 
         List<NetworkMapNode> listHopPath = new ArrayList<>();
@@ -148,40 +201,55 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         listHopPath.forEach(NetworkMapNode::clear);
         listHopPath.clear();
 
-        return json;
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(json);
+        return result;
     }
 
     @Override
-    public String getHierarchy(long job, int harvestResultNumber, List<Long> ids) {
+    public NetworkMapResult getHierarchy(long job, int harvestResultNumber, List<Long> ids) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        List<NetworkMapNode> result = new ArrayList<>();
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<NetworkMapNode> hierarchyLinks = new ArrayList<>();
         for (long urlId : ids) {
             NetworkMapNode node = getNodeEntity(db.get(urlId));
             if (node == null) {
                 continue;
             }
-            result.add(node);
+            hierarchyLinks.add(node);
             for (long outlinkId : node.getOutlinks()) {
                 NetworkMapNode outlink = getNodeEntity(db.get(outlinkId));
                 node.putChild(outlink);
             }
         }
 
-        String json = this.obj2Json(result);
-        result.forEach(NetworkMapNode::clear);
-        result.clear();
-        return json;
+        String json = this.obj2Json(hierarchyLinks);
+        hierarchyLinks.forEach(NetworkMapNode::clear);
+        hierarchyLinks.clear();
+
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(json);
+        return result;
     }
 
     @Override
-    public String getUrlByName(long job, int harvestResultNumber, String urlName) {
+    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, String urlName) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
         String keyId = db.get(urlName);
         if (keyId == null) {
-            log.warn("Can not find Url Node: {} {} {}", job, harvestResultNumber, urlName);
-            return null;
+            return NetworkMapResult.getNodeNotExistResult(String.format("Can not find Url Node: %d, %d, %s", job, harvestResultNumber, urlName));
         }
-        return db.get(keyId);
+
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(db.get(keyId));
+        return result;
     }
 
 //    private void combineHierarchy(BDBNetworkMap db, Map<Long, NetworkMapNode> walkedNodes, long urlId) {
@@ -289,7 +357,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-        return WCTResourceIndexer.getProgress(targetInstanceId, harvestResultNumber);
+        return ResourceExtractorProcessor.getProgress(targetInstanceId, harvestResultNumber);
     }
 }
 

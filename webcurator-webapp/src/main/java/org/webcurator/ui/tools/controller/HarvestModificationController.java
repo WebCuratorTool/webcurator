@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
@@ -28,8 +29,7 @@ public class HarvestModificationController implements PruneAndImportService {
     public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody PruneAndImportCommandRow cmd) {
         return harvestCoordinator.uploadFile(job, harvestResultNumber, cmd);
     }
-
-
+    
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_CHECK_FILES, method = RequestMethod.POST, produces = "application/json")
     public PruneAndImportCommandResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<PruneAndImportCommandRowMetadata> items) {
@@ -49,5 +49,11 @@ public class HarvestModificationController implements PruneAndImportService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
+        //TODO
+        return null;
     }
 }

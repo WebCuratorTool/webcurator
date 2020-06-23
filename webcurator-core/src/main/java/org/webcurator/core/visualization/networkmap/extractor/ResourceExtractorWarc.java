@@ -1,4 +1,4 @@
-package org.webcurator.core.visualization.networkmap;
+package org.webcurator.core.visualization.networkmap.extractor;
 
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;

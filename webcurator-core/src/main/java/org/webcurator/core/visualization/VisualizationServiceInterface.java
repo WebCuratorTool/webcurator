@@ -3,12 +3,15 @@ package org.webcurator.core.visualization;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 
 public interface VisualizationServiceInterface {
+    Logger log = LoggerFactory.getLogger(VisualizationServiceInterface.class);
+
     default public String obj2Json(Object obj) {
         String json = "{}";
         ObjectMapper objectMapper = new ObjectMapper();

@@ -1,4 +1,4 @@
-package org.webcurator.core.visualization.networkmap;
+package org.webcurator.core.visualization.networkmap.extractor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,11 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
-import org.webcurator.core.visualization.modification.PruneAndImportCoordinator;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.domain.model.core.SeedHistory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

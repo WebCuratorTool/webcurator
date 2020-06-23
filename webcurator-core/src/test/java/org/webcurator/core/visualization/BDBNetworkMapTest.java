@@ -1,10 +1,11 @@
 package org.webcurator.core.visualization;
 
 import org.junit.Test;
-import org.webcurator.core.visualization.networkmap.WCTResourceIndexer;
+import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -46,7 +47,7 @@ public class BDBNetworkMapTest {
     public void testExtractor(BDBNetworkMap db, long job, int harvestResultNumber) {
         String directory = String.format("%s/%d/1", DIR_ROOT, job);
         try {
-            WCTResourceIndexer indexer = new WCTResourceIndexer(new File(directory), db, job, harvestResultNumber);
+            ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(new File(directory), db, job, harvestResultNumber, null, null);
             indexer.indexFiles();
         } catch (IOException e) {
             e.printStackTrace();

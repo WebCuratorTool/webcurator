@@ -1,4 +1,4 @@
-package org.webcurator.core.visualization.networkmap;
+package org.webcurator.core.visualization.networkmap.extractor;
 
 import org.archive.io.ArchiveRecord;
 import org.archive.io.ArchiveRecordHeader;

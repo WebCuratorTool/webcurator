@@ -12,8 +12,14 @@ class NetworkMap{
         var that=this;
      
     	fetchHttp(sourceUrlDomains, null, function(response){
-    		that.formatData(response);
-    		that.initDraw(response);
+    		if (response.rspCode === 0) {
+    			var data=JSON.parse(response.payload);
+    			that.formatData(data);
+    			that.initDraw(data);
+    		}else{
+    			alert(response.rspMsg);
+    		}
+    		
     	});
 	}
 

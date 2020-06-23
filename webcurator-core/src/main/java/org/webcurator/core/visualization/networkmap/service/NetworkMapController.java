@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationProgressBar;
-import org.webcurator.core.visualization.networkmap.WCTResourceIndexer;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 
 import java.util.List;
 
@@ -15,73 +15,73 @@ public class NetworkMapController implements NetworkMapService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_COMMON, method = {RequestMethod.POST}, produces = "application/json")
-    public String get(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("key") String key) {
+    public NetworkMapResult get(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("key") String key) {
         return client.get(job, harvestResultNumber, key);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_NODE, method = {RequestMethod.POST}, produces = "application/json")
-    public String getNode(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
+    public NetworkMapResult getNode(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
         return client.getNode(job, harvestResultNumber, id);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_OUTLINKS, method = {RequestMethod.POST}, produces = "application/json")
-    public String getOutlinks(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
+    public NetworkMapResult getOutlinks(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
         return client.getOutlinks(job, harvestResultNumber, id);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_CHILDREN, method = {RequestMethod.POST}, produces = "application/json")
-    public String getChildren(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
+    public NetworkMapResult getChildren(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
         return client.getChildren(job, harvestResultNumber, id);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_ALL_DOMAINS, method = {RequestMethod.POST}, produces = "application/json")
-    public String getAllDomains(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+    public NetworkMapResult getAllDomains(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
         return client.getAllDomains(job, harvestResultNumber);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_ROOT_URLS, method = {RequestMethod.POST}, produces = "application/json")
-    public String getSeedUrls(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+    public NetworkMapResult getSeedUrls(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
         return client.getSeedUrls(job, harvestResultNumber);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_MALFORMED_URLS, method = {RequestMethod.POST}, produces = "application/json")
-    public String getMalformedUrls(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+    public NetworkMapResult getMalformedUrls(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
         return client.getMalformedUrls(job, harvestResultNumber);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_SEARCH_URLS, method = {RequestMethod.POST}, produces = "application/json")
-    public String searchUrl(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody NetworkMapServiceSearchCommand searchCommand) {
+    public NetworkMapResult searchUrl(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody NetworkMapServiceSearchCommand searchCommand) {
         return client.searchUrl(job, harvestResultNumber, searchCommand);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_SEARCH_URL_NAMES, method = {RequestMethod.POST}, produces = "application/json")
-    public List<String> searchUrlNames(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("substring") String substring) {
+    public NetworkMapResult searchUrlNames(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("substring") String substring) {
         return null;
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_HOP_PATH, method = {RequestMethod.POST}, produces = "application/json")
-    public String getHopPath(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
+    public NetworkMapResult getHopPath(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
         return client.getHopPath(job, harvestResultNumber, id);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_HIERARCHY_URLS, method = {RequestMethod.POST}, produces = "application/json")
-    public String getHierarchy(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<Long> ids) {
+    public NetworkMapResult getHierarchy(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<Long> ids) {
         return client.getHierarchy(job, harvestResultNumber, ids);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_URL_BY_NAME, method = {RequestMethod.POST}, produces = "application/json")
-    public String getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("urlName") String urlName) {
+    public NetworkMapResult getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("urlName") String urlName) {
         return client.getUrlByName(job, harvestResultNumber, urlName);
     }
 
