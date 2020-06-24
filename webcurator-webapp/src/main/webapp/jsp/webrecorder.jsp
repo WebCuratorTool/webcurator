@@ -38,9 +38,15 @@ a {
 			    </tr>
 				<tr>
 					<td>
-				    	<a href="<c:out value='${command.selectedUrl}'/>" target="_blank">
-				    	    <img src="images/home-btn-open.gif"/>
-				    	</a>
+					    <form action="curator/tools/webrecorder.html" method="POST" target="_blank">
+					        <input type="hidden" name="recordingUrl" value="<c:out value='${command.recordingUrl}'/>"/>
+					        <input type="hidden" name="userName" value="<c:out value='${command.userName}'/>"/>
+					        <input type="hidden" name="recordingName" value="<c:out value='${command.recordingName}'/>"/>
+					        <input type="hidden" name="seedUrl" value="<c:out value='${command.seedUrl}'/>"/>
+					        <input type="hidden" name="sessionCookie" value="<c:out value='${command.sessionCookie}'/>"/>
+					        <input type="hidden" name="actionCmd" value="<c:out value='${WebrecorderCommand.ACTION_RECORD}'/>"/>
+					        <input type="image" src="images/home-btn-open.gif"/>
+				    	</form>
 					</td>
 				</tr>
 			</table>
