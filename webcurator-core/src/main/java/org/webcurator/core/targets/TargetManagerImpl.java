@@ -44,6 +44,7 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.DateUtils;
+import org.webcurator.core.util.Utils;
 import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.SiteDAO;
@@ -872,14 +873,14 @@ public class TargetManagerImpl implements TargetManager {
 	public List<Annotation> getAnnotations(AbstractTarget aTarget) {
 		List<Annotation> annotations = null;
 		if (aTarget.getOid() != null) {
-			String className;
+			Class c;
 			if (aTarget instanceof TargetGroup) {
 				// Special case for lazy loaded groups
-				className = TargetGroup.class.getName();
+				c = TargetGroup.class;
 			} else {
-				className = aTarget.getClass().getName();
+				c = aTarget.getClass();
 			}
-			annotations = annotationDAO.loadAnnotations(className, aTarget.getOid());
+			annotations = annotationDAO.loadAnnotations(Utils.getPrefixClassName(c), aTarget.getOid());
 		}
 
 		if (annotations == null) {
