@@ -329,8 +329,8 @@ Configure the Database Connection
 
    Update the **application.properties** file inside webcurator-webapp.war with this change.
 
--  Inside webcurator-webapp.war, open one of the following properties files that corresponds
-   to the database type you are using::
+-  Inside webcurator-webapp.war, open the properties file that corresponds to the database
+   type you are using::
 
       - application-local+mysql.properties
       - application-local+oracle.properties
@@ -362,41 +362,50 @@ Configure LDAP Authentication (Unencrypted)
 
 -  If you wish to use an external Directory for Authentication, then WCT
    should be configured to allow this. Unencrypted authentication can be
-   done very simply with your directory by modifying the
-   wct-core-security.xml and the wct-core.properties file.
+   done very simply with your directory by modifying the relevant properties
+   file inside webcurator-webapp.war.
 
-   *The Directory must support LDAP.*
+   *Please note - the Directory must support LDAP.*
 
-   In wct-core-security.xml, uncomment the ldapAuthenticator bean::
+   Open the properties file that corresponds to the database type you
+   are using::
 
-    <bean id="authenticationManager"
-    class="org.acegisecurity.providers.ProviderManager" abstract="false"
-    singleton="true" lazy-init="default" autowire="default"
-    dependency-check="default">
-        <property name="providers">
-            <list>
-                <ref bean="ldapAuthenticator" />
-                <ref bean="daoAuthenticationProvider" />
-            </list>
-        </property>
-    </bean>
+      - application-local+mysql.properties
+      - application-local+oracle.properties
+      - application-local+postgres.properties
 
-   In wct-core.properties, set the following parameters::
 
-    #LDAP Settings
-    ldap.url=ldap://yourldaphost.domain.com:389
-    ldap.dn=cn={0},OU=OrgUnit,O=Organisation
 
-   The two parameters of interest are:
+   Locate the *# LDAP properties* section::
 
-   -  ldap.url, which defines the URL for the directory. This is normally
-      something like ldap://mydirectory.natlib.co.nz/
+      # LDAP properties
+      ldap.enabled=false
+      ldap.url.build=ldap://yourldapserver.domain.com:389/
+      ldap.usr.search.base=ou=people
+      ldap.usr.search.filter=(uid={0})
+      ldap.group.search.base=ou=groups
+      ldap.group.search.filter=(member={0})
+      ldap.contextsource.root=dc=com
+      ldap.contextsource.manager.dn=
+      ldap.contextsource.manager.password=
 
-   -  ldap.dn. This allows the Directory DN to be defined. For example, if
-      a user logs in with the username "gordonp" the Directory will be
-      queried using the distinguished name of "cn=gordonp, ou=wct,
+
+   Set *ldap.enabled* to true to enable LDAP Authentication::
+
+      ldap.enabled=true
+
+   Two parameters of interest are:
+
+   -  ldap.url.build, which defines the URL for the directory. This is normally
+      something like ldap://mydirectory.natlib.co.nz:<port-number>
+
+   -  ldap.contextsource.manager.dn. This allows the Directory DN to be
+      defined. For example, if a user logs in with the username "gordonp"
+      the Directory will be queried using the distinguished name of "cn=gordonp, ou=wct,
       o=global". So the user must exist within the global organisation and
       the wct organisation unit.
+
+   *Set any other required parameters, and remove any unneeded default values.*
 
 Configure LDAP Authentication (Encrypted using TLS or SSL)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -429,6 +438,18 @@ Configure LDAP Authentication (Encrypted using TLS or SSL)
 
 Configure the Digital Asset Store
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-  Inside webcurator-webapp.war, open the **application.properties** file for editing. Set
+   the *spring.profiles.active* property to one of the following, depending on your database type::
+
+      - spring.profiles.active=local+h2
+      - spring.profiles.active=local+mysql
+      - spring.profiles.active=local+oracle
+      - spring.profiles.active=local+postgres
+
+   Update the **application.properties** file inside webcurator-webapp.war with this change.
+
+
 
 -  Set the Base Directory of the Digital Asset Store to a valid location
    on the server. Also make sure the directory or share has enough free
