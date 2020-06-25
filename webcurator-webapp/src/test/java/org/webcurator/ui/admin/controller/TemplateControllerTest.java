@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.context.MockMessageSource;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -15,6 +16,7 @@ import org.webcurator.core.admin.PermissionTemplateManagerImpl;
 import org.webcurator.core.agency.*;
 import org.webcurator.domain.MockPermissionTemplateDAO;
 import org.webcurator.domain.MockUserRoleDAO;
+import org.webcurator.ui.admin.validator.TemplateValidator;
 
 public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
@@ -33,6 +35,7 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
 		TemplateCommand aCmd = setUpCommand(action, 1);
         BindingResult bindingResult = new BindException(aCmd, action);
+		ReflectionTestUtils.setField(testInstance, "templateValidator", new TemplateValidator());
 
 		try
 		{
@@ -80,6 +83,7 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
 		TemplateCommand aCmd = setUpCommand(action, 0);
         BindingResult bindingResult = new BindException(aCmd, action);
+		ReflectionTestUtils.setField(testInstance, "templateValidator", new TemplateValidator());
 
 		try
 		{
@@ -101,6 +105,7 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
 		TemplateCommand aCmd = setUpCommand(action, 1);
         BindingResult bindingResult = new BindException(aCmd, action);
+		ReflectionTestUtils.setField(testInstance, "templateValidator", new TemplateValidator());
 
 		try
 		{
@@ -120,7 +125,12 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 		setUpController();
 
 		TemplateCommand aCmd = setUpCommand(action, 1);
+		aCmd.setAgencyOid(1000L);
+		aCmd.setTemplateName("A test print template");
+		aCmd.setTemplateType("Print Template");
+		aCmd.setTemplateText("A test template with text.");
         BindingResult bindingResult = new BindException(aCmd, action);
+		ReflectionTestUtils.setField(testInstance, "templateValidator", new TemplateValidator());
 
 		try
 		{

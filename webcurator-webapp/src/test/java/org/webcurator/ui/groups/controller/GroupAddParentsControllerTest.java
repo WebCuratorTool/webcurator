@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -24,6 +25,7 @@ import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.ui.groups.command.AddParentsCommand;
 import org.webcurator.ui.groups.command.GeneralCommand;
 import org.webcurator.ui.groups.command.MembersCommand;
+import org.webcurator.ui.groups.validator.AddParentsValidator;
 import org.webcurator.ui.groups.validator.GeneralValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
@@ -118,15 +120,15 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 	public final void testHandleAddParents() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request, 15002L);
 			testInstance.getEditorContext(request).getTargetGroup().setName("ParentGroup > ChildGroup");
@@ -134,6 +136,8 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 			command.setActionCmd(AddParentsCommand.ACTION_ADD_PARENTS);
 			long[]  oids = {15000L};
 			command.setParentOids(oids);
+
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
@@ -151,15 +155,15 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 	public final void testHandleCancel() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddParentsCommand");
 
 			bindEditorContext(request, 15002L);
 			testInstance.getEditorContext(request).getTargetGroup().setName("ParentGroup > ChildGroup");
@@ -167,6 +171,8 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 			command.setActionCmd(AddParentsCommand.ACTION_CANCEL);
 			long[]  oids = {15000L};
 			command.setParentOids(oids);
+
+			bindingResult = new BindException(command, "AddParentsCommand");
 
 			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);
@@ -184,19 +190,21 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 	public final void testHandleOther() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addParentsValidator", new AddParentsValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddParentsCommand command = new AddParentsCommand();
 
-			BindingResult bindingResult = new BindException(command, "AddMembersCommand");
-
 			bindEditorContext(request, 15002L);
 
 			command.setActionCmd(null);
+
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
 			assertNotNull(mav);

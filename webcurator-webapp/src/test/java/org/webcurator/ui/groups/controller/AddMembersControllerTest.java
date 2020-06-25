@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -102,9 +103,11 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 	public final void testHandleAddMembers1() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addMembersValidator", new AddMembersValidator());
 
 			this.addCurrentUserPrivilege(Privilege.ADD_TARGET_TO_GROUP);
 
@@ -112,14 +115,14 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
-
 			bindEditorContext(request, 15000L);
 
 			command.setActionCmd(AddMembersCommand.ACTION_ADD_MEMBERS);
 			//Already a member of this group
 			long[]  oids = {4000L};
 			command.setMemberOids(oids);
+
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
 			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
@@ -140,9 +143,11 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 	public final void testHandleAddMembers2() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addMembersValidator", new AddMembersValidator());
 
 			this.addCurrentUserPrivilege(Privilege.ADD_TARGET_TO_GROUP);
 
@@ -150,13 +155,13 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
-
 			bindEditorContext(request, 15001L);
 
 			command.setActionCmd(AddMembersCommand.ACTION_ADD_MEMBERS);
 			long[]  oids = {4000L};
 			command.setMemberOids(oids);
+
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
 			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
@@ -175,9 +180,11 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 	public final void testHandleAddMembers2NoPriv() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addMembersValidator", new AddMembersValidator());
 
 			this.removeAllCurrentUserPrivileges();
 
@@ -185,13 +192,13 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
 
-            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
-
 			bindEditorContext(request, 15001L);
 
 			command.setActionCmd(AddMembersCommand.ACTION_ADD_MEMBERS);
 			long[]  oids = {4000L};
 			command.setMemberOids(oids);
+
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			assertTrue(testInstance.getEditorContext(request).getTargetGroup().getNewChildren().size() == 0);
 			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
@@ -210,21 +217,23 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 	public final void testHandleCancel() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addMembersValidator", new AddMembersValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
 			command.setActionCmd(null);
 			long[]  oids = {4000L, 15002L};
 			command.setMemberOids(oids);
+
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			List<AddMembersController.MemberSelection> selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
 			assertNull(selections);
@@ -260,21 +269,23 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 	public final void testHandleOther() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addMembersValidator", new AddMembersValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
 			command.setActionCmd(null);
 			long[]  oids = {4000L, 15002L};
 			command.setMemberOids(oids);
+
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			List<AddMembersController.MemberSelection> selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
 			assertNull(selections);
@@ -297,21 +308,23 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 	public final void testHandleRemove() {
 		try
 		{
+			BindingResult bindingResult;
 			testSetAuthorityManager();
 			testSetTargetManager();
 			testSetGroupsController();
+			ReflectionTestUtils.setField(testInstance, "addMembersValidator", new AddMembersValidator());
 
 			HttpServletRequest request = new MockHttpServletRequest();
 			HttpServletResponse response = new MockHttpServletResponse();
 			AddMembersCommand command = new AddMembersCommand();
-
-            BindingResult bindingResult = new BindException(command, "AddMembersCommand");
 
 			bindEditorContext(request, 15001L);
 
 			command.setActionCmd(null);
 			long[]  oids = {4000L, 15002L};
 			command.setMemberOids(oids);
+
+			bindingResult = new BindException(command, "AddMembersCommand");
 
 			List<AddMembersController.MemberSelection> selections = (List<AddMembersController.MemberSelection>)request.getSession().getAttribute(AddMembersCommand.SESSION_SELECTIONS);
 			assertNull(selections);

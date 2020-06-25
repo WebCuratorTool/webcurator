@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.validation.BindException;
@@ -22,7 +23,7 @@ import javax.management.relation.Role;
 
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.Agency;
-
+import org.webcurator.ui.admin.validator.RoleValidator;
 
 
 public class RoleControllerTest extends BaseWCTTest<RoleController> {
@@ -111,14 +112,16 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-            BindingResult bindingResult = new BindException(new RoleCommand(), RoleCommand.ACTION_EDIT);
+            BindingResult bindingResult;
 			this.testSetAgencyUserManager();
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
+			ReflectionTestUtils.setField(testInstance, "roleValidator", new RoleValidator());
 
 			RoleCommand aCommand = new RoleCommand();
 			aCommand.setAction(RoleCommand.ACTION_NEW);
 			aCommand.setOid(new Long(3000));
+			bindingResult = new BindException(aCommand, RoleCommand.ACTION_NEW);
 			ModelAndView mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("AddRole"));
@@ -129,6 +132,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand = new RoleCommand();
 			aCommand.setAction(RoleCommand.ACTION_VIEW);
 			aCommand.setOid(new Long(3000));
+			bindingResult = new BindException(aCommand, RoleCommand.ACTION_VIEW);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("AddRole"));
@@ -142,6 +146,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand = new RoleCommand();
 			aCommand.setAction(RoleCommand.ACTION_EDIT);
 			aCommand.setOid(new Long(3000));
+			bindingResult = new BindException(aCommand, RoleCommand.ACTION_EDIT);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("AddRole"));
@@ -155,9 +160,11 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand = new RoleCommand();
 			aCommand.setAction(RoleCommand.ACTION_SAVE);
 			aCommand.setRoleName("New Test Role");
+			aCommand.setDescription("A new role for testing");
 			aCommand.setAgency(AuthUtil.getRemoteUserObject().getAgency().getOid());
 			String[] scopedPrivileges = {};
 			aCommand.setScopedPrivileges(scopedPrivileges);
+			bindingResult = new BindException(aCommand, RoleCommand.ACTION_SAVE);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("Roles"));
@@ -169,6 +176,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 			aCommand.setAction(RoleCommand.ACTION_FILTER);
 			String agencyFilter = "Dummy";
 			aCommand.setAgencyFilter(agencyFilter);
+			bindingResult = new BindException(aCommand, RoleCommand.ACTION_FILTER);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("Roles"));

@@ -28,9 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -69,7 +67,7 @@ public class AddParentsController {
 	private String subGroupSeparator;
 
 	@Autowired
-	private AddParentsValidator validator;
+	private AddParentsValidator addParentsValidator;
 
 	/** Default COnstructor. */
 	public AddParentsController() {
@@ -130,7 +128,7 @@ public class AddParentsController {
 	protected ModelAndView handle(@ModelAttribute("addParentsCommand") AddParentsCommand command,
                                   BindingResult bindingResult,
 								  HttpServletRequest request, HttpServletResponse response) throws Exception {
-		validator.validate(command, bindingResult);
+		addParentsValidator.validate(command, bindingResult);
 		Target target = getEditorContext(request).getTarget();
 
 		if( AddParentsCommand.ACTION_ADD_PARENTS.equals(command.getActionCmd()))

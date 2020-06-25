@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.store.MockDigitalAssetStore;
@@ -20,6 +22,7 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.AgencyCommand;
 import org.webcurator.ui.tools.command.TreeToolCommand;
+import org.webcurator.ui.tools.validator.TreeToolValidator;
 
 public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 
@@ -50,11 +53,17 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 		// just set up one request (this will then keep the session)
 		aReq = new MockHttpServletRequest();
 
-		testInstance.setQualityReviewFacade(qrf);
+		ReflectionTestUtils.setField(testInstance, "qualityReviewFacade", qrf);
+
 		HarvestResourceUrlMapper harvestResourceUrlMapper = new HarvestResourceUrlMapper();
 		harvestResourceUrlMapper.setUrlMap("http://www.WCTtest.com");
-		testInstance.setHarvestResourceUrlMapper(harvestResourceUrlMapper);
-		testInstance.setEnableAccessTool(false);
+		ReflectionTestUtils.setField(testInstance, "harvestResourceUrlMapper", harvestResourceUrlMapper);
+
+		TreeToolControllerAttribute mockTTCA = new TreeToolControllerAttribute();
+		mockTTCA.setEnableAccessTool(true);
+		ReflectionTestUtils.setField(testInstance, "treeToolControllerAttribute", mockTTCA);
+
+		ReflectionTestUtils.setField(testInstance, "treeToolValidator", new TreeToolValidator());
 	}
 
 
@@ -211,6 +220,9 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 			aCmd.setActionCmd(TreeToolCommand.ACTION_SAVE);
 			aCmd.setProvenanceNote("Test Provenance Note");
 			aCmd.setHrOid(((long) 111000));
+
+			aErrors = new BindException(aCmd, aCmd.getActionCmd());
+
 			// test handle
 			ModelAndView mav = testInstance.handle(aReq, aCmd, aErrors);
 			assertTrue(mav != null);
@@ -226,6 +238,10 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 	@Test
 	public final void testHandelView() {
 		try {
+			TreeToolControllerAttribute mockTTCA = new TreeToolControllerAttribute();
+			mockTTCA.setEnableAccessTool(false);
+			ReflectionTestUtils.setField(testInstance, "treeToolControllerAttribute", mockTTCA);
+
 			ModelAndView mav = doViewAction();
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().startsWith(
@@ -263,7 +279,6 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 	@Test
 	public final void testUrlMapper() {
 		try {
-			testInstance.setEnableAccessTool(true);
 			ModelAndView mav = doViewAction();
 			assertTrue(mav.getViewName().startsWith(
 					"redirect:http://www.WCTtest.com"));
@@ -284,6 +299,8 @@ public class TreeToolControllerTest extends BaseWCTTest<TreeToolController> {
 		aCmd.setActionCmd(TreeToolCommand.ACTION_VIEW);
 		aCmd.setSelectedRow((long) 7);
 		aCmd.setHrOid(((long) 111000));
+
+		aErrors = new BindException(aCmd, aCmd.getActionCmd());
 
 		// test handle
 		ModelAndView mav = testInstance.handle(aReq, aCmd, aErrors);

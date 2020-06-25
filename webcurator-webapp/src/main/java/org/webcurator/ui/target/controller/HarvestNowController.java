@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,7 +68,7 @@ public class HarvestNowController {
     private Log log;
 
     @Autowired
-    private HarvestNowValidator validator;
+    private HarvestNowValidator harvestNowValidator;
 
     /**
      * Constructor to set the command class for this controller.
@@ -92,7 +91,7 @@ public class HarvestNowController {
     protected ModelAndView processFormSubmission(@ModelAttribute("targetInstanceCommand") TargetInstanceCommand cmd,
                                                  BindingResult bindingResult, HttpServletRequest aReq)
             throws Exception {
-        validator.validate(cmd, bindingResult);
+        harvestNowValidator.validate(cmd, bindingResult);
     	if (!cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             aReq.getSession().removeAttribute(TargetInstanceCommand.SESSION_TI);
             return new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE);

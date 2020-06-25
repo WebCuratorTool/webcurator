@@ -33,6 +33,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -59,6 +60,10 @@ public class TargetInstanceResultHandler extends TabHandler {
     private HarvestCoordinator harvestCoordinator;
     /** the digital asset store containing the harvests. */
     private DigitalAssetStore digitalAssetStore = null;
+
+    private DigitalAssetStoreClient digitalAssetStoreClient = null;
+
+	private InTrayManagerImpl inTrayManager = null;
 
     private AgencyUserManager agencyUserManager;
 
@@ -334,9 +339,9 @@ public class TargetInstanceResultHandler extends TabHandler {
 					String customDepositFormURL = response.getUrlForCustomDepositForm();
 
 					// Will be needed to access the Rosetta interface
-					ApplicationContext ctx=ApplicationContextFactory.getApplicationContext();
-					DigitalAssetStoreClient dasClient=ctx.getBean(DigitalAssetStoreClient.class);
-					InTrayManagerImpl inTrayManager = ctx.getBean(InTrayManagerImpl.class);
+					DigitalAssetStoreClient dasClient = getDASClient();
+					InTrayManagerImpl inTrayManager = getInTrayManager();
+
 
 					req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
 					req.getSession().setAttribute("dasHost", dasClient.getHost());
@@ -360,5 +365,21 @@ public class TargetInstanceResultHandler extends TabHandler {
 			}
 		}
 		tmav.addObject("customDepositFormRequired", customDepositFormRequired);
+	}
+
+	private DigitalAssetStoreClient getDASClient(){
+		if(digitalAssetStoreClient == null){
+			ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+			digitalAssetStoreClient = ctx.getBean(DigitalAssetStoreClient.class);
+		}
+		return digitalAssetStoreClient;
+	}
+
+	private InTrayManagerImpl getInTrayManager(){
+		if(inTrayManager == null){
+			ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+			inTrayManager = ctx.getBean(InTrayManagerImpl.class);
+		}
+		return inTrayManager;
 	}
 }

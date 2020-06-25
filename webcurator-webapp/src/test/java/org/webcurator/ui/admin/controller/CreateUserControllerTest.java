@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.validation.BindException;
@@ -17,6 +18,7 @@ import org.webcurator.ui.admin.command.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.auth.*;
 import org.webcurator.domain.model.auth.*;
+import org.webcurator.ui.admin.validator.CreateUserValidator;
 
 import java.util.List;
 
@@ -54,14 +56,16 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 		try
 		{
 			MockHttpServletRequest request = new MockHttpServletRequest();
-			BindingResult bindingResult = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
+			BindingResult bindingResult;
 			testSetAgencyUserManager();
 			testSetAuthorityManager();
 			testSetMessageSource();
 			testSetPasswordEncoder();
+			ReflectionTestUtils.setField(testInstance, "createUserValidator", new CreateUserValidator());
 
 			CreateUserCommand aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_NEW);
+			bindingResult = new BindException(aCommand, CreateUserCommand.ACTION_NEW);
 			ModelAndView mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newUser"));
@@ -69,6 +73,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 			aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_VIEW);
 			aCommand.setOid(new Long(1000));
+			bindingResult = new BindException(aCommand, CreateUserCommand.ACTION_VIEW);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newUser"));
@@ -79,6 +84,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 			aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_EDIT);
 			aCommand.setOid(new Long(1000));
+			bindingResult = new BindException(aCommand, CreateUserCommand.ACTION_EDIT);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newUser"));
@@ -89,9 +95,12 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 			aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_SAVE);
 			aCommand.setOid(1000L);
+			aCommand.setAgencyOid(1000L);
 			aCommand.setFirstname("Test");
 			aCommand.setLastname("User");
 			aCommand.setUsername("TestUserName");
+			aCommand.setEmail("testuser@test.com");
+			bindingResult = new BindException(aCommand, CreateUserCommand.ACTION_SAVE);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUsers"));
@@ -104,10 +113,14 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 
 			aCommand = new CreateUserCommand();
 			aCommand.setAction(CreateUserCommand.ACTION_SAVE);
+			aCommand.setAgencyOid(2000L);
 			aCommand.setFirstname("Test");
 			aCommand.setLastname("User");
 			aCommand.setUsername("TestUserName");
-			aCommand.setPassword("Password");
+			aCommand.setPassword("Password01");
+			aCommand.setConfirmPassword("Password01");
+			aCommand.setEmail("testuser@test.com");
+			bindingResult = new BindException(aCommand, CreateUserCommand.ACTION_SAVE);
 			mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUsers"));
