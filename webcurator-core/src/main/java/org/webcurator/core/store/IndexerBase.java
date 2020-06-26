@@ -118,7 +118,7 @@ public abstract class IndexerBase implements RunnableIndex {
 
         Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+                null, String.class);
     }
 
     @Override

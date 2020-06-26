@@ -1297,7 +1297,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+                null, String.class);
     }
 
     private void failedArchiving(Long targetInstanceOid, String message) {
@@ -1308,7 +1308,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
+                null, String.class);
     }
 
     public CustomDepositFormResultDTO getCustomDepositFormDetails(

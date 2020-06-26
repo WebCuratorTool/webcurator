@@ -160,7 +160,7 @@ public class WCTIndexer extends IndexerBase
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESULT));
 
             Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, Void.class);
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, String.class);
         }catch (JsonProcessingException e){
             log.error("Parsing json failed.");
             log.error(e);
@@ -189,7 +189,7 @@ public class WCTIndexer extends IndexerBase
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES));
 
             Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, Void.class);
+            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, String.class);
         }catch (JsonProcessingException e){
             log.error("Parsing json failed.");
             log.error(e);
