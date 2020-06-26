@@ -83,6 +83,9 @@ dependencies {
 
 }
 
+// just an alias
+task install(dependsOn: ['bootWar', 'publishToMavenLocal'])
+ 
 war {
     includeEmptyDirs = false
 }
