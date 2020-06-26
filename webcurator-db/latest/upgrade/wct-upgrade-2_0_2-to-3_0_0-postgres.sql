@@ -1,3 +1,5 @@
+alter table db_wct.id_generator alter ig_value type bigint;
+
 update db_wct.id_generator set ig_value=(COALESCE((select max(rol_oid) from db_wct.wctrole), 0)) where ig_type='Role';
 update db_wct.id_generator set ig_value=(COALESCE((select max(agc_oid) from db_wct.agency), 0)) where ig_type='Agency';
 update db_wct.id_generator set ig_value=(COALESCE((select max(usr_oid) from db_wct.wctuser), 0)) where ig_type='User';
@@ -34,3 +36,4 @@ update db_wct.id_generator set ig_value=greatest(
 	(COALESCE((select max(at_oid) from db_wct.abstract_target_grouptype_view), 0)),
 	(COALESCE((select max(pe_oid) from db_wct.permission), 0))
 ) where ig_type='General';
+
