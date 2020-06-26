@@ -17,7 +17,7 @@ package org.webcurator.core.harvester.coordinator;
 
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
-import org.webcurator.domain.model.dto.SeedHistoryDTO;
+import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
 /**
  * Callback interface for the DAS. The DAS calls this interface when it
@@ -49,7 +49,7 @@ public interface DasCallback {
      * @param harvestNumber     The order number of the harvest.
      * @return The history seeds
      */
-    public SeedHistoryDTO querySeedHistory(Long targetInstanceOid, Integer harvestNumber);
+    public SeedHistorySetDTO querySeedHistory(Long targetInstanceOid, Integer harvestNumber);
 
     /**
      * Notify the core that the modification is finished

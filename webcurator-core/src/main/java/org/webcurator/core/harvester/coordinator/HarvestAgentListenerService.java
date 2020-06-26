@@ -12,10 +12,10 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
-import org.webcurator.domain.model.dto.SeedHistoryDTO;
+import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The Server side implmentation of the HarvestAgentListener. This Service is deployed on the core and is used by the agents to send
@@ -154,16 +154,18 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
     }
 
     @RequestMapping(path = HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED, method = {RequestMethod.POST, RequestMethod.GET})
-    public SeedHistoryDTO querySeedHistory(@RequestParam Long targetInstanceOid, @RequestParam Integer harvestNumber) {
-        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO();
-        seedHistoryDTO.setTargetInstanceId(targetInstanceOid);
+    public SeedHistorySetDTO querySeedHistory(@RequestParam Long targetInstanceOid, @RequestParam Integer harvestNumber) {
+        SeedHistorySetDTO seedHistorySetDTO = new SeedHistorySetDTO();
+        seedHistorySetDTO.setTargetInstanceId(targetInstanceOid);
         TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceOid);
         if (ti == null) {
-            seedHistoryDTO.setSeeds(new HashSet<SeedHistory>());
+            seedHistorySetDTO.setSeeds(new HashSet<>());
         } else {
-            seedHistoryDTO.setSeeds(ti.getSeedHistory());
+            ti.getSeedHistory().forEach(seedHistory -> {
+                seedHistorySetDTO.getSeeds().add(new SeedHistoryDTO(seedHistory));
+            });
         }
-        return seedHistoryDTO;
+        return seedHistorySetDTO;
     }
 
     @RequestMapping(path = HarvestCoordinatorPaths.MODIFICATION_COMPLETE_PRUNE_IMPORT, method = {RequestMethod.POST, RequestMethod.GET})

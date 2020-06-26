@@ -4,17 +4,20 @@ import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.extractor.ResourceExtractor;
 import org.webcurator.core.visualization.networkmap.extractor.ResourceExtractorWarc;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomainManager;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,49 +25,19 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("all")
-public class ResourceExtractorProcessor {
+public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     private static final Logger log = LoggerFactory.getLogger(ResourceExtractorProcessor.class);
-    private static final Map<String, ResourceExtractorProcessor> RUNNING_INDEXER = new HashMap<>();
-    private long targetInstanceId;
-    private int harvestNumber;
     private File directory;
     private Map<String, NetworkMapNode> urls = new Hashtable<>();
-
     private BDBNetworkMap db;
+    private Set<SeedHistoryDTO> seeds;
+    private ResourceExtractor extractor;
 
-    private Set<SeedHistory> seeds;
-
-    private String logsDir; //log dir
-    private String reportsDir; //report dir
-
-    private VisualizationProgressBar progressBar = new VisualizationProgressBar("INDEXING");
-
-    public ResourceExtractorProcessor(File directory, BDBNetworkMap db, long targetInstanceId, int harvestNumber, Set<SeedHistory> seeds, VisualizationManager visualizationManager) throws IOException {
-        this.directory = directory;
-        this.db = db;
-        this.targetInstanceId = targetInstanceId;
-        this.harvestNumber = harvestNumber;
+    public ResourceExtractorProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber, Set<SeedHistoryDTO> seeds, VisualizationManager visualizationManager) throws DigitalAssetStoreException {
+        super(visualizationManager, targetInstanceId, harvestResultNumber);
+        this.directory = new File(visualizationManager.getBaseDir(), targetInstanceId + File.separator + harvestResultNumber);
+        this.db = pool.createInstance(targetInstanceId, harvestResultNumber);
         this.seeds = seeds;
-
-        String baseDir = visualizationManager.getBaseDir();
-        this.logsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
-        this.reportsDir = baseDir + File.separator + this.targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_INDEX + File.separator + this.harvestNumber;
-
-        String key = getKey(this.targetInstanceId, this.harvestNumber);
-        RUNNING_INDEXER.put(key, this);
-    }
-
-    private static String getKey(long targetInstanceId, int harvestNumber) {
-        return String.format("KEY_%d_%d", targetInstanceId, harvestNumber);
-    }
-
-    public static VisualizationProgressBar getProgress(long targetInstanceId, int harvestNumber) {
-        String key = getKey(targetInstanceId, harvestNumber);
-        ResourceExtractorProcessor indexer = RUNNING_INDEXER.get(key);
-        if (indexer != null) {
-            return indexer.progressBar;
-        }
-        return null;
     }
 
     public void indexFiles() throws IOException {
@@ -86,14 +59,14 @@ public class ResourceExtractorProcessor {
 
         log.debug(progressBar.toString());
 
-        ResourceExtractor extractor = new ResourceExtractorWarc(this.urls, this.seeds);
+        extractor = new ResourceExtractorWarc(this.urls, this.seeds);
         extractor.init(this.logsDir, this.reportsDir, this.progressBar);
         for (File f : fileList) {
             if (!isWarcFormat(f.getName())) {
                 extractor.writeLog("Skipped unknown file: " + f.getName());
                 continue;
             }
-            indexFile(f, extractor);
+            indexFile(f);
             VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
             progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
         }
@@ -104,7 +77,7 @@ public class ResourceExtractorProcessor {
         extractor.close();
     }
 
-    public void indexFile(File archiveFile, ResourceExtractor extractor) {
+    public void indexFile(File archiveFile) {
         log.info("Indexing file: {}", archiveFile.getAbsolutePath());
         ArchiveReader reader = null;
         try {
@@ -136,6 +109,10 @@ public class ResourceExtractorProcessor {
     }
 
     private void statAndSave(ResourceExtractor extractor) {
+        if (!running) {
+            return;
+        }
+
         AtomicLong domainIdGenerator = new AtomicLong();
         NetworkMapDomainManager domainManager = new NetworkMapDomainManager();
 
@@ -148,36 +125,34 @@ public class ResourceExtractorProcessor {
 
         //Process parent relationship, outlinks and domain's outlink
         this.urls.values().forEach(node -> {
-            /**
-             * if url u-->v then domain du->dv, DU->DV, du->DV, DU->dv
-             */
+            if (this.running) {
+                // if url u-->v then domain du->dv, DU->DV, du->DV, DU->dv
+                NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
+                NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
+                if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
+                    domainNodeHigh.setSeed(true);
+                    domainNodeLower.setSeed(true);
+                }
 
-            NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
-            NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
-            if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
-                domainNodeHigh.setSeed(true);
-                domainNodeLower.setSeed(true);
-            }
+                String viaUrl = node.getViaUrl();
+                if (viaUrl == null || !this.urls.containsKey(viaUrl)) {
+                    node.setParentId(-1);
+                } else {
+                    NetworkMapNode parentNode = this.urls.get(viaUrl);
+                    parentNode.addOutlink(node);
 
-            String viaUrl = node.getViaUrl();
-            if (viaUrl == null || !this.urls.containsKey(viaUrl)) {
-                node.setParentId(-1);
-            } else {
-                NetworkMapNode parentNode = this.urls.get(viaUrl);
-                parentNode.addOutlink(node);
+                    NetworkMapDomain parentDomainNodeHigh = domainManager.getHighDomain(parentNode);
+                    NetworkMapDomain parentDomainNodeLower = domainManager.getLowerDomain(parentNode);
 
-                NetworkMapDomain parentDomainNodeHigh = domainManager.getHighDomain(parentNode);
-                NetworkMapDomain parentDomainNodeLower = domainManager.getLowerDomain(parentNode);
+                    node.setParentId(parentNode.getId());
 
-                node.setParentId(parentNode.getId());
-
-                parentDomainNodeHigh.addOutlink(domainNodeHigh.getId());
-                parentDomainNodeHigh.addOutlink(domainNodeLower.getId());
-                parentDomainNodeLower.addOutlink(domainNodeHigh.getId());
-                parentDomainNodeLower.addOutlink(domainNodeLower.getId());
+                    parentDomainNodeHigh.addOutlink(domainNodeHigh.getId());
+                    parentDomainNodeHigh.addOutlink(domainNodeLower.getId());
+                    parentDomainNodeLower.addOutlink(domainNodeHigh.getId());
+                    parentDomainNodeLower.addOutlink(domainNodeLower.getId());
+                }
             }
         });
-//        db.put(BDBNetworkMap.PATH_METADATA_DOMAIN_NAME, statDomainMap.keySet());
         db.put(BDBNetworkMap.PATH_GROUP_BY_DOMAIN, rootDomainNode);
         extractor.writeLog("Finished storing domain nodes");
 
@@ -185,15 +160,17 @@ public class ResourceExtractorProcessor {
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
         this.urls.values().forEach(e -> {
-            db.put(e.getId(), e);             //Indexed by ID, ID->NODE
-            db.put(e.getUrl(), e.getId()); //Indexed by URL, URL->ID->NODE
+            if (this.running) {
+                db.put(e.getId(), e);             //Indexed by ID, ID->NODE
+                db.put(e.getUrl(), e.getId()); //Indexed by URL, URL->ID->NODE
 
-            if (e.isSeed() || e.getParentId() <= 0) {
-                rootUrls.add(e.getId());
-            }
+                if (e.isSeed() || e.getParentId() <= 0) {
+                    rootUrls.add(e.getId());
+                }
 
-            if (!e.isFinished()) {
-                malformedUrls.add(e.getId());
+                if (!e.isFinished()) {
+                    malformedUrls.add(e.getId());
+                }
             }
         });
         db.put(BDBNetworkMap.PATH_ROOT_URLS, rootUrls);
@@ -212,9 +189,34 @@ public class ResourceExtractorProcessor {
     public void clear() {
         this.urls.values().forEach(NetworkMapNode::clear);
         this.urls.clear();
-        this.progressBar.clear();
+    }
 
-        String key = getKey(this.targetInstanceId, this.harvestNumber);
-        RUNNING_INDEXER.remove(key);
+    @Override
+    protected String getProcessorStage() {
+        return HarvestResult.PATCH_STAGE_TYPE_INDEXING;
+    }
+
+    @Override
+    public void processInternal() {
+        try {
+            indexFiles();
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        } finally {
+            clear();
+        }
+    }
+
+    @Override
+    protected void terminateInternal() {
+        if (extractor != null) {
+            extractor.stop();
+        }
+    }
+
+    @Override
+    public void deleteInternal() {
+        //delete indexing data
+        this.delete(this.directory.getAbsolutePath(), "_resource");
     }
 }

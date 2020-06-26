@@ -26,7 +26,7 @@ public class LogRetrieverCommand {
 	private Long targetInstanceOid;
 	private String logFileName;
 	/** log stage type */
-	private String prefix= HarvestResult.PATCH_STAGE_TYPE_NORMAL;
+	private String prefix= HarvestResult.PATCH_STAGE_TYPE_CRAWLING;
 	/** harvest result number */
 	private int harvestResultNumber;
 

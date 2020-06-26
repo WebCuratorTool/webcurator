@@ -47,7 +47,6 @@ import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.visualization.VisualizationManager;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
@@ -567,12 +566,12 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         try {
             HarvestResult hr = targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
-            if (hr == null || hr.getState() != HarvestResult.STATE_PATCH_SCHEDULED) {
+            if (hr == null || hr.getState() != HarvestResult.STATE_CRAWLING || hr.getStatus()!=HarvestResult.STATUS_SCHEDULED) {
                 log.error("Not able to start harvest at state: {}", hr.getState());
                 return false;
             }
 
-            hr.setState(HarvestResult.STATE_PATCH_HARVEST_RUNNING);
+            hr.setStatus(HarvestResult.STATUS_RUNNING);
             targetInstanceDao.save(hr);
 
             targetInstance.setActualStartTime(new Date());
@@ -616,7 +615,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             digitalAssetStoreFactory.getDAS().initiateIndexing(
                     new HarvestResultDTO(harvestResult.getOid(), harvestResult.getTargetInstance().getOid(), harvestResult
                             .getCreationDate(), harvestResult.getHarvestNumber(), harvestResult.getProvenanceNote()));
-            harvestResult.setState(HarvestResult.STATE_PATCH_INDEX_RUNNING);
+            harvestResult.setState(HarvestResult.STATE_INDEXING);
+            harvestResult.setStatus(HarvestResult.STATUS_RUNNING);
             targetInstanceDao.save(harvestResult);
         } catch (DigitalAssetStoreException ex) {
             log.error("Could not send initiateIndexing message to the DAS", ex);
@@ -1267,23 +1267,25 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                 return new Long(0);
             }
 
-            hr.setState(HarvestResult.STATE_PATCH_HARVEST_FINISHED);
+            hr.setState(HarvestResult.STATE_INDEXING);
+            hr.setStatus(HarvestResult.STATUS_RUNNING);
             targetInstanceDao.save(hr);
 
             log.info("Update state for patching Harvest Result {} of TI {}", hr.getHarvestNumber(), ti.getOid());
             return hr.getOid();
-        }
-        HarvestResult result = new HarvestResult(harvestResultDTO, ti);
-        ti.getHarvestResults().add(result);
-        result.setState(HarvestResult.STATE_INDEXING);
+        } else {
+            HarvestResult result = new HarvestResult(harvestResultDTO, ti);
+            ti.getHarvestResults().add(result);
+            result.setState(HarvestResult.STATE_INDEXING);
 
-        targetInstanceDao.save(result);
-        return result.getOid();
+            targetInstanceDao.save(result);
+            return result.getOid();
+        }
     }
 
     public void finaliseIndex(Long harvestResultOid) {
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
-        ahr.setState(0);
+        ahr.setState(HarvestResult.STATE_UNASSESSED);
 
         harvestQaManager.triggerAutoQA(ahr);
         targetInstanceDao.save(ahr);
@@ -1726,7 +1728,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
-        hr.setState(HarvestResult.STATE_PATCH_MOD_RUNNING);
+        hr.setState(HarvestResult.STATE_MODIFYING);
+        hr.setStatus(HarvestResult.STATUS_RUNNING);
         targetInstanceDao.save(hr);
 
         return result;
@@ -1755,7 +1758,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         hr.setProvenanceNote(cmd.getProvenanceNote());
         //        hr.addModificationNotes();
         hr.setTargetInstance(ti);
-        hr.setState(HarvestResult.STATE_PATCH_SCHEDULED);
+        hr.setState(HarvestResult.STATE_CRAWLING);
+        hr.setStatus(HarvestResult.STATUS_SCHEDULED);
 
         if (AuthUtil.getRemoteUserObject() != null) {
             hr.setCreatedBy(AuthUtil.getRemoteUserObject());
@@ -1812,17 +1816,5 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-    }
-
-    /**
-     * Here get progress of modification. The indexing progress is implemented at NetworkMapClient
-     *
-     * @param targetInstanceId
-     * @param harvestResultNumber
-     * @return
-     */
-    @Override
-    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-        return null;
     }
 }

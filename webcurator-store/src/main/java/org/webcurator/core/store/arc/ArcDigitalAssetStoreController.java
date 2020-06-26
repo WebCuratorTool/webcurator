@@ -10,7 +10,6 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStorePaths;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.*;
@@ -199,13 +198,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @Override
     @RequestMapping(path = DigitalAssetStorePaths.OPERATE_HARVEST_RESULT_MODIFICATION, method = RequestMethod.POST)
-    public void operateHarvestResultModification(@RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
-        arcDigitalAssetStoreService.operateHarvestResultModification(command, targetInstanceId, harvestNumber);
-    }
-
-    @Override
-    @RequestMapping(path = DigitalAssetStorePaths.PROGRESS_QUERY, method = RequestMethod.POST)
-    public VisualizationProgressBar getProgress(@RequestParam("stage") String stage, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) {
-        return null;
+    public void operateHarvestResultModification(@RequestParam("stage") String stage, @RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
+        arcDigitalAssetStoreService.operateHarvestResultModification(stage, command, targetInstanceId, harvestNumber);
     }
 }

@@ -10,7 +10,7 @@ import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,7 +28,9 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
     protected Map<String, NetworkMapNode> results;
     protected Map<String, Boolean> seeds = new HashMap<>();
 
-    protected ResourceExtractor(Map<String, NetworkMapNode> results, Set<SeedHistory> seeds) {
+    protected boolean running = true;
+
+    protected ResourceExtractor(Map<String, NetworkMapNode> results, Set<SeedHistoryDTO> seeds) {
         this.results = results;
         seeds.forEach(seed -> {
             this.seeds.put(seed.getSeed(), seed.isPrimary());
@@ -42,25 +44,33 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
     }
 
     public void extract(ArchiveReader reader, String fileName) throws IOException {
-        StatisticItem item = new StatisticItem();
-        item.setFromFileName(reader.getStrippedFileName());
-        statisticItems.add(item);
+        StatisticItem statisticItem = new StatisticItem();
+        statisticItem.setFromFileName(reader.getStrippedFileName());
+        statisticItems.add(statisticItem);
 
         VisualizationProgressBar.ProgressItem progressItem = this.progressBar.getProgressItem(fileName);
 
         preProcess();
         for (ArchiveRecord record : reader) {
+            if (!running) {
+                break;
+            }
+
             extractRecord(record, fileName);
             progressItem.setCurLength(record.getHeader().getOffset());
             record.close();
-            if (results.size() % 1000 == 0) {
-                log.debug("Extracting, results.size:{}", results.size());
-                log.debug(progressItem.toString());
-                writeLog(progressItem.toString());
-            }
-            item.increaseSucceedRecords();
+
+            log.debug("Extracting, results.size:{}", results.size());
+            log.debug(progressItem.toString());
+            writeLog(progressItem.toString());
+
+            statisticItem.increaseSucceedRecords();
         }
         postProcess();
+    }
+
+    public void stop() {
+        this.running = false;
     }
 
     abstract protected void preProcess();

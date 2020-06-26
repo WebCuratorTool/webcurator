@@ -2,9 +2,11 @@ package org.webcurator.ui.tools.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.DigitalAssetStorePaths;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
@@ -24,7 +26,6 @@ import java.util.List;
 
 @RestController
 public class HarvestModificationController implements PruneAndImportService {
-
     //For store component, it's a localClient; For webapp component, it's a remote component
     @Autowired
     private HarvestCoordinator harvestCoordinator;
@@ -34,6 +35,9 @@ public class HarvestModificationController implements PruneAndImportService {
 
     @Autowired
     private TargetInstanceManager targetInstanceManager;
+
+    @Autowired
+    private HarvestModificationHandler harvestModificationHandler;
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_UPLOAD_FILE, method = RequestMethod.POST, produces = "application/json")
@@ -62,23 +66,14 @@ public class HarvestModificationController implements PruneAndImportService {
         }
     }
 
-    @Override
-    public VisualizationProgressBar getProgress(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
-        TargetInstance ti = targetInstanceManager.getTargetInstance(job);
-        if (ti == null) {
-            return null;
-        }
-        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-        if (hr == null) {
-            return null;
-        }
+    @RequestMapping(path = VisualizationConstants.PATH_INDEX, method = {RequestMethod.POST, RequestMethod.GET})
+    public void startReindex(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
 
-        if (hr.getState() >= HarvestResult.STATE_PATCH_MOD_RUNNING && hr.getState() <= HarvestResult.STATE_PATCH_MOD_FINISHED) {
-            return digitalAssetStore.getProgress(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, job, harvestResultNumber);
-        } else if (hr.getState() >= HarvestResult.STATE_PATCH_INDEX_RUNNING && hr.getState() <= HarvestResult.STATE_PATCH_INDEX_FINISHED) {
-            return digitalAssetStore.getProgress(HarvestResult.PATCH_STAGE_TYPE_INDEXING, job, harvestResultNumber);
-        } else {
-            return null;
-        }
+    }
+
+    @RequestMapping(path ="/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
+    public void operateHarvestResultModification(@RequestParam("stage") String stage, @RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
+        if (stage.equals())
+        arcDigitalAssetStoreService.operateHarvestResultModification(stage, command, targetInstanceId, harvestNumber);
     }
 }

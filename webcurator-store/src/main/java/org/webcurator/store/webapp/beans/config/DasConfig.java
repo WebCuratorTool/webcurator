@@ -309,10 +309,9 @@ public class DasConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(restTemplateBuilder);
+        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpoint(), restTemplateBuilder);
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         bean.setIndexer(indexer());
-        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setDasFileMover(createDasFileMover());
         bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);

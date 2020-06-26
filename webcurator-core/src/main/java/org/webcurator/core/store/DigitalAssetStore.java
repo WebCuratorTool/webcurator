@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
@@ -40,11 +39,11 @@ public interface DigitalAssetStore {
      * returned as a SOAP attachment and written to disk for use. This is ideal
      * for streaming large resources.
      *
-     * @param targetInstanceName  The OID of the target instance that the
+     * @param targetInstanceId    The OID of the target instance that the
      *                            resource belongs to.
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
-     * @param resource            The resource to retrieve.
+     * @param resourceUrl         The resource to retrieve.
      * @return The resource, as a file.
      * @throws DigitalAssetStoreException if there are any errors.
      */
@@ -56,11 +55,11 @@ public interface DigitalAssetStore {
      * streaming is not required. It has additional memory requirements, but
      * has no file I/O.
      *
-     * @param targetInstanceName  The OID of the target instance that the
+     * @param targetInstanceId    The OID of the target instance that the
      *                            resource belongs to.
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
-     * @param resource            The resource to retrieve.
+     * @param resourceUrl         The resource to retrieve.
      * @return The resource, as a file.
      * @throws DigitalAssetStoreException if there are any errors.
      */
@@ -69,11 +68,11 @@ public interface DigitalAssetStore {
     /**
      * Retrieve the HTTP headers for a given resource.
      *
-     * @param targetInstanceName  The OID of the target instance that the
+     * @param targetInstanceId    The OID of the target instance that the
      *                            resource belongs to.
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
-     * @param resource            The resource for which to retrieve the headers.
+     * @param resourceUrl         The resource for which to retrieve the headers.
      * @return An array of HTTP Headers.
      * @throws DigitalAssetStoreException if there are any errors.
      */
@@ -187,20 +186,11 @@ public interface DigitalAssetStore {
     /**
      * To clear the patching Harvest Result, Index, and the Mod Harvest Files
      *
+     * @param stage:            the stage of the request: crawling, modifying or indexing
      * @param command:          the action of the command
      * @param targetInstanceId: the ID of target instance
      * @param harvestNumber:    the number of harvest result
      * @throws DigitalAssetStoreException thrown if there is an error
      */
-    void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException;
-
-    /**
-     * Query progress of indexer or modification
-     *
-     * @param stage:           modify or index
-     * @param targetInstanceId target instance id
-     * @param harvestNumber    harvest result number
-     * @return progress
-     */
-    VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestNumber);
+    void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException;
 }

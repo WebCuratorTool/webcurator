@@ -15,58 +15,52 @@ import java.util.*;
 public class HarvestResult implements UserInTrayResource {
     private static final int MAX_MOD_NOTE_LENGTH = 2000;
 
-    /**
-     * The state for an unassessed HarvestResult - neither endorsed, rejected, indexed nor aborted
-     */
+    //The state for an unassessed HarvestResult - neither endorsed, rejected, indexed nor aborted
     public static final int STATE_UNASSESSED = 0;
-    /**
-     * The state for an Endorsed HarvestResult - ready for archiving
-     */
+
+    //The state for an Endorsed HarvestResult - ready for archiving
     public static final int STATE_ENDORSED = 1;
-    /**
-     * The state constant for a Rejected HarvestResult - one that should not be archived
-     */
+
+    //The state constant for a Rejected HarvestResult - one that should not be archived
     public static final int STATE_REJECTED = 2;
-    /**
-     * The state constant for a Harvest Result that is being indexed.
-     */
+
+    //The state constant for a Harvest Result that is being indexed.
     public static final int STATE_INDEXING = 3;
-    /**
-     * The state constant for a Harvest Result that has been aborted in indexing.
-     */
+
+    //The state constant for a Harvest Result that has been aborted in indexing.
     public static final int STATE_ABORTED = 4;
-    /**
-     * The state constant for a Harvest Result that is accepted.
-     */
-    public static final int STATE_PATCH_SCHEDULED = 50;
 
-    /**
-     * The state constant for a Harvest Result that is harvesting the source urls.
-     */
-    public static final int STATE_PATCH_HARVEST_RUNNING = 60;
-    public static final int STATE_PATCH_HARVEST_PAUSED = 61;
-    public static final int STATE_PATCH_HARVEST_STOPPED = 62;
-    public static final int STATE_PATCH_HARVEST_ABORTED = 63;
-    public static final int STATE_PATCH_HARVEST_FINISHED = 69;
+//    //The state constant for a Harvest Result modification request that is accepted.
+//    public static final int STATE_SCHEDULED = 5;
 
+    //The state constant for a Harvest Result that is crawling the source urls.
+    public static final int STATE_CRAWLING = 6;
 
-    /**
-     * The state constant for a Harvest Result that is being modified.
-     */
-    public static final int STATE_PATCH_MOD_RUNNING = 70;
-    public static final int STATE_PATCH_MOD_PAUSED = 71;
-    public static final int STATE_PATCH_MOD_STOPPED = 72;
-    public static final int STATE_PATCH_MOD_FINISHED = 79;
+    //The state constant for a Harvest Result that is being modified.
+    public static final int STATE_MODIFYING = 7;
 
-    /**
-     * The state constant for a Harvest Result that is being indexed.
-     */
-    public static final int STATE_PATCH_INDEX_RUNNING = 80;
-    public static final int STATE_PATCH_INDEX_PAUSED = 81;
-    public static final int STATE_PATCH_INDEX_STOPPED = 82;
-    public static final int STATE_PATCH_INDEX_FINISHED = 89;
+//    //The state constant for a Harvest Result that is being indexed.
+//    public static final int STATE_PATCH_INDEXING = 8;
 
-    public static final String PATCH_STAGE_TYPE_NORMAL = "normal";
+    //The status for an unassessed HarvestResult: not running, paused, terminated or finished
+    public static final int STATUS_UNASSESSED = 0;
+
+    //The status for an  Harvest Result that is scheduled for crawlig
+    public static final int STATUS_SCHEDULED = 1;
+
+    //The status for a Harvest Result that is running: crawling, modifying or indexing
+    public static final int STATUS_RUNNING = 2;
+
+    //The status for a Harvest Result that is paused
+    public static final int STATUS_PAUSED = 3;
+
+    //The status for a Harvest Result that is terminated or stopped
+    public static final int STATUS_TERMINATED = 4;
+
+    //The status for a Harvest Result that is finished at the specific stage: crawling finished, modification finished or indexing finished
+    public static final int STATUS_FINISHED = 5;
+
+    public static final String PATCH_STAGE_TYPE_CRAWLING = "crawling";
     public static final String PATCH_STAGE_TYPE_MODIFYING = "modifying";
     public static final String PATCH_STAGE_TYPE_INDEXING = "indexing";
 
@@ -136,6 +130,13 @@ public class HarvestResult implements UserInTrayResource {
      */
     @Column(name = "HR_STATE")
     private int state = 0;
+
+    /**
+     * The status of the HarvestResult - see the STATUS_xxx constants
+     */
+    @Column(name = "HR_STATUS")
+    private int status = 0;
+
     /**
      * A list of Harvest Modification Notes
      */
@@ -337,6 +338,23 @@ public class HarvestResult implements UserInTrayResource {
         this.state = state;
     }
 
+    /**
+     * Get the status of this Harvest Result.
+     *
+     * @return the status
+     */
+    public int getStatus() {
+        return status;
+    }
+
+    /**
+     * Set the status of this Harvest Result.
+     *
+     * @param status the state to set
+     */
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     /**
      * Safe way to add modification notes and ensure that they are truncated

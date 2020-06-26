@@ -357,7 +357,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-        return ResourceExtractorProcessor.getProgress(targetInstanceId, harvestResultNumber);
+        return VisualizationProgressBar.getProgress(targetInstanceId, harvestResultNumber);
     }
 }
 

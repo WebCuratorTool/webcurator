@@ -408,9 +408,4 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
 
 		return null;
 	}
-
-	@Override
-	public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-		return null;
-	}
 }

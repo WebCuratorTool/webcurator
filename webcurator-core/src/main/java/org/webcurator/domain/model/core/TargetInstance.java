@@ -1334,7 +1334,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         }
 
         for (HarvestResult hr : harvestResults) {
-            if (hr.getState() >= HarvestResult.STATE_PATCH_SCHEDULED && hr.getState() <= HarvestResult.STATE_PATCH_INDEX_FINISHED) {
+            if (hr.getState() == HarvestResult.STATE_CRAWLING
+                    || hr.getState() == HarvestResult.STATE_MODIFYING
+                    || hr.getState() == HarvestResult.STATE_INDEXING) {
                 return hr;
             }
         }

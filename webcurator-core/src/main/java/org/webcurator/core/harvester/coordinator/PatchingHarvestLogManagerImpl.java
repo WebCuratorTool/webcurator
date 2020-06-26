@@ -194,7 +194,7 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
         }
 
         LogReader logReader = null;
-        if (hr.getState() == HarvestResult.STATE_PATCH_HARVEST_RUNNING || hr.getState() == HarvestResult.STATE_PATCH_HARVEST_PAUSED || hr.getState() == HarvestResult.STATE_PATCH_HARVEST_STOPPED) {
+        if (hr.getState() == HarvestResult.STATE_CRAWLING) {
             logReader = harvestAgentManager.getLogReader(getJobName(ti, hr));
             if (logReader == null) {
                 log.error("Could not get log reader instance from Harvest Agent");
@@ -213,7 +213,7 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
             throw new WCTRuntimeException("Harvest result must not be null");
         }
 
-        if (this.type == null || this.type.trim().length() == 0 || this.type.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_NORMAL)) {
+        if (this.type == null || this.type.trim().length() == 0 || this.type.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)) {
             return String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber());
         } else {
             return String.format("%s@mod_%d_%d", this.type, ti.getOid(), hr.getHarvestNumber());

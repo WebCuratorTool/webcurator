@@ -54,7 +54,7 @@ public class LogRetrieverController {
     private TargetInstanceManager targetInstanceManager;
 
     @Autowired
-    @Qualifier(HarvestResult.PATCH_STAGE_TYPE_NORMAL)
+    @Qualifier(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
     private PatchingHarvestLogManager patchingHarvestLogManager;
 
     @Autowired

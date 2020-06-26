@@ -120,13 +120,7 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
     }
 
     @Override
-    public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+    public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
         return;
     }
-
-    @Override
-    public VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestNumber) {
-        return null;
-    }
-
 }

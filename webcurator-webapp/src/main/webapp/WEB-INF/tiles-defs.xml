@@ -687,6 +687,16 @@
 		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
 	</definition>
 
+	<definition name="patching-view-hr-more" extends=".subTabbed">
+		<put-attribute name="title" value="Patching Harvest View" />
+		<put-attribute name="body" value="/jsp/patching-view-hr-more.jsp" />
+		<put-attribute name="activeTab" value="instances" />
+		<put-attribute name="pageIcon" value="instances" />
+		<put-attribute name="page-title" value="/jsp/layouts/page-title-target-instances.jsp" />
+		<put-attribute name="page-help" value="http://dia-nz.github.io/webcurator/" />
+		<put-attribute name="object-identifier" value="/jsp/layouts/object-identifier-tis.jsp" />
+	</definition>
+
 	<definition name="target-search" extends=".mainLayoutNew">
 		<put-attribute name="title" value="WEB CURATOR TOOL: Search Targets" />
 		<put-attribute name="body" value="/jsp/target-search.jsp" />

@@ -1,18 +1,19 @@
 package org.webcurator.domain.model.dto;
 
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
+import java.util.HashSet;
 import java.util.Set;
 
-public class SeedHistoryDTO {
-    Set<SeedHistory> seeds;
+public class SeedHistorySetDTO {
+    Set<SeedHistoryDTO> seeds = new HashSet<>();
     Long targetInstanceId;
 
-    public Set<SeedHistory> getSeeds() {
+    public Set<SeedHistoryDTO> getSeeds() {
         return seeds;
     }
 
-    public void setSeeds(Set<SeedHistory> seeds) {
+    public void setSeeds(Set<SeedHistoryDTO> seeds) {
         this.seeds = seeds;
     }
 

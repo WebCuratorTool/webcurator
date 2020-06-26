@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.*;
 
 import org.apache.commons.httpclient.Header;
@@ -54,7 +53,7 @@ import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
-import org.webcurator.core.rest.RestClientResponseHandler;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.reader.LogProvider;
@@ -63,11 +62,9 @@ import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationManager;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -80,7 +77,7 @@ import org.webcurator.domain.model.core.*;
  * @author bbeaumont
  */
 @SuppressWarnings("all")
-public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvider {
+public class ArcDigitalAssetStoreService extends AbstractRestClient implements DigitalAssetStore, LogProvider {
     /**
      * The logger.
      */
@@ -107,46 +104,30 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      * The DAS File Mover
      */
     private DasFileMover dasFileMover = null;
-    /**
-     * The core
-     */
-    private WebServiceEndPoint wsEndPoint = null;
 
     private FileArchive fileArchive = null;
-
+    private WebServiceEndPoint wsEndPoint;
     @Autowired
     private Archive arcDasArchive;
 
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
 
-    private final RestTemplateBuilder restTemplateBuilder;
-
     private VisualizationManager visualizationManager;
     private NetworkMapClient networkMapClient;
-
-    public ArcDigitalAssetStoreService() {
-        this(new RestTemplateBuilder());
-    }
-
-    public ArcDigitalAssetStoreService(RestTemplateBuilder restTemplateBuilder) {
-        this.restTemplateBuilder = restTemplateBuilder;
-        restTemplateBuilder.errorHandler(new RestClientResponseHandler())
-                .setConnectTimeout(Duration.ofSeconds(15L));
-    }
-
-    public String baseUrl() {
-        // FIXME: configurable scheme (in class WebServiceEndpoint.java)
-        return wsEndPoint.getSchema() + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
-    }
-
-    public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
-    }
 
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         writerDF.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+
+    public ArcDigitalAssetStoreService(WebServiceEndPoint wsEndPoint, RestTemplateBuilder restTemplateBuilder) {
+        this(wsEndPoint.getSchema(), wsEndPoint.getHost(), wsEndPoint.getPort(), restTemplateBuilder);
+        this.wsEndPoint = wsEndPoint;
+    }
+
+    public ArcDigitalAssetStoreService(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
+        super(scheme, host, port, restTemplateBuilder);
     }
 
     public void save(String targetInstanceName, String directory, Path path)
@@ -1072,13 +1053,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         this.dasFileMover = fileMover;
     }
 
-    /**
-     * @param wsEndPoint the wsEndPoint to set
-     */
-    public void setWsEndPoint(WebServiceEndPoint wsEndPoint) {
-        this.wsEndPoint = wsEndPoint;
-    }
-
     // Moves the ArchiveRecord stream past the HTTP status line;
     // checks if it starts with HTTP and ends with CRLF
     private void skipStatusLine(ArchiveRecord record) throws IOException {
@@ -1151,7 +1125,12 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     @Override
     public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportProcessor p = new PruneAndImportProcessor(visualizationManager, cmd);
+        PruneAndImportProcessor p = null;
+        try {
+            p = new PruneAndImportProcessor(visualizationManager, cmd, this);
+        } catch (DigitalAssetStoreException e) {
+            e.printStackTrace();
+        }
         new Thread(p).start();
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
@@ -1161,7 +1140,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     @Override
-    public void operateHarvestResultModification(String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+    public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
         PruneAndImportProcessor p = PruneAndImportProcessor.getProcessor(targetInstanceId, harvestNumber);
 
         if (command.equalsIgnoreCase("delete")) {
@@ -1169,7 +1148,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                 PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
                 cmd.setTargetInstanceId(targetInstanceId);
                 cmd.setNewHarvestResultNumber(harvestNumber);
-                p = new PruneAndImportProcessor(visualizationManager, cmd);
+                p = new PruneAndImportProcessor(visualizationManager, cmd, this);
             }
             p.delete(targetInstanceId, harvestNumber);
             return;
@@ -1186,17 +1165,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             p.resumeModification();
         } else if (command.equalsIgnoreCase("stop")) {
             p.stopModification();
-        }
-    }
-
-    @Override
-    public VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestNumber) {
-        if (stage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-            return ResourceExtractorProcessor.getProgress(targetInstanceId, harvestNumber);
-        } else if (stage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-            return PruneAndImportProcessor.getProgress(targetInstanceId, harvestNumber);
-        } else {
-            return null;
         }
     }
 }

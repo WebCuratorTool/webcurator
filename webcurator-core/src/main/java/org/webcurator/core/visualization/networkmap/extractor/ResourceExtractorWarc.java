@@ -11,7 +11,7 @@ import org.archive.io.RecoverableIOException;
 import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.util.Set;
 
 @SuppressWarnings("all")
 public class ResourceExtractorWarc extends ResourceExtractor {
-    public ResourceExtractorWarc(Map<String, NetworkMapNode> results, Set<SeedHistory> seeds) {
+    public ResourceExtractorWarc(Map<String, NetworkMapNode> results, Set<SeedHistoryDTO> seeds) {
         super(results, seeds);
     }
 

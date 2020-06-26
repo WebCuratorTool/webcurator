@@ -617,12 +617,12 @@ public class BaseConfig {
     }
 
 
-    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_NORMAL)
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
     public PatchingHarvestLogManager patchingHarvestLogManagerNormal() {
         PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
-        bean.setType(HarvestResult.PATCH_STAGE_TYPE_NORMAL);
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_CRAWLING);
         return bean;
     }
 

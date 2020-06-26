@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <title>Patching Job View</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="../dist/font/fontawesome-free.min.css">
+    <link rel="stylesheet" href="../dist/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../dist/adminlte/css/adminlte.css">
+    <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
+    <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
+    <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css">
+    <link rel="stylesheet" href="visualization.css">
+
+    <style>
+        tr{
+            margin: 0;
+            padding: 0;
+        }
+        th{
+            margin: 0;
+            padding: 0;
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            /*color: #664d00;*/
+        }
+        td{
+            margin: 0;
+            padding: 0;
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+            /*color: #664d00;*/
+        }
+
+        #overall b{
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        #overall span{
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to to the body tag
+to get the desired effect
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body>
+
+<main class="bd-content" name="content" role="main">
+    <div class="card card-outline">
+        <div class="card-header bg-light">
+            <h3 class="card-title"><b>Patching Harvest Result</b></h3>
+            <div class="card-tools" id="btn-group-patch-actions">
+                <button type="button" class="btn btn-tool bg-primary" action="start">Start</button>
+                <button type="button" class="btn btn-tool bg-primary" action="pause">Pause</button>
+                <button type="button" class="btn btn-tool bg-primary" action="resume">Resume</button>
+                <button type="button" class="btn btn-tool bg-primary" action="terminate">Terminate</button>
+                <button type="button" class="btn btn-tool bg-primary" action="delete">Delete</button>
+            </div>
+        </div>
+
+        <div class="card-body" id="overall">
+            <div class="row">
+                <div class="col-md-3">
+                    <div><b>Target Instance Id: </b><span id="targetInstanceOid"></span></div>
+                    <div><b>Harvest Result Number: </b><span id="harvestResultNumber"></span></div>
+                    <div><b>Derived From: </b><span id="derivedHarvestNumber"></span></div>
+                </div>
+                <div class="col-md-3">
+                    <div><b>Created Owner: </b><span id="createdOwner"></span></div>
+                    <div><b>Created Date: </b><span id="createdDate"></span></div>
+                    <div><b>Harvest Result State: </b><span id="hrState"></span></div>
+                </div>
+                <div class="col-md-2">
+                    <div><b>Patching Crawler Progress (<span id="progressPatchingCrawlerValue"></span>%)</b></div>
+                    <div><b>Prune and Import Progress (<span id="progressPruneAndImportValue"></span>%)</b></div>
+                    <div><b>Indexer Progress (<span id="progressIndexerValue"></span>%)</b></div>
+                </div>
+                <div class="col-md-4">
+                    <progress value="10" max="100" data-label="50% Complete" id="progressPatchingCrawler"></progress>
+                    <progress value="20" max="100" data-label="50% Complete" id="progressPruneAndImport"></progress>
+                    <progress value="30" max="100" data-label="50% Complete" id="progressIndexer"></progress>
+                </div>
+            </div>
+
+      </div>
+      <!-- /.info-box-content -->
+    </div>
+
+    <div class="card card-outline">
+        <div class="card-header bg-light">
+            <h3 class="card-title"><b>Logs</b></h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>           
+            </div>
+        </div>
+
+        <div class="card-body table-responsive">
+            <div class="row">
+                <div class="col-md-4">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                        <tr><th class="bg-light" colspan="3" style="padding:0.3em;">Patch Crawling Logs</th></tr>
+                        <tr><th width="50%" style="padding:0.3em;">File Name</th><th width="30%" style="padding:0.3em;">Action</th><th width="20%" style="padding:0.3em;">Size</th></tr>
+                        </thead>
+                        <tbody id="table-body-crawl-log"></tbody>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                        <tr><th class="bg-light" colspan="3" style="padding:0.3em;">Modifying Logs</th></tr>
+                        <tr><th width="50%" style="padding:0.3em;">File Name</th><th width="30%" style="padding:0.3em;">Action</th><th width="20%" style="padding:0.3em;">Size</th></tr>
+                        </thead>
+                        <tbody id="table-body-modify-log"></tbody>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                        <tr><th class="bg-light" colspan="3" style="padding:0.3em;">Indexing Logs</th></tr>
+                        <tr><th width="50%" style="padding:0.3em;">File Name</th><th width="30%" style="padding:0.3em;">Action</th><th width="20%" style="padding:0.3em;">Size</th></tr>
+                        </thead>
+                        <tbody id="table-body-index-log"></tbody>
+                    </table>
+                </div>
+            </div>
+      </div>
+      <!-- /.info-box-content -->
+    </div>
+
+    <div class="card card-outline">
+        <div class="card-header bg-light">
+            <h3 class="card-title"><b>Prune and Import Request URLs</b></h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>           
+            </div>
+        </div>
+
+        <div class="card-body table-responsive">
+            <div class="row">
+                <div class="col-md-4" style="height: 30vh; overflow-y: scroll;">
+                    <table class="table table-head-fixed table-bordered table-hover">
+                        <thead>
+                        <tr><th class="bg-light" style="padding:0.3em;">To Be Pruned URL: Target URL</th></tr>
+                        </thead>
+                        <tbody id="table-body-url-prune"></tbody>
+                    </table>
+                </div>
+                <div class="col-md-4" style="height: 30vh; overflow-y: scroll;">
+                    <table class="table table-head-fixed table-bordered table-hover">
+                        <thead>
+                        <tr><th class="bg-light" style="padding:0.3em;">To Be Imported By URL: Target URL</th></tr>
+                        </thead>
+                        <tbody id="table-body-url-import"></tbody>
+                    </table>
+                </div>
+                <div class="col-md-4" style="height: 30vh; overflow-y: scroll;">
+                    <table class="table table-head-fixed table-bordered table-hover">
+                        <thead>
+                        <tr><th class="bg-light" width="50%" style="padding:0.3em;">To Be Imported By File: Target URL</th><th class="bg-light" width="30%" style="padding:0.3em;">File Name</th><th class="bg-light" width="20%" style="padding:0.3em;">Modified Date</th></tr>
+                        </thead>
+                        <tbody id="table-body-file-import"></tbody>
+                    </table>
+                </div>
+            </div>
+      </div>
+      <!-- /.info-box-content -->
+    </div>
+
+</main>
+
+<div id="popup-window-loading">
+    <div class="spin-overlay"><i class="fas fa-circle-notch text-default"></i></div>
+</div>
+
+<!-- Login Page -->
+<div class="popup-window" id="popup-window-login">
+    <iframe src="/logon.jsp" title="Login" style="width: 100vw; height: 100vh;"></iframe>
+</div>
+
+<script src="../dist/jquery/jquery-3.4.1.min.js"></script>
+<script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../dist/plugins/bs-custom-file-input.min.js"></script>
+<script src="../dist/adminlte/js/adminlte.js"></script>
+<script src="../dist/ag-grid/ag-grid-community.js"></script>
+<script src="../dist/plugins/moment-with-locales.min.js"></script>
+<script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script>
+<script src="visualization.js"></script>
+
+<script>
+    // $('#popup-window-loading').show();
+    var urlParameters=getUrlVars();
+    var jobId=parseInt(urlParameters["targetInstanceOid"]);
+    var harvestResultId=parseInt(urlParameters["harvestResultId"]);
+    var harvestResultNumber=parseInt(urlParameters["harvestNumber"]);
+
+
+    var StateMap={
+        0: '',
+        1: 'Endorsed',
+        2: 'Rejected',
+        3: 'Indexing',
+        4: 'Aborted',
+        50: 'Patch Scheduled',
+        60: 'Patch Harvesting Running',
+        61: 'Patch Harvesting Paused',
+        62: 'Patch Harvesting Stopped',
+        63: 'Patch Harvesting Aborted',
+        69: 'Patch Harvesting Finished',
+        70: 'Patch Modifying Running',
+        71: 'Patch Modifying Paused',
+        72: 'Patch Modifying Aborted',
+        79: 'Patch Modifying Finished',
+        80: 'Patch Indexing',
+        81: 'Patch Indexing Paused',
+        82: 'Patch Indexing Aborted',
+        89: 'Patch Indexing Finished'
+    };
+
+    function createTableLog(rows, prefix){
+        var bodyContent='';
+        for(var i=0; i<rows.length; i++){
+            var row=rows[i];
+            var rowContent='';
+            rowContent+='<tr>';
+            rowContent+='<td style="padding:0.3em;">';
+            rowContent+=row.name;
+            rowContent+='</td>';
+            rowContent+='<td style="padding:0.3em;">';
+            rowContent+='<a href="/curator/target/'+row.viewer+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.name+'&prefix='+prefix+'"  target="_blank">View</a> |';
+            rowContent+='<a href="/curator/target/'+row.retriever+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.name+'&prefix='+prefix+'"  target="_blank">Download</a>';
+            rowContent+='</td>';
+            rowContent+='<td style="padding:0.3em;">';
+            rowContent+=row.lengthString;
+            rowContent+='</td>';
+            rowContent+='</tr>';
+
+            bodyContent+=rowContent+'\r\n';
+        }
+        return bodyContent;
+    }
+
+    function createTableModifyUrl(rows){
+        var bodyContent='';
+        for(var i=0; i<rows.length; i++){
+            var row=rows[i];
+            var rowContent='';
+            rowContent+='<tr>';
+            rowContent+='<td style="padding:0.3em;">';
+            rowContent+=row.url;
+            rowContent+='</td>';
+            rowContent+='</tr>';
+            bodyContent+=rowContent+'\r\n';
+        }
+        return bodyContent;
+    }
+
+    function createTableModifyUrlOfFile(rows){
+        var bodyContent='';
+        for(var i=0; i<rows.length; i++){
+            var row=rows[i];
+            var rowContent='';
+            rowContent+='<tr>';
+            rowContent+='<td style="padding:0.3em;">';
+            rowContent+=row.url;
+            rowContent+='</td>';
+            rowContent+='<td style="padding:0.3em;">';
+            rowContent+=row.name;
+            rowContent+='</td>';
+            rowContent+='<td style="padding:0.3em;">';
+            rowContent+=row.lastModifiedPresentationString;
+            rowContent+='</td>';
+            rowContent+='</tr>';
+            bodyContent+=rowContent+'\r\n';
+        }
+        return bodyContent;
+    }
+
+    function renderContent(data){
+        //Action Button Status
+        var state=data.hrState;
+        if (state===50|| state===69 || state===79) {
+            $('#btn-group-patch-actions button[action="start"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="start"]').prop('disabled', true);
+        }
+
+        if (state===3 || state===60 || state===70 || state===80) {
+            $('#btn-group-patch-actions button[action="pause"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="pause"]').prop('disabled', true);
+        }
+
+        if (state===61 || state===71 || state===81) {
+            $('#btn-group-patch-actions button[action="resume"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="resume"]').prop('disabled', true);
+        }
+
+        if (state===3 || (state>=60 && state<89)) {
+            $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', true);
+        }
+
+        // Delete not started task or terminted
+        if (state===50 || state===62 || state===72 || state===82) {
+            $('#btn-group-patch-actions button[action="delete"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="delete"]').prop('disabled', true);
+        }
+
+        //Show overall fields
+        $('#targetInstanceOid').html(data.targetInstanceOid);
+        $('#harvestResultNumber').html(data.harvestResultNumber);
+        $('#derivedHarvestNumber').html(data.derivedHarvestNumber);
+        $('#createdOwner').html(data.createdOwner);
+        $('#createdDate').html(data.createdDate);
+        $('#hrState').html(StateMap[data.hrState]);
+
+
+        //Progress
+        $('#progressPatchingCrawler').val(data.progress.percentageHarvest);
+        $('#progressPruneAndImport').val(data.progress.percentageModify);
+        $('#progressIndexer').val(data.progress.percentageIndex);
+
+        $('#progressPatchingCrawlerValue').html(data.progress.percentageHarvest);
+        $('#progressPruneAndImportValue').html(data.progress.percentageModify);
+        $('#progressIndexerValue').html(data.progress.percentageIndex);
+
+
+        // Show logs
+        var presentContentNoLogs='<tr><td colspan="3" style="padding:0.3em; background: white;">No log files are available.</td></tr>';
+        if (!data.logsCrawling || data.logsCrawling.length===0) {
+            $('#table-body-crawl-log').html(presentContentNoLogs);
+        }else{
+            $('#table-body-crawl-log').html(createTableLog(data.logsCrawling,'normal'));
+        }
+
+        if (!data.logsModifying || data.logsModifying.length===0) {
+            $('#table-body-modify-log').html(presentContentNoLogs);
+        }else{
+            $('#table-body-modify-log').html(createTableLog(data.logsModifying,'modifying'));
+        }
+
+        if (!data.logsIndexing || data.logsIndexing.length===0) {
+            $('#table-body-index-log').html(presentContentNoLogs);
+        }else{
+            $('#table-body-index-log').html(createTableLog(data.logsIndexing,'indexing'));
+        }
+
+        //Show prune and import URLs
+        var presentContentNoURLs='<tr><td colspan="3" style="padding:0.3em; background: white;">No URLs are available.</td></tr>';
+        if (!data.listToBePruned || data.listToBePruned.length===0) {
+            $('#table-body-url-prune').html(presentContentNoURLs);
+        }else{
+            $('#table-body-url-prune').html(createTableModifyUrl(data.listToBePruned));
+        }
+
+        if (!data.listToBeImportedByURL || data.listToBeImportedByURL.length===0) {
+            $('#table-body-url-import').html(presentContentNoURLs);
+        }else{
+            $('#table-body-url-import').html(createTableModifyUrl(data.listToBeImportedByURL));
+        }
+        
+        if (!data.listToBeImportedByFile || data.listToBeImportedByFile.length===0) {
+            $('#table-body-file-import').html(presentContentNoURLs);
+        }else{
+            $('#table-body-file-import').html(createTableModifyUrlOfFile(data.listToBeImportedByFile));
+        }
+    }
+
+    function fetchData(){
+        var reqUrl='/curator/target/patching-hr-view-data?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+harvestResultNumber;
+        fetch(reqUrl, { 
+            method: 'GET',
+            redirect: 'follow',
+            headers: {'Content-Type': 'application/json'}
+        }).then((response) => {
+            return response.json();
+        }).then((response) => {
+            if (response.respCode!=0) {
+                console.log(response.respMsg);
+            }else{
+                renderContent(response);
+            }
+        });
+    }
+
+    $(function(){
+        fetchData();
+
+        setInterval(fetchData, 3000);
+    });
+</script>
+</body>

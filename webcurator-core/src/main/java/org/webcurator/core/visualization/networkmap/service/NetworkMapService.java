@@ -1,6 +1,7 @@
 package org.webcurator.core.visualization.networkmap.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.VisualizationServiceInterface;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
@@ -33,6 +34,8 @@ public interface NetworkMapService extends VisualizationServiceInterface {
     NetworkMapResult getHierarchy(long job, int harvestResultNumber, List<Long> ids);
 
     NetworkMapResult getUrlByName(long job, int harvestResultNumber, String urlName);
+
+    VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber);
 
     default NetworkMapNode getNodeEntity(String json) {
         if (json == null) {

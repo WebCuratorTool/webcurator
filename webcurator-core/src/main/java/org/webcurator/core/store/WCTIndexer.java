@@ -19,13 +19,14 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.dto.SeedHistoryDTO;
+import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public class WCTIndexer extends IndexerBase {
@@ -77,14 +78,14 @@ public class WCTIndexer extends IndexerBase {
         return harvestResultOid;
     }
 
-    public Set<SeedHistory> getSeedUrls(long targetInstanceId, int harvestResultNumber) {
+    public Set<SeedHistoryDTO> getSeedUrls(long targetInstanceId, int harvestResultNumber) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
                 .queryParam("targetInstanceOid", targetInstanceId)
                 .queryParam("harvestNumber", harvestResultNumber);
         RestTemplate restTemplate = restTemplateBuilder.build();
         URI uri = uriComponentsBuilder.build().toUri();
-        ResponseEntity<SeedHistoryDTO> seedHistoryDTO = restTemplate.getForEntity(uri, SeedHistoryDTO.class);
-        return Objects.requireNonNull(seedHistoryDTO.getBody()).getSeeds();
+        ResponseEntity<SeedHistorySetDTO> seedHistorySetDTO = restTemplate.getForEntity(uri, SeedHistorySetDTO.class);
+        return Objects.requireNonNull(seedHistorySetDTO.getBody()).getSeeds();
     }
 
 
@@ -109,13 +110,17 @@ public class WCTIndexer extends IndexerBase {
         ResourceExtractorProcessor indexer = null;
         try {
             //Create db files
-            BDBNetworkMap db = pool.createInstance(getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
-            Set<SeedHistory> seedUrls = getSeedUrls(getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
-            indexer = new ResourceExtractorProcessor(directory, db, getResult().getTargetInstanceOid(), getResult().getHarvestNumber(), seedUrls, this.visualizationManager);
-        } catch (IOException e) {
+            Set<SeedHistoryDTO> seedUrls = getSeedUrls(getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
+            indexer = new ResourceExtractorProcessor(pool, getResult().getTargetInstanceOid(), getResult().getHarvestNumber(), seedUrls, this.visualizationManager);
+        } catch (DigitalAssetStoreException e) {
             log.error("Failed to create directory: {}", directory);
             return;
+        } finally {
+            if (indexer != null) {
+                indexer.clear();
+            }
         }
+
         try {
             indexer.indexFiles();
         } catch (IOException e) {

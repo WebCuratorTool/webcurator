@@ -74,7 +74,7 @@ public class LogReaderCommand {
 	/** regex type field. */
 	private String filterType = VALUE_TAIL;
 	/** log stage type */
-	private String prefix= HarvestResult.PATCH_STAGE_TYPE_NORMAL;
+	private String prefix= HarvestResult.PATCH_STAGE_TYPE_CRAWLING;
 	/** harvest result number */
 	private int harvestResultNumber;
 	/**

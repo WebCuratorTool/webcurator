@@ -20,11 +20,11 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
 public class HarvestAgentManagerImpl implements HarvestAgentManager {
 
-    static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<Long>());
+    static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<>());
 
-    HashMap<String, HarvestAgentStatusDTO> harvestAgents = new HashMap<String, HarvestAgentStatusDTO>();
+    HashMap<String, HarvestAgentStatusDTO> harvestAgents = new HashMap<>();
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private TargetInstanceDAO targetInstanceDao;
     private TargetInstanceManager targetInstanceManager;
     private HarvestAgentFactory harvestAgentFactory;
@@ -147,7 +147,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 agent.abort(jobName);
             }
 
-            hr.setState(HarvestResult.STATE_PATCH_HARVEST_ABORTED);
+            hr.setStatus(HarvestResult.STATUS_TERMINATED);
             targetInstanceDao.save(hr);
         }
     }
@@ -163,7 +163,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 return;
             }
 
-            hr.setState(HarvestResult.STATE_PATCH_HARVEST_FINISHED);
+            hr.setStatus(HarvestResult.STATUS_FINISHED);
             targetInstanceDao.save(hr);
 
             harvestCoordinator.pushPruneAndImport(ti);
@@ -190,8 +190,8 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             ti.setState(TargetInstance.STATE_RUNNING);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr != null && hr.getState() == HarvestResult.STATE_PATCH_HARVEST_PAUSED) {
-                hr.setState(HarvestResult.STATE_PATCH_HARVEST_RUNNING);
+            if (hr != null) {
+                hr.setStatus(HarvestResult.STATUS_RUNNING);
                 targetInstanceDao.save(hr);
             }
         }
@@ -203,8 +203,8 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             ti.setState(TargetInstance.STATE_PAUSED);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr != null && hr.getState() == HarvestResult.STATE_PATCH_HARVEST_RUNNING) {
-                hr.setState(HarvestResult.STATE_PATCH_HARVEST_PAUSED);
+            if (hr != null ) {
+                hr.setStatus(HarvestResult.STATUS_PAUSED);
                 targetInstanceDao.save(hr);
             }
         }

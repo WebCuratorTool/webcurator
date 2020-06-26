@@ -8,7 +8,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.util.URLResolverFunc;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ResourceExtractorArc extends ResourceExtractor {
-    public ResourceExtractorArc(Map<String, NetworkMapNode> results, Set<SeedHistory> seeds) {
+    public ResourceExtractorArc(Map<String, NetworkMapNode> results, Set<SeedHistoryDTO> seeds) {
         super(results, seeds);
     }
 

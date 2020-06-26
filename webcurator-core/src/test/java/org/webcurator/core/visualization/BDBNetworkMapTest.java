@@ -1,6 +1,7 @@
 package org.webcurator.core.visualization;
 
 import org.junit.Test;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
@@ -49,7 +50,7 @@ public class BDBNetworkMapTest {
         try {
             ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(new File(directory), db, job, harvestResultNumber, null, null);
             indexer.indexFiles();
-        } catch (IOException e) {
+        } catch (IOException | DigitalAssetStoreException e) {
             e.printStackTrace();
         }
     }
