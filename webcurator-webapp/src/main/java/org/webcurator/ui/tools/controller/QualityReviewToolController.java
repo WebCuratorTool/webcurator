@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.tools.command.QualityReviewToolCommand;
 
@@ -36,9 +37,11 @@ import org.webcurator.ui.tools.command.QualityReviewToolCommand;
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-@RequestMapping(path = "/curator/target/quality-review-toc.html")
 public class QualityReviewToolController {
     static private Log log = LogFactory.getLog(QualityReviewToolController.class);
+
+    @Autowired
+    private TargetInstanceDAO targetInstanceDAO;
 
     @Autowired
     private QualityReviewToolControllerAttribute attr;
@@ -49,7 +52,7 @@ public class QualityReviewToolController {
         businessObjectFactory = new BusinessObjectFactory();
     }
 
-    @GetMapping
+    @RequestMapping(path = "/curator/target/quality-review-toc.html", method = RequestMethod.GET)
     public ModelAndView getHandle(@RequestParam("targetInstanceOid") long targetInstanceOid, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception {
         QualityReviewToolCommand cmd = new QualityReviewToolCommand();
         cmd.setTargetInstanceOid(targetInstanceOid);
@@ -163,6 +166,17 @@ public class QualityReviewToolController {
             }
             seedMap.add(element);
         }
+
+    }
+
+    @RequestMapping(path = "/curator/target/patching-view-hr.html")
+    public ModelAndView showViewPatchingProgress(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception {
+        ModelAndView mav = new ModelAndView("patching-view-hr");
+        TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
+        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
+        mav.addObject("ti", ti);
+        mav.addObject("hr", hr);
+        return mav;
 
     }
 }

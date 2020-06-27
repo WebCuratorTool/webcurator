@@ -29,7 +29,7 @@ public abstract class VisualizationAbstractProcessor {
         this.baseDir = visualizationManager.getBaseDir();
         this.logsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
         this.reportsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
-        this.progressBar = VisualizationProgressBar.getInstance(processorStage, targetInstanceId, harvestResultNumber);
+        this.progressBar = new VisualizationProgressBar(processorStage, targetInstanceId, harvestResultNumber);
         this.targetInstanceId = targetInstanceId;
         this.harvestResultNumber = harvestResultNumber;
     }
@@ -41,18 +41,26 @@ public abstract class VisualizationAbstractProcessor {
     }
 
     public void process() {
-        processInternal();
-        this.progressBar.clear();
-        VisualizationProgressBar.removeInstance(processorStage, targetInstanceId, harvestResultNumber);
+        try {
+            this.stopped.acquire();
+            processInternal();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            this.stopped.release();
+            this.progressBar.clear();
+        }
     }
 
-    abstract public void processInternal();
+    abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
         try {
             this.wait();
         } catch (InterruptedException e) {
             log.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -63,6 +71,12 @@ public abstract class VisualizationAbstractProcessor {
     public void terminateTask() {
         this.running = false;
         terminateInternal();
+        try {
+            this.stopped.acquire();
+        } catch (InterruptedException e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     abstract protected void terminateInternal();
@@ -73,6 +87,7 @@ public abstract class VisualizationAbstractProcessor {
             this.stopped.acquire(); //wait until process ended
         } catch (InterruptedException e) {
             log.error("Acquire token failed when stop modification task, {}, {}", targetInstanceId, harvestResultNumber);
+            e.printStackTrace();
             return;
         }
 
@@ -102,5 +117,9 @@ public abstract class VisualizationAbstractProcessor {
         } catch (IOException e) {
             log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
         }
+    }
+
+    public VisualizationProgressBar getProgress() {
+        return this.progressBar;
     }
 }

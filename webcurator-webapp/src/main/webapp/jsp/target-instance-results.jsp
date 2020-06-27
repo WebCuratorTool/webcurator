@@ -58,43 +58,13 @@
     return false;
   }
 
-    function clickPause(hrOid){
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_PAUSE%>';
+
+    function clickViewPatching(hrOid){
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_VIEW_PATCHING%>';
         document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
         document.forms['tabForm'].submit();
     }
 
-    function clickResume(hrOid){
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_RESUME%>';
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
-        document.forms['tabForm'].submit();
-    }
-
-    function clickAbort(hrOid){
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_ABORT%>';
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
-        document.forms['tabForm'].submit();
-    }
-
-    function clickStop(hrOid){
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_STOP%>';
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
-        document.forms['tabForm'].submit();
-    }
-
-    function clickDelete(hrOid){
-        if( confirm('<spring:message code="ui.label.targetinstance.results.confirmDelete" javaScriptEscape="true"/>')) {
-            document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_DELETE%>';
-            document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
-            document.forms['tabForm'].submit();
-        }
-    }
-
-    function clickStartPatching(hrOid){
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_START_PATCHING%>';
-        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
-        document.forms['tabForm'].submit();
-    }
   //When viewing this target instance from the "Harvest history" screen, clicking on "review" will 
   //cause the "Return to Harvest History Page" to forget which target instance was originally being
   //reviewed.  Warn the user to try and prevent mistakes.
@@ -153,47 +123,11 @@
                         <c:when test="${hr.state == 4}">
                             Aborted
                         </c:when>
-                        <c:when test="${hr.state == 50}">
-                            Patch Scheduled
+                        <c:when test="${hr.state == 5}">
+                            Crawling
                         </c:when>
-                        <c:when test="${hr.state == 60}">
-                            Patch Harvesting Running
-                        </c:when>
-                        <c:when test="${hr.state == 61}">
-                            Patch Harvesting Paused
-                        </c:when>
-                        <c:when test="${hr.state == 62}">
-                            Patch Harvesting Stopped
-                        </c:when>
-                        <c:when test="${hr.state == 63}">
-                            Patch Harvesting Aborted
-                        </c:when>
-                        <c:when test="${hr.state == 69}">
-                            Patch Harvesting Finished
-                        </c:when>
-                        <c:when test="${hr.state == 70}">
-                            Patch Modifying Running
-                        </c:when>
-                        <c:when test="${hr.state == 71}">
-                            Patch Modifying Paused
-                        </c:when>
-                        <c:when test="${hr.state == 72}">
-                            Patch Modifying Aborted
-                        </c:when>
-                        <c:when test="${hr.state == 79}">
-                            Patch Modifying Finished
-                        </c:when>
-                        <c:when test="${hr.state == 80}">
-                            Patch Indexing
-                        </c:when>
-                        <c:when test="${hr.state == 81}">
-                            Patch Indexing Paused
-                        </c:when>
-                        <c:when test="${hr.state == 82}">
-                            Patch Indexing Aborted
-                        </c:when>
-                        <c:when test="${hr.state == 89}">
-                            Patch Indexing Finished
+                        <c:when test="${hr.state == 6}">
+                            Modifying
                         </c:when>
                         <c:otherwise>
                             Unknown
@@ -203,7 +137,7 @@
 				    <td class="annotationsLiteRow">
 				    <c:if test="${editMode && hr.state != 4}">
 				    	<c:choose>
-				    		<c:when test="${hr.state eq 3}"> <!-- Indexing -->
+				    		<c:when test="${instance.state ne 'Patching' && hr.state eq 3}"> <!-- Indexing -->
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
 					    		<a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
 					    		<c:choose>
@@ -220,7 +154,7 @@
 					    	&nbsp;
 				    		</c:when>
 				    		
-				    		<c:when test="${(instance.state eq 'Harvested' && hr.state != 3) || (instance.state eq 'Patching' && hr.state != 3 && hr.state < 5)}">
+				    		<c:when test="${(instance.state eq 'Harvested' || instance.state eq 'Patching') && hr.state != 3 && hr.state != 5 && hr.state != 6}">
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
 					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">Review</a>
 					    	&nbsp;|&nbsp;
@@ -243,7 +177,7 @@
 					    	&nbsp;
 				    		</c:when>
 				    		
-				    		<c:when test="${(instance.state eq 'Endorsed' || instance.state eq 'Rejected') && hr.state != 3}">    		   		    		
+				    		<c:when test="${(instance.state eq 'Endorsed' || instance.state eq 'Rejected') && hr.state != 3 && hr.state != 5 && hr.state != 6}">
                                 <authority:hasPrivilege privilege="<%=Privilege.ARCHIVE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
                                 <c:if test="${hr.state == 1}">
                                 <c:choose>
@@ -266,57 +200,10 @@
                                 </c:if>
                                 </authority:hasPrivilege>
 				    		</c:when>
-
-                            <c:when test="${instance.state eq 'Patching'}">
-                                <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                <a href="curator/target/patching-view-hr.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()"><img src="images/action-icon-view.gif" title="View" alt="click here to VIEW this item" width="15" height="19" border="0"></a>
-
-                                <authority:hasPrivilege privilege="<%=Privilege.LAUNCH_TARGET_INSTANCE_IMMEDIATE%>" scope="<%=Privilege.SCOPE_AGENCY%>">
-                                    <c:if test="${hr.state == 50 }">
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <a href="curator/target/ti-harvest-now.html?targetInstanceId=${instance.oid}&harvestResultId=${hr.oid}"><img src="images/resume-icon.gif" title="Harvest Now" alt="click here to Harvest this item" width="21" height="20" border="0"></a>
-                                    </c:if>
-                                </authority:hasPrivilege>
-
-                                <authority:showControl ownedObject="${instance}" privileges='<%=Privilege.MANAGE_TARGET_INSTANCES + ";" + Privilege.MANAGE_WEB_HARVESTER%>' editMode="true">
-                                    <authority:show>
-                                    <c:if test="${hr.state == 50 || hr.state == 62 || hr.state == 63 || hr.state == 72|| hr.state == 82}">
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/action-icon-delete.gif" title="Delete" alt="click here to DELETE this item" width="18" height="19" border="0" onclick='javascript: clickDelete("${hr.oid}");'/>
-                                    </c:if>
-                                    </authority:show>
-                                </authority:showControl>
-
-                                <authority:hasPrivilege privilege="<%=Privilege.MANAGE_WEB_HARVESTER%>" scope="<%=Privilege.SCOPE_AGENCY%>">
-                                    <c:if test="${hr.state == 60 || hr.state == 70 || hr.state == 80}">
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/pause-icon.gif" title="Pause" alt="click here to Pause this item" width="21" height="20" border="0" onclick='javascript: clickPause("${hr.oid}");'/>
-                                    </c:if>
-                                    <c:if test="${hr.state == 61 || hr.state == 71 || hr.state == 81}">
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/resume-icon.gif" title="Resume" alt="click here to Resume this item" width="21" height="20" border="0" onclick='javascript: clickResume("${hr.oid}");'/>
-                                    </c:if>
-                                    <c:if test="${hr.state == 60 || hr.state == 61 || hr.state == 62}">
-                                        <!--
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/abort-icon.gif" title="Abort" alt="click here to Abort this item" width="21" height="20" border="0" onclick='javascript: clickAbort("${hr.oid}");'/>
-                                        -->
-                                    </c:if>
-                                    <c:if test="${hr.state == 60  || hr.state == 61 || hr.state == 70 || hr.state == 71 || hr.state == 80 || hr.state == 81}">
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/stop-icon.gif" title="Stop" alt="click here to Stop this item" width="21" height="20" border="0" onclick='javascript: clickStop("${hr.oid}");'/>
-                                    </c:if>
-                                    <c:if test="${(hr.state == 60 || hr.state == 61 || hr.state == 62) && instance.profile.isHeritrix3Profile()}">
-                                       <!--
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <a href="javascript:viewH3ScriptConsole(${instance.oid});" title="View"><img src="images/h3-script-console.png" title="H3 Script Console" alt="click here to Open H3 Script Console" width="21" height="20" border="0"></a>
-                                        -->
-                                    </c:if>
-                                    <c:if test="${hr.state == 69 || hr.state == 79}">
-                                        <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-                                        <input type="image" src="images/resume-icon.gif" title="Start patching" alt="click here to Start the patching" width="21" height="20" border="0" onclick='javascript: clickStartPatching("${hr.oid}");'/>
-                                    </c:if>
-                                </authority:hasPrivilege>
+                            <c:when test="${instance.state eq 'Patching' && (hr.state ==3 || hr.state == 5 || hr.state == 6)}">
+                                <!--a href="#" onclick="javascript: return clickViewPatching(${hr.oid});">View Patching Progress</a-->
+                                <!--img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" /-->
+                                <a href="curator/target/patching-view-hr.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">View Patching Progress</a>
                             </c:when>
                             <c:otherwise>
                             &nbsp;

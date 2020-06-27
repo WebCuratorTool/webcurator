@@ -197,11 +197,13 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     }
 
     @Override
-    public void processInternal() {
+    public void processInternal() throws Exception {
         try {
             indexFiles();
         } catch (IOException e) {
             log.error(e.getMessage());
+            e.printStackTrace();
+            throw e;
         } finally {
             clear();
         }

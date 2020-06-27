@@ -6,23 +6,18 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
-import org.webcurator.core.store.DigitalAssetStorePaths;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.modification.service.PruneAndImportService;
-import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.TargetInstance;
-
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class HarvestModificationController implements PruneAndImportService {
@@ -71,9 +66,29 @@ public class HarvestModificationController implements PruneAndImportService {
 
     }
 
-    @RequestMapping(path ="/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
-    public void operateHarvestResultModification(@RequestParam("stage") String stage, @RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
-        if (stage.equals())
-        arcDigitalAssetStoreService.operateHarvestResultModification(stage, command, targetInstanceId, harvestNumber);
+    @RequestMapping(path = "/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
+    public void operateHarvestResultModification(@RequestParam("stage") String stage,
+                                                 @RequestParam("command") String command,
+                                                 @RequestParam("targetInstanceId") long targetInstanceId,
+                                                 @RequestParam("harvestNumber") int harvestNumber) throws DigitalAssetStoreException {
+        if (command.equalsIgnoreCase("start")) {
+            harvestModificationHandler.clickStart(targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("pause")) {
+            harvestModificationHandler.clickPause(targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("resume")) {
+            harvestModificationHandler.clickResume(targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("terminate")) {
+            harvestModificationHandler.clickStop(targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("delete")) {
+            harvestModificationHandler.clickDelete(targetInstanceId, harvestNumber);
+        }
+
+    }
+
+    @RequestMapping(path = "/curator/target/patching-hr-view-data", method = {RequestMethod.POST, RequestMethod.GET})
+    public Map<String, Object> getHarvestResultViewData(@RequestParam("targetInstanceOid") long targetInstanceId,
+                                                        @RequestParam("harvestResultId") long harvestResultId,
+                                                        @RequestParam("harvestNumber") int harvestResultNumber) throws IOException {
+        return harvestModificationHandler.getHarvestResultViewData(targetInstanceId, harvestResultId, harvestResultNumber);
     }
 }

@@ -1,7 +1,7 @@
 package org.webcurator.core.visualization.networkmap.service;
 
+import org.webcurator.core.visualization.VisualizationProcessorQueue;
 import org.webcurator.core.visualization.VisualizationProgressBar;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -13,9 +13,11 @@ import java.util.stream.Collectors;
 
 public class NetworkMapClientLocal implements NetworkMapClient {
     private final BDBNetworkMapPool pool;
+    private final VisualizationProcessorQueue visualizationProcessorQueue;
 
-    public NetworkMapClientLocal(BDBNetworkMapPool pool) {
+    public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorQueue visualizationProcessorQueue) {
         this.pool = pool;
+        this.visualizationProcessorQueue = visualizationProcessorQueue;
     }
 
     @Override
@@ -357,7 +359,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-        return VisualizationProgressBar.getProgress(targetInstanceId, harvestResultNumber);
+        return visualizationProcessorQueue.getProgress(targetInstanceId, harvestResultNumber);
     }
 }
 

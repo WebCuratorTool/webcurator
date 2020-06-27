@@ -30,17 +30,11 @@ public class HarvestResult implements UserInTrayResource {
     //The state constant for a Harvest Result that has been aborted in indexing.
     public static final int STATE_ABORTED = 4;
 
-//    //The state constant for a Harvest Result modification request that is accepted.
-//    public static final int STATE_SCHEDULED = 5;
-
     //The state constant for a Harvest Result that is crawling the source urls.
-    public static final int STATE_CRAWLING = 6;
+    public static final int STATE_CRAWLING = 5;
 
     //The state constant for a Harvest Result that is being modified.
-    public static final int STATE_MODIFYING = 7;
-
-//    //The state constant for a Harvest Result that is being indexed.
-//    public static final int STATE_PATCH_INDEXING = 8;
+    public static final int STATE_MODIFYING = 6;
 
     //The status for an unassessed HarvestResult: not running, paused, terminated or finished
     public static final int STATUS_UNASSESSED = 0;

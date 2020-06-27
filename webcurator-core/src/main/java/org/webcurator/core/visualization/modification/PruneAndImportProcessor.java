@@ -1,7 +1,6 @@
 package org.webcurator.core.visualization.modification;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.thirdparty.guava.common.io.Files;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -89,7 +88,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         List<File> dirs = new LinkedList<File>();
         dirs.add(destDir);
 
-        // Initial processor.
+        // Initial extractor.
         PruneAndImportCoordinatorHeritrixWarc heritrixWarcCoordinator = new PruneAndImportCoordinatorHeritrixWarc();
         heritrixWarcCoordinator.setDirs(dirs);
         heritrixWarcCoordinator.setFileDir(this.fileDir);
@@ -100,13 +99,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         //Process copy and file import
         for (File f : derivedArchiveFiles) {
             if (running) {
-                if (urisToDelete.size() == 0) {
-                    coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
-                } else {
-                    //Copy file directly
-                    File to = new File(destDir, f.getName());
-                    Files.copy(f, to);
-                }
+                coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
                 VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
                 item.setCurLength(item.getMaxLength());
             }
@@ -122,9 +115,10 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         }
 
         //Process file import
-        coordinator.importFromFile(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), cmd.getNewHarvestResultNumber(), hrsToImport);
-        progressItemFileImported.setCurLength(progressItemFileImported.getMaxLength());
-
+        if (progressItemFileImported.getMaxLength() > 0) {
+            coordinator.importFromFile(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), cmd.getNewHarvestResultNumber(), hrsToImport);
+            progressItemFileImported.setCurLength(progressItemFileImported.getMaxLength());
+        }
         coordinator.writeReport();
         coordinator.close();
     }
@@ -145,36 +139,20 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
     }
 
     @Override
-    public void processInternal() {
-        try {
-            this.stopped.acquire();
-            if (running) {
-                this.pruneAndImport();
-                log.info("Prune and import finished, {} {}", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
-            }
+    public void processInternal() throws Exception {
+        if (running) {
+            this.pruneAndImport();
+            log.info("Prune and import finished, {} {}", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+        }
 
-            if (running) {
-                this.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
-                log.info("Notify Core that modification is finished");
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        } finally {
-            this.stopped.release();
-            VisualizationProgressBar.removeInstance(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+        if (running) {
+            this.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+            log.info("Notify Core that modification is finished");
         }
     }
 
     @Override
     public void deleteInternal() {
-        this.terminateTask();
-        try {
-            this.stopped.acquire(); //wait until process ended
-        } catch (InterruptedException e) {
-            log.error("Acquire token failed when stop modification task, {}, {}", targetInstanceId, harvestResultNumber);
-            return;
-        }
-
         //delete modification result
         this.delete(baseDir + File.separator + targetInstanceId, Integer.toString(harvestResultNumber));
 

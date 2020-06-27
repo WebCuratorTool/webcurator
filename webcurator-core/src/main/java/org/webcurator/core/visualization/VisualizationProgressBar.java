@@ -19,65 +19,65 @@ public class VisualizationProgressBar {
     private long targetInstanceId;
     private int harvestResultNumber;
 
-    private VisualizationProgressBar(String stage, long targetInstanceId, int harvestResultNumber) {
+    public VisualizationProgressBar(String stage, long targetInstanceId, int harvestResultNumber) {
         this.stage = stage;
         this.targetInstanceId = targetInstanceId;
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public synchronized static VisualizationProgressBar getInstance(String stage, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
-        String key = getKey(stage, targetInstanceId, harvestResultNumber);
-        if (QUEUE_MAP.containsKey(key)) {
-            return QUEUE_MAP.get(key);
-        }
+//    public synchronized static VisualizationProgressBar getInstance(String stage, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+//        String key = getKey(stage, targetInstanceId, harvestResultNumber);
+//        if (QUEUE_MAP.containsKey(key)) {
+//            return QUEUE_MAP.get(key);
+//        }
+//
+//        //Clear history data
+//        while (QUEUE_LIST.size() > MAX_QUEUE_SIZE) {
+//            String tmpKey = QUEUE_LIST.get(0);
+//            QUEUE_LIST.remove(0);
+//            VisualizationProgressBar tmpProgressBar = QUEUE_MAP.remove(tmpKey);
+//            tmpProgressBar.clear();
+//        }
+//
+//        if (!HarvestResult.PATCH_STAGE_TYPE_MODIFYING.equals(stage) && !HarvestResult.PATCH_STAGE_TYPE_INDEXING.equals(stage)) {
+//            throw new DigitalAssetStoreException("Unsupported stage: " + stage);
+//        }
+//
+//        VisualizationProgressBar progressBar = new VisualizationProgressBar(stage, targetInstanceId, harvestResultNumber);
+//        QUEUE_MAP.put(key, progressBar);
+//        QUEUE_LIST.add(key);
+//
+//        return progressBar;
+//    }
+//
+//    public synchronized static void removeInstance(String stage, long targetInstanceId, int harvestResultNumber) {
+//        String key = getKey(stage, targetInstanceId, harvestResultNumber);
+//        QUEUE_LIST.remove(key);
+//        VisualizationProgressBar progressBar = QUEUE_MAP.remove(key);
+//        progressBar.clear();
+//    }
 
-        //Clear history data
-        while (QUEUE_LIST.size() > MAX_QUEUE_SIZE) {
-            String tmpKey = QUEUE_LIST.get(0);
-            QUEUE_LIST.remove(0);
-            VisualizationProgressBar tmpProgressBar = QUEUE_MAP.remove(tmpKey);
-            tmpProgressBar.clear();
-        }
-
-        if (!HarvestResult.PATCH_STAGE_TYPE_MODIFYING.equals(stage) && !HarvestResult.PATCH_STAGE_TYPE_INDEXING.equals(stage)) {
-            throw new DigitalAssetStoreException("Unsupported stage: " + stage);
-        }
-
-        VisualizationProgressBar progressBar = new VisualizationProgressBar(stage, targetInstanceId, harvestResultNumber);
-        QUEUE_MAP.put(key, progressBar);
-        QUEUE_LIST.add(key);
-
-        return progressBar;
-    }
-
-    public synchronized static void removeInstance(String stage, long targetInstanceId, int harvestResultNumber) {
-        String key = getKey(stage, targetInstanceId, harvestResultNumber);
-        QUEUE_LIST.remove(key);
-        VisualizationProgressBar progressBar = QUEUE_MAP.remove(key);
-        progressBar.clear();
-    }
-
-    public static VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestResultNumber) {
-        String key = getKey(stage, targetInstanceId, harvestResultNumber);
-        if (QUEUE_MAP.containsKey(key)) {
-            return QUEUE_MAP.get(key);
-        }
-        return null;
-    }
-
-    public static VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-        String keyIndex = getKey(HarvestResult.PATCH_STAGE_TYPE_INDEXING, targetInstanceId, harvestResultNumber);
-        if (QUEUE_MAP.containsKey(keyIndex)) {
-            return QUEUE_MAP.get(keyIndex);
-        }
-
-        String keyModify = getKey(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, targetInstanceId, harvestResultNumber);
-        if (QUEUE_MAP.containsKey(keyModify)) {
-            return QUEUE_MAP.get(keyModify);
-        }
-
-        return null;
-    }
+//    public static VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestResultNumber) {
+//        String key = getKey(stage, targetInstanceId, harvestResultNumber);
+//        if (QUEUE_MAP.containsKey(key)) {
+//            return QUEUE_MAP.get(key);
+//        }
+//        return null;
+//    }
+//
+//    public static VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
+//        String keyIndex = getKey(HarvestResult.PATCH_STAGE_TYPE_INDEXING, targetInstanceId, harvestResultNumber);
+//        if (QUEUE_MAP.containsKey(keyIndex)) {
+//            return QUEUE_MAP.get(keyIndex);
+//        }
+//
+//        String keyModify = getKey(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, targetInstanceId, harvestResultNumber);
+//        if (QUEUE_MAP.containsKey(keyModify)) {
+//            return QUEUE_MAP.get(keyModify);
+//        }
+//
+//        return null;
+//    }
 
     public static String getKey(String stage, long targetInstanceId, int harvestResultNumber) {
         return String.format("KEY_%s_%d_%d", stage, targetInstanceId, harvestResultNumber);

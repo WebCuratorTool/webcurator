@@ -21,21 +21,16 @@ import java.util.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -276,24 +271,21 @@ public class TargetInstanceResultHandler extends TabHandler {
             tmav.getTabStatus().setCurrentTab(currentTab);
 
             return tmav;
-        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_PAUSE)) {
-            return this.clickPause(tc, currentTab, req, res, cmd, bindingResult);
-        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_RESUME)) {
-            return this.clickResume(tc, currentTab, req, res, cmd, bindingResult);
-        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_STOP)) {
-            return this.clickStop(tc, currentTab, req, res, cmd, bindingResult);
-        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_DELETE)) {
-            return this.clickDelete(tc, currentTab, req, res, cmd, bindingResult);
-        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_START_PATCHING)) {
-            return this.clickStartPatching(tc, currentTab, req, res, cmd, bindingResult);
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_VIEW_PATCHING)) {
+            HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
+            TargetInstance ti = hr.getTargetInstance();
+
+            ModelAndView mav = new ModelAndView("patching-view-hr");
+            mav.addObject("ti", ti);
+            mav.addObject("hr", hr);
+
+            return mav;
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ARCHIVE)) {
             throw new WCTRuntimeException("Archive command processing is not implemented yet.");
         } else {
             throw new WCTRuntimeException("Unknown command " + cmd.getCmd() + " recieved.");
         }
     }
-
-
 
 
     /**
@@ -332,10 +324,6 @@ public class TargetInstanceResultHandler extends TabHandler {
         this.targetInstanceDAO = targetInstanceDAO;
     }
 
-
-    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
-        this.harvestAgentManager = harvestAgentManager;
-    }
 
     protected void buildCustomDepositFormDetails(HttpServletRequest req, BindingResult bindingResult, TargetInstance ti, TabbedModelAndView tmav) {
         boolean customDepositFormRequired = false;

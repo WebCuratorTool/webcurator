@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-//import java.util.LinkedList;
-//import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
 
@@ -13,7 +11,6 @@ public class VisualizationProcessorQueue {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationProcessorQueue.class);
 
     private Semaphore max_processors_lock = new Semaphore(3);
-    // private final List<String> queued_keys = new LinkedList<>();
     private final Map<String, VisualizationAbstractProcessor> queued_processors = new HashMap<>();
 
     public void startTask(VisualizationAbstractProcessor processor) {
@@ -28,9 +25,9 @@ public class VisualizationProcessorQueue {
                     processor.process();
                 } catch (Throwable e) {
                     log.error(e.getMessage());
+                    e.printStackTrace();
                 } finally {
                     max_processors_lock.release();
-                    // queued_keys.remove(0);
                     queued_processors.remove(key);
                 }
             }
@@ -82,7 +79,18 @@ public class VisualizationProcessorQueue {
         max_processors_lock = new Semaphore(max);
     }
 
+    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
+        String key = getKey("default", targetInstanceId, harvestResultNumber);
+        VisualizationAbstractProcessor processor = queued_processors.get(key);
+        if (processor != null) {
+            return processor.getProgress();
+        }
+        return null;
+    }
+
+    /* There is no concurrency processors with the same targetInstanceId and harvestResultNumber
+    , but with different processType*/
     public static String getKey(String processorType, long targetInstanceId, int harvestResultNumber) {
-        return String.format("%s_%d_%d", processorType, targetInstanceId, harvestResultNumber);
+        return String.format("key_%d_%d", targetInstanceId, harvestResultNumber);
     }
 }

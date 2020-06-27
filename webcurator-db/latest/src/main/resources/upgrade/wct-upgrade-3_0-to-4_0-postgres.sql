@@ -9,3 +9,4 @@ alter table DB_WCT.VISUALIZATION_IMPORTED_FILE add constraint IDX_VIF_FILE_NAME 
 
 
 alter table DB_WCT.HARVEST_RESULT add column HR_STATUS int4;
+update DB_WCT.HARVEST_RESULT set HR_STATUS = 0;

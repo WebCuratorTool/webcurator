@@ -82,6 +82,20 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         }
         this.writeLog(String.format("Start to copy and prune a WARC file: %s size: %d", fileFrom.getName(), fileFrom.length()));
 
+        // Use the original filename
+        String strippedImpArcFilename = reader.getStrippedFileName();
+        if (this.warcFilenameTemplate == null) {
+            this.warcFilenameTemplate = new WarcFilenameTemplate(strippedImpArcFilename);
+        }
+
+        if (urisToDelete.size() == 0) {
+            //Copy file directly
+            File destDir = this.dirs.get(0);
+            File fileTo = new File(destDir, fileFrom.getName());
+            org.apache.hadoop.thirdparty.guava.common.io.Files.copy(fileFrom, fileTo);
+            return;
+        }
+
         //Summary
         StatisticItem statisticItem = new StatisticItem();
         statisticItems.add(statisticItem);
@@ -90,12 +104,6 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
         //Progress
         VisualizationProgressBar.ProgressItem progressItem = this.progressBar.getProgressItem(fileFrom.getName());
-
-        // Use the original filename
-        String strippedImpArcFilename = reader.getStrippedFileName();
-        if (this.warcFilenameTemplate == null) {
-            this.warcFilenameTemplate = new WarcFilenameTemplate(strippedImpArcFilename);
-        }
 
         compressed = reader.isCompressed();
         Iterator<ArchiveRecord> archiveRecordsIt = reader.iterator();

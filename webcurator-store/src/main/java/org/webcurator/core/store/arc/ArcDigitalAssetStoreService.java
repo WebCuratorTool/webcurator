@@ -33,6 +33,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -45,8 +46,8 @@ import org.archive.io.*;
 import org.archive.io.arc.ARCRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.Archive;
@@ -60,15 +61,20 @@ import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WebServiceEndPoint;
+import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.VisualizationProcessorQueue;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -78,7 +84,7 @@ import org.webcurator.domain.model.core.*;
  */
 @SuppressWarnings("all")
 public class ArcDigitalAssetStoreService extends AbstractRestClient implements DigitalAssetStore, LogProvider {
-    /**
+       /**
      * The logger.
      */
     private static Logger log = LoggerFactory.getLogger(ArcDigitalAssetStoreService.class);
@@ -104,17 +110,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * The DAS File Mover
      */
     private DasFileMover dasFileMover = null;
-
     private FileArchive fileArchive = null;
     private WebServiceEndPoint wsEndPoint;
-    @Autowired
     private Archive arcDasArchive;
+    private VisualizationManager visualizationManager;
+    private NetworkMapClient networkMapClient;
+    private VisualizationProcessorQueue visualizationProcessorQueue;
+    private BDBNetworkMapPool pool;
 
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
-
-    private VisualizationManager visualizationManager;
-    private NetworkMapClient networkMapClient;
 
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -1012,6 +1017,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         this.baseDir = new File(baseDir);
     }
 
+    public Set<SeedHistoryDTO> getSeedUrls(long targetInstanceId, int harvestResultNumber) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
+                .queryParam("targetInstanceOid", targetInstanceId)
+                .queryParam("harvestNumber", harvestResultNumber);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        URI uri = uriComponentsBuilder.build().toUri();
+        ResponseEntity<SeedHistorySetDTO> seedHistorySetDTO = restTemplate.getForEntity(uri, SeedHistorySetDTO.class);
+        return Objects.requireNonNull(seedHistorySetDTO.getBody()).getSeeds();
+    }
+
     public void initiateIndexing(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
         // Determine the source directory.
@@ -1019,8 +1034,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 + harvestResult.getTargetInstanceOid() + "/"
                 + harvestResult.getHarvestNumber());
 
+        Set<SeedHistoryDTO> seedUrls = getSeedUrls(harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+
+        VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber(), seedUrls, visualizationManager);
         // Kick of the indexer.
-        indexer.runIndex(harvestResult, sourceDir);
+//        indexer.runIndex(harvestResult, sourceDir);
+        visualizationProcessorQueue.startTask(processor);
     }
 
     public void initiateRemoveIndexes(HarvestResultDTO harvestResult)
@@ -1123,15 +1142,33 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         this.networkMapClient = networkMapClient;
     }
 
+    public VisualizationProcessorQueue getVisualizationProcessorQueue() {
+        return visualizationProcessorQueue;
+    }
+
+    public void setVisualizationProcessorQueue(VisualizationProcessorQueue visualizationProcessorQueue) {
+        this.visualizationProcessorQueue = visualizationProcessorQueue;
+    }
+
+    public BDBNetworkMapPool getPool() {
+        return pool;
+    }
+
+    public void setPool(BDBNetworkMapPool pool) {
+        this.pool = pool;
+    }
+
     @Override
     public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportProcessor p = null;
+        VisualizationAbstractProcessor processor = null;
         try {
-            p = new PruneAndImportProcessor(visualizationManager, cmd, this);
+            processor = new PruneAndImportProcessor(visualizationManager, cmd, this);
         } catch (DigitalAssetStoreException e) {
+            log.error(e.getLocalizedMessage());
             e.printStackTrace();
         }
-        new Thread(p).start();
+
+        visualizationProcessorQueue.startTask(processor);
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
         result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
@@ -1141,30 +1178,29 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     @Override
     public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
-        PruneAndImportProcessor p = PruneAndImportProcessor.getProcessor(targetInstanceId, harvestNumber);
-
-        if (command.equalsIgnoreCase("delete")) {
-            if (p == null) {
-                PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
-                cmd.setTargetInstanceId(targetInstanceId);
-                cmd.setNewHarvestResultNumber(harvestNumber);
-                p = new PruneAndImportProcessor(visualizationManager, cmd, this);
-            }
-            p.delete(targetInstanceId, harvestNumber);
-            return;
-        }
-
-        if (p == null) {
-            log.error("Not running modification task, unable to: {}, {}, {}", command, targetInstanceId, harvestNumber);
-            return;
-        }
-
+        log.info("stage: {}, command: {}, targetInstanceId: {}, harvestResultNumber:{} ", stage, command, targetInstanceId, harvestNumber);
         if (command.equalsIgnoreCase("pause")) {
-            p.pauseModification();
+            visualizationProcessorQueue.pauseTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("resume")) {
-            p.resumeModification();
+            visualizationProcessorQueue.resumeTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("stop")) {
-            p.stopModification();
+            visualizationProcessorQueue.terminateTask(stage, targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("delete")) {
+            if (!visualizationProcessorQueue.deleteTask(stage, targetInstanceId, harvestNumber)) {
+                VisualizationAbstractProcessor processor = null;
+                if (stage.equals(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+                    PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
+                    cmd.setTargetInstanceId(targetInstanceId);
+                    cmd.setNewHarvestResultNumber(harvestNumber);
+                    processor = new PruneAndImportProcessor(visualizationManager, cmd, this);
+                } else if (stage.equals(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+                    processor = new ResourceExtractorProcessor(null, targetInstanceId, harvestNumber, null, visualizationManager);
+                } else {
+                    return;
+                }
+
+                processor.deleteTask();
+            }
         }
     }
 }

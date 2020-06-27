@@ -10,9 +10,9 @@
     <link rel="stylesheet" href="../dist/font/fontawesome-free.min.css">
     <link rel="stylesheet" href="../dist/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="../dist/adminlte/css/adminlte.css">
-    <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
-    <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
-    <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css">
+    <!-- <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css"> -->
+    <!-- <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css"> -->
+    <!-- <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css"> -->
     <link rel="stylesheet" href="visualization.css">
 
     <style>
@@ -61,7 +61,7 @@ to get the desired effect
 |---------------------------------------------------------|
 -->
 <body>
-
+<a id="link-to-harvest-now" style="display: none;"></a>
 <main class="bd-content" name="content" role="main">
     <div class="card card-outline">
         <div class="card-header bg-light">
@@ -197,11 +197,11 @@ to get the desired effect
 
 <script src="../dist/jquery/jquery-3.4.1.min.js"></script>
 <script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
-<script src="../dist/plugins/bs-custom-file-input.min.js"></script>
+<!-- <script src="../dist/plugins/bs-custom-file-input.min.js"></script> -->
 <script src="../dist/adminlte/js/adminlte.js"></script>
-<script src="../dist/ag-grid/ag-grid-community.js"></script>
-<script src="../dist/plugins/moment-with-locales.min.js"></script>
-<script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script>
+<!-- <script src="../dist/ag-grid/ag-grid-community.js"></script> -->
+<!-- <script src="../dist/plugins/moment-with-locales.min.js"></script> -->
+<!-- <script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script> -->
 <script src="visualization.js"></script>
 
 <script>
@@ -210,6 +210,8 @@ to get the desired effect
     var jobId=parseInt(urlParameters["targetInstanceOid"]);
     var harvestResultId=parseInt(urlParameters["harvestResultId"]);
     var harvestResultNumber=parseInt(urlParameters["harvestNumber"]);
+    var hrState=0;
+    var hrStatus=0;
 
 
     var StateMap={
@@ -218,20 +220,17 @@ to get the desired effect
         2: 'Rejected',
         3: 'Indexing',
         4: 'Aborted',
-        50: 'Patch Scheduled',
-        60: 'Patch Harvesting Running',
-        61: 'Patch Harvesting Paused',
-        62: 'Patch Harvesting Stopped',
-        63: 'Patch Harvesting Aborted',
-        69: 'Patch Harvesting Finished',
-        70: 'Patch Modifying Running',
-        71: 'Patch Modifying Paused',
-        72: 'Patch Modifying Aborted',
-        79: 'Patch Modifying Finished',
-        80: 'Patch Indexing',
-        81: 'Patch Indexing Paused',
-        82: 'Patch Indexing Aborted',
-        89: 'Patch Indexing Finished'
+        5: 'Crawling',
+        6: 'Modifying'
+    };
+
+    var StatusMap={
+        0: '',
+        1: 'Scheduled',
+        2: 'Running',
+        3: 'Paused',
+        4: 'Terminated',
+        5: 'Finished'
     };
 
     function createTableLog(rows, prefix){
@@ -295,33 +294,34 @@ to get the desired effect
 
     function renderContent(data){
         //Action Button Status
-        var state=data.hrState;
-        if (state===50|| state===69 || state===79) {
+        hrState=data.hrState;
+        hrStatus=data.hrStatus;
+        if ((hrState===5 && (hrStatus===1 || hrStatus===5)) || (hrState===6 && (hrStatus===1 || hrStatus===5)) || (hrState===7 && hrStatus===1)) {
             $('#btn-group-patch-actions button[action="start"]').prop('disabled', false);
         }else{
             $('#btn-group-patch-actions button[action="start"]').prop('disabled', true);
         }
 
-        if (state===3 || state===60 || state===70 || state===80) {
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===2) {
             $('#btn-group-patch-actions button[action="pause"]').prop('disabled', false);
         }else{
             $('#btn-group-patch-actions button[action="pause"]').prop('disabled', true);
         }
 
-        if (state===61 || state===71 || state===81) {
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===3) {
             $('#btn-group-patch-actions button[action="resume"]').prop('disabled', false);
         }else{
             $('#btn-group-patch-actions button[action="resume"]').prop('disabled', true);
         }
 
-        if (state===3 || (state>=60 && state<89)) {
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus!==4) {
             $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', false);
         }else{
             $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', true);
         }
 
         // Delete not started task or terminted
-        if (state===50 || state===62 || state===72 || state===82) {
+        if ((hrState===3 || hrState===5 || hrState===6) && (hrStatus===1 || hrStatus===4)) {
             $('#btn-group-patch-actions button[action="delete"]').prop('disabled', false);
         }else{
             $('#btn-group-patch-actions button[action="delete"]').prop('disabled', true);
@@ -333,7 +333,7 @@ to get the desired effect
         $('#derivedHarvestNumber').html(data.derivedHarvestNumber);
         $('#createdOwner').html(data.createdOwner);
         $('#createdDate').html(data.createdDate);
-        $('#hrState').html(StateMap[data.hrState]);
+        $('#hrState').html(StateMap[data.hrState] + '&nbsp;' + StatusMap[data.hrStatus]);
 
 
         //Progress
@@ -405,6 +405,25 @@ to get the desired effect
     }
 
     $(function(){
+        $('#btn-group-patch-actions button').on('click', function(){
+            var action=$(this).attr('action');
+
+            //Popup Harvest Agent Selection Window
+            if (action==='start' && hrState===5) {
+                var urlHarvestNow='/curator/target/ti-harvest-now.html?targetInstanceId='+jobId+'&harvestResultId='+harvestResultId;
+                $('#link-to-harvest-now').attr('href',urlHarvestNow);
+                $('#link-to-harvest-now').trigger('click');
+            }else{
+                var reqUrl='/curator/modification/operate?stage=TBC&command='+action+'&targetInstanceId='+jobId+'&harvestNumber='+harvestResultNumber;
+                fetch(reqUrl, { 
+                    method: 'GET',
+                    redirect: 'follow',
+                    headers: {'Content-Type': 'application/json'}
+                });
+            }
+        });
+
+
         fetchData();
 
         setInterval(fetchData, 3000);

@@ -4,10 +4,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -31,6 +29,7 @@ public class ResourceExtractorProcessorTest {
     private final VisualizationManager visualizationManager = new VisualizationManager();
 
     private ResourceExtractorProcessor indexer;
+    private VisualizationProcessorQueue visualizationProcessorQueue = new VisualizationProcessorQueue();
 
     @Before
     public void initTest() throws IOException, DigitalAssetStoreException {
@@ -48,17 +47,14 @@ public class ResourceExtractorProcessorTest {
         visualizationManager.setReportsDir("reports");
         visualizationManager.setLogsDir("logs");
 
-        String directory = String.format("%s/%d/%d", baseDir, targetInstanceId, harvestResultNumber);
-        BDBNetworkMap db = pool.createInstance(targetInstanceId, harvestResultNumber);
-        ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(new File(directory), db, targetInstanceId, harvestResultNumber, seeds, visualizationManager);
+        ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(pool, targetInstanceId, harvestResultNumber, seeds, visualizationManager);
 
-        indexer.indexFiles();
-
+        visualizationProcessorQueue.startTask(indexer);
     }
 
     @Test
     public void testResourceExtractorProgress() throws DigitalAssetStoreException {
-        VisualizationProgressBar progressBar = VisualizationProgressBar.getProgress(targetInstanceId, harvestResultNumber);
+        VisualizationProgressBar progressBar = visualizationProcessorQueue.getProgress(targetInstanceId, harvestResultNumber);
         assert progressBar != null;
         log.debug(progressBar.toString());
 
@@ -68,13 +64,13 @@ public class ResourceExtractorProcessorTest {
         assert progressBar.getProgressPercentage() == 100;
 
         indexer.clear();
-        progressBar = VisualizationProgressBar.getProgress(targetInstanceId, harvestResultNumber);
+        progressBar = visualizationProcessorQueue.getProgress(targetInstanceId, harvestResultNumber);
         assert progressBar == null;
     }
 
     @Test
     public void testQueryDomain() {
-        NetworkMapClient client = new NetworkMapClientLocal(pool);
+        NetworkMapClient client = new NetworkMapClientLocal(pool, visualizationProcessorQueue);
         NetworkMapResult result = client.getAllDomains(targetInstanceId, harvestResultNumber);
 
         assert result.getRspCode() == 0;

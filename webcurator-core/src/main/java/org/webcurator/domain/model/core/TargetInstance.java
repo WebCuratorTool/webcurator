@@ -503,9 +503,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * @return the ArcHarvestResult, or null if not found
      */
     public HarvestResult getHarvestResult(int harvestNumber) {
-        if (harvestResults == null) return null;
-
         List<HarvestResult> results = getHarvestResults(); //Trigger hibernate fetch if necessary
+        if (results == null) return null;
         for (HarvestResult result : results) {
             if (harvestNumber == result.getHarvestNumber()) {
                 return result;

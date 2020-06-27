@@ -24,7 +24,7 @@ import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.visualization.VisualizationManager;
-import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
+import org.webcurator.core.visualization.VisualizationProcessorQueue;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
@@ -291,8 +291,6 @@ public class DasConfig {
         visualizationManager.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         visualizationManager.setLogsDir(Constants.DIR_LOGS);
         visualizationManager.setReportsDir(Constants.DIR_REPORTS);
-
-        PruneAndImportProcessor.setMaxConcurrencyModThreads(maxConcurrencyModThreads);
     }
 
     @Bean
@@ -318,6 +316,8 @@ public class DasConfig {
         bean.setFileArchive(createFileArchive());
         bean.setVisualizationManager(visualizationManager);
         bean.setNetworkMapClient(getNetworkMapLocalClient());
+        bean.setVisualizationProcessorQueue(getVisualizationProcessorQueue());
+        bean.setPool(getBDBDatabasePool());
         return bean;
     }
 
@@ -396,7 +396,7 @@ public class DasConfig {
         ListFactoryBean bean = new ListFactoryBean();
 
         List<RunnableIndex> sourceList = new ArrayList<>();
-        sourceList.add(wctIndexer());
+//        sourceList.add(wctIndexer());
         sourceList.add(waybackIndexer());
         sourceList.add(crawlLogIndexer());
         sourceList.add(cdxIndexer());
@@ -406,14 +406,14 @@ public class DasConfig {
         return bean;
     }
 
-    @Bean
-    public WCTIndexer wctIndexer() {
-        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
-        bean.setWsEndPoint(wctCoreWsEndpoint());
-        bean.setVisualizationManager(visualizationManager);
-        bean.setBDBNetworkMapPool(getBDBDatabasePool());
-        return bean;
-    }
+//    @Bean
+//    public WCTIndexer wctIndexer() {
+//        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
+//        bean.setWsEndPoint(wctCoreWsEndpoint());
+//        bean.setVisualizationManager(visualizationManager);
+//        bean.setBDBNetworkMapPool(getBDBDatabasePool());
+//        return bean;
+//    }
 
     @Bean
     public WaybackIndexer waybackIndexer() {
@@ -594,6 +594,14 @@ public class DasConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public VisualizationProcessorQueue getVisualizationProcessorQueue() {
+        VisualizationProcessorQueue bean = new VisualizationProcessorQueue();
+        bean.setMaxProcessors(maxConcurrencyModThreads);
+        return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
     public BDBNetworkMapPool getBDBDatabasePool() {
         BDBNetworkMapPool pool = new BDBNetworkMapPool(arcDigitalAssetStoreServiceBaseDir);
         return pool;
@@ -602,7 +610,7 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public NetworkMapClient getNetworkMapLocalClient() {
-        return new NetworkMapClientLocal(getBDBDatabasePool());
+        return new NetworkMapClientLocal(getBDBDatabasePool(), getVisualizationProcessorQueue());
     }
 
     @Bean
