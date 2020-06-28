@@ -13,11 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.webcurator.core.harvester.coordinator;
+package org.webcurator.core.coordinator;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -43,7 +42,9 @@ import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
+import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.store.DigitalAssetStoreClient;
+import org.webcurator.core.store.coordinator.DigitalAssetStoreCoordinator;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.visualization.VisualizationManager;
@@ -67,8 +68,10 @@ import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
+import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 import org.webcurator.domain.model.visualization.VisualizationImportedFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -77,7 +80,7 @@ import javax.servlet.http.HttpServletResponse;
 @SuppressWarnings("all")
 @Component("harvestCoordinator")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class HarvestCoordinatorImpl implements HarvestCoordinator {
+public class WctCoordinatorImpl implements HarvestCoordinator, DigitalAssetStoreCoordinator {
     private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
 
     @Autowired
@@ -141,8 +144,36 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     /**
      * Default Constructor.
      */
-    public HarvestCoordinatorImpl() {
+    public WctCoordinatorImpl() {
         super();
+    }
+
+    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
+        this.harvestAgentManager = harvestAgentManager;
+    }
+
+    public void setHarvestLogManager(HarvestLogManager harvestLogManager) {
+        this.harvestLogManager = harvestLogManager;
+    }
+
+    public void setHarvestBandwidthManager(HarvestBandwidthManager harvestBandwidthManager) {
+        this.harvestBandwidthManager = harvestBandwidthManager;
+    }
+
+    public void setHarvestQaManager(HarvestQaManager harvestQaManager) {
+        this.harvestQaManager = harvestQaManager;
+    }
+
+    public void setVisualizationManager(VisualizationManager visualizationManager) {
+        this.visualizationManager = visualizationManager;
+    }
+
+    public void setVisualizationImportedFileDAO(VisualizationImportedFileDAO visualizationImportedFileDAO) {
+        this.visualizationImportedFileDAO = visualizationImportedFileDAO;
+    }
+
+    public void setLog(Logger log) {
+        this.log = log;
     }
 
     /**
@@ -566,7 +597,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         try {
             HarvestResult hr = targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
-            if (hr == null || hr.getState() != HarvestResult.STATE_CRAWLING || hr.getStatus()!=HarvestResult.STATUS_SCHEDULED) {
+            if (hr == null || hr.getState() != HarvestResult.STATE_CRAWLING || hr.getStatus() != HarvestResult.STATUS_SCHEDULED) {
                 log.error("Not able to start harvest at state: {}", hr.getState());
                 return false;
             }
@@ -593,36 +624,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             harvestAgentManager.markDead(harvestAgentStatusDTO);
         }
         return processed;
-    }
-
-    public void modificationComplete(long job, int harvestResultNumber) {
-        TargetInstance ti = targetInstanceDao.load(job);
-        if (ti == null) {
-            log.error("Not able to load TargetInstance: {}", job);
-            return;
-        }
-
-        HarvestResult harvestResult = ti.getHarvestResult(harvestResultNumber);
-        if (harvestResult == null) {
-            log.error("Not able to load HarvestResult, job: {}, harvestNumber:{}", job, harvestResultNumber);
-            return;
-        }
-
-        harvestBandwidthManager.sendBandWidthRestrictions();
-
-        // Ask the DigitalAssetStore to index the ARC
-        try {
-            digitalAssetStoreFactory.getDAS().initiateIndexing(
-                    new HarvestResultDTO(harvestResult.getOid(), harvestResult.getTargetInstance().getOid(), harvestResult
-                            .getCreationDate(), harvestResult.getHarvestNumber(), harvestResult.getProvenanceNote()));
-            harvestResult.setState(HarvestResult.STATE_INDEXING);
-            harvestResult.setStatus(HarvestResult.STATUS_RUNNING);
-            targetInstanceDao.save(harvestResult);
-        } catch (DigitalAssetStoreException ex) {
-            log.error("Could not send initiateIndexing message to the DAS", ex);
-        }
-
-        log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
     }
 
     /**
@@ -687,7 +688,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      *
      * @return
      */
-    boolean isHarvestOptimizationAllowed() {
+    public boolean isHarvestOptimizationAllowed() {
         return harvestBandwidthManager.isHarvestOptimizationAllowed();
     }
 
@@ -874,7 +875,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         log.info("Finished: Processing {} entries from the queue.", theQueue.size());
     }
 
-    void queueOptimisableInstances() {
+    public void queueOptimisableInstances() {
         if (harvestOptimizationEnabled && isHarvestOptimizationAllowed()) {
             int optimizedJobCount = 0;
             int optimizationUnavailableCount = 0;
@@ -1683,6 +1684,52 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     @Override
+    public SeedHistorySetDTO dasQuerySeedHistory(long targetInstanceOid, int harvestNumber) {
+        SeedHistorySetDTO seedHistorySetDTO = new SeedHistorySetDTO();
+        seedHistorySetDTO.setTargetInstanceId(targetInstanceOid);
+        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceOid);
+        if (ti == null) {
+            seedHistorySetDTO.setSeeds(new HashSet<>());
+        } else {
+            ti.getSeedHistory().forEach(seedHistory -> {
+                seedHistorySetDTO.getSeeds().add(new SeedHistoryDTO(seedHistory));
+            });
+        }
+        return seedHistorySetDTO;
+    }
+
+    @Override
+    public void dasModificationComplete(long job, int harvestResultNumber) {
+        TargetInstance ti = targetInstanceDao.load(job);
+        if (ti == null) {
+            log.error("Not able to load TargetInstance: {}", job);
+            return;
+        }
+
+        HarvestResult harvestResult = ti.getHarvestResult(harvestResultNumber);
+        if (harvestResult == null) {
+            log.error("Not able to load HarvestResult, job: {}, harvestNumber:{}", job, harvestResultNumber);
+            return;
+        }
+
+        harvestBandwidthManager.sendBandWidthRestrictions();
+
+        // Ask the DigitalAssetStore to index the ARC
+        try {
+            digitalAssetStoreFactory.getDAS().initiateIndexing(
+                    new HarvestResultDTO(harvestResult.getOid(), harvestResult.getTargetInstance().getOid(), harvestResult
+                            .getCreationDate(), harvestResult.getHarvestNumber(), harvestResult.getProvenanceNote()));
+            harvestResult.setState(HarvestResult.STATE_INDEXING);
+            harvestResult.setStatus(HarvestResult.STATUS_RUNNING);
+            targetInstanceDao.save(harvestResult);
+        } catch (DigitalAssetStoreException ex) {
+            log.error("Could not send initiateIndexing message to the DAS", ex);
+        }
+
+        log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
+    }
+
+    @Override
     public boolean pushPruneAndImport(TargetInstance ti) {
         PruneAndImportCommandApply cmd = null;
         try {
@@ -1791,30 +1838,18 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);
     }
 
-    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
-        this.harvestAgentManager = harvestAgentManager;
-    }
-
-    public void setHarvestLogManager(HarvestLogManager harvestLogManager) {
-        this.harvestLogManager = harvestLogManager;
-    }
-
-    public void setHarvestBandwidthManager(HarvestBandwidthManager harvestBandwidthManager) {
-        this.harvestBandwidthManager = harvestBandwidthManager;
-    }
-
-    public void setHarvestQaManager(HarvestQaManager harvestQaManager) {
-        this.harvestQaManager = harvestQaManager;
-    }
-
-
     @Override
-    public void downloadFile(long targetInstanceId, int harvestResultNumber, String fileName, OutputStream out) {
+    public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) {
         File f = new File(visualizationManager.getUploadDir(), fileName);
         try {
-            Files.copy(f.toPath(), out);
+            Files.copy(f.toPath(), rsp.getOutputStream());
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    @Override
+    public void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList) {
+
     }
 }

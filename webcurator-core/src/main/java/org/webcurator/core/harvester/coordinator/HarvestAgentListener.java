@@ -18,8 +18,6 @@ package org.webcurator.core.harvester.coordinator;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
-import java.util.Map;
-
 /**
  * The <code>HarvestAgentListener</code> is a service that 
  * listens for messages from a <code>Crawler</code> and

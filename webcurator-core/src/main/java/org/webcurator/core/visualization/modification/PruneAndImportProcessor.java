@@ -5,7 +5,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationCoordinator;
@@ -125,7 +125,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
 
     private void notifyModificationComplete(long targetInstanceId, int harvestResultNumber) {
         RestTemplateBuilder restTemplateBuilder = client.getRestTemplateBuilder();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(HarvestCoordinatorPaths.MODIFICATION_COMPLETE_PRUNE_IMPORT))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(WctCoordinatorPaths.MODIFICATION_COMPLETE_PRUNE_IMPORT))
                 .queryParam("targetInstanceOid", targetInstanceId)
                 .queryParam("harvestNumber", harvestResultNumber);
         RestTemplate restTemplate = restTemplateBuilder.build();

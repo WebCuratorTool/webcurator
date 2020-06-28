@@ -15,42 +15,52 @@
  */
 package org.webcurator.domain.model.core;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
+
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * The Object for transfering Harvest Results between the web curator components.
+ *
  * @author bbeaumont
  */
 public class HarvestResultDTO {
-    /** The unique ID of the HarvestResult */
+    /**
+     * The unique ID of the HarvestResult
+     */
     protected Long oid;
-    /** the id of the target instance that this result belongs to. */
+    /**
+     * the id of the target instance that this result belongs to.
+     */
     protected Long targetInstanceOid;
-    /** the date the result was created. */
+    /**
+     * the date the result was created.
+     */
     protected Date creationDate;
-    /** the number of the harvest. */
+    /**
+     * the number of the harvest.
+     */
     protected int harvestNumber = 1;
-    /** The harvests provenance note. */
+    /**
+     * The harvests provenance note.
+     */
     protected String provenanceNote;
-    /** Set of ARC files that belong to the harvest result. */
-
+    /**
+     * Set of ARC files that belong to the harvest result.
+     */
+    protected int state = 0;
+    protected int status = 0;
 
     public HarvestResultDTO() {
     }
 
     /**
      * Create a HarvestResultDTO from the HarvestResult, excluding the resources.
-     * @param hrOid The HarvestResult to base the DTO on.
+     *
+     * @param hrOid             The HarvestResult to base the DTO on.
      * @param targetInstanceOid targetInstanceOid
-     * @param creationDate creationDate
-     * @param harvestNumber harvestNumber
-     * @param provenanceNote provenanceNote
+     * @param creationDate      creationDate
+     * @param harvestNumber     harvestNumber
+     * @param provenanceNote    provenanceNote
      */
     public HarvestResultDTO(Long hrOid, Long targetInstanceOid, Date creationDate, int harvestNumber, String provenanceNote) {
         this.oid = hrOid;
@@ -67,42 +77,49 @@ public class HarvestResultDTO {
     public Long getTargetInstanceOid() {
         return targetInstanceOid;
     }
+
     /**
      * @param targetInstanceOid The targetInstanceOid to set.
      */
     public void setTargetInstanceOid(Long targetInstanceOid) {
         this.targetInstanceOid = targetInstanceOid;
     }
+
     /**
      * @return Returns the creationDate.
      */
     public Date getCreationDate() {
         return creationDate;
     }
+
     /**
      * @param creationDate The creationDate to set.
      */
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
     }
+
     /**
      * @return Returns the harvestNumber.
      */
     public int getHarvestNumber() {
         return harvestNumber;
     }
+
     /**
      * @param harvestNumber The harvestNumber to set.
      */
     public void setHarvestNumber(int harvestNumber) {
         this.harvestNumber = harvestNumber;
     }
+
     /**
      * @return Returns the provenanceNote.
      */
     public String getProvenanceNote() {
         return provenanceNote;
     }
+
     /**
      * @param provenanceNote The provenanceNote to set.
      */
@@ -122,5 +139,21 @@ public class HarvestResultDTO {
      */
     public void setOid(Long oid) {
         this.oid = oid;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }

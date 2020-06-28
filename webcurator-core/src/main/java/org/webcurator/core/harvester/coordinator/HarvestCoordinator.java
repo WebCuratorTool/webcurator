@@ -16,15 +16,10 @@
 package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 
 import org.webcurator.core.check.CheckNotifier;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
-import org.webcurator.core.visualization.modification.service.PruneAndImportService;
 import org.webcurator.domain.HarvestCoordinatorDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -40,7 +35,7 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
  *
  * @author nwaight
  */
-public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordinatorDAO, CheckNotifier, IndexerService, PruneAndImportService {
+public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordinatorDAO, CheckNotifier {
     /**
      * Process any TargetInstances that are ready to be processed.
      */
@@ -107,7 +102,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
     /**
      * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
      *
-     * @param targetInstance: the target instance to modify
+     * @param queuedTargetInstanceDTO: the target instance to modify
      */
     void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO);
 
@@ -120,7 +115,6 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      */
     boolean patchHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO);
 
-    void modificationComplete(long job, int harvestResultNumber);
 
     /**
      * Pause a TargetInstance that is in the process or being harvested
@@ -306,47 +300,6 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      */
     File getLogfile(TargetInstance aTargetInstance, String aFilename);
 
-    /**
-     * Complete the Archiving process
-     */
-    void completeArchiving(Long targetInstanceOid, String archiveIID);
-
-    /**
-     * Failed to complete the Archiving process
-     */
-    void failedArchiving(Long targetInstanceOid, String message);
-
-    /**
-     * Force re-indexing of the specified HarvestResult
-     *
-     * @param aArcHarvestResult The result to re-index.
-     * @return true if a reIndex was initialised
-     */
-    Boolean reIndexHarvestResult(HarvestResult aArcHarvestResult);
-
-    /**
-     * Remove indexes for the target instance. Most indexers do no action, however
-     * a wayback indexer needs to remove arc files from the local wayback BDB index
-     *
-     * @param ti The target instance to remove the indexes for
-     * @return void
-     */
-    void removeIndexes(TargetInstance ti);
-
-    void removeIndexes(HarvestResult hr);
-
-    /**
-     * Return the hop path for the specified Url by parsing the sorted crawl.log
-     * for the specified TargetInstance.
-     *
-     * @param aTargetInstance the TargetInstance to return the hop path lines for
-     * @param aFileName       the name of the sorted crawl.log file to derive the hop path from
-     * @param aUrl            the Url to search for the hop path with
-     * @return the lines for the hop path
-     */
-    List<String> getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl);
-
-    public void runQaRecommentationService(TargetInstance ti);
 
     void pauseAgent(String agentName);
 
@@ -357,10 +310,4 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
     boolean isHarvestOptimizationEnabled();
 
     int getHarvestOptimizationLookAheadHours();
-
-    boolean pushPruneAndImport(TargetInstance ti);
-
-    PruneAndImportCommandApply getPruneAndImportCommandApply(TargetInstance ti) throws IOException;
-
-    void downloadFile(long targetInstanceId, int harvestResultNumber, String fileName, OutputStream out);
 }

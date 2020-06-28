@@ -12,7 +12,7 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.core.util.WebServiceEndPoint;
@@ -100,7 +100,7 @@ public abstract class IndexerBase extends AbstractRestClient implements Runnable
 	protected void finaliseIndex(Long harvestResultOid) {
 		RestTemplate restTemplate = restTemplateBuilder.build();
 
-		UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.FINALISE_INDEX));
+		UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX));
 
 		Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
 		restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),

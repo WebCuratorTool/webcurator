@@ -2,8 +2,8 @@ package org.webcurator.ui.tools.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.visualization.VisualizationConstants;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class HarvestModificationController implements PruneAndImportService {
     //For store component, it's a localClient; For webapp component, it's a remote component
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinatorImpl wctCoordinator;
 
     @Autowired
     private DigitalAssetStore digitalAssetStore;
@@ -37,25 +37,25 @@ public class HarvestModificationController implements PruneAndImportService {
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_UPLOAD_FILE, method = RequestMethod.POST, produces = "application/json")
     public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody PruneAndImportCommandRow cmd) {
-        return harvestCoordinator.uploadFile(job, harvestResultNumber, cmd);
+        return wctCoordinator.uploadFile(job, harvestResultNumber, cmd);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_CHECK_FILES, method = RequestMethod.POST, produces = "application/json")
     public PruneAndImportCommandResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<PruneAndImportCommandRowMetadata> items) {
-        return harvestCoordinator.checkFiles(job, harvestResultNumber, items);
+        return wctCoordinator.checkFiles(job, harvestResultNumber, items);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST, produces = "application/json")
     public PruneAndImportCommandResult pruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
-        return harvestCoordinator.pruneAndImport(cmd);
+        return wctCoordinator.pruneAndImport(cmd);
     }
 
     @RequestMapping(path = VisualizationConstants.PATH_DOWNLOAD_FILE, method = {RequestMethod.POST, RequestMethod.GET})
     public void downloadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) {
         try {
-            harvestCoordinator.downloadFile(job, harvestResultNumber, fileName, rsp.getOutputStream());
+            wctCoordinator.downloadFile(job, harvestResultNumber, fileName, rsp.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -41,31 +41,4 @@ public interface DasCallback {
      * @param message           The error message received from the archive.
      */
     public void failedArchiving(Long targetInstanceOid, String message);
-
-    /**
-     * Query history seeds from the Core
-     *
-     * @param targetInstanceOid The OID of the instance being archived.
-     * @param harvestNumber     The order number of the harvest.
-     * @return The history seeds
-     */
-    public SeedHistorySetDTO querySeedHistory(Long targetInstanceOid, Integer harvestNumber);
-
-    /**
-     * Notify the core that the modification is finished
-     *
-     * @param targetInstanceOid The OID of the instance being archived.
-     * @param harvestNumber     The order number of the harvest.
-     */
-    public void modificationComplete(Long targetInstanceOid, Integer harvestNumber);
-
-    /**
-     * Download the original imported file from the core
-     *
-     * @param targetInstanceOid The OID of the instance being archived.
-     * @param harvestNumber     The order number of the harvest.
-     * @param cmd   The metadata of the file to be downloaded, e.g.: file name
-     * @return The content and metadata of the file to be download
-     */
-    PruneAndImportCommandRow modificationDownloadFile(Long targetInstanceOid, Integer harvestNumber, PruneAndImportCommandRowMetadata cmd);
 }

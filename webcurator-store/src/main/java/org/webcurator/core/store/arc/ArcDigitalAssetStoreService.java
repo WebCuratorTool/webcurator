@@ -53,7 +53,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
@@ -984,7 +984,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     private void completeArchiving(Long targetInstanceOid, String archiveIID) {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.COMPLETE_ARCHIVING))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.COMPLETE_ARCHIVING))
                 .queryParam("archive-id", archiveIID);
 
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
@@ -995,7 +995,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     private void failedArchiving(Long targetInstanceOid, String message) {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.FAILED_ARCHIVING))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FAILED_ARCHIVING))
                 .queryParam("message", message);
 
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
@@ -1018,7 +1018,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     }
 
     public Set<SeedHistoryDTO> getSeedUrls(long targetInstanceId, int harvestResultNumber) {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
                 .queryParam("targetInstanceOid", targetInstanceId)
                 .queryParam("harvestNumber", harvestResultNumber);
         RestTemplate restTemplate = restTemplateBuilder.build();

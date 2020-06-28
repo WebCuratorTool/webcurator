@@ -22,7 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.SeedHistorySetDTO;
@@ -67,7 +67,7 @@ public class WCTIndexer extends IndexerBase {
 
             RestTemplate restTemplate = restTemplateBuilder.build();
 
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.CREATE_HARVEST_RESULT));
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.CREATE_HARVEST_RESULT));
 
             harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Long.class);
             log.info("Initialised index for job " + getResult().getTargetInstanceOid());
@@ -78,7 +78,7 @@ public class WCTIndexer extends IndexerBase {
     }
 
     public Set<SeedHistoryDTO> getSeedUrls(long targetInstanceId, int harvestResultNumber) {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
                 .queryParam("targetInstanceOid", targetInstanceId)
                 .queryParam("harvestNumber", harvestResultNumber);
         RestTemplate restTemplate = restTemplateBuilder.build();

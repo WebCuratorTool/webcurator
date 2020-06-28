@@ -40,6 +40,7 @@ import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.visualization.VisualizationManager;
@@ -268,7 +269,7 @@ public class BaseConfig {
     private ListsConfig listsConfig;
 
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinatorImpl wctCoordinator;
 
     @Autowired
     VisualizationManager visualizationManager;
@@ -382,7 +383,7 @@ public class BaseConfig {
 //        client.setCoreCacheDir(coreCacheDir);
 //        client.setAuditor(audit());
 //        client.setHarvestAgentManager(harvestAgentManager());
-////        client.setHarvestCoordinator(harvestCoordinator);
+////        client.setHarvestCoordinator(wctCoordinator);
 //        client.setTargetInstanceDao(targetInstanceDao());
 //        client.setTargetInstanceManager(targetInstanceManager());
 ////        client.setImportedFileRepository(importedFileRepository);
@@ -448,7 +449,7 @@ public class BaseConfig {
 
         bean.setRulesFileName("rules.drl");
 //        bean.setQualityReviewFacade(qualityReviewFacade());
-        //bean.setHarvestCoordinator(harvestCoordinator());
+        //bean.setHarvestCoordinator(wctCoordinator());
         bean.setTargetInstanceManager(targetInstanceManager());
 
         return bean;
@@ -603,7 +604,7 @@ public class BaseConfig {
         bean.setHarvestAgentFactory(harvestAgentFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setHarvestCoordinator(wctCoordinator);
         return bean;
     }
 
@@ -833,7 +834,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public JobDetail processScheduleJob() {
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("harvestCoordinator", harvestCoordinator);
+        jobDataMap.put("wctCoordinator", wctCoordinator);
 
         JobDetail bean = JobBuilder.newJob(ScheduleJob.class)
                 .withIdentity("ProcessSchedule", "ProcessScheduleGroup")
@@ -863,7 +864,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkBandwidthTransitionsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator);
+        bean.setTargetObject(wctCoordinator);
         bean.setTargetMethod("checkForBandwidthTransition");
 
         return bean;
@@ -965,7 +966,7 @@ public class BaseConfig {
         bean.setErrorThreshold(bandwidthCheckerErrorThreshold);
         bean.setNotificationSubject("Core");
         bean.setCheckType("Bandwidth");
-        bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setHarvestCoordinator(wctCoordinator);
         bean.setNotifier(checkNotifier());
 
         return bean;
@@ -1024,7 +1025,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeDigitalAssetsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator);
+        bean.setTargetObject(wctCoordinator);
         bean.setTargetMethod("purgeDigitalAssets");
 
         return bean;
@@ -1049,7 +1050,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeAbortedTargetInstancesJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator);
+        bean.setTargetObject(wctCoordinator);
         bean.setTargetMethod("purgeAbortedTargetInstances");
 
         return bean;

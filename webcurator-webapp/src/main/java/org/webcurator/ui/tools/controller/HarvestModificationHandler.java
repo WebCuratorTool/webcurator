@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.visualization.VisualizationProgressBar;
@@ -34,7 +34,7 @@ public class HarvestModificationHandler {
     private TargetInstanceDAO targetInstanceDAO;
 
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinatorImpl wctCoordinator;
 
     @Autowired
     private HarvestAgentManager harvestAgentManager;
@@ -162,7 +162,7 @@ public class HarvestModificationHandler {
         } else if ((hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_SCHEDULED)
                 || (hr.getState() == HarvestResult.STATE_CRAWLING && hr.getStatus() == HarvestResult.STATUS_FINISHED)) {
 //            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "start", ti.getOid(), hr.getHarvestNumber());
-            harvestCoordinator.pushPruneAndImport(ti);
+            wctCoordinator.pushPruneAndImport(ti);
             hr.setState(HarvestResult.STATE_MODIFYING);
         } else if ((hr.getState() == HarvestResult.STATE_INDEXING && hr.getStatus() == HarvestResult.STATUS_SCHEDULED)
                 || (hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_FINISHED)) {
@@ -230,7 +230,7 @@ public class HarvestModificationHandler {
             progress.setPercentageIndex(100);
         }
 
-        PruneAndImportCommandApply pruneAndImportCommandApply = harvestCoordinator.getPruneAndImportCommandApply(ti);
+        PruneAndImportCommandApply pruneAndImportCommandApply = wctCoordinator.getPruneAndImportCommandApply(ti);
         List<PruneAndImportCommandRowMetadata> listToBePruned = new ArrayList<>();
         List<PruneAndImportCommandRowMetadata> listToBeImportedByFile = new ArrayList<>();
         List<PruneAndImportCommandRowMetadata> listToBeImportedByURL = new ArrayList<>();

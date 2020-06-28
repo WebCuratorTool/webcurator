@@ -20,7 +20,7 @@ import java.util.Properties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.rest.RestClientResponseHandler;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
@@ -48,7 +48,7 @@ public class ManualEnd {
 
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(host, port, HarvestCoordinatorPaths.HARVEST_COMPLETE))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(host, port, WctCoordinatorPaths.HARVEST_COMPLETE))
                 .queryParam("harvest-result", harvestResultDTO);
 
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
