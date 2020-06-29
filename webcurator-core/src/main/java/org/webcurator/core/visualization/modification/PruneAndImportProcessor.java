@@ -1,35 +1,25 @@
 package org.webcurator.core.visualization.modification;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.coordinator.WctCoordinatorPaths;
-import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationCoordinator;
-import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.File;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
     private final PruneAndImportCommandApply cmd;
     private PruneAndImportCoordinator coordinator = null;
-    private final AbstractRestClient client;
 
-
-    public PruneAndImportProcessor(VisualizationManager visualizationManager, PruneAndImportCommandApply cmd, AbstractRestClient client) throws DigitalAssetStoreException {
-        super(visualizationManager, cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+    public PruneAndImportProcessor(PruneAndImportCommandApply cmd) throws DigitalAssetStoreException {
+        super(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
         this.cmd = cmd;
-        this.client = client;
     }
 
     public void pruneAndImport() throws Exception {
@@ -85,7 +75,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
             //Clean all existing files
             FileUtils.cleanDirectory(destDir);
         }
-        List<File> dirs = new LinkedList<File>();
+        List<File> dirs = new LinkedList<>();
         dirs.add(destDir);
 
         // Initial extractor.
@@ -123,16 +113,6 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         coordinator.close();
     }
 
-    private void notifyModificationComplete(long targetInstanceId, int harvestResultNumber) {
-        RestTemplateBuilder restTemplateBuilder = client.getRestTemplateBuilder();
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(client.getUrl(WctCoordinatorPaths.MODIFICATION_COMPLETE_PRUNE_IMPORT))
-                .queryParam("targetInstanceOid", targetInstanceId)
-                .queryParam("harvestNumber", harvestResultNumber);
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        URI uri = uriComponentsBuilder.build().toUri();
-        restTemplate.getForObject(uri, Void.class);
-    }
-
     @Override
     protected String getProcessorStage() {
         return HarvestResult.PATCH_STAGE_TYPE_MODIFYING;
@@ -146,7 +126,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         }
 
         if (running) {
-            this.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+            wctCoordinatorClient.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
             log.info("Notify Core that modification is finished");
         }
     }

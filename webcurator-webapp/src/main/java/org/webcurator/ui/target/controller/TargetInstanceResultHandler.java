@@ -29,8 +29,8 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -56,7 +56,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  */
 public class TargetInstanceResultHandler extends TabHandler {
     private TargetInstanceManager targetInstanceManager;
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinator wctCoordinator;
     private TargetInstanceDAO targetInstanceDAO;
 
     /**
@@ -136,7 +136,7 @@ public class TargetInstanceResultHandler extends TabHandler {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             ModelAndView mav = new ModelAndView();
-            HashMap agents = harvestCoordinator.getHarvestAgents();
+            HashMap agents = wctCoordinator.getHarvestAgents();
             mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, agents);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
@@ -153,7 +153,7 @@ public class TargetInstanceResultHandler extends TabHandler {
                 } else {
                     if (hr.getState() != HarvestResult.STATE_REJECTED) {
                         hr.setState(HarvestResult.STATE_REJECTED);
-                        harvestCoordinator.removeIndexes(hr);
+                        wctCoordinator.removeIndexes(hr);
                     }
                 }
 
@@ -213,7 +213,7 @@ public class TargetInstanceResultHandler extends TabHandler {
                         hr.setState(HarvestResult.STATE_REJECTED);
                         RejReason rejReason = agencyUserManager.getRejReasonByOid(rejReasonId);
                         hr.setRejReason(rejReason);
-                        harvestCoordinator.removeIndexes(hr);
+                        wctCoordinator.removeIndexes(hr);
                     }
 
                     targetInstanceManager.save((HarvestResult) hr);
@@ -252,7 +252,7 @@ public class TargetInstanceResultHandler extends TabHandler {
             for (HarvestResult hr : ti.getHarvestResults()) {
                 if (hr.getOid().equals(cmd.getHarvestResultId()) &&
                         hr.getState() == HarvestResult.STATE_INDEXING) {
-                    reIndexSuccessful = harvestCoordinator.reIndexHarvestResult(hr);
+                    reIndexSuccessful = wctCoordinator.reIndexHarvestResult(hr);
                     break;
                 }
             }
@@ -289,10 +289,10 @@ public class TargetInstanceResultHandler extends TabHandler {
 
 
     /**
-     * @param harvestCoordinator The harvestCoordinator to set.
+     * @param wctCoordinator The wctCoordinator to set.
      */
-    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-        this.harvestCoordinator = harvestCoordinator;
+    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 
     /**

@@ -3,6 +3,7 @@ package org.webcurator.core.visualization;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.HarvestResult;
 
@@ -12,26 +13,32 @@ import java.util.concurrent.Semaphore;
 
 public abstract class VisualizationAbstractProcessor {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationAbstractProcessor.class);
+    protected WctCoordinatorClient wctCoordinatorClient;
     protected final String processorStage;
     protected final VisualizationProgressBar progressBar;
-    protected final String fileDir; //Upload files
-    protected final String baseDir; //Harvest WARC files dir
-    protected final String logsDir; //log dir
-    protected final String reportsDir; //report dir
     protected final long targetInstanceId;
     protected final int harvestResultNumber;
+    protected String fileDir; //Upload files
+    protected String baseDir; //Harvest WARC files dir
+    protected String logsDir; //log dir
+    protected String reportsDir; //report dir
     protected boolean running = true;
     protected Semaphore stopped = new Semaphore(1);
+    protected int status = HarvestResult.STATUS_SCHEDULED;
 
-    public VisualizationAbstractProcessor(VisualizationManager visualizationManager, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+    public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         this.processorStage = getProcessorStage();
+        this.progressBar = new VisualizationProgressBar(processorStage, targetInstanceId, harvestResultNumber);
+        this.targetInstanceId = targetInstanceId;
+        this.harvestResultNumber = harvestResultNumber;
+    }
+
+    public void init(VisualizationManager visualizationManager, WctCoordinatorClient wctCoordinatorClient) {
         this.fileDir = visualizationManager.getUploadDir();
         this.baseDir = visualizationManager.getBaseDir();
         this.logsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
         this.reportsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
-        this.progressBar = new VisualizationProgressBar(processorStage, targetInstanceId, harvestResultNumber);
-        this.targetInstanceId = targetInstanceId;
-        this.harvestResultNumber = harvestResultNumber;
+        this.wctCoordinatorClient = wctCoordinatorClient;
     }
 
     abstract protected String getProcessorStage();
@@ -43,6 +50,7 @@ public abstract class VisualizationAbstractProcessor {
     public void process() {
         try {
             this.stopped.acquire();
+            this.status = HarvestResult.STATUS_RUNNING;
             processInternal();
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -50,12 +58,14 @@ public abstract class VisualizationAbstractProcessor {
         } finally {
             this.stopped.release();
             this.progressBar.clear();
+            this.status = HarvestResult.STATUS_FINISHED;
         }
     }
 
     abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
+        this.status = HarvestResult.STATUS_PAUSED;
         try {
             this.wait();
         } catch (InterruptedException e) {
@@ -65,10 +75,13 @@ public abstract class VisualizationAbstractProcessor {
     }
 
     public void resumeTask() {
+        this.status = HarvestResult.STATUS_RUNNING;
         this.notifyAll();
     }
 
     public void terminateTask() {
+        this.status = HarvestResult.STATUS_TERMINATED;
+
         this.running = false;
         terminateInternal();
         try {
@@ -121,5 +134,13 @@ public abstract class VisualizationAbstractProcessor {
 
     public VisualizationProgressBar getProgress() {
         return this.progressBar;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 }

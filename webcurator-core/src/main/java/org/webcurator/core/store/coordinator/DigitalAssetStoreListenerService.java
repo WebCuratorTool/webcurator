@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.DasCallback;
 import org.webcurator.core.harvester.coordinator.IndexerService;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -22,7 +22,7 @@ public class DigitalAssetStoreListenerService implements DigitalAssetStoreListen
     private static final Logger log = LoggerFactory.getLogger(DigitalAssetStoreListenerService.class);
 
     @Autowired
-    private WctCoordinatorImpl wctCoordinator;
+    private WctCoordinator wctCoordinator;
     @Autowired
     private TargetInstanceManager targetInstanceManager;
 

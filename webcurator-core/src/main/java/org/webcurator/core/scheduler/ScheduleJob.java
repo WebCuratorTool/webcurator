@@ -22,7 +22,7 @@ import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 
 /**
  * The Scheduled job for prompting the harvest coordinator to process the 
@@ -33,7 +33,7 @@ public class ScheduleJob extends QuartzJobBean {
 	/** the logger. */
 	private static final Log log = LogFactory.getLog(ScheduleJob.class);
 	/** The harvest Coordinator to use to schedule jobs. */	
-	private HarvestCoordinator harvestCoordinator;
+	private WctCoordinator wctCoordinator;
 	
 	/* (non-Javadoc)
 	 * @see org.springframework.scheduling.quartz.QuartzJobBean#executeInternal(org.quartz.JobExecutionContext)
@@ -45,7 +45,7 @@ public class ScheduleJob extends QuartzJobBean {
 			aContext.getScheduler().pauseTriggers(triggerMatcher);
 
 			log.info("Starting processSchedule");
-			harvestCoordinator.processSchedule();
+			wctCoordinator.processSchedule();
 		}
 		catch (Exception e) {
 			// Dont throw an exception here as this will stop the scheduling job running.
@@ -66,9 +66,9 @@ public class ScheduleJob extends QuartzJobBean {
 	}
 
 	/**  
-	 * @param harvestCoordinator the harvest coordinator to use.
+	 * @param wctCoordinator the harvest coordinator to use.
 	 */
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 }

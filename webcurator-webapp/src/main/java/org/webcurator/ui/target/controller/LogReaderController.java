@@ -24,10 +24,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -48,7 +47,7 @@ import org.webcurator.ui.target.validator.LogReaderValidator;
 @SuppressWarnings("all")
 public class LogReaderController {
     @Autowired
-    HarvestCoordinator harvestCoordinator;
+    WctCoordinator wctCoordinator;
     @Autowired
     TargetInstanceManager targetInstanceManager;
 
@@ -123,7 +122,7 @@ public class LogReaderController {
 
             //Count the log lines first time in
             if ((cmd.getNumLines() == null || cmd.getNumLines().intValue() == -1)) {
-                cmd.setNumLines(harvestCoordinator.countLogLines(ti, cmd.getLogFileName()));
+                cmd.setNumLines(wctCoordinator.countLogLines(ti, cmd.getLogFileName()));
             }
             if (cmd.getNoOfLines() == null || cmd.getNoOfLinesInt() == 0) {
                 cmd.setNoOfLines(700);
@@ -133,26 +132,26 @@ public class LogReaderController {
                 if (LogReaderCommand.VALUE_TIMESTAMP.equals(cmd.getFilterType())) {
                     // do timestamp filtering
                     if (cmd.getLongTimestamp() != -1) {
-                        firstLine = harvestCoordinator.getFirstLogLineAfterTimeStamp(ti, cmd.getLogFileName(), cmd.getLongTimestamp());
+                        firstLine = wctCoordinator.getFirstLogLineAfterTimeStamp(ti, cmd.getLogFileName(), cmd.getLongTimestamp());
                         if (firstLine > -1) {
-                            lines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+                            lines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
                         } else {
                             // do empty tail
                             firstLine = -2;
-                            lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
+                            lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
                         }
                     } else {
                         firstLine = -2;
                         messageText = cmd.getFilter() + " is not a valid date/time format";
                     }
                 } else if (LogReaderCommand.VALUE_REGEX_CONTAIN.equals(cmd.getFilterType())) {
-                    firstLine = harvestCoordinator.getFirstLogLineContaining(ti, cmd.getLogFileName(), cmd.getFilter());
+                    firstLine = wctCoordinator.getFirstLogLineContaining(ti, cmd.getLogFileName(), cmd.getFilter());
                     if (firstLine > -1) {
-                        lines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+                        lines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
                     } else {
                         // do empty tail
                         firstLine = -2;
-                        lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
+                        lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
                     }
                 } else if (LogReaderCommand.VALUE_REGEX_INDENT.equals(cmd.getFilterType())) {
                     firstLine = -2;
@@ -167,7 +166,7 @@ public class LogReaderController {
                             regex = "^[^ \\t].*" + cmd.getFilter();
                         }
 
-                        lines = harvestCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), regex, true);
+                        lines = wctCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), regex, true);
                         if (lines != null && lines.size() == 2) {
                             StringBuilder sb = new StringBuilder();
                             String[] subLines = lines.get(0).split("\n");
@@ -179,25 +178,25 @@ public class LogReaderController {
                         } else {
                             // do empty tail
                             firstLine = -2;
-                            lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
+                            lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
                         }
                     }
                 } else if (LogReaderCommand.VALUE_REGEX_MATCH.equals(cmd.getFilterType())) {
                     // do regex filtering
                     firstLine = -2;
-                    lines = harvestCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), cmd.getFilter(), cmd.getShowLineNumbers());
+                    lines = wctCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), cmd.getFilter(), cmd.getShowLineNumbers());
                 } else if (LogReaderCommand.VALUE_FROM_LINE.equals(cmd.getFilterType())) {
                     //do get
                     firstLine = cmd.getFilter() == null || cmd.getFilter().length() == 0 ? 0 : new Integer(cmd.getFilter()).intValue();
-                    lines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+                    lines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
                 } else if (LogReaderCommand.VALUE_HEAD.equals(cmd.getFilterType())) {
                     //do head
                     firstLine = 1;
-                    lines = harvestCoordinator.headLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+                    lines = wctCoordinator.headLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
                 } else {
                     // do tail
                     firstLine = -1;
-                    lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+                    lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
                 }
             } catch (org.webcurator.core.exceptions.WCTRuntimeException e) {
                 if (e.getCause().getMessage().startsWith("java.util.regex.PatternSyntaxException")) {
@@ -356,10 +355,10 @@ public class LogReaderController {
     }
 
     /**
-     * @param harvestCoordinator the harvestCoordinator to set
+     * @param wctCoordinator the wctCoordinator to set
      */
-    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-        this.harvestCoordinator = harvestCoordinator;
+    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 
     /**
@@ -412,7 +411,7 @@ public class LogReaderController {
             }
         }
 
-        List<String> requiredLines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, lastLine - firstLine);
+        List<String> requiredLines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, lastLine - firstLine);
 
         return addNumbers(requiredLines, firstLine, showLineNumbers);
     }
@@ -446,7 +445,7 @@ public class LogReaderController {
     private String[] fetchNonIndentedLines(TargetInstance ti, LogReaderCommand cmd) {
         String[] nonIndentedLines = {""};
         //Get all non indented lines with line numbers
-        List<String> nonIndents = harvestCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNumLines().intValue(), "^[^ \\t].*", true);
+        List<String> nonIndents = wctCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNumLines().intValue(), "^[^ \\t].*", true);
         if (nonIndents != null &&
                 nonIndents.get(0).length() > 0) {
             nonIndentedLines = nonIndents.get(0).split("\n");

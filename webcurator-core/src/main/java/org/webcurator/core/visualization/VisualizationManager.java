@@ -1,8 +1,5 @@
 package org.webcurator.core.visualization;
 
-import org.springframework.stereotype.Component;
-
-@Component("visualizationManager")
 public class VisualizationManager {
     private String uploadDir;
     private String baseDir;

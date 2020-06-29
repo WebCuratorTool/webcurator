@@ -20,7 +20,6 @@ import static org.webcurator.core.archive.Constants.LOG_FILE;
 import static org.webcurator.core.archive.Constants.REPORT_FILE;
 import static org.webcurator.core.archive.Constants.ROOT_FILE;
 
-import com.google.common.collect.ImmutableMap;
 import it.unipi.di.util.ExternalSort;
 
 import java.io.BufferedReader;
@@ -33,7 +32,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -46,15 +44,15 @@ import org.archive.io.*;
 import org.archive.io.arc.ARCRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
-import org.webcurator.core.coordinator.WctCoordinatorPaths;
-import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.reader.LogProvider;
@@ -63,7 +61,6 @@ import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.VisualizationProcessorQueue;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
@@ -74,7 +71,6 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -83,15 +79,18 @@ import org.webcurator.domain.model.dto.SeedHistorySetDTO;
  * @author bbeaumont
  */
 @SuppressWarnings("all")
-public class ArcDigitalAssetStoreService extends AbstractRestClient implements DigitalAssetStore, LogProvider {
-       /**
+@Component("arcDigitalAssetStoreService")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
+public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvider {
+    /**
      * The logger.
      */
     private static Logger log = LoggerFactory.getLogger(ArcDigitalAssetStoreService.class);
     /**
      * the base directory for the digital asset stores harvest files.
      */
-    private File baseDir = null;
+    @Value("${arcDigitalAssetStoreService.baseDir}")
+    private String baseDir = null;
     /**
      * Constant for the size of a buffer.
      */
@@ -105,18 +104,31 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     /**
      * The Indexer
      */
+    @Autowired
     private Indexer indexer = null;
     /**
      * The DAS File Mover
      */
     private DasFileMover dasFileMover = null;
+
     private FileArchive fileArchive = null;
+
+    @Autowired
     private WebServiceEndPoint wsEndPoint;
+
+    @Autowired
     private Archive arcDasArchive;
-    private VisualizationManager visualizationManager;
+
+    @Autowired
     private NetworkMapClient networkMapClient;
+
+    @Autowired
     private VisualizationProcessorQueue visualizationProcessorQueue;
+
+    @Autowired
     private BDBNetworkMapPool pool;
+
+    private WctCoordinatorClient wctCoordinatorClient;
 
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
@@ -124,15 +136,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         writerDF.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
-
-    public ArcDigitalAssetStoreService(WebServiceEndPoint wsEndPoint, RestTemplateBuilder restTemplateBuilder) {
-        this(wsEndPoint.getSchema(), wsEndPoint.getHost(), wsEndPoint.getPort(), restTemplateBuilder);
-        this.wsEndPoint = wsEndPoint;
-    }
-
-    public ArcDigitalAssetStoreService(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
-        super(scheme, host, port, restTemplateBuilder);
     }
 
     public void save(String targetInstanceName, String directory, Path path)
@@ -968,12 +971,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid,
                         SIP, xAttributes, fileList);
 
-                completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
+                wctCoordinatorClient.completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
             } catch (Throwable t) {
                 log.error("Could not archive " + targetInstanceOid, t);
 
                 try {
-                    failedArchiving(Long.parseLong(targetInstanceOid), t.getMessage());
+                    wctCoordinatorClient.failedArchiving(Long.parseLong(targetInstanceOid), t.getMessage());
                 } catch (Exception ex) {
                     log.error("Got error trying to send \"failedArchiving\" to server", ex);
                 }
@@ -981,27 +984,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
-    private void completeArchiving(Long targetInstanceOid, String archiveIID) {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.COMPLETE_ARCHIVING))
-                .queryParam("archive-id", archiveIID);
-
-        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
-    }
-
-    private void failedArchiving(Long targetInstanceOid, String message) {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FAILED_ARCHIVING))
-                .queryParam("message", message);
-
-        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, Void.class);
-    }
 
     public CustomDepositFormResultDTO getCustomDepositFormDetails(
             CustomDepositFormCriteriaDTO criteria)
@@ -1014,17 +996,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * @param baseDir the base directory for the digital asset stores harvest files.
      */
     public void setBaseDir(String baseDir) {
-        this.baseDir = new File(baseDir);
-    }
-
-    public Set<SeedHistoryDTO> getSeedUrls(long targetInstanceId, int harvestResultNumber) {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED))
-                .queryParam("targetInstanceOid", targetInstanceId)
-                .queryParam("harvestNumber", harvestResultNumber);
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        URI uri = uriComponentsBuilder.build().toUri();
-        ResponseEntity<SeedHistorySetDTO> seedHistorySetDTO = restTemplate.getForEntity(uri, SeedHistorySetDTO.class);
-        return Objects.requireNonNull(seedHistorySetDTO.getBody()).getSeeds();
+        this.baseDir = baseDir;
     }
 
     public void initiateIndexing(HarvestResultDTO harvestResult)
@@ -1033,10 +1005,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         File sourceDir = new File(this.baseDir, "/"
                 + harvestResult.getTargetInstanceOid() + "/"
                 + harvestResult.getHarvestNumber());
-
-        Set<SeedHistoryDTO> seedUrls = getSeedUrls(harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
-
-        VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber(), seedUrls, visualizationManager);
+        VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         // Kick of the indexer.
 //        indexer.runIndex(harvestResult, sourceDir);
         visualizationProcessorQueue.startTask(processor);
@@ -1063,6 +1032,10 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      */
     public void setIndexer(Indexer indexer) {
         this.indexer = indexer;
+    }
+
+    public void setWctCoordinatorClient(WctCoordinatorClient wctCoordinatorClient) {
+        this.wctCoordinatorClient = wctCoordinatorClient;
     }
 
     /**
@@ -1126,14 +1099,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         this.fileArchive = fileArchive;
     }
 
-    public VisualizationManager getVisualizationManager() {
-        return visualizationManager;
-    }
-
-    public void setVisualizationManager(VisualizationManager visualizationManager) {
-        this.visualizationManager = visualizationManager;
-    }
-
     public NetworkMapClient getNetworkMapClient() {
         return networkMapClient;
     }
@@ -1162,7 +1127,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
         VisualizationAbstractProcessor processor = null;
         try {
-            processor = new PruneAndImportProcessor(visualizationManager, cmd, this);
+            processor = new PruneAndImportProcessor(cmd);
         } catch (DigitalAssetStoreException e) {
             log.error(e.getLocalizedMessage());
             e.printStackTrace();
@@ -1192,9 +1157,9 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                     PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
                     cmd.setTargetInstanceId(targetInstanceId);
                     cmd.setNewHarvestResultNumber(harvestNumber);
-                    processor = new PruneAndImportProcessor(visualizationManager, cmd, this);
+                    processor = new PruneAndImportProcessor(cmd);
                 } else if (stage.equals(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-                    processor = new ResourceExtractorProcessor(null, targetInstanceId, harvestNumber, null, visualizationManager);
+                    processor = new ResourceExtractorProcessor(null, targetInstanceId, harvestNumber);
                 } else {
                     return;
                 }

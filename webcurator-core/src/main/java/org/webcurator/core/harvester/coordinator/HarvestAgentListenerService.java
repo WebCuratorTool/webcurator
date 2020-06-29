@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.common.Constants;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.*;
@@ -28,8 +29,8 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
      * the harvest coordinator to delegate to.
      */
     @Autowired
-    @Qualifier(Constants.BEAN_HARVEST_COORDINATOR)
-    HarvestCoordinator harvestCoordinator;
+    @Qualifier(Constants.BEAN_WCT_COORDINATOR)
+    WctCoordinator wctCoordinator;
 
     @Autowired
     TargetInstanceManager targetInstanceManager;
@@ -44,13 +45,13 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
     @PostMapping(path = WctCoordinatorPaths.HEARTBEAT)
     public void heartbeat(@RequestBody HarvestAgentStatusDTO aStatus) {
         log.info("Received heartbeat from {}://{}:{}", aStatus.getScheme(), aStatus.getHost(), aStatus.getPort());
-        harvestCoordinator.heartbeat(aStatus);
+        wctCoordinator.heartbeat(aStatus);
     }
 
     @RequestMapping(path = WctCoordinatorPaths.RECOVERY, method = {RequestMethod.POST, RequestMethod.GET})
     public void requestRecovery(@RequestBody HarvestAgentStatusDTO aStatus) {
         log.info("Received recovery request from {}://{}:{}", aStatus.getScheme(), aStatus.getHost(), aStatus.getPort());
-        harvestCoordinator.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService());
+        wctCoordinator.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService());
     }
 
     /*
@@ -61,7 +62,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
     @PostMapping(path = WctCoordinatorPaths.HARVEST_COMPLETE)
     public void harvestComplete(@RequestBody HarvestResultDTO aResult) {
         log.info("Received harvest complete for {} {}", aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
-        harvestCoordinator.harvestComplete(aResult);
+        wctCoordinator.harvestComplete(aResult);
     }
 
     /*
@@ -74,7 +75,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
                              @RequestParam(value = "notification-category") int notificationCategory,
                              @RequestParam(value = "message-type") String aMessageType) {
         log.info("Received Notification TargetInstanceOid {} with MessageType of {}", aTargetInstanceOid, aMessageType);
-        harvestCoordinator.notification(aTargetInstanceOid, notificationCategory, aMessageType);
+        wctCoordinator.notification(aTargetInstanceOid, notificationCategory, aMessageType);
     }
 
     /*
@@ -87,7 +88,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
                              @RequestParam(value = "notification-category") int notificationCategory,
                              @RequestParam(value = "message") String aMessage) {
         log.info("Received Notification {} {}", aSubject, aMessage);
-        harvestCoordinator.notification(aSubject, notificationCategory, aMessage);
+        wctCoordinator.notification(aSubject, notificationCategory, aMessage);
     }
 
 

@@ -39,8 +39,8 @@ import org.webcurator.common.ui.Constants;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.Environment;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.CookieUtils;
@@ -66,6 +66,7 @@ import java.util.*;
  *
  * @author nwaight
  */
+@SuppressWarnings("all")
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
@@ -81,7 +82,7 @@ public class QueueController {
 	private TargetInstanceManager targetInstanceManager;
 	/** The harvest coordinator for looking at the harvesters. */
 	@Autowired
-	private HarvestCoordinator harvestCoordinator;
+	private WctCoordinator wctCoordinator;
 	/** the WCT global environment settings. */
 	@Autowired
 	@Qualifier("environmentWCT")
@@ -307,7 +308,7 @@ public class QueueController {
 			futureScheduleCount.put(targetOid, targetInstanceManager.countQueueLengthForTarget(targetOid));
 		}
 
-		aCmd.setQueuePaused(harvestCoordinator.isQueuePaused());
+		aCmd.setQueuePaused(wctCoordinator.isQueuePaused());
 
 		mav.addObject(TargetInstanceCommand.MDL_INDICATORS, indicators);
 		mav.addObject(TargetInstanceCommand.MDL_INSTANCES, instances);
@@ -649,7 +650,7 @@ public class QueueController {
 				hr.setState(HarvestResult.STATE_ENDORSED);
 			} else if (hr.getState() != HarvestResult.STATE_REJECTED) {
 				hr.setState(HarvestResult.STATE_REJECTED);
-				harvestCoordinator.removeIndexes(hr);
+				wctCoordinator.removeIndexes(hr);
 			}
 			targetInstanceManager.save((HarvestResult) hr);
 		}
@@ -675,7 +676,7 @@ public class QueueController {
 								"No rejection reason specified, but this is a required field.  Please create one if no rejection reasons are configured.");
 					} else {
 						hr.setRejReason(rejReason);
-						harvestCoordinator.removeIndexes(hr);
+						wctCoordinator.removeIndexes(hr);
 					}
 				}
 
@@ -809,7 +810,7 @@ public class QueueController {
 	private ModelAndView processPause(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
 									  BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		harvestCoordinator.pause(ti);
+		wctCoordinator.pause(ti);
 
 		return processFilter(aReq, aResp, null, bindingResult);
 	}
@@ -820,7 +821,7 @@ public class QueueController {
 	private ModelAndView processResume(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
 									   BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		harvestCoordinator.resume(ti);
+		wctCoordinator.resume(ti);
 
 		return processFilter(aReq, aResp, null, bindingResult);
 	}
@@ -831,7 +832,7 @@ public class QueueController {
 	private ModelAndView processAbort(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
 									  BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		harvestCoordinator.abort(ti);
+		wctCoordinator.abort(ti);
 
 		return processFilter(aReq, aResp, null, bindingResult);
 	}
@@ -842,13 +843,13 @@ public class QueueController {
 	private ModelAndView processStop(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
 									 BindingResult bindingResult) {
 		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		harvestCoordinator.stop(ti);
+		wctCoordinator.stop(ti);
 
 		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 
 	public void setEnvironment(Environment environment) {

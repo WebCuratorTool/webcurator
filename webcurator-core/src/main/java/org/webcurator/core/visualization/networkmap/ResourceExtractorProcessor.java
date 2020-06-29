@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationCoordinator;
-import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
@@ -27,20 +26,20 @@ import java.util.concurrent.atomic.AtomicLong;
 @SuppressWarnings("all")
 public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     private static final Logger log = LoggerFactory.getLogger(ResourceExtractorProcessor.class);
-    private File directory;
     private Map<String, NetworkMapNode> urls = new Hashtable<>();
     private BDBNetworkMap db;
     private Set<SeedHistoryDTO> seeds;
     private ResourceExtractor extractor;
 
-    public ResourceExtractorProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber, Set<SeedHistoryDTO> seeds, VisualizationManager visualizationManager) throws DigitalAssetStoreException {
-        super(visualizationManager, targetInstanceId, harvestResultNumber);
-        this.directory = new File(visualizationManager.getBaseDir(), targetInstanceId + File.separator + harvestResultNumber);
+    public ResourceExtractorProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+        super(targetInstanceId, harvestResultNumber);
         this.db = pool.createInstance(targetInstanceId, harvestResultNumber);
-        this.seeds = seeds;
+        this.seeds = wctCoordinatorClient.getSeedUrls(targetInstanceId, harvestResultNumber);
     }
 
     public void indexFiles() throws IOException {
+        File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
+
         List<File> fileList = VisualizationCoordinator.grepWarcFiles(directory);
         if (fileList == null || fileList.size() == 0) {
             log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
@@ -219,6 +218,7 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     @Override
     public void deleteInternal() {
         //delete indexing data
-        this.delete(this.directory.getAbsolutePath(), "_resource");
+        File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
+        this.delete(directory.getAbsolutePath(), "_resource");
     }
 }

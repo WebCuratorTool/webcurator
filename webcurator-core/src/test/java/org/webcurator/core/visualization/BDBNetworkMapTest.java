@@ -69,7 +69,7 @@ public class BDBNetworkMapTest {
     public void testExtractor(BDBNetworkMap db, long job, int harvestResultNumber) {
         String directory = String.format("%s/%d/1", baseDir, job);
         try {
-            ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(pool, job, harvestResultNumber, seeds, visualizationManager);
+            ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(pool, job, harvestResultNumber);
             indexer.indexFiles();
         } catch (IOException | DigitalAssetStoreException e) {
             e.printStackTrace();

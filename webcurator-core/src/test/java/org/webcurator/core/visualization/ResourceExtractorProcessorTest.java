@@ -47,7 +47,7 @@ public class ResourceExtractorProcessorTest {
         visualizationManager.setReportsDir("reports");
         visualizationManager.setLogsDir("logs");
 
-        ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(pool, targetInstanceId, harvestResultNumber, seeds, visualizationManager);
+        ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(pool, targetInstanceId, harvestResultNumber);
 
         visualizationProcessorQueue.startTask(indexer);
     }

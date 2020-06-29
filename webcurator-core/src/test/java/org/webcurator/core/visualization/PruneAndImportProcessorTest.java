@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
@@ -20,14 +21,14 @@ public class PruneAndImportProcessorTest {
     private static final String fileDir = "/usr/local/wct/store/uploadedFiles";
     private static final String baseDir = "/usr/local/wct/store";
     private static final String coreCacheDir = "/usr/local/wct/webapp/uploadedFiles";
-    private MockWebAppClient webAppClient;
+    private WctCoordinatorClient wctCoordinatorClient;
     private final VisualizationManager visualizationManager = new VisualizationManager();
 
     private VisualizationProcessorQueue visualizationProcessorQueue = new VisualizationProcessorQueue();
 
     @Before
     public void initTest() {
-        webAppClient = new MockWebAppClient("http", "localhost", 8080, new RestTemplateBuilder());
+        wctCoordinatorClient = new WctCoordinatorClient("http", "localhost", 8080, new RestTemplateBuilder());
     }
 
     @Test
@@ -40,7 +41,7 @@ public class PruneAndImportProcessorTest {
         visualizationManager.setUploadDir(fileDir);
         visualizationManager.setLogsDir("logs");
         visualizationManager.setReportsDir("reports");
-        PruneAndImportProcessor processor = new PruneAndImportProcessor(visualizationManager, cmd, webAppClient);
+        PruneAndImportProcessor processor = new PruneAndImportProcessor(cmd);
 
         visualizationProcessorQueue.startTask(processor);
 

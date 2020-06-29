@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -65,7 +65,7 @@ public class TabbedTargetInstanceController extends TabbedController {
     TargetInstanceManager targetInstanceManager;
     /** The harvest coordinator to use to update the profile overrides. */
     @Autowired
-    HarvestCoordinator harvestCoordinator;
+    WctCoordinator wctCoordinator;
     /** The authority manager used to perform security checks */
     @Autowired
     AuthorityManager authorityManager;
@@ -119,7 +119,7 @@ public class TabbedTargetInstanceController extends TabbedController {
 			targetInstanceManager.save(ti);
 			if (ti.getState().equals(TargetInstance.STATE_PAUSED)) {
 				// Send the updated profile to the harvester.
-				harvestCoordinator.updateProfileOverrides(ti);
+				wctCoordinator.updateProfileOverrides(ti);
 			}
 		}
         catch (HibernateOptimisticLockingFailureException e) {
@@ -249,10 +249,10 @@ public class TabbedTargetInstanceController extends TabbedController {
     }
 
 	/**
-	 * @param harvestCoordinator the harvestCoordinator to set
+	 * @param wctCoordinator the wctCoordinator to set
 	 */
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 
 	/**

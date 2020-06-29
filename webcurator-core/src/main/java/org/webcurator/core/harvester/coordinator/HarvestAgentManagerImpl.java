@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.reader.LogReader;
@@ -19,6 +19,7 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
+@SuppressWarnings("all")
 public class HarvestAgentManagerImpl implements HarvestAgentManager {
 
     static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<>());
@@ -29,7 +30,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
     private TargetInstanceDAO targetInstanceDao;
     private TargetInstanceManager targetInstanceManager;
     private HarvestAgentFactory harvestAgentFactory;
-    private WctCoordinatorImpl wctCoordinator;
+    private WctCoordinator wctCoordinator;
 
     @Override
     public void heartbeat(HarvestAgentStatusDTO aStatus) {
@@ -469,7 +470,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         this.targetInstanceDao = targetInstanceDao;
     }
 
-    public void setHarvestCoordinator(WctCoordinatorImpl wctCoordinator) {
+    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
         this.wctCoordinator = wctCoordinator;
     }
 

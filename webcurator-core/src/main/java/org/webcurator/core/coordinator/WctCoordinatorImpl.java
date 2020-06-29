@@ -78,9 +78,9 @@ import javax.servlet.http.HttpServletResponse;
  * @author nwaight
  */
 @SuppressWarnings("all")
-@Component("harvestCoordinator")
+@Component("wctCoordinator")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class WctCoordinatorImpl implements HarvestCoordinator, DigitalAssetStoreCoordinator {
+public class WctCoordinatorImpl implements WctCoordinator {
     private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
 
     @Autowired
@@ -119,14 +119,14 @@ public class WctCoordinatorImpl implements HarvestCoordinator, DigitalAssetStore
      * the number of days before a target instance's digital assets are purged
      * from the DAS.
      */
-    @Value("${harvestCoordinator.daysBeforeDASPurge}")
+    @Value("${wctCoordinator.daysBeforeDASPurge}")
     private int daysBeforeDASPurge = 14;
 
     /**
      * the number of days before an aborted target instance's remnant data are
      * purged from the system.
      */
-    @Value("${harvestCoordinator.daysBeforeAbortedTargetInstancePurge}")
+    @Value("${wctCoordinator.daysBeforeAbortedTargetInstancePurge}")
     private int daysBeforeAbortedTargetInstancePurge = 7;
     @Autowired
     private SipBuilder sipBuilder = null;
@@ -134,11 +134,11 @@ public class WctCoordinatorImpl implements HarvestCoordinator, DigitalAssetStore
     private Logger log = LoggerFactory.getLogger(getClass());
     private boolean queuePaused = false;
 
-    @Value("${harvestCoordinator.harvestOptimizationLookaheadHours}")
+    @Value("${wctCoordinator.harvestOptimizationLookaheadHours}")
     private int harvestOptimizationLookAheadHours;
-    @Value("${harvestCoordinator.numHarvestersExcludedFromOptimisation}")
+    @Value("${wctCoordinator.numHarvestersExcludedFromOptimisation}")
     private int numHarvestersExcludedFromOptimisation;
-    @Value("${harvestCoordinator.harvestOptimizationEnabled}")
+    @Value("${wctCoordinator.harvestOptimizationEnabled}")
     private boolean harvestOptimizationEnabled;
 
     /**
@@ -1669,8 +1669,8 @@ public class WctCoordinatorImpl implements HarvestCoordinator, DigitalAssetStore
 
             result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
             if (allowedAgent != null) {
-                HarvestCoordinator harvestCoordinator = ApplicationContextFactory.getApplicationContext().getBean(HarvestCoordinator.class);
-                harvestCoordinator.patchHarvest(ti, allowedAgent);
+                HarvestCoordinator wctCoordinator = ApplicationContextFactory.getApplicationContext().getBean(HarvestCoordinator.class);
+                wctCoordinator.patchHarvest(ti, allowedAgent);
                 result.setRespMsg("Modification harvest job started");
             } else {
                 ti.setScheduledTime(new Date());
@@ -1850,6 +1850,12 @@ public class WctCoordinatorImpl implements HarvestCoordinator, DigitalAssetStore
 
     @Override
     public void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList) {
-
+        for (HarvestResultDTO hrDTO : harvestResultDTOList) {
+            TargetInstance ti = targetInstanceDao.load(hrDTO.getTargetInstanceOid());
+            HarvestResult hr = ti.getHarvestResult(hrDTO.getHarvestNumber());
+            hr.setState(hrDTO.getState());
+            hr.setStatus(hrDTO.getStatus());
+            targetInstanceManager.save(hr);
+        }
     }
 }

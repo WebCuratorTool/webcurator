@@ -21,7 +21,7 @@ package org.webcurator.core.common;
  */
 public interface Constants {
     /** the name of the harvest coordinator bean. */
-    String BEAN_HARVEST_COORDINATOR = "harvestCoordinator";
+    String BEAN_WCT_COORDINATOR = "wctCoordinator";
     /** the name of the harvest coordinator dao bean. */
     String BEAN_HARVEST_COORDINATOR_DAO = "harvestCoordinatorDao";    
     /** the name of the auditor bean. */

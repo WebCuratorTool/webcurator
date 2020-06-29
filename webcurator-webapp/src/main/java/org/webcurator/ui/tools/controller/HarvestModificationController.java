@@ -2,7 +2,7 @@ package org.webcurator.ui.tools.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class HarvestModificationController implements PruneAndImportService {
     //For store component, it's a localClient; For webapp component, it's a remote component
     @Autowired
-    private WctCoordinatorImpl wctCoordinator;
+    private WctCoordinator wctCoordinator;
 
     @Autowired
     private DigitalAssetStore digitalAssetStore;
@@ -54,15 +54,12 @@ public class HarvestModificationController implements PruneAndImportService {
 
     @RequestMapping(path = VisualizationConstants.PATH_DOWNLOAD_FILE, method = {RequestMethod.POST, RequestMethod.GET})
     public void downloadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) {
-        try {
-            wctCoordinator.downloadFile(job, harvestResultNumber, fileName, rsp.getOutputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        wctCoordinator.dasDownloadFile(job, harvestResultNumber, fileName, req, rsp);
     }
 
     @RequestMapping(path = VisualizationConstants.PATH_INDEX, method = {RequestMethod.POST, RequestMethod.GET})
-    public void startReindex(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+    public void startReindex(@RequestParam("job") long job,
+                             @RequestParam("harvestResultNumber") int harvestResultNumber) {
 
     }
 

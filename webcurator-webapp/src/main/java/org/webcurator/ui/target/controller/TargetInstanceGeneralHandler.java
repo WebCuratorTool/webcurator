@@ -34,7 +34,7 @@ import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.NoPrivilegeException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.Privilege;
@@ -59,7 +59,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 public class TargetInstanceGeneralHandler extends TabHandler {
 
     private TargetInstanceManager targetInstanceManager;
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinator wctCoordinator;
     private AgencyUserManager agencyUserManager;
     private AuthorityManager authorityManager;
     /** displays multi-coloured flagging if enabled **/
@@ -244,7 +244,7 @@ public class TargetInstanceGeneralHandler extends TabHandler {
                                      BindingResult bindingResult) {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
-            HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();
+            HashMap<String, HarvestAgentStatusDTO> agents = wctCoordinator.getHarvestAgents();
             TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
             String instanceAgency = ti.getOwner().getAgency().getName();
 
@@ -275,10 +275,10 @@ public class TargetInstanceGeneralHandler extends TabHandler {
     }
 
     /**
-     * @param harvestCoordinator The harvestCoordinator to set.
+     * @param wctCoordinator The wctCoordinator to set.
      */
-    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-        this.harvestCoordinator = harvestCoordinator;
+    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 
     /**

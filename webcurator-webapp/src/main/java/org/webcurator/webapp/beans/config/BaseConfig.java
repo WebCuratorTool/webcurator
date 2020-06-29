@@ -40,7 +40,7 @@ import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.visualization.VisualizationManager;
@@ -130,13 +130,13 @@ public class BaseConfig {
     @Value("${digitalAssetStore.port}")
     private int digitalAssetStorePort;
 
-    @Value("${harvestCoordinator.minimumBandwidth}")
+    @Value("${wctCoordinator.minimumBandwidth}")
     private int minimumBandwidth;
 
-    @Value("${harvestCoordinator.maxBandwidthPercent}")
+    @Value("${wctCoordinator.maxBandwidthPercent}")
     private int maxBandwidthPercent;
 
-    @Value("${harvestCoordinator.autoQAUrl}")
+    @Value("${wctCoordinator.autoQAUrl}")
     private String autoQAUrl;
 
     @Value("${queueController.enableQaModule}")
@@ -241,7 +241,7 @@ public class BaseConfig {
     @Value("${digitalAssetStoreServer.uploadedFilesDir}")
     private String digitalAssetStoreServerUploadedFilesDir;
 
-    @Value("${harvestCoordinator.autoQAUrl}")
+    @Value("${wctCoordinator.autoQAUrl}")
     private String harvestCoordinatorAutoQAUrl;
 
     @Value("${qualityReviewToolController.archiveUrl}")
@@ -269,14 +269,22 @@ public class BaseConfig {
     private ListsConfig listsConfig;
 
     @Autowired
-    private WctCoordinatorImpl wctCoordinator;
+    private WctCoordinator wctCoordinator;
 
-    @Autowired
-    VisualizationManager visualizationManager;
+//    @Autowired
+//    VisualizationManager visualizationManager;
 
     @PostConstruct
     public void init() {
-        visualizationManager.setUploadDir(uploadedFilesDir);
+//        visualizationManager.setUploadDir(uploadedFilesDir);
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public VisualizationManager visualizationManager() {
+        VisualizationManager bean = new VisualizationManager();
+        bean.setUploadDir(uploadedFilesDir);
+        return bean;
     }
 
     @Bean

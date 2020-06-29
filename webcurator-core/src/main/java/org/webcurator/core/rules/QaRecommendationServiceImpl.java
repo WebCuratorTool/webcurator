@@ -17,7 +17,7 @@ import org.kie.api.io.ResourceType;
 import org.drools.compiler.compiler.DroolsParserException;
 import org.kie.internal.io.ResourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorCriteria;
@@ -35,7 +35,7 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 	 * The interface for retrieving log files from the server or digital asset store
 	 */
     @Autowired
-	private HarvestCoordinator harvestCoordinator = null;
+	private WctCoordinator wctCoordinator = null;
 	
 	/**
 	 * The interface for retrieving harvest history
@@ -179,7 +179,7 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 		ksession.insert(messageMap);
 		
 		// pass in the Harvest Coordinator so that we can retrieve log files (eg: Heritrix Error Codes)
-		ksession.insert(harvestCoordinator);
+		ksession.insert(wctCoordinator);
 		
 		// pass the Target Instance Manager so that we can retrieve harvest history
 		ksession.insert(targetInstanceManager);
@@ -261,8 +261,8 @@ public class QaRecommendationServiceImpl implements QaRecommendationService {
 	/**
 	 *	Setter for the Harvest Coordinator used by Spring 
 	 */
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 	
 	/**

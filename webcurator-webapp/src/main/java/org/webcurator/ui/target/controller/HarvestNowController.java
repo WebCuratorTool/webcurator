@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -66,7 +66,7 @@ public class HarvestNowController {
      * The harvest coordinator for looking at the harvesters.
      */
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinator wctCoordinator;
     /**
      * the message source.
      */
@@ -117,7 +117,7 @@ public class HarvestNowController {
             return new ModelAndView("redirect:/" + targetUrl);
         }
 
-        HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();
+        HashMap<String, HarvestAgentStatusDTO> agents = wctCoordinator.getHarvestAgents();
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
         String instanceAgency = ti.getOwner().getAgency().getName();
 
@@ -147,10 +147,10 @@ public class HarvestNowController {
 
         ModelAndView mav = new ModelAndView("redirect:/" + targetUrl);
         // Get the TargetInstance and the HarvestAgentStatusDTO
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) harvestCoordinator.getHarvestAgents().get(cmd.getAgent());
+        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) wctCoordinator.getHarvestAgents().get(cmd.getAgent());
 
         //Is the queue paused?
-        if (harvestCoordinator.isQueuePaused()) {
+        if (wctCoordinator.isQueuePaused()) {
             // Display a global message and return to queue
             mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.queue.paused", new Object[]{ti.getOid()}, Locale.getDefault()));
         } else if (!has.isAcceptTasks()) {
@@ -168,9 +168,9 @@ public class HarvestNowController {
         } else {
             try {
                 if (cmd.getHarvestResultId() <= 0) {
-                    harvestCoordinator.harvest(ti, has);
+                    wctCoordinator.harvest(ti, has);
                 } else {
-                    harvestCoordinator.patchHarvest(ti, has);
+                    wctCoordinator.patchHarvest(ti, has);
                 }
             } catch (HibernateOptimisticLockingFailureException e) {
                 ti = targetInstanceManager.getTargetInstance(ti.getOid());
@@ -185,10 +185,10 @@ public class HarvestNowController {
     }
 
     /**
-     * @param harvestCoordinator The harvestCoordinator to set.
+     * @param wctCoordinator The wctCoordinator to set.
      */
-    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-        this.harvestCoordinator = harvestCoordinator;
+    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 
     /**

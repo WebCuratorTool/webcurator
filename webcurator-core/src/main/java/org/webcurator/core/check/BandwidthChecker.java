@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 /**
@@ -37,7 +37,7 @@ public class BandwidthChecker extends AbstractChecker {
 	/** The bandwidth is above the error threshold. */
 	private boolean aboveErrorThreshold = false;
 	/** The harvest coordinator to use. */
-	private HarvestCoordinator harvestCoordinator;
+	private WctCoordinator wctCoordinator;
 	/** the logger. */
 	private static Logger log = LoggerFactory.getLogger(MemoryChecker.class);
 
@@ -48,7 +48,7 @@ public class BandwidthChecker extends AbstractChecker {
 	 */
 	@Override
 	public void check() {
-		long maxBandwidth = harvestCoordinator.getCurrentGlobalMaxBandwidth();
+		long maxBandwidth = wctCoordinator.getCurrentGlobalMaxBandwidth();
 		long usedBandwidth = calculateTotalBandwidthUsed();
 
 		double percentage = (usedBandwidth / maxBandwidth) * 100;
@@ -77,7 +77,7 @@ public class BandwidthChecker extends AbstractChecker {
 	 * @return the amount of bandwidth being used based on the current agents status's
 	 */
 	private long calculateTotalBandwidthUsed() {
-		HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();
+		HashMap<String, HarvestAgentStatusDTO> agents = wctCoordinator.getHarvestAgents();
 		if (agents == null || agents.isEmpty()) {
 			return 0;
 		}
@@ -108,10 +108,10 @@ public class BandwidthChecker extends AbstractChecker {
 	}
 
 	/**
-	 * @param harvestCoordinator
-	 *            the harvestCoordinator to set
+	 * @param wctCoordinator
+	 *            the wctCoordinator to set
 	 */
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 }

@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -45,7 +45,7 @@ public class AssignToHarvesterController {
 	private TargetInstanceManager targetInstanceManager;
 	/* The Harvest Coordinator */
     @Autowired
-	private HarvestCoordinator harvestCoordinator;
+	private WctCoordinator wctCoordinator;
 
 	/**
 	 * Create the controller object and set the command class.
@@ -58,7 +58,7 @@ public class AssignToHarvesterController {
 		TargetInstanceCommand command = new TargetInstanceCommand();
 		command.setTargetInstanceId(targetInstanceId);
 		command.setHarvestResultId(harvestResultId);
-        HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();
+        HashMap<String, HarvestAgentStatusDTO> agents = wctCoordinator.getHarvestAgents();
         TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceId());
         String instanceAgency = ti.getOwner().getAgency().getName();
 
@@ -85,13 +85,13 @@ public class AssignToHarvesterController {
         return mav;
 	}
 
-	public HarvestCoordinator getHarvestCoordinator() {
-		return harvestCoordinator;
+	public WctCoordinator getHarvestCoordinator() {
+		return wctCoordinator;
 	}
 
 
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 
 

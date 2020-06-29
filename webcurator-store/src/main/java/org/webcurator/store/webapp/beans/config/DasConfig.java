@@ -23,6 +23,7 @@ import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
+import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.visualization.VisualizationManager;
 import org.webcurator.core.visualization.VisualizationProcessorQueue;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
@@ -277,20 +278,45 @@ public class DasConfig {
     @Value("${server.port}")
     private String wctStorePort;
 
-    @Value("${arcDigitalAssetStoreService.modThreads.max}")
+    @Value("${qualify.processor.max}")
     private int maxConcurrencyModThreads;
 
+    @Value("${qualify.heartbeat.interval}")
+    private long heartbeatInterval;
+
     @Autowired
-    private VisualizationManager visualizationManager;
+    private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
     @PostConstruct
     public void init() {
         ApplicationContextFactory.setApplicationContext(applicationContext);
 
-        visualizationManager.setUploadDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
-        visualizationManager.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-        visualizationManager.setLogsDir(Constants.DIR_LOGS);
-        visualizationManager.setReportsDir(Constants.DIR_REPORTS);
+        arcDigitalAssetStoreService.setDasFileMover(createDasFileMover());
+        arcDigitalAssetStoreService.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
+        arcDigitalAssetStoreService.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
+        arcDigitalAssetStoreService.setFileArchive(createFileArchive());
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public VisualizationManager visualizationManager() {
+        VisualizationManager bean = new VisualizationManager();
+        bean.setUploadDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setLogsDir(Constants.DIR_LOGS);
+        bean.setReportsDir(Constants.DIR_REPORTS);
+        return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public VisualizationProcessorQueue visualizationProcessorQueue() {
+        VisualizationProcessorQueue bean = new VisualizationProcessorQueue();
+        bean.setVisualizationManager(visualizationManager());
+        bean.setWctCoordinatorClient(wctCoordinatorClient());
+        bean.setMaxConcurrencyModThreads(maxConcurrencyModThreads);
+        bean.setHeartbeatInterval(heartbeatInterval);
+        return bean;
     }
 
     @Bean
@@ -305,21 +331,28 @@ public class DasConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpoint(), restTemplateBuilder);
-        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-        bean.setIndexer(indexer());
-        bean.setDasFileMover(createDasFileMover());
-        bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
-        bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
-        bean.setFileArchive(createFileArchive());
-        bean.setVisualizationManager(visualizationManager);
-        bean.setNetworkMapClient(getNetworkMapLocalClient());
-        bean.setVisualizationProcessorQueue(getVisualizationProcessorQueue());
-        bean.setPool(getBDBDatabasePool());
+    public WctCoordinatorClient wctCoordinatorClient() {
+        WctCoordinatorClient bean = new WctCoordinatorClient(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
         return bean;
     }
+
+
+//    @Bean
+//    @Scope(BeanDefinition.SCOPE_SINGLETON)
+//    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
+//    public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
+//        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpoint(), restTemplateBuilder);
+//        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+//        bean.setIndexer(indexer());
+//        bean.setDasFileMover(createDasFileMover());
+//        bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
+//        bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
+//        bean.setFileArchive(createFileArchive());
+//        bean.setNetworkMapClient(getNetworkMapLocalClient());
+//        bean.setVisualizationProcessorQueue(getVisualizationProcessorQueue());
+//        bean.setPool(getBDBDatabasePool());
+//        return bean;
+//    }
 
     @Bean
     public FilterRegistrationBean filterRegistration() {
@@ -470,7 +503,7 @@ public class DasConfig {
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public LogReaderImpl logReader() {
         LogReaderImpl bean = new LogReaderImpl();
-        bean.setLogProvider(arcDigitalAssetStoreService());
+        bean.setLogProvider(arcDigitalAssetStoreService);
 
         return bean;
     }
@@ -592,13 +625,12 @@ public class DasConfig {
         return bean;
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public VisualizationProcessorQueue getVisualizationProcessorQueue() {
-        VisualizationProcessorQueue bean = new VisualizationProcessorQueue();
-        bean.setMaxProcessors(maxConcurrencyModThreads);
-        return bean;
-    }
+//    @Bean
+//    @Scope(BeanDefinition.SCOPE_SINGLETON)
+//    public VisualizationProcessorQueue getVisualizationProcessorQueue() {
+//        VisualizationProcessorQueue bean = new VisualizationProcessorQueue();
+//        return bean;
+//    }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -610,7 +642,7 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public NetworkMapClient getNetworkMapLocalClient() {
-        return new NetworkMapClientLocal(getBDBDatabasePool(), getVisualizationProcessorQueue());
+        return new NetworkMapClientLocal(getBDBDatabasePool(), visualizationProcessorQueue());
     }
 
     @Bean

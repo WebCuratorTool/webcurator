@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.ui.agent.command.ManageHarvestAgentCommand;
 import org.webcurator.common.ui.Constants;
@@ -44,7 +44,7 @@ import org.webcurator.common.ui.Constants;
 public class ManageHarvestAgentController {
     /** The class the coordinates the harvest agents and holds their states. */
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinator wctCoordinator;
     /** the logger. */
     private Log log;
 
@@ -122,10 +122,10 @@ public class ManageHarvestAgentController {
     }
 
 	/**
-     * @param aHarvestCoordinator The harvestCoordinator to set.
+     * @param aHarvestCoordinator The wctCoordinator to set.
      */
-    public void setHarvestCoordinator(HarvestCoordinator aHarvestCoordinator) {
-        this.harvestCoordinator = aHarvestCoordinator;
+    public void setHarvestCoordinator(WctCoordinator aHarvestCoordinator) {
+        this.wctCoordinator = aHarvestCoordinator;
     }
 
     /**
@@ -134,7 +134,7 @@ public class ManageHarvestAgentController {
     private ModelAndView processAgentDetails(ManageHarvestAgentCommand aCmd) {
         ModelAndView mav = new ModelAndView();
 
-        HashMap agents = harvestCoordinator.getHarvestAgents();
+        HashMap agents = wctCoordinator.getHarvestAgents();
         HarvestAgentStatusDTO status = (HarvestAgentStatusDTO) agents.get(aCmd.getAgentName());
 
         mav.addObject(ManageHarvestAgentCommand.MDL_HARVEST_AGENT, status);
@@ -155,7 +155,7 @@ public class ManageHarvestAgentController {
      * process the pause all running harvests action.
      */
     private ModelAndView processPauseAll() {
-    	harvestCoordinator.pauseAll();
+    	wctCoordinator.pauseAll();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
@@ -164,7 +164,7 @@ public class ManageHarvestAgentController {
      * process the resume all paused harvests action.
      */
     private ModelAndView processResumeAll() {
-    	harvestCoordinator.resumeAll();
+    	wctCoordinator.resumeAll();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
@@ -173,7 +173,7 @@ public class ManageHarvestAgentController {
      * process the halt Scheduled and Queued harvests action.
      */
     private ModelAndView processPauseQueue() {
-    	harvestCoordinator.pauseQueue();
+    	wctCoordinator.pauseQueue();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
@@ -182,7 +182,7 @@ public class ManageHarvestAgentController {
      * process the resume Scheduled and Queued harvests action.
      */
     private ModelAndView processResumeQueue() {
-    	harvestCoordinator.resumeQueue();
+    	wctCoordinator.resumeQueue();
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
@@ -191,7 +191,7 @@ public class ManageHarvestAgentController {
      * process the halt Scheduled and Queued harvests action.
      */
     private ModelAndView processPauseAgent(ManageHarvestAgentCommand aCmd) {
-    	harvestCoordinator.pauseAgent(aCmd.getAgentName());
+    	wctCoordinator.pauseAgent(aCmd.getAgentName());
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
@@ -200,29 +200,29 @@ public class ManageHarvestAgentController {
      * process the resume Scheduled and Queued harvests action.
      */
     private ModelAndView processResumeAgent(ManageHarvestAgentCommand aCmd) {
-    	harvestCoordinator.resumeAgent(aCmd.getAgentName());
+    	wctCoordinator.resumeAgent(aCmd.getAgentName());
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
     }
 
 
     private ModelAndView processChangeOptimization(boolean optimizationEnabled) {
-    	harvestCoordinator.setHarvestOptimizationEnabled(optimizationEnabled);
+    	wctCoordinator.setHarvestOptimizationEnabled(optimizationEnabled);
     	ModelAndView mav = getDefaultModelAndView();
         return mav;
 	}
 
 	private ModelAndView getDefaultModelAndView() {
 		ModelAndView mav = new ModelAndView();
-        mav.addObject(ManageHarvestAgentCommand.MDL_HARVEST_AGENTS, harvestCoordinator.getHarvestAgents());
+        mav.addObject(ManageHarvestAgentCommand.MDL_HARVEST_AGENTS, wctCoordinator.getHarvestAgents());
         mav.setViewName(Constants.VIEW_MNG_AGENTS);
 		return mav;
 	}
 
 	private void populateCommand(ManageHarvestAgentCommand command) {
-		command.setQueuePaused(harvestCoordinator.isQueuePaused());
-        command.setOptimizationEnabled(harvestCoordinator.isHarvestOptimizationEnabled());
-        command.setOptimizationLookaheadHours(harvestCoordinator.getHarvestOptimizationLookAheadHours());
+		command.setQueuePaused(wctCoordinator.isQueuePaused());
+        command.setOptimizationEnabled(wctCoordinator.isHarvestOptimizationEnabled());
+        command.setOptimizationLookaheadHours(wctCoordinator.getHarvestOptimizationLookAheadHours());
 	}
 
 
