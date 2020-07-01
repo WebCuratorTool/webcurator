@@ -78,8 +78,8 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
                     }
 
                     // Schedule the job completion process to be run.
-                    else if (jobStatus.equals("Finished") || jobStatus.equals("Could not launch job - Fatal InitializationException")) {
-                        if(log.isDebugEnabled()){
+                    else if (jobStatus.startsWith("Finished") || jobStatus.equals("Could not launch job - Fatal InitializationException")) {
+                        if(log.isDebugEnabled()) {
                             log.debug("HeartBeatJob:H3Poll - job FINISHED: " + job.getJobName() + ". status: " + jobStatus);
                         }
                         SchedulerUtil.scheduleHarvestCompleteJob(job.getJobName());

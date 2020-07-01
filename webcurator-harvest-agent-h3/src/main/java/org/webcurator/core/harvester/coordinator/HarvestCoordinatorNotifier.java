@@ -109,7 +109,6 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
             URI uri = uriComponentsBuilder.buildAndExpand().toUri();
 
             restTemplate.postForObject(uri, request, String.class);
-            log.debug("WCT: End of requestRecovery");
 
             log.debug("WCT: End of HarvestComplete");
         } catch (Exception ex) {

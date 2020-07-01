@@ -373,8 +373,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             log.info("Getting digital assets to send to store for job " + aJob);
 
             try {
-                // BE AWARE - if a harvest is stopped before any warcs are written then a null pointer exception can be thrown
-                // when getting the file list of the warc dir, because the warc dir may not exist -causing an infinite loop.
                 File[] fileList = getFileArray(das, new NegateFilter(new ExtensionFileFilter(Constants.EXTN_OPEN_ARC)));
                 int numberOfFiles = fileList.length;
 

@@ -218,7 +218,13 @@ public class HarvesterH3 implements Harvester {
                     if (h3job.crawlControllerState.equals("NASCENT") && !h3job.isLaunchable) {
                         status.setStatus("Could not launch job - Fatal InitializationException");
                     } else if (h3job.crawlControllerState.equals("FINISHED") || h3job.crawlControllerState.equals("STOPPING")) {
-                        status.setStatus("Finished");
+                        // if there's no data, log and append diagnostic to state string
+                        if (h3job.sizeTotalsReport.total == 0) {
+                            log.warn(String.format("Finished crawl job %s without data", h3job.shortName));
+                            status.setStatus("Finished - No data");
+                        } else {
+                            status.setStatus("Finished");
+                        }
                     }
 
                     if (h3job.elapsedReport.elapsedMilliseconds > 0) {
