@@ -168,7 +168,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             hr.setStatus(HarvestResult.STATUS_FINISHED);
             targetInstanceDao.save(hr);
 
-            wctCoordinator.pushPruneAndImport(ti);
+            wctCoordinator.pushPruneAndImport(ti, harvestResultNumber);
         }
     }
 
@@ -205,7 +205,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             ti.setState(TargetInstance.STATE_PAUSED);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr != null ) {
+            if (hr != null) {
                 hr.setStatus(HarvestResult.STATUS_PAUSED);
                 targetInstanceDao.save(hr);
             }

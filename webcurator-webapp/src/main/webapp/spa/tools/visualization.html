@@ -30,115 +30,105 @@ to get the desired effect
 |               | sidebar-mini                            |
 |---------------------------------------------------------|
 -->
-<body unselectable="on">
+<body unselectable="on" class="layout-navbar-fixed sidebar-collapse">
+<div class="wrapper">
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <li class="nav-item"><a onclick="$('#networkmap-side-container').toggle();" role="button"  class="nav-link text-primary"><i class="fas fa-bars"></i></a></li>
+      <li class="nav-item d-none d-sm-inline-block"><a class="nav-link text-primary btn-side-group-type" name="statuscode">Status Code</a></li>
+      <li class="nav-item d-none d-sm-inline-block"><a class="nav-link text-primary btn-side-group-type" name="contenttype">Content Type</a></li>
+      
+      <li class="nav-item"><a class="nav-link"><span id="networkmap-side-title" style="margin-left: 200px;">Domain: root</span></a></li>
+    </ul>
 
-<main class="bd-content" name="content" role="main">
+
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item d-none d-sm-inline-block">
+        <a onclick="networkmap.graph.reload();" class="nav-link">Reload</a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a onclick="networkmap.graph.collapseAll();" class="nav-link">Collapse</a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a onclick="$('#popup-window-modify-harvest').show();" class="nav-link">Modify</a>
+      </li>
+
+      <li class="nav-item">
+        <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
+      </li>
+      <li class="nav-item">
+        <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
+      </li>
+    </ul>
+  </nav>
+
   <div style="position: relative; height: 100vh; width: 100vw;">
     <!-- Networmap Canvas -->
-    <div id="network-map-canvas" style="width: calc(100vw - 30px); height: 100vh; outline: none;"></div>
-
-    <!-- Left Button Group -->
-    <div class="btn-group" style="position: absolute; left: 3px; top: 5px; z-index: 1000;">
-      <a href="/curator/home.html"><button type="button" class="btn btn-default">Home</button></a>
-      <button type="button" class="btn btn-default" onclick="networkmap.graph.reload();">Reload</button>
-      <!-- <button type="button" class="btn btn-default" onclick="networkmap.graph.reset();">Reset</button> -->
-      <button type="button" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse All</button>
-      <!-- <button type="button" class="btn btn-default" onclick="networkmap.graph.save2image();">Screenshot</button> -->
-      <button type="button" class="btn btn-default" onclick="javascript: $('#popup-window-modify-harvest').show();"><i class="fas fa-edit"></i> &nbsp; Modify Harvest</button>
-    </div>
-
-    <!-- Right Side Card -->
-    <div class="bg-default" style="position: absolute; right: 30px; top: 0px; width: calc(25vw - 30px);" id="networkmap-side-container">
-      <nav class="main-header navbar navbar-expand" style="margin: 0; height: 50px; border: solid 1px; border-color: #D3D3D3;">
-        <h5 id="networkmap-side-title">Domain: root</h5>
-      </nav>
-
-      <div class="card-body none-margin-padding" id="side-card-body">
-          <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
-          <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
-      </div>     <!-- /.card-body -->
+    <div id="network-map-canvas" style="height: 100vh; width: 100vw;"></div>
+    
+    <!-- Side Card -->
+    <div class="bg-default" style="position: absolute; left: 0; bottom: 0; width: 20vw; height: calc(100vh - 62px); display: none;" id="networkmap-side-container">
+      <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
+      <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
     </div> <!-- end of card -->
-
   </div>
 
-  <!-- Right Side Buttons -->
-  <div class="bg-dark" style="position: fixed;right: 0; top: 0; width: 30px; height: 100vh; writing-mode: vertical-lr; text-orientation: mixed; line-height: 30px; z-index: 2001;">
-    <a href="#" class="btn-side-label bg-black" name="summary" status="on" id="a-link-summary"><span> &nbsp;Summary &nbsp;</span></a> &nbsp;&nbsp;
-    <a href="#" class="btn-side-label bg-black btn-side-label-tab" name="statuscode" status="on"><span> &nbsp;StatusCode&nbsp;</span></a>&nbsp;&nbsp;
-    <a href="#" class="btn-side-label btn-side-label-tab" name="contenttype" status="off"><span> &nbsp;ContentType&nbsp;</span></a>
-  </div>
-</main>
+</div>
+
 
 <!-- Popup window for inspection and modification -->
-<div class="popup-window"  id="popup-window-modify-harvest">
-  <div class="popup-content">
-      <div class="row bg-dark none-margin-padding" style="height: 5.5vh;">
-        <div class="col-6 none-margin-padding">
-          <nav class="main-header navbar navbar-expand navbar-dark" style="margin: 0;">
-              <!-- Left navbar links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <div class="btn-group">
-                    <button type="button" class="btn btn-primary text-light dropdown-toggle dropdown-icon" data-toggle="dropdown">
-                      Action
-                      <span class="sr-only">Toggle Dropdown</span>
-                      <div class="dropdown-menu" role="menu">
-                        <a class="dropdown-item" href="#" onclick="$('#popup-window-query-input').show();"><i class="fas fa-search"></i> &nbsp; Inspect By Query</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-link text-primary"></i> &nbsp;Inspect Starting URLs</a>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadInvalidUrls();"><i class="fas fa-link text-warning"></i> &nbsp;Inspect Invalid URLs</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkPrune();"><i class="far fa-times-circle text-secondary"></i> &nbsp; Bulk Prune</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-primary"></i> &nbsp; Single Import</a>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Bulk Import</a>
-                        <!-- <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-file-upload text-success"></i> &nbsp;Upload File</a> -->
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.gridCandidate.clearAll();"><i class="far fa-trash-alt"></i> &nbsp; Clear</a>
-                      </div>
-                    </button>
+<div class="card none-margin-padding"  id="popup-window-modify-harvest">
+  <div class="card-body none-margin-padding">
+      <nav class="main-header navbar navbar-expand" style="margin: 0;">
+          <!-- Left navbar links -->
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <input class="form-control" type="search" placeholder="Filter" aria-label="Search" for="candidateGrid">
+            </li>
+
+            <li class="nav-item" style="margin-left: 10px;">
+              <div class="btn-group">
+                <button type="button" class="btn btn-primary text-light dropdown-toggle dropdown-icon" data-toggle="dropdown">
+                  Action
+                  <span class="sr-only">Toggle Dropdown</span>
+                  <div class="dropdown-menu" role="menu">
+                    <a class="dropdown-item" href="#" onclick="$('#popup-window-query-input').show();"><i class="fas fa-search"></i> &nbsp; Inspect By Query</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-link text-primary"></i> &nbsp;Inspect Starting URLs</a>
+                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadInvalidUrls();"><i class="fas fa-link text-warning"></i> &nbsp;Inspect Invalid URLs</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkPrune();"><i class="far fa-times-circle text-secondary"></i> &nbsp; Bulk Prune</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-primary"></i> &nbsp; Single Import</a>
+                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Bulk Import</a>
+                    <!-- <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-file-upload text-success"></i> &nbsp;Upload File</a> -->
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.gridCandidate.clearAll();"><i class="far fa-trash-alt"></i> &nbsp; Clear</a>
                   </div>
-                </li>
-              </ul>
-              <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                  <input class="form-control" type="search" placeholder="Filter" aria-label="Search" for="candidateGrid">
-                  <input class="form-control hidden" type="search" placeholder="Filter" aria-label="Search" for="candidateTree">
-                </li>
-              </ul>
-          </nav>
-        </div>
-        <div class="col-6 none-margin-padding">
-          <nav class="main-header navbar navbar-expand navbar-dark" style="margin: 0;">
-              <!-- Left navbar links -->
-              <ul class="navbar-nav">                
-                <li class="nav-item">
-                  <div class="btn-group btn-nav-tab">
-                    <button type="button" class="btn btn-primary text-light" for="prune" id="tab-btn-prune">To Be Pruned</button>
-                    <button type="button" class="btn btn-outline-primary text-light" for="import" id="tab-btn-import">To Be Imported</button>
-                  </div>
-                </li>  
-              </ul>
-              <ul class="navbar-nav ml-auto">                 
-                <li class="nav-item">
-                  <input class="form-control" type="search" placeholder="Filter" aria-label="Search" for="prune">
-                  <input class="form-control hidden" type="search" placeholder="Filter" aria-label="Search" for="import">
-                </li>
-                <li class="nav-divider"></li>
-                <li class="nav-divider"></li>
-                <li class="nav-divider"></li>
-                <li class="nav-item">
-                  <button type="button" class="btn btn-block btn-success" onclick="gPopupModifyHarvest.apply();">Apply</button>
-                </li>
-                <li class="nav-divider"></li>
-                <li class="nav-item">
-                  <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modify-harvest').hide();"><i class="fas fa-times"></i></button>
-                </li>
-              </ul>
-          </nav>
-        </div>
-      </div>
+                </button>
+              </div>
+            </li>
+            
+          </ul>
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <div class="btn-group btn-nav-tab">
+                <button type="button" class="btn btn-primary" for="prune" id="tab-btn-prune">To Be Pruned</button>
+                <button type="button" class="btn btn-outline-primary" for="import" id="tab-btn-import">To Be Imported</button>
+              </div>
+            </li>               
+            <li class="nav-item">
+              <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
+            </li>
+            <li class="nav-item">
+              <a onclick="$('#popup-window-modify-harvest').hide();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
+            </li>
+          </ul>
+      </nav>
+
       <div class="row">
         <div class="col-6">
           <div class="tab-content">
@@ -187,26 +177,41 @@ to get the desired effect
             </div>
             <!-- /.card -->
           </div>
+
         </div>
         <div class="col-6">
+
+
           <div class="tab-content" id="grid-tobe-modified">
             <div id="grid-modify-prune" class="ag-theme-balham grid-modify-harvest"> </div>
             <div id="grid-modify-import" class="ag-theme-balham grid-modify-harvest hidden"> </div>
           </div>
+
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-12">
-          <div class="input-group" style="margin: 5px 2px 0 2px; width: calc(100% - 4px);">
-            <textarea id="provenance-note" class="form-control" rows="2"  placeholder="Provenance Note ..."></textarea>
-            <!-- <input type="datetime-local" id="datetime-local-customizard2"> -->
-          </div>
-        </div>
+      <div class="input-group" style="margin: 5px 2px 0 2px; width: calc(100% - 4px);">
+        <textarea id="provenance-note" class="form-control" rows="1"  placeholder="Provenance Note ..."></textarea>
+      </div>
+  </div>  <!-- End of card body -->
+
+  <div class="card-footer">
+    <div class="row">
+      <div class="col-10"></div>
+      <div class="col-1">
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.apply();">Apply</button>
+      </div>
+      <div class="col-1">
+          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modify-harvest').hide();">Close</button>
+       <!--  <div class="btn-group-vertical">
+          <button type="button" style="margin: 3px;" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.apply();">Apply</button>
+          <button type="button" style="margin: 3px;" class="btn btn-block btn-secondary" onclick="$('#popup-window-modify-harvest').hide();">Close</button>
+        </div> -->
       </div>
     </div>
   </div>
-</div>
+</div> 
+
 
 <!-- Popup Hop Path-->
 <div class="popup-window" id="popup-window-hop-path">
@@ -290,11 +295,12 @@ to get the desired effect
           <input class="custom-control-input" type="radio" id="customRadio2" name="customRadio" flag="URL">
           <label for="customRadio2" class="custom-control-label">Option 2: Re-crawl from URL</label>
         </div>
-        <div class="input-group">
-          <input type="input" class="form-control" id="importFromUrlInput" placeholder="Source URL">
+        <div class="custom-control">
+          <label class="text-secondary">Source URL: the same as Target URL</label>
+          <!-- <input type="input" class="form-control" id="importFromUrlInput" placeholder="Source URL">
           <div class="input-group-append">
             <span class="input-group-text" onclick="useTargetURL();">Use Target URL</span>
-          </div>
+          </div> -->
         </div>
         <br/>
   </div>  <!-- /.card-body -->
@@ -536,7 +542,24 @@ to get the desired effect
     var gPopupModifyHarvest=new PopupModifyHarvest(jobId, harvestResultId, harvestResultNumber);
     // var hierarchyTree=new HierarchyTree("#hierachy-tree", jobId, harvestResultNumber);
     
-    $(function(){        
+    var gParentHarvestResultViewTab=parent;
+    var isToFullScreen=false;
+    function toggleScreenSize(){
+      console.log(isToFullScreen);
+      gParentHarvestResultViewTab.toggleContentWindowSize(isToFullScreen);
+
+      if(isToFullScreen){
+        $('.btn-full-screen').html('<i class="fas fa-compress"></i>');
+      }else{
+        $('.btn-full-screen').html('<i class="fas fa-expand"></i>');
+      }
+
+      isToFullScreen=!isToFullScreen;
+    }
+
+    $(function(){
+        toggleScreenSize();
+
         bsCustomFileInput.init();
 
         // document.addEventListener('contextmenu', event => event.preventDefault());
@@ -555,36 +578,19 @@ to get the desired effect
           $("span.matches").text(n ? "(" + n + " matches)" : "");
         });
 
-        $(".btn-side-label").on("click", function(e){
-          var name=$(this).attr('name');          
-          if(name==='summary'){
-            var status=$(this).attr('status');
-            if(status==='on'){
-              $(this).attr('status', 'off');
-              $(this).removeClass('bg-black');
-              // $('#network-map-canvas').width('calc(100vw - 30px)');
-              $('#networkmap-side-container').hide();
-            }else{
-              $(this).attr('status', 'on');
-              $(this).addClass('bg-black');
-              // $('#network-map-canvas').width('75vw');
-              $('#networkmap-side-container').show();
-            }
+        $('.btn-side-group-type').on('click', function(e){
+          var name=$(this).attr('name');
+          if(name==='statuscode'){
+            $('#networkmap-side-table-group-by-status-code').show();
+            $('#networkmap-side-table-group-by-content-type').hide();            
           }else{
-            $('.btn-side-label-tab').removeClass('bg-black');
-            $(this).addClass('bg-black');
-            if(name==='statuscode'){
-              $(".networkmap-insight").hide();
-              $("#networkmap-side-table-group-by-status-code").show();
-            }else if(name==='contenttype'){
-              $(".networkmap-insight").hide();
-              $("#networkmap-side-table-group-by-content-type").show();
-            }
-            $('a[name="summary"]').attr('status', 'on');
-            $('a[name="summary"]').addClass('bg-black');
-            // $('#network-map-canvas').width('75vw');
-            $('#networkmap-side-container').show();
+            $('#networkmap-side-table-group-by-status-code').hide();
+            $('#networkmap-side-table-group-by-content-type').show();            
           }
+
+          $('.btn-side-group-type').removeClass('bg-light');
+          $(this).addClass('bg-light');
+          $('#networkmap-side-container').show();
         });
 
         $(".btn-nav-tab button").on("click", function(e){
@@ -600,19 +606,23 @@ to get the desired effect
 
         // Search input filter
         $("#popup-window-modify-harvest input[type='search']").on('input', function(e){
-          var key=$(this).attr('for');
           var val=$(this).val();
-          var target;
-          if(key==='prune'){
-            target=gPopupModifyHarvest.gridPrune;
-          }else if(key==='import'){
-            target=gPopupModifyHarvest.gridImport;
-          }else if(key==='candidateGrid'){
-            target=gPopupModifyHarvest.gridCandidate;
-          }else if(key==='candidateTree'){
-            target=gPopupModifyHarvest.hierarchyTree;
-          }
-          target.filter(val);
+          gPopupModifyHarvest.gridPrune.filter(val);
+          gPopupModifyHarvest.gridImport.filter(val);
+          gPopupModifyHarvest.gridCandidate.filter(val);
+          gPopupModifyHarvest.hierarchyTree.filter(val);
+          // var key=$(this).attr('for');
+          // var target;
+          // if(key==='prune'){
+          //   target=gPopupModifyHarvest.gridPrune;
+          // }else if(key==='import'){
+          //   target=gPopupModifyHarvest.gridImport;
+          // }else if(key==='candidateGrid'){
+          //   target=gPopupModifyHarvest.gridCandidate;
+          // }else if(key==='candidateTree'){
+          //   target=gPopupModifyHarvest.hierarchyTree;
+          // }
+          // target.filter(val);
         });
 
         // $("#datetime-local-customizard").datetimepicker();
@@ -638,7 +648,6 @@ to get the desired effect
     function openBulkImportSchemaFile(){
       // $("#label-bulk-import-file").trigger('click');
       $("#bulkImportMetadataFile").trigger('click');
-
     }
 </script>
 </body>

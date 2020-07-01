@@ -200,13 +200,8 @@
                                 </c:if>
                                 </authority:hasPrivilege>
 				    		</c:when>
-                            <c:when test="${instance.state eq 'Patching' && (hr.state ==3 || hr.state == 5 || hr.state == 6)}">
-                                <!--a href="#" onclick="javascript: return clickViewPatching(${hr.oid});">View Patching Progress</a-->
-                                <!--img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" /-->
-                                <a href="curator/target/patching-view-hr.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">View Patching Progress</a>
-                            </c:when>
                             <c:otherwise>
-                            &nbsp;
+
                             </c:otherwise>
 				    	</c:choose>
 				    </c:if>
@@ -215,8 +210,14 @@
 					    		<c:if test="${hr.state eq 2}">
 					    		Rejection&nbsp;Reason:&nbsp;<c:out value="${hr.rejReason.name}"/>    		
 					    		</c:if>
-					    		
 				    </c:if>
+				    <c:if test="${hr.harvestNumber ne 1}">
+                        <!--a href="#" onclick="javascript: return clickViewPatching(${hr.oid});">View Patching Progress</a-->
+                        <c:if test="${hr.state!=3 && hr.state!=5 && hr.state!=6}">
+                            <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                        </c:if>
+                        <a href="curator/target/harvest-result-summary.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">Summary</a>
+                    </c:if>
 				    </td>
 				  </tr>
 			  </c:forEach>

@@ -168,15 +168,4 @@ public class QualityReviewToolController {
         }
 
     }
-
-    @RequestMapping(path = "/curator/target/patching-view-hr.html")
-    public ModelAndView showViewPatchingProgress(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws Exception {
-        ModelAndView mav = new ModelAndView("patching-view-hr");
-        TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
-        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-        mav.addObject("ti", ti);
-        mav.addObject("hr", hr);
-        return mav;
-
-    }
 }

@@ -141,12 +141,13 @@ class ModifyHarvestProcessor{
 				return;
 			}
 
-			node.name=$('#importFromUrlInput').val();
-			if(!node.name.toLowerCase().startsWith("http://") &&
-				!node.name.toLowerCase().startsWith("https://")){
-				alert("You must specify a valid source URL.");
-				return;
-			}
+			node.name='--';
+			// node.name=$('#importFromUrlInput').val();
+			// if(!node.name.toLowerCase().startsWith("http://") &&
+			// 	!node.name.toLowerCase().startsWith("https://")){
+			// 	alert("You must specify a valid source URL.");
+			// 	return;
+			// }
 
 			node.modifiedMode='TBC';
 			node.lastModified=0;
@@ -323,11 +324,11 @@ class ModifyHarvestProcessor{
 						return;
 					}
 
-					if(!source.toLowerCase().startsWith("http://") &&
-						!source.toLowerCase().startsWith("https://")){
-						alert("You must specify a valid source URL at line:" + (i+1));
-						return;
-					}
+					// if(!source.toLowerCase().startsWith("http://") &&
+					// 	!source.toLowerCase().startsWith("https://")){
+					// 	alert("You must specify a valid source URL at line:" + (i+1));
+					// 	return;
+					// }
 					dataset.push(node);
 				}else{
 					//alert("Import type must be 'file' or 'url' at line: " + (i+1));

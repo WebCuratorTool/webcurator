@@ -14,8 +14,8 @@ class NetworkMapGrid{
 	  	this.columnDefs=[
 	  		{headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
 			{headerName: headerNameValue, field: "name", width: 160, filter: 'agNumberColumnFilter'},
-			{headerName: "TotSize", field: "totSize", width: 120, type: "numericColumn", filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
-			{headerName: "TotURLs", field: "totUrls", width: 100, type: "numericColumn", filter: 'agNumberColumnFilter'}
+			{headerName: "TotSize", field: "totSize", width: 85, type: "numericColumn", filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
+			{headerName: "TotURL", field: "totUrls", width: 85, type: "numericColumn", filter: 'agNumberColumnFilter'}
 	    ];
 
 	    this.gridOptions = {

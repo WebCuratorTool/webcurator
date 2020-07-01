@@ -17,7 +17,6 @@ package org.webcurator.core.coordinator;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
@@ -34,17 +33,13 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.store.coordinator.DigitalAssetStoreCoordinator;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.visualization.VisualizationManager;
@@ -204,7 +199,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         List<TargetInstance> results = targetInstanceDao.findTargetInstances(criteria);
         List<String> activeJobs = new ArrayList<String>();
         for (TargetInstance ti : results) {
-//			log.info("RecoverHarvests: sending data back for TI: " + ti.getJobName());
+            log.info("RecoverHarvests: sending data back for TI: {}", ti.getJobName());
             activeJobs.add(ti.getJobName());
         }
         harvestAgentManager.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService(), activeJobs);
@@ -221,7 +216,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            this.pushPruneAndImport(ti);
+            this.pushPruneAndImport(ti, aResult.getHarvestNumber());
         } else {
             // The result is for the original harvest, but the TI already has one or more results
             if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
@@ -508,6 +503,34 @@ public class WctCoordinatorImpl implements WctCoordinator {
      */
     @Override
     public void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+        TargetInstance ti = loadTargetInstance(queuedTargetInstanceDTO.getOid());
+        HarvestResult hr = ti.getPatchingHarvestResult();
+        if (hr == null) {
+            log.error("Could not find patching Harvest Result with Target Instance: {}", queuedTargetInstanceDTO.getOid());
+            return;
+        }
+
+        if (hr.getStatus() != HarvestResult.STATUS_SCHEDULED) {
+            log.info("Invalid Harvest Result. TargetInstanceId:{}, HarvestResultNumber: {}, HarvestResultState: {}, HarvestResultStatus", queuedTargetInstanceDTO.getOid(), hr.getHarvestNumber(), hr.getState(), hr.getStatus());
+            return;
+        }
+
+        switch (hr.getStatus()) {
+            case HarvestResult.STATE_CRAWLING:
+                patchHarvestCrawling(queuedTargetInstanceDTO);
+                break;
+            case HarvestResult.STATE_MODIFYING:
+                pushPruneAndImport(ti, hr.getHarvestNumber());
+                break;
+            case HarvestResult.STATE_INDEXING:
+                initiateIndexing(ti, hr);
+                break;
+            default:
+                log.error("Invalid Harvest Result. TargetInstanceId:{}, HarvestResultNumber: {}, HarvestResultState: {}, HarvestResultStatus", queuedTargetInstanceDTO.getOid(), hr.getHarvestNumber(), hr.getState(), hr.getStatus());
+        }
+    }
+
+    private void patchHarvestCrawling(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
         boolean approved = true;
 
         // lock the ti
@@ -581,7 +604,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         cmd.getDataset().stream().filter(e -> {
             return e.getOption().equalsIgnoreCase("url");
         }).forEach(e -> {
-            seeds.append(e.getName());
+            seeds.append(e.getUrl());
             seeds.append("\n");
         });
 
@@ -602,15 +625,16 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 return false;
             }
 
-            hr.setStatus(HarvestResult.STATUS_RUNNING);
-            targetInstanceDao.save(hr);
-
             targetInstance.setActualStartTime(new Date());
             targetInstance.setHarvestServer(harvestAgentStatusDTO.getName());
-            targetInstanceDao.save(targetInstance);
+            targetInstanceManager.save(targetInstance);
 
             // Initiate harvest on the remote harvest agent
             harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, String.format("mod_%d_%d", targetInstance.getOid(), cmd.getNewHarvestResultNumber()), profile, seeds.toString());
+
+            //Update Harvest Result status
+            hr.setStatus(HarvestResult.STATUS_RUNNING);
+            targetInstanceManager.save(hr);
 
             log.info("HarvestCoordinator: Harvest initiated successfully for target instance {}", targetInstance.getOid());
 
@@ -1633,22 +1657,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 log.error(result.getRespMsg());
                 return result;
             }
-            try {
-                ti.setState(TargetInstance.STATE_PATCHING);
-                targetInstanceManager.save(ti);
-            } catch (Throwable e) {
-                e.printStackTrace();
-                return result;
-            }
         }
 
-        try {
-            this.savePruneAndImportCommandApply(cmd);
-        } catch (WCTRuntimeException | IOException e) {
-            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
-            result.setRespMsg(e.getMessage());
-            return result;
-        }
 
         boolean isNeedHarvest = false;
         for (PruneAndImportCommandRowMetadata row : cmd.getDataset()) {
@@ -1656,6 +1666,14 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 isNeedHarvest = true;
                 break;
             }
+        }
+
+        try {
+            this.savePruneAndImportCommandApply(cmd, isNeedHarvest);
+        } catch (WCTRuntimeException | IOException e) {
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg(e.getMessage());
+            return result;
         }
 
         if (!isNeedHarvest) {
@@ -1712,25 +1730,42 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return;
         }
 
+        //Update status to scheduled
+        harvestResult.setState(HarvestResult.STATE_INDEXING);
+        harvestResult.setStatus(HarvestResult.STATUS_SCHEDULED);
+        targetInstanceDao.save(harvestResult);
+
         harvestBandwidthManager.sendBandWidthRestrictions();
 
         // Ask the DigitalAssetStore to index the ARC
-        try {
-            digitalAssetStoreFactory.getDAS().initiateIndexing(
-                    new HarvestResultDTO(harvestResult.getOid(), harvestResult.getTargetInstance().getOid(), harvestResult
-                            .getCreationDate(), harvestResult.getHarvestNumber(), harvestResult.getProvenanceNote()));
-            harvestResult.setState(HarvestResult.STATE_INDEXING);
-            harvestResult.setStatus(HarvestResult.STATUS_RUNNING);
-            targetInstanceDao.save(harvestResult);
-        } catch (DigitalAssetStoreException ex) {
-            log.error("Could not send initiateIndexing message to the DAS", ex);
-        }
+        initiateIndexing(ti, harvestResult);
 
         log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
     }
 
+    private void initiateIndexing(TargetInstance ti, HarvestResult hr) {
+        try {
+            digitalAssetStoreFactory.getDAS().initiateIndexing(
+                    new HarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr
+                            .getCreationDate(), hr.getHarvestNumber(), hr.getProvenanceNote()));
+
+            hr.setState(HarvestResult.STATE_INDEXING);
+            hr.setStatus(HarvestResult.STATUS_RUNNING);
+            targetInstanceDao.save(hr);
+
+        } catch (DigitalAssetStoreException e) {
+            log.error("Could not send initiateIndexing message to the DAS", e);
+        }
+    }
+
     @Override
-    public boolean pushPruneAndImport(TargetInstance ti) {
+    public boolean pushPruneAndImport(TargetInstance ti, int harvestResultNumber) {
+        //Next step is to excute pruning and imporing, so change the state and status to Modifying Scheduled
+        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
+        hr.setState(HarvestResult.STATE_MODIFYING);
+        hr.setStatus(HarvestResult.STATUS_SCHEDULED);
+        targetInstanceManager.save(hr);
+
         PruneAndImportCommandApply cmd = null;
         try {
             cmd = getPruneAndImportCommandApply(ti);
@@ -1748,14 +1783,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
         DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
 
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
-
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(digitalAssetStoreClient.getUrl(org.webcurator.core.visualization.VisualizationConstants.PATH_APPLY_PRUNE_IMPORT));
-        URI uri = uriComponentsBuilder.build().toUri();
-
-        HttpEntity<String> request = digitalAssetStoreClient.createHttpRequestEntity(cmd);
-        RestTemplate restTemplate = digitalAssetStoreClient.getRestTemplateBuilder().build();
-        result = restTemplate.postForObject(uri, request, PruneAndImportCommandResult.class);
-
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
             log.error("Failed to request modification, {} {}", result.getRespCode(), result.getRespMsg());
             return result;
@@ -1782,7 +1809,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return result;
     }
 
-    private void savePruneAndImportCommandApply(PruneAndImportCommandApply cmd) throws IOException, WCTRuntimeException {
+    private void savePruneAndImportCommandApply(PruneAndImportCommandApply cmd, boolean isNeedHarvest) throws IOException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         HarvestResult res = targetInstanceDao.getHarvestResult(cmd.getHarvestResultId()); //Query the old Harvest Result
         if (ti == null || res == null) {
@@ -1805,7 +1832,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
         hr.setProvenanceNote(cmd.getProvenanceNote());
         //        hr.addModificationNotes();
         hr.setTargetInstance(ti);
-        hr.setState(HarvestResult.STATE_CRAWLING);
+
+        int state = isNeedHarvest ? HarvestResult.STATE_CRAWLING : HarvestResult.STATE_MODIFYING;
+        hr.setState(state);
         hr.setStatus(HarvestResult.STATUS_SCHEDULED);
 
         if (AuthUtil.getRemoteUserObject() != null) {
@@ -1815,6 +1844,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         ti.getHarvestResults().add(hr);
+        ti.setState(TargetInstance.STATE_PATCHING);
 
         // Save to the database.
         targetInstanceDao.save(hr);

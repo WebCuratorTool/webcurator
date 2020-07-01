@@ -85,7 +85,7 @@
 			<td width="70%">Graphical view of harvested data.</td>			
 		</tr-->
 		<tr>
-            <td width="30%"><a href="/spa/tools/visualization.html?targetInstanceOid=${targetInstanceOid}&harvestResultId=${command.harvestResultId}&harvestNumber=${command.harvestNumber}" target="_blank">Network Map</a></td>
+            <td width="30%"><a href="curator/target/harvest-result-networkmap.html?targetInstanceOid=${targetInstanceOid}&harvestResultId=${command.harvestResultId}&harvestNumber=${command.harvestNumber}">Network Map</a></td>
             <td width="70%">Graphical view of harvested data.</td>
         </tr>
 		<tr>
