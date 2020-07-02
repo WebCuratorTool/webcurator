@@ -489,7 +489,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             throw new DigitalAssetStoreException(err);
         }
 
-        String json = result.getPayload();
+        String json = (String)result.getPayload();
         NetworkMapNode node = networkMapClient.getNodeEntity(json);
         if (node == null) {
             log.warn(err);
@@ -1002,12 +1002,12 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     public void initiateIndexing(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
         // Determine the source directory.
-        File sourceDir = new File(this.baseDir, "/"
-                + harvestResult.getTargetInstanceOid() + "/"
-                + harvestResult.getHarvestNumber());
-        VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+//        File sourceDir = new File(this.baseDir, "/"
+//                + harvestResult.getTargetInstanceOid() + "/"
+//                + harvestResult.getHarvestNumber());
         // Kick of the indexer.
 //        indexer.runIndex(harvestResult, sourceDir);
+        VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         visualizationProcessorQueue.startTask(processor);
     }
 

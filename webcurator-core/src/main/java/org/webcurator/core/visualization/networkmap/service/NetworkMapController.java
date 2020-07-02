@@ -14,6 +14,12 @@ public class NetworkMapController implements NetworkMapService {
     private NetworkMapClient client;
 
     @Override
+    @RequestMapping(path = VisualizationConstants.PATH_INITIAL_INDEX, method = {RequestMethod.POST}, produces = "application/json")
+    public NetworkMapResult initialIndex(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+        return client.initialIndex(job, harvestResultNumber);
+    }
+
+    @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_COMMON, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult get(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("key") String key) {
         return client.get(job, harvestResultNumber, key);
@@ -87,7 +93,7 @@ public class NetworkMapController implements NetworkMapService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_PROGRESS, method = {RequestMethod.POST}, produces = "application/json")
-    public VisualizationProgressBar getProgress(@RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestResultNumber") int harvestResultNumber) {
-        return client.getProgress(targetInstanceId, harvestResultNumber);
+    public NetworkMapResult getProgress(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+        return client.getProgress(job, harvestResultNumber);
     }
 }

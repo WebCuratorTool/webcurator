@@ -34,6 +34,10 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     public ResourceExtractorProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         super(targetInstanceId, harvestResultNumber);
         this.db = pool.createInstance(targetInstanceId, harvestResultNumber);
+    }
+
+    @Override
+    protected void initInternal() {
         this.seeds = wctCoordinatorClient.getSeedUrls(targetInstanceId, harvestResultNumber);
     }
 

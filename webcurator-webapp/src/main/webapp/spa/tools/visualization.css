@@ -149,7 +149,7 @@ progress::-moz-progress-bar {
 }
 
 .tab-content{
-	height: calc(100vh - 62px - 2em - 100px);
+	height: calc(100vh - 170px);
 }
 
 .grid-modify-harvest{
@@ -179,8 +179,17 @@ progress::-moz-progress-bar {
 	width: 100vw;
 	height: 100vh;
 	z-index: 9001;
-	/*padding: 8vh 10vw 0vh 10vw;*/
-	/*background: rgba(0,0,0,0.2);*/
+}
+#popup-window-progress
+{
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 9002;
+	background: white;
 }
 
 .popup-window{
@@ -209,7 +218,7 @@ progress::-moz-progress-bar {
 	/*border-radius: 10px;*/
 	/*background: #F1E4E1;*/
 	/*background: #f8f9fa;*/
-	background: #D9E5F0;
+	/*background: #D9E5F0;*/
 	/*padding-bottom: 10px;*/
 	/*position: relative;*/
 }

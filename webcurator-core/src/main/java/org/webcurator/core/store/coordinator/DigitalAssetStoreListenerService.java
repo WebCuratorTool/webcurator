@@ -26,7 +26,7 @@ public class DigitalAssetStoreListenerService implements DigitalAssetStoreListen
     @Autowired
     private TargetInstanceManager targetInstanceManager;
 
-    @RequestMapping(path = VisualizationConstants.PATH_DOWNLOAD_FILE, method = {RequestMethod.POST, RequestMethod.GET})
+    @RequestMapping(path = WctCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE, method = {RequestMethod.POST, RequestMethod.GET})
     public void dasDownloadFile(@RequestParam("job") long targetInstanceOid, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) {
         wctCoordinator.dasDownloadFile(targetInstanceOid, harvestResultNumber, fileName, req, rsp);
     }

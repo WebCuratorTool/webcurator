@@ -17,6 +17,7 @@ import java.util.Arrays;
         "org.webcurator.ui",
         "org.webcurator.core.coordinator",
         "org.webcurator.core.harvester.coordinator",
+        "org.webcurator.core.store.coordinator",
         "org.webcurator.core.rest",
         "org.webcurator.core.reader",
         "org.webcurator.core.harvester.agent.HarvestAgentClient",

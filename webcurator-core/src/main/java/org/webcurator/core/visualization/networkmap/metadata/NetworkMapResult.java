@@ -7,13 +7,15 @@ public class NetworkMapResult {
     private static final Logger log = LoggerFactory.getLogger(NetworkMapResult.class);
 
     public static final int RSP_CODE_SUCCESS = 0;
-    public static final int RSP_CODE_NODE_NOT_EXIST = 4;
+    public static final int RSP_DATA_NOT_EXIST = 1;
+
     public static final int RSP_ERROR_DB_NOT_FOUND = -1;
     public static final int RSP_CODE_BAD_REQUEST = -2;
+    public static final int RSP_CODE_INITIAL_EXTRACTOR_FAILED = -3;
 
     private int rspCode = RSP_CODE_SUCCESS;
     private String rspMsg = "Success";
-    private String payload;
+    private Object payload;
 
     public int getRspCode() {
         return rspCode;
@@ -31,12 +33,16 @@ public class NetworkMapResult {
         this.rspMsg = rspMsg;
     }
 
-    public String getPayload() {
+    public Object getPayload() {
         return payload;
     }
 
-    public void setPayload(String payload) {
+    public void setPayload(Object payload) {
         this.payload = payload;
+    }
+
+    public static NetworkMapResult getSuccessResult() {
+        return new NetworkMapResult();
     }
 
     public static NetworkMapResult getDBMissingErrorResult() {
@@ -47,13 +53,13 @@ public class NetworkMapResult {
         return result;
     }
 
-    public static NetworkMapResult getNodeNotExistResult() {
-        return getNodeNotExistResult("Node not exist");
+    public static NetworkMapResult getDataNotExistResult() {
+        return getDataNotExistResult("Node not exist");
     }
 
-    public static NetworkMapResult getNodeNotExistResult(String msg) {
+    public static NetworkMapResult getDataNotExistResult(String msg) {
         NetworkMapResult result = new NetworkMapResult();
-        result.setRspCode(RSP_CODE_NODE_NOT_EXIST);
+        result.setRspCode(RSP_DATA_NOT_EXIST);
         result.setRspMsg(msg);
         log.warn(msg);
         return result;
@@ -66,6 +72,18 @@ public class NetworkMapResult {
     public static NetworkMapResult getBadRequestResult(String msg) {
         NetworkMapResult result = new NetworkMapResult();
         result.setRspCode(RSP_CODE_BAD_REQUEST);
+        result.setRspMsg(msg);
+        log.warn(msg);
+        return result;
+    }
+
+    public static NetworkMapResult getInitialExtractorFailedResult() {
+        return getBadRequestResult("Failed to initial index extracting processor");
+    }
+
+    public static NetworkMapResult getInitialExtractorFailedResult(String msg) {
+        NetworkMapResult result = new NetworkMapResult();
+        result.setRspCode(RSP_CODE_INITIAL_EXTRACTOR_FAILED);
         result.setRspMsg(msg);
         log.warn(msg);
         return result;

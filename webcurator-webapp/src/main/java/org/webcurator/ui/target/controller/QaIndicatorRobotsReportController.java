@@ -141,7 +141,7 @@ public class QaIndicatorRobotsReportController {
             log.warn(networkMapResult.getRspMsg());
             return;
         }
-        List<String> robotUrls = networkMapClient.getArrayListOfNetworkMapNode(networkMapResult.getPayload());;
+        List<String> robotUrls = networkMapClient.getArrayListOfNetworkMapNode((String)networkMapResult.getPayload());;
         List<String> lines = new ArrayList<String>();
         robotUrls.forEach(resourceUrl -> {
             try {

@@ -1,27 +1,26 @@
 package org.webcurator.core.visualization;
 
 public class VisualizationConstants {
-    public static final String PATH_ROOT = "/curator";
-    public static final String PATH_UPLOAD_FILE = PATH_ROOT + "/modification/upload-file-stream";
-    public static final String PATH_DOWNLOAD_FILE = PATH_ROOT + "/modification/download-file-stream";
-    public static final String PATH_CHECK_FILES = PATH_ROOT + "/modification/check-files";
-    public static final String PATH_APPLY_PRUNE_IMPORT = PATH_ROOT + "/modification/apply";
+    public static final String ROOT_PATH = "/curator";
+    public static final String PATH_UPLOAD_FILE = ROOT_PATH + "/modification/upload-file-stream";
+    public static final String PATH_CHECK_FILES = ROOT_PATH + "/modification/check-files";
+    public static final String PATH_APPLY_PRUNE_IMPORT = ROOT_PATH + "/modification/apply";
 
-    public static final String PATH_GET_COMMON = PATH_ROOT + "/networkmap/get/common";
-    public static final String PATH_GET_NODE = PATH_ROOT + "/networkmap/get/node";
-    public static final String PATH_GET_OUTLINKS = PATH_ROOT + "/networkmap/get/outlinks";
-    public static final String PATH_GET_CHILDREN = PATH_ROOT + "/networkmap/get/children";
-    public static final String PATH_GET_ALL_DOMAINS = PATH_ROOT + "/networkmap/get/all/domains";
-    public static final String PATH_GET_ROOT_URLS = PATH_ROOT + "/networkmap/get/root/urls";
-    public static final String PATH_GET_MALFORMED_URLS = PATH_ROOT + "/networkmap/get/malformed/urls";
-    public static final String PATH_SEARCH_URLS = PATH_ROOT + "/networkmap/search/urls";
-    public static final String PATH_SEARCH_URL_NAMES = PATH_ROOT + "/networkmap/search/url-names";
-    public static final String PATH_GET_HOP_PATH = PATH_ROOT + "/networkmap/get/hop/path";
-    public static final String PATH_GET_HIERARCHY_URLS = PATH_ROOT + "/networkmap/get/hierarchy/urls";
-    public static final String PATH_GET_URL_BY_NAME = PATH_ROOT + "/networkmap/get/query-url-by-name";
+    public static final String PATH_GET_COMMON = ROOT_PATH + "/networkmap/get/common";
+    public static final String PATH_GET_NODE = ROOT_PATH + "/networkmap/get/node";
+    public static final String PATH_GET_OUTLINKS = ROOT_PATH + "/networkmap/get/outlinks";
+    public static final String PATH_GET_CHILDREN = ROOT_PATH + "/networkmap/get/children";
+    public static final String PATH_GET_ALL_DOMAINS = ROOT_PATH + "/networkmap/get/all/domains";
+    public static final String PATH_GET_ROOT_URLS = ROOT_PATH + "/networkmap/get/root/urls";
+    public static final String PATH_GET_MALFORMED_URLS = ROOT_PATH + "/networkmap/get/malformed/urls";
+    public static final String PATH_SEARCH_URLS = ROOT_PATH + "/networkmap/search/urls";
+    public static final String PATH_SEARCH_URL_NAMES = ROOT_PATH + "/networkmap/search/url-names";
+    public static final String PATH_GET_HOP_PATH = ROOT_PATH + "/networkmap/get/hop/path";
+    public static final String PATH_GET_HIERARCHY_URLS = ROOT_PATH + "/networkmap/get/hierarchy/urls";
+    public static final String PATH_GET_URL_BY_NAME = ROOT_PATH + "/networkmap/get/query-url-by-name";
 
-    public static final String PATH_GET_PROGRESS = PATH_ROOT + "/visualization/progress";
-    public static final String PATH_INDEX = PATH_ROOT + "/visualization/index";
+    public static final String PATH_GET_PROGRESS = ROOT_PATH + "/visualization/progress";
+    public static final String PATH_INITIAL_INDEX = ROOT_PATH + "/visualization/index/initial";
 
     public static final int RESP_CODE_SUCCESS = 0;
     public static final int RESP_CODE_FILE_EXIST = 1;

@@ -48,6 +48,7 @@ import org.webcurator.auth.WCTAuthenticationProcessingFilter;
 import org.webcurator.auth.WCTAuthenticationSuccessHandler;
 import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
 import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
@@ -64,7 +65,6 @@ import java.util.List;
  * Contains configuration that used to be found in {@code wct-core-security.xml}. This
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
- *
  */
 @Configuration
 @EnableWebSecurity
@@ -115,7 +115,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 //    }
 
     @Bean
-    public AuthenticationSuccessHandler wctAuthenticationSuccessHandler(){
+    public AuthenticationSuccessHandler wctAuthenticationSuccessHandler() {
         WCTAuthenticationSuccessHandler wctAuthenticationSuccessHandler = new WCTAuthenticationSuccessHandler("/curator/home.html", false);
         wctAuthenticationSuccessHandler.setAuthDAO(baseConfig.userRoleDAO());
         wctAuthenticationSuccessHandler.setAuditor(baseConfig.audit());
@@ -124,7 +124,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationFailureHandler wctAuthenticationFailureHandler(){
+    public AuthenticationFailureHandler wctAuthenticationFailureHandler() {
         WCTAuthenticationFailureHandler wctAuthenticationFailureHandler = new WCTAuthenticationFailureHandler("/logon.jsp?failed=true");
         wctAuthenticationFailureHandler.setAuditor(baseConfig.audit());
         wctAuthenticationFailureHandler.setUseForward(true);
@@ -147,16 +147,16 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/curator/**").hasRole("LOGIN")
 //                .antMatchers("/curator/**").permitAll()
-                .antMatchers( "/jsp/**").hasRole("LOGIN")
-                .antMatchers( "/replay/**").hasRole("LOGIN")
-                .antMatchers( "/help/**").hasRole("LOGIN")
-                .antMatchers( "/styles/**").permitAll()
-                .antMatchers( "/images/**").permitAll()
-                .antMatchers( "/scripts/**").permitAll()
-                .antMatchers("/harvest-coordinator/**").permitAll()
+                .antMatchers("/jsp/**").hasRole("LOGIN")
+                .antMatchers("/replay/**").hasRole("LOGIN")
+                .antMatchers("/help/**").hasRole("LOGIN")
+                .antMatchers("/styles/**").permitAll()
+                .antMatchers("/images/**").permitAll()
+                .antMatchers("/scripts/**").permitAll()
+                .antMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
                 .antMatchers("**/digital-asset-store/**").permitAll()
-                .antMatchers( "/spa/**").permitAll()
-                .antMatchers( "/visualization/**").permitAll()
+                .antMatchers("/spa/**").permitAll()
+//                .antMatchers("/visualization/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
                 .loginPage("/logon.jsp")
@@ -176,14 +176,14 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         // Set optional LDAP/AD configuration
-        if(ldapEnable.toLowerCase().equals("true")){
+        if (ldapEnable.toLowerCase().equals("true")) {
             auth.ldapAuthentication()
-                .userSearchBase(ldapUsrSearchBase)
-                .userSearchFilter(ldapUsrSearchFilter)
-                .groupSearchBase(ldapGroupSearchBase)
-                .groupSearchFilter(ldapGroupSearchFilter)
-                .ldapAuthoritiesPopulator(authoritiesPopulator())
-                .contextSource()
+                    .userSearchBase(ldapUsrSearchBase)
+                    .userSearchFilter(ldapUsrSearchFilter)
+                    .groupSearchBase(ldapGroupSearchBase)
+                    .groupSearchFilter(ldapGroupSearchFilter)
+                    .ldapAuthoritiesPopulator(authoritiesPopulator())
+                    .contextSource()
                     .url(ldapUrl)
                     .managerDn(ldapContextSourceManagerDn)
                     .managerPassword(ldapContextSourceManagerPassword)
@@ -192,6 +192,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 
         auth.authenticationProvider(authenticationProvider());
     }
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider bean = new DaoAuthenticationProvider();

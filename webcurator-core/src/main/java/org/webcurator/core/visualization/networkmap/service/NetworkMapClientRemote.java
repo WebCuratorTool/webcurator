@@ -6,7 +6,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 
 import java.net.URI;
@@ -15,6 +14,20 @@ import java.util.List;
 public class NetworkMapClientRemote extends AbstractRestClient implements NetworkMapClient {
     public NetworkMapClientRemote(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
         super(scheme, host, port, restTemplateBuilder);
+    }
+
+    @Override
+    public NetworkMapResult initialIndex(long job, int harvestResultNumber) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_INITIAL_INDEX))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        NetworkMapResult result;
+        result = restTemplate.postForObject(uri, null, NetworkMapResult.class);
+        return result;
     }
 
     @Override
@@ -198,16 +211,16 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
     }
 
     @Override
-    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
+    public NetworkMapResult getProgress(long job, int harvestResultNumber) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_PROGRESS))
-                .queryParam("targetInstanceId", targetInstanceId)
+                .queryParam("job", job)
                 .queryParam("harvestResultNumber", harvestResultNumber);
         URI uri = uriComponentsBuilder.build().toUri();
 
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        VisualizationProgressBar result;
-        result = restTemplate.postForObject(uri, null, VisualizationProgressBar.class);
+        NetworkMapResult result;
+        result = restTemplate.postForObject(uri, null, NetworkMapResult.class);
         return result;
     }
 }

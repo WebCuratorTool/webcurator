@@ -74,8 +74,8 @@ public class ResourceExtractorProcessorTest {
         NetworkMapResult result = client.getAllDomains(targetInstanceId, harvestResultNumber);
 
         assert result.getRspCode() == 0;
-        assert result.getPayload().length() > 0;
+        assert result.getPayload()!= null;
 
-        log.debug(result.getPayload());
+        log.debug(result.getPayload().toString());
     }
 }

@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface NetworkMapService extends VisualizationServiceInterface {
+    NetworkMapResult initialIndex(long job, int harvestResultNumber);
+
     NetworkMapResult get(long job, int harvestResultNumber, String key);
 
     NetworkMapResult getNode(long job, int harvestResultNumber, long id);
@@ -35,7 +37,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     NetworkMapResult getUrlByName(long job, int harvestResultNumber, String urlName);
 
-    VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber);
+    NetworkMapResult getProgress(long job, int harvestResultNumber);
 
     default NetworkMapNode getNodeEntity(String json) {
         if (json == null) {

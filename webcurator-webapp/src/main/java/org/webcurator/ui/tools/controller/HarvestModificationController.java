@@ -52,16 +52,10 @@ public class HarvestModificationController implements PruneAndImportService {
         return wctCoordinator.pruneAndImport(cmd);
     }
 
-    @RequestMapping(path = VisualizationConstants.PATH_DOWNLOAD_FILE, method = {RequestMethod.POST, RequestMethod.GET})
-    public void downloadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) {
-        wctCoordinator.dasDownloadFile(job, harvestResultNumber, fileName, req, rsp);
-    }
-
-    @RequestMapping(path = VisualizationConstants.PATH_INDEX, method = {RequestMethod.POST, RequestMethod.GET})
-    public void startReindex(@RequestParam("job") long job,
-                             @RequestParam("harvestResultNumber") int harvestResultNumber) {
-
-    }
+//    @RequestMapping(path = VisualizationConstants.PATH_DOWNLOAD_FILE, method = {RequestMethod.POST, RequestMethod.GET})
+//    public void downloadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) {
+//        wctCoordinator.dasDownloadFile(job, harvestResultNumber, fileName, req, rsp);
+//    }
 
     @RequestMapping(path = "/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
     public void operateHarvestResultModification(@RequestParam("stage") String stage,

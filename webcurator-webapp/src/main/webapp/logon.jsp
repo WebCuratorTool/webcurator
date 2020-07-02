@@ -17,6 +17,7 @@ String wctAppVersion = "3.0.0";
     <meta http-equiv="pragma" content="no-cache">
     <meta http-equiv="cache-control" content="no-cache">
     <meta http-equiv="expires" content="0">
+    <script src="scripts/jquery-3.4.1.min.js"></script>
     <script>
         var gParent=parent;
 
@@ -65,6 +66,15 @@ String wctAppVersion = "3.0.0";
                }
             });
         }
+
+        $(function(){
+            if(isEmbedFrame()){
+                $('#form-login-submit').attr('action', 'javascript: auth();');
+            }else{
+                $('#form-login-submit').attr('action', 'login');
+            }
+        });
+
     </script>
   </head>
 
@@ -72,7 +82,7 @@ String wctAppVersion = "3.0.0";
 <a name="top"></a>
 <div id="topBar"><img src="images/web-curator-tool-logo.gif" alt="Web Curator Tool" width="320" height="68" border="0" /></div>
 <br class="clear" />
-		<form name="login" action="javascript: auth();" method="POST">
+		<form name="login" action="javascript: auth();" method="POST" id="form-login-submit">
 			<div id="loginBox">
                 <%
                     if (failed != null && failed.equals("true")) {

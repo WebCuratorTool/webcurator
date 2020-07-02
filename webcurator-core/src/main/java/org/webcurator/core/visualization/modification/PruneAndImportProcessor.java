@@ -22,6 +22,10 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         this.cmd = cmd;
     }
 
+    @Override
+    protected void initInternal() {
+    }
+
     public void pruneAndImport() throws Exception {
         //Initial derived archive file list
         File derivedDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getHarvestResultNumber());
@@ -80,6 +84,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
 
         // Initial extractor.
         PruneAndImportCoordinatorHeritrixWarc heritrixWarcCoordinator = new PruneAndImportCoordinatorHeritrixWarc();
+        heritrixWarcCoordinator.setWctCoordinatorClient(this.wctCoordinatorClient);
         heritrixWarcCoordinator.setDirs(dirs);
         heritrixWarcCoordinator.setFileDir(this.fileDir);
         heritrixWarcCoordinator.setBaseDir(this.baseDir);

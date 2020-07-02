@@ -39,7 +39,9 @@ public abstract class VisualizationAbstractProcessor {
         this.logsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
         this.reportsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
         this.wctCoordinatorClient = wctCoordinatorClient;
+        this.initInternal();
     }
+    abstract protected  void initInternal();
 
     abstract protected String getProcessorStage();
 

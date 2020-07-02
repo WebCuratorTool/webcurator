@@ -28,7 +28,8 @@ function fetchHttp(url, req, callback){
       gUrl=url;
       gReq=req;
       gCallback=callback;
-      $('#popup-window-login').show();
+      // $('#popup-window-login').show();
+      gParentHarvestResultViewTab.popupLoginWindow();
       return null;
     }
 
@@ -59,7 +60,7 @@ function getEmbedFlag(){
 
 function authCallback(){
   console.log('Auth call back');
-  $('#popup-window-login').hide();
+  // $('#popup-window-login').hide();
   fetchHttp(gUrl, gReq, gCallback);
 }
 

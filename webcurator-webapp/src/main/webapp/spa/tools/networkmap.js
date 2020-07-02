@@ -4,25 +4,68 @@ class NetworkMap{
 		this.gridStatusCode=new NetworkMapGrid('#networkmap-side-table-group-by-status-code', 'statusCode');
 		this.gridContentType=new NetworkMapGrid('#networkmap-side-table-group-by-content-type', 'contentType');
 		this.data={};
+		this.timerProgress;
 	}
 
 
 	init(jobId, harvestResultNumber){
-		var sourceUrlDomains="/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
+		this.jobId=jobId;
+		this.harvestResultNumber=harvestResultNumber;
+		var reqUrl="/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
         var that=this;
      
-    	fetchHttp(sourceUrlDomains, null, function(response){
+    	fetchHttp(reqUrl, null, function(response){
+    		$('#popup-window-loading').hide();
     		if (response.rspCode === 0) {
     			var data=JSON.parse(response.payload);
     			that.formatData(data);
     			that.initDraw(data);
     		}else if(response.rspCode === -1 && confirm("Index file is missing. Would you reindex the harvest result?")){
-    			
+    			that.reindex();
     		}else{
     			alert(response.rspMsg);
     		}
     		
     	});
+	}
+
+	reindex(){
+		var reqUrl="/visualization/index/initial?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		var that=this;
+		fetchHttp(reqUrl, null, function(response){
+			if (response.rspCode!==0) {
+				alert(response.rspMsg);
+				return;
+			}
+
+			//show progress bar
+			$('#popup-window-progress').show();
+
+			//refresh progress
+			that.timerProgress=setInterval(function(){
+				that.refreshprogress();
+			}, 3000);
+		});
+	}
+
+	refreshprogress(){
+		var reqUrl="/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		var that=this;
+		fetchHttp(reqUrl, null, function(response){
+			//Show progress
+			if(response.rspCode===0 && response.payload.progressPercentage < 100){
+				$('#progressIndexerValue').html(response.payload.progressPercentage);
+				$('#progressIndexer').val(response.payload.progressPercentage);
+			}else{
+				clearInterval(that.timerProgress);
+				$('#popup-window-progress').hide();
+				if (response.rspCode===1 || (response.rspCode===0 && response.payload.progressPercentage >= 100)) {
+					that.init(that.jobId, that.harvestResultNumber);
+				}else{
+					alert(response.rspMsg);
+				}
+			}
+		});
 	}
 
 	initDraw(node){

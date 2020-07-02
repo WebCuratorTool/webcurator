@@ -1,7 +1,10 @@
 package org.webcurator.core.visualization.networkmap.service;
 
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProcessorQueue;
 import org.webcurator.core.visualization.VisualizationProgressBar;
+import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -18,6 +21,20 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorQueue visualizationProcessorQueue) {
         this.pool = pool;
         this.visualizationProcessorQueue = visualizationProcessorQueue;
+    }
+
+    @Override
+    public NetworkMapResult initialIndex(long job, int harvestResultNumber) {
+        VisualizationAbstractProcessor processor = null;
+        try {
+            processor = new ResourceExtractorProcessor(pool, job, harvestResultNumber);
+        } catch (DigitalAssetStoreException e) {
+            return NetworkMapResult.getInitialExtractorFailedResult();
+        }
+
+        visualizationProcessorQueue.startTask(processor);
+
+        return NetworkMapResult.getSuccessResult();
     }
 
     @Override
@@ -51,7 +68,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         NetworkMapNode parentNode = this.getNodeEntity(db.get(id));
         if (parentNode == null) {
-            return NetworkMapResult.getNodeNotExistResult("Could not find parent node, id: " + id);
+            return NetworkMapResult.getDataNotExistResult("Could not find parent node, id: " + id);
         }
 
         NetworkMapResult result = new NetworkMapResult();
@@ -89,7 +106,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         List<Long> ids = this.getArrayList(db.get(BDBNetworkMap.PATH_ROOT_URLS));
         if (ids == null) {
-            return NetworkMapResult.getNodeNotExistResult("Could not find seed urls");
+            return NetworkMapResult.getDataNotExistResult("Could not find seed urls");
         }
         String seedUrls = combineUrlResultFromArrayIDs(job, harvestResultNumber, ids);
         ids.clear();
@@ -108,7 +125,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         List<Long> ids = this.getArrayList(db.get(BDBNetworkMap.PATH_MALFORMED_URLS));
         if (ids == null) {
-            return NetworkMapResult.getNodeNotExistResult("Could not find malformed urls");
+            return NetworkMapResult.getDataNotExistResult("Could not find malformed urls");
         }
         String malformedUrls = combineUrlResultFromArrayIDs(job, harvestResultNumber, ids);
         ids.clear();
@@ -246,7 +263,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         String keyId = db.get(urlName);
         if (keyId == null) {
-            return NetworkMapResult.getNodeNotExistResult(String.format("Can not find Url Node: %d, %d, %s", job, harvestResultNumber, urlName));
+            return NetworkMapResult.getDataNotExistResult(String.format("Can not find Url Node: %d, %d, %s", job, harvestResultNumber, urlName));
         }
 
         NetworkMapResult result = new NetworkMapResult();
@@ -358,8 +375,14 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     }
 
     @Override
-    public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-        return visualizationProcessorQueue.getProgress(targetInstanceId, harvestResultNumber);
+    public NetworkMapResult getProgress(long job, int harvestResultNumber) {
+        VisualizationProgressBar progressBar = visualizationProcessorQueue.getProgress(job, harvestResultNumber);
+        if (progressBar == null) {
+            return NetworkMapResult.getDataNotExistResult();
+        }
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(progressBar);
+        return result;
     }
 }
 

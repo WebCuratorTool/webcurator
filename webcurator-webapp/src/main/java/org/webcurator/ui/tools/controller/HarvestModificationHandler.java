@@ -13,6 +13,7 @@ import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -162,7 +163,7 @@ public class HarvestModificationHandler {
         } else if ((hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_SCHEDULED)
                 || (hr.getState() == HarvestResult.STATE_CRAWLING && hr.getStatus() == HarvestResult.STATUS_FINISHED)) {
 //            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "start", ti.getOid(), hr.getHarvestNumber());
-            wctCoordinator.pushPruneAndImport(ti);
+            wctCoordinator.pushPruneAndImport(ti, harvestResultNumber);
             hr.setState(HarvestResult.STATE_MODIFYING);
         } else if ((hr.getState() == HarvestResult.STATE_INDEXING && hr.getStatus() == HarvestResult.STATUS_SCHEDULED)
                 || (hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_FINISHED)) {
@@ -209,20 +210,20 @@ public class HarvestModificationHandler {
             }
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             progress.setPercentageHarvest(100);
-            VisualizationProgressBar progressBarModify = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
-            if (progressBarModify == null) {
+            NetworkMapResult progressBarModify = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
+            if (progressBarModify.getRspCode() == NetworkMapResult.RSP_DATA_NOT_EXIST) {
                 progress.setPercentageModify(100);
             } else {
-                progress.setPercentageModify(progressBarModify.getProgressPercentage());
+                progress.setPercentageModify(((VisualizationProgressBar) progressBarModify.getPayload()).getProgressPercentage());
             }
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
             progress.setPercentageHarvest(100);
             progress.setPercentageModify(100);
-            VisualizationProgressBar progressBarIndex = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
-            if (progressBarIndex == null) {
+            NetworkMapResult progressBarIndex = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
+            if (progressBarIndex.getRspCode() == NetworkMapResult.RSP_DATA_NOT_EXIST) {
                 progress.setPercentageIndex(100);
             } else {
-                progress.setPercentageIndex(progressBarIndex.getProgressPercentage());
+                progress.setPercentageIndex(((VisualizationProgressBar) progressBarIndex.getPayload()).getProgressPercentage());
             }
         } else {
             progress.setPercentageHarvest(100);

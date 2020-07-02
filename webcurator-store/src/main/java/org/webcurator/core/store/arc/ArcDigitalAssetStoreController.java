@@ -43,23 +43,24 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                              HttpServletResponse rsp) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
         Path path = getResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
+        if (path==null){
+            return;
+        }
         try {
             Files.copy(path, rsp.getOutputStream());
         } catch (IOException e) {
             throw new DigitalAssetStoreException(e.getMessage());
         }
-//        byte[] buf = null;
-//        try {
-//            buf = IOUtils.toByteArray(path.toUri());
-//        } catch (IOException e) {
-//            log.error(e.getMessage());
-//        }
-//        return buf;
     }
 
     @Override
-    public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
-        return arcDigitalAssetStoreService.getResource(targetInstanceId, harvestResultNumber, resourceUrl);
+    public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) {
+        try {
+            return arcDigitalAssetStoreService.getResource(targetInstanceId, harvestResultNumber, resourceUrl);
+        } catch (DigitalAssetStoreException e) {
+            log.info(e.getMessage());
+        }
+        return null;
     }
 
     @PostMapping(path = DigitalAssetStorePaths.SMALL_RESOURCE)

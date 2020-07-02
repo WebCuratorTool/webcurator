@@ -11,7 +11,9 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -69,5 +71,15 @@ public class WctCoordinatorClient extends AbstractRestClient {
         RestTemplate restTemplate = restTemplateBuilder.build();
         URI uri = uriComponentsBuilder.build().toUri();
         restTemplate.postForObject(uri, entity, Void.class);
+    }
+
+    public URL getDownloadFileURL(long job, int harvestResultNumber, String fileName) throws MalformedURLException {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber)
+                .queryParam("fileName", fileName);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        return uri.toURL();
     }
 }
