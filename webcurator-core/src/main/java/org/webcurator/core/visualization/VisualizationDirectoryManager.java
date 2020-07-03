@@ -1,6 +1,6 @@
 package org.webcurator.core.visualization;
 
-public class VisualizationManager {
+public class VisualizationDirectoryManager {
     private String uploadDir;
     private String baseDir;
     private String logsDir;
