@@ -252,7 +252,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
     }
 
     @Override
-    public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+    public PruneAndImportCommandResult initialPruneAndImport(PruneAndImportCommandApply cmd) {
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(org.webcurator.core.visualization.VisualizationConstants.PATH_APPLY_PRUNE_IMPORT));

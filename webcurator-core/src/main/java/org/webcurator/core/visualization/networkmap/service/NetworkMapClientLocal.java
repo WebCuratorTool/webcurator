@@ -2,7 +2,7 @@ package org.webcurator.core.visualization.networkmap.service;
 
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
-import org.webcurator.core.visualization.VisualizationProcessorQueue;
+import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 
 public class NetworkMapClientLocal implements NetworkMapClient {
     private final BDBNetworkMapPool pool;
-    private final VisualizationProcessorQueue visualizationProcessorQueue;
+    private final VisualizationProcessorManager visualizationProcessorManager;
 
-    public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorQueue visualizationProcessorQueue) {
+    public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorManager visualizationProcessorManager) {
         this.pool = pool;
-        this.visualizationProcessorQueue = visualizationProcessorQueue;
+        this.visualizationProcessorManager = visualizationProcessorManager;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getInitialExtractorFailedResult();
         }
 
-        visualizationProcessorQueue.startTask(processor);
+        visualizationProcessorManager.startTask(processor);
 
         return NetworkMapResult.getSuccessResult();
     }
@@ -376,7 +376,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getProgress(long job, int harvestResultNumber) {
-        VisualizationProgressBar progressBar = visualizationProcessorQueue.getProgress(job, harvestResultNumber);
+        VisualizationProgressBar progressBar = visualizationProcessorManager.getProgress(job, harvestResultNumber);
         if (progressBar == null) {
             return NetworkMapResult.getDataNotExistResult();
         }

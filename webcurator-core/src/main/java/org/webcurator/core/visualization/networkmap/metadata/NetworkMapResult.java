@@ -54,7 +54,7 @@ public class NetworkMapResult {
     }
 
     public static NetworkMapResult getDataNotExistResult() {
-        return getDataNotExistResult("Node not exist");
+        return getDataNotExistResult("Node does not exist");
     }
 
     public static NetworkMapResult getDataNotExistResult(String msg) {

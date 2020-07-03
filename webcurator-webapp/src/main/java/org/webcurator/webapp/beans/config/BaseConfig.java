@@ -43,7 +43,7 @@ import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
-import org.webcurator.core.visualization.VisualizationManager;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.networkmap.service.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.notification.MailServerImpl;
@@ -76,6 +76,7 @@ import org.webcurator.ui.tools.controller.*;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -262,17 +263,14 @@ public class BaseConfig {
     @Value("${qualityReviewToolController.webArchiveTarget}")
     private String qualityReviewToolControllerWebArchiveTarget;
 
-    @Value("${core.uploaded.dir}")
-    private String uploadedFilesDir;
+    @Value("${core.base.dir}")
+    private String baseDir;
 
     @Autowired
     private ListsConfig listsConfig;
 
     @Autowired
     private WctCoordinator wctCoordinator;
-
-//    @Autowired
-//    VisualizationManager visualizationManager;
 
     @PostConstruct
     public void init() {
@@ -281,9 +279,10 @@ public class BaseConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public VisualizationManager visualizationManager() {
-        VisualizationManager bean = new VisualizationManager();
-        bean.setUploadDir(uploadedFilesDir);
+    public VisualizationDirectoryManager visualizationManager() {
+        VisualizationDirectoryManager bean = new VisualizationDirectoryManager();
+        bean.setBaseDir(baseDir);
+        bean.setUploadDir(baseDir + File.separator + "uploadedFiles");
         return bean;
     }
 

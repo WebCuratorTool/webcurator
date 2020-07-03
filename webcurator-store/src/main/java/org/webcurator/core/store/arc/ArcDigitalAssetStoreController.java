@@ -193,8 +193,8 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)
-    public PruneAndImportCommandResult pruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
-        return arcDigitalAssetStoreService.pruneAndImport(cmd);
+    public PruneAndImportCommandResult initialPruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
+        return arcDigitalAssetStoreService.initialPruneAndImport(cmd);
     }
 
     @Override

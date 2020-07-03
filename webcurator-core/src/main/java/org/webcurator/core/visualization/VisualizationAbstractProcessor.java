@@ -33,11 +33,11 @@ public abstract class VisualizationAbstractProcessor {
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public void init(VisualizationManager visualizationManager, WctCoordinatorClient wctCoordinatorClient) {
-        this.fileDir = visualizationManager.getUploadDir();
-        this.baseDir = visualizationManager.getBaseDir();
-        this.logsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
-        this.reportsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
+    public void init(VisualizationDirectoryManager visualizationDirectoryManager, WctCoordinatorClient wctCoordinatorClient) {
+        this.fileDir = visualizationDirectoryManager.getUploadDir();
+        this.baseDir = visualizationDirectoryManager.getBaseDir();
+        this.logsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationDirectoryManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
+        this.reportsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationDirectoryManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
         this.wctCoordinatorClient = wctCoordinatorClient;
         this.initInternal();
     }
@@ -46,7 +46,7 @@ public abstract class VisualizationAbstractProcessor {
     abstract protected String getProcessorStage();
 
     public String getKey() {
-        return VisualizationProcessorQueue.getKey(processorStage, targetInstanceId, harvestResultNumber);
+        return VisualizationProcessorManager.getKey(processorStage, targetInstanceId, harvestResultNumber);
     }
 
     public void process() {

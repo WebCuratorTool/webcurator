@@ -115,7 +115,7 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
     }
 
     @Override
-    public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+    public PruneAndImportCommandResult initialPruneAndImport(PruneAndImportCommandApply cmd) {
         return null;
     }
 

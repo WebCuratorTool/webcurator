@@ -16,19 +16,21 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 
+@SuppressWarnings("all")
 public class PruneAndImportProcessorTest {
     private static final Logger log = LoggerFactory.getLogger(PruneAndImportProcessorTest.class);
     private static final String fileDir = "/usr/local/wct/store/uploadedFiles";
     private static final String baseDir = "/usr/local/wct/store";
     private static final String coreCacheDir = "/usr/local/wct/webapp/uploadedFiles";
     private WctCoordinatorClient wctCoordinatorClient;
-    private final VisualizationManager visualizationManager = new VisualizationManager();
+    private final VisualizationDirectoryManager visualizationDirectoryManager = new VisualizationDirectoryManager();
 
-    private VisualizationProcessorQueue visualizationProcessorQueue = new VisualizationProcessorQueue();
+    private VisualizationProcessorManager visualizationProcessorManager;
 
     @Before
     public void initTest() {
         wctCoordinatorClient = new WctCoordinatorClient("http", "localhost", 8080, new RestTemplateBuilder());
+        visualizationProcessorManager = new VisualizationProcessorManager(visualizationDirectoryManager, wctCoordinatorClient, null, 3, 3000, 3000);
     }
 
     @Test
@@ -36,14 +38,14 @@ public class PruneAndImportProcessorTest {
         PruneAndImportCommandApply cmd = getPruneAndImportCommandApply(5010, 2);
         cmd.setNewHarvestResultNumber(2);
 
-        VisualizationManager visualizationManager = new VisualizationManager();
-        visualizationManager.setBaseDir(baseDir);
-        visualizationManager.setUploadDir(fileDir);
-        visualizationManager.setLogsDir("logs");
-        visualizationManager.setReportsDir("reports");
+        VisualizationDirectoryManager visualizationDirectoryManager = new VisualizationDirectoryManager();
+        visualizationDirectoryManager.setBaseDir(baseDir);
+        visualizationDirectoryManager.setUploadDir(fileDir);
+        visualizationDirectoryManager.setLogsDir("logs");
+        visualizationDirectoryManager.setReportsDir("reports");
         PruneAndImportProcessor processor = new PruneAndImportProcessor(cmd);
 
-        visualizationProcessorQueue.startTask(processor);
+        visualizationProcessorManager.startTask(processor);
 
         Thread.sleep(2000);
 

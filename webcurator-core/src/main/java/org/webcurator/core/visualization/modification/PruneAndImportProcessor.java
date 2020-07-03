@@ -2,6 +2,7 @@ package org.webcurator.core.visualization.modification;
 
 import org.apache.commons.io.FileUtils;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationProgressBar;
@@ -10,6 +11,7 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -24,6 +26,11 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
 
     @Override
     protected void initInternal() {
+        try {
+            PatchUtil.modifier.savePatchJob(baseDir, cmd);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
     }
 
     public void pruneAndImport() throws Exception {
@@ -134,6 +141,9 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
             wctCoordinatorClient.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
             log.info("Notify Core that modification is finished");
         }
+
+        //Move the current metadata to history fold to avoid duplicated execution
+        PatchUtil.modifier.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
     }
 
     @Override

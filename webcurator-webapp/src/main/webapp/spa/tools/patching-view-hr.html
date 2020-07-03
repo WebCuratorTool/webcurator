@@ -296,7 +296,7 @@ to get the desired effect
         //Action Button Status
         hrState=data.hrState;
         hrStatus=data.hrStatus;
-        if ((hrState===5 && (hrStatus===1 || hrStatus===5)) || (hrState===6 && (hrStatus===1 || hrStatus===5)) || (hrState===7 && hrStatus===1)) {
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===1){
             $('#btn-group-patch-actions button[action="start"]').prop('disabled', false);
         }else{
             $('#btn-group-patch-actions button[action="start"]').prop('disabled', true);

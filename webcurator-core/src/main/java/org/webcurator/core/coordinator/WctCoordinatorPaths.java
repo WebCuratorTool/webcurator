@@ -9,7 +9,7 @@ public class WctCoordinatorPaths {
     public static final String NOTIFICATION_BY_SUBJECT = ROOT_PATH + "/notification-by-subject";
     public static final String ADD_HARVEST_RESULT = ROOT_PATH + "/result/{harvest-result-oid}";
     public static final String CREATE_HARVEST_RESULT = ROOT_PATH + "/result";
-    public static final String FINALISE_INDEX = ROOT_PATH + "/finalise-index/{harvest-result-oid}";
+    public static final String FINALISE_INDEX = ROOT_PATH + "/finalise-index";
     public static final String NOTIFY_AQA_COMPLETE = ROOT_PATH + "/notification-aqa-complete/{aqa-id}";
     public static final String ADD_HARVEST_RESOURCES = ROOT_PATH + "/add-harvest-resources/{harvest-result-oid}";
     public static final String COMPLETE_ARCHIVING = ROOT_PATH + "/complete-archiving/{target-instance-oid}";

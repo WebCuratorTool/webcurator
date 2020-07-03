@@ -6,7 +6,6 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.File;
@@ -20,7 +19,7 @@ public class BDBNetworkMapTest {
     private final long targetInstanceId = 36;
     private final int harvestResultNumber = 1;
     private final Set<SeedHistoryDTO> seeds = new HashSet<>();
-    private final VisualizationManager visualizationManager = new VisualizationManager();
+    private final VisualizationDirectoryManager visualizationDirectoryManager = new VisualizationDirectoryManager();
 
     @Before
     public void initTest() throws IOException, DigitalAssetStoreException {
@@ -33,10 +32,10 @@ public class BDBNetworkMapTest {
         seeds.add(seedHistoryPrimary);
         seeds.add(seedHistorySecondary);
 
-        visualizationManager.setBaseDir(baseDir);
-        visualizationManager.setUploadDir(baseDir + File.separator + "uploadedFiles");
-        visualizationManager.setReportsDir("reports");
-        visualizationManager.setLogsDir("logs");
+        visualizationDirectoryManager.setBaseDir(baseDir);
+        visualizationDirectoryManager.setUploadDir(baseDir + File.separator + "uploadedFiles");
+        visualizationDirectoryManager.setReportsDir("reports");
+        visualizationDirectoryManager.setLogsDir("logs");
     }
 
     @Test
@@ -77,9 +76,9 @@ public class BDBNetworkMapTest {
     }
 
     void testReadData(BDBNetworkMap db, long job, int harvestResultNumber) {
-        NetworkMapClientLocal client = new NetworkMapClientLocal(new BDBNetworkMapPool("/usr/local/store"), new VisualizationProcessorQueue());
-
-        System.out.println(client.getAllDomains(job, harvestResultNumber));
+//        NetworkMapClientLocal client = new NetworkMapClientLocal(new BDBNetworkMapPool("/usr/local/store"), new VisualizationProcessorManager());
+//
+//        System.out.println(client.getAllDomains(job, harvestResultNumber));
 
     }
 }

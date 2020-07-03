@@ -21,49 +21,47 @@ public class VisualizationProcessorManager {
 
     private final Timer timerHeartbeat = new Timer();
     private final Timer timerScanJob = new Timer();
-    private final VisualizationManager visualizationManager;
+    private final VisualizationDirectoryManager visualizationDirectoryManager;
     private final WctCoordinatorClient wctCoordinatorClient;
     private final BDBNetworkMapPool pool;
     private Semaphore max_processors_lock = new Semaphore(3);
     private final Map<String, VisualizationAbstractProcessor> queued_processors = new Hashtable<>();
 
-    public VisualizationProcessorManager(VisualizationManager visualizationManager,
+    public VisualizationProcessorManager(VisualizationDirectoryManager visualizationDirectoryManager,
                                          WctCoordinatorClient wctCoordinatorClient,
                                          BDBNetworkMapPool pool,
                                          int maxConcurrencyModThreads,
                                          long heartbeatInterval,
                                          long jobScanInterval) {
-        this.visualizationManager = visualizationManager;
+        this.visualizationDirectoryManager = visualizationDirectoryManager;
         this.wctCoordinatorClient = wctCoordinatorClient;
         this.pool = pool;
         this.max_processors_lock = new Semaphore(maxConcurrencyModThreads);
-        this.timerHeartbeat.scheduleAtFixedRate(new HeartBeat(), 0, heartbeatInterval);
-        this.timerScanJob.scheduleAtFixedRate(new JobScan(), 0, heartbeatInterval);
+//        this.timerHeartbeat.scheduleAtFixedRate(new HeartBeat(), 0, heartbeatInterval);
+//        this.timerScanJob.scheduleAtFixedRate(new JobScan(), 0, heartbeatInterval);
     }
 
     synchronized public void startTask(VisualizationAbstractProcessor processor) {
-        final String key = processor.getKey();
-        if (queued_processors.containsKey(key)) {
-            log.error("Processor is in the queue: {}", key);
+        if (queued_processors.containsKey(processor.getKey())) {
+            log.debug("Processor is in the queue: {}", processor.getKey());
             return;
         }
 
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                String key = processor.getKey();
                 try {
                     // queued_keys.add(key);
-                    queued_processors.put(key, processor);
+                    queued_processors.put(processor.getKey(), processor);
                     max_processors_lock.acquire();
-                    processor.init(visualizationManager, wctCoordinatorClient);
+                    processor.init(visualizationDirectoryManager, wctCoordinatorClient);
                     processor.process();
                 } catch (Throwable e) {
                     log.error(e.getMessage());
                     e.printStackTrace();
                 } finally {
                     max_processors_lock.release();
-                    queued_processors.remove(key);
+                    queued_processors.remove(processor.getKey());
                 }
             }
         });
@@ -162,7 +160,7 @@ public class VisualizationProcessorManager {
         @Override
         public void run() {
             try {
-                List<VisualizationAbstractCommandApply> modifyingJobs = PatchUtil.modifier.listPatchJob(visualizationManager.getBaseDir());
+                List<VisualizationAbstractCommandApply> modifyingJobs = PatchUtil.modifier.listPatchJob(visualizationDirectoryManager.getBaseDir());
                 modifyingJobs.forEach(cmd -> {
                     String key = getKey(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
                     try {
@@ -173,7 +171,7 @@ public class VisualizationProcessorManager {
                     }
                 });
 
-                List<VisualizationAbstractCommandApply> indexingJobs = PatchUtil.indexer.listPatchJob(visualizationManager.getBaseDir());
+                List<VisualizationAbstractCommandApply> indexingJobs = PatchUtil.indexer.listPatchJob(visualizationDirectoryManager.getBaseDir());
                 indexingJobs.forEach(cmd -> {
                     String key = getKey(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
                     try {

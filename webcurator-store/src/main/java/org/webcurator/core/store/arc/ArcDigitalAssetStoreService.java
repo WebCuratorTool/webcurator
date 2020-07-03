@@ -61,7 +61,7 @@ import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.VisualizationProcessorQueue;
+import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
@@ -123,7 +123,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     private NetworkMapClient networkMapClient;
 
     @Autowired
-    private VisualizationProcessorQueue visualizationProcessorQueue;
+    private VisualizationProcessorManager visualizationProcessorManager;
 
     @Autowired
     private BDBNetworkMapPool pool;
@@ -489,7 +489,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             throw new DigitalAssetStoreException(err);
         }
 
-        String json = (String)result.getPayload();
+        String json = (String) result.getPayload();
         NetworkMapNode node = networkMapClient.getNodeEntity(json);
         if (node == null) {
             log.warn(err);
@@ -688,26 +688,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         return logsDir;
     }
 
-//    public File getAttachedLogDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-//        String sTargetInstanceId = Long.toString(targetInstanceId);
-//        String sHarvestNumberId = Integer.toString(harvestResultNumber);
-//
-//        File logsDir = null;
-//        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_LOGS, File.separator, Constants.DIR_LOGS_EXT);
-//        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-//            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
-//        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-//            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
-//        } else {
-//            log.warn("Unsupported query type {} {} {}", prefix, targetInstanceId, harvestResultNumber);
-//            return null;
-//        }
-//
-//        logsDir = new File(logsDir, sHarvestNumberId);
-//
-//        return logsDir;
-//    }
-
     public File parseAttachedReportDir(String aJob) {
         File logsDir = null;
         String[] prefixItems = aJob.split("@");
@@ -731,29 +711,9 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         return logsDir;
     }
 
-//    public File getAttachedReportDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-//        String sTargetInstanceId = Long.toString(targetInstanceId);
-//        String sHarvestNumberId = Integer.toString(harvestResultNumber);
-//
-//        File logsDir = null;
-//        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_REPORTS, File.separator, Constants.DIR_LOGS_EXT);
-//        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-//            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
-//        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-//            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
-//        } else {
-//            log.warn("Unsupported query type {} {} {}", prefix, targetInstanceId, harvestResultNumber);
-//            return null;
-//        }
-//
-//        logsDir = new File(logsDir, sHarvestNumberId);
-//
-//        return logsDir;
-//    }
-
     private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
         if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
-            log.warn("Invalid input parameter");
+            log.info("Invalid input parameter");
             return;
         }
         File[] fileList = logsDir.listFiles();
@@ -1008,7 +968,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         // Kick of the indexer.
 //        indexer.runIndex(harvestResult, sourceDir);
         VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
-        visualizationProcessorQueue.startTask(processor);
+        visualizationProcessorManager.startTask(processor);
     }
 
     public void initiateRemoveIndexes(HarvestResultDTO harvestResult)
@@ -1107,12 +1067,12 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         this.networkMapClient = networkMapClient;
     }
 
-    public VisualizationProcessorQueue getVisualizationProcessorQueue() {
-        return visualizationProcessorQueue;
+    public VisualizationProcessorManager getVisualizationProcessorManager() {
+        return visualizationProcessorManager;
     }
 
-    public void setVisualizationProcessorQueue(VisualizationProcessorQueue visualizationProcessorQueue) {
-        this.visualizationProcessorQueue = visualizationProcessorQueue;
+    public void setVisualizationProcessorManager(VisualizationProcessorManager visualizationProcessorManager) {
+        this.visualizationProcessorManager = visualizationProcessorManager;
     }
 
     public BDBNetworkMapPool getPool() {
@@ -1124,18 +1084,20 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     @Override
-    public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+    public PruneAndImportCommandResult initialPruneAndImport(PruneAndImportCommandApply cmd) {
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
         VisualizationAbstractProcessor processor = null;
         try {
             processor = new PruneAndImportProcessor(cmd);
         } catch (DigitalAssetStoreException e) {
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg(e.getMessage());
             log.error(e.getLocalizedMessage());
-            e.printStackTrace();
+            return result;
         }
 
-        visualizationProcessorQueue.startTask(processor);
+        visualizationProcessorManager.startTask(processor);
 
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
         result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
         result.setRespMsg("Modification task is accepted");
         return result;
@@ -1145,13 +1107,13 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
         log.info("stage: {}, command: {}, targetInstanceId: {}, harvestResultNumber:{} ", stage, command, targetInstanceId, harvestNumber);
         if (command.equalsIgnoreCase("pause")) {
-            visualizationProcessorQueue.pauseTask(stage, targetInstanceId, harvestNumber);
+            visualizationProcessorManager.pauseTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("resume")) {
-            visualizationProcessorQueue.resumeTask(stage, targetInstanceId, harvestNumber);
+            visualizationProcessorManager.resumeTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("stop")) {
-            visualizationProcessorQueue.terminateTask(stage, targetInstanceId, harvestNumber);
+            visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("delete")) {
-            if (!visualizationProcessorQueue.deleteTask(stage, targetInstanceId, harvestNumber)) {
+            if (!visualizationProcessorManager.deleteTask(stage, targetInstanceId, harvestNumber)) {
                 VisualizationAbstractProcessor processor = null;
                 if (stage.equals(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
                     PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();

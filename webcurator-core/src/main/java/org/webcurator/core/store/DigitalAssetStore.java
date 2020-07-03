@@ -181,7 +181,7 @@ public interface DigitalAssetStore {
      * @param cmd The prune and import metadata list
      * @return the command is accepted or not
      */
-    PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd);
+    PruneAndImportCommandResult initialPruneAndImport(PruneAndImportCommandApply cmd);
 
     /**
      * To clear the patching Harvest Result, Index, and the Mod Harvest Files

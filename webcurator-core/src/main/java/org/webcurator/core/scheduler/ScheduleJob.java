@@ -23,52 +23,52 @@ import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.util.ApplicationContextFactory;
+
+import java.util.Objects;
 
 /**
- * The Scheduled job for prompting the harvest coordinator to process the 
+ * The Scheduled job for prompting the harvest coordinator to process the
  * current jobs in the queue.
+ *
  * @author nwaight
  */
-public class ScheduleJob extends QuartzJobBean {	
-	/** the logger. */
-	private static final Log log = LogFactory.getLog(ScheduleJob.class);
-	/** The harvest Coordinator to use to schedule jobs. */	
-	private WctCoordinator wctCoordinator;
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.scheduling.quartz.QuartzJobBean#executeInternal(org.quartz.JobExecutionContext)
-	 */
-	@Override
-	protected void executeInternal(JobExecutionContext aContext) {
-		GroupMatcher<TriggerKey> triggerMatcher = GroupMatcher.triggerGroupEquals("ProcessScheduleTriggerGroup");
-		try {
-			aContext.getScheduler().pauseTriggers(triggerMatcher);
+public class ScheduleJob extends QuartzJobBean {
+    /**
+     * the logger.
+     */
+    private static final Log log = LogFactory.getLog(ScheduleJob.class);
 
-			log.info("Starting processSchedule");
-			wctCoordinator.processSchedule();
-		}
-		catch (Exception e) {
-			// Dont throw an exception here as this will stop the scheduling job running.
-			if (log.isErrorEnabled()) {
-				log.error("process schedule failed controlling the scheduler: " + e.getMessage(), e);
-			}
-		}
-		finally {
-			try {
-				aContext.getScheduler().resumeTriggers(triggerMatcher);
-			}
-			catch (SchedulerException e) {
-				if (log.isErrorEnabled()) {
-					log.error("Failed to resume the trigger for processing the schedule.");
-				}
-			}
-		}
-	}
+    /**
+     * The harvest Coordinator to use to schedule jobs.
+     */
 
-	/**  
-	 * @param wctCoordinator the harvest coordinator to use.
-	 */
-	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
-		this.wctCoordinator = wctCoordinator;
-	}
+    /* (non-Javadoc)
+     * @see org.springframework.scheduling.quartz.QuartzJobBean#executeInternal(org.quartz.JobExecutionContext)
+     */
+    @Override
+    protected void executeInternal(JobExecutionContext aContext) {
+        GroupMatcher<TriggerKey> triggerMatcher = GroupMatcher.triggerGroupEquals("ProcessScheduleTriggerGroup");
+        try {
+            aContext.getScheduler().pauseTriggers(triggerMatcher);
+
+            log.info("Starting processSchedule");
+            WctCoordinator wctCoordinator = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(WctCoordinatorImpl.class);
+            wctCoordinator.processSchedule();
+        } catch (Exception e) {
+            // Dont throw an exception here as this will stop the scheduling job running.
+            if (log.isErrorEnabled()) {
+                log.error("process schedule failed controlling the scheduler: " + e.getMessage(), e);
+            }
+        } finally {
+            try {
+                aContext.getScheduler().resumeTriggers(triggerMatcher);
+            } catch (SchedulerException e) {
+                if (log.isErrorEnabled()) {
+                    log.error("Failed to resume the trigger for processing the schedule.");
+                }
+            }
+        }
+    }
 }

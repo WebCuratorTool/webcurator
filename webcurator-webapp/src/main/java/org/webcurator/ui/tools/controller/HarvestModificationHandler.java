@@ -4,12 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
@@ -57,6 +60,10 @@ public class HarvestModificationHandler {
 
     @Autowired
     NetworkMapClient networkMapClient;
+
+    @Value("${core.base.dir}")
+    private String baseDir;
+
 
     public void clickPause(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
@@ -212,7 +219,14 @@ public class HarvestModificationHandler {
             progress.setPercentageHarvest(100);
             NetworkMapResult progressBarModify = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
             if (progressBarModify.getRspCode() == NetworkMapResult.RSP_DATA_NOT_EXIST) {
-                progress.setPercentageModify(100);
+                if (hr.getStatus()==HarvestResult.STATUS_SCHEDULED){
+                    progress.setPercentageModify(0);
+                }else if (hr.getStatus()==HarvestResult.STATUS_RUNNING || hr.getStatus()==HarvestResult.STATUS_PAUSED){
+                    progress.setPercentageModify(50);
+                }else {
+                    progress.setPercentageModify(100);
+                }
+
             } else {
                 progress.setPercentageModify(((VisualizationProgressBar) progressBarModify.getPayload()).getProgressPercentage());
             }
@@ -221,7 +235,13 @@ public class HarvestModificationHandler {
             progress.setPercentageModify(100);
             NetworkMapResult progressBarIndex = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
             if (progressBarIndex.getRspCode() == NetworkMapResult.RSP_DATA_NOT_EXIST) {
-                progress.setPercentageIndex(100);
+                if (hr.getStatus()==HarvestResult.STATUS_SCHEDULED){
+                    progress.setPercentageIndex(0);
+                }else if (hr.getStatus()==HarvestResult.STATUS_RUNNING || hr.getStatus()==HarvestResult.STATUS_PAUSED){
+                    progress.setPercentageIndex(50);
+                }else {
+                    progress.setPercentageIndex(100);
+                }
             } else {
                 progress.setPercentageIndex(((VisualizationProgressBar) progressBarIndex.getPayload()).getProgressPercentage());
             }
@@ -231,7 +251,18 @@ public class HarvestModificationHandler {
             progress.setPercentageIndex(100);
         }
 
-        PruneAndImportCommandApply pruneAndImportCommandApply = wctCoordinator.getPruneAndImportCommandApply(ti);
+        VisualizationAbstractCommandApply cmd =PatchUtil.modifier.readPatchJob(baseDir,targetInstanceId,harvestResultNumber);
+        if (cmd==null){
+            cmd = PatchUtil.modifier.readHistoryPatchJob(baseDir,targetInstanceId,harvestResultNumber);
+        }
+
+        PruneAndImportCommandApply pruneAndImportCommandApply=null;
+        if (cmd!=null){
+            pruneAndImportCommandApply=(PruneAndImportCommandApply)cmd;
+        }else{
+            pruneAndImportCommandApply=new PruneAndImportCommandApply();
+        }
+
         List<PruneAndImportCommandRowMetadata> listToBePruned = new ArrayList<>();
         List<PruneAndImportCommandRowMetadata> listToBeImportedByFile = new ArrayList<>();
         List<PruneAndImportCommandRowMetadata> listToBeImportedByURL = new ArrayList<>();

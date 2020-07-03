@@ -82,4 +82,13 @@ public class WctCoordinatorClient extends AbstractRestClient {
 
         return uri.toURL();
     }
+
+    public void finaliseIndex(long targetInstanceId, int harvestNumber) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.FINALISE_INDEX))
+                .queryParam("targetInstanceId", targetInstanceId)
+                .queryParam("harvestNumber", harvestNumber);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        URI uri = uriComponentsBuilder.build().toUri();
+        restTemplate.postForObject(uri, null, Void.class);
+    }
 }

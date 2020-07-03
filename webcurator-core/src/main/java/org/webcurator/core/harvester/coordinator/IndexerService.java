@@ -15,7 +15,7 @@ public interface IndexerService {
     /**
      * Finalise the index by marking it as complete.
      */
-    void finaliseIndex(Long harvestResultOid);
+    void finaliseIndex(long targetInstanceId, int harvestNumber);
     
     /**
      * Notification that AQA is complete.

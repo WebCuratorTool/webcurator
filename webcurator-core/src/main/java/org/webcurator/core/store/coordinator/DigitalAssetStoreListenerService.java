@@ -85,10 +85,10 @@ public class DigitalAssetStoreListenerService implements DigitalAssetStoreListen
     }
 
     @PostMapping(path = WctCoordinatorPaths.FINALISE_INDEX)
-    public void finaliseIndex(@PathVariable(value = "harvest-result-oid") Long harvestResultOid) {
+    public void finaliseIndex(@RequestParam(value = "targetInstanceId") long targetInstanceId, @RequestParam(value = "harvestNumber") int harvestNumber) {
         try {
-            log.info("Received finaliseIndex for Harvest Result {}", harvestResultOid);
-            wctCoordinator.finaliseIndex(harvestResultOid);
+            log.info("Received finaliseIndex for Harvest Result {} {}", targetInstanceId, harvestNumber);
+            wctCoordinator.finaliseIndex(targetInstanceId, harvestNumber);
         } catch (RuntimeException | Error ex) {
             log.error("Exception in finaliseIndex", ex);
             throw ex;

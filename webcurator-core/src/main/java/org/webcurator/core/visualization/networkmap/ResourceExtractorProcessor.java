@@ -5,6 +5,7 @@ import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationCoordinator;
 import org.webcurator.core.visualization.VisualizationProgressBar;
@@ -12,6 +13,7 @@ import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.extractor.ResourceExtractor;
 import org.webcurator.core.visualization.networkmap.extractor.ResourceExtractorWarc;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapCommandApply;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomainManager;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -39,6 +41,17 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     @Override
     protected void initInternal() {
         this.seeds = wctCoordinatorClient.getSeedUrls(targetInstanceId, harvestResultNumber);
+
+        NetworkMapCommandApply cmd = new NetworkMapCommandApply();
+        cmd.setTargetInstanceId(this.targetInstanceId);
+        cmd.setHarvestResultNumber(this.harvestResultNumber);
+        cmd.setNewHarvestResultNumber(this.harvestResultNumber);
+
+        try {
+            PatchUtil.indexer.savePatchJob(this.baseDir, cmd);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
     }
 
     public void indexFiles() throws IOException {
@@ -192,6 +205,7 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     public void clear() {
         this.urls.values().forEach(NetworkMapNode::clear);
         this.urls.clear();
+        PatchUtil.indexer.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
     }
 
     @Override
@@ -203,6 +217,8 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     public void processInternal() throws Exception {
         try {
             indexFiles();
+
+            wctCoordinatorClient.finaliseIndex(targetInstanceId, harvestResultNumber);
         } catch (IOException e) {
             log.error(e.getMessage());
             e.printStackTrace();

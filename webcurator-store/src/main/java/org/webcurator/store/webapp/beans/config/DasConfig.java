@@ -24,8 +24,8 @@ import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
-import org.webcurator.core.visualization.VisualizationManager;
-import org.webcurator.core.visualization.VisualizationProcessorQueue;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
+import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
@@ -284,6 +284,9 @@ public class DasConfig {
     @Value("${qualify.heartbeat.interval}")
     private long heartbeatInterval;
 
+    @Value("${qualify.jobscan.interval}")
+    private long jobScanInterval;
+
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
@@ -299,8 +302,8 @@ public class DasConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public VisualizationManager visualizationManager() {
-        VisualizationManager bean = new VisualizationManager();
+    public VisualizationDirectoryManager visualizationManager() {
+        VisualizationDirectoryManager bean = new VisualizationDirectoryManager();
         bean.setUploadDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         bean.setLogsDir(Constants.DIR_LOGS);
@@ -310,13 +313,13 @@ public class DasConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public VisualizationProcessorQueue visualizationProcessorQueue() {
-        VisualizationProcessorQueue bean = new VisualizationProcessorQueue();
-        bean.setVisualizationManager(visualizationManager());
-        bean.setWctCoordinatorClient(wctCoordinatorClient());
-        bean.setMaxConcurrencyModThreads(maxConcurrencyModThreads);
-        bean.setHeartbeatInterval(heartbeatInterval);
-        return bean;
+    public VisualizationProcessorManager visualizationProcessorQueue() {
+        return new VisualizationProcessorManager(visualizationManager(),
+                wctCoordinatorClient(),
+                bdbDatabasePool(),
+                maxConcurrencyModThreads,
+                heartbeatInterval,
+                jobScanInterval);
     }
 
     @Bean
@@ -335,24 +338,6 @@ public class DasConfig {
         WctCoordinatorClient bean = new WctCoordinatorClient(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
         return bean;
     }
-
-
-//    @Bean
-//    @Scope(BeanDefinition.SCOPE_SINGLETON)
-//    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-//    public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-//        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpoint(), restTemplateBuilder);
-//        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-//        bean.setIndexer(indexer());
-//        bean.setDasFileMover(createDasFileMover());
-//        bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
-//        bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
-//        bean.setFileArchive(createFileArchive());
-//        bean.setNetworkMapClient(getNetworkMapLocalClient());
-//        bean.setVisualizationProcessorQueue(getVisualizationProcessorQueue());
-//        bean.setPool(getBDBDatabasePool());
-//        return bean;
-//    }
 
     @Bean
     public FilterRegistrationBean filterRegistration() {
@@ -443,8 +428,8 @@ public class DasConfig {
 //    public WCTIndexer wctIndexer() {
 //        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
-//        bean.setVisualizationManager(visualizationManager);
-//        bean.setBDBNetworkMapPool(getBDBDatabasePool());
+//        bean.setVisualizationDirectoryManager(visualizationManager);
+//        bean.setBDBNetworkMapPool(bdbDatabasePool());
 //        return bean;
 //    }
 
@@ -625,29 +610,22 @@ public class DasConfig {
         return bean;
     }
 
-//    @Bean
-//    @Scope(BeanDefinition.SCOPE_SINGLETON)
-//    public VisualizationProcessorQueue getVisualizationProcessorQueue() {
-//        VisualizationProcessorQueue bean = new VisualizationProcessorQueue();
-//        return bean;
-//    }
-
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public BDBNetworkMapPool getBDBDatabasePool() {
+    public BDBNetworkMapPool bdbDatabasePool() {
         BDBNetworkMapPool pool = new BDBNetworkMapPool(arcDigitalAssetStoreServiceBaseDir);
         return pool;
     }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public NetworkMapClient getNetworkMapLocalClient() {
-        return new NetworkMapClientLocal(getBDBDatabasePool(), visualizationProcessorQueue());
+    public NetworkMapClient networkMapLocalClient() {
+        return new NetworkMapClientLocal(bdbDatabasePool(), visualizationProcessorQueue());
     }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public NetworkMapDomainSuffix getNetworkMapDomainSuffix() {
+    public NetworkMapDomainSuffix networkMapDomainSuffix() {
         NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
         Resource resource = new ClassPathResource("public_suffix_list.dat");
 
