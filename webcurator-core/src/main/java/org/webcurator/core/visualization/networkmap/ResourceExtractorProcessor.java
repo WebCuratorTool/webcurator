@@ -205,7 +205,7 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     public void clear() {
         this.urls.values().forEach(NetworkMapNode::clear);
         this.urls.clear();
-        PatchUtil.indexer.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
+//        PatchUtil.indexer.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
     }
 
     @Override
@@ -218,7 +218,7 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
         try {
             indexFiles();
 
-            wctCoordinatorClient.finaliseIndex(targetInstanceId, harvestResultNumber);
+//            wctCoordinatorClient.finaliseIndex(targetInstanceId, harvestResultNumber);
         } catch (IOException e) {
             log.error(e.getMessage());
             e.printStackTrace();

@@ -1,5 +1,6 @@
 package org.webcurator.core.visualization.networkmap.service;
 
+import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.visualization.VisualizationConstants;
@@ -16,7 +17,13 @@ public class NetworkMapController implements NetworkMapService {
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_INITIAL_INDEX, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult initialIndex(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
-        return client.initialIndex(job, harvestResultNumber);
+        NetworkMapResult result = null;
+        try {
+            result = client.initialIndex(job, harvestResultNumber);
+        } catch (Throwable e) {
+            result = NetworkMapResult.getSystemError();
+        }
+        return result;
     }
 
     @Override

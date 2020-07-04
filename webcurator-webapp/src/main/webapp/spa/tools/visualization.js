@@ -28,7 +28,6 @@ function fetchHttp(url, req, callback){
       gUrl=url;
       gReq=req;
       gCallback=callback;
-      // $('#popup-window-login').show();
       gParentHarvestResultViewTab.popupLoginWindow();
       return null;
     }
@@ -39,7 +38,7 @@ function fetchHttp(url, req, callback){
     }else{
       $('#popup-window-loading').hide();
       console.log('Fetch invalid content: ' + response.headers.get('Content-Type'));
-      fetchHttp(url, req, callback, preventLoadingWindow);
+      // fetchHttp(url, req, callback);
       return null;
     }
   }).then((response) => {
@@ -60,7 +59,6 @@ function getEmbedFlag(){
 
 function authCallback(){
   console.log('Auth call back');
-  // $('#popup-window-login').hide();
   fetchHttp(gUrl, gReq, gCallback);
 }
 
@@ -77,19 +75,6 @@ function saveData(data, fileName) {
     a.click();
     window.URL.revokeObjectURL(url);
 }
-
-// var status='on';
-// function toggleNetworkMapGrid(status){
-//   if (status === 'on') {
-//     $('#network-map-canvas').width('calc(100vw - 30px)');
-//     $('#networkmap-side-container').hide();
-//     // status='off';
-//   }else{
-//     $('#network-map-canvas').width('75vw');
-//     $('#networkmap-side-container').show();
-//     // status='on';
-//   }
-// }
 
 function formatStringArrayToJsonArray(listStr){
   var listObj=[];

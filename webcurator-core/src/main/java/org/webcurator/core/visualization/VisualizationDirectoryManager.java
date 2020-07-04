@@ -1,40 +1,50 @@
 package org.webcurator.core.visualization;
 
+import java.io.File;
+
 public class VisualizationDirectoryManager {
-    private String uploadDir;
-    private String baseDir;
-    private String logsDir;
-    private String reportsDir;
+    private static final String TEMPLATE_UPLOAD = "%s" + File.separator + "uploadedFiles" + File.separator + "%d";
+    private static final String TEMPLATE_BASE_LOG_REPORT = "%s" + File.separator + "%d" + File.separator + "%s";
+    private static final String TEMPLATE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d" + File.separator + "%s";
 
-    public String getUploadDir() {
-        return uploadDir;
-    }
+    private final String baseDir;
+    private final String baseLogDir;
+    private final String baseReportDir;
 
-    public void setUploadDir(String uploadDir) {
-        this.uploadDir = uploadDir;
+
+    public VisualizationDirectoryManager(String baseDir, String baseLogDir, String baseReportDir) {
+        this.baseDir = baseDir;
+        this.baseLogDir = baseLogDir;
+        this.baseReportDir = baseReportDir;
     }
 
     public String getBaseDir() {
-        return baseDir;
+        return this.baseDir;
     }
 
-    public void setBaseDir(String baseDir) {
-        this.baseDir = baseDir;
+    public String getUploadDir(long targetInstanceId) {
+        return String.format(TEMPLATE_UPLOAD, baseDir, targetInstanceId);
     }
 
-    public String getLogsDir() {
-        return logsDir;
+    public String getBaseLogDir(long targetInstanceId) {
+        return String.format(TEMPLATE_BASE_LOG_REPORT, baseDir, targetInstanceId, baseLogDir);
     }
 
-    public void setLogsDir(String logsDir) {
-        this.logsDir = logsDir;
+    public String getBaseReportDir(long targetInstanceId) {
+        return String.format(TEMPLATE_BASE_LOG_REPORT, baseDir, targetInstanceId, baseReportDir);
     }
 
-    public String getReportsDir() {
-        return reportsDir;
+    public String getPatchLogDir(String prefix, long targetInstanceId, int harvestResultNumber) {
+//        if (harvestResultNumber == 1) {
+//            return getBaseLogDir(targetInstanceId);
+//        }
+        return String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber, prefix);
     }
 
-    public void setReportsDir(String reportsDir) {
-        this.reportsDir = reportsDir;
+    public String getPatchReportDir(String prefix, long targetInstanceId, int harvestResultNumber) {
+//        if (harvestResultNumber == 1) {
+//            return getBaseReportDir(targetInstanceId);
+//        }
+        return String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber, prefix);
     }
 }

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -189,10 +190,6 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
             throw new WCTRuntimeException("Harvest result must not be null");
         }
 
-        if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            throw new WCTRuntimeException("Target instance is not patching, state: " + ti.getState());
-        }
-
         LogReader logReader = null;
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
             logReader = harvestAgentManager.getLogReader(getJobName(ti, hr));
@@ -214,9 +211,9 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
         }
 
         if (this.type == null || this.type.trim().length() == 0 || this.type.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)) {
-            return String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber());
+            return PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber());
         } else {
-            return String.format("%s@mod_%d_%d", this.type, ti.getOid(), hr.getHarvestNumber());
+            return String.format("%s@%s", this.type, PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
         }
     }
 

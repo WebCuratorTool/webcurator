@@ -39,7 +39,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         List<File> derivedArchiveFiles = VisualizationCoordinator.grepWarcFiles(derivedDir);
 
         //Initial patching archive file list
-        File patchHarvestDir = new File(this.baseDir, String.format("mod_%d_%d%s1", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), File.separator));
+        File patchHarvestDir = new File(this.baseDir, String.format("%s%s1", PatchUtil.getPatchJobName(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber()), File.separator));
         List<File> patchArchiveFiles = VisualizationCoordinator.grepWarcFiles(patchHarvestDir);
 
         //Initial to be pruned and to be imported list
@@ -137,13 +137,13 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
             log.info("Prune and import finished, {} {}", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
         }
 
-        if (running) {
-            wctCoordinatorClient.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
-            log.info("Notify Core that modification is finished");
-        }
-
-        //Move the current metadata to history fold to avoid duplicated execution
-        PatchUtil.modifier.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
+//        if (running) {
+//            wctCoordinatorClient.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+//            log.info("Notify Core that modification is finished");
+//        }
+//
+//        //Move the current metadata to history fold to avoid duplicated execution
+//        PatchUtil.modifier.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
     }
 
     @Override
@@ -152,7 +152,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         this.delete(baseDir + File.separator + targetInstanceId, Integer.toString(harvestResultNumber));
 
         //delete patching harvest result
-        this.delete(baseDir, String.format("mod_%d_%d", targetInstanceId, harvestResultNumber));
+        this.delete(baseDir, PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
     }
 
     @Override

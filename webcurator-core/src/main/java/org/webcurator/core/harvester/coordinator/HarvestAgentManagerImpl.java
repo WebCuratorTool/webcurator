@@ -12,6 +12,7 @@ import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvesterStatus;
@@ -140,7 +141,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 return;
             }
 
-            String jobName = String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber());
+            String jobName = PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber());
             HarvestAgentStatusDTO hs = getHarvestAgentStatusFor(jobName);
             if (hs == null) {
                 log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", ti.getJobName());

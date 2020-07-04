@@ -29,6 +29,7 @@ import java.util.TreeMap;
 
 import org.hibernate.annotations.Formula;
 import org.webcurator.core.notification.UserInTrayResource;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
@@ -434,7 +435,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         if (hr == null) {
             return oid.toString();
         } else {
-            return String.format("mod_%d_%d", oid, hr.getHarvestNumber());
+            return PatchUtil.getPatchJobName(oid, hr.getHarvestNumber());
         }
     }
 

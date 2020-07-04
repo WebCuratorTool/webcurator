@@ -9,9 +9,10 @@ import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 
-public abstract class VisualizationAbstractProcessor {
+public abstract class VisualizationAbstractProcessor implements Callable<Boolean> {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationAbstractProcessor.class);
     protected WctCoordinatorClient wctCoordinatorClient;
     protected final String processorStage;
@@ -23,8 +24,9 @@ public abstract class VisualizationAbstractProcessor {
     protected String logsDir; //log dir
     protected String reportsDir; //report dir
     protected boolean running = true;
-    protected Semaphore stopped = new Semaphore(1);
+    //    protected Semaphore stopped = new Semaphore(1);
     protected int status = HarvestResult.STATUS_SCHEDULED;
+    protected VisualizationProcessorManager visualizationProcessorManager;
 
     public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         this.processorStage = getProcessorStage();
@@ -33,35 +35,26 @@ public abstract class VisualizationAbstractProcessor {
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public void init(VisualizationDirectoryManager visualizationDirectoryManager, WctCoordinatorClient wctCoordinatorClient) {
-        this.fileDir = visualizationDirectoryManager.getUploadDir();
+    public void init(VisualizationProcessorManager visualizationProcessorManager, VisualizationDirectoryManager visualizationDirectoryManager, WctCoordinatorClient wctCoordinatorClient) {
+        this.visualizationProcessorManager = visualizationProcessorManager;
         this.baseDir = visualizationDirectoryManager.getBaseDir();
-        this.logsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationDirectoryManager.getLogsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
-        this.reportsDir = baseDir + File.separator + targetInstanceId + File.separator + visualizationDirectoryManager.getReportsDir() + File.separator + HarvestResult.DIR_LOGS_EXT + File.separator + HarvestResult.DIR_LOGS_MOD + File.separator + harvestResultNumber;
+        this.fileDir = visualizationDirectoryManager.getUploadDir(targetInstanceId);
+        this.logsDir = visualizationDirectoryManager.getPatchLogDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
+        this.reportsDir = visualizationDirectoryManager.getPatchReportDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
         this.wctCoordinatorClient = wctCoordinatorClient;
         this.initInternal();
     }
-    abstract protected  void initInternal();
+
+    abstract protected void initInternal();
 
     abstract protected String getProcessorStage();
 
     public String getKey() {
-        return VisualizationProcessorManager.getKey(processorStage, targetInstanceId, harvestResultNumber);
+        return VisualizationProcessorManager.getKey(targetInstanceId, harvestResultNumber);
     }
 
     public void process() {
-        try {
-            this.stopped.acquire();
-            this.status = HarvestResult.STATUS_RUNNING;
-            processInternal();
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-        } finally {
-            this.stopped.release();
-            this.progressBar.clear();
-            this.status = HarvestResult.STATUS_FINISHED;
-        }
+
     }
 
     abstract public void processInternal() throws Exception;
@@ -86,25 +79,25 @@ public abstract class VisualizationAbstractProcessor {
 
         this.running = false;
         terminateInternal();
-        try {
-            this.stopped.acquire();
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-        }
+//        try {
+//            this.stopped.acquire();
+//        } catch (InterruptedException e) {
+//            log.error(e.getMessage());
+//            e.printStackTrace();
+//        }
     }
 
     abstract protected void terminateInternal();
 
     public void deleteTask() {
         this.terminateTask();
-        try {
-            this.stopped.acquire(); //wait until process ended
-        } catch (InterruptedException e) {
-            log.error("Acquire token failed when stop modification task, {}, {}", targetInstanceId, harvestResultNumber);
-            e.printStackTrace();
-            return;
-        }
+//        try {
+//            this.stopped.acquire(); //wait until process ended
+//        } catch (InterruptedException e) {
+//            log.error("Acquire token failed when stop modification task, {}, {}", targetInstanceId, harvestResultNumber);
+//            e.printStackTrace();
+//            return;
+//        }
 
         //delete logs, reports
         delete(this.logsDir);
@@ -138,11 +131,48 @@ public abstract class VisualizationAbstractProcessor {
         return this.progressBar;
     }
 
+    public int getState() {
+        int state = HarvestResult.STATE_UNASSESSED;
+        if (this.processorStage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+            state = HarvestResult.STATE_MODIFYING;
+        } else if (this.processorStage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+            state = HarvestResult.STATE_INDEXING;
+        }
+        return state;
+    }
+
     public int getStatus() {
         return status;
     }
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public long getTargetInstanceId() {
+        return targetInstanceId;
+    }
+
+    public int getHarvestResultNumber() {
+        return harvestResultNumber;
+    }
+
+    @Override
+    public Boolean call() {
+        try {
+//            this.stopped.acquire();
+            this.status = HarvestResult.STATUS_RUNNING;
+            processInternal();
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+        } finally {
+//            this.stopped.release();
+            this.progressBar.clear();
+            this.status = HarvestResult.STATUS_FINISHED;
+            visualizationProcessorManager.finalise(this);
+        }
+        return false;
     }
 }

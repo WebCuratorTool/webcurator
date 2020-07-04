@@ -76,7 +76,6 @@ import org.webcurator.ui.tools.controller.*;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -280,10 +279,7 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public VisualizationDirectoryManager visualizationManager() {
-        VisualizationDirectoryManager bean = new VisualizationDirectoryManager();
-        bean.setBaseDir(baseDir);
-        bean.setUploadDir(baseDir + File.separator + "uploadedFiles");
-        return bean;
+        return new VisualizationDirectoryManager(baseDir, "", "");
     }
 
     @Bean

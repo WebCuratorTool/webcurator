@@ -14,6 +14,7 @@ import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
 import org.webcurator.core.visualization.VisualizationProgressBar;
+import org.webcurator.core.visualization.VisualizationProgressView;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
@@ -74,7 +75,7 @@ public class HarvestModificationHandler {
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.pausePatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+            harvestAgentManager.pausePatching(PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "pause", ti.getOid(), hr.getHarvestNumber());
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
@@ -97,7 +98,7 @@ public class HarvestModificationHandler {
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.resumePatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+            harvestAgentManager.resumePatching(PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "resume", ti.getOid(), hr.getHarvestNumber());
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
@@ -111,7 +112,7 @@ public class HarvestModificationHandler {
         targetInstanceDAO.save(hr);
     }
 
-    public void clickStop(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+    public void clickTerminate(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
         HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
 
@@ -120,11 +121,11 @@ public class HarvestModificationHandler {
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.stopPatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+            harvestAgentManager.stopPatching(PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
-            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "stop", ti.getOid(), hr.getHarvestNumber());
+            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "terminate", ti.getOid(), hr.getHarvestNumber());
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
-            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "stop", ti.getOid(), hr.getHarvestNumber());
+            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "terminate", ti.getOid(), hr.getHarvestNumber());
         } else {
             throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
@@ -143,7 +144,7 @@ public class HarvestModificationHandler {
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.abortPatching(String.format("mod_%d_%d", ti.getOid(), hr.getHarvestNumber()));
+            harvestAgentManager.abortPatching(PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "delete", ti.getOid(), hr.getHarvestNumber());
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
@@ -218,32 +219,31 @@ public class HarvestModificationHandler {
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             progress.setPercentageHarvest(100);
             NetworkMapResult progressBarModify = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
-            if (progressBarModify.getRspCode() == NetworkMapResult.RSP_DATA_NOT_EXIST) {
-                if (hr.getStatus()==HarvestResult.STATUS_SCHEDULED){
+            if (progressBarModify.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+                if (hr.getStatus() == HarvestResult.STATUS_SCHEDULED) {
                     progress.setPercentageModify(0);
-                }else if (hr.getStatus()==HarvestResult.STATUS_RUNNING || hr.getStatus()==HarvestResult.STATUS_PAUSED){
+                } else if (hr.getStatus() == HarvestResult.STATUS_RUNNING || hr.getStatus() == HarvestResult.STATUS_PAUSED) {
                     progress.setPercentageModify(50);
-                }else {
+                } else {
                     progress.setPercentageModify(100);
                 }
-
             } else {
-                progress.setPercentageModify(((VisualizationProgressBar) progressBarModify.getPayload()).getProgressPercentage());
+                progress.setPercentageModify(VisualizationProgressView.getInstance(progressBarModify.getPayload()).getProgressPercentage());
             }
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
             progress.setPercentageHarvest(100);
             progress.setPercentageModify(100);
             NetworkMapResult progressBarIndex = networkMapClient.getProgress(ti.getOid(), hr.getHarvestNumber());
-            if (progressBarIndex.getRspCode() == NetworkMapResult.RSP_DATA_NOT_EXIST) {
-                if (hr.getStatus()==HarvestResult.STATUS_SCHEDULED){
+            if (progressBarIndex.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+                if (hr.getStatus() == HarvestResult.STATUS_SCHEDULED) {
                     progress.setPercentageIndex(0);
-                }else if (hr.getStatus()==HarvestResult.STATUS_RUNNING || hr.getStatus()==HarvestResult.STATUS_PAUSED){
+                } else if (hr.getStatus() == HarvestResult.STATUS_RUNNING || hr.getStatus() == HarvestResult.STATUS_PAUSED) {
                     progress.setPercentageIndex(50);
-                }else {
+                } else {
                     progress.setPercentageIndex(100);
                 }
             } else {
-                progress.setPercentageIndex(((VisualizationProgressBar) progressBarIndex.getPayload()).getProgressPercentage());
+                progress.setPercentageIndex(VisualizationProgressView.getInstance(progressBarIndex.getPayload()).getProgressPercentage());
             }
         } else {
             progress.setPercentageHarvest(100);
@@ -251,16 +251,16 @@ public class HarvestModificationHandler {
             progress.setPercentageIndex(100);
         }
 
-        VisualizationAbstractCommandApply cmd =PatchUtil.modifier.readPatchJob(baseDir,targetInstanceId,harvestResultNumber);
-        if (cmd==null){
-            cmd = PatchUtil.modifier.readHistoryPatchJob(baseDir,targetInstanceId,harvestResultNumber);
+        VisualizationAbstractCommandApply cmd = PatchUtil.modifier.readPatchJob(baseDir, targetInstanceId, harvestResultNumber);
+        if (cmd == null) {
+            cmd = PatchUtil.modifier.readHistoryPatchJob(baseDir, targetInstanceId, harvestResultNumber);
         }
 
-        PruneAndImportCommandApply pruneAndImportCommandApply=null;
-        if (cmd!=null){
-            pruneAndImportCommandApply=(PruneAndImportCommandApply)cmd;
-        }else{
-            pruneAndImportCommandApply=new PruneAndImportCommandApply();
+        PruneAndImportCommandApply pruneAndImportCommandApply = null;
+        if (cmd != null) {
+            pruneAndImportCommandApply = (PruneAndImportCommandApply) cmd;
+        } else {
+            pruneAndImportCommandApply = new PruneAndImportCommandApply();
         }
 
         List<PruneAndImportCommandRowMetadata> listToBePruned = new ArrayList<>();

@@ -69,7 +69,7 @@ public class HarvestModificationController implements PruneAndImportService {
         } else if (command.equalsIgnoreCase("resume")) {
             harvestModificationHandler.clickResume(targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("terminate")) {
-            harvestModificationHandler.clickStop(targetInstanceId, harvestNumber);
+            harvestModificationHandler.clickTerminate(targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("delete")) {
             harvestModificationHandler.clickDelete(targetInstanceId, harvestNumber);
         }

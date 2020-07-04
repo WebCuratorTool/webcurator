@@ -12,8 +12,8 @@ class NetworkMap{
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
 		var reqUrl="/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
-        var that=this;
-     
+		var that=this;
+
     	fetchHttp(reqUrl, null, function(response){
     		$('#popup-window-loading').hide();
     		if (response.rspCode === 0) {
@@ -52,17 +52,22 @@ class NetworkMap{
 		var reqUrl="/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		var that=this;
 		fetchHttp(reqUrl, null, function(response){
-			//Show progress
-			if(response.rspCode===0 && response.payload.progressPercentage < 100){
-				$('#progressIndexerValue').html(response.payload.progressPercentage);
-				$('#progressIndexer').val(response.payload.progressPercentage);
-			}else{
+			var progressPercentage=0;
+			if(response.rspCode===0){
+				var responseProgressBar=JSON.parse(response.payload);
+				progressPercentage=responseProgressBar.progressPercentage;
+
+				$('#progressIndexerValue').html(progressPercentage);
+				$('#progressIndexer').val(progressPercentage);
+			}
+			
+			if((response.rspCode===0 && progressPercentage >= 100) || response.rspCode!=0){
 				clearInterval(that.timerProgress);
 				$('#popup-window-progress').hide();
-				if (response.rspCode===1 || (response.rspCode===0 && response.payload.progressPercentage >= 100)) {
-					that.init(that.jobId, that.harvestResultNumber);
-				}else{
+				if (response.rspCode!=0) {
 					alert(response.rspMsg);
+				}else{					
+					that.init(that.jobId, that.harvestResultNumber);
 				}
 			}
 		});

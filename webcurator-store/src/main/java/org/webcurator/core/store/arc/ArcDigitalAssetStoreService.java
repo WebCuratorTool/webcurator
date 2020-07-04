@@ -61,6 +61,7 @@ import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
@@ -86,6 +87,10 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      * The logger.
      */
     private static Logger log = LoggerFactory.getLogger(ArcDigitalAssetStoreService.class);
+
+    @Autowired
+    private VisualizationDirectoryManager directoryManager;
+
     /**
      * the base directory for the digital asset stores harvest files.
      */
@@ -666,49 +671,25 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
 
     public File parseAttachedLogDir(String aJob) {
-        File logsDir = null;
         String[] prefixItems = aJob.split("@");
         String prefix = prefixItems[0];
         String[] jobItems = prefixItems[1].split("_");
         String sTargetInstanceId = jobItems[1];
         String sHarvestNumberId = jobItems[2];
 
-        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_LOGS, File.separator, Constants.DIR_LOGS_EXT);
-        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
-        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
-        } else {
-            log.warn("Unsupported query type {}", aJob);
-            return null;
-        }
-
-        logsDir = new File(logsDir, sHarvestNumberId);
-
-        return logsDir;
+        String logsDir = directoryManager.getPatchLogDir(prefix, Long.parseLong(sTargetInstanceId), Integer.parseInt(sHarvestNumberId));
+        return new File(logsDir);
     }
 
     public File parseAttachedReportDir(String aJob) {
-        File logsDir = null;
         String[] prefixItems = aJob.split("@");
         String prefix = prefixItems[0];
         String[] jobItems = prefixItems[1].split("_");
         String sTargetInstanceId = jobItems[1];
         String sHarvestNumberId = jobItems[2];
 
-        String extDir = String.format("%s%s%s%s%s%s%s", baseDir, File.separator, sTargetInstanceId, File.separator, Constants.DIR_REPORTS, File.separator, Constants.DIR_LOGS_EXT);
-        if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-            logsDir = new File(extDir, Constants.DIR_LOGS_INDEX);
-        } else if (prefix.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-            logsDir = new File(extDir, Constants.DIR_LOGS_MOD);
-        } else {
-            log.warn("Unsupported query type {}", aJob);
-            logsDir = null;
-        }
-
-        logsDir = new File(logsDir, sHarvestNumberId);
-
-        return logsDir;
+        String logsDir = directoryManager.getPatchReportDir(prefix, Long.parseLong(sTargetInstanceId), Integer.parseInt(sHarvestNumberId));
+        return new File(logsDir);
     }
 
     private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
@@ -1110,24 +1091,19 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             visualizationProcessorManager.pauseTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("resume")) {
             visualizationProcessorManager.resumeTask(stage, targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("stop")) {
+        } else if (command.equalsIgnoreCase("terminate")) {
             visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("delete")) {
-            if (!visualizationProcessorManager.deleteTask(stage, targetInstanceId, harvestNumber)) {
-                VisualizationAbstractProcessor processor = null;
-                if (stage.equals(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-                    PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
-                    cmd.setTargetInstanceId(targetInstanceId);
-                    cmd.setNewHarvestResultNumber(harvestNumber);
-                    processor = new PruneAndImportProcessor(cmd);
-                } else if (stage.equals(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-                    processor = new ResourceExtractorProcessor(null, targetInstanceId, harvestNumber);
-                } else {
-                    return;
-                }
+            visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
 
-                processor.deleteTask();
-            }
+            PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
+            cmd.setTargetInstanceId(targetInstanceId);
+            cmd.setNewHarvestResultNumber(harvestNumber);
+            VisualizationAbstractProcessor processorModifier = new PruneAndImportProcessor(cmd);
+            processorModifier.deleteTask();
+
+            VisualizationAbstractProcessor processorIndexer = new ResourceExtractorProcessor(pool, targetInstanceId, harvestNumber);
+            processorIndexer.deleteTask();
         }
     }
 }

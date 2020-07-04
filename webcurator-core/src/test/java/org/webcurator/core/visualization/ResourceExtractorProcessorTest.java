@@ -26,7 +26,7 @@ public class ResourceExtractorProcessorTest {
     private final long targetInstanceId = 5010;
     private final int harvestResultNumber = 1;
     private final Set<SeedHistoryDTO> seeds = new HashSet<>();
-    private final VisualizationDirectoryManager visualizationDirectoryManager = new VisualizationDirectoryManager();
+    private final VisualizationDirectoryManager visualizationDirectoryManager = MockVisualizationDirectoryManager.getDirectoryManagerInstance();
 
     private ResourceExtractorProcessor indexer;
     private VisualizationProcessorManager visualizationProcessorManager;
@@ -41,11 +41,6 @@ public class ResourceExtractorProcessorTest {
         SeedHistoryDTO seedHistorySecondary = new SeedHistoryDTO(2, "http://www.baidu.com/", targetInstanceId, false);
         seeds.add(seedHistoryPrimary);
         seeds.add(seedHistorySecondary);
-
-        visualizationDirectoryManager.setBaseDir(baseDir);
-        visualizationDirectoryManager.setUploadDir(baseDir + File.separator + "uploadedFiles");
-        visualizationDirectoryManager.setReportsDir("reports");
-        visualizationDirectoryManager.setLogsDir("logs");
 
         visualizationProcessorManager = new VisualizationProcessorManager(visualizationDirectoryManager, null, pool, 3, 3000, 3000);
 

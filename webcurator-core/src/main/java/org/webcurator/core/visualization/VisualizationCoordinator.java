@@ -17,8 +17,8 @@ public class VisualizationCoordinator {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationCoordinator.class);
     protected String flag; //MOD or IDX
     protected String reportTitle;
-    protected FileWriter log_modification;
-    protected FileWriter report_modification;
+    protected FileWriter logWriter;
+    protected FileWriter reportWriter;
     protected List<VisualizationStatisticItem> statisticItems = new ArrayList<>();
     protected VisualizationProgressBar progressBar;
 
@@ -27,13 +27,13 @@ public class VisualizationCoordinator {
         if (!fLogsDir.exists()) {
             fLogsDir.mkdirs();
         }
-        this.log_modification = new FileWriter(new File(logsDir, "running.log"), false);
+        this.logWriter = new FileWriter(new File(logsDir, "running.log"), false);
 
         File fReportsDir = new File(reportsDir);
         if (!fReportsDir.exists()) {
             fReportsDir.mkdirs();
         }
-        this.report_modification = new FileWriter(new File(reportsDir, "report.txt"), false);
+        this.reportWriter = new FileWriter(new File(reportsDir, "report.txt"), false);
 
         this.statisticItems.clear();
 
@@ -41,35 +41,35 @@ public class VisualizationCoordinator {
     }
 
     public void close() throws IOException {
-        this.log_modification.close();
-        this.report_modification.close();
+        this.logWriter.close();
+        this.reportWriter.close();
         this.statisticItems.clear();
     }
 
     public void writeLog(String content) {
-        if (log_modification == null) {
+        if (logWriter == null) {
             return;
         }
 
         LocalDateTime localDateTime = LocalDateTime.now();
         String time = localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         try {
-            log_modification.write(String.format("%s %s %s%s", this.flag, time, content, System.lineSeparator()));
+            logWriter.write(String.format("%s %s %s%s", this.flag, time, content, System.lineSeparator()));
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
     public void writeReport() {
-        if (report_modification == null) {
+        if (reportWriter == null) {
             return;
         }
 
         try {
-            report_modification.write(this.reportTitle + System.lineSeparator());
+            reportWriter.write(this.reportTitle + System.lineSeparator());
 
             for (VisualizationStatisticItem item : statisticItems) {
-                report_modification.write(item.toString() + System.lineSeparator());
+                reportWriter.write(item.getPrintContent() + System.lineSeparator());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -98,6 +98,4 @@ public class VisualizationCoordinator {
         }
         return Arrays.asList(fileAry);
     }
-
-
 }

@@ -72,16 +72,6 @@ public class BDBNetworkMapPool {
         if (!dbPathFile.exists()) {  //
             log.warn("Could not find Index DB: {}", dbPath);
             return null;
-//            System.out.println("Indexing: job=" + job + ", harvestResultNumber=" + harvestResultNumber);
-//            try {
-//                ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(dbPathFile.getParentFile(), createInstance(job, harvestResultNumber), job, harvestResultNumber);
-//                indexer.indexFiles();
-//                indexer.clear();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            System.out.println("Indexing finished");
         }
         String dbName = getDbName(job, harvestResultNumber);
         if (map.containsKey(dbName)) {

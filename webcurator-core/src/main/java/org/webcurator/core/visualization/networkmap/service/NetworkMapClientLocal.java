@@ -4,6 +4,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
+import org.webcurator.core.visualization.VisualizationProgressView;
 import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
@@ -380,8 +381,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         if (progressBar == null) {
             return NetworkMapResult.getDataNotExistResult();
         }
+
+        VisualizationProgressView progressView=new VisualizationProgressView(progressBar);
         NetworkMapResult result = new NetworkMapResult();
-        result.setPayload(progressBar);
+        result.setPayload(this.obj2Json(progressView));
         return result;
     }
 }

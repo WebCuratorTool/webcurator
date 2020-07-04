@@ -131,7 +131,7 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
         }
 
         @Override
-        public String toString() {
+        public String getPrintContent() {
             String pFromFileName = this.fromFileName == null ? "--" : this.fromFileName;
             String pFromFileLength = this.fromFileLength < 0 ? "--" : Long.toString(this.fromFileLength);
 

@@ -100,11 +100,17 @@ public class LogReaderController {
                                   BindingResult bindingResult) throws Exception {
         validator.validate(cmd, bindingResult);
 
-        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
-        //Go to patching log reading process
-        if (ti != null && ti.getState().equals(TargetInstance.STATE_PATCHING)) {
+//        if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
+//                || cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+        if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
             return handlePatchingLogReader(cmd, bindingResult);
         }
+
+        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
+        //Go to patching log reading process
+//        if (ti != null && ti.getState().equals(TargetInstance.STATE_PATCHING)) {
+//            return handlePatchingLogReader(cmd, bindingResult);
+//        }
 
         String messageText = "";
         int firstLine = 0;

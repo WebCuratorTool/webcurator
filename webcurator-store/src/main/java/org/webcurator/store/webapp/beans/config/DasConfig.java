@@ -303,12 +303,7 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public VisualizationDirectoryManager visualizationManager() {
-        VisualizationDirectoryManager bean = new VisualizationDirectoryManager();
-        bean.setUploadDir(arcDigitalAssetStoreServiceBaseDir + File.separator + "uploadedFiles");
-        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-        bean.setLogsDir(Constants.DIR_LOGS);
-        bean.setReportsDir(Constants.DIR_REPORTS);
-        return bean;
+        return new VisualizationDirectoryManager(arcDigitalAssetStoreServiceBaseDir, Constants.DIR_LOGS, Constants.DIR_REPORTS);
     }
 
     @Bean

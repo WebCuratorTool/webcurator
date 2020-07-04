@@ -19,7 +19,7 @@ public class BDBNetworkMapTest {
     private final long targetInstanceId = 36;
     private final int harvestResultNumber = 1;
     private final Set<SeedHistoryDTO> seeds = new HashSet<>();
-    private final VisualizationDirectoryManager visualizationDirectoryManager = new VisualizationDirectoryManager();
+    private final VisualizationDirectoryManager visualizationDirectoryManager = MockVisualizationDirectoryManager.getDirectoryManagerInstance();
 
     @Before
     public void initTest() throws IOException, DigitalAssetStoreException {
@@ -31,11 +31,6 @@ public class BDBNetworkMapTest {
         SeedHistoryDTO seedHistorySecondary = new SeedHistoryDTO(2, "http://www.baidu.com/", targetInstanceId, false);
         seeds.add(seedHistoryPrimary);
         seeds.add(seedHistorySecondary);
-
-        visualizationDirectoryManager.setBaseDir(baseDir);
-        visualizationDirectoryManager.setUploadDir(baseDir + File.separator + "uploadedFiles");
-        visualizationDirectoryManager.setReportsDir("reports");
-        visualizationDirectoryManager.setLogsDir("logs");
     }
 
     @Test

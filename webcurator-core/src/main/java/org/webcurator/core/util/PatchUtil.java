@@ -22,6 +22,10 @@ public class PatchUtil {
     public static final PatchStageProcessor modifier = new PatchStageProcessor(HarvestResult.PATCH_STAGE_TYPE_MODIFYING);
     public static final PatchStageProcessor indexer = new PatchStageProcessor(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
 
+    public static String getPatchJobName(long targetInstanceId, int harvestResultNumber) {
+        return String.format("mod_%d_%d", targetInstanceId, harvestResultNumber);
+    }
+
     public static class PatchStageProcessor {
         private final String stage;
 

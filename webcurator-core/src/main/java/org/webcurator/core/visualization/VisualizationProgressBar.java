@@ -1,90 +1,22 @@
 package org.webcurator.core.visualization;
 
-import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.domain.model.core.HarvestResult;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class VisualizationProgressBar {
-    private final static int MAX_QUEUE_SIZE = 1024;
-    private final static List<String> QUEUE_LIST = new ArrayList<>();
-    private final static Map<String, VisualizationProgressBar> QUEUE_MAP = new HashMap<>();
-
     private Map<String, ProgressItem> items = new HashMap<>();
     private String stage;
     private long targetInstanceId;
     private int harvestResultNumber;
 
+    public VisualizationProgressBar() {
+    }
+
     public VisualizationProgressBar(String stage, long targetInstanceId, int harvestResultNumber) {
         this.stage = stage;
         this.targetInstanceId = targetInstanceId;
         this.harvestResultNumber = harvestResultNumber;
-    }
-
-//    public synchronized static VisualizationProgressBar getInstance(String stage, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
-//        String key = getKey(stage, targetInstanceId, harvestResultNumber);
-//        if (QUEUE_MAP.containsKey(key)) {
-//            return QUEUE_MAP.get(key);
-//        }
-//
-//        //Clear history data
-//        while (QUEUE_LIST.size() > MAX_QUEUE_SIZE) {
-//            String tmpKey = QUEUE_LIST.get(0);
-//            QUEUE_LIST.remove(0);
-//            VisualizationProgressBar tmpProgressBar = QUEUE_MAP.remove(tmpKey);
-//            tmpProgressBar.clear();
-//        }
-//
-//        if (!HarvestResult.PATCH_STAGE_TYPE_MODIFYING.equals(stage) && !HarvestResult.PATCH_STAGE_TYPE_INDEXING.equals(stage)) {
-//            throw new DigitalAssetStoreException("Unsupported stage: " + stage);
-//        }
-//
-//        VisualizationProgressBar progressBar = new VisualizationProgressBar(stage, targetInstanceId, harvestResultNumber);
-//        QUEUE_MAP.put(key, progressBar);
-//        QUEUE_LIST.add(key);
-//
-//        return progressBar;
-//    }
-//
-//    public synchronized static void removeInstance(String stage, long targetInstanceId, int harvestResultNumber) {
-//        String key = getKey(stage, targetInstanceId, harvestResultNumber);
-//        QUEUE_LIST.remove(key);
-//        VisualizationProgressBar progressBar = QUEUE_MAP.remove(key);
-//        progressBar.clear();
-//    }
-
-//    public static VisualizationProgressBar getProgress(String stage, long targetInstanceId, int harvestResultNumber) {
-//        String key = getKey(stage, targetInstanceId, harvestResultNumber);
-//        if (QUEUE_MAP.containsKey(key)) {
-//            return QUEUE_MAP.get(key);
-//        }
-//        return null;
-//    }
-//
-//    public static VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {
-//        String keyIndex = getKey(HarvestResult.PATCH_STAGE_TYPE_INDEXING, targetInstanceId, harvestResultNumber);
-//        if (QUEUE_MAP.containsKey(keyIndex)) {
-//            return QUEUE_MAP.get(keyIndex);
-//        }
-//
-//        String keyModify = getKey(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, targetInstanceId, harvestResultNumber);
-//        if (QUEUE_MAP.containsKey(keyModify)) {
-//            return QUEUE_MAP.get(keyModify);
-//        }
-//
-//        return null;
-//    }
-
-    public static String getKey(String stage, long targetInstanceId, int harvestResultNumber) {
-        return String.format("KEY_%s_%d_%d", stage, targetInstanceId, harvestResultNumber);
-    }
-
-    public String getKey() {
-        return getKey(stage, targetInstanceId, harvestResultNumber);
     }
 
     public int getProgressPercentage() {
@@ -111,12 +43,16 @@ public class VisualizationProgressBar {
         return item;
     }
 
-    public String toString() {
+    public String getPrintContent() {
         StringBuilder buf = new StringBuilder("Name\tMaxLength\tCurLength\tPercentage");
         items.values().forEach(item -> {
-            buf.append('\n').append(item.toString());
+            buf.append('\n').append(item.getPrintContent());
         });
         return buf.toString();
+    }
+
+    public void clear() {
+        items.clear();
     }
 
     public String getStage() {
@@ -151,9 +87,6 @@ public class VisualizationProgressBar {
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public void clear() {
-        items.clear();
-    }
 
     public static class ProgressItem {
         private String name;
@@ -195,7 +128,7 @@ public class VisualizationProgressBar {
             this.curLength = curLength;
         }
 
-        public String toString() {
+        public String getPrintContent() {
             return String.format("%s\t%d\t%d\t%d", name, maxLength, curLength, getProgressPercentage()) + "%";
         }
     }

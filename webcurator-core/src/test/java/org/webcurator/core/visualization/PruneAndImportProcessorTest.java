@@ -23,7 +23,7 @@ public class PruneAndImportProcessorTest {
     private static final String baseDir = "/usr/local/wct/store";
     private static final String coreCacheDir = "/usr/local/wct/webapp/uploadedFiles";
     private WctCoordinatorClient wctCoordinatorClient;
-    private final VisualizationDirectoryManager visualizationDirectoryManager = new VisualizationDirectoryManager();
+    private final VisualizationDirectoryManager visualizationDirectoryManager = MockVisualizationDirectoryManager.getDirectoryManagerInstance();
 
     private VisualizationProcessorManager visualizationProcessorManager;
 
@@ -38,11 +38,6 @@ public class PruneAndImportProcessorTest {
         PruneAndImportCommandApply cmd = getPruneAndImportCommandApply(5010, 2);
         cmd.setNewHarvestResultNumber(2);
 
-        VisualizationDirectoryManager visualizationDirectoryManager = new VisualizationDirectoryManager();
-        visualizationDirectoryManager.setBaseDir(baseDir);
-        visualizationDirectoryManager.setUploadDir(fileDir);
-        visualizationDirectoryManager.setLogsDir("logs");
-        visualizationDirectoryManager.setReportsDir("reports");
         PruneAndImportProcessor processor = new PruneAndImportProcessor(cmd);
 
         visualizationProcessorManager.startTask(processor);

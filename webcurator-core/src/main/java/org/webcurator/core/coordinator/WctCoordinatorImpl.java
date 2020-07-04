@@ -628,7 +628,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
             targetInstanceManager.save(targetInstance);
 
             // Initiate harvest on the remote harvest agent
-            harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, String.format("mod_%d_%d", targetInstance.getOid(), cmd.getNewHarvestResultNumber()), profile, seeds.toString());
+            harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, PatchUtil.getPatchJobName(targetInstance.getOid(), cmd.getNewHarvestResultNumber()), profile, seeds.toString());
 
             //Update Harvest Result status
             hr.setStatus(HarvestResult.STATUS_RUNNING);
@@ -1308,7 +1308,21 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     public void finaliseIndex(long targetInstanceId, int harvestNumber) {
         TargetInstance ti = targetInstanceDao.load(targetInstanceId);
+        if (ti == null) {
+            log.error("Not able to load TargetInstance: {}", targetInstanceId);
+            return;
+        }
+
         HarvestResult hr = ti.getHarvestResult(harvestNumber);
+        if (hr == null) {
+            log.error("Not able to load HarvestResult, job: {}, harvestNumber:{}", targetInstanceId, harvestNumber);
+            return;
+        }
+
+        finaliseIndex(ti, hr);
+    }
+
+    private void finaliseIndex(TargetInstance ti, HarvestResult hr) {
         hr.setState(HarvestResult.STATE_UNASSESSED);
         hr.setStatus(HarvestResult.STATUS_FINISHED);
         harvestQaManager.triggerAutoQA(hr);
@@ -1317,7 +1331,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             ti.setState(TargetInstance.STATE_HARVESTED);
             targetInstanceDao.save(ti);
-            PatchUtil.modifier.moveJob2History(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestNumber);
+            PatchUtil.modifier.moveJob2History(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         }
 
         // run the QA recommendation service to derive the Quality Indicators
@@ -1484,7 +1498,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     @Override
     public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, PruneAndImportCommandRow cmd) {
-        PruneAndImportCommandRowMetadata result = this.saveImportedFile(cmd);
+        PruneAndImportCommandRowMetadata result = this.saveImportedFile(job, cmd);
         if (result == null || !(result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS || result.getRespCode() == VisualizationConstants.RESP_CODE_FILE_EXIST)) {
             return result;
         }
@@ -1511,9 +1525,14 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return result;
     }
 
-    private PruneAndImportCommandRowMetadata saveImportedFile(PruneAndImportCommandRow cmd) {
+    private PruneAndImportCommandRowMetadata saveImportedFile(long job, PruneAndImportCommandRow cmd) {
         PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
-        File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(), metadata.getName());
+        File uploadedFilePath=new File(visualizationDirectoryManager.getUploadDir(job));
+        if (!uploadedFilePath.exists()){
+            uploadedFilePath.mkdir();
+        }
+
+        uploadedFilePath=new File(uploadedFilePath,metadata.getName());
         if (cmd.isStart() && uploadedFilePath.exists()) {
             if (metadata.isReplaceFlag()) {
                 uploadedFilePath.deleteOnExit();
@@ -1555,7 +1574,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         //Check does file exist
-        File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(), metadata.getName());
+        File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job), metadata.getName());
         VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
         if (!uploadedFilePath.exists() || vif == null) {
             result.setRespCode(VisualizationConstants.FILE_EXIST_NO); //Not exist
@@ -1579,10 +1598,10 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     @Override
     public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
-        return this.checkFiles(items);
+        return this.checkFiles(job, items);
     }
 
-    private PruneAndImportCommandResult checkFiles(List<PruneAndImportCommandRowMetadata> items) {
+    private PruneAndImportCommandResult checkFiles(long job, List<PruneAndImportCommandRowMetadata> items) {
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 
         /**
@@ -1596,7 +1615,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
             }
 
             //Check do files exist: walk through all elemenets
-            File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(), metadata.getName());
+            File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job), metadata.getName());
             VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
             if (!uploadedFilePath.exists() || vif == null) {
                 metadata.setRespCode(VisualizationConstants.FILE_EXIST_NO); //Not exist
@@ -1632,7 +1651,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         /**
          * Checking do files exist and attaching properties for existing files
          */
-        PruneAndImportCommandResult result = this.checkFiles(cmd.getDataset());
+        PruneAndImportCommandResult result = this.checkFiles(cmd.getTargetInstanceId(), cmd.getDataset());
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS &&
                 result.getRespCode() != VisualizationConstants.RESP_CODE_FILE_EXIST) {
             log.error(result.getRespMsg());
@@ -1727,6 +1746,10 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return;
         }
 
+        dasModificationComplete(ti, harvestResult);
+    }
+
+    private void dasModificationComplete(TargetInstance ti, HarvestResult harvestResult) {
         //Update status to scheduled
         harvestResult.setState(HarvestResult.STATE_INDEXING);
         harvestResult.setStatus(HarvestResult.STATUS_SCHEDULED);
@@ -1852,7 +1875,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     @Override
     public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) {
-        File f = new File(visualizationDirectoryManager.getUploadDir(), fileName);
+        File f = new File(visualizationDirectoryManager.getUploadDir(targetInstanceId), fileName);
         try {
             Files.copy(f.toPath(), rsp.getOutputStream());
         } catch (IOException e) {
@@ -1865,9 +1888,16 @@ public class WctCoordinatorImpl implements WctCoordinator {
         for (HarvestResultDTO hrDTO : harvestResultDTOList) {
             TargetInstance ti = targetInstanceDao.load(hrDTO.getTargetInstanceOid());
             HarvestResult hr = ti.getHarvestResult(hrDTO.getHarvestNumber());
-            hr.setState(hrDTO.getState());
-            hr.setStatus(hrDTO.getStatus());
-            targetInstanceManager.save(hr);
+
+            if (hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
+                dasModificationComplete(ti, hr);
+            } else if (hr.getState() == HarvestResult.STATE_INDEXING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
+                finaliseIndex(ti, hr);
+            } else {
+                hr.setState(hrDTO.getState());
+                hr.setStatus(hrDTO.getStatus());
+                targetInstanceManager.save(hr);
+            }
         }
     }
 }
