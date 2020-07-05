@@ -7,7 +7,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
+import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -27,7 +27,6 @@ public class VisualizationProcessorManager {
     private final BDBNetworkMapPool db_pool;
     private final long max_running_duration = 24 * 3600 * 1000; //default: 24Hours
 //    private Semaphore max_processors_lock = new Semaphore(3);
-
 
     public VisualizationProcessorManager(VisualizationDirectoryManager visualizationDirectoryManager,
                                          WctCoordinatorClient wctCoordinatorClient,
@@ -57,6 +56,15 @@ public class VisualizationProcessorManager {
         //Cache the current running
         ProcessorHandler handler = new ProcessorHandler(processor, futureResult);
         queued_processors.put(processor.getKey(), handler);
+
+
+//        Thread t = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                processor.call();
+//            }
+//        });
+//        t.start();
     }
 
     public void finalise(VisualizationAbstractProcessor processor) {
@@ -96,16 +104,20 @@ public class VisualizationProcessorManager {
 
     public boolean terminateTask(String processorType, long targetInstanceId, int harvestResultNumber) {
         String key = getKey(targetInstanceId, harvestResultNumber);
+
+        VisualizationAbstractProcessor processor = getProcessor(key);
+        if (processor != null) {
+            processor.terminateTask();
+            return true;
+        }
+
         ProcessorHandler handler = queued_processors.get(key);
         if (handler != null) {
             return handler.future.cancel(true);
         }
-//
-//        VisualizationAbstractProcessor processor = getProcessor(key);
-//        if (processor != null) {
-//            processor.terminateTask();
-//            return true;
-//        }
+
+        queued_processors.remove(key);
+
         return false;
     }
 
@@ -205,7 +217,7 @@ public class VisualizationProcessorManager {
                 indexingJobs.forEach(cmd -> {
                     String key = getKey(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
                     try {
-                        VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(db_pool, cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+                        VisualizationAbstractProcessor processor = new IndexerProcessor(db_pool, cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
                         startTask(processor);
                     } catch (DigitalAssetStoreException e) {
                         log.error(e.getMessage());

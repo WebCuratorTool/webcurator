@@ -91,4 +91,12 @@ public class WctCoordinatorClient extends AbstractRestClient {
         URI uri = uriComponentsBuilder.build().toUri();
         restTemplate.postForObject(uri, null, Void.class);
     }
+
+    public void dasUpdateHarvestResultStatus(HarvestResultDTO hrDTO) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.DIGITAL_ASSET_STORE_UPDATE_HR_STATUS));
+        HttpEntity<String> entity = this.createHttpRequestEntity(hrDTO);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        URI uri = uriComponentsBuilder.build().toUri();
+        restTemplate.postForObject(uri, entity, Void.class);
+    }
 }

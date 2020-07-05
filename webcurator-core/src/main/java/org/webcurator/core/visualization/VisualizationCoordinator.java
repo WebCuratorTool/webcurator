@@ -12,6 +12,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class VisualizationCoordinator {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationCoordinator.class);
@@ -21,6 +24,9 @@ public class VisualizationCoordinator {
     protected FileWriter reportWriter;
     protected List<VisualizationStatisticItem> statisticItems = new ArrayList<>();
     protected VisualizationProgressBar progressBar;
+
+    private boolean running = true;
+    private final Semaphore running_blocker = new Semaphore(1);
 
     public void init(String logsDir, String reportsDir, VisualizationProgressBar progressBar) throws IOException {
         File fLogsDir = new File(logsDir);
@@ -44,6 +50,34 @@ public class VisualizationCoordinator {
         this.logWriter.close();
         this.reportWriter.close();
         this.statisticItems.clear();
+    }
+
+    public void pause() {
+        try {
+            this.running_blocker.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.running = false;
+        System.out.println("Paused");
+    }
+
+    public void resume() {
+        this.running = true;
+        this.running_blocker.release(2);
+        System.out.println("Resumed");
+    }
+
+    protected void tryBlock() {
+        if (!running) {
+            try {
+                System.out.println("Going to wait");
+                this.running_blocker.acquire();
+                System.out.println("Awake");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void writeLog(String content) {

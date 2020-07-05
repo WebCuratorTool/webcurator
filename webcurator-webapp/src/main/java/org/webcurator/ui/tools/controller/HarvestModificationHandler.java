@@ -6,14 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationProgressView;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
@@ -39,7 +39,7 @@ public class HarvestModificationHandler {
     private TargetInstanceDAO targetInstanceDAO;
 
     @Autowired
-    private WctCoordinatorImpl wctCoordinator;
+    private WctCoordinator wctCoordinator;
 
     @Autowired
     private HarvestAgentManager harvestAgentManager;
@@ -65,59 +65,82 @@ public class HarvestModificationHandler {
     @Value("${core.base.dir}")
     private String baseDir;
 
+    public void clickStart(long targetInstanceId, int harvestResultNumber) throws WCTRuntimeException, DigitalAssetStoreException {
+        TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
+        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
 
-    public void clickPause(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+        if (hr.getStatus() != HarvestResult.STATUS_SCHEDULED) {
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+        }
+
+        if (hr.getState() == HarvestResult.STATE_CRAWLING) {
+            //TODO: POPUP HarvestAgent Select Window
+            //Change the status of Harvest Result
+            hr.setStatus(HarvestResult.STATUS_RUNNING);
+            targetInstanceDAO.save(hr);
+        } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
+            wctCoordinator.pushPruneAndImport(ti, harvestResultNumber);
+        } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
+            HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
+            harvestResultDTO.setTargetInstanceOid(targetInstanceId);
+            harvestResultDTO.setHarvestNumber(harvestResultNumber);
+            digitalAssetStore.initiateIndexing(harvestResultDTO);
+        } else {
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+        }
+    }
+
+    public void clickPause(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
         HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
 
         if (hr.getStatus() != HarvestResult.STATUS_RUNNING) {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
             harvestAgentManager.pausePatching(PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
+
+            //Change the status of Harvest Result
+            hr.setStatus(HarvestResult.STATUS_PAUSED);
+            targetInstanceDAO.save(hr);
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "pause", ti.getOid(), hr.getHarvestNumber());
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "pause", ti.getOid(), hr.getHarvestNumber());
         } else {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
-
-        //Change the status of Harvest Result
-        hr.setStatus(HarvestResult.STATUS_PAUSED);
-        targetInstanceDAO.save(hr);
     }
 
-    public void clickResume(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+    public void clickResume(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
         HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
 
         if (hr.getStatus() != HarvestResult.STATUS_PAUSED) {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
             harvestAgentManager.resumePatching(PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
+            //Change the status of Harvest Result
+            hr.setStatus(HarvestResult.STATUS_PAUSED);
+            targetInstanceDAO.save(hr);
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "resume", ti.getOid(), hr.getHarvestNumber());
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "resume", ti.getOid(), hr.getHarvestNumber());
         } else {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
-
-        //Change the status of Harvest Result
-        hr.setStatus(HarvestResult.STATUS_PAUSED);
-        targetInstanceDAO.save(hr);
     }
 
-    public void clickTerminate(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+    public void clickTerminate(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
         HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
 
         if (hr.getStatus() != HarvestResult.STATUS_RUNNING && hr.getStatus() != HarvestResult.STATUS_PAUSED) {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
@@ -127,7 +150,7 @@ public class HarvestModificationHandler {
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "terminate", ti.getOid(), hr.getHarvestNumber());
         } else {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
         //Change the status of Harvest Result
@@ -135,12 +158,12 @@ public class HarvestModificationHandler {
         targetInstanceDAO.save(hr);
     }
 
-    public void clickDelete(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+    public void clickDelete(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
         HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
 
         if (hr.getStatus() != HarvestResult.STATUS_SCHEDULED && hr.getStatus() != HarvestResult.STATUS_TERMINATED) {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
@@ -150,7 +173,7 @@ public class HarvestModificationHandler {
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "delete", ti.getOid(), hr.getHarvestNumber());
         } else {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
+            throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
         //Delete the selected Harvest Result
@@ -161,33 +184,6 @@ public class HarvestModificationHandler {
             ti.setState(TargetInstance.STATE_HARVESTED);
             targetInstanceDAO.save(ti);
         }
-    }
-
-    public void clickStart(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
-        TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
-        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-
-        if (hr.getState() == HarvestResult.STATE_CRAWLING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
-        } else if ((hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_SCHEDULED)
-                || (hr.getState() == HarvestResult.STATE_CRAWLING && hr.getStatus() == HarvestResult.STATUS_FINISHED)) {
-//            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "start", ti.getOid(), hr.getHarvestNumber());
-            wctCoordinator.pushPruneAndImport(ti, harvestResultNumber);
-            hr.setState(HarvestResult.STATE_MODIFYING);
-        } else if ((hr.getState() == HarvestResult.STATE_INDEXING && hr.getStatus() == HarvestResult.STATUS_SCHEDULED)
-                || (hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_FINISHED)) {
-//            digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_INDEXING, "start", ti.getOid(), hr.getHarvestNumber());
-            HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
-            harvestResultDTO.setTargetInstanceOid(targetInstanceId);
-            harvestResultDTO.setHarvestNumber(harvestResultNumber);
-            digitalAssetStore.initiateIndexing(harvestResultDTO);
-            hr.setState(HarvestResult.STATE_INDEXING);
-        } else {
-            throw new DigitalAssetStoreException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
-        }
-
-        //Change the status of Harvest Result
-        hr.setStatus(HarvestResult.STATUS_RUNNING);
-        targetInstanceDAO.save(hr);
     }
 
     public Map<String, Object> getHarvestResultViewData(long targetInstanceId, long harvestResultId, int harvestResultNumber) throws IOException {

@@ -5,7 +5,7 @@ import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationProgressView;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
+import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -28,7 +28,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     public NetworkMapResult initialIndex(long job, int harvestResultNumber) {
         VisualizationAbstractProcessor processor = null;
         try {
-            processor = new ResourceExtractorProcessor(pool, job, harvestResultNumber);
+            processor = new IndexerProcessor(pool, job, harvestResultNumber);
         } catch (DigitalAssetStoreException e) {
             return NetworkMapResult.getInitialExtractorFailedResult();
         }

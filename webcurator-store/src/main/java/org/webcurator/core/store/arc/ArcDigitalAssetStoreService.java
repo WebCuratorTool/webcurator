@@ -66,7 +66,7 @@ import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
+import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
@@ -948,7 +948,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 //                + harvestResult.getHarvestNumber());
         // Kick of the indexer.
 //        indexer.runIndex(harvestResult, sourceDir);
-        VisualizationAbstractProcessor processor = new ResourceExtractorProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+        VisualizationAbstractProcessor processor = new IndexerProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         visualizationProcessorManager.startTask(processor);
     }
 
@@ -1102,7 +1102,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             VisualizationAbstractProcessor processorModifier = new PruneAndImportProcessor(cmd);
             processorModifier.deleteTask();
 
-            VisualizationAbstractProcessor processorIndexer = new ResourceExtractorProcessor(pool, targetInstanceId, harvestNumber);
+            VisualizationAbstractProcessor processorIndexer = new IndexerProcessor(pool, targetInstanceId, harvestNumber);
             processorIndexer.deleteTask();
         }
     }

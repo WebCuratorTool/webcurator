@@ -37,4 +37,6 @@ public interface DigitalAssetStoreListener {
     void dasDownloadFile(long targetInstanceOid, int harvestNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp);
 
     void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList);
+
+    void dasUpdateHarvestResultStatus(HarvestResultDTO hrDTO);
 }

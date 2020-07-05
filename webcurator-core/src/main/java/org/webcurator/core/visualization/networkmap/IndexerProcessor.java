@@ -26,15 +26,16 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("all")
-public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
-    private static final Logger log = LoggerFactory.getLogger(ResourceExtractorProcessor.class);
+public class IndexerProcessor extends VisualizationAbstractProcessor {
+    private static final Logger log = LoggerFactory.getLogger(IndexerProcessor.class);
     private Map<String, NetworkMapNode> urls = new Hashtable<>();
     private BDBNetworkMap db;
     private Set<SeedHistoryDTO> seeds;
     private ResourceExtractor extractor;
 
-    public ResourceExtractorProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+    public IndexerProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         super(targetInstanceId, harvestResultNumber);
+        this.state = HarvestResult.STATE_INDEXING;
         this.db = pool.createInstance(targetInstanceId, harvestResultNumber);
     }
 
@@ -109,7 +110,7 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
 
         try {
             extractor.extract(reader, archiveFile.getName());
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             String err = "Failed to open index file: " + archiveFile.getName() + " with exception: " + e.getMessage();
             log.error(err);
             extractor.writeLog(err);
@@ -125,9 +126,7 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     }
 
     private void statAndSave(ResourceExtractor extractor) {
-        if (!running) {
-            return;
-        }
+        this.tryBlock();
 
         AtomicLong domainIdGenerator = new AtomicLong();
         NetworkMapDomainManager domainManager = new NetworkMapDomainManager();
@@ -141,32 +140,32 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
 
         //Process parent relationship, outlinks and domain's outlink
         this.urls.values().forEach(node -> {
-            if (this.running) {
-                // if url u-->v then domain du->dv, DU->DV, du->DV, DU->dv
-                NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
-                NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
-                if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
-                    domainNodeHigh.setSeed(true);
-                    domainNodeLower.setSeed(true);
-                }
+            this.tryBlock();
 
-                String viaUrl = node.getViaUrl();
-                if (viaUrl == null || !this.urls.containsKey(viaUrl)) {
-                    node.setParentId(-1);
-                } else {
-                    NetworkMapNode parentNode = this.urls.get(viaUrl);
-                    parentNode.addOutlink(node);
+            // if url u-->v then domain du->dv, DU->DV, du->DV, DU->dv
+            NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
+            NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
+            if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
+                domainNodeHigh.setSeed(true);
+                domainNodeLower.setSeed(true);
+            }
 
-                    NetworkMapDomain parentDomainNodeHigh = domainManager.getHighDomain(parentNode);
-                    NetworkMapDomain parentDomainNodeLower = domainManager.getLowerDomain(parentNode);
+            String viaUrl = node.getViaUrl();
+            if (viaUrl == null || !this.urls.containsKey(viaUrl)) {
+                node.setParentId(-1);
+            } else {
+                NetworkMapNode parentNode = this.urls.get(viaUrl);
+                parentNode.addOutlink(node);
 
-                    node.setParentId(parentNode.getId());
+                NetworkMapDomain parentDomainNodeHigh = domainManager.getHighDomain(parentNode);
+                NetworkMapDomain parentDomainNodeLower = domainManager.getLowerDomain(parentNode);
 
-                    parentDomainNodeHigh.addOutlink(domainNodeHigh.getId());
-                    parentDomainNodeHigh.addOutlink(domainNodeLower.getId());
-                    parentDomainNodeLower.addOutlink(domainNodeHigh.getId());
-                    parentDomainNodeLower.addOutlink(domainNodeLower.getId());
-                }
+                node.setParentId(parentNode.getId());
+
+                parentDomainNodeHigh.addOutlink(domainNodeHigh.getId());
+                parentDomainNodeHigh.addOutlink(domainNodeLower.getId());
+                parentDomainNodeLower.addOutlink(domainNodeHigh.getId());
+                parentDomainNodeLower.addOutlink(domainNodeLower.getId());
             }
         });
         db.put(BDBNetworkMap.PATH_GROUP_BY_DOMAIN, rootDomainNode);
@@ -176,17 +175,17 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
         this.urls.values().forEach(e -> {
-            if (this.running) {
-                db.put(e.getId(), e);             //Indexed by ID, ID->NODE
-                db.put(e.getUrl(), e.getId()); //Indexed by URL, URL->ID->NODE
+            this.tryBlock();
 
-                if (e.isSeed() || e.getParentId() <= 0) {
-                    rootUrls.add(e.getId());
-                }
+            db.put(e.getId(), e);             //Indexed by ID, ID->NODE
+            db.put(e.getUrl(), e.getId()); //Indexed by URL, URL->ID->NODE
 
-                if (!e.isFinished()) {
-                    malformedUrls.add(e.getId());
-                }
+            if (e.isSeed() || e.getParentId() <= 0) {
+                rootUrls.add(e.getId());
+            }
+
+            if (!e.isFinished()) {
+                malformedUrls.add(e.getId());
             }
         });
         db.put(BDBNetworkMap.PATH_ROOT_URLS, rootUrls);
@@ -205,7 +204,6 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     public void clear() {
         this.urls.values().forEach(NetworkMapNode::clear);
         this.urls.clear();
-//        PatchUtil.indexer.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
     }
 
     @Override
@@ -217,11 +215,8 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     public void processInternal() throws Exception {
         try {
             indexFiles();
-
-//            wctCoordinatorClient.finaliseIndex(targetInstanceId, harvestResultNumber);
         } catch (IOException e) {
             log.error(e.getMessage());
-            e.printStackTrace();
             throw e;
         } finally {
             clear();
@@ -229,10 +224,17 @@ public class ResourceExtractorProcessor extends VisualizationAbstractProcessor {
     }
 
     @Override
+    protected void pauseInternal() {
+        this.extractor.pause();
+    }
+
+    @Override
+    protected void resumeInternal() {
+        this.extractor.resume();
+    }
+
+    @Override
     protected void terminateInternal() {
-        if (extractor != null) {
-            extractor.stop();
-        }
     }
 
     @Override

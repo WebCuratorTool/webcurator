@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
+import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ResourceExtractorProcessorTest {
-    private static final Logger log = LoggerFactory.getLogger(ResourceExtractorProcessorTest.class);
+public class IndexerProcessorTest {
+    private static final Logger log = LoggerFactory.getLogger(IndexerProcessorTest.class);
 
     private static final String baseDir = "/usr/local/wct/store";
     private static final BDBNetworkMapPool pool = new BDBNetworkMapPool(baseDir);
@@ -28,7 +28,7 @@ public class ResourceExtractorProcessorTest {
     private final Set<SeedHistoryDTO> seeds = new HashSet<>();
     private final VisualizationDirectoryManager visualizationDirectoryManager = MockVisualizationDirectoryManager.getDirectoryManagerInstance();
 
-    private ResourceExtractorProcessor indexer;
+    private IndexerProcessor indexer;
     private VisualizationProcessorManager visualizationProcessorManager;
 
     @Before
@@ -44,7 +44,7 @@ public class ResourceExtractorProcessorTest {
 
         visualizationProcessorManager = new VisualizationProcessorManager(visualizationDirectoryManager, null, pool, 3, 3000, 3000);
 
-        ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(pool, targetInstanceId, harvestResultNumber);
+        IndexerProcessor indexer = new IndexerProcessor(pool, targetInstanceId, harvestResultNumber);
 
         visualizationProcessorManager.startTask(indexer);
 

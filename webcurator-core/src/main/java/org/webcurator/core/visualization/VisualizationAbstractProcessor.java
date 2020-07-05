@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.HarvestResult;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,27 +16,26 @@ import java.util.concurrent.Semaphore;
 public abstract class VisualizationAbstractProcessor implements Callable<Boolean> {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationAbstractProcessor.class);
     protected WctCoordinatorClient wctCoordinatorClient;
-    protected final String processorStage;
-    protected final VisualizationProgressBar progressBar;
     protected final long targetInstanceId;
     protected final int harvestResultNumber;
-    protected String fileDir; //Upload files
+    protected int state = HarvestResult.STATE_UNASSESSED;
+    protected int status = HarvestResult.STATUS_SCHEDULED;
     protected String baseDir; //Harvest WARC files dir
+    protected String fileDir; //Upload files
     protected String logsDir; //log dir
     protected String reportsDir; //report dir
-    protected boolean running = true;
-    //    protected Semaphore stopped = new Semaphore(1);
-    protected int status = HarvestResult.STATUS_SCHEDULED;
+    protected VisualizationProgressBar progressBar;
     protected VisualizationProcessorManager visualizationProcessorManager;
+//    private boolean running = true;
+//    private final Semaphore running_blocker = new Semaphore(1);
 
     public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
-        this.processorStage = getProcessorStage();
-        this.progressBar = new VisualizationProgressBar(processorStage, targetInstanceId, harvestResultNumber);
         this.targetInstanceId = targetInstanceId;
         this.harvestResultNumber = harvestResultNumber;
     }
 
     public void init(VisualizationProcessorManager visualizationProcessorManager, VisualizationDirectoryManager visualizationDirectoryManager, WctCoordinatorClient wctCoordinatorClient) {
+        this.progressBar = new VisualizationProgressBar(getProcessorStage(), targetInstanceId, harvestResultNumber);
         this.visualizationProcessorManager = visualizationProcessorManager;
         this.baseDir = visualizationDirectoryManager.getBaseDir();
         this.fileDir = visualizationDirectoryManager.getUploadDir(targetInstanceId);
@@ -53,59 +53,80 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         return VisualizationProcessorManager.getKey(targetInstanceId, harvestResultNumber);
     }
 
-    public void process() {
-
+    public boolean process() {
+        try {
+            this.status = HarvestResult.STATUS_RUNNING;
+            updateHarvestResultStatus();
+            processInternal();
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return false;
+        } finally {
+            this.progressBar.clear();
+            this.status = HarvestResult.STATUS_FINISHED;
+            visualizationProcessorManager.finalise(this);
+        }
     }
 
     abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
         this.status = HarvestResult.STATUS_PAUSED;
-        try {
-            this.wait();
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-        }
+//        synchronized (this.running_blocker) {
+//            if (this.running) {
+//                try {
+//                    this.running_blocker.acquire();
+//                } catch (InterruptedException e) {
+//                    log.error(e.getMessage());
+//                }
+//                this.running = false;
+//            }
+//        }
+        pauseInternal();
+        updateHarvestResultStatus();
     }
+
+    abstract protected void pauseInternal();
 
     public void resumeTask() {
         this.status = HarvestResult.STATUS_RUNNING;
-        this.notifyAll();
+//        synchronized (this.running_blocker) {
+//            if (!this.running) {
+//                this.running = true;
+//                this.running_blocker.release();
+//            }
+//        }
+        resumeInternal();
+        updateHarvestResultStatus();
+    }
+
+    abstract protected void resumeInternal();
+
+    protected void tryBlock() {
+//        if (!this.running) {
+//            try {
+//                this.running_blocker.acquire();
+//            } catch (InterruptedException e) {
+//                log.error(e.getMessage());
+//            }
+//        }
     }
 
     public void terminateTask() {
         this.status = HarvestResult.STATUS_TERMINATED;
-
-        this.running = false;
         terminateInternal();
-//        try {
-//            this.stopped.acquire();
-//        } catch (InterruptedException e) {
-//            log.error(e.getMessage());
-//            e.printStackTrace();
-//        }
+        updateHarvestResultStatus();
     }
 
     abstract protected void terminateInternal();
 
     public void deleteTask() {
-        this.terminateTask();
-//        try {
-//            this.stopped.acquire(); //wait until process ended
-//        } catch (InterruptedException e) {
-//            log.error("Acquire token failed when stop modification task, {}, {}", targetInstanceId, harvestResultNumber);
-//            e.printStackTrace();
-//            return;
-//        }
-
         //delete logs, reports
         delete(this.logsDir);
         delete(this.reportsDir);
-
         deleteInternal();
     }
-
 
     abstract public void deleteInternal();
 
@@ -131,14 +152,20 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         return this.progressBar;
     }
 
+    public long getTargetInstanceId() {
+        return targetInstanceId;
+    }
+
+    public int getHarvestResultNumber() {
+        return harvestResultNumber;
+    }
+
     public int getState() {
-        int state = HarvestResult.STATE_UNASSESSED;
-        if (this.processorStage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-            state = HarvestResult.STATE_MODIFYING;
-        } else if (this.processorStage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-            state = HarvestResult.STATE_INDEXING;
-        }
         return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
     }
 
     public int getStatus() {
@@ -149,30 +176,18 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.status = status;
     }
 
-    public long getTargetInstanceId() {
-        return targetInstanceId;
-    }
+    public void updateHarvestResultStatus() {
+        HarvestResultDTO hrDTO = new HarvestResultDTO();
+        hrDTO.setTargetInstanceOid(this.targetInstanceId);
+        hrDTO.setHarvestNumber(this.harvestResultNumber);
+        hrDTO.setState(this.state);
+        hrDTO.setStatus(this.status);
 
-    public int getHarvestResultNumber() {
-        return harvestResultNumber;
+        wctCoordinatorClient.dasUpdateHarvestResultStatus(hrDTO);
     }
 
     @Override
     public Boolean call() {
-        try {
-//            this.stopped.acquire();
-            this.status = HarvestResult.STATUS_RUNNING;
-            processInternal();
-            return true;
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-        } finally {
-//            this.stopped.release();
-            this.progressBar.clear();
-            this.status = HarvestResult.STATUS_FINISHED;
-            visualizationProcessorManager.finalise(this);
-        }
-        return false;
+        return process();
     }
 }

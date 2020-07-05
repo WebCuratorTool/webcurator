@@ -8,7 +8,6 @@ import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.DasCallback;
 import org.webcurator.core.harvester.coordinator.IndexerService;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
@@ -34,7 +33,13 @@ public class DigitalAssetStoreListenerService implements DigitalAssetStoreListen
     @Override
     @RequestMapping(path = WctCoordinatorPaths.DIGITAL_ASSET_STORE_HEARTBEAT, method = {RequestMethod.POST, RequestMethod.GET})
     public void dasHeartBeat(@RequestBody List<HarvestResultDTO> harvestResultDTOList) {
+        wctCoordinator.dasHeartBeat(harvestResultDTOList);
+    }
 
+    @Override
+    @RequestMapping(path = WctCoordinatorPaths.DIGITAL_ASSET_STORE_UPDATE_HR_STATUS, method = {RequestMethod.POST, RequestMethod.GET})
+    public void dasUpdateHarvestResultStatus(@RequestBody HarvestResultDTO hrDTO) {
+        wctCoordinator.dasUpdateHarvestResultStatus(hrDTO);
     }
 
     @RequestMapping(path = WctCoordinatorPaths.TARGET_INSTANCE_HISTORY_SEED, method = {RequestMethod.POST, RequestMethod.GET})

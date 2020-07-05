@@ -17,10 +17,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
     private final PruneAndImportCommandApply cmd;
-    private PruneAndImportCoordinator coordinator = null;
+    private PruneAndImportHandler coordinator = null;
 
     public PruneAndImportProcessor(PruneAndImportCommandApply cmd) throws DigitalAssetStoreException {
         super(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+        this.state = HarvestResult.STATE_MODIFYING;
         this.cmd = cmd;
     }
 
@@ -90,7 +91,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         dirs.add(destDir);
 
         // Initial extractor.
-        PruneAndImportCoordinatorHeritrixWarc heritrixWarcCoordinator = new PruneAndImportCoordinatorHeritrixWarc();
+        PruneAndImportHandlerHeritrixWarc heritrixWarcCoordinator = new PruneAndImportHandlerHeritrixWarc();
         heritrixWarcCoordinator.setWctCoordinatorClient(this.wctCoordinatorClient);
         heritrixWarcCoordinator.setDirs(dirs);
         heritrixWarcCoordinator.setFileDir(this.fileDir);
@@ -100,20 +101,20 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
 
         //Process copy and file import
         for (File f : derivedArchiveFiles) {
-            if (running) {
-                coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
-                VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
-                item.setCurLength(item.getMaxLength());
-            }
+            this.tryBlock();
+
+            coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
+            VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
+            item.setCurLength(item.getMaxLength());
         }
 
         //Process source URL import
         for (File f : patchArchiveFiles) {
-            if (running) {
-                coordinator.importFromRecorder(f, urisToDelete, cmd.getNewHarvestResultNumber());
-                VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
-                item.setCurLength(item.getMaxLength());
-            }
+            this.tryBlock();
+
+            coordinator.importFromRecorder(f, urisToDelete, cmd.getNewHarvestResultNumber());
+            VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
+            item.setCurLength(item.getMaxLength());
         }
 
         //Process file import
@@ -132,18 +133,18 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
 
     @Override
     public void processInternal() throws Exception {
-        if (running) {
-            this.pruneAndImport();
-            log.info("Prune and import finished, {} {}", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
-        }
+        this.pruneAndImport();
+        log.info("Prune and import finished, {} {}", cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
+    }
 
-//        if (running) {
-//            wctCoordinatorClient.notifyModificationComplete(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
-//            log.info("Notify Core that modification is finished");
-//        }
-//
-//        //Move the current metadata to history fold to avoid duplicated execution
-//        PatchUtil.modifier.moveJob2History(baseDir, targetInstanceId, harvestResultNumber);
+    @Override
+    protected void pauseInternal() {
+        this.coordinator.pause();
+    }
+
+    @Override
+    protected void resumeInternal() {
+        this.coordinator.resume();
     }
 
     @Override
@@ -157,9 +158,6 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
 
     @Override
     protected void terminateInternal() {
-        if (this.coordinator != null) {
-            this.coordinator.running = false;
-        }
     }
 }
 

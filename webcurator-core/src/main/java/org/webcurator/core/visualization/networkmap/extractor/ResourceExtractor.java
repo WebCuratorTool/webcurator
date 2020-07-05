@@ -28,8 +28,6 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
     protected Map<String, NetworkMapNode> results;
     protected Map<String, Boolean> seeds = new HashMap<>();
 
-    protected boolean running = true;
-
     protected ResourceExtractor(Map<String, NetworkMapNode> results, Set<SeedHistoryDTO> seeds) {
         this.results = results;
         seeds.forEach(seed -> {
@@ -43,7 +41,7 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
         super.init(logsDir, reportsDir, progressBar);
     }
 
-    public void extract(ArchiveReader reader, String fileName) throws IOException {
+    public void extract(ArchiveReader reader, String fileName) throws IOException, InterruptedException {
         StatisticItem statisticItem = new StatisticItem();
         statisticItem.setFromFileName(reader.getStrippedFileName());
         statisticItems.add(statisticItem);
@@ -52,9 +50,7 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
 
         preProcess();
         for (ArchiveRecord record : reader) {
-            if (!running) {
-                break;
-            }
+            this.tryBlock();
 
             extractRecord(record, fileName);
             progressItem.setCurLength(record.getHeader().getOffset());
@@ -67,10 +63,6 @@ abstract public class ResourceExtractor extends VisualizationCoordinator {
             statisticItem.increaseSucceedRecords();
         }
         postProcess();
-    }
-
-    public void stop() {
-        this.running = false;
     }
 
     abstract protected void preProcess();

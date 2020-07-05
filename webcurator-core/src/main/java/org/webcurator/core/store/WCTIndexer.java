@@ -16,7 +16,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
+import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.*;
@@ -88,9 +88,9 @@ public class WCTIndexer extends IndexerBase {
     public void indexFiles(Long harvestResultOid) {
         // Step 2. Save the Index for each file.
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
-        ResourceExtractorProcessor indexer = null;
+        IndexerProcessor indexer = null;
         try {
-            indexer = new ResourceExtractorProcessor(pool, getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
+            indexer = new IndexerProcessor(pool, getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
         } catch (DigitalAssetStoreException e) {
             log.error("Failed to create directory: {}", directory);
             return;

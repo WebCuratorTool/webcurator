@@ -1207,7 +1207,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
      * @see HarvestCoordinator#purgeAbortedTargetInstances().
      */
     public void purgeAbortedTargetInstances() {
-
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, daysBeforeAbortedTargetInstancePurge * -1);
 
@@ -1324,9 +1323,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     private void finaliseIndex(TargetInstance ti, HarvestResult hr) {
         hr.setState(HarvestResult.STATE_UNASSESSED);
-        hr.setStatus(HarvestResult.STATUS_FINISHED);
-        harvestQaManager.triggerAutoQA(hr);
+        hr.setStatus(HarvestResult.STATUS_UNASSESSED);
         targetInstanceDao.save(hr);
+        harvestQaManager.triggerAutoQA(hr);
 
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             ti.setState(TargetInstance.STATE_HARVESTED);
@@ -1527,12 +1526,12 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     private PruneAndImportCommandRowMetadata saveImportedFile(long job, PruneAndImportCommandRow cmd) {
         PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
-        File uploadedFilePath=new File(visualizationDirectoryManager.getUploadDir(job));
-        if (!uploadedFilePath.exists()){
+        File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job));
+        if (!uploadedFilePath.exists()) {
             uploadedFilePath.mkdir();
         }
 
-        uploadedFilePath=new File(uploadedFilePath,metadata.getName());
+        uploadedFilePath = new File(uploadedFilePath, metadata.getName());
         if (cmd.isStart() && uploadedFilePath.exists()) {
             if (metadata.isReplaceFlag()) {
                 uploadedFilePath.deleteOnExit();
@@ -1765,14 +1764,13 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     private void initiateIndexing(TargetInstance ti, HarvestResult hr) {
         try {
+            hr.setState(HarvestResult.STATE_INDEXING);
+            hr.setStatus(HarvestResult.STATUS_SCHEDULED);
+            targetInstanceDao.save(hr);
+
             digitalAssetStoreFactory.getDAS().initiateIndexing(
                     new HarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr
                             .getCreationDate(), hr.getHarvestNumber(), hr.getProvenanceNote()));
-
-            hr.setState(HarvestResult.STATE_INDEXING);
-            hr.setStatus(HarvestResult.STATUS_RUNNING);
-            targetInstanceDao.save(hr);
-
         } catch (DigitalAssetStoreException e) {
             log.error("Could not send initiateIndexing message to the DAS", e);
         }
@@ -1898,6 +1896,29 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 hr.setStatus(hrDTO.getStatus());
                 targetInstanceManager.save(hr);
             }
+        }
+    }
+
+    @Override
+    public void dasUpdateHarvestResultStatus(HarvestResultDTO hrDTO) {
+        TargetInstance ti = targetInstanceManager.getTargetInstance(hrDTO.getTargetInstanceOid());
+        if (ti == null) {
+            throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
+        }
+
+        HarvestResult hr = ti.getHarvestResult(hrDTO.getHarvestNumber());
+        if (hr == null) {
+            throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
+        }
+
+        hr.setState(hrDTO.getState());
+        hr.setStatus(hrDTO.getStatus());
+        targetInstanceManager.save(hr);
+
+        if (hr.getState() == HarvestResult.STATE_INDEXING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
+            finaliseIndex(ti, hr);
+        } else if (hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
+            initiateIndexing(ti, hr);
         }
     }
 }

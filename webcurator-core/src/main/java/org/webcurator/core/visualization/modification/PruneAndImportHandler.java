@@ -16,8 +16,8 @@ import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public abstract class PruneAndImportCoordinator extends VisualizationCoordinator {
-    protected static final Logger log = LoggerFactory.getLogger(PruneAndImportCoordinator.class);
+public abstract class PruneAndImportHandler extends VisualizationCoordinator {
+    protected static final Logger log = LoggerFactory.getLogger(PruneAndImportHandler.class);
     protected static final int BYTE_BUFF_SIZE = 1024;
 
     /**
@@ -47,7 +47,7 @@ public abstract class PruneAndImportCoordinator extends VisualizationCoordinator
 
     abstract protected void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException;
 
-    abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException;
+    abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException;
 
     protected File modificationDownloadFile(long job, int harvestResultNumber, PruneAndImportCommandRowMetadata metadata) {
         String tempFileName = UUID.randomUUID().toString();

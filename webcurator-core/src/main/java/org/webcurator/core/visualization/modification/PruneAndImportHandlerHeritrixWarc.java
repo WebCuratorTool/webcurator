@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordinator {
+public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
     public static final String ARCHIVE_TYPE = "WARC";
     private WarcFilenameTemplate warcFilenameTemplate = null;
     private final List<String> impArcHeader = new ArrayList<String>();
@@ -142,7 +142,9 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         this.writeLog("Create a new WARC file, file name: " + writer.getFile());
 
         // Iterate through all the records, skipping deleted or imported URLs.
-        while (running && archiveRecordsIt.hasNext()) {
+        while (archiveRecordsIt.hasNext()) {
+            this.tryBlock();
+
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
             String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
@@ -255,41 +257,41 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         hrsToImport.values().stream().filter(f -> {
             return f.getLength() > 0L;
         }).forEach(fProps -> {
-            if (running) {
-                try {
-                    Date warcDate = new Date();
-                    if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
-                        warcDate.setTime(fProps.getLastModified());
-                    }
+            try {
+                this.tryBlock();
 
-                    log.debug("WARC-Date: {}", writerDF.format(warcDate));
-
-                    File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
-                    InputStream fin = Files.newInputStream(tempFile.toPath());
-                    URI recordId = new URI("urn:uuid:" + tempFile.getName());
-                    ANVLRecord namedFields = new ANVLRecord();
-                    namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
-                    WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-                    warcRecordInfo.setUrl(fProps.getUrl());
-                    warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
-                    warcRecordInfo.setMimetype(fProps.getContentType());
-                    warcRecordInfo.setRecordId(recordId);
-                    warcRecordInfo.setExtraHeaders(namedFields);
-                    warcRecordInfo.setContentStream(fin);
-                    warcRecordInfo.setContentLength(tempFile.length());
-                    warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
-                    warcWriter.writeRecord(warcRecordInfo);
-
-                    Files.deleteIfExists(tempFile.toPath());
-
-                    this.writeLog(String.format("Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
-                    statisticItem.increaseCopiedRecords();
-
-                    progressItemFileImported.setCurLength(progressItemFileImported.getCurLength() + fProps.getLength());
-                } catch (IOException | URISyntaxException e) {
-                    log.error(e.getMessage());
-                    statisticItem.increaseFailedRecords();
+                Date warcDate = new Date();
+                if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
+                    warcDate.setTime(fProps.getLastModified());
                 }
+
+                log.debug("WARC-Date: {}", writerDF.format(warcDate));
+
+                File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
+                InputStream fin = Files.newInputStream(tempFile.toPath());
+                URI recordId = new URI("urn:uuid:" + tempFile.getName());
+                ANVLRecord namedFields = new ANVLRecord();
+                namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
+                WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
+                warcRecordInfo.setUrl(fProps.getUrl());
+                warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
+                warcRecordInfo.setMimetype(fProps.getContentType());
+                warcRecordInfo.setRecordId(recordId);
+                warcRecordInfo.setExtraHeaders(namedFields);
+                warcRecordInfo.setContentStream(fin);
+                warcRecordInfo.setContentLength(tempFile.length());
+                warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
+                warcWriter.writeRecord(warcRecordInfo);
+
+                Files.deleteIfExists(tempFile.toPath());
+
+                this.writeLog(String.format("Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
+                statisticItem.increaseCopiedRecords();
+
+                progressItemFileImported.setCurLength(progressItemFileImported.getCurLength() + fProps.getLength());
+            } catch (IOException | URISyntaxException e) {
+                log.error(e.getMessage());
+                statisticItem.increaseFailedRecords();
             }
         });
         if (warcWriter.getFile() != null) {
@@ -305,7 +307,7 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
 
 
     @Override
-    protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException {
+    protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -362,7 +364,9 @@ public class PruneAndImportCoordinatorHeritrixWarc extends PruneAndImportCoordin
         WARCWriter writer = new WARCWriter(aint, settings);
 
         // Iterate through all the records, skipping deleted URLs.
-        while (running && archiveRecordsIt.hasNext()) {
+        while (archiveRecordsIt.hasNext()) {
+            this.tryBlock();
+
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
             String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);

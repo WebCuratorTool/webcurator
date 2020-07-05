@@ -3,7 +3,7 @@ package org.webcurator.core.visualization;
 import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.visualization.networkmap.ResourceExtractorProcessor;
+import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
@@ -63,7 +63,7 @@ public class BDBNetworkMapTest {
     public void testExtractor(BDBNetworkMap db, long job, int harvestResultNumber) {
         String directory = String.format("%s/%d/1", baseDir, job);
         try {
-            ResourceExtractorProcessor indexer = new ResourceExtractorProcessor(pool, job, harvestResultNumber);
+            IndexerProcessor indexer = new IndexerProcessor(pool, job, harvestResultNumber);
             indexer.indexFiles();
         } catch (IOException | DigitalAssetStoreException e) {
             e.printStackTrace();
