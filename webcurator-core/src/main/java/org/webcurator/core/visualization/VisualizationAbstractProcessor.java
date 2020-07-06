@@ -26,8 +26,6 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     protected String reportsDir; //report dir
     protected VisualizationProgressBar progressBar;
     protected VisualizationProcessorManager visualizationProcessorManager;
-//    private boolean running = true;
-//    private final Semaphore running_blocker = new Semaphore(1);
 
     public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         this.targetInstanceId = targetInstanceId;
@@ -72,45 +70,22 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
-        this.status = HarvestResult.STATUS_PAUSED;
-//        synchronized (this.running_blocker) {
-//            if (this.running) {
-//                try {
-//                    this.running_blocker.acquire();
-//                } catch (InterruptedException e) {
-//                    log.error(e.getMessage());
-//                }
-//                this.running = false;
-//            }
-//        }
         pauseInternal();
+        this.status = HarvestResult.STATUS_PAUSED;
         updateHarvestResultStatus();
     }
 
     abstract protected void pauseInternal();
 
     public void resumeTask() {
-        this.status = HarvestResult.STATUS_RUNNING;
-//        synchronized (this.running_blocker) {
-//            if (!this.running) {
-//                this.running = true;
-//                this.running_blocker.release();
-//            }
-//        }
         resumeInternal();
+        this.status = HarvestResult.STATUS_RUNNING;
         updateHarvestResultStatus();
     }
 
     abstract protected void resumeInternal();
 
     protected void tryBlock() {
-//        if (!this.running) {
-//            try {
-//                this.running_blocker.acquire();
-//            } catch (InterruptedException e) {
-//                log.error(e.getMessage());
-//            }
-//        }
     }
 
     public void terminateTask() {

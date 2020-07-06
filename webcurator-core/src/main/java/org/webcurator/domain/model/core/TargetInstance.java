@@ -468,6 +468,15 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         return harvestResults;
     }
 
+    public List<HarvestResult> getDerivedHarvestResults(int harvestResultNumber) {
+        List<HarvestResult> list = new ArrayList<>();
+        for (HarvestResult hr : harvestResults) {
+            if (hr.getDerivedFrom() != null && hr.getDerivedFrom() == harvestResultNumber) {
+                list.add(hr);
+            }
+        }
+        return list;
+    }
 
     /**
      * Set the list of HarvestResults associated with this target instance.

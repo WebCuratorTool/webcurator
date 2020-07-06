@@ -8,27 +8,25 @@ import java.io.File;
 import java.util.List;
 
 public interface PatchingHarvestLogManager {
+    File getLogfile(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFilename);
 
+    List<String> getLogLinesByRegex(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aNoOfLines, String aRegex, boolean prependLineNumbers);
 
-    File getLogfile(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFilename);
+    Integer getFirstLogLineAfterTimeStamp(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, Long timestamp);
 
-    List<String> getLogLinesByRegex(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, int aNoOfLines, String aRegex, boolean prependLineNumbers);
+    Integer getFirstLogLineContaining(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, String match);
 
-    Integer getFirstLogLineAfterTimeStamp(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, Long timestamp);
+    Integer getFirstLogLineBeginning(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, String match);
 
-    Integer getFirstLogLineContaining(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, String match);
+    List<String> getLog(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aStartLine, int aNoOfLines);
 
-    Integer getFirstLogLineBeginning(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, String match);
+    Integer countLogLines(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName);
 
-    List<String> getLog(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, int aStartLine, int aNoOfLines);
+    List<String> headLog(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aNoOfLines);
 
-    Integer countLogLines(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName);
+    List<LogFilePropertiesDTO> listLogFileAttributes(long targetInstanceId, int harvestResultNumber, int harvestResultState);
 
-    List<String> headLog(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, int aNoOfLines);
+    List<String> listLogFiles(long targetInstanceId, int harvestResultNumber, int harvestResultState);
 
-    List<LogFilePropertiesDTO> listLogFileAttributes(TargetInstance aTargetInstance, HarvestResult aHarvestResult);
-
-    List<String> listLogFiles(TargetInstance aTargetInstance, HarvestResult aHarvestResult);
-
-    List<String> tailLog(TargetInstance targetInstance, HarvestResult aHarvestResult, String aFileName, int aNoOfLines);
+    List<String> tailLog(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aNoOfLines);
 }

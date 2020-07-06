@@ -59,19 +59,6 @@ public class HarvestResult implements UserInTrayResource {
     public static final String PATCH_STAGE_TYPE_INDEXING = "indexing";
 
     /**
-     * the name of the Logs directory of Indexer.
-     */
-    public static final String DIR_LOGS_INDEX = "index";
-    /**
-     * the name of the Logs directory of modification.
-     */
-    public static final String DIR_LOGS_MOD = "modify";
-    /**
-     * the name of the Logs directory of extension.
-     */
-    public static final String DIR_LOGS_EXT = "attached";
-
-    /**
      * The TargetInstance that this belongs to
      */
     @ManyToOne
@@ -124,12 +111,6 @@ public class HarvestResult implements UserInTrayResource {
      */
     @Column(name = "HR_STATE")
     private int state = 0;
-
-    /**
-     * The status of the HarvestResult - see the STATUS_xxx constants
-     */
-    @Column(name = "HR_STATUS")
-    private int status = 0;
 
     /**
      * A list of Harvest Modification Notes
@@ -330,24 +311,6 @@ public class HarvestResult implements UserInTrayResource {
      */
     public void setState(int state) {
         this.state = state;
-    }
-
-    /**
-     * Get the status of this Harvest Result.
-     *
-     * @return the status
-     */
-    public int getStatus() {
-        return status;
-    }
-
-    /**
-     * Set the status of this Harvest Result.
-     *
-     * @param status the state to set
-     */
-    public void setStatus(int status) {
-        this.status = status;
     }
 
     /**

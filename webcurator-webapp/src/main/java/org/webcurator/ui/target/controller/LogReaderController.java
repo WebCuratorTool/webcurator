@@ -100,17 +100,11 @@ public class LogReaderController {
                                   BindingResult bindingResult) throws Exception {
         validator.validate(cmd, bindingResult);
 
-//        if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
-//                || cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
         if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
             return handlePatchingLogReader(cmd, bindingResult);
         }
 
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
-        //Go to patching log reading process
-//        if (ti != null && ti.getState().equals(TargetInstance.STATE_PATCHING)) {
-//            return handlePatchingLogReader(cmd, bindingResult);
-//        }
 
         String messageText = "";
         int firstLine = 0;
@@ -244,6 +238,15 @@ public class LogReaderController {
                 messageText += err.getDefaultMessage();
             }
         } else if (cmd.getTargetInstanceOid() != null) {
+            int state = HarvestResult.STATE_UNASSESSED;
+            if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+                state = HarvestResult.STATE_INDEXING;
+            } else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+                state = HarvestResult.STATE_MODIFYING;
+            } else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)) {
+                state = HarvestResult.STATE_CRAWLING;
+            }
+
             TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
             cmd.setTargetName(ti.getTarget().getName());
 
@@ -260,7 +263,7 @@ public class LogReaderController {
 
             //Count the log lines first time in
             if ((cmd.getNumLines() == null || cmd.getNumLines().intValue() == -1)) {
-                cmd.setNumLines(logReader.countLogLines(ti, hr, cmd.getLogFileName()));
+                cmd.setNumLines(logReader.countLogLines(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName()));
             }
             if (cmd.getNoOfLines() == null || cmd.getNoOfLinesInt() == 0) {
                 cmd.setNoOfLines(700);
@@ -270,26 +273,26 @@ public class LogReaderController {
                 if (LogReaderCommand.VALUE_TIMESTAMP.equals(cmd.getFilterType())) {
                     // do timestamp filtering
                     if (cmd.getLongTimestamp() != -1) {
-                        firstLine = logReader.getFirstLogLineAfterTimeStamp(ti, hr, cmd.getLogFileName(), cmd.getLongTimestamp());
+                        firstLine = logReader.getFirstLogLineAfterTimeStamp(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getLongTimestamp());
                         if (firstLine > -1) {
-                            lines = logReader.getLog(ti, hr, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+                            lines = logReader.getLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
                         } else {
                             // do empty tail
                             firstLine = -2;
-                            lines = logReader.tailLog(ti, hr, cmd.getLogFileName(), 0);
+                            lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), 0);
                         }
                     } else {
                         firstLine = -2;
                         messageText = cmd.getFilter() + " is not a valid date/time format";
                     }
                 } else if (LogReaderCommand.VALUE_REGEX_CONTAIN.equals(cmd.getFilterType())) {
-                    firstLine = logReader.getFirstLogLineContaining(ti, hr, cmd.getLogFileName(), cmd.getFilter());
+                    firstLine = logReader.getFirstLogLineContaining(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getFilter());
                     if (firstLine > -1) {
-                        lines = logReader.getLog(ti, hr, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+                        lines = logReader.getLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
                     } else {
                         // do empty tail
                         firstLine = -2;
-                        lines = logReader.tailLog(ti, hr, cmd.getLogFileName(), 0);
+                        lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), 0);
                     }
                 } else if (LogReaderCommand.VALUE_REGEX_INDENT.equals(cmd.getFilterType())) {
                     firstLine = -2;
@@ -304,7 +307,7 @@ public class LogReaderController {
                             regex = "^[^ \\t].*" + cmd.getFilter();
                         }
 
-                        lines = logReader.getLogLinesByRegex(ti, hr, cmd.getLogFileName(), cmd.getNoOfLinesInt(), regex, true);
+                        lines = logReader.getLogLinesByRegex(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt(), regex, true);
                         if (lines != null && lines.size() == 2) {
                             StringBuilder sb = new StringBuilder();
                             String[] subLines = lines.get(0).split("\n");
@@ -316,25 +319,25 @@ public class LogReaderController {
                         } else {
                             // do empty tail
                             firstLine = -2;
-                            lines = logReader.tailLog(ti, hr, cmd.getLogFileName(), 0);
+                            lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), 0);
                         }
                     }
                 } else if (LogReaderCommand.VALUE_REGEX_MATCH.equals(cmd.getFilterType())) {
                     // do regex filtering
                     firstLine = -2;
-                    lines = logReader.getLogLinesByRegex(ti, hr, cmd.getLogFileName(), cmd.getNoOfLinesInt(), cmd.getFilter(), cmd.getShowLineNumbers());
+                    lines = logReader.getLogLinesByRegex(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt(), cmd.getFilter(), cmd.getShowLineNumbers());
                 } else if (LogReaderCommand.VALUE_FROM_LINE.equals(cmd.getFilterType())) {
                     //do get
                     firstLine = cmd.getFilter() == null || cmd.getFilter().length() == 0 ? 0 : new Integer(cmd.getFilter()).intValue();
-                    lines = logReader.getLog(ti, hr, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+                    lines = logReader.getLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
                 } else if (LogReaderCommand.VALUE_HEAD.equals(cmd.getFilterType())) {
                     //do head
                     firstLine = 1;
-                    lines = logReader.headLog(ti, hr, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+                    lines = logReader.headLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt());
                 } else {
                     // do tail
                     firstLine = -1;
-                    lines = logReader.tailLog(ti, hr, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+                    lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt());
                 }
             } catch (org.webcurator.core.exceptions.WCTRuntimeException e) {
                 if (e.getCause().getMessage().startsWith("java.util.regex.PatternSyntaxException")) {

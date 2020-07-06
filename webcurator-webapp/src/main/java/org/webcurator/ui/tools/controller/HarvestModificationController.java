@@ -11,6 +11,8 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.modification.service.PruneAndImportService;
+import org.webcurator.domain.model.core.HarvestResult;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.IOException;
 import java.util.List;
@@ -66,5 +68,12 @@ public class HarvestModificationController implements PruneAndImportService {
                                                         @RequestParam("harvestResultId") long harvestResultId,
                                                         @RequestParam("harvestNumber") int harvestResultNumber) throws IOException {
         return harvestModificationHandler.getHarvestResultViewData(targetInstanceId, harvestResultId, harvestResultNumber);
+    }
+
+    @RequestMapping(path = "/curator/target/derived-harvest-results", method = {RequestMethod.POST, RequestMethod.GET})
+    public List<HarvestResultDTO> getDerivedHarvestResults(@RequestParam("targetInstanceOid") long targetInstanceId,
+                                                           @RequestParam("harvestResultId") long harvestResultId,
+                                                           @RequestParam("harvestNumber") int harvestResultNumber) throws IOException {
+        return harvestModificationHandler.getDerivedHarvestResults(targetInstanceId, harvestResultId, harvestResultNumber);
     }
 }

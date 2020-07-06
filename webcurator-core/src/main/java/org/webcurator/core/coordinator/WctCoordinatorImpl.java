@@ -136,6 +136,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
     @Value("${wctCoordinator.harvestOptimizationEnabled}")
     private boolean harvestOptimizationEnabled;
 
+    @Autowired
+    private HarvestResultManager harvestResultManager;
+
     /**
      * Default Constructor.
      */
@@ -216,7 +219,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            this.pushPruneAndImport(ti, aResult.getHarvestNumber());
+            this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
         } else {
             // The result is for the original harvest, but the TI already has one or more results
             if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
@@ -510,23 +513,18 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return;
         }
 
-        if (hr.getStatus() != HarvestResult.STATUS_SCHEDULED) {
-            log.info("Invalid Harvest Result. TargetInstanceId:{}, HarvestResultNumber: {}, HarvestResultState: {}, HarvestResultStatus", queuedTargetInstanceDTO.getOid(), hr.getHarvestNumber(), hr.getState(), hr.getStatus());
-            return;
-        }
-
-        switch (hr.getStatus()) {
+        switch (hr.getState()) {
             case HarvestResult.STATE_CRAWLING:
                 patchHarvestCrawling(queuedTargetInstanceDTO);
                 break;
             case HarvestResult.STATE_MODIFYING:
-                pushPruneAndImport(ti, hr.getHarvestNumber());
+                pushPruneAndImport(ti, hr);
                 break;
             case HarvestResult.STATE_INDEXING:
                 initiateIndexing(ti, hr);
                 break;
             default:
-                log.error("Invalid Harvest Result. TargetInstanceId:{}, HarvestResultNumber: {}, HarvestResultState: {}, HarvestResultStatus", queuedTargetInstanceDTO.getOid(), hr.getHarvestNumber(), hr.getState(), hr.getStatus());
+                log.error("Invalid Harvest Result. TargetInstanceId:{}, HarvestResultNumber: {}, HarvestResultState: {}", queuedTargetInstanceDTO.getOid(), hr.getHarvestNumber(), hr.getState());
         }
     }
 
@@ -618,7 +616,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         try {
             HarvestResult hr = targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
-            if (hr == null || hr.getState() != HarvestResult.STATE_CRAWLING || hr.getStatus() != HarvestResult.STATUS_SCHEDULED) {
+            if (hr == null || hr.getState() != HarvestResult.STATE_CRAWLING) {
                 log.error("Not able to start harvest at state: {}", hr.getState());
                 return false;
             }
@@ -629,10 +627,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
             // Initiate harvest on the remote harvest agent
             harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, PatchUtil.getPatchJobName(targetInstance.getOid(), cmd.getNewHarvestResultNumber()), profile, seeds.toString());
-
-            //Update Harvest Result status
-            hr.setStatus(HarvestResult.STATUS_RUNNING);
-            targetInstanceManager.save(hr);
 
             log.info("HarvestCoordinator: Harvest initiated successfully for target instance {}", targetInstance.getOid());
 
@@ -1290,7 +1284,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
             }
 
             hr.setState(HarvestResult.STATE_INDEXING);
-            hr.setStatus(HarvestResult.STATUS_RUNNING);
             targetInstanceDao.save(hr);
 
             log.info("Update state for patching Harvest Result {} of TI {}", hr.getHarvestNumber(), ti.getOid());
@@ -1322,8 +1315,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     private void finaliseIndex(TargetInstance ti, HarvestResult hr) {
+        harvestResultManager.removeHarvestResult(ti.getOid(), hr.getHarvestNumber());
+
         hr.setState(HarvestResult.STATE_UNASSESSED);
-        hr.setStatus(HarvestResult.STATUS_UNASSESSED);
         targetInstanceDao.save(hr);
         harvestQaManager.triggerAutoQA(hr);
 
@@ -1684,7 +1678,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         try {
-            this.savePruneAndImportCommandApply(cmd, isNeedHarvest);
+            HarvestResultDTO hrDTO = this.savePruneAndImportCommandApply(cmd, isNeedHarvest);
+            result.setDerivedHarvestResult(hrDTO);
         } catch (WCTRuntimeException | IOException e) {
             result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(e.getMessage());
@@ -1750,10 +1745,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     private void dasModificationComplete(TargetInstance ti, HarvestResult harvestResult) {
         //Update status to scheduled
-        harvestResult.setState(HarvestResult.STATE_INDEXING);
-        harvestResult.setStatus(HarvestResult.STATUS_SCHEDULED);
-        targetInstanceDao.save(harvestResult);
-
         harvestBandwidthManager.sendBandWidthRestrictions();
 
         // Ask the DigitalAssetStore to index the ARC
@@ -1762,11 +1753,26 @@ public class WctCoordinatorImpl implements WctCoordinator {
         log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
     }
 
+    private void initiateIndexing(long targetInstanceId, int harvestResultNumber) {
+        TargetInstance ti = targetInstanceDao.load(targetInstanceId);
+        if (ti == null) {
+            throw new WCTRuntimeException("Unknown TargetInstance oid recieved " + targetInstanceId + " failed to load HarvestResult.");
+        }
+
+        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
+        if (hr == null) {
+            throw new WCTRuntimeException("Unknown HarvestResult number recieved " + harvestResultNumber + " failed to load HarvestResult.");
+        }
+
+        initiateIndexing(ti, hr);
+    }
+
     private void initiateIndexing(TargetInstance ti, HarvestResult hr) {
         try {
             hr.setState(HarvestResult.STATE_INDEXING);
-            hr.setStatus(HarvestResult.STATUS_SCHEDULED);
             targetInstanceDao.save(hr);
+
+            harvestResultManager.updateHarvestResultStatus(ti.getOid(), hr.getHarvestNumber(), HarvestResult.STATE_INDEXING, HarvestResult.STATUS_SCHEDULED);
 
             digitalAssetStoreFactory.getDAS().initiateIndexing(
                     new HarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr
@@ -1777,19 +1783,30 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public boolean pushPruneAndImport(TargetInstance ti, int harvestResultNumber) {
-        //Next step is to excute pruning and imporing, so change the state and status to Modifying Scheduled
+    public boolean pushPruneAndImport(long targetInstanceId, int harvestResultNumber) {
+        TargetInstance ti = targetInstanceDao.load(targetInstanceId);
+        if (ti == null) {
+            throw new WCTRuntimeException("Unknown TargetInstance oid recieved " + targetInstanceId + " failed to load HarvestResult.");
+        }
+
         HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
+        if (hr == null) {
+            throw new WCTRuntimeException("Unknown HarvestResult number recieved " + harvestResultNumber + " failed to load HarvestResult.");
+        }
+
+        return pushPruneAndImport(ti, hr);
+    }
+
+    private boolean pushPruneAndImport(TargetInstance ti, HarvestResult hr) {
+        //Next step is to excute pruning and imporing, so change the state and status to Modifying Scheduled
         hr.setState(HarvestResult.STATE_MODIFYING);
-        hr.setStatus(HarvestResult.STATUS_SCHEDULED);
         targetInstanceManager.save(hr);
 
-        PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), harvestResultNumber);
+        PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
             log.error("Could not load PruneAndImportCommandApply of target instance: {}", ti.getJobName());
             return false;
         }
-
 
         PruneAndImportCommandResult result = pushPruneAndImport(cmd);
         return result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS;
@@ -1818,13 +1835,12 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
         hr.setState(HarvestResult.STATE_MODIFYING);
-        hr.setStatus(HarvestResult.STATUS_RUNNING);
         targetInstanceDao.save(hr);
 
         return result;
     }
 
-    private void savePruneAndImportCommandApply(PruneAndImportCommandApply cmd, boolean isNeedHarvest) throws IOException, WCTRuntimeException {
+    private HarvestResultDTO savePruneAndImportCommandApply(PruneAndImportCommandApply cmd, boolean isNeedHarvest) throws IOException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         HarvestResult res = targetInstanceDao.getHarvestResult(cmd.getHarvestResultId()); //Query the old Harvest Result
         if (ti == null || res == null) {
@@ -1850,7 +1866,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         int state = isNeedHarvest ? HarvestResult.STATE_CRAWLING : HarvestResult.STATE_MODIFYING;
         hr.setState(state);
-        hr.setStatus(HarvestResult.STATUS_SCHEDULED);
 
         if (AuthUtil.getRemoteUserObject() != null) {
             hr.setCreatedBy(AuthUtil.getRemoteUserObject());
@@ -1863,12 +1878,19 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         // Save to the database.
         targetInstanceDao.save(hr);
-
         targetInstanceDao.save(ti);
 
         cmd.setNewHarvestResultNumber(newHarvestResultNumber);
 
         PatchUtil.modifier.savePatchJob(visualizationDirectoryManager.getBaseDir(), cmd);
+
+        HarvestResultDTO hrDTO = new HarvestResultDTO();
+        hrDTO.setOid(hr.getOid());
+        hrDTO.setTargetInstanceOid(ti.getOid());
+        hrDTO.setHarvestNumber(newHarvestResultNumber);
+        hrDTO.setDerivedFrom(res.getHarvestNumber());
+
+        return hrDTO;
     }
 
     @Override
@@ -1884,41 +1906,23 @@ public class WctCoordinatorImpl implements WctCoordinator {
     @Override
     public void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList) {
         for (HarvestResultDTO hrDTO : harvestResultDTOList) {
-            TargetInstance ti = targetInstanceDao.load(hrDTO.getTargetInstanceOid());
-            HarvestResult hr = ti.getHarvestResult(hrDTO.getHarvestNumber());
-
-            if (hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
-                dasModificationComplete(ti, hr);
-            } else if (hr.getState() == HarvestResult.STATE_INDEXING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
-                finaliseIndex(ti, hr);
-            } else {
-                hr.setState(hrDTO.getState());
-                hr.setStatus(hrDTO.getStatus());
-                targetInstanceManager.save(hr);
+            if (hrDTO.getState() == HarvestResult.STATE_MODIFYING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
+                dasModificationComplete(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
+            } else if (hrDTO.getState() == HarvestResult.STATE_INDEXING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
+                finaliseIndex(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
             }
         }
+
+        harvestResultManager.updateHarvestResultsStatus(harvestResultDTOList);
     }
 
     @Override
     public void dasUpdateHarvestResultStatus(HarvestResultDTO hrDTO) {
-        TargetInstance ti = targetInstanceManager.getTargetInstance(hrDTO.getTargetInstanceOid());
-        if (ti == null) {
-            throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
-        }
-
-        HarvestResult hr = ti.getHarvestResult(hrDTO.getHarvestNumber());
-        if (hr == null) {
-            throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
-        }
-
-        hr.setState(hrDTO.getState());
-        hr.setStatus(hrDTO.getStatus());
-        targetInstanceManager.save(hr);
-
-        if (hr.getState() == HarvestResult.STATE_INDEXING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
-            finaliseIndex(ti, hr);
-        } else if (hr.getState() == HarvestResult.STATE_MODIFYING && hr.getStatus() == HarvestResult.STATUS_FINISHED) {
-            initiateIndexing(ti, hr);
+        harvestResultManager.addHarvestResult(hrDTO);
+        if (hrDTO.getState() == HarvestResult.STATE_INDEXING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
+            finaliseIndex(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
+        } else if (hrDTO.getState() == HarvestResult.STATE_MODIFYING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
+            initiateIndexing(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
         }
     }
 }

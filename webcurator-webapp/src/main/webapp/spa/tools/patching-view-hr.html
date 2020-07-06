@@ -60,7 +60,7 @@ to get the desired effect
 |               | sidebar-mini                            |
 |---------------------------------------------------------|
 -->
-<body>
+<body style="overflow-y: scroll;">
 <a id="link-to-harvest-now" style="display: none;"></a>
 <main class="bd-content" name="content" role="main">
     <div class="card card-outline">
@@ -214,24 +214,7 @@ to get the desired effect
     var hrStatus=0;
 
 
-    var StateMap={
-        0: '',
-        1: 'Endorsed',
-        2: 'Rejected',
-        3: 'Indexing',
-        4: 'Aborted',
-        5: 'Crawling',
-        6: 'Modifying'
-    };
-
-    var StatusMap={
-        0: '',
-        1: 'Scheduled',
-        2: 'Running',
-        3: 'Paused',
-        4: 'Terminated',
-        5: 'Finished'
-    };
+    
 
     function createTableLog(rows, prefix){
         var bodyContent='';

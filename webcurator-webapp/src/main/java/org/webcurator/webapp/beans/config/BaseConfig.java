@@ -40,6 +40,7 @@ import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
+import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
@@ -270,6 +271,9 @@ public class BaseConfig {
 
     @Autowired
     private WctCoordinator wctCoordinator;
+
+    @Autowired
+    private HarvestResultManager harvestResultManager;
 
     @PostConstruct
     public void init() {
@@ -607,7 +611,8 @@ public class BaseConfig {
         bean.setHarvestAgentFactory(harvestAgentFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setHarvestCoordinator(wctCoordinator);
+        bean.setWctCoordinator(wctCoordinator);
+        bean.setHarvestResultManager(harvestResultManager);
         return bean;
     }
 

@@ -11,7 +11,7 @@ import java.io.OutputStream;
 
 public interface DigitalAssetStoreCoordinator extends PruneAndImportService, IndexerService, DigitalAssetStoreListener {
 
-    boolean pushPruneAndImport(TargetInstance ti, int harvestResultNumber);
+    boolean pushPruneAndImport(long targetInstanceId, int harvestResultNumber);
     
     /**
      * Complete the Archiving process

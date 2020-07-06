@@ -26,7 +26,6 @@ public class VisualizationProcessorManager {
     private final WctCoordinatorClient wctCoordinatorClient;
     private final BDBNetworkMapPool db_pool;
     private final long max_running_duration = 24 * 3600 * 1000; //default: 24Hours
-//    private Semaphore max_processors_lock = new Semaphore(3);
 
     public VisualizationProcessorManager(VisualizationDirectoryManager visualizationDirectoryManager,
                                          WctCoordinatorClient wctCoordinatorClient,
@@ -38,7 +37,6 @@ public class VisualizationProcessorManager {
         this.wctCoordinatorClient = wctCoordinatorClient;
         this.db_pool = db_pool;
         this.thread_pool = Executors.newFixedThreadPool(maxConcurrencyModThreads);
-//        this.max_processors_lock = new Semaphore(maxConcurrencyModThreads);
 //        this.timerHeartbeat.scheduleAtFixedRate(new HeartBeat(), 0, heartbeatInterval);
 //        this.timerScanJob.scheduleAtFixedRate(new JobScan(), 0, heartbeatInterval);
     }
@@ -56,15 +54,6 @@ public class VisualizationProcessorManager {
         //Cache the current running
         ProcessorHandler handler = new ProcessorHandler(processor, futureResult);
         queued_processors.put(processor.getKey(), handler);
-
-
-//        Thread t = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                processor.call();
-//            }
-//        });
-//        t.start();
     }
 
     public void finalise(VisualizationAbstractProcessor processor) {

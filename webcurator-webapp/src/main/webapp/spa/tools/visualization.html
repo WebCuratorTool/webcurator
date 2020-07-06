@@ -55,6 +55,23 @@ to get the desired effect
         <a onclick="$('#popup-window-modify-harvest').show();" class="nav-link">Modify</a>
       </li>
 
+      <!-- Derived Harvest Results -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <!-- <i class="far fa-bell"></i> -->Derived
+          <span class="badge badge-warning navbar-badge" id="derived-hr-badge">0</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="derived-hr-list">
+          <span class="dropdown-item dropdown-header">Derived Harvest Results</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-external-link-square-alt"></i> 1
+            <span class="float-right text-muted text-sm">Summary</span>
+          </a>
+        </div>
+      </li>
+
+
       <li class="nav-item">
         <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
       </li>
@@ -483,6 +500,29 @@ to get the desired effect
 </div> <!-- /.card -->
 </div>
 
+
+<div class="popup-window" id="popup-window-derived-summary">
+<div class="card card-primary popup-content">
+  <div class="card-header">
+    <h3 class="card-title">Summary</h3>
+
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool btn-full-screen" onclick="toggleScreenSize();"><i class="fas fa-expand"></i>
+      </button>
+
+      <button type="button" class="btn btn-tool" onclick="$('#popup-window-derived-summary').hide();"><i class="fas fa-times"></i>
+      </button>
+
+    </div>
+    <!-- /.card-tools -->
+  </div>
+  <!-- /.card-header -->
+  <div class="card-body none-margin-padding" id="body-derived-summary" style="background: white; height: 100vh; width: 100vw;">
+  </div>   <!-- /.card-body -->
+</div> <!-- /.card -->
+</div>
+
+
 <div id="popup-window-loading">
   <div class="spin-overlay"><i class="fas fa-circle-notch text-default"></i></div>
 </div>
@@ -494,6 +534,8 @@ to get the desired effect
     <progress value="0" max="100" data-label="0% Complete" id="progressIndexer"></progress>
   </div>
 </div>
+
+
 
 <script src="../dist/jquery/jquery-3.4.1.min.js"></script>
 <!-- <script src="../dist/jquery/require.js"></script> -->
@@ -564,6 +606,8 @@ to get the desired effect
         console.log(parent);
         
         toggleScreenSize();
+
+        updateDerivedHarvestResults();
 
         bsCustomFileInput.init();
 

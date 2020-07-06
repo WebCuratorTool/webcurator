@@ -425,3 +425,47 @@ var gridOptionsImportPrepare={
   // getRowClass: formatModifyHavestGridRow
   getRowClass: formatModifyHavestGridRow
 };
+
+var StateMap={
+    0: 'Finished',
+    1: 'Endorsed',
+    2: 'Rejected',
+    3: 'Indexing',
+    4: 'Aborted',
+    5: 'Crawling',
+    6: 'Modifying'
+};
+
+var StatusMap={
+    0: '',
+    1: 'Scheduled',
+    2: 'Running',
+    3: 'Paused',
+    4: 'Terminated',
+    5: 'Finished'
+};
+
+function updateDerivedHarvestResults(){
+  var reqUrl='/target/derived-harvest-results?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+harvestResultNumber;
+  fetchHttp(reqUrl, null, function(hrList){
+    $('#derived-hr-badge').html(hrList.length);
+    var content='<span class="dropdown-item dropdown-header">Derived Harvest Results</span>';    
+    for(var i=0; i<hrList.length; i++){
+      var hr=hrList[i];
+
+      content+='<div class="dropdown-divider"></div>';
+      content+='<a href="javascript: popupDerivedSummaryWindow('+ hr.oid + ', ' + hr.harvestNumber + ')" class="dropdown-item">';
+      content+='HR: ' + hr.harvestNumber;
+      content+='<span class="float-right text-muted text-sm">'+StateMap[hr.state]+' '+StatusMap[hr.status]+'</span>';
+      content+='</a>';
+    }
+    $('#derived-hr-list').html(content);
+
+  });
+}
+
+function popupDerivedSummaryWindow(derivedHarvestId, derivedHarvestNumber){
+  var reqUrl='/spa/tools/patching-view-hr.html?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+derivedHarvestNumber;
+  $('#body-derived-summary').html('<iframe src="'+reqUrl+'" style="width: 100vw; height: calc(100vh - 55px);"></iframe>');
+  $('#popup-window-derived-summary').show();
+}

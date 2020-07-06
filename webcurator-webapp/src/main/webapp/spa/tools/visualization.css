@@ -312,3 +312,15 @@ div#tree {
 #popup-modify-harvest-apply-btn-group{
 
 }
+
+.content-window-full-screen{
+    position: fixed;
+    top:0;
+    left:0;
+    z-index:200;
+    width: 100vw;
+    height: 100vh;
+    border:none;
+    padding: 0;
+    margin: 0;
+}

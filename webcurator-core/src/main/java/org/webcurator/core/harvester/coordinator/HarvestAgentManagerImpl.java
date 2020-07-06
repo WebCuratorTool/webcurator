@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
+import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
@@ -22,7 +23,6 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
 @SuppressWarnings("all")
 public class HarvestAgentManagerImpl implements HarvestAgentManager {
-
     static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<>());
 
     HashMap<String, HarvestAgentStatusDTO> harvestAgents = new HashMap<>();
@@ -32,6 +32,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
     private TargetInstanceManager targetInstanceManager;
     private HarvestAgentFactory harvestAgentFactory;
     private WctCoordinator wctCoordinator;
+    private HarvestResultManager harvestResultManager;
 
     @Override
     public void heartbeat(HarvestAgentStatusDTO aStatus) {
@@ -135,13 +136,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 agent.abort(ti.getJobName());
             }
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
-            HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr == null) {
-                log.warn("Failed to fetch the Harvest Result which at Patch Harvesting stage for {}", ti.getOid());
-                return;
-            }
-
-            String jobName = PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber());
+            String jobName = PatchUtil.getPatchJobName(ti.getOid(), harvestResultNumber);
             HarvestAgentStatusDTO hs = getHarvestAgentStatusFor(jobName);
             if (hs == null) {
                 log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", ti.getJobName());
@@ -150,8 +145,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 agent.abort(jobName);
             }
 
-            hr.setStatus(HarvestResult.STATUS_TERMINATED);
-            targetInstanceDao.save(hr);
+            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_TERMINATED);
         }
     }
 
@@ -160,16 +154,8 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_STOPPING);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
-            HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr == null) {
-                log.error("Failed to load relevant Harvest Result:{}", ti.getOid());
-                return;
-            }
-
-            hr.setStatus(HarvestResult.STATUS_FINISHED);
-            targetInstanceDao.save(hr);
-
-            wctCoordinator.pushPruneAndImport(ti, harvestResultNumber);
+            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_FINISHED);
+            wctCoordinator.pushPruneAndImport(ti.getOid(), harvestResultNumber);
         }
     }
 
@@ -192,11 +178,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             }
             ti.setState(TargetInstance.STATE_RUNNING);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
-            HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr != null) {
-                hr.setStatus(HarvestResult.STATUS_RUNNING);
-                targetInstanceDao.save(hr);
-            }
+            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_RUNNING);
         }
     }
 
@@ -205,11 +187,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_PAUSED);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
-            HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr != null) {
-                hr.setStatus(HarvestResult.STATUS_PAUSED);
-                targetInstanceDao.save(hr);
-            }
+            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_PAUSED);
         }
     }
 
@@ -471,8 +449,20 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         this.targetInstanceDao = targetInstanceDao;
     }
 
-    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+    public WctCoordinator getWctCoordinator() {
+        return wctCoordinator;
+    }
+
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
         this.wctCoordinator = wctCoordinator;
+    }
+
+    public HarvestResultManager getHarvestResultManager() {
+        return harvestResultManager;
+    }
+
+    public void setHarvestResultManager(HarvestResultManager harvestResultManager) {
+        this.harvestResultManager = harvestResultManager;
     }
 
     @Override
@@ -599,5 +589,4 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
     private boolean harvesterCanHarvestNow(HarvestAgentStatusDTO agent) {
         return !agent.getMemoryWarning() && !agent.isInTransition() && agent.getHarvesterStatusCount() < agent.getMaxHarvests();
     }
-
 }

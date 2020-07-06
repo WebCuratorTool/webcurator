@@ -34,5 +34,4 @@ public interface Constants {
     String BEAN_TARGET_MNGR = "targetManager";
 
     String BEAN_HARVEST_BANDWIDTH_MANAGER= "harvestBandwidthManager";
-
 }

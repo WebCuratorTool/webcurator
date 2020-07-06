@@ -214,7 +214,7 @@
 				    <c:if test="${hr.harvestNumber ne 1}">
                         <!--a href="#" onclick="javascript: return clickViewPatching(${hr.oid});">View Patching Progress</a-->
                         <c:if test="${hr.state!=3 && hr.state!=5 && hr.state!=6}">
-                            <img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
+                                &nbsp;|&nbsp;
                         </c:if>
                         <a href="curator/target/harvest-result-summary.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">Summary</a>
                     </c:if>

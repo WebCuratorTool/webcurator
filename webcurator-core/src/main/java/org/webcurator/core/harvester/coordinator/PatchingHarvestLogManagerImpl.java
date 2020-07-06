@@ -8,7 +8,6 @@ import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
-import org.webcurator.domain.model.core.TargetInstance;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -23,13 +22,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     private String type = "";
 
     @Override
-    public File getLogfile(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFilename) {
+    public File getLogfile(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFilename) {
         if (aFilename == null || aFilename.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Tail Log Files Failed. Failed to find the log Reader for the Job {}.", jobName);
             return null;
@@ -39,13 +38,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public List<String> getLogLinesByRegex(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, int aNoOfLines, String aRegex, boolean prependLineNumbers) {
+    public List<String> getLogLinesByRegex(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aNoOfLines, String aRegex, boolean prependLineNumbers) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Get log lines by regex failed. Failed to find the log Reader for the Job {}.", jobName);
             return null;
@@ -56,13 +55,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public Integer getFirstLogLineAfterTimeStamp(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, Long timestamp) {
+    public Integer getFirstLogLineAfterTimeStamp(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, Long timestamp) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Get First Log Line After Timestamp failed. Failed to find the log Reader for the Job {}.", jobName);
             return null;
@@ -71,13 +70,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public Integer getFirstLogLineContaining(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, String match) {
+    public Integer getFirstLogLineContaining(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, String match) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Get First Log Line Containing failed. Failed to find the log Reader for the Job {}.", jobName);
             return null;
@@ -86,13 +85,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public Integer getFirstLogLineBeginning(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, String match) {
+    public Integer getFirstLogLineBeginning(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, String match) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Get First Log Line Beginning failed. Failed to find the log Reader for the Job {}.", jobName);
             return null;
@@ -101,13 +100,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public List<String> getLog(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, int aStartLine, int aNoOfLines) {
+    public List<String> getLog(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aStartLine, int aNoOfLines) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Get Log Files Failed. Failed to find the log Reader for the Job {}.", jobName);
             return null;
@@ -116,13 +115,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public Integer countLogLines(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName) {
+    public Integer countLogLines(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Count Log Lines Failed. Failed to find the log Reader for the Job {}.", jobName);
             return 0;
@@ -131,13 +130,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public List<String> headLog(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, int aNoOfLines) {
+    public List<String> headLog(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aNoOfLines) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Head Log Files Failed. Failed to find the log Reader for the Job {}.", jobName);
             return Collections.singletonList("");
@@ -146,9 +145,9 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public List<LogFilePropertiesDTO> listLogFileAttributes(TargetInstance aTargetInstance, HarvestResult aHarvestResult) {
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+    public List<LogFilePropertiesDTO> listLogFileAttributes(long targetInstanceId, int harvestResultNumber, int harvestResultState) {
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("listLogFileAttributes Failed. Failed to find the Log Reader for the Job {}.", jobName);
             return new ArrayList<>();
@@ -157,9 +156,9 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public List<String> listLogFiles(TargetInstance aTargetInstance, HarvestResult aHarvestResult) {
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+    public List<String> listLogFiles(long targetInstanceId, int harvestResultNumber, int harvestResultState) {
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("list Log Files Failed. Failed to find the Log Reader for the Job {}.", jobName);
             return new ArrayList<>();
@@ -168,13 +167,13 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
     }
 
     @Override
-    public List<String> tailLog(TargetInstance aTargetInstance, HarvestResult aHarvestResult, String aFileName, int aNoOfLines) {
+    public List<String> tailLog(long targetInstanceId, int harvestResultNumber, int harvestResultState, String aFileName, int aNoOfLines) {
         if (aFileName == null || aFileName.trim().length() == 0) {
             throw new WCTRuntimeException("File name must not be null");
         }
 
-        String jobName = getJobName(aTargetInstance, aHarvestResult);
-        LogReader logReader = getLogReader(aTargetInstance, aHarvestResult);
+        String jobName = getJobName(targetInstanceId, harvestResultNumber, harvestResultState);
+        LogReader logReader = getLogReader(targetInstanceId, harvestResultNumber, harvestResultState);
         if (logReader == null) {
             log.warn("Tail Log Files Failed. Failed to find the log Reader for the Job {}.", jobName);
             return Collections.singletonList("");
@@ -182,38 +181,27 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
         return logReader.tail(jobName, aFileName, aNoOfLines);
     }
 
-    private LogReader getLogReader(TargetInstance ti, HarvestResult hr) {
-        if (ti == null) {
-            throw new WCTRuntimeException("Target instance must not be null");
-        }
-        if (hr == null) {
-            throw new WCTRuntimeException("Harvest result must not be null");
-        }
-
+    private LogReader getLogReader(long targetInstanceId, int harvestResultNumber, int harvestResultState) {
         LogReader logReader = null;
-        if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            logReader = harvestAgentManager.getLogReader(getJobName(ti, hr));
+        if (harvestResultState == HarvestResult.STATE_MODIFYING ||
+                harvestResultState == HarvestResult.STATE_INDEXING) {
+            logReader = digitalAssetStoreFactory.getLogReader();
+        } else {
+            logReader = harvestAgentManager.getLogReader(getJobName(targetInstanceId, harvestResultNumber, harvestResultState));
             if (logReader == null) {
                 log.error("Could not get log reader instance from Harvest Agent");
             }
-        } else {
-            logReader = digitalAssetStoreFactory.getLogReader();
         }
+
         return logReader;
     }
 
-    private String getJobName(TargetInstance ti, HarvestResult hr) {
-        if (ti == null) {
-            throw new WCTRuntimeException("Target instance must not be null");
-        }
-        if (hr == null) {
-            throw new WCTRuntimeException("Harvest result must not be null");
-        }
-
-        if (this.type == null || this.type.trim().length() == 0 || this.type.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)) {
-            return PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber());
+    private String getJobName(long targetInstanceId, int harvestResultNumber, int harvestResultState) {
+        if (harvestResultState == HarvestResult.STATE_MODIFYING ||
+                harvestResultState == HarvestResult.STATE_INDEXING) {
+            return String.format("%s@%s", this.type, PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
         } else {
-            return String.format("%s@%s", this.type, PatchUtil.getPatchJobName(ti.getOid(), hr.getHarvestNumber()));
+            return PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
         }
     }
 

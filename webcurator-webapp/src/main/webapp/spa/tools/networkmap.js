@@ -15,14 +15,16 @@ class NetworkMap{
 		var that=this;
 
     	fetchHttp(reqUrl, null, function(response){
-    		$('#popup-window-loading').hide();
     		if (response.rspCode === 0) {
+    			$('#popup-window-loading').show();
     			var data=JSON.parse(response.payload);
     			that.formatData(data);
     			that.initDraw(data);
     		}else if(response.rspCode === -1 && confirm("Index file is missing. Would you reindex the harvest result?")){
+    			$('#popup-window-loading').hide();
     			that.reindex();
     		}else{
+    			$('#popup-window-loading').hide();
     			alert(response.rspMsg);
     		}
     		

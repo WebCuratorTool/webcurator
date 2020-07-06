@@ -16,6 +16,11 @@
 package org.webcurator.domain.model.core;
 
 
+import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.visualization.VisualizationProgressView;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
+
 import java.util.Date;
 
 /**
@@ -44,11 +49,12 @@ public class HarvestResultDTO {
      * The harvests provenance note.
      */
     protected String provenanceNote;
-    /**
-     * Set of ARC files that belong to the harvest result.
-     */
+
+    protected String createdByFullName;
+    protected int derivedFrom;
     protected int state = 0;
     protected int status = 0;
+    protected int currentProgressPercentage = 0;
 
     public HarvestResultDTO() {
     }
@@ -155,5 +161,80 @@ public class HarvestResultDTO {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public String getKey() {
+        return PatchUtil.getPatchJobName(this.targetInstanceOid, this.harvestNumber);
+    }
+
+    public int getCurrentProgressPercentage() {
+        return currentProgressPercentage;
+    }
+
+    public void setCurrentProgressPercentage(int currentProgressPercentage) {
+        this.currentProgressPercentage = currentProgressPercentage;
+    }
+
+    public String getCreatedByFullName() {
+        return createdByFullName;
+    }
+
+    public void setCreatedByFullName(String createdByFullName) {
+        this.createdByFullName = createdByFullName;
+    }
+
+    public int getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public void setDerivedFrom(int derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    public int getCrawlingProgressPercentage(NetworkMapClient networkMapClient) {
+        if (state == HarvestResult.STATE_CRAWLING) {
+            return getProgressPercentage();
+        }
+        return 100;
+    }
+
+    public int getModifyingProgressPercentage(NetworkMapClient networkMapClient) {
+        if (state == HarvestResult.STATE_CRAWLING) {
+            return 0; //Not started
+        } else if (state != HarvestResult.STATE_MODIFYING) {
+            return 100; //Finished
+        }
+
+        NetworkMapResult progressBar = networkMapClient.getProgress(targetInstanceOid, harvestNumber);
+        if (progressBar.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+            return getProgressPercentage();
+        } else {
+            return VisualizationProgressView.getInstance(progressBar.getPayload()).getProgressPercentage();
+        }
+    }
+
+    public int getIndexingProgressPercentage(NetworkMapClient networkMapClient) {
+        if (state == HarvestResult.STATE_CRAWLING || state == HarvestResult.STATE_MODIFYING) {
+            return 0; //Not started
+        } else if (state != HarvestResult.STATE_INDEXING) {
+            return 100; //Finished
+        }
+
+        NetworkMapResult progressBar = networkMapClient.getProgress(targetInstanceOid, harvestNumber);
+        if (progressBar.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+            return getProgressPercentage();
+        } else {
+            return VisualizationProgressView.getInstance(progressBar.getPayload()).getProgressPercentage();
+        }
+    }
+
+    private int getProgressPercentage() {
+        if (status == HarvestResult.STATUS_SCHEDULED || status == HarvestResult.STATUS_TERMINATED) {
+            return 0;
+        } else if (status == HarvestResult.STATUS_FINISHED) {
+            return 100;
+        } else {
+            return 50;
+        }
     }
 }

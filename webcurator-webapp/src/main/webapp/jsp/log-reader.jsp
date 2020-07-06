@@ -42,7 +42,7 @@ function doFilterKeyUp()
 <table border="0" width="100%" align="center">
 	<tr>
 		<td align="center" colspan="2">
-		<textarea class="logView" readonly="readonly" rows="25" wrap=off><c:forEach items="${lines}" var="line"><c:out value="${line}"></c:out></c:forEach></textarea>  	  				
+		<textarea class="logView" readonly="readonly" rows="40" wrap=off><c:forEach items="${lines}" var="line"><c:out value="${line}"></c:out></c:forEach></textarea>
 		</td>
 	</tr>
 	<tr>

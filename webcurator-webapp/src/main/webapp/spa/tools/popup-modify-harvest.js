@@ -638,6 +638,8 @@ class PopupModifyHarvest{
 				alert(response.respMsg);
 			}else{
 				$("#popup-window-modify-harvest").hide();
+				updateDerivedHarvestResults();
+				popupDerivedSummaryWindow(response.derivedHarvestResult.oid, response.derivedHarvestResult.harvestNumber);
 			}
 		});
 	}

@@ -27,7 +27,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
@@ -35,7 +34,6 @@ import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.target.command.LogReaderCommand;
 import org.webcurator.ui.target.command.LogRetrieverCommand;
 
 /**
@@ -93,6 +91,15 @@ public class LogRetrieverController {
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
         HarvestResult hr = ti.getHarvestResult(cmd.getHarvestResultNumber());
 
+        int state = HarvestResult.STATE_UNASSESSED;
+        if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+            state = HarvestResult.STATE_INDEXING;
+        } else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+            state = HarvestResult.STATE_MODIFYING;
+        } else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)) {
+            state = HarvestResult.STATE_CRAWLING;
+        }
+
         PatchingHarvestLogManager logReader = null;
         if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
             logReader = patchingHarvestLogManagerIndex;
@@ -105,7 +112,7 @@ public class LogRetrieverController {
         File f = null;
 
         try {
-            f = logReader.getLogfile(ti, hr, cmd.getLogFileName());
+            f = logReader.getLogfile(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName());
         } catch (WCTRuntimeException e) {
 
         }
