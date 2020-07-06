@@ -115,10 +115,8 @@ class NetworkMapGraph{
 
     //Event: statbilized
     this.network.on("stabilized", function(){
-      $('#popup-window-loading').hide();
-
       if(!that.stabilized){
-        console.log("stabilized");
+        // console.log("stabilized");
         // that.network.setOptions({physics: false});
         that.options.physics.stabilization.iterations=6;
         that.network.setOptions(that.options);
@@ -127,11 +125,15 @@ class NetworkMapGraph{
           that.originalDataMap=JSON.parse(JSON.stringify(that.dataMap));
         }
         that.stabilized=true;
+      }else{
+        console.log("stabilized");
+        $('#popup-window-loading').hide();
       }
     });
 
     //========Revover the scale and position after pyhsics simulation========
     this.network.on("release", function(params){
+      console.log("release");
       that.viewOptions.scale=that.network.getScale();
       that.viewOptions.position=that.network.getViewPosition();
     });

@@ -324,3 +324,8 @@ div#tree {
     padding: 0;
     margin: 0;
 }
+
+.sm-icon{
+	font-size: 0.8em;
+	color: gray;
+}

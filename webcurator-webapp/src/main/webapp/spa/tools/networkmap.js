@@ -13,18 +13,15 @@ class NetworkMap{
 		this.harvestResultNumber=harvestResultNumber;
 		var reqUrl="/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
 		var that=this;
-
     	fetchHttp(reqUrl, null, function(response){
     		if (response.rspCode === 0) {
-    			$('#popup-window-loading').show();
     			var data=JSON.parse(response.payload);
     			that.formatData(data);
     			that.initDraw(data);
+    			return true;
     		}else if(response.rspCode === -1 && confirm("Index file is missing. Would you reindex the harvest result?")){
-    			$('#popup-window-loading').hide();
     			that.reindex();
     		}else{
-    			$('#popup-window-loading').hide();
     			alert(response.rspMsg);
     		}
     		

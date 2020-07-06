@@ -455,7 +455,7 @@ function updateDerivedHarvestResults(){
 
       content+='<div class="dropdown-divider"></div>';
       content+='<a href="javascript: popupDerivedSummaryWindow('+ hr.oid + ', ' + hr.harvestNumber + ')" class="dropdown-item">';
-      content+='HR: ' + hr.harvestNumber;
+      content+='<i class="fas fa-egg sm-icon">&nbsp;</i>' + hr.harvestNumber;
       content+='<span class="float-right text-muted text-sm">'+StateMap[hr.state]+' '+StatusMap[hr.status]+'</span>';
       content+='</a>';
     }
