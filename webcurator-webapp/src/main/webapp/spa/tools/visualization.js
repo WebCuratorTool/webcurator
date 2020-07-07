@@ -445,17 +445,33 @@ var StatusMap={
     5: 'Finished'
 };
 
-function updateDerivedHarvestResults(){
+function updateDerivedHarvestResults(derivedHarvestResult){
   var reqUrl='/target/derived-harvest-results?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+harvestResultNumber;
   fetchHttp(reqUrl, null, function(hrList){
-    $('#derived-hr-badge').html(hrList.length);
+    console.log(hrList);
+    if (derivedHarvestResult) {
+      // $('#derived-hr-badge').html(hrList.length);
+      $('#derived-hr-badge').html(1);
+      $('#derived-hr-badge').show();
+    }else{
+      $('#derived-hr-badge').hide();
+    }
+
+    
     var content='<span class="dropdown-item dropdown-header">Derived Harvest Results</span>';    
     for(var i=0; i<hrList.length; i++){
       var hr=hrList[i];
 
       content+='<div class="dropdown-divider"></div>';
       content+='<a href="javascript: popupDerivedSummaryWindow('+ hr.oid + ', ' + hr.harvestNumber + ')" class="dropdown-item">';
-      content+='<i class="fas fa-egg sm-icon">&nbsp;</i>' + hr.harvestNumber;
+      
+      //Color the new added one
+      if (derivedHarvestResult && hr.harvestNumber === derivedHarvestResult.harvestNumber) {
+        content+='<i class="fas fa-egg sm-icon text-warning">&nbsp;</i>' + hr.harvestNumber;
+      }else{
+        content+='<i class="fas fa-egg sm-icon">&nbsp;</i>' + hr.harvestNumber;
+      }
+
       content+='<span class="float-right text-muted text-sm">'+StateMap[hr.state]+' '+StatusMap[hr.status]+'</span>';
       content+='</a>';
     }

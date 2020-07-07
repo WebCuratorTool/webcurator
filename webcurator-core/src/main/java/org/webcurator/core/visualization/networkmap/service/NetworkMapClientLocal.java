@@ -272,6 +272,36 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return result;
     }
 
+    @Override
+    public NetworkMapResult getUrlsByNames(long job, int harvestResultNumber, List<String> urlNameList) {
+        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        if (urlNameList == null) {
+            return NetworkMapResult.getBadRequestResult();
+        }
+
+        List<NetworkMapNode> urlNodeList = new ArrayList<>();
+        for (String urlName : urlNameList) {
+            String keyId = db.get(urlName);
+            if (keyId == null) {
+                continue;
+            }
+
+            String nodeStr = db.get(keyId);
+            if (nodeStr == null) {
+                continue;
+            }
+            NetworkMapNode node = getNodeEntity(nodeStr);
+            urlNodeList.add(node);
+        }
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(obj2Json(urlNodeList));
+        return result;
+    }
+
 //    private void combineHierarchy(BDBNetworkMap db, Map<Long, NetworkMapNode> walkedNodes, long urlId) {
 //        if (walkedNodes.containsKey(urlId)) {
 //            return;
@@ -382,7 +412,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getDataNotExistResult();
         }
 
-        VisualizationProgressView progressView=new VisualizationProgressView(progressBar);
+        VisualizationProgressView progressView = new VisualizationProgressView(progressBar);
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(this.obj2Json(progressView));
         return result;

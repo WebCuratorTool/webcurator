@@ -355,8 +355,12 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         }
 
         if (state.equals(TargetInstance.STATE_PATCHING)) {
-            HarvestResult hr = aTargetInstance.getPatchingHarvestResult();
-            return hr != null;
+            List<HarvestResult> hrList = aTargetInstance.getHarvestResults();
+            for (HarvestResult hr : hrList) {
+                if (hr.getState() == HarvestResult.STATE_CRAWLING) {
+                    return true;
+                }
+            }
         }
 
         return false;

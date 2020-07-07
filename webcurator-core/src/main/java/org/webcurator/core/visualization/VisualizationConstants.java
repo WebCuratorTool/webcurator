@@ -18,6 +18,7 @@ public class VisualizationConstants {
     public static final String PATH_GET_HOP_PATH = ROOT_PATH + "/networkmap/get/hop/path";
     public static final String PATH_GET_HIERARCHY_URLS = ROOT_PATH + "/networkmap/get/hierarchy/urls";
     public static final String PATH_GET_URL_BY_NAME = ROOT_PATH + "/networkmap/get/query-url-by-name";
+    public static final String PATH_GET_URLS_BY_NAMES = ROOT_PATH + "/networkmap/get/query-urls-by-names";
 
     public static final String PATH_GET_PROGRESS = ROOT_PATH + "/visualization/progress";
     public static final String PATH_INITIAL_INDEX = ROOT_PATH + "/visualization/index/initial";

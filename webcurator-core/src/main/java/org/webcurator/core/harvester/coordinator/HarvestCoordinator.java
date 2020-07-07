@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.webcurator.core.check.CheckNotifier;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.HarvestCoordinatorDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -102,6 +104,8 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
     /**
      * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
      *
+     * @param ti:                      the object of TargetInstance
+     * @param hr:                      the object of HarvestResult
      * @param queuedTargetInstanceDTO: the target instance to modify
      */
     void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO);
@@ -113,8 +117,9 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @param harvestAgentStatusDTO the harvest agent
      * @return the process result
      */
-    boolean patchHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO);
+    boolean patchHarvest(TargetInstance targetInstance, HarvestResult hr, HarvestAgentStatusDTO harvestAgentStatusDTO);
 
+    PruneAndImportCommandResult patchHarvest(PruneAndImportCommandApply cmd);
 
     /**
      * Pause a TargetInstance that is in the process or being harvested

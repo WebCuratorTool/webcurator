@@ -5,6 +5,8 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -114,12 +116,14 @@ public class MockWctCoordinator implements HarvestCoordinator {
     }
 
     @Override
-    public boolean patchHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
-        // TODO Auto-generated method stub
-
+    public boolean patchHarvest(TargetInstance targetInstance, HarvestResult hr, HarvestAgentStatusDTO harvestAgentStatusDTO) {
         return false;
     }
 
+    @Override
+    public PruneAndImportCommandResult patchHarvest(PruneAndImportCommandApply cmd) {
+        return null;
+    }
 
     public void harvestOrQueue(QueuedTargetInstanceDTO targetInstance) {
         // TODO Auto-generated method stub

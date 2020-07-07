@@ -262,18 +262,22 @@ class PopupModifyHarvest{
 			return;
 		}
 
-		var searchCondition={
-          "domainNames": [],
-          "contentTypes": [],
-          "statusCodes": [],
-          "urlNames": []
+		var reqAry=[];
+		for(var i=0; i<dataset.length; i++){
+        	reqAry.push(dataset[i].url);
         }
 
-        for(var i=0; i<dataset.length; i++){
-        	searchCondition.urlNames.push(dataset[i].url);
-        }
-
-        this.checkUrls(searchCondition, 'import-prune');
+        var that=this;
+        var reqUrl="/networkmap/get/query-urls-by-names?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+        fetchHttp(reqUrl, reqAry, function(response){
+        	if (response.rspCode!=0) {
+        		alert(response.rspMsg);
+        		return;
+        	}
+        	var data=JSON.parse(response.payload);
+        	that.pruneHarvest(data);
+			$('#tab-btn-import').trigger('click');
+        });
 	}
 
 	pruneHarvest(data){
@@ -638,8 +642,8 @@ class PopupModifyHarvest{
 				alert(response.respMsg);
 			}else{
 				$("#popup-window-modify-harvest").hide();
-				updateDerivedHarvestResults();
-				popupDerivedSummaryWindow(response.derivedHarvestResult.oid, response.derivedHarvestResult.harvestNumber);
+				updateDerivedHarvestResults(response.derivedHarvestResult);
+				// popupDerivedSummaryWindow(response.derivedHarvestResult.oid, response.derivedHarvestResult.harvestNumber);
 			}
 		});
 	}

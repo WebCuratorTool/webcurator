@@ -431,10 +431,10 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * @return the job name
      */
     public String getJobName() {
-        HarvestResult hr = getPatchingHarvestResult();
-        if (hr == null) {
+        if (!state.equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             return oid.toString();
         } else {
+            HarvestResult hr = getPatchingHarvestResults().get(0);
             return PatchUtil.getPatchJobName(oid, hr.getHarvestNumber());
         }
     }
@@ -1333,23 +1333,20 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         this.allowOptimize = allowOptimize;
     }
 
-    public HarvestResult getPatchingHarvestResult() {
-        if (harvestResults == null) {
-            return null;
-        }
-
-        if (!state.equals(TargetInstance.STATE_PATCHING)) {
-            return null;
+    public List<HarvestResult> getPatchingHarvestResults() {
+        List<HarvestResult> list = new ArrayList<>();
+        if (harvestResults == null || !state.equals(TargetInstance.STATE_PATCHING)) {
+            return list;
         }
 
         for (HarvestResult hr : harvestResults) {
             if (hr.getState() == HarvestResult.STATE_CRAWLING
                     || hr.getState() == HarvestResult.STATE_MODIFYING
                     || hr.getState() == HarvestResult.STATE_INDEXING) {
-                return hr;
+                list.add(hr);
             }
         }
 
-        return null;
+        return list;
     }
 }

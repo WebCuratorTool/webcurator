@@ -1,6 +1,7 @@
 package org.webcurator.domain.model.core;
 
 import org.webcurator.core.notification.UserInTrayResource;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.model.auth.User;
 
 import javax.validation.constraints.Size;
@@ -387,5 +388,9 @@ public class HarvestResult implements UserInTrayResource {
     @Override
     public User getOwningUser() {
         return getCreatedBy();
+    }
+
+    public String getJobName() {
+        return PatchUtil.getPatchJobName(getTargetInstance().getOid(), getHarvestNumber());
     }
 }

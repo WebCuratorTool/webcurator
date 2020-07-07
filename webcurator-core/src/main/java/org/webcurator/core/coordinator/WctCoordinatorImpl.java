@@ -39,7 +39,6 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
@@ -507,28 +506,25 @@ public class WctCoordinatorImpl implements WctCoordinator {
     @Override
     public void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
         TargetInstance ti = loadTargetInstance(queuedTargetInstanceDTO.getOid());
-        HarvestResult hr = ti.getPatchingHarvestResult();
-        if (hr == null) {
-            log.error("Could not find patching Harvest Result with Target Instance: {}", queuedTargetInstanceDTO.getOid());
-            return;
-        }
-
-        switch (hr.getState()) {
-            case HarvestResult.STATE_CRAWLING:
-                patchHarvestCrawling(queuedTargetInstanceDTO);
-                break;
-            case HarvestResult.STATE_MODIFYING:
-                pushPruneAndImport(ti, hr);
-                break;
-            case HarvestResult.STATE_INDEXING:
-                initiateIndexing(ti, hr);
-                break;
-            default:
-                log.error("Invalid Harvest Result. TargetInstanceId:{}, HarvestResultNumber: {}, HarvestResultState: {}", queuedTargetInstanceDTO.getOid(), hr.getHarvestNumber(), hr.getState());
+        List<HarvestResult> hrList = ti.getPatchingHarvestResults();
+        for (HarvestResult hr : hrList) {
+            switch (hr.getState()) {
+                case HarvestResult.STATE_CRAWLING:
+                    patchHarvestCrawling(ti, hr, queuedTargetInstanceDTO);
+                    break;
+                case HarvestResult.STATE_MODIFYING:
+                    pushPruneAndImport(ti, hr);
+                    break;
+                case HarvestResult.STATE_INDEXING:
+                    initiateIndexing(ti, hr);
+                    break;
+                default:
+                    log.error("Invalid Harvest Result. TargetInstanceId:{}, HarvestResultNumber: {}, HarvestResultState: {}", queuedTargetInstanceDTO.getOid(), hr.getHarvestNumber(), hr.getState());
+            }
         }
     }
 
-    private void patchHarvestCrawling(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+    private void patchHarvestCrawling(TargetInstance ti, HarvestResult hr, QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
         boolean approved = true;
 
         // lock the ti
@@ -539,17 +535,13 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         log.info("Obtained lock for ti " + tiOid);
 
-        TargetInstance ti = loadTargetInstance(tiOid);
-
         boolean processed = false;
         while (!processed) {
             if (ti == null) {
                 ti = loadTargetInstance(tiOid);
             }
             // Check to see what harvester resource is available
-            HarvestAgentStatusDTO agent = harvestAgentManager.getHarvester(
-                    queuedTargetInstanceDTO.getAgencyName(),
-                    ti.getProfile().getHarvesterType());
+            HarvestAgentStatusDTO agent = harvestAgentManager.getHarvester(queuedTargetInstanceDTO.getAgencyName(), ti.getProfile().getHarvesterType());
 
             if (agent == null) {
                 log.warn(String.format("No available harvest agent of type %s found for agency %s",
@@ -561,7 +553,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 synchronized (agent) {
                     // allocate the target instance to the agent
                     log.info("Allocating TI " + tiOid + " to agent " + agent.getName());
-                    processed = patchHarvest(ti, agent);
+                    processed = patchHarvest(ti, hr, agent);
                 }
             }
         }
@@ -574,24 +566,26 @@ public class WctCoordinatorImpl implements WctCoordinator {
     /**
      * Specify the seeds and profile, and allocate the target instance to an idle harvest agent.
      *
-     * @param targetInstance:       the target instance to modify
+     * @param ti:                   the target instance to modify
+     * @param hr:                   the harvest result to modify
      * @param harvestAgentStatusDTO the harvest agent
      */
     @Override
-    public boolean patchHarvest(TargetInstance targetInstance, HarvestAgentStatusDTO harvestAgentStatusDTO) {
+    public boolean patchHarvest(TargetInstance ti, HarvestResult hr, HarvestAgentStatusDTO harvestAgentStatusDTO) {
         boolean processed = false;
-        if (targetInstance == null || harvestAgentStatusDTO == null) {
+        if (ti == null || hr == null || harvestAgentStatusDTO == null) {
             log.error("Input parameter is null");
             return processed;
         }
-        if (!targetInstance.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            log.error("Could not start a un-modifying target instance");
+        String state = ti.getState();
+        if (!state.equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+            log.error("Could not start a un-modifying target instance: {}", ti.getState());
             return processed;
         }
 
-        PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), targetInstance.getOid(), targetInstance.getPatchingHarvestResult().getHarvestNumber());
+        PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
-            log.error("Could not load PruneAndImportCommandApply of target instance: {}", targetInstance.getJobName());
+            log.error("Could not load PruneAndImportCommandApply of Harvest Result: {} {}", ti.getOid(), hr.getHarvestNumber());
             return processed;
         }
 
@@ -615,20 +609,14 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         try {
-            HarvestResult hr = targetInstance.getHarvestResult(cmd.getNewHarvestResultNumber());
-            if (hr == null || hr.getState() != HarvestResult.STATE_CRAWLING) {
-                log.error("Not able to start harvest at state: {}", hr.getState());
-                return false;
-            }
-
-            targetInstance.setActualStartTime(new Date());
-            targetInstance.setHarvestServer(harvestAgentStatusDTO.getName());
-            targetInstanceManager.save(targetInstance);
+            ti.setActualStartTime(new Date());
+            ti.setHarvestServer(harvestAgentStatusDTO.getName());
+            targetInstanceManager.save(ti);
 
             // Initiate harvest on the remote harvest agent
-            harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, PatchUtil.getPatchJobName(targetInstance.getOid(), cmd.getNewHarvestResultNumber()), profile, seeds.toString());
-
-            log.info("HarvestCoordinator: Harvest initiated successfully for target instance {}", targetInstance.getOid());
+            harvestAgentManager.initiateHarvest(harvestAgentStatusDTO, PatchUtil.getPatchJobName(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber()), profile, seeds.toString());
+            harvestResultManager.updateHarvestResultStatus(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_RUNNING);
+            log.info("HarvestCoordinator: Harvest initiated successfully for Harvest Result {}", ti.getOid(), hr.getHarvestNumber());
 
             // Run the bandwidth calculations.
             harvestBandwidthManager.sendBandWidthRestrictions();
@@ -1677,9 +1665,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
             }
         }
 
+        HarvestResultDTO hrDTO = null;
         try {
-            HarvestResultDTO hrDTO = this.savePruneAndImportCommandApply(cmd, isNeedHarvest);
-            result.setDerivedHarvestResult(hrDTO);
+            hrDTO = this.savePruneAndImportCommandApply(cmd, isNeedHarvest);
         } catch (WCTRuntimeException | IOException e) {
             result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(e.getMessage());
@@ -1690,24 +1678,39 @@ public class WctCoordinatorImpl implements WctCoordinator {
             //If there is no source urls included, then skipping harvesting
             result = this.pushPruneAndImport(cmd);
         } else {
-            String instanceAgencyName = ti.getOwner().getAgency().getName();
-
-            //Consider the HarvesterType of default modification profile has the same type of target instance profile
-            HarvestAgentStatusDTO allowedAgent = harvestAgentManager.getHarvester(instanceAgencyName, ti.getProfile().getHarvesterType());
-
-            result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
-            if (allowedAgent != null) {
-                HarvestCoordinator wctCoordinator = ApplicationContextFactory.getApplicationContext().getBean(HarvestCoordinator.class);
-                wctCoordinator.patchHarvest(ti, allowedAgent);
-                result.setRespMsg("Modification harvest job started");
-            } else {
-                ti.setScheduledTime(new Date());
-                targetInstanceManager.save(ti);
-                result.setRespMsg("No idle agent, modification harvest job is scheduled");
-            }
+            result = patchHarvest(cmd);
         }
 
+        result.setDerivedHarvestResult(hrDTO);
+
         log.debug(result.getRespMsg());
+        return result;
+    }
+
+    public PruneAndImportCommandResult patchHarvest(PruneAndImportCommandApply cmd) {
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+
+        TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
+        HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
+
+        String instanceAgencyName = ti.getOwner().getAgency().getName();
+
+        //Consider the HarvesterType of default modification profile has the same type of target instance profile
+        HarvestAgentStatusDTO allowedAgent = harvestAgentManager.getHarvester(instanceAgencyName, ti.getProfile().getHarvesterType());
+
+        result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+        if (allowedAgent != null) {
+            boolean processed = this.patchHarvest(ti, hr, allowedAgent);
+            if (processed) {
+                result.setRespMsg("Patch crawling job started");
+            } else {
+                result.setRespMsg("Not able to launch patch crawling job now");
+            }
+        } else {
+            ti.setScheduledTime(new Date());
+            targetInstanceManager.save(ti);
+            result.setRespMsg("No idle agent, modification harvest job is scheduled");
+        }
         return result;
     }
 
@@ -1804,7 +1807,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
-            log.error("Could not load PruneAndImportCommandApply of target instance: {}", ti.getJobName());
+            log.error("Could not load PruneAndImportCommandApply of target instance: {}", ti.getOid(), hr.getHarvestNumber());
             return false;
         }
 

@@ -189,6 +189,9 @@ public class PatchingHarvestLogManagerImpl implements PatchingHarvestLogManager 
         } else {
             logReader = harvestAgentManager.getLogReader(getJobName(targetInstanceId, harvestResultNumber, harvestResultState));
             if (logReader == null) {
+                logReader = digitalAssetStoreFactory.getLogReader();
+            }
+            if (logReader == null) {
                 log.error("Could not get log reader instance from Harvest Agent");
             }
         }

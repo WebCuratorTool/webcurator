@@ -15,6 +15,7 @@ import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,21 +47,29 @@ public class HarvestModificationController implements PruneAndImportService {
     }
 
     @RequestMapping(path = "/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
-    public void operateHarvestResultModification(@RequestParam("stage") String stage,
-                                                 @RequestParam("command") String command,
-                                                 @RequestParam("targetInstanceId") long targetInstanceId,
-                                                 @RequestParam("harvestNumber") int harvestNumber) throws WCTRuntimeException, DigitalAssetStoreException {
-        if (command.equalsIgnoreCase("start")) {
-            harvestModificationHandler.clickStart(targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("pause")) {
-            harvestModificationHandler.clickPause(targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("resume")) {
-            harvestModificationHandler.clickResume(targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("terminate")) {
-            harvestModificationHandler.clickTerminate(targetInstanceId, harvestNumber);
-        } else if (command.equalsIgnoreCase("delete")) {
-            harvestModificationHandler.clickDelete(targetInstanceId, harvestNumber);
+    public PruneAndImportCommandResult operateHarvestResultModification(@RequestParam("stage") String stage,
+                                                                        @RequestParam("command") String command,
+                                                                        @RequestParam("targetInstanceId") long targetInstanceId,
+                                                                        @RequestParam("harvestNumber") int harvestNumber) {
+        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+        try {
+            if (command.equalsIgnoreCase("start")) {
+                harvestModificationHandler.clickStart(targetInstanceId, harvestNumber);
+            } else if (command.equalsIgnoreCase("pause")) {
+                harvestModificationHandler.clickPause(targetInstanceId, harvestNumber);
+            } else if (command.equalsIgnoreCase("resume")) {
+                harvestModificationHandler.clickResume(targetInstanceId, harvestNumber);
+            } else if (command.equalsIgnoreCase("terminate")) {
+                harvestModificationHandler.clickTerminate(targetInstanceId, harvestNumber);
+            } else if (command.equalsIgnoreCase("delete")) {
+                harvestModificationHandler.clickDelete(targetInstanceId, harvestNumber);
+            }
+        } catch (DigitalAssetStoreException | WCTRuntimeException e) {
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg(e.getMessage());
         }
+
+        return result;
     }
 
     @RequestMapping(path = "/curator/target/patching-hr-view-data", method = {RequestMethod.POST, RequestMethod.GET})

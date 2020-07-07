@@ -19,8 +19,10 @@ class NetworkMap{
     			that.formatData(data);
     			that.initDraw(data);
     			return true;
-    		}else if(response.rspCode === -1 && confirm("Index file is missing. Would you reindex the harvest result?")){
-    			that.reindex();
+    		}else if(response.rspCode === -1){
+    			if (confirm("Index file is missing. Would you reindex the harvest result?")) {
+    				that.reindex();
+    			}
     		}else{
     			alert(response.rspMsg);
     		}
@@ -43,7 +45,7 @@ class NetworkMap{
 			//refresh progress
 			that.timerProgress=setInterval(function(){
 				that.refreshprogress();
-			}, 3000);
+			}, 500);
 		});
 	}
 
@@ -51,6 +53,8 @@ class NetworkMap{
 		var reqUrl="/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		var that=this;
 		fetchHttp(reqUrl, null, function(response){
+			console.log(response);
+
 			var progressPercentage=0;
 			if(response.rspCode===0){
 				var responseProgressBar=JSON.parse(response.payload);
@@ -58,16 +62,13 @@ class NetworkMap{
 
 				$('#progressIndexerValue').html(progressPercentage);
 				$('#progressIndexer').val(progressPercentage);
+				$('#progressIndexer').attr('data-label', progressPercentage + '% Complete');
 			}
 			
 			if((response.rspCode===0 && progressPercentage >= 100) || response.rspCode!=0){
 				clearInterval(that.timerProgress);
 				$('#popup-window-progress').hide();
-				if (response.rspCode!=0) {
-					alert(response.rspMsg);
-				}else{					
-					that.init(that.jobId, that.harvestResultNumber);
-				}
+				that.init(that.jobId, that.harvestResultNumber);
 			}
 		});
 	}

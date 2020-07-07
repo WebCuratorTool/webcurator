@@ -211,6 +211,20 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
     }
 
     @Override
+    public NetworkMapResult getUrlsByNames(long job, int harvestResultNumber, List<String> urlNameList) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_URLS_BY_NAMES))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber);
+        URI uri = uriComponentsBuilder.build().toUri();
+        HttpEntity<String> request = createHttpRequestEntity(urlNameList);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        NetworkMapResult result;
+        result = restTemplate.postForObject(uri, request, NetworkMapResult.class);
+        return result;
+    }
+
+    @Override
     public NetworkMapResult getProgress(long job, int harvestResultNumber) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_PROGRESS))
                 .queryParam("job", job)

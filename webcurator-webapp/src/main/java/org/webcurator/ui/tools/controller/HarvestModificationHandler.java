@@ -17,6 +17,7 @@ import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -67,6 +68,9 @@ public class HarvestModificationHandler {
     @Autowired
     private HarvestResultManager harvestResultManager;
 
+    @Autowired
+    private VisualizationDirectoryManager directoryManager;
+
     @Value("${core.base.dir}")
     private String baseDir;
 
@@ -77,9 +81,8 @@ public class HarvestModificationHandler {
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            //TODO: POPUP HarvestAgent Select Window
-            //Change the status of Harvest Result
-            hr.setStatus(HarvestResult.STATUS_RUNNING);
+            PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(directoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);
+            wctCoordinator.patchHarvest(cmd);
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             wctCoordinator.pushPruneAndImport(targetInstanceId, harvestResultNumber);
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
@@ -91,7 +94,7 @@ public class HarvestModificationHandler {
 
     public void clickPause(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
         HarvestResultDTO hr = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
-        if (hr.getStatus() != HarvestResult.STATUS_SCHEDULED) {
+        if (hr.getStatus() != HarvestResult.STATUS_RUNNING) {
             throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
@@ -167,11 +170,19 @@ public class HarvestModificationHandler {
         }
 
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
+
         //Delete the selected Harvest Result
-        ti.getHarvestResults().remove(harvestResultNumber);
+        List<HarvestResult> hrList=ti.getHarvestResults();
+        for (int i=0;i<hrList.size();i++){
+            if (hrList.get(i).getHarvestNumber()==hr.getHarvestNumber()){
+                hrList.remove(i);
+                break;
+            }
+        }
+        targetInstanceDAO.delete(hr);
 
         //Change the state of Target Instance to 'Harvested'
-        if (ti.getPatchingHarvestResult() == null) {
+        if (ti.getPatchingHarvestResults().size() == 0) {
             ti.setState(TargetInstance.STATE_HARVESTED);
         }
         targetInstanceDAO.save(ti);
@@ -221,9 +232,16 @@ public class HarvestModificationHandler {
             }
         });
 
-        List<LogFilePropertiesDTO> logsCrawling = patchingHarvestLogManager.listLogFileAttributes(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), HarvestResult.STATE_CRAWLING);
-        List<LogFilePropertiesDTO> logsModifying = patchingHarvestLogManagerModification.listLogFileAttributes(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), HarvestResult.STATE_MODIFYING);
-        List<LogFilePropertiesDTO> logsIndexing = patchingHarvestLogManagerIndex.listLogFileAttributes(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), HarvestResult.STATE_INDEXING);
+        List<LogFilePropertiesDTO> logsCrawling = new ArrayList<>();
+        List<LogFilePropertiesDTO> logsModifying = new ArrayList<>();
+        List<LogFilePropertiesDTO> logsIndexing = new ArrayList<>();
+        try {
+            logsCrawling = patchingHarvestLogManager.listLogFileAttributes(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), HarvestResult.STATE_CRAWLING);
+            logsModifying = patchingHarvestLogManagerModification.listLogFileAttributes(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), HarvestResult.STATE_MODIFYING);
+            logsIndexing = patchingHarvestLogManagerIndex.listLogFileAttributes(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), HarvestResult.STATE_INDEXING);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
 
         result.put("respCode", 0);
         result.put("respMsg", "Success");
@@ -250,11 +268,7 @@ public class HarvestModificationHandler {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
         if (ti != null) {
             ti.getDerivedHarvestResults(harvestResultNumber).forEach(hr -> {
-                HarvestResultDTO hrDTO = new HarvestResultDTO();
-                hrDTO.setTargetInstanceOid(targetInstanceId);
-                hrDTO.setHarvestNumber(hr.getHarvestNumber());
-                hrDTO.setDerivedFrom(hr.getDerivedFrom());
-                hrDTO.setOid(hr.getOid());
+                HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, hr.getHarvestNumber());
                 result.add(hrDTO);
             });
         }

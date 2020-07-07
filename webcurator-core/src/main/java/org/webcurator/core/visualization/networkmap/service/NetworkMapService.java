@@ -37,6 +37,8 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     NetworkMapResult getUrlByName(long job, int harvestResultNumber, String urlName);
 
+    NetworkMapResult getUrlsByNames(long job, int harvestResultNumber, List<String> urlNameList);
+
     NetworkMapResult getProgress(long job, int harvestResultNumber);
 
     default NetworkMapNode getNodeEntity(String json) {

@@ -526,15 +526,12 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
         private String heritrixInfo;
 
         public WarcFilenameTemplate(String strippedImpArcFilename) throws Exception {
-            String[] items = strippedImpArcFilename.split("-");
-            if (items.length == 4) {
-                this.prefix = items[0];
-                this.timestamp = items[1];
-                this.serialNo = Integer.parseInt(items[2]);
-                this.heritrixInfo = items[3];
-            } else {
+            if (strippedImpArcFilename == null || strippedImpArcFilename.indexOf('-') < 0) {
                 throw new Exception("Unsupported file template: " + strippedImpArcFilename);
             }
+
+            int idx=strippedImpArcFilename.indexOf('-');
+            this.prefix=strippedImpArcFilename.substring(0,idx);
         }
 
         public String toString() {

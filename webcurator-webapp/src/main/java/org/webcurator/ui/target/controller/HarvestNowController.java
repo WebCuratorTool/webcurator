@@ -31,14 +31,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.coordinator.WctCoordinator;
-import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.common.ui.Constants;
@@ -61,7 +61,7 @@ public class HarvestNowController {
      * The manager to use to access the target instance.
      */
     @Autowired
-    private TargetInstanceManager targetInstanceManager;
+    private TargetInstanceDAO targetInstanceDAO;
     /**
      * The harvest coordinator for looking at the harvesters.
      */
@@ -118,7 +118,7 @@ public class HarvestNowController {
         }
 
         HashMap<String, HarvestAgentStatusDTO> agents = wctCoordinator.getHarvestAgents();
-        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
+        TargetInstance ti = targetInstanceDAO.load(cmd.getTargetInstanceId());
         String instanceAgency = ti.getOwner().getAgency().getName();
 
         String key = "";
@@ -170,10 +170,11 @@ public class HarvestNowController {
                 if (cmd.getHarvestResultId() <= 0) {
                     wctCoordinator.harvest(ti, has);
                 } else {
-                    wctCoordinator.patchHarvest(ti, has);
+                    HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
+                    wctCoordinator.patchHarvest(ti, hr, has);
                 }
             } catch (HibernateOptimisticLockingFailureException e) {
-                ti = targetInstanceManager.getTargetInstance(ti.getOid());
+                ti = targetInstanceDAO.load(ti.getOid());
                 if (ti.getState().equals(TargetInstance.STATE_RUNNING)
                         || ti.getState().equals(TargetInstance.STATE_STOPPING)) {
                     // Display a global message and return to queue
@@ -182,26 +183,5 @@ public class HarvestNowController {
             }
         }
         return mav;
-    }
-
-    /**
-     * @param wctCoordinator The wctCoordinator to set.
-     */
-    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
-        this.wctCoordinator = wctCoordinator;
-    }
-
-    /**
-     * @param targetInstanceManager The targetInstanceManager to set.
-     */
-    public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
-        this.targetInstanceManager = targetInstanceManager;
-    }
-
-    /**
-     * @param messageSource the messageSource to set
-     */
-    public void setMessageSource(MessageSource messageSource) {
-        this.messageSource = messageSource;
     }
 }

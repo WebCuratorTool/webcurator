@@ -1,10 +1,8 @@
 package org.webcurator.core.visualization.networkmap.service;
 
-import net.bytebuddy.implementation.bytecode.Throw;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 
 import java.util.List;
@@ -96,6 +94,12 @@ public class NetworkMapController implements NetworkMapService {
     @RequestMapping(path = VisualizationConstants.PATH_GET_URL_BY_NAME, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("urlName") String urlName) {
         return client.getUrlByName(job, harvestResultNumber, urlName);
+    }
+
+    @Override
+    @RequestMapping(path = VisualizationConstants.PATH_GET_URLS_BY_NAMES, method = {RequestMethod.POST}, produces = "application/json")
+    public NetworkMapResult getUrlsByNames(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<String> urlNameList) {
+        return client.getUrlsByNames(job, harvestResultNumber, urlNameList);
     }
 
     @Override
