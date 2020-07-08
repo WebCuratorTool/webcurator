@@ -1,15 +1,19 @@
 package org.webcurator.core.visualization.networkmap.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.VisualizationServiceInterface;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface NetworkMapService extends VisualizationServiceInterface {
+    int MAX_URL_UNL_FIELDS_COUNT = 19;
+
     NetworkMapResult initialIndex(long job, int harvestResultNumber);
 
     NetworkMapResult get(long job, int harvestResultNumber, String key);
@@ -55,5 +59,44 @@ public interface NetworkMapService extends VisualizationServiceInterface {
         }
 
         return null;
+    }
+
+    default NetworkMapNode unlString2NetworkMapNode(String s) {
+        if (s == null) {
+            return null;
+        }
+        String[] items = s.split(" ");
+        if (items.length != MAX_URL_UNL_FIELDS_COUNT) {
+            return null;
+        }
+
+        NetworkMapNode n = new NetworkMapNode();
+        n.setId(Long.parseLong(items[0]));
+        n.setUrl(items[1]);
+        n.setDomain(items[2]);
+        n.setTopDomain(items[3]);
+        n.setSeedType(Integer.parseInt(items[4]));
+        n.setTotUrls(Integer.parseInt(items[5]));
+        n.setTotSuccess(Integer.parseInt(items[6]));
+        n.setTotFailed(Integer.parseInt(items[7]));
+        n.setTotSize(Integer.parseInt(items[8]));
+        n.setDomainId(Integer.parseInt(items[9]));
+        n.setContentLength(Long.parseLong(items[10]));
+        n.setContentType(items[11]);
+        n.setStatusCode(Integer.parseInt(items[12]));
+        n.setParentId(Long.parseLong(items[13]));
+        n.setOffset(Long.parseLong(items[14]));
+        n.setFetchTimeMs(Long.parseLong(items[15]));
+        n.setFileName(items[16]);
+        n.setSeed(Boolean.parseBoolean(items[17]));
+
+        String strOutlinks = items[18];
+        List<Long> outlinks = new ArrayList<>();
+        if (strOutlinks.length() > 2) {
+            strOutlinks = strOutlinks.substring(1, strOutlinks.length() - 1);
+            outlinks = Arrays.stream(strOutlinks.split(",")).map(Long::parseLong).collect(Collectors.toList());
+        }
+        n.setOutlinks(outlinks);
+        return n;
     }
 }

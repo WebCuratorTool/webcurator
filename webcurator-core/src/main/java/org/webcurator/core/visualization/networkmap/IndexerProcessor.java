@@ -177,7 +177,7 @@ public class IndexerProcessor extends VisualizationAbstractProcessor {
         this.urls.values().forEach(e -> {
             this.tryBlock();
 
-            db.put(e.getId(), e);             //Indexed by ID, ID->NODE
+            db.put(e.getId(), e.getUnlString());             //Indexed by ID, ID->NODE
             db.put(e.getUrl(), e.getId()); //Indexed by URL, URL->ID->NODE
 
             if (e.isSeed() || e.getParentId() <= 0) {

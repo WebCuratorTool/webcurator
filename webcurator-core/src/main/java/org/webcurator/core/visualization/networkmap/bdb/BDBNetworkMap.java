@@ -238,6 +238,10 @@ public class BDBNetworkMap {
         return result;
     }
 
+    public Cursor openCursor(){
+       return db.openCursor(null, null);
+    }
+
     /**
      * @return Returns the dbName.
      */

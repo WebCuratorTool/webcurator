@@ -10,6 +10,7 @@ import org.webcurator.core.util.URLResolverFunc;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
 public class NetworkMapNode {
@@ -399,25 +400,11 @@ public class NetworkMapNode {
         this.fileName = fileName;
     }
 
-//    public static void main(String[] args) {
-//        NetworkMapNode node = new NetworkMapNode();
-//        node.setUrl("http://google");
-//        node.setDomain("google");
-//        node.setTopDomain("g");
-//
-//        String json = obj2Json(node);
-//        System.out.println(json);
-//
-//        NetworkMapNode newNode = getNodeEntity(json);
-//        System.out.println(newNode.getUrl());
-//    }
 
     public static NetworkMapNode getNodeEntity(String json) {
         if (json == null) {
             return null;
         }
-
-//        log.debug(json);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -440,5 +427,16 @@ public class NetworkMapNode {
         }
 
         return json;
+    }
+
+    @JsonIgnore
+    public String getUnlString() {
+        String strOutlinks = outlinks.stream().map(outlink -> {
+            return Long.toString(outlink);
+        }).collect(Collectors.joining(","));
+        return String.format("%d %s %s %s %d %d %d %d %d %d %d %s %s %d %d %d %s %b [%s]",
+                id, url, domain, topDomain, seedType, totUrls, totSuccess, totFailed, totSize,
+                domainId, contentLength, contentType, statusCode, parentId, offset, fetchTimeMs,
+                fileName, isSeed, strOutlinks);
     }
 }

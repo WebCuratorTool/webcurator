@@ -494,7 +494,7 @@ class PopupModifyHarvest{
 				return;	 
 	        }
 
-			var data=formatStringArrayToJsonArray(JSON.parse(response.payload));
+			var data=JSON.parse(response.payload);
 			if(flag==='prune'){
 				that.pruneHarvest(data);
 			}else if(flag==='inspect'){
@@ -515,7 +515,7 @@ class PopupModifyHarvest{
 				return;	 
 	        }
 
-			var data=formatStringArrayToJsonArray(JSON.parse(response.payload));
+			var data=JSON.parse(response.payload);
 			if(data.length===0){
 				$('#popup-window-loading').hide();	
 				alert('No data found!');
