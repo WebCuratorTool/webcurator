@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.common.ui.CommandConstants;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.model.core.*;
@@ -49,7 +50,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
 @Transactional
 public class TargetInstanceDAOImpl extends HibernateDaoSupport implements TargetInstanceDAO {
 	
-    private static SimpleDateFormat fullFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    private static SimpleDateFormat fullFormat = SafeSimpleDateFormat.getInstance("dd/MM/yyyy HH:mm:ss");
     
     private static Log log = LogFactory.getLog(TargetInstanceDAOImpl.class);
     

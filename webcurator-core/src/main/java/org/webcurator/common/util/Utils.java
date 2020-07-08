@@ -35,7 +35,7 @@ public class Utils {
 	}
 	
 	public static PropertyEditor getCustomDateEditor(String dateFormat, boolean allowEmpty) {
-		SimpleDateFormat df = new SimpleDateFormat(dateFormat);
+		SimpleDateFormat df = SafeSimpleDateFormat.getInstance(dateFormat);
 		df.setLenient(false);
 		return new CustomDateEditor(df, allowEmpty, dateFormat.length());
 	}

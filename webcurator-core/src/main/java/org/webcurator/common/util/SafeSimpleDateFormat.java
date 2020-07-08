@@ -1,16 +1,21 @@
 package org.webcurator.common.util;
 
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class SafeSimpleDateFormat {
 
-    private static ThreadLocal<SimpleDateFormat> sdf = new ThreadLocal<SimpleDateFormat>() {
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat();
-        }
-    };
 
-    public static SimpleDateFormat get() {
+    private static ThreadLocal<SimpleDateFormat> sdf = ThreadLocal.withInitial(() -> new SimpleDateFormat());
+
+    public static SimpleDateFormat getInstance(String format) {
+        sdf.set(new SimpleDateFormat(format));
         return sdf.get();
     }
+
+    public static SimpleDateFormat getInstance(String format, Locale locale) {
+        sdf.set(new SimpleDateFormat(format, locale));
+        return sdf.get();
+    }
+
 }

@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.hibernate.annotations.GenericGenerator;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 
 import javax.validation.constraints.Size;
@@ -68,11 +69,11 @@ public class BandwidthRestriction {
     /** constant array for days of the week. */
     public static final String[] DOW = {DOW_MON, DOW_TUES, DOW_WED, DOW_THUR, DOW_FRI, DOW_SAT, DOW_SUN};    
     /** date format for the time. */
-    public static final SimpleDateFormat TIMEONLY_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    public static final SimpleDateFormat TIMEONLY_FORMAT = SafeSimpleDateFormat.getInstance("HH:mm:ss");
     /** date format for the date and time. */
-    public static final SimpleDateFormat FULLDATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    public static final SimpleDateFormat FULLDATE_FORMAT = SafeSimpleDateFormat.getInstance("dd/MM/yyyy HH:mm:ss");
     /** date format for fullDay. */
-    public static final SimpleDateFormat FULLDAY_FORMAT = new SimpleDateFormat("EEEE", Locale.ENGLISH);
+    public static final SimpleDateFormat FULLDAY_FORMAT = SafeSimpleDateFormat.getInstance("EEEE", Locale.ENGLISH);
     /** The date component to use for all start and end times. */
     public static final String DEFAULT_DATE = "09/11/1972 ";
     
