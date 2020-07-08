@@ -829,7 +829,7 @@ public class HarvesterH3 implements Harvester {
 
     /**
      * HeritrixWrapper uses an XML parser in a non-thread-safe manner, so we use synchronized methods to
-     * access our instance
+     * access our instance. Note that every HarvesterH3 has its own HeritrixWrapper.
      */
     private synchronized JobResult getH3Job(String jobName) {
         return heritrix.job(jobName);
