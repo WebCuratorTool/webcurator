@@ -6,7 +6,7 @@ import java.util.Locale;
 public class SafeSimpleDateFormat {
 
 
-    private static ThreadLocal<SimpleDateFormat> sdf = ThreadLocal.withInitial(() -> new SimpleDateFormat());
+    private static ThreadLocal<SimpleDateFormat> sdf = new ThreadLocal<>();
 
     public static SimpleDateFormat getInstance(String format) {
         sdf.set(new SimpleDateFormat(format));
