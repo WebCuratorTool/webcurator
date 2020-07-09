@@ -17,5 +17,5 @@ public interface PruneAndImportService extends VisualizationServiceInterface {
 
     PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items);
 
-    PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd);
+    PruneAndImportCommandResult applyPruneAndImport(PruneAndImportCommandApply cmd);
 }

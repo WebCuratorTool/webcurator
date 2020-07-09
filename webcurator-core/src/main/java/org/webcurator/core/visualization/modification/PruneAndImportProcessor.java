@@ -45,11 +45,17 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
 
         //Initial to be pruned and to be imported list
         final List<String> urisToDelete = new LinkedList<>();
+        final List<String> urisToImportByUrl = new LinkedList<>();
+        final List<String> urisToImportByFile = new LinkedList<>();
         final Map<String, PruneAndImportCommandRowMetadata> hrsToImport = new HashMap<>();
         cmd.getDataset().forEach(e -> {
             if (e.getOption().equalsIgnoreCase("prune")) {
                 urisToDelete.add(e.getUrl());
-            } else {
+            } else if (e.getOption().equalsIgnoreCase("url")) {
+                urisToImportByUrl.add(e.getUrl());
+                hrsToImport.put(e.getUrl(), e);
+            } else if (e.getOption().equalsIgnoreCase("file")) {
+                urisToImportByFile.add(e.getUrl());
                 hrsToImport.put(e.getUrl(), e);
             }
         });
@@ -102,7 +108,6 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         //Process copy and file import
         for (File f : derivedArchiveFiles) {
             this.tryBlock();
-
             coordinator.copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
             VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
             item.setCurLength(item.getMaxLength());
@@ -112,7 +117,7 @@ public class PruneAndImportProcessor extends VisualizationAbstractProcessor {
         for (File f : patchArchiveFiles) {
             this.tryBlock();
 
-            coordinator.importFromRecorder(f, urisToDelete, cmd.getNewHarvestResultNumber());
+            coordinator.importFromPatchHarvest(f, urisToDelete, urisToImportByUrl, cmd.getNewHarvestResultNumber());
             VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
             item.setCurLength(item.getMaxLength());
         }

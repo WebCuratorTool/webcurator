@@ -45,7 +45,7 @@ class NetworkMap{
 			//refresh progress
 			that.timerProgress=setInterval(function(){
 				that.refreshprogress();
-			}, 500);
+			}, 3000);
 		});
 	}
 

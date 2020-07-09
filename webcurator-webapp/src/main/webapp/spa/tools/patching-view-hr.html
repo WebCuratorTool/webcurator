@@ -10,12 +10,18 @@
     <link rel="stylesheet" href="../dist/font/fontawesome-free.min.css">
     <link rel="stylesheet" href="../dist/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="../dist/adminlte/css/adminlte.css">
-    <!-- <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css"> -->
-    <!-- <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css"> -->
+    <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
+    <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
     <!-- <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css"> -->
     <link rel="stylesheet" href="visualization.css">
 
     <style>
+        @media print {
+          body {
+            overflow: visible;
+          }
+        }
+
         tr{
             margin: 0;
             padding: 0;
@@ -48,6 +54,11 @@
             font-size: 12px;
             font-weight: normal;
         }
+
+        .ag-grid-style{
+            height: 300px;
+            width: 100%;
+        }
     </style>
 </head>
 <!--
@@ -62,7 +73,7 @@ to get the desired effect
 -->
 <body style="overflow-y: scroll;">
 <a id="link-to-harvest-now" style="display: none;"></a>
-<main class="bd-content" name="content" role="main">
+<!-- <main class="bd-content" name="content" role="main"> -->
     <div class="card card-outline">
         <div class="card-header bg-light">
             <h3 class="card-title"><b>Patching Harvest Result</b></h3>
@@ -111,35 +122,11 @@ to get the desired effect
             </div>
         </div>
 
-        <div class="card-body table-responsive">
+        <div class="card-body">
             <div class="row">
-                <div class="col-md-4">
-                    <table class="table table-hover table-bordered">
-                        <thead>
-                        <tr><th class="bg-light" colspan="3" style="padding:0.3em;">Patch Crawling Logs</th></tr>
-                        <tr><th width="50%" style="padding:0.3em;">File Name</th><th width="30%" style="padding:0.3em;">Action</th><th width="20%" style="padding:0.3em;">Size</th></tr>
-                        </thead>
-                        <tbody id="table-body-crawl-log"></tbody>
-                    </table>
-                </div>
-                <div class="col-md-4">
-                    <table class="table table-hover table-bordered">
-                        <thead>
-                        <tr><th class="bg-light" colspan="3" style="padding:0.3em;">Modifying Logs</th></tr>
-                        <tr><th width="50%" style="padding:0.3em;">File Name</th><th width="30%" style="padding:0.3em;">Action</th><th width="20%" style="padding:0.3em;">Size</th></tr>
-                        </thead>
-                        <tbody id="table-body-modify-log"></tbody>
-                    </table>
-                </div>
-                <div class="col-md-4">
-                    <table class="table table-hover table-bordered">
-                        <thead>
-                        <tr><th class="bg-light" colspan="3" style="padding:0.3em;">Indexing Logs</th></tr>
-                        <tr><th width="50%" style="padding:0.3em;">File Name</th><th width="30%" style="padding:0.3em;">Action</th><th width="20%" style="padding:0.3em;">Size</th></tr>
-                        </thead>
-                        <tbody id="table-body-index-log"></tbody>
-                    </table>
-                </div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-crawl-log" digest="none" title="Patch Crawling Logs" prefix="'normal'"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-modify-log" digest="none" title="Modifying Logs" prefix="modifying"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-index-log" digest="none" title="Indexing Logs" prefix="indexing"></div></div>
             </div>
       </div>
       <!-- /.info-box-content -->
@@ -153,38 +140,17 @@ to get the desired effect
             </div>
         </div>
 
-        <div class="card-body table-responsive">
+        <div class="card-body">
             <div class="row">
-                <div class="col-md-4" style="height: 30vh; overflow-y: scroll;">
-                    <table class="table table-head-fixed table-bordered table-hover">
-                        <thead>
-                        <tr><th class="bg-light" style="padding:0.3em;">To Be Pruned URL: Target URL</th></tr>
-                        </thead>
-                        <tbody id="table-body-url-prune"></tbody>
-                    </table>
-                </div>
-                <div class="col-md-4" style="height: 30vh; overflow-y: scroll;">
-                    <table class="table table-head-fixed table-bordered table-hover">
-                        <thead>
-                        <tr><th class="bg-light" style="padding:0.3em;">To Be Imported By URL: Target URL</th></tr>
-                        </thead>
-                        <tbody id="table-body-url-import"></tbody>
-                    </table>
-                </div>
-                <div class="col-md-4" style="height: 30vh; overflow-y: scroll;">
-                    <table class="table table-head-fixed table-bordered table-hover">
-                        <thead>
-                        <tr><th class="bg-light" width="50%" style="padding:0.3em;">To Be Imported By File: Target URL</th><th class="bg-light" width="30%" style="padding:0.3em;">File Name</th><th class="bg-light" width="20%" style="padding:0.3em;">Modified Date</th></tr>
-                        </thead>
-                        <tbody id="table-body-file-import"></tbody>
-                    </table>
-                </div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-url-prune" digest="none" title="To Be Pruned URL"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-url-import" digest="none" title="To Be Imported By URL"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-file-import" digest="none" title="To Be Imported By File"></div></div>
             </div>
-      </div>
+        </div>
       <!-- /.info-box-content -->
     </div>
 
-</main>
+<!-- </main> -->
 
 <div id="popup-window-loading">
     <div class="spin-overlay"><i class="fas fa-circle-notch text-default"></i></div>
@@ -199,10 +165,11 @@ to get the desired effect
 <script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
 <!-- <script src="../dist/plugins/bs-custom-file-input.min.js"></script> -->
 <script src="../dist/adminlte/js/adminlte.js"></script>
-<!-- <script src="../dist/ag-grid/ag-grid-community.js"></script> -->
+<script src="../dist/ag-grid/ag-grid-community.js"></script>
 <!-- <script src="../dist/plugins/moment-with-locales.min.js"></script> -->
 <!-- <script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script> -->
 <script src="visualization.js"></script>
+<script src="patching-view-hr.js"></script>
 
 <script>
     // $('#popup-window-loading').show();
@@ -213,66 +180,44 @@ to get the desired effect
     var hrState=0;
     var hrStatus=0;
 
-
-    
-
-    function createTableLog(rows, prefix){
-        var bodyContent='';
-        for(var i=0; i<rows.length; i++){
-            var row=rows[i];
-            var rowContent='';
-            rowContent+='<tr>';
-            rowContent+='<td style="padding:0.3em;">';
-            rowContent+=row.name;
-            rowContent+='</td>';
-            rowContent+='<td style="padding:0.3em;">';
-            rowContent+='<a href="/curator/target/'+row.viewer+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.name+'&prefix='+prefix+'"  target="_blank">View</a> |';
-            rowContent+='<a href="/curator/target/'+row.retriever+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.name+'&prefix='+prefix+'"  target="_blank">Download</a>';
-            rowContent+='</td>';
-            rowContent+='<td style="padding:0.3em;">';
-            rowContent+=row.lengthString;
-            rowContent+='</td>';
-            rowContent+='</tr>';
-
-            bodyContent+=rowContent+'\r\n';
+    var mapGrids={};
+    function updateTable(tableId, tableOptions, datapair, emptyDataset){
+        var oldDigest=$(tableId).attr('digest');
+        if (oldDigest===datapair.digest) {
+            return;
         }
-        return bodyContent;
+            
+
+        var dataset=datapair.data;
+        var grid=mapGrids[tableId];
+        if (!grid) {
+            grid=new agGrid.Grid(document.querySelector(tableId), tableOptions);
+            mapGrids[tableId]=grid;
+        }
+
+        if (!dataset || dataset.length==0) {
+            grid.gridOptions.api.setRowData(emptyDataset);
+        }else{
+            grid.gridOptions.api.setRowData(dataset);
+        }
+        // grid.gridOptions.api.setDomLayout('print');
+
+
+        $(tableId).attr('digest',datapair.digest);
     }
 
-    function createTableModifyUrl(rows){
-        var bodyContent='';
-        for(var i=0; i<rows.length; i++){
-            var row=rows[i];
-            var rowContent='';
-            rowContent+='<tr>';
-            rowContent+='<td style="padding:0.3em;">';
-            rowContent+=row.url;
-            rowContent+='</td>';
-            rowContent+='</tr>';
-            bodyContent+=rowContent+'\r\n';
+    function updateLogTable(tableId, tableOptions, datapair, prefix){
+        var emptyDataset=[{name: 'No log files are available.', flagShowMsg:true}];
+        for(var i=0;i<datapair.data.length;i++){
+            var node=datapair.data[i];
+            node['prefix']=prefix;
         }
-        return bodyContent;
+        updateTable(tableId, tableOptions, datapair, emptyDataset);
     }
 
-    function createTableModifyUrlOfFile(rows){
-        var bodyContent='';
-        for(var i=0; i<rows.length; i++){
-            var row=rows[i];
-            var rowContent='';
-            rowContent+='<tr>';
-            rowContent+='<td style="padding:0.3em;">';
-            rowContent+=row.url;
-            rowContent+='</td>';
-            rowContent+='<td style="padding:0.3em;">';
-            rowContent+=row.name;
-            rowContent+='</td>';
-            rowContent+='<td style="padding:0.3em;">';
-            rowContent+=row.lastModifiedPresentationString;
-            rowContent+='</td>';
-            rowContent+='</tr>';
-            bodyContent+=rowContent+'\r\n';
-        }
-        return bodyContent;
+    function updateCommandTable(tableId, tableOptions, datapair){
+        var emptyDataset=[{url: 'No URLs are available.', flagShowMsg:true}];
+        updateTable(tableId, tableOptions, datapair, emptyDataset);
     }
 
     function renderContent(data){
@@ -341,44 +286,15 @@ to get the desired effect
 
 
         // Show logs
-        var presentContentNoLogs='<tr><td colspan="3" style="padding:0.3em; background: white;">No log files are available.</td></tr>';
-        if (!data.logsCrawling || data.logsCrawling.length===0) {
-            $('#table-body-crawl-log').html(presentContentNoLogs);
-        }else{
-            $('#table-body-crawl-log').html(createTableLog(data.logsCrawling,'normal'));
-        }
+        updateLogTable('#table-body-crawl-log', gridOptionsLogsCrawling, data.logsCrawling, 'crawling');
+        updateLogTable('#table-body-modify-log', gridOptionsLogsModifying, data.logsModifying, 'modifying');
+        updateLogTable('#table-body-index-log', gridOptionsLogsIndexing, data.logsIndexing, 'indexing');
 
-        if (!data.logsModifying || data.logsModifying.length===0) {
-            $('#table-body-modify-log').html(presentContentNoLogs);
-        }else{
-            $('#table-body-modify-log').html(createTableLog(data.logsModifying,'modifying'));
-        }
-
-        if (!data.logsIndexing || data.logsIndexing.length===0) {
-            $('#table-body-index-log').html(presentContentNoLogs);
-        }else{
-            $('#table-body-index-log').html(createTableLog(data.logsIndexing,'indexing'));
-        }
 
         //Show prune and import URLs
-        var presentContentNoURLs='<tr><td colspan="3" style="padding:0.3em; background: white;">No URLs are available.</td></tr>';
-        if (!data.listToBePruned || data.listToBePruned.length===0) {
-            $('#table-body-url-prune').html(presentContentNoURLs);
-        }else{
-            $('#table-body-url-prune').html(createTableModifyUrl(data.listToBePruned));
-        }
-
-        if (!data.listToBeImportedByURL || data.listToBeImportedByURL.length===0) {
-            $('#table-body-url-import').html(presentContentNoURLs);
-        }else{
-            $('#table-body-url-import').html(createTableModifyUrl(data.listToBeImportedByURL));
-        }
-        
-        if (!data.listToBeImportedByFile || data.listToBeImportedByFile.length===0) {
-            $('#table-body-file-import').html(presentContentNoURLs);
-        }else{
-            $('#table-body-file-import').html(createTableModifyUrlOfFile(data.listToBeImportedByFile));
-        }
+        updateCommandTable('#table-body-url-prune', gridOptionsCommandPrune, data.listToBePruned);
+        updateCommandTable('#table-body-url-import', gridOptionsCommandImportByUrl, data.listToBeImportedByURL);
+        updateCommandTable('#table-body-file-import', gridOptionsCommandImportByFile, data.listToBeImportedByFile);
     }
 
     function fetchData(){
@@ -401,26 +317,18 @@ to get the desired effect
     $(function(){
         $('#btn-group-patch-actions button').on('click', function(){
             var action=$(this).attr('action');
-
-            //Popup Harvest Agent Selection Window
-            // if (action==='start' && hrState===5) {
-            //     var urlHarvestNow='/curator/target/ti-harvest-now.html?targetInstanceId='+jobId+'&harvestResultId='+harvestResultId;
-            //     $('#link-to-harvest-now').attr('href',urlHarvestNow);
-            //     $('#link-to-harvest-now').trigger('click');
-            // }else{
-                var reqUrl='/curator/modification/operate?stage=TBC&command='+action+'&targetInstanceId='+jobId+'&harvestNumber='+harvestResultNumber;
-                fetch(reqUrl, { 
-                    method: 'GET',
-                    redirect: 'follow',
-                    headers: {'Content-Type': 'application/json'}
-                }).then((response) => {
-                    return response.json();
-                }).then((response) => {
-                    if (response.respCode!==0) {
-                        alert(response.respMsg);
-                    }
-                });
-            // }
+            var reqUrl='/curator/modification/operate?stage=TBC&command='+action+'&targetInstanceId='+jobId+'&harvestNumber='+harvestResultNumber;
+            fetch(reqUrl, { 
+                method: 'GET',
+                redirect: 'follow',
+                headers: {'Content-Type': 'application/json'}
+            }).then((response) => {
+                return response.json();
+            }).then((response) => {
+                if (response.respCode!==0) {
+                    alert(response.respMsg);
+                }
+            });
         });
 
 

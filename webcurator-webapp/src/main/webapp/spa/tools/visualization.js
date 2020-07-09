@@ -482,6 +482,6 @@ function updateDerivedHarvestResults(derivedHarvestResult){
 
 function popupDerivedSummaryWindow(derivedHarvestId, derivedHarvestNumber){
   var reqUrl='/spa/tools/patching-view-hr.html?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+derivedHarvestNumber;
-  $('#body-derived-summary').html('<iframe src="'+reqUrl+'" style="width: 100vw; height: calc(100vh - 55px);"></iframe>');
+  $('#body-derived-summary').html('<iframe src="'+reqUrl+'" style="width: 100vw; height: 1000px;"></iframe>');
   $('#popup-window-derived-summary').show();
 }

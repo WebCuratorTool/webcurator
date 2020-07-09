@@ -503,11 +503,14 @@ public class WctCoordinatorImpl implements WctCoordinator {
      *
      * @param queuedTargetInstanceDTO: the target instance to modify
      */
-    @Override
-    public void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+    private void launchQueuedPatchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
         TargetInstance ti = loadTargetInstance(queuedTargetInstanceDTO.getOid());
         List<HarvestResult> hrList = ti.getPatchingHarvestResults();
         for (HarvestResult hr : hrList) {
+            HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(ti.getOid(), hr.getHarvestNumber());
+            if (hrDTO == null || hrDTO.getStatus() != HarvestResult.STATUS_SCHEDULED) {
+                continue;
+            }
             switch (hr.getState()) {
                 case HarvestResult.STATE_CRAWLING:
                     patchHarvestCrawling(ti, hr, queuedTargetInstanceDTO);
@@ -871,7 +874,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
             ti = it.next();
             log.info("Processing queue and modify entry: " + ti.toString());
             if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-                patchHarvest(ti);
+                launchQueuedPatchHarvest(ti);
             } else {
                 harvestOrQueue(ti);
             }
@@ -1628,7 +1631,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public PruneAndImportCommandResult pruneAndImport(PruneAndImportCommandApply cmd) {
+    public PruneAndImportCommandResult applyPruneAndImport(PruneAndImportCommandApply cmd) {
         /**
          * Checking do files exist and attaching properties for existing files
          */
@@ -1687,6 +1690,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return result;
     }
 
+    @Override
     public PruneAndImportCommandResult patchHarvest(PruneAndImportCommandApply cmd) {
         PruneAndImportCommandResult result = new PruneAndImportCommandResult();
 

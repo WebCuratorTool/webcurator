@@ -4,14 +4,12 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
-import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Semaphore;
 
 public abstract class VisualizationAbstractProcessor implements Callable<Boolean> {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationAbstractProcessor.class);
@@ -27,7 +25,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     protected VisualizationProgressBar progressBar;
     protected VisualizationProcessorManager visualizationProcessorManager;
 
-    public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+    public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) {
         this.targetInstanceId = targetInstanceId;
         this.harvestResultNumber = harvestResultNumber;
     }
@@ -152,13 +150,16 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void updateHarvestResultStatus() {
+        wctCoordinatorClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+    }
+
+    public HarvestResultDTO getHarvestResultDTO() {
         HarvestResultDTO hrDTO = new HarvestResultDTO();
         hrDTO.setTargetInstanceOid(this.targetInstanceId);
         hrDTO.setHarvestNumber(this.harvestResultNumber);
         hrDTO.setState(this.state);
         hrDTO.setStatus(this.status);
-
-        wctCoordinatorClient.dasUpdateHarvestResultStatus(hrDTO);
+        return hrDTO;
     }
 
     @Override

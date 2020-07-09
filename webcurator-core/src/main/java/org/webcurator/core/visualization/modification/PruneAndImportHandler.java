@@ -47,7 +47,7 @@ public abstract class PruneAndImportHandler extends VisualizationCoordinator {
 
     abstract protected void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException;
 
-    abstract protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException;
+    abstract protected void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException;
 
     protected File modificationDownloadFile(long job, int harvestResultNumber, PruneAndImportCommandRowMetadata metadata) {
         String tempFileName = UUID.randomUUID().toString();

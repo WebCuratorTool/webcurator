@@ -13,7 +13,9 @@ import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +64,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
         NetworkMapResult result = new NetworkMapResult();
         String unlString = db.get(id);
-        NetworkMapNode networkMapNode = this.unlString2NetworkMapNode(unlString);
+        NetworkMapNodeDTO networkMapNode = this.unlString2NetworkMapNode(unlString);
         result.setPayload(obj2Json(networkMapNode));
         return result;
     }
@@ -74,7 +76,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        NetworkMapNode parentNode = this.unlString2NetworkMapNode(db.get(id));
+        NetworkMapNodeDTO parentNode = this.unlString2NetworkMapNode(db.get(id));
         if (parentNode == null) {
             return NetworkMapResult.getDataNotExistResult("Could not find parent node, id: " + id);
         }
@@ -82,7 +84,6 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         NetworkMapResult result = new NetworkMapResult();
         String outlinks = combineUrlResultFromArrayIDs(job, harvestResultNumber, parentNode.getOutlinks());
         parentNode.clear();
-
         result.setPayload(outlinks);
         return result;
     }
@@ -158,7 +159,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         long startTime = System.currentTimeMillis();
 
-        final List<NetworkMapNode> urls = new ArrayList<>();
+        final List<NetworkMapNodeDTO> urls = new ArrayList<>();
         Cursor cursor = null;
         try {
             cursor = db.openCursor();
@@ -169,7 +170,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 if (keyString.matches(regex)) {
                     String dataString = new String(foundData.getData());
                     if (compiledSearchCommand.isInclude(dataString)) {
-                        NetworkMapNode networkMapNode = this.unlString2NetworkMapNode(dataString);
+                        NetworkMapNodeDTO networkMapNode = this.unlString2NetworkMapNode(dataString);
                         urls.add(networkMapNode);
                     }
                     log.debug(dataString);
@@ -182,10 +183,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
 
         long endTime = System.currentTimeMillis();
-
-        System.out.println("Search URLs time used: " + (endTime - startTime));
-//        List<Long> ids = this.getArrayList(db.get(BDBNetworkMap.PATH_ROOT_URLS));
-//        searchUrlInternal(job, harvestResultNumber, db, searchCommand, ids, urls);
+        log.debug("Search URLs time used: " + (endTime - startTime));
 
         String json = this.obj2Json(urls);
         urls.clear();
@@ -221,8 +219,8 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<NetworkMapNode> listHopPath = new ArrayList<>();
-        NetworkMapNode curNode = this.unlString2NetworkMapNode(db.get(id));
+        List<NetworkMapNodeDTO> listHopPath = new ArrayList<>();
+        NetworkMapNodeDTO curNode = this.unlString2NetworkMapNode(db.get(id));
         while (curNode != null) {
             listHopPath.add(curNode);
             long parentId = curNode.getParentId();
@@ -233,7 +231,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
         String json = this.obj2Json(listHopPath);
 
-        listHopPath.forEach(NetworkMapNode::clear);
+        listHopPath.forEach(NetworkMapNodeDTO::clear);
         listHopPath.clear();
 
         NetworkMapResult result = new NetworkMapResult();
@@ -248,21 +246,21 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<NetworkMapNode> hierarchyLinks = new ArrayList<>();
+        List<NetworkMapNodeDTO> hierarchyLinks = new ArrayList<>();
         for (long urlId : ids) {
-            NetworkMapNode node = this.unlString2NetworkMapNode(db.get(urlId));
+            NetworkMapNodeDTO node = this.unlString2NetworkMapNode(db.get(urlId));
             if (node == null) {
                 continue;
             }
             hierarchyLinks.add(node);
             for (long outlinkId : node.getOutlinks()) {
-                NetworkMapNode outlink = this.unlString2NetworkMapNode(db.get(outlinkId));
+                NetworkMapNodeDTO outlink = this.unlString2NetworkMapNode(db.get(outlinkId));
                 node.putChild(outlink);
             }
         }
 
         String json = this.obj2Json(hierarchyLinks);
-        hierarchyLinks.forEach(NetworkMapNode::clear);
+        hierarchyLinks.forEach(NetworkMapNodeDTO::clear);
         hierarchyLinks.clear();
 
         NetworkMapResult result = new NetworkMapResult();
@@ -283,7 +281,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
 
         String unlString = db.get(keyId);
-        NetworkMapNode networkMapNode = this.unlString2NetworkMapNode(unlString);
+        NetworkMapNodeDTO networkMapNode = this.unlString2NetworkMapNode(unlString);
 
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(this.obj2Json(networkMapNode));
@@ -301,7 +299,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getBadRequestResult();
         }
 
-        List<NetworkMapNode> urlNodeList = new ArrayList<>();
+        List<NetworkMapNodeDTO> urlList = new ArrayList<>();
         for (String urlName : urlNameList) {
             String keyId = db.get(urlName);
             if (keyId == null) {
@@ -312,11 +310,11 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             if (nodeStr == null) {
                 continue;
             }
-            NetworkMapNode node = this.unlString2NetworkMapNode(nodeStr);
-            urlNodeList.add(node);
+            NetworkMapNodeDTO node = this.unlString2NetworkMapNode(nodeStr);
+            urlList.add(node);
         }
         NetworkMapResult result = new NetworkMapResult();
-        result.setPayload(obj2Json(urlNodeList));
+        result.setPayload(obj2Json(urlList));
         return result;
     }
 
@@ -327,10 +325,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return null;
         }
 
-        final List<NetworkMapNode> result = new ArrayList<>();
+        final List<NetworkMapNodeDTO> result = new ArrayList<>();
         ids.forEach(childId -> {
             String childStr = db.get(childId);
-            NetworkMapNode networkMapNode = this.unlString2NetworkMapNode(childStr);
+            NetworkMapNodeDTO networkMapNode = this.unlString2NetworkMapNode(childStr);
             if (networkMapNode != null) {
                 result.add(networkMapNode);
             }
@@ -352,6 +350,17 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         VisualizationProgressView progressView = new VisualizationProgressView(progressBar);
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(this.obj2Json(progressView));
+        return result;
+    }
+
+    @Override
+    public NetworkMapResult getProcessingHarvestResultDTO(long job, int harvestResultNumber) {
+        HarvestResultDTO hrDTO = visualizationProcessorManager.getHarvestResultDTO(job, harvestResultNumber);
+        if (hrDTO == null) {
+            return NetworkMapResult.getDataNotExistResult();
+        }
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(this.obj2Json(hrDTO));
         return result;
     }
 }

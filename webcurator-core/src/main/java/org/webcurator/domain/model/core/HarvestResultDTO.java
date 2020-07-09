@@ -16,11 +16,14 @@
 package org.webcurator.domain.model.core;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationProgressView;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 
+import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -236,5 +239,22 @@ public class HarvestResultDTO {
         } else {
             return 50;
         }
+    }
+
+    @JsonIgnore
+    public static HarvestResultDTO getInstance(String json) {
+        if (json == null) {
+            return null;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            return objectMapper.readValue(json, HarvestResultDTO.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

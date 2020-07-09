@@ -23,7 +23,11 @@ public class PatchUtil {
     public static final PatchStageProcessor indexer = new PatchStageProcessor(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
 
     public static String getPatchJobName(long targetInstanceId, int harvestResultNumber) {
-        return String.format("mod_%d_%d", targetInstanceId, harvestResultNumber);
+        if (harvestResultNumber == 1) {
+            return Long.toString(targetInstanceId);
+        } else {
+            return String.format("mod_%d_%d", targetInstanceId, harvestResultNumber);
+        }
     }
 
     public static class PatchStageProcessor {

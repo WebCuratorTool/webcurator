@@ -307,7 +307,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
 
 
     @Override
-    protected void importFromRecorder(File fileFrom, List<String> urisToDelete, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException {
+    protected void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -382,7 +382,9 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
                 statisticItem.increaseSkippedRecords();
                 continue;
             }
-            if (urisToDelete.contains(header.getUrl())) {
+
+            /*If the url is to be pruned, but not to be imported*/
+            if (urisToDelete.contains(header.getUrl()) && !urisToImportByUrl.contains(header.getUrl())) {
                 this.writeLog(String.format("Prune [%s] record: %s", WARCType, header.getUrl()));
                 continue;
             }
@@ -530,8 +532,8 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
                 throw new Exception("Unsupported file template: " + strippedImpArcFilename);
             }
 
-            int idx=strippedImpArcFilename.indexOf('-');
-            this.prefix=strippedImpArcFilename.substring(0,idx);
+            int idx = strippedImpArcFilename.indexOf('-');
+            this.prefix = strippedImpArcFilename.substring(0, idx);
         }
 
         public String toString() {

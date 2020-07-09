@@ -69,6 +69,7 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
@@ -215,7 +216,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     @SuppressWarnings("finally")
     public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        NetworkMapNode resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         FileOutputStream fos = null;
         ArchiveReader reader = null;
@@ -318,7 +319,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      */
     public byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        NetworkMapNode resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         ArchiveRecord record = null;
         ArchiveReader reader = null;
@@ -404,7 +405,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         log.debug("Casting the DTO to HarvestResult");
 
 
-        NetworkMapNode resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         List<Header> headers = new ArrayList<>();
         ArchiveRecord record = null;
@@ -485,7 +486,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         return null;
     }
 
-    private NetworkMapNode queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
+    private NetworkMapNodeDTO queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
         NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, resourceUrl);
 
         String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, resourceUrl);
@@ -495,7 +496,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         }
 
         String json = (String) result.getPayload();
-        NetworkMapNode node = networkMapClient.getNodeEntity(json);
+        NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
         if (node == null) {
             log.warn(err);
             throw new DigitalAssetStoreException(err);

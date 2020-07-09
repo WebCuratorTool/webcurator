@@ -11,11 +11,10 @@ import org.webcurator.core.visualization.modification.metadata.PruneAndImportCom
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
 import org.webcurator.core.visualization.modification.service.PruneAndImportService;
-import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
@@ -42,8 +41,8 @@ public class HarvestModificationController implements PruneAndImportService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST, produces = "application/json")
-    public PruneAndImportCommandResult pruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
-        return wctCoordinator.pruneAndImport(cmd);
+    public PruneAndImportCommandResult applyPruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
+        return wctCoordinator.applyPruneAndImport(cmd);
     }
 
     @RequestMapping(path = "/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
@@ -75,7 +74,7 @@ public class HarvestModificationController implements PruneAndImportService {
     @RequestMapping(path = "/curator/target/patching-hr-view-data", method = {RequestMethod.POST, RequestMethod.GET})
     public Map<String, Object> getHarvestResultViewData(@RequestParam("targetInstanceOid") long targetInstanceId,
                                                         @RequestParam("harvestResultId") long harvestResultId,
-                                                        @RequestParam("harvestNumber") int harvestResultNumber) throws IOException {
+                                                        @RequestParam("harvestNumber") int harvestResultNumber) throws IOException, NoSuchAlgorithmException {
         return harvestModificationHandler.getHarvestResultViewData(targetInstanceId, harvestResultId, harvestResultNumber);
     }
 

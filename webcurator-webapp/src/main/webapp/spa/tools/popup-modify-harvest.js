@@ -186,10 +186,6 @@ class HierarchyTree{
 		return data;
 	}
 
-	// setOperationData(prunedDataMap, importDataMap){
-	// 	this.prunedDataMap=prunedDataMap;
-	// 	this.importDataMap=importDataMap;
-	// }
 }
 
 class PopupModifyHarvest{
@@ -318,7 +314,7 @@ class PopupModifyHarvest{
 	showBulkPrune(){
 		$('#bulkPruneMetadataFile').val(null);
 		$('#label-bulk-prune-metadata-file').html('Choose file');
-    	$('#popup-window-bulk-prune').show();
+    $('#popup-window-bulk-prune').show();
 	}
 
 	showImport(data){
@@ -339,8 +335,8 @@ class PopupModifyHarvest{
 		var ds=d.format('YYYY-MM-DDTHH:mm');
 		$("#datetime-local-customizard").val(ds);
 		
-    	$('#popup-window-single-import').show();
-    	// this.processorModify.setNode(data);
+    $('#popup-window-single-import').show();
+    // this.processorModify.setNode(data);
 	}
 
 	editImport(node){
@@ -450,34 +446,34 @@ class PopupModifyHarvest{
 	queryHarvest(){
 		$("#popup-window-query-input").hide();
 		var searchCondition={
-          "domainNames": [],
-          "contentTypes": [],
-          "statusCodes": [],
-          "urlNames": []
-        }
+	    "domainNames": [],
+	    "contentTypes": [],
+	    "statusCodes": [],
+	    "urlNames": []
+	  }
 
-        var domainNames=$("#queryDomainName").val().trim();
-        if(domainNames.length > 0){
-        	searchCondition.domainNames=domainNames.split();
-        }
+	  var domainNames=$("#queryDomainName").val().trim();
+	  if(domainNames.length > 0){
+	  	searchCondition.domainNames=domainNames.split();
+	  }
 
 
-        var contentTypes=$("#queryContentType").val().trim();
-        if(contentTypes.length > 0){
-        	searchCondition.contentTypes=contentTypes.split();
-        }
+	  var contentTypes=$("#queryContentType").val().trim();
+	  if(contentTypes.length > 0){
+	  	searchCondition.contentTypes=contentTypes.split();
+	  }
 
 		var statusCodes=$("#queryStatusCode").val().trim();
-        if(statusCodes.length > 0){
-        	searchCondition.statusCodes=statusCodes.split();
-        }
+    if(statusCodes.length > 0){
+    	searchCondition.statusCodes=statusCodes.split();
+    }
 
-        var urlNames=$("#queryUrlName").val().trim();
-        if(urlNames.length > 0){
-        	searchCondition.urlNames=urlNames.split();
-        }
+    var urlNames=$("#queryUrlName").val().trim();
+    if(urlNames.length > 0){
+    	searchCondition.urlNames=urlNames.split();
+    }
 
-        this.checkUrls(searchCondition, 'inspect');
+    this.checkUrls(searchCondition, 'inspect');
 	}
 
 	checkUrls(searchCondition, flag){

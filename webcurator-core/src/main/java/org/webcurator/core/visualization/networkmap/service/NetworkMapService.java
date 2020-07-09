@@ -1,8 +1,8 @@
 package org.webcurator.core.visualization.networkmap.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.VisualizationServiceInterface;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 
 import java.io.IOException;
@@ -45,7 +45,9 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     NetworkMapResult getProgress(long job, int harvestResultNumber);
 
-    default NetworkMapNode getNodeEntity(String json) {
+    NetworkMapResult getProcessingHarvestResultDTO(long job, int harvestResultNumber);
+
+    default NetworkMapNodeDTO getNodeEntity(String json) {
         if (json == null) {
             return null;
         }
@@ -53,7 +55,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            return objectMapper.readValue(json, NetworkMapNode.class);
+            return objectMapper.readValue(json, NetworkMapNodeDTO.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,7 +63,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
         return null;
     }
 
-    default NetworkMapNode unlString2NetworkMapNode(String s) {
+    default NetworkMapNodeDTO unlString2NetworkMapNode(String s) {
         if (s == null) {
             return null;
         }
@@ -70,7 +72,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
             return null;
         }
 
-        NetworkMapNode n = new NetworkMapNode();
+        NetworkMapNodeDTO n = new NetworkMapNodeDTO();
         n.setId(Long.parseLong(items[0]));
         n.setUrl(items[1]);
         n.setDomain(items[2]);

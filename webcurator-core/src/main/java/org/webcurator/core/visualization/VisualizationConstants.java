@@ -21,10 +21,12 @@ public class VisualizationConstants {
     public static final String PATH_GET_URLS_BY_NAMES = ROOT_PATH + "/networkmap/get/query-urls-by-names";
 
     public static final String PATH_GET_PROGRESS = ROOT_PATH + "/visualization/progress";
+    public static final String PATH_GET_PROCESSING_HARVEST_RESULT = ROOT_PATH + "/visualization/processing-harvest-result";
     public static final String PATH_INITIAL_INDEX = ROOT_PATH + "/visualization/index/initial";
 
     public static final int RESP_CODE_SUCCESS = 0;
     public static final int RESP_CODE_FILE_EXIST = 1;
+    public static final int RESP_CODE_INDEX_NOT_EXIST = 2;
     public static final int RESP_CODE_INVALID_REQUEST = -1000;
     public static final int RESP_CODE_ERROR_FILE_IO = -2000;
     public static final int RESP_CODE_ERROR_NETWORK_IO = -3000;

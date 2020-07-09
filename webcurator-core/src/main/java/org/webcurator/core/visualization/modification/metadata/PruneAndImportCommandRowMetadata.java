@@ -1,5 +1,9 @@
 package org.webcurator.core.visualization.modification.metadata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -132,5 +136,22 @@ public class PruneAndImportCommandRowMetadata {
 
     public void setRespMsg(String respMsg) {
         this.respMsg = respMsg;
+    }
+
+    @JsonIgnore
+    public static PruneAndImportCommandRowMetadata getInstance(String json) {
+        if (json == null) {
+            return null;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            return objectMapper.readValue(json, PruneAndImportCommandRowMetadata.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

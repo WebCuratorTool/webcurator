@@ -1,5 +1,8 @@
 package org.webcurator.ui.tools.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +20,12 @@ import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
+import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
 import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -29,10 +35,10 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.target.command.PatchingProgressCommand;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component("harvestModificationHandler")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -98,7 +104,7 @@ public class HarvestModificationHandler {
             throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
-        if (hr.getState() == HarvestResult.STATUS_RUNNING) {
+        if (hr.getState() == HarvestResult.STATE_CRAWLING) {
             harvestAgentManager.pausePatching(PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
 
             //Change the status of Harvest Result
@@ -134,12 +140,15 @@ public class HarvestModificationHandler {
     public void clickTerminate(long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException, WCTRuntimeException {
         HarvestResultDTO hr = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
         if (hr.getStatus() != HarvestResult.STATUS_RUNNING &&
-                hr.getStatus() != HarvestResult.STATUS_PAUSED) {
+                hr.getStatus() != HarvestResult.STATUS_PAUSED &&
+                hr.getStatus() != HarvestResult.STATUS_TERMINATED) {
             throw new WCTRuntimeException(String.format("Incorrect state: %d, status: %d", hr.getState(), hr.getStatus()));
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.stopPatching(PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
+            String jobName = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
+            harvestAgentManager.stopPatching(jobName);
+            harvestAgentManager.abortPatching(jobName);
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "terminate", targetInstanceId, harvestResultNumber);
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
@@ -160,7 +169,12 @@ public class HarvestModificationHandler {
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            harvestAgentManager.abortPatching(PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
+            String jobName = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
+            harvestAgentManager.stopPatching(jobName);
+            harvestAgentManager.abortPatching(jobName);
+            List<String> jobList = new ArrayList<>();
+            jobList.add(jobName);
+            harvestAgentManager.purgeAbortedTargetInstances(jobList);
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             digitalAssetStore.operateHarvestResultModification(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, "delete", targetInstanceId, harvestResultNumber);
         } else if (hr.getState() == HarvestResult.STATE_INDEXING) {
@@ -172,9 +186,9 @@ public class HarvestModificationHandler {
         TargetInstance ti = targetInstanceDAO.load(targetInstanceId);
 
         //Delete the selected Harvest Result
-        List<HarvestResult> hrList=ti.getHarvestResults();
-        for (int i=0;i<hrList.size();i++){
-            if (hrList.get(i).getHarvestNumber()==hr.getHarvestNumber()){
+        List<HarvestResult> hrList = ti.getHarvestResults();
+        for (int i = 0; i < hrList.size(); i++) {
+            if (hrList.get(i).getHarvestNumber() == hr.getHarvestNumber()) {
                 hrList.remove(i);
                 break;
             }
@@ -188,9 +202,9 @@ public class HarvestModificationHandler {
         targetInstanceDAO.save(ti);
     }
 
-    public Map<String, Object> getHarvestResultViewData(long targetInstanceId, long harvestResultId, int harvestResultNumber) throws IOException {
+    public Map<String, Object> getHarvestResultViewData(long targetInstanceId, long harvestResultId, int harvestResultNumber) throws IOException, NoSuchAlgorithmException {
         Map<String, Object> result = new HashMap<>();
-        HarvestResultDTO hrDTO = null;
+        final HarvestResultDTO hrDTO;
         try {
             hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
         } catch (WCTRuntimeException e) {
@@ -218,19 +232,35 @@ public class HarvestModificationHandler {
             pruneAndImportCommandApply = new PruneAndImportCommandApply();
         }
 
-        List<PruneAndImportCommandRowMetadata> listToBePruned = new ArrayList<>();
-        List<PruneAndImportCommandRowMetadata> listToBeImportedByFile = new ArrayList<>();
-        List<PruneAndImportCommandRowMetadata> listToBeImportedByURL = new ArrayList<>();
-
+        Map<String, PruneAndImportCommandRowMetadata> mapToBePruned = new HashMap<>();
+        Map<String, PruneAndImportCommandRowMetadata> mapToBeImportedByFile = new HashMap<>();
+        Map<String, PruneAndImportCommandRowMetadata> mapToBeImportedByURL = new HashMap<>();
         pruneAndImportCommandApply.getDataset().forEach(e -> {
             if (e.getOption().equalsIgnoreCase("prune")) {
-                listToBePruned.add(e);
+                mapToBePruned.put(e.getUrl(), e);
             } else if (e.getOption().equalsIgnoreCase("file")) {
-                listToBeImportedByFile.add(e);
+                mapToBeImportedByFile.put(e.getUrl(), e);
             } else if (e.getOption().equalsIgnoreCase("url")) {
-                listToBeImportedByURL.add(e);
+                mapToBeImportedByURL.put(e.getUrl(), e);
             }
         });
+
+        /*Appended indexed results*/
+        Map<String, Boolean> mapIndexedUrlNodes = getIndexedUrlNodes(targetInstanceId, harvestResultNumber, pruneAndImportCommandApply);
+        appendIndexedResult(mapIndexedUrlNodes, mapToBeImportedByFile);
+        appendIndexedResult(mapIndexedUrlNodes, mapToBeImportedByURL);
+
+        mapToBePruned.forEach((k, v) -> {
+            if (!mapIndexedUrlNodes.containsKey(k)) {
+                v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+            } else if ((mapToBeImportedByFile.containsKey(k) && mapToBeImportedByFile.get(k).getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS) ||
+                    (mapToBeImportedByURL.containsKey(k) && mapToBeImportedByURL.get(k).getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS)) {
+                v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+            } else {
+                v.setRespCode(VisualizationConstants.RESP_CODE_INDEX_NOT_EXIST);
+            }
+        });
+
 
         List<LogFilePropertiesDTO> logsCrawling = new ArrayList<>();
         List<LogFilePropertiesDTO> logsModifying = new ArrayList<>();
@@ -254,12 +284,13 @@ public class HarvestModificationHandler {
         result.put("hrStatus", hrDTO.getStatus());
 
         result.put("progress", progress);
-        result.put("listToBePruned", listToBePruned);
-        result.put("listToBeImportedByFile", listToBeImportedByFile);
-        result.put("listToBeImportedByURL", listToBeImportedByURL);
-        result.put("logsCrawling", logsCrawling);
-        result.put("logsModifying", logsModifying);
-        result.put("logsIndexing", logsIndexing);
+
+        putDataWithDigest("listToBePruned", mapToBePruned.values(), result);
+        putDataWithDigest("listToBeImportedByFile", mapToBeImportedByFile.values(), result);
+        putDataWithDigest("listToBeImportedByURL", mapToBeImportedByURL.values(), result);
+        putDataWithDigest("logsCrawling", logsCrawling, result);
+        putDataWithDigest("logsModifying", logsModifying, result);
+        putDataWithDigest("logsIndexing", logsIndexing, result);
         return result;
     }
 
@@ -274,5 +305,60 @@ public class HarvestModificationHandler {
         }
 
         return result;
+    }
+
+    private Map<String, Boolean> getIndexedUrlNodes(long targetInstanceId, int harvestResultNumber, PruneAndImportCommandApply pruneAndImportCommandApply) throws JsonProcessingException {
+        Map<String, Boolean> mapIndexedUrlNodes = new HashMap<>();
+        HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
+        if (hrDTO.getState() == HarvestResult.STATE_CRAWLING ||
+                hrDTO.getState() == HarvestResult.STATE_MODIFYING ||
+                (hrDTO.getState() == HarvestResult.STATE_INDEXING && hrDTO.getStatus() != HarvestResult.STATUS_FINISHED)) {
+            return mapIndexedUrlNodes;
+        }
+
+        List<String> listQueryUrlStatus = pruneAndImportCommandApply.getDataset().stream().map(PruneAndImportCommandRowMetadata::getUrl).collect(Collectors.toList());
+        NetworkMapResult urlsResult = networkMapClient.getUrlsByNames(targetInstanceId, harvestResultNumber, listQueryUrlStatus);
+        if (urlsResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
+            return mapIndexedUrlNodes;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<NetworkMapNodeDTO> listUrlNodes = objectMapper.readValue(urlsResult.getPayload(), new TypeReference<List<NetworkMapNodeDTO>>() {
+        });
+        listUrlNodes.forEach(urlNode -> {
+            mapIndexedUrlNodes.put(urlNode.getUrl(), true);
+        });
+
+        return mapIndexedUrlNodes;
+    }
+
+    private void appendIndexedResult(Map<String, Boolean> mapIndexedUrlNodes, Map<String, PruneAndImportCommandRowMetadata> mapTargetUrlNodes) {
+        mapTargetUrlNodes.forEach((k, v) -> {
+            if (mapIndexedUrlNodes.containsKey(k)) {
+                v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+            } else {
+                v.setRespCode(VisualizationConstants.RESP_CODE_INDEX_NOT_EXIST);
+            }
+        });
+    }
+
+    private String getDigest(Object obj) throws NoSuchAlgorithmException, JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(obj);
+
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        md.update(json.getBytes());
+        byte[] digest = md.digest();
+
+        return new String(Base64.getEncoder().encode(digest));
+    }
+
+    private void putDataWithDigest(String key, Object data, Map<String, Object> result) throws JsonProcessingException, NoSuchAlgorithmException {
+        String digest = getDigest(data);
+        Map<String, Object> pair = new HashMap<>();
+        pair.put("digest", digest);
+        pair.put("data", data);
+
+        result.put(key, pair);
     }
 }

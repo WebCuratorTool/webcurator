@@ -110,12 +110,6 @@ public class MockWctCoordinator implements HarvestCoordinator {
     }
 
     @Override
-    public void patchHarvest(QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public boolean patchHarvest(TargetInstance targetInstance, HarvestResult hr, HarvestAgentStatusDTO harvestAgentStatusDTO) {
         return false;
     }
