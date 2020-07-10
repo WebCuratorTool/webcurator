@@ -1,3 +1,4 @@
+alter table db_wct.harvest_result alter hr_index set default 0;
 alter table db_wct.id_generator alter ig_value type bigint;
 
 update db_wct.id_generator set ig_value=(COALESCE((select max(rol_oid) from db_wct.wctrole), 0)) where ig_type='Role';
