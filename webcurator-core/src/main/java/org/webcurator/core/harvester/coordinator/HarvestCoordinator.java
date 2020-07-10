@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.webcurator.core.check.CheckNotifier;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.HarvestCoordinatorDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -111,7 +111,7 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      */
     boolean patchHarvest(TargetInstance targetInstance, HarvestResult hr, HarvestAgentStatusDTO harvestAgentStatusDTO);
 
-    PruneAndImportCommandResult patchHarvest(PruneAndImportCommandApply cmd);
+    ModifyResult patchHarvest(ModifyApplyCommand cmd);
 
     /**
      * Pause a TargetInstance that is in the process or being harvested

@@ -10,8 +10,8 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStorePaths;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
@@ -193,7 +193,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST)
-    public PruneAndImportCommandResult initialPruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
+    public ModifyResult initialPruneAndImport(@RequestBody ModifyApplyCommand cmd) {
         return arcDigitalAssetStoreService.initialPruneAndImport(cmd);
     }
 

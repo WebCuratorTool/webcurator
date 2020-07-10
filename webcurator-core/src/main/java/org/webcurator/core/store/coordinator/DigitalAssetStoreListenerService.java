@@ -14,6 +14,7 @@ import org.webcurator.core.coordinator.WctCoordinatorPaths;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -26,7 +27,7 @@ public class DigitalAssetStoreListenerService implements DigitalAssetStoreListen
     private TargetInstanceManager targetInstanceManager;
 
     @RequestMapping(path = WctCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE, method = {RequestMethod.POST, RequestMethod.GET})
-    public void dasDownloadFile(@RequestParam("job") long targetInstanceOid, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) {
+    public void dasDownloadFile(@RequestParam("job") long targetInstanceOid, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         wctCoordinator.dasDownloadFile(targetInstanceOid, harvestResultNumber, fileName, req, rsp);
     }
 

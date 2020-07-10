@@ -1,6 +1,6 @@
 package org.webcurator.core.visualization.modification.metadata;
 
-public class PruneAndImportCommandProgress {
+public class ModifyProgress {
     public int percentageSchedule;
     public int percentageHarvest;
     public int percentageModify;

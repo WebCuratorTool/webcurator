@@ -9,14 +9,14 @@ import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationProgressView;
-import org.webcurator.core.visualization.networkmap.IndexerProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,13 +35,11 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     public NetworkMapResult initialIndex(long job, int harvestResultNumber) {
         VisualizationAbstractProcessor processor = null;
         try {
-            processor = new IndexerProcessor(pool, job, harvestResultNumber);
-        } catch (DigitalAssetStoreException e) {
+            processor = new IndexProcessorWarc(pool, job, harvestResultNumber);
+            visualizationProcessorManager.startTask(processor);
+        } catch (DigitalAssetStoreException | IOException e) {
             return NetworkMapResult.getInitialExtractorFailedResult();
         }
-
-        visualizationProcessorManager.startTask(processor);
-
         return NetworkMapResult.getSuccessResult();
     }
 

@@ -1,4 +1,4 @@
-package org.webcurator.core.visualization.networkmap.extractor;
+package org.webcurator.core.visualization.networkmap.processor;
 
 import org.archive.io.ArchiveRecord;
 import org.archive.io.ArchiveRecordHeader;
@@ -6,19 +6,18 @@ import org.archive.io.arc.ARCRecord;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.util.URLResolverFunc;
-import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-public class ResourceExtractorArc extends ResourceExtractor {
-    public ResourceExtractorArc(Map<String, NetworkMapNode> results, Set<SeedHistoryDTO> seeds) {
-        super(results, seeds);
+public class IndexProcessorArc extends IndexProcessor {
+    public IndexProcessorArc(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+        super(pool, targetInstanceId, harvestResultNumber);
     }
 
     @Override
@@ -28,12 +27,12 @@ public class ResourceExtractorArc extends ResourceExtractor {
 
     @Override
     protected void postProcess() {
-//        results.forEach((fromUrl, fromNode) -> {
+//        this.urls.forEach((fromUrl, fromNode) -> {
 //            NetworkNodeUrl node = fromNode;
 //            node.getOutlinks().forEach(toUrl -> {
 //                String formatToUrl = URLResolverFunc.doResolve(fromUrl, null, toUrl);
-//                if (results.containsKey(formatToUrl)) {
-//                    NetworkNodeUrl toNode = results.get(formatToUrl);
+//                if (this.urls.containsKey(formatToUrl)) {
+//                    NetworkNodeUrl toNode = this.urls.get(formatToUrl);
 //                    toNode.setViaUrl(fromUrl);
 //                }
 //            });
@@ -68,7 +67,7 @@ public class ResourceExtractorArc extends ResourceExtractor {
 
         String key = URLResolverFunc.doResolve(null, null, res.getUrl());
         if (key != null) {
-            results.put(key, res);
+            this.urls.put(key, res);
         }
 
         if (res.getContentType().startsWith("text/html")) {

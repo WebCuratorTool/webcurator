@@ -1,14 +1,16 @@
 package org.webcurator.core.visualization;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 
-public class VisualizationDirectoryManagerTest {
-    private static final Logger log = LoggerFactory.getLogger(VisualizationDirectoryManagerTest.class);
-    private static final VisualizationDirectoryManager directoryManager = MockVisualizationDirectoryManager.getDirectoryManagerInstance();
-    private static final long targetInstanceId = 5010;
-    private static final int harvestResultNumber = 1;
+import java.io.IOException;
+
+public class TestVisualizationDirectoryManager extends MockVisualizationCommonConfigureItems {
+    @Before
+    public void initTest() throws IOException, DigitalAssetStoreException {
+        super.initTest();
+    }
 
     @Test
     public void testAllDirectories() {

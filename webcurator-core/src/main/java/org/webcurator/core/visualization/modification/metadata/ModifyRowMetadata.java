@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class PruneAndImportCommandRowMetadata {
+public class ModifyRowMetadata {
     protected static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     private String url;
@@ -139,7 +139,7 @@ public class PruneAndImportCommandRowMetadata {
     }
 
     @JsonIgnore
-    public static PruneAndImportCommandRowMetadata getInstance(String json) {
+    public static ModifyRowMetadata getInstance(String json) {
         if (json == null) {
             return null;
         }
@@ -147,7 +147,7 @@ public class PruneAndImportCommandRowMetadata {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            return objectMapper.readValue(json, PruneAndImportCommandRowMetadata.class);
+            return objectMapper.readValue(json, ModifyRowMetadata.class);
         } catch (IOException e) {
             e.printStackTrace();
         }

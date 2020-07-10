@@ -63,14 +63,13 @@ import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
-import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
-import org.webcurator.core.visualization.networkmap.IndexerProcessor;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.processor.ModifyProcessorWarc;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
 
@@ -943,14 +942,13 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
     public void initiateIndexing(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
-        // Determine the source directory.
-//        File sourceDir = new File(this.baseDir, "/"
-//                + harvestResult.getTargetInstanceOid() + "/"
-//                + harvestResult.getHarvestNumber());
-        // Kick of the indexer.
-//        indexer.runIndex(harvestResult, sourceDir);
-        VisualizationAbstractProcessor processor = new IndexerProcessor(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
-        visualizationProcessorManager.startTask(processor);
+        VisualizationAbstractProcessor processor = new IndexProcessorWarc(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+        try {
+            visualizationProcessorManager.startTask(processor);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            throw new DigitalAssetStoreException(e);
+        }
     }
 
     public void initiateRemoveIndexes(HarvestResultDTO harvestResult)
@@ -1066,19 +1064,17 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     @Override
-    public PruneAndImportCommandResult initialPruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
-        VisualizationAbstractProcessor processor = null;
+    public ModifyResult initialPruneAndImport(ModifyApplyCommand cmd) {
+        ModifyResult result = new ModifyResult();
+        VisualizationAbstractProcessor processor = new ModifyProcessorWarc(cmd);
         try {
-            processor = new PruneAndImportProcessor(cmd);
-        } catch (DigitalAssetStoreException e) {
+            visualizationProcessorManager.startTask(processor);
+        } catch (IOException e) {
             result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
             result.setRespMsg(e.getMessage());
             log.error(e.getLocalizedMessage());
             return result;
         }
-
-        visualizationProcessorManager.startTask(processor);
 
         result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
         result.setRespMsg("Modification task is accepted");
@@ -1097,13 +1093,13 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         } else if (command.equalsIgnoreCase("delete")) {
             visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
 
-            PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
+            ModifyApplyCommand cmd = new ModifyApplyCommand();
             cmd.setTargetInstanceId(targetInstanceId);
             cmd.setNewHarvestResultNumber(harvestNumber);
-            VisualizationAbstractProcessor processorModifier = new PruneAndImportProcessor(cmd);
+            VisualizationAbstractProcessor processorModifier = new ModifyProcessorWarc(cmd);
             processorModifier.deleteTask();
 
-            VisualizationAbstractProcessor processorIndexer = new IndexerProcessor(pool, targetInstanceId, harvestNumber);
+            VisualizationAbstractProcessor processorIndexer = new IndexProcessorWarc(pool, targetInstanceId, harvestNumber);
             processorIndexer.deleteTask();
         }
     }

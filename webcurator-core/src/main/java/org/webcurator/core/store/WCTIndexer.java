@@ -1,7 +1,6 @@
 package org.webcurator.core.store;
 
 import java.io.File;
-import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,9 +15,10 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.visualization.networkmap.IndexerProcessor;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.domain.model.core.*;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
@@ -88,9 +88,9 @@ public class WCTIndexer extends IndexerBase {
     public void indexFiles(Long harvestResultOid) {
         // Step 2. Save the Index for each file.
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
-        IndexerProcessor indexer = null;
+        IndexProcessor indexer = null;
         try {
-            indexer = new IndexerProcessor(pool, getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
+            indexer = new IndexProcessorWarc(pool, getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
         } catch (DigitalAssetStoreException e) {
             log.error("Failed to create directory: {}", directory);
             return;
@@ -101,8 +101,8 @@ public class WCTIndexer extends IndexerBase {
         }
 
         try {
-            indexer.indexFiles();
-        } catch (IOException e) {
+            indexer.processInternal();
+        } catch (Exception e) {
             log.error("Failed to index files: {}", directory);
             return;
         } finally {

@@ -8,12 +8,18 @@ import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Semaphore;
 
 public abstract class VisualizationAbstractProcessor implements Callable<Boolean> {
     protected static final Logger log = LoggerFactory.getLogger(VisualizationAbstractProcessor.class);
-    protected WctCoordinatorClient wctCoordinatorClient;
+    protected WctCoordinatorClient wctClient;
     protected final long targetInstanceId;
     protected final int harvestResultNumber;
     protected int state = HarvestResult.STATE_UNASSESSED;
@@ -23,25 +29,52 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     protected String logsDir; //log dir
     protected String reportsDir; //report dir
     protected VisualizationProgressBar progressBar;
-    protected VisualizationProcessorManager visualizationProcessorManager;
+    protected VisualizationProcessorManager processorManager;
+    protected String flag; //MOD or IDX
+    protected String reportTitle;
+    protected FileWriter logWriter;
+    protected FileWriter reportWriter;
+    protected List<VisualizationStatisticItem> statisticItems = new ArrayList<>();
+
+    private boolean running = true;
+    private final Semaphore running_blocker = new Semaphore(1);
 
     public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) {
         this.targetInstanceId = targetInstanceId;
         this.harvestResultNumber = harvestResultNumber;
     }
 
-    public void init(VisualizationProcessorManager visualizationProcessorManager, VisualizationDirectoryManager visualizationDirectoryManager, WctCoordinatorClient wctCoordinatorClient) {
+    public void init(VisualizationProcessorManager processorManager, VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient) throws IOException {
         this.progressBar = new VisualizationProgressBar(getProcessorStage(), targetInstanceId, harvestResultNumber);
-        this.visualizationProcessorManager = visualizationProcessorManager;
-        this.baseDir = visualizationDirectoryManager.getBaseDir();
-        this.fileDir = visualizationDirectoryManager.getUploadDir(targetInstanceId);
-        this.logsDir = visualizationDirectoryManager.getPatchLogDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
-        this.reportsDir = visualizationDirectoryManager.getPatchReportDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
-        this.wctCoordinatorClient = wctCoordinatorClient;
+        this.processorManager = processorManager;
+        this.baseDir = directoryManager.getBaseDir();
+        this.fileDir = directoryManager.getUploadDir(targetInstanceId);
+        this.logsDir = directoryManager.getPatchLogDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
+        this.reportsDir = directoryManager.getPatchReportDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
+        this.wctClient = wctClient;
+
+        File fLogsDir = new File(logsDir);
+        if (!fLogsDir.exists() && !fLogsDir.mkdirs()) {
+            String err = String.format("Make directory failed: %s", fLogsDir.getAbsolutePath());
+            log.error(err);
+            throw new IOException(err);
+        }
+        this.logWriter = new FileWriter(new File(logsDir, "running.log"), false);
+
+        File fReportsDir = new File(reportsDir);
+        if (!fReportsDir.exists() && !fReportsDir.mkdirs()) {
+            String err = String.format("Make directory failed: %s", fReportsDir.getAbsolutePath());
+            log.error(err);
+            throw new IOException(err);
+        }
+        this.reportWriter = new FileWriter(new File(reportsDir, "report.txt"), false);
+
+        this.statisticItems.clear();
+
         this.initInternal();
     }
 
-    abstract protected void initInternal();
+    abstract protected void initInternal() throws IOException;
 
     abstract protected String getProcessorStage();
 
@@ -54,6 +87,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             this.status = HarvestResult.STATUS_RUNNING;
             updateHarvestResultStatus();
             processInternal();
+            this.close();
             return true;
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -61,29 +95,68 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         } finally {
             this.progressBar.clear();
             this.status = HarvestResult.STATUS_FINISHED;
-            visualizationProcessorManager.finalise(this);
+            processorManager.finalise(this);
         }
     }
 
     abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
-        pauseInternal();
-        this.status = HarvestResult.STATUS_PAUSED;
-        updateHarvestResultStatus();
+        try {
+            this.running_blocker.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.running = false;
+        System.out.println("Paused");
     }
-
-    abstract protected void pauseInternal();
 
     public void resumeTask() {
-        resumeInternal();
-        this.status = HarvestResult.STATUS_RUNNING;
-        updateHarvestResultStatus();
+        this.running = true;
+        this.running_blocker.release(2);
+        System.out.println("Resumed");
     }
 
-    abstract protected void resumeInternal();
-
     protected void tryBlock() {
+        if (!running) {
+            try {
+                System.out.println("Going to wait");
+                this.running_blocker.acquire();
+                System.out.println("Awake");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void writeLog(String content) {
+        if (logWriter == null) {
+            return;
+        }
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        String time = localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        try {
+            logWriter.write(String.format("%s %s %s%s", this.flag, time, content, System.lineSeparator()));
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    public void writeReport() {
+        if (reportWriter == null) {
+            return;
+        }
+
+        try {
+            reportWriter.write(this.reportTitle + System.lineSeparator());
+
+            for (VisualizationStatisticItem item : statisticItems) {
+                reportWriter.write(item.getPrintContent() + System.lineSeparator());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void terminateTask() {
@@ -150,7 +223,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void updateHarvestResultStatus() {
-        wctCoordinatorClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+        wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
     }
 
     public HarvestResultDTO getHarvestResultDTO() {
@@ -165,5 +238,24 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     @Override
     public Boolean call() {
         return process();
+    }
+
+    public void close() {
+        try {
+            if (statisticItems != null) {
+                statisticItems.clear();
+            }
+            if (progressBar != null) {
+                progressBar.clear();
+            }
+            if (logWriter != null) {
+                logWriter.close();
+            }
+            if (reportWriter != null) {
+                reportWriter.close();
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
     }
 }

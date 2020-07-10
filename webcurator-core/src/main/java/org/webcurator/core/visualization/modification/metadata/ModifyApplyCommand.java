@@ -1,14 +1,14 @@
 package org.webcurator.core.visualization.modification.metadata;
 
-import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
+import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PruneAndImportCommandApply extends VisualizationAbstractCommandApply {
+public class ModifyApplyCommand extends VisualizationAbstractApplyCommand {
 
     private String provenanceNote = null;
-    private List<PruneAndImportCommandRowMetadata> dataset = new ArrayList<>();
+    private List<ModifyRowMetadata> dataset = new ArrayList<>();
 
 
     public String getProvenanceNote() {
@@ -19,11 +19,11 @@ public class PruneAndImportCommandApply extends VisualizationAbstractCommandAppl
         this.provenanceNote = provenanceNote;
     }
 
-    public List<PruneAndImportCommandRowMetadata> getDataset() {
+    public List<ModifyRowMetadata> getDataset() {
         return dataset;
     }
 
-    public void setDataset(List<PruneAndImportCommandRowMetadata> dataset) {
+    public void setDataset(List<ModifyRowMetadata> dataset) {
         this.dataset = dataset;
     }
 }

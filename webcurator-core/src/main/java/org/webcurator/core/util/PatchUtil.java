@@ -3,15 +3,17 @@ package org.webcurator.core.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapCommandApply;
+import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapApplyCommand;
 import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PatchUtil {
@@ -30,6 +32,29 @@ public class PatchUtil {
         }
     }
 
+    public static List<File> listWarcFiles(String sPath) {
+        return listWarcFiles(new File(sPath));
+    }
+
+    public static List<File> listWarcFiles(File directory) {
+        //Checking validation
+        if (!directory.exists() || !directory.isDirectory()) {
+            return new ArrayList<File>();
+        }
+
+        File[] fileAry = directory.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".warc") || name.toLowerCase().endsWith(".warc.gz");
+            }
+        });
+
+        if (fileAry == null) {
+            return new ArrayList<File>();
+        }
+        return Arrays.asList(fileAry);
+    }
+
     public static class PatchStageProcessor {
         private final String stage;
 
@@ -41,12 +66,12 @@ public class PatchUtil {
             return String.format("%s_%d_%d", stage, targetInstanceId, harvestResultNumber);
         }
 
-        public void savePatchJob(String baseDir, VisualizationAbstractCommandApply cmd) throws IOException {
+        public void savePatchJob(String baseDir, VisualizationAbstractApplyCommand cmd) throws IOException {
             //Save cmd to local directory
             savePatchJob(baseDir, cmd, cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber());
         }
 
-        public void savePatchJob(String baseDir, VisualizationAbstractCommandApply cmd, long targetInstanceId, int harvestResultNumber) throws IOException {
+        public void savePatchJob(String baseDir, VisualizationAbstractApplyCommand cmd, long targetInstanceId, int harvestResultNumber) throws IOException {
             //Save cmd to local directory
             File jobDirectory = new File(baseDir, DIR_JOBS);
             if (!jobDirectory.exists()) {
@@ -67,7 +92,7 @@ public class PatchUtil {
             Files.write(cmdFile.toPath(), cmdJsonContent);
         }
 
-        public VisualizationAbstractCommandApply readPatchJob(String baseDir, long targetInstanceId, int harvestResultNumber) {
+        public VisualizationAbstractApplyCommand readPatchJob(String baseDir, long targetInstanceId, int harvestResultNumber) {
             File jobDirectory = new File(baseDir, DIR_JOBS);
             File cmdFile = new File(jobDirectory, getPatchJobName(targetInstanceId, harvestResultNumber) + ".json");
 
@@ -82,9 +107,9 @@ public class PatchUtil {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
                 if (this.stage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-                    return objectMapper.readValue(cmdJsonContent, NetworkMapCommandApply.class);
+                    return objectMapper.readValue(cmdJsonContent, NetworkMapApplyCommand.class);
                 } else {
-                    return objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);
+                    return objectMapper.readValue(cmdJsonContent, ModifyApplyCommand.class);
                 }
             } catch (IOException e) {
                 log.error(e.getMessage());
@@ -92,7 +117,7 @@ public class PatchUtil {
             }
         }
 
-        public VisualizationAbstractCommandApply readHistoryPatchJob(String baseDir, long targetInstanceId, int harvestResultNumber) {
+        public VisualizationAbstractApplyCommand readHistoryPatchJob(String baseDir, long targetInstanceId, int harvestResultNumber) {
             File historyDirectory = new File(baseDir, DIR_HISTORY);
             File cmdFile = new File(historyDirectory, getPatchJobName(targetInstanceId, harvestResultNumber) + ".json");
 
@@ -107,9 +132,9 @@ public class PatchUtil {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
                 if (this.stage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-                    return objectMapper.readValue(cmdJsonContent, NetworkMapCommandApply.class);
+                    return objectMapper.readValue(cmdJsonContent, NetworkMapApplyCommand.class);
                 } else {
-                    return objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);
+                    return objectMapper.readValue(cmdJsonContent, ModifyApplyCommand.class);
                 }
             } catch (IOException e) {
                 log.error(e.getMessage());
@@ -117,8 +142,8 @@ public class PatchUtil {
             }
         }
 
-        public List<VisualizationAbstractCommandApply> listPatchJob(String baseDir) throws IOException {
-            List<VisualizationAbstractCommandApply> list = new ArrayList<>();
+        public List<VisualizationAbstractApplyCommand> listPatchJob(String baseDir) throws IOException {
+            List<VisualizationAbstractApplyCommand> list = new ArrayList<>();
             File jobDirectory = new File(baseDir, DIR_JOBS);
             if (!jobDirectory.exists()) {
                 log.info("Job directory does not exist: {}", jobDirectory.getAbsolutePath());
@@ -139,11 +164,11 @@ public class PatchUtil {
                 byte[] cmdJsonContent = Files.readAllBytes(jobFile.toPath());
                 ObjectMapper objectMapper = new ObjectMapper();
 
-                VisualizationAbstractCommandApply cmd = null;
+                VisualizationAbstractApplyCommand cmd = null;
                 if (this.stage.equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-                    cmd = objectMapper.readValue(cmdJsonContent, NetworkMapCommandApply.class);
+                    cmd = objectMapper.readValue(cmdJsonContent, NetworkMapApplyCommand.class);
                 } else {
-                    cmd = objectMapper.readValue(cmdJsonContent, PruneAndImportCommandApply.class);
+                    cmd = objectMapper.readValue(cmdJsonContent, ModifyApplyCommand.class);
                 }
                 list.add(cmd);
             }

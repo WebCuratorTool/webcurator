@@ -5,6 +5,7 @@ import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 public interface DigitalAssetStoreListener {
@@ -34,7 +35,7 @@ public interface DigitalAssetStoreListener {
      * @param req               Http Request
      * @param rsp               Http Response
      */
-    void dasDownloadFile(long targetInstanceOid, int harvestNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp);
+    void dasDownloadFile(long targetInstanceOid, int harvestNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
 
     void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList);
 

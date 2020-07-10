@@ -1,4 +1,4 @@
-package org.webcurator.core.visualization.networkmap.extractor;
+package org.webcurator.core.visualization.networkmap.processor;
 
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
@@ -10,18 +10,16 @@ import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.domain.model.core.SeedHistoryDTO;
-
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
 
 @SuppressWarnings("all")
-public class ResourceExtractorWarc extends ResourceExtractor {
-    public ResourceExtractorWarc(Map<String, NetworkMapNode> results, Set<SeedHistoryDTO> seeds) {
-        super(results, seeds);
+public class IndexProcessorWarc extends IndexProcessor {
+    public IndexProcessorWarc(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
+        super(pool, targetInstanceId, harvestResultNumber);
     }
 
     @Override
@@ -54,11 +52,11 @@ public class ResourceExtractorWarc extends ResourceExtractor {
 
         String key = header.getUrl();
         NetworkMapNode res = null;
-        if (results.containsKey(key)) {
-            res = results.get(key);
+        if (this.urls.containsKey(key)) {
+            res = this.urls.get(key);
         } else {
             res = new NetworkMapNode(atomicIdGeneratorUrl.incrementAndGet());
-            results.put(key, res);
+            this.urls.put(key, res);
         }
 
         res.setFileName(fileName); //Save the warc file name
@@ -123,6 +121,6 @@ public class ResourceExtractorWarc extends ResourceExtractor {
             res.setViaUrl(httpHeaders.getValue("via"));
         }
 
-        this.writeLog("Extracted URL: " + res.getUrl() + ", results.size=" + results.size());
+        this.writeLog("Extracted URL: " + res.getUrl() + ", this.urls.size=" + this.urls.size());
     }
 }

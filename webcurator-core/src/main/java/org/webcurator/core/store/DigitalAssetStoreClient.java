@@ -12,8 +12,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
@@ -252,15 +252,15 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
     }
 
     @Override
-    public PruneAndImportCommandResult initialPruneAndImport(PruneAndImportCommandApply cmd) {
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+    public ModifyResult initialPruneAndImport(ModifyApplyCommand cmd) {
+        ModifyResult result = new ModifyResult();
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(org.webcurator.core.visualization.VisualizationConstants.PATH_APPLY_PRUNE_IMPORT));
         URI uri = uriComponentsBuilder.build().toUri();
 
         HttpEntity<String> request = createHttpRequestEntity(cmd);
         RestTemplate restTemplate = getRestTemplateBuilder().build();
-        result = restTemplate.postForObject(uri, request, PruneAndImportCommandResult.class);
+        result = restTemplate.postForObject(uri, request, ModifyResult.class);
 
         return result;
     }

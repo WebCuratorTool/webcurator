@@ -15,8 +15,7 @@
  */
 package org.webcurator.core.coordinator;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
@@ -42,10 +41,10 @@ import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyRow;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.profiles.Heritrix3Profile;
@@ -586,9 +585,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return processed;
         }
 
-        PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
+        ModifyApplyCommand cmd = (ModifyApplyCommand) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
-            log.error("Could not load PruneAndImportCommandApply of Harvest Result: {} {}", ti.getOid(), hr.getHarvestNumber());
+            log.error("Could not load ModifyApplyCommand of Harvest Result: {} {}", ti.getOid(), hr.getHarvestNumber());
             return processed;
         }
 
@@ -1481,13 +1480,13 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public PruneAndImportCommandRowMetadata uploadFile(long job, int harvestResultNumber, PruneAndImportCommandRow cmd) {
-        PruneAndImportCommandRowMetadata result = this.saveImportedFile(job, cmd);
+    public ModifyRowMetadata uploadFile(long job, int harvestResultNumber, ModifyRow cmd) {
+        ModifyRowMetadata result = this.saveImportedFile(job, cmd);
         if (result == null || !(result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS || result.getRespCode() == VisualizationConstants.RESP_CODE_FILE_EXIST)) {
             return result;
         }
 
-        PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
+        ModifyRowMetadata metadata = cmd.getMetadata();
         VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
         if (vif == null) {
             vif = new VisualizationImportedFile();
@@ -1509,8 +1508,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return result;
     }
 
-    private PruneAndImportCommandRowMetadata saveImportedFile(long job, PruneAndImportCommandRow cmd) {
-        PruneAndImportCommandRowMetadata metadata = cmd.getMetadata();
+    private ModifyRowMetadata saveImportedFile(long job, ModifyRow cmd) {
+        ModifyRowMetadata metadata = cmd.getMetadata();
         File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job));
         if (!uploadedFilePath.exists()) {
             uploadedFilePath.mkdir();
@@ -1547,8 +1546,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return metadata;
     }
 
-    public PruneAndImportCommandResult modificationDownloadFile(long job, int harvestResultNumber, PruneAndImportCommandRowMetadata metadata, HttpServletResponse resp) {
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+    public ModifyResult modificationDownloadFile(long job, int harvestResultNumber, ModifyRowMetadata metadata, HttpServletResponse resp) {
+        ModifyResult result = new ModifyResult();
 
         //Ignore elements which are not 'file'
         if (!metadata.getOption().equalsIgnoreCase("FILE")) {
@@ -1581,18 +1580,18 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public PruneAndImportCommandResult checkFiles(long job, int harvestResultNumber, List<PruneAndImportCommandRowMetadata> items) {
+    public ModifyResult checkFiles(long job, int harvestResultNumber, List<ModifyRowMetadata> items) {
         return this.checkFiles(job, items);
     }
 
-    private PruneAndImportCommandResult checkFiles(long job, List<PruneAndImportCommandRowMetadata> items) {
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+    private ModifyResult checkFiles(long job, List<ModifyRowMetadata> items) {
+        ModifyResult result = new ModifyResult();
 
         /**
          * Checking do files exist and attaching properties for existing files
          */
         boolean isValid = true;
-        for (PruneAndImportCommandRowMetadata metadata : items) {
+        for (ModifyRowMetadata metadata : items) {
             //Ignore elements which are not 'file'
             if (!metadata.getOption().equalsIgnoreCase("FILE")) {
                 continue;
@@ -1631,11 +1630,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public PruneAndImportCommandResult applyPruneAndImport(PruneAndImportCommandApply cmd) {
+    public ModifyResult applyPruneAndImport(ModifyApplyCommand cmd) {
         /**
          * Checking do files exist and attaching properties for existing files
          */
-        PruneAndImportCommandResult result = this.checkFiles(cmd.getTargetInstanceId(), cmd.getDataset());
+        ModifyResult result = this.checkFiles(cmd.getTargetInstanceId(), cmd.getDataset());
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS &&
                 result.getRespCode() != VisualizationConstants.RESP_CODE_FILE_EXIST) {
             log.error(result.getRespMsg());
@@ -1661,7 +1660,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         boolean isNeedHarvest = false;
-        for (PruneAndImportCommandRowMetadata row : cmd.getDataset()) {
+        for (ModifyRowMetadata row : cmd.getDataset()) {
             if (row.getOption().equalsIgnoreCase("url")) {
                 isNeedHarvest = true;
                 break;
@@ -1691,8 +1690,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public PruneAndImportCommandResult patchHarvest(PruneAndImportCommandApply cmd) {
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+    public ModifyResult patchHarvest(ModifyApplyCommand cmd) {
+        ModifyResult result = new ModifyResult();
 
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
@@ -1809,19 +1808,19 @@ public class WctCoordinatorImpl implements WctCoordinator {
         hr.setState(HarvestResult.STATE_MODIFYING);
         targetInstanceManager.save(hr);
 
-        PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
+        ModifyApplyCommand cmd = (ModifyApplyCommand) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
-            log.error("Could not load PruneAndImportCommandApply of target instance: {}", ti.getOid(), hr.getHarvestNumber());
+            log.error("Could not load ModifyApplyCommand of target instance: {}", ti.getOid(), hr.getHarvestNumber());
             return false;
         }
 
-        PruneAndImportCommandResult result = pushPruneAndImport(cmd);
+        ModifyResult result = pushPruneAndImport(cmd);
         return result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS;
     }
 
-    private PruneAndImportCommandResult pushPruneAndImport(PruneAndImportCommandApply cmd) {
+    private ModifyResult pushPruneAndImport(ModifyApplyCommand cmd) {
         DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
-        PruneAndImportCommandResult result = digitalAssetStoreClient.initialPruneAndImport(cmd);
+        ModifyResult result = digitalAssetStoreClient.initialPruneAndImport(cmd);
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
             log.error("Failed to request modification, {} {}", result.getRespCode(), result.getRespMsg());
             return result;
@@ -1847,7 +1846,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return result;
     }
 
-    private HarvestResultDTO savePruneAndImportCommandApply(PruneAndImportCommandApply cmd, boolean isNeedHarvest) throws IOException, WCTRuntimeException {
+    private HarvestResultDTO savePruneAndImportCommandApply(ModifyApplyCommand cmd, boolean isNeedHarvest) throws IOException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         HarvestResult res = targetInstanceDao.getHarvestResult(cmd.getHarvestResultId()); //Query the old Harvest Result
         if (ti == null || res == null) {
@@ -1901,13 +1900,34 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) {
+    public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         File f = new File(visualizationDirectoryManager.getUploadDir(targetInstanceId), fileName);
-        try {
-            Files.copy(f.toPath(), rsp.getOutputStream());
-        } catch (IOException e) {
-            log.error(e.getMessage());
+
+        StringBuilder headers = new StringBuilder();
+        headers.append("HTTP/1.1 200 OK\n");
+        headers.append("Content-Type: ");
+        headers.append(Files.probeContentType(f.toPath())).append("\n");
+        headers.append("Content-Length: ");
+        headers.append(f.length()).append("\n");
+        headers.append("Connection: close\n");
+
+        OutputStream outputStream = rsp.getOutputStream();
+        outputStream.write(headers.toString().getBytes());
+        outputStream.write("\n".getBytes());
+
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(f));
+        while (true) {
+            byte[] buf = new byte[1024 * 32];
+            int len = inputStream.read(buf);
+            if (len < 0) {
+                break;
+            }
+            outputStream.write(buf, 0, len);
         }
+//        Files.copy(f.toPath(), outputStream);
+        inputStream.close();
+
+        log.debug("Finished file download: {}", fileName);
     }
 
     @Override

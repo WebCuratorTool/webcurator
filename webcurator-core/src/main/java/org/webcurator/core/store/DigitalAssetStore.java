@@ -21,8 +21,8 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -181,7 +181,7 @@ public interface DigitalAssetStore {
      * @param cmd The prune and import metadata list
      * @return the command is accepted or not
      */
-    PruneAndImportCommandResult initialPruneAndImport(PruneAndImportCommandApply cmd);
+    ModifyResult initialPruneAndImport(ModifyApplyCommand cmd);
 
     /**
      * To clear the patching Harvest Result, Index, and the Mod Harvest Files

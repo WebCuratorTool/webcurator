@@ -6,11 +6,11 @@ import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandResult;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRow;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
-import org.webcurator.core.visualization.modification.service.PruneAndImportService;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyRow;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.service.ModifyService;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-public class HarvestModificationController implements PruneAndImportService {
+public class HarvestModificationController implements ModifyService {
     //For store component, it's a localClient; For webapp component, it's a remote component
     @Autowired
     private WctCoordinator wctCoordinator;
@@ -29,28 +29,28 @@ public class HarvestModificationController implements PruneAndImportService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_UPLOAD_FILE, method = RequestMethod.POST, produces = "application/json")
-    public PruneAndImportCommandRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody PruneAndImportCommandRow cmd) {
+    public ModifyRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody ModifyRow cmd) {
         return wctCoordinator.uploadFile(job, harvestResultNumber, cmd);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_CHECK_FILES, method = RequestMethod.POST, produces = "application/json")
-    public PruneAndImportCommandResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<PruneAndImportCommandRowMetadata> items) {
+    public ModifyResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<ModifyRowMetadata> items) {
         return wctCoordinator.checkFiles(job, harvestResultNumber, items);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_APPLY_PRUNE_IMPORT, method = RequestMethod.POST, produces = "application/json")
-    public PruneAndImportCommandResult applyPruneAndImport(@RequestBody PruneAndImportCommandApply cmd) {
+    public ModifyResult applyPruneAndImport(@RequestBody ModifyApplyCommand cmd) {
         return wctCoordinator.applyPruneAndImport(cmd);
     }
 
     @RequestMapping(path = "/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
-    public PruneAndImportCommandResult operateHarvestResultModification(@RequestParam("stage") String stage,
-                                                                        @RequestParam("command") String command,
-                                                                        @RequestParam("targetInstanceId") long targetInstanceId,
-                                                                        @RequestParam("harvestNumber") int harvestNumber) {
-        PruneAndImportCommandResult result = new PruneAndImportCommandResult();
+    public ModifyResult operateHarvestResultModification(@RequestParam("stage") String stage,
+                                                         @RequestParam("command") String command,
+                                                         @RequestParam("targetInstanceId") long targetInstanceId,
+                                                         @RequestParam("harvestNumber") int harvestNumber) {
+        ModifyResult result = new ModifyResult();
         try {
             if (command.equalsIgnoreCase("start")) {
                 harvestModificationHandler.clickStart(targetInstanceId, harvestNumber);

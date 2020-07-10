@@ -3,15 +3,11 @@ package org.webcurator.core.visualization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
-import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.PatchUtil;
-import org.webcurator.core.visualization.modification.PruneAndImportProcessor;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.networkmap.IndexerProcessor;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -21,22 +17,16 @@ public class VisualizationProcessorManager {
     private final ExecutorService thread_pool;
     private final VisualizationDirectoryManager visualizationDirectoryManager;
     private final WctCoordinatorClient wctCoordinatorClient;
-    private final BDBNetworkMapPool db_pool;
-    private final long max_running_duration = 24 * 3600 * 1000; //default: 24Hours
 
     public VisualizationProcessorManager(VisualizationDirectoryManager visualizationDirectoryManager,
                                          WctCoordinatorClient wctCoordinatorClient,
-                                         BDBNetworkMapPool db_pool,
-                                         int maxConcurrencyModThreads,
-                                         long heartbeatInterval,
-                                         long jobScanInterval) {
+                                         int maxConcurrencyModThreads) {
         this.visualizationDirectoryManager = visualizationDirectoryManager;
         this.wctCoordinatorClient = wctCoordinatorClient;
-        this.db_pool = db_pool;
         this.thread_pool = Executors.newFixedThreadPool(maxConcurrencyModThreads);
     }
 
-    public void startTask(VisualizationAbstractProcessor processor) {
+    public void startTask(VisualizationAbstractProcessor processor) throws IOException {
         if (queued_processors.containsKey(processor.getKey())) {
             log.debug("Processor is in the queue: {}", processor.getKey());
             return;

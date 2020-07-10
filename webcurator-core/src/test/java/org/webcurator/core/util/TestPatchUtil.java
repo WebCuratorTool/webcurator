@@ -7,8 +7,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
+import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.File;
@@ -19,7 +19,7 @@ public class TestPatchUtil {
     private static final String baseDir = "/usr/local/wct/store";
     private final long targetInstanceId = 5010;
     private final int harvestResultNumber = 2;
-    private final PruneAndImportCommandApply cmd = new PruneAndImportCommandApply();
+    private final ModifyApplyCommand cmd = new ModifyApplyCommand();
     private File jobFile;
     private File historyFile;
 
@@ -51,7 +51,7 @@ public class TestPatchUtil {
         PatchUtil.modifier.savePatchJob(baseDir, cmd);
         assertTrue(jobFile.exists());
 
-        PruneAndImportCommandApply modifyingCommand = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(baseDir, targetInstanceId, harvestResultNumber);
+        ModifyApplyCommand modifyingCommand = (ModifyApplyCommand) PatchUtil.modifier.readPatchJob(baseDir, targetInstanceId, harvestResultNumber);
         assertNotNull(modifyingCommand);
         assertEquals(modifyingCommand.getTargetInstanceId(), targetInstanceId);
         assertEquals(modifyingCommand.getNewHarvestResultNumber(), harvestResultNumber);
@@ -71,7 +71,7 @@ public class TestPatchUtil {
         assertTrue(historyFile.exists());
         assertFalse(jobFile.exists());
 
-        PruneAndImportCommandApply modifyingCommand = (PruneAndImportCommandApply) PatchUtil.modifier.readHistoryPatchJob(baseDir, targetInstanceId, harvestResultNumber);
+        ModifyApplyCommand modifyingCommand = (ModifyApplyCommand) PatchUtil.modifier.readHistoryPatchJob(baseDir, targetInstanceId, harvestResultNumber);
         assertNotNull(modifyingCommand);
         assertEquals(modifyingCommand.getTargetInstanceId(), targetInstanceId);
         assertEquals(modifyingCommand.getNewHarvestResultNumber(), harvestResultNumber);
@@ -85,7 +85,7 @@ public class TestPatchUtil {
         PatchUtil.modifier.savePatchJob(baseDir, cmd);
         assertTrue(jobFile.exists());
 
-        List<VisualizationAbstractCommandApply> list = PatchUtil.modifier.listPatchJob(baseDir);
+        List<VisualizationAbstractApplyCommand> list = PatchUtil.modifier.listPatchJob(baseDir);
         assertNotNull(list);
         assertTrue(list.size() > 0);
 

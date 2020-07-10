@@ -4,10 +4,10 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.util.List;
 
-public class PruneAndImportCommandResult {
+public class ModifyResult {
     private int respCode;
     private String respMsg;
-    private List<PruneAndImportCommandRowMetadata> metadataDataset;
+    private List<ModifyRowMetadata> metadataDataset;
     private HarvestResultDTO derivedHarvestResult;
 
     public int getRespCode() {
@@ -26,11 +26,11 @@ public class PruneAndImportCommandResult {
         this.respMsg = respMsg;
     }
 
-    public List<PruneAndImportCommandRowMetadata> getMetadataDataset() {
+    public List<ModifyRowMetadata> getMetadataDataset() {
         return metadataDataset;
     }
 
-    public void setMetadataDataset(List<PruneAndImportCommandRowMetadata> metadataDataset) {
+    public void setMetadataDataset(List<ModifyRowMetadata> metadataDataset) {
         this.metadataDataset = metadataDataset;
     }
 

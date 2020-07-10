@@ -1,6 +1,6 @@
 package org.webcurator.core.visualization;
 
-public class VisualizationAbstractCommandApply {
+public class VisualizationAbstractApplyCommand {
     private long targetInstanceId;
     private long harvestResultId;
     private int harvestResultNumber;

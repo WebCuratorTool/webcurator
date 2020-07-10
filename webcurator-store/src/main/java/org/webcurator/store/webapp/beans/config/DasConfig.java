@@ -37,7 +37,6 @@ import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.util.*;
 
 /**
@@ -311,10 +310,7 @@ public class DasConfig {
     public VisualizationProcessorManager visualizationProcessorQueue() {
         return new VisualizationProcessorManager(visualizationManager(),
                 wctCoordinatorClient(),
-                bdbDatabasePool(),
-                maxConcurrencyModThreads,
-                heartbeatInterval,
-                jobScanInterval);
+                maxConcurrencyModThreads);
     }
 
     @Bean

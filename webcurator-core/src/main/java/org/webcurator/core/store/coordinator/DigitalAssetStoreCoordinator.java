@@ -1,15 +1,11 @@
 package org.webcurator.core.store.coordinator;
 
 import org.webcurator.core.harvester.coordinator.IndexerService;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.service.PruneAndImportService;
+import org.webcurator.core.visualization.modification.service.ModifyService;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-public interface DigitalAssetStoreCoordinator extends PruneAndImportService, IndexerService, DigitalAssetStoreListener {
+public interface DigitalAssetStoreCoordinator extends ModifyService, IndexerService, DigitalAssetStoreListener {
 
     boolean pushPruneAndImport(long targetInstanceId, int harvestResultNumber);
     

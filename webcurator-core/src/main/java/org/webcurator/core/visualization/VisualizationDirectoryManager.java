@@ -7,9 +7,9 @@ public class VisualizationDirectoryManager {
     private static final String TEMPLATE_BASE_LOG_REPORT = "%s" + File.separator + "%d" + File.separator + "%s";
     private static final String TEMPLATE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d" + File.separator + "%s";
 
-    private final String baseDir;
-    private final String baseLogDir;
-    private final String baseReportDir;
+    private String baseDir = null;
+    private String baseLogDir = null;
+    private String baseReportDir = null;
 
 
     public VisualizationDirectoryManager(String baseDir, String baseLogDir, String baseReportDir) {

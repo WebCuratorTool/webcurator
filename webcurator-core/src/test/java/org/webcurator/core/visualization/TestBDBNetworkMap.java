@@ -3,34 +3,20 @@ package org.webcurator.core.visualization;
 import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.visualization.networkmap.IndexerProcessor;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.domain.model.core.SeedHistoryDTO;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
-public class BDBNetworkMapTest {
-    private static final String baseDir = "/usr/local/wct/store/";
-    private static final BDBNetworkMapPool pool = new BDBNetworkMapPool(baseDir);
-    private final long targetInstanceId = 36;
-    private final int harvestResultNumber = 1;
-    private final Set<SeedHistoryDTO> seeds = new HashSet<>();
-    private final VisualizationDirectoryManager visualizationDirectoryManager = MockVisualizationDirectoryManager.getDirectoryManagerInstance();
-
+public class TestBDBNetworkMap extends MockVisualizationCommonConfigureItems {
     @Before
     public void initTest() throws IOException, DigitalAssetStoreException {
+        super.initTest();
         String dbPath = pool.getDbPath(targetInstanceId, harvestResultNumber);
         File f = new File(dbPath);
         f.deleteOnExit(); //Clear the existing db
-
-        SeedHistoryDTO seedHistoryPrimary = new SeedHistoryDTO(1, "http://www.google.com/", targetInstanceId, true);
-        SeedHistoryDTO seedHistorySecondary = new SeedHistoryDTO(2, "http://www.baidu.com/", targetInstanceId, false);
-        seeds.add(seedHistoryPrimary);
-        seeds.add(seedHistorySecondary);
     }
 
     @Test
@@ -63,9 +49,9 @@ public class BDBNetworkMapTest {
     public void testExtractor(BDBNetworkMap db, long job, int harvestResultNumber) {
         String directory = String.format("%s/%d/1", baseDir, job);
         try {
-            IndexerProcessor indexer = new IndexerProcessor(pool, job, harvestResultNumber);
-            indexer.indexFiles();
-        } catch (IOException | DigitalAssetStoreException e) {
+            IndexProcessor indexer = new IndexProcessorWarc(pool, job, harvestResultNumber);
+            indexer.processInternal();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -19,11 +19,11 @@ import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.PatchUtil;
-import org.webcurator.core.visualization.VisualizationAbstractCommandApply;
+import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandApply;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -87,7 +87,7 @@ public class HarvestModificationHandler {
         }
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
-            PruneAndImportCommandApply cmd = (PruneAndImportCommandApply) PatchUtil.modifier.readPatchJob(directoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);
+            ModifyApplyCommand cmd = (ModifyApplyCommand) PatchUtil.modifier.readPatchJob(directoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);
             wctCoordinator.patchHarvest(cmd);
         } else if (hr.getState() == HarvestResult.STATE_MODIFYING) {
             wctCoordinator.pushPruneAndImport(targetInstanceId, harvestResultNumber);
@@ -220,21 +220,21 @@ public class HarvestModificationHandler {
         progress.setPercentageModify(hrDTO.getModifyingProgressPercentage(networkMapClient));
         progress.setPercentageIndex(hrDTO.getIndexingProgressPercentage(networkMapClient));
 
-        VisualizationAbstractCommandApply cmd = PatchUtil.modifier.readPatchJob(baseDir, targetInstanceId, harvestResultNumber);
+        VisualizationAbstractApplyCommand cmd = PatchUtil.modifier.readPatchJob(baseDir, targetInstanceId, harvestResultNumber);
         if (cmd == null) {
             cmd = PatchUtil.modifier.readHistoryPatchJob(baseDir, targetInstanceId, harvestResultNumber);
         }
 
-        PruneAndImportCommandApply pruneAndImportCommandApply = null;
+        ModifyApplyCommand pruneAndImportCommandApply = null;
         if (cmd != null) {
-            pruneAndImportCommandApply = (PruneAndImportCommandApply) cmd;
+            pruneAndImportCommandApply = (ModifyApplyCommand) cmd;
         } else {
-            pruneAndImportCommandApply = new PruneAndImportCommandApply();
+            pruneAndImportCommandApply = new ModifyApplyCommand();
         }
 
-        Map<String, PruneAndImportCommandRowMetadata> mapToBePruned = new HashMap<>();
-        Map<String, PruneAndImportCommandRowMetadata> mapToBeImportedByFile = new HashMap<>();
-        Map<String, PruneAndImportCommandRowMetadata> mapToBeImportedByURL = new HashMap<>();
+        Map<String,ModifyRowMetadata> mapToBePruned = new HashMap<>();
+        Map<String, ModifyRowMetadata> mapToBeImportedByFile = new HashMap<>();
+        Map<String, ModifyRowMetadata> mapToBeImportedByURL = new HashMap<>();
         pruneAndImportCommandApply.getDataset().forEach(e -> {
             if (e.getOption().equalsIgnoreCase("prune")) {
                 mapToBePruned.put(e.getUrl(), e);
@@ -307,7 +307,7 @@ public class HarvestModificationHandler {
         return result;
     }
 
-    private Map<String, Boolean> getIndexedUrlNodes(long targetInstanceId, int harvestResultNumber, PruneAndImportCommandApply pruneAndImportCommandApply) throws JsonProcessingException {
+    private Map<String, Boolean> getIndexedUrlNodes(long targetInstanceId, int harvestResultNumber, ModifyApplyCommand cmd) throws JsonProcessingException {
         Map<String, Boolean> mapIndexedUrlNodes = new HashMap<>();
         HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
         if (hrDTO.getState() == HarvestResult.STATE_CRAWLING ||
@@ -316,7 +316,7 @@ public class HarvestModificationHandler {
             return mapIndexedUrlNodes;
         }
 
-        List<String> listQueryUrlStatus = pruneAndImportCommandApply.getDataset().stream().map(PruneAndImportCommandRowMetadata::getUrl).collect(Collectors.toList());
+        List<String> listQueryUrlStatus = cmd.getDataset().stream().map(ModifyRowMetadata::getUrl).collect(Collectors.toList());
         NetworkMapResult urlsResult = networkMapClient.getUrlsByNames(targetInstanceId, harvestResultNumber, listQueryUrlStatus);
         if (urlsResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
             return mapIndexedUrlNodes;
@@ -332,7 +332,7 @@ public class HarvestModificationHandler {
         return mapIndexedUrlNodes;
     }
 
-    private void appendIndexedResult(Map<String, Boolean> mapIndexedUrlNodes, Map<String, PruneAndImportCommandRowMetadata> mapTargetUrlNodes) {
+    private void appendIndexedResult(Map<String, Boolean> mapIndexedUrlNodes, Map<String, ModifyRowMetadata> mapTargetUrlNodes) {
         mapTargetUrlNodes.forEach((k, v) -> {
             if (mapIndexedUrlNodes.containsKey(k)) {
                 v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);

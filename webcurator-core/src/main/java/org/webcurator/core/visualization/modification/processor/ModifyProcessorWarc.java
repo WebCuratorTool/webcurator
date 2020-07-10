@@ -1,4 +1,4 @@
-package org.webcurator.core.visualization.modification;
+package org.webcurator.core.visualization.modification.processor;
 
 import org.archive.format.warc.WARCConstants;
 import org.archive.io.ArchiveReader;
@@ -6,32 +6,31 @@ import org.archive.io.ArchiveReaderFactory;
 import org.archive.io.ArchiveRecord;
 import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.arc.ARCReader;
-import org.archive.io.warc.WARCReader;
-import org.archive.io.warc.WARCRecordInfo;
-import org.archive.io.warc.WARCWriter;
-import org.archive.io.warc.WARCWriterPoolSettings;
-import org.archive.io.warc.WARCWriterPoolSettingsData;
-import org.archive.io.warc.WARCRecord;
+import org.archive.io.warc.*;
 import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationProgressBar;
-import org.webcurator.core.visualization.modification.metadata.PruneAndImportCommandRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
+public class ModifyProcessorWarc extends ModifyProcessor {
     public static final String ARCHIVE_TYPE = "WARC";
     private WarcFilenameTemplate warcFilenameTemplate = null;
     private final List<String> impArcHeader = new ArrayList<String>();
     private final AtomicInteger aint = new AtomicInteger();
-    private List<File> dirs;
     private boolean compressed;
+
+    public ModifyProcessorWarc(ModifyApplyCommand cmd) {
+        super(cmd);
+    }
 
 
     /**
@@ -68,7 +67,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
      * call. So it is skipped before entering the loop that copies each record.
      */
     @Override
-    protected void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, PruneAndImportCommandRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception {
+    public void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -85,7 +84,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
         // Use the original filename
         String strippedImpArcFilename = reader.getStrippedFileName();
         if (this.warcFilenameTemplate == null) {
-            this.warcFilenameTemplate = new WarcFilenameTemplate(strippedImpArcFilename);
+            this.warcFilenameTemplate = new ModifyProcessor.WarcFilenameTemplate(strippedImpArcFilename);
         }
 
         if (urisToDelete.size() == 0) {
@@ -97,7 +96,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
         }
 
         //Summary
-        StatisticItem statisticItem = new StatisticItem();
+        ModifyProcessor.StatisticItem statisticItem = new ModifyProcessor.StatisticItem();
         statisticItems.add(statisticItem);
         statisticItem.setFromFileName(fileFrom.getName());
         statisticItem.setFromFileLength(fileFrom.length());
@@ -121,7 +120,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
             metaData.append(new String(buff, 0, bytesRead));
         }
 
-        List<String> l = new ArrayList<String>();
+        List<String> l = new ArrayList<>();
         l.add(metaData.toString());
 
         if (impArcHeader.isEmpty()) {
@@ -198,7 +197,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
                     warcRecordInfo.setUrl(header.getUrl());
                     break;
                 case revisit:
-                    warcRecordInfo.setType(WARCConstants.WARCRecordType.revisit);
+                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.revisit);
                     warcRecordInfo.setUrl(header.getUrl());
                     break;
                 default:
@@ -233,15 +232,18 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
     }
 
     @Override
-    protected void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, PruneAndImportCommandRowMetadata> hrsToImport) throws IOException {
+    public void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, ModifyRowMetadata> hrsToImport) throws Exception {
         this.writeLog("Start to import from file");
-        StatisticItem statisticItem = new StatisticItem();
+        ModifyProcessor.StatisticItem statisticItem = new ModifyProcessor.StatisticItem();
         statisticItems.add(statisticItem);
 
         VisualizationProgressBar.ProgressItem progressItemFileImported = progressBar.getProgressItem("ImportedFiles");
 
         // Create a WARC Writer
         LocalDateTime timestamp = LocalDateTime.now();
+        if (this.warcFilenameTemplate == null) {
+            this.warcFilenameTemplate = new WarcFilenameTemplate("WCT-yyyymmddHHMMSS-FILE.warc");
+        }
         this.warcFilenameTemplate.setTimestamp(timestamp.format(fTimestamp17));
         this.warcFilenameTemplate.setSerialNo(aint.getAndIncrement());
         this.warcFilenameTemplate.setHeritrixInfo("mod~import~file");
@@ -254,24 +256,27 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
                 WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
         WARCWriter warcWriter = new WARCWriter(aint, settings);
 
-        hrsToImport.values().stream().filter(f -> {
-            return f.getLength() > 0L;
-        }).forEach(fProps -> {
-            try {
-                this.tryBlock();
+        for (ModifyRowMetadata fProps : hrsToImport.values()) {
+            this.tryBlock();
 
+            if (!fProps.getOption().equalsIgnoreCase("file")) {
+                continue;
+            }
+
+            File tempFile = null;
+            try {
                 Date warcDate = new Date();
                 if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
                     warcDate.setTime(fProps.getLastModified());
                 }
-
                 log.debug("WARC-Date: {}", writerDF.format(warcDate));
 
-                File tempFile = this.modificationDownloadFile(job, harvestResultNumber, fProps);
+                tempFile = this.downloadFile(job, harvestResultNumber, fProps);
+
                 InputStream fin = Files.newInputStream(tempFile.toPath());
                 URI recordId = new URI("urn:uuid:" + tempFile.getName());
                 ANVLRecord namedFields = new ANVLRecord();
-                namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
+                namedFields.addLabelValue(org.archive.format.warc.WARCConstants.HEADER_KEY_IP, "0.0.0.0");
                 WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
                 warcRecordInfo.setUrl(fProps.getUrl());
                 warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
@@ -280,20 +285,25 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
                 warcRecordInfo.setExtraHeaders(namedFields);
                 warcRecordInfo.setContentStream(fin);
                 warcRecordInfo.setContentLength(tempFile.length());
-                warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
+                warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
                 warcWriter.writeRecord(warcRecordInfo);
 
-                Files.deleteIfExists(tempFile.toPath());
-
-                this.writeLog(String.format("Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
+                this.writeLog(String.format("[INFO] Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
                 statisticItem.increaseCopiedRecords();
 
                 progressItemFileImported.setCurLength(progressItemFileImported.getCurLength() + fProps.getLength());
-            } catch (IOException | URISyntaxException e) {
+            } catch (IOException | URISyntaxException | DigitalAssetStoreException e) {
                 log.error(e.getMessage());
+                this.writeLog(String.format("[ERROR] Imported a record from file, name: %s, size: %d. Error: %s", fProps.getName(), fProps.getLength(), e.getMessage()));
                 statisticItem.increaseFailedRecords();
+                throw e;
+            } finally {
+                if (tempFile != null) {
+                    Files.deleteIfExists(tempFile.toPath());
+                }
             }
-        });
+        }
+
         if (warcWriter.getFile() != null) {
             this.writeLog(String.format("End to import files, to: %s size: %d", warcWriter.getFile().getName(), warcWriter.getFile().length()));
             statisticItem.setToFileName(warcWriter.getFile().getName());
@@ -307,7 +317,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
 
 
     @Override
-    protected void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException {
+    public void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException {
         if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -322,7 +332,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
         this.writeLog(String.format("Start to import from source URLs, a source WARC file: %s size: %d", fileFrom.getName(), fileFrom.length()));
 
         //Summary
-        StatisticItem statisticItem = new StatisticItem();
+        ModifyProcessor.StatisticItem statisticItem = new ModifyProcessor.StatisticItem();
         statisticItems.add(statisticItem);
         statisticItem.setFromFileName(fileFrom.getName());
         statisticItem.setFromFileLength(fileFrom.length());
@@ -423,7 +433,7 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
                     warcRecordInfo.setUrl(header.getUrl());
                     break;
                 case revisit:
-                    warcRecordInfo.setType(WARCConstants.WARCRecordType.revisit);
+                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.revisit);
                     warcRecordInfo.setUrl(header.getUrl());
                     break;
                 default:
@@ -464,22 +474,22 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
         WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
         switch (org.archive.format.warc.WARCConstants.WARCRecordType.valueOf(WARCType)) {
             case warcinfo:
-                warcRecordInfo.setType(WARCConstants.WARCRecordType.warcinfo);
+                warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo);
                 break;
             case response:
-                warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
+                warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
                 warcRecordInfo.setUrl(targetUrl);
                 break;
             case metadata:
-                warcRecordInfo.setType(WARCConstants.WARCRecordType.metadata);
+                warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.metadata);
                 warcRecordInfo.setUrl(targetUrl);
                 break;
             case request:
-                warcRecordInfo.setType(WARCConstants.WARCRecordType.request);
+                warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.request);
                 warcRecordInfo.setUrl(targetUrl);
                 break;
             case resource:
-                warcRecordInfo.setType(WARCConstants.WARCRecordType.resource);
+                warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.resource);
                 warcRecordInfo.setUrl(targetUrl);
                 break;
             case revisit:
@@ -500,76 +510,8 @@ public class PruneAndImportHandlerHeritrixWarc extends PruneAndImportHandler {
     }
 
     @Override
-    protected String archiveType() {
+    public String archiveType() {
         return ARCHIVE_TYPE;
     }
 
-    public List<String> getImpArcHeader() {
-        return impArcHeader;
-    }
-
-    public boolean isCompressed() {
-        return compressed;
-    }
-
-    public void setCompressed(boolean compressed) {
-        this.compressed = compressed;
-    }
-
-    public void setDirs(List<File> dirs) {
-        this.dirs = dirs;
-    }
-
-
-    static class WarcFilenameTemplate {
-        private String prefix;
-        private String timestamp;
-        private int serialNo;
-        private String heritrixInfo;
-
-        public WarcFilenameTemplate(String strippedImpArcFilename) throws Exception {
-            if (strippedImpArcFilename == null || strippedImpArcFilename.indexOf('-') < 0) {
-                throw new Exception("Unsupported file template: " + strippedImpArcFilename);
-            }
-
-            int idx = strippedImpArcFilename.indexOf('-');
-            this.prefix = strippedImpArcFilename.substring(0, idx);
-        }
-
-        public String toString() {
-            return String.format("%s-%s-%05d-%s", this.prefix, this.timestamp, this.serialNo, this.heritrixInfo);
-        }
-
-        public String getPrefix() {
-            return prefix;
-        }
-
-        public void setPrefix(String prefix) {
-            this.prefix = prefix;
-        }
-
-        public String getTimestamp() {
-            return timestamp;
-        }
-
-        public void setTimestamp(String timestamp) {
-            this.timestamp = timestamp;
-        }
-
-        public int getSerialNo() {
-            return serialNo;
-        }
-
-        public void setSerialNo(int serialNo) {
-            this.serialNo = serialNo;
-        }
-
-        public String getHeritrixInfo() {
-            return heritrixInfo;
-        }
-
-        public void setHeritrixInfo(String heritrixInfo) {
-            this.heritrixInfo = heritrixInfo;
-        }
-    }
 }
