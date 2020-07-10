@@ -779,19 +779,22 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 		Long tiOid = aTargetInstance.getOid();
 		if (!harvestAgentManager.lock(tiOid))
 			return;
-		log.info("Obtained lock for ti " + tiOid);
+		try {
+			log.info("Obtained lock for ti " + tiOid);
 
-		if (TargetInstance.STATE_SCHEDULED.equals(aTargetInstance.getState())) {
-			ti = loadTargetInstance(tiOid);
-			approved = isTargetApproved(ti);
-		}
+			if (TargetInstance.STATE_SCHEDULED.equals(aTargetInstance.getState())) {
+				ti = loadTargetInstance(tiOid);
+				approved = isTargetApproved(ti);
+			}
 
-		if (approved) {
-			queueApprovedHarvest(aTargetInstance, ti, tiOid);
+			if (approved) {
+				queueApprovedHarvest(aTargetInstance, ti, tiOid);
+			}
+		} finally {
+			// release the lock
+			harvestAgentManager.unLock(tiOid);
+			log.info("Released lock for ti " + tiOid);
 		}
-		// release the lock
-		harvestAgentManager.unLock(tiOid);
-		log.info("Released lock for ti " + tiOid);
 	}
 
 	private void queueApprovedHarvest(QueuedTargetInstanceDTO queuedTargetInstance, TargetInstance ti, Long tiOid) {

@@ -47,43 +47,48 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 			long tiOid = Long.parseLong(key.substring(key.lastIndexOf("-") + 1));
 
 			// lock the ti for update
-			if (!lock(tiOid))
+			if (!lock(tiOid)) {
+				log.debug("Skipping heartbeat, found locked target instance: " + tiOid);
 				break;
-			log.debug("Obtained lock for ti " + tiOid);
-
-			TargetInstance ti = targetInstanceDao.load(tiOid);
-			HarvesterStatusDTO harvesterStatusDto = (HarvesterStatusDTO) harvesterStatusMap.get(key);
-
-			updateStatusWithEnvironment(harvesterStatusDto);
-			HarvesterStatus harvesterStatus = createHarvesterStatus(ti, harvesterStatusDto);
-
-			String harvesterStatusValue = harvesterStatus.getStatus();
-			if (harvesterStatusValue.startsWith("Paused")) {
-				doHeartbeatPaused(ti);
 			}
+			try {
+				log.debug("Obtained lock for ti " + tiOid);
 
-			// We have seen cases where a running Harvest is showing as Queued
-			// in the UI. Once in this state, the user has no control over the
-			// harvest and cannot use it. This work around means that any
-			// TIs in the wrong state will be corrected on the next heartbeat
-			if (harvesterStatusValue.startsWith("Running")) {
-				doHeartbeatRunning(aStatus, ti, harvesterStatus);
+				TargetInstance ti = targetInstanceDao.load(tiOid);
+				HarvesterStatusDTO harvesterStatusDto = (HarvesterStatusDTO) harvesterStatusMap.get(key);
+
+				updateStatusWithEnvironment(harvesterStatusDto);
+				HarvesterStatus harvesterStatus = createHarvesterStatus(ti, harvesterStatusDto);
+
+				String harvesterStatusValue = harvesterStatus.getStatus();
+				if (harvesterStatusValue.startsWith("Paused")) {
+					doHeartbeatPaused(ti);
+				}
+
+				// We have seen cases where a running Harvest is showing as Queued
+				// in the UI. Once in this state, the user has no control over the
+				// harvest and cannot use it. This work around means that any
+				// TIs in the wrong state will be corrected on the next heartbeat
+				if (harvesterStatusValue.startsWith("Running")) {
+					doHeartbeatRunning(aStatus, ti, harvesterStatus);
+				}
+
+				if (harvesterStatusValue.startsWith("Finished")) {
+					doHeartbeatFinished(ti);
+				}
+
+				// This is a required because when a
+				// "Could not launch job - Fatal InitializationException" job occurs
+				// We do not get a notification that causes the job to stop nicely
+				if (harvesterStatusValue.startsWith("Could not launch job - Fatal InitializationException")) {
+					doHeartbeatLaunchFailed(ti);
+				}
+
+				targetInstanceManager.save(ti);
+			} finally {
+				unLock(tiOid);
+				log.debug("Released lock for ti " + tiOid);
 			}
-
-			if (harvesterStatusValue.startsWith("Finished")) {
-				doHeartbeatFinished(ti);
-			}
-
-			// This is a required because when a
-			// "Could not launch job - Fatal InitializationException" job occurs
-			// We do not get a notification that causes the job to stop nicely
-			if (harvesterStatusValue.startsWith("Could not launch job - Fatal InitializationException")) {
-				doHeartbeatLaunchFailed(ti);
-			}
-
-			targetInstanceManager.save(ti);
-			unLock(tiOid);
-			log.debug("Released lock for ti " + tiOid);
 		}
 	}
 
