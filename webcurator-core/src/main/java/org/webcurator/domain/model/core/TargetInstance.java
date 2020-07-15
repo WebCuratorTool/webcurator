@@ -434,8 +434,13 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         if (!state.equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             return oid.toString();
         } else {
-            HarvestResult hr = getPatchingHarvestResults().get(0);
-            return PatchUtil.getPatchJobName(oid, hr.getHarvestNumber());
+            List<HarvestResult> patchingHarvestResults = getPatchingHarvestResults();
+            if (patchingHarvestResults != null && patchingHarvestResults.size() > 0) {
+                HarvestResult hr = patchingHarvestResults.get(0);
+                return PatchUtil.getPatchJobName(oid, hr.getHarvestNumber());
+            } else {
+                return oid.toString();
+            }
         }
     }
 

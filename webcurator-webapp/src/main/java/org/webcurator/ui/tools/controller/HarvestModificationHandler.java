@@ -170,7 +170,6 @@ public class HarvestModificationHandler {
 
         if (hr.getState() == HarvestResult.STATE_CRAWLING) {
             String jobName = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
-            harvestAgentManager.stopPatching(jobName);
             harvestAgentManager.abortPatching(jobName);
             List<String> jobList = new ArrayList<>();
             jobList.add(jobName);
@@ -232,10 +231,11 @@ public class HarvestModificationHandler {
             pruneAndImportCommandApply = new ModifyApplyCommand();
         }
 
-        Map<String,ModifyRowMetadata> mapToBePruned = new HashMap<>();
+        Map<String, ModifyRowMetadata> mapToBePruned = new HashMap<>();
         Map<String, ModifyRowMetadata> mapToBeImportedByFile = new HashMap<>();
         Map<String, ModifyRowMetadata> mapToBeImportedByURL = new HashMap<>();
         pruneAndImportCommandApply.getDataset().forEach(e -> {
+            e.setRespCode(VisualizationConstants.RESP_CODE_INDEX_NOT_EXIST);
             if (e.getOption().equalsIgnoreCase("prune")) {
                 mapToBePruned.put(e.getUrl(), e);
             } else if (e.getOption().equalsIgnoreCase("file")) {
@@ -246,21 +246,22 @@ public class HarvestModificationHandler {
         });
 
         /*Appended indexed results*/
-        Map<String, Boolean> mapIndexedUrlNodes = getIndexedUrlNodes(targetInstanceId, harvestResultNumber, pruneAndImportCommandApply);
-        appendIndexedResult(mapIndexedUrlNodes, mapToBeImportedByFile);
-        appendIndexedResult(mapIndexedUrlNodes, mapToBeImportedByURL);
+        if (hrDTO.getState() == HarvestResult.STATE_UNASSESSED) {
+            Map<String, Boolean> mapIndexedUrlNodes = getIndexedUrlNodes(targetInstanceId, harvestResultNumber, pruneAndImportCommandApply);
+            appendIndexedResult(mapIndexedUrlNodes, mapToBeImportedByFile);
+            appendIndexedResult(mapIndexedUrlNodes, mapToBeImportedByURL);
 
-        mapToBePruned.forEach((k, v) -> {
-            if (!mapIndexedUrlNodes.containsKey(k)) {
-                v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
-            } else if ((mapToBeImportedByFile.containsKey(k) && mapToBeImportedByFile.get(k).getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS) ||
-                    (mapToBeImportedByURL.containsKey(k) && mapToBeImportedByURL.get(k).getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS)) {
-                v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
-            } else {
-                v.setRespCode(VisualizationConstants.RESP_CODE_INDEX_NOT_EXIST);
-            }
-        });
-
+            mapToBePruned.forEach((k, v) -> {
+                if (!mapIndexedUrlNodes.containsKey(k)) {
+                    v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+                } else if ((mapToBeImportedByFile.containsKey(k) && mapToBeImportedByFile.get(k).getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS) ||
+                        (mapToBeImportedByURL.containsKey(k) && mapToBeImportedByURL.get(k).getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS)) {
+                    v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+                } else {
+                    v.setRespCode(VisualizationConstants.RESP_CODE_INDEX_NOT_EXIST);
+                }
+            });
+        }
 
         List<LogFilePropertiesDTO> logsCrawling = new ArrayList<>();
         List<LogFilePropertiesDTO> logsModifying = new ArrayList<>();
@@ -273,13 +274,14 @@ public class HarvestModificationHandler {
             log.error(e.getMessage());
         }
 
+        HarvestResult hr=targetInstanceDAO.getHarvestResult(harvestResultId);
         result.put("respCode", 0);
         result.put("respMsg", "Success");
         result.put("targetInstanceOid", targetInstanceId);
-        result.put("harvestResultNumber", hrDTO.getHarvestNumber());
-        result.put("derivedHarvestNumber", hrDTO.getDerivedFrom());
-        result.put("createdOwner", hrDTO.getCreatedByFullName());
-        result.put("createdDate", hrDTO.getCreationDate());
+        result.put("harvestResultNumber", harvestResultNumber);
+        result.put("derivedHarvestNumber", hr.getDerivedFrom());
+        result.put("createdOwner", hr.getCreatedBy().getFullName());
+        result.put("createdDate",hr.getCreationDate());
         result.put("hrState", hrDTO.getState());
         result.put("hrStatus", hrDTO.getStatus());
 

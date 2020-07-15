@@ -9,6 +9,8 @@ public class VisualizationProgressBar {
     private String stage;
     private long targetInstanceId;
     private int harvestResultNumber;
+    private int state;
+    private int status;
 
     public VisualizationProgressBar() {
     }
@@ -87,6 +89,21 @@ public class VisualizationProgressBar {
         this.harvestResultNumber = harvestResultNumber;
     }
 
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public static class ProgressItem {
         private String name;

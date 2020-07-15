@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationProgressView;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 
 import java.io.IOException;
@@ -58,6 +57,7 @@ public class HarvestResultDTO {
     protected int state = 0;
     protected int status = 0;
     protected int currentProgressPercentage = 0;
+    protected VisualizationProgressView progressView;
 
     public HarvestResultDTO() {
     }
@@ -208,11 +208,10 @@ public class HarvestResultDTO {
             return 100; //Finished
         }
 
-        NetworkMapResult progressBar = networkMapClient.getProgress(targetInstanceOid, harvestNumber);
-        if (progressBar.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+        if (this.progressView == null) {
             return getProgressPercentage();
         } else {
-            return VisualizationProgressView.getInstance(progressBar.getPayload()).getProgressPercentage();
+            return progressView.getProgressPercentage();
         }
     }
 
@@ -223,11 +222,10 @@ public class HarvestResultDTO {
             return 100; //Finished
         }
 
-        NetworkMapResult progressBar = networkMapClient.getProgress(targetInstanceOid, harvestNumber);
-        if (progressBar.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+        if (this.progressView == null) {
             return getProgressPercentage();
         } else {
-            return VisualizationProgressView.getInstance(progressBar.getPayload()).getProgressPercentage();
+            return progressView.getProgressPercentage();
         }
     }
 
@@ -256,5 +254,13 @@ public class HarvestResultDTO {
         }
 
         return null;
+    }
+
+    public VisualizationProgressView getProgressView() {
+        return progressView;
+    }
+
+    public void setProgressView(VisualizationProgressView progressView) {
+        this.progressView = progressView;
     }
 }

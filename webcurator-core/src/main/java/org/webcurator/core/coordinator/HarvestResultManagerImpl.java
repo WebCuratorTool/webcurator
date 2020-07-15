@@ -52,46 +52,21 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
     @Override
     public HarvestResultDTO getHarvestResultDTO(long targetInstanceId, int harvestResultNumber) throws WCTRuntimeException {
         String key = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
-        HarvestResultDTO hrDTO = harvestResults.get(key);
-        if (hrDTO != null) {
-            return hrDTO;
+        HarvestResultDTO hrDTO = harvestResults.containsKey(key) ? harvestResults.get(key) : initHarvestResultDTO(targetInstanceId, harvestResultNumber);
+
+        //Refresh state, status and progress
+        if (hrDTO.getState() == HarvestResult.STATE_MODIFYING || hrDTO.getState() == HarvestResult.STATE_INDEXING) {
+            NetworkMapResult progressBar = networkMapClient.getProgress(targetInstanceId, harvestResultNumber);
+            if (progressBar.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
+                VisualizationProgressView progressView = VisualizationProgressView.getInstance(progressBar.getPayload());
+                hrDTO.setProgressView(progressView);
+                hrDTO.setState(progressView.getState());
+                hrDTO.setStatus(progressView.getStatus());
+            } else {
+                hrDTO.setStatus(HarvestResult.STATUS_SCHEDULED);
+            }
         }
 
-        NetworkMapResult remoteResult = networkMapClient.getProcessingHarvestResultDTO(targetInstanceId, harvestResultNumber);
-        if (remoteResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
-            hrDTO = HarvestResultDTO.getInstance(remoteResult.getPayload());
-            return hrDTO;
-        }
-
-        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceId);
-        if (ti == null) {
-            log.warn("TargetInstance does not exist: {}", targetInstanceId);
-            throw new WCTRuntimeException("TargetInstance does not exist, targetInstanceId: " + targetInstanceId);
-        }
-
-        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-        if (hr == null) {
-            log.warn("TargetInstance does not exist: {} {}", targetInstanceId, harvestResultNumber);
-            throw new WCTRuntimeException("TargetInstance does not exist, targetInstanceId: " + targetInstanceId + ", harvestResultNumber: " + harvestResultNumber);
-        }
-
-        hrDTO = new HarvestResultDTO();
-        hrDTO.setTargetInstanceOid(targetInstanceId);
-        hrDTO.setHarvestNumber(harvestResultNumber);
-        hrDTO.setState(hr.getState());
-        if (hr.getState() == HarvestResult.STATE_CRAWLING
-                || hr.getState() == HarvestResult.STATE_MODIFYING
-                || hr.getState() == HarvestResult.STATE_INDEXING) {
-            hrDTO.setStatus(HarvestResult.STATUS_SCHEDULED);
-        } else {
-            hrDTO.setStatus(HarvestResult.STATUS_UNASSESSED);
-        }
-        hrDTO.setCreatedByFullName(hr.getCreatedBy().getFullName());
-        hrDTO.setDerivedFrom(hr.getDerivedFrom());
-        hrDTO.setProvenanceNote(hr.getProvenanceNote());
-        hrDTO.setCreationDate(hr.getCreationDate());
-
-        harvestResults.put(hrDTO.getKey(), hrDTO);
         return hrDTO;
     }
 
@@ -115,5 +90,46 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
         for (HarvestResultDTO hrDTO : harvestResultDTOList) {
             harvestResults.put(hrDTO.getKey(), hrDTO);
         }
+    }
+
+    private HarvestResultDTO initHarvestResultDTO(long targetInstanceId, int harvestResultNumber) {
+        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceId);
+        if (ti == null) {
+            log.warn("TargetInstance does not exist: {}", targetInstanceId);
+            throw new WCTRuntimeException("TargetInstance does not exist, targetInstanceId: " + targetInstanceId);
+        }
+
+        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
+        if (hr == null) {
+            log.warn("TargetInstance does not exist: {} {}", targetInstanceId, harvestResultNumber);
+            throw new WCTRuntimeException("TargetInstance does not exist, targetInstanceId: " + targetInstanceId + ", harvestResultNumber: " + harvestResultNumber);
+        }
+
+        HarvestResultDTO hrDTO = null;
+
+        NetworkMapResult remoteResult = networkMapClient.getProcessingHarvestResultDTO(targetInstanceId, harvestResultNumber);
+        if (remoteResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
+            hrDTO = HarvestResultDTO.getInstance(remoteResult.getPayload());
+        } else {
+            hrDTO = new HarvestResultDTO();
+            hrDTO.setTargetInstanceOid(targetInstanceId);
+            hrDTO.setHarvestNumber(harvestResultNumber);
+            hrDTO.setState(hr.getState());
+            if (hr.getState() == HarvestResult.STATE_CRAWLING
+                    || hr.getState() == HarvestResult.STATE_MODIFYING
+                    || hr.getState() == HarvestResult.STATE_INDEXING) {
+                hrDTO.setStatus(HarvestResult.STATUS_SCHEDULED);
+            } else {
+                hrDTO.setStatus(HarvestResult.STATUS_UNASSESSED);
+            }
+        }
+        hrDTO.setOid(hr.getOid());
+        hrDTO.setCreatedByFullName(hr.getCreatedBy().getFullName());
+        hrDTO.setDerivedFrom(hr.getDerivedFrom());
+        hrDTO.setProvenanceNote(hr.getProvenanceNote());
+        hrDTO.setCreationDate(hr.getCreationDate());
+
+        harvestResults.put(hrDTO.getKey(), hrDTO);
+        return hrDTO;
     }
 }

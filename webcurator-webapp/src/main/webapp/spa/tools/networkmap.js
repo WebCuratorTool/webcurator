@@ -14,7 +14,8 @@ class NetworkMap{
 		var reqUrl="/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
 		var that=this;
     	fetchHttp(reqUrl, null, function(response){
-    		if (response.rspCode === 0) {
+    		console.log(response.rspCode + ': ' + response.rspMsg);
+    		if (response.rspCode === 0 && response.payload !== null) {
     			var data=JSON.parse(response.payload);
     			that.formatData(data);
     			that.initDraw(data);
@@ -23,10 +24,7 @@ class NetworkMap{
     			if (confirm("Index file is missing. Would you reindex the harvest result?")) {
     				that.reindex();
     			}
-    		}else{
-    			alert(response.rspMsg);
     		}
-    		
     	});
 	}
 
@@ -34,8 +32,9 @@ class NetworkMap{
 		var reqUrl="/visualization/index/initial?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		var that=this;
 		fetchHttp(reqUrl, null, function(response){
+			console.log(response.rspCode + ': ' + response.rspMsg);
+
 			if (response.rspCode!==0) {
-				alert(response.rspMsg);
 				return;
 			}
 
@@ -50,10 +49,17 @@ class NetworkMap{
 	}
 
 	refreshprogress(){
-		var reqUrl="/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		var reqUrl="/curator/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		var that=this;
-		fetchHttp(reqUrl, null, function(response){
-			console.log(response);
+		fetch(reqUrl, { 
+	    method: 'GET',
+	    redirect: 'follow',
+	    headers: {'Content-Type': 'application/json'},
+	  }).then((response) => {
+	  	console.log(response);
+	    return response.json();
+	  }).then((response) => {
+    	console.log(response.rspCode + ': ' + response.rspMsg);
 
 			var progressPercentage=0;
 			if(response.rspCode===0){
@@ -70,7 +76,7 @@ class NetworkMap{
 				$('#popup-window-progress').hide();
 				that.init(that.jobId, that.harvestResultNumber);
 			}
-		});
+	  });
 	}
 
 	initDraw(node){

@@ -102,6 +102,9 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
+        if (!this.running) {
+            return;
+        }
         try {
             this.running_blocker.acquire();
         } catch (InterruptedException e) {
@@ -112,6 +115,9 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void resumeTask() {
+        if (this.running) {
+            return;
+        }
         this.running = true;
         this.running_blocker.release(2);
         System.out.println("Resumed");
@@ -195,6 +201,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public VisualizationProgressBar getProgress() {
+        this.progressBar.setState(this.state);
+        this.progressBar.setStatus(this.status);
         return this.progressBar;
     }
 

@@ -103,7 +103,7 @@ public class NetworkMapController implements NetworkMapService {
     }
 
     @Override
-    @RequestMapping(path = VisualizationConstants.PATH_GET_PROGRESS, method = {RequestMethod.POST}, produces = "application/json")
+    @RequestMapping(path = VisualizationConstants.PATH_GET_PROGRESS, method = {RequestMethod.POST, RequestMethod.GET}, produces = "application/json")
     public NetworkMapResult getProgress(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
         return client.getProgress(job, harvestResultNumber);
     }

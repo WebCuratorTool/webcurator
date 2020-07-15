@@ -329,3 +329,7 @@ div#tree {
 	font-size: 0.8em;
 	color: gray;
 }
+
+#popup-window-derived-summary{
+	height: 100vh;
+}

@@ -9,6 +9,8 @@ public class VisualizationProgressView {
     private String stage;
     private long targetInstanceId;
     private int harvestResultNumber;
+    private int state;
+    private int status;
     private int progressPercentage;
 
     public VisualizationProgressView() {
@@ -20,6 +22,8 @@ public class VisualizationProgressView {
             this.stage = progressBar.getStage();
             this.targetInstanceId = progressBar.getTargetInstanceId();
             this.harvestResultNumber = progressBar.getHarvestResultNumber();
+            this.state = progressBar.getState();
+            this.status = progressBar.getStatus();
             this.progressPercentage = progressBar.getProgressPercentage();
         }
     }
@@ -63,6 +67,22 @@ public class VisualizationProgressView {
 
     public void setHarvestResultNumber(int harvestResultNumber) {
         this.harvestResultNumber = harvestResultNumber;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     public int getProgressPercentage() {
