@@ -26,7 +26,6 @@ import org.springframework.config.TestBaseConfig;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.webcurator.core.archive.MockSipBuilder;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.MockHarvestAgent;
@@ -60,7 +59,6 @@ import com.google.common.collect.Lists;
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
-
     private MockHarvestAgentFactory harvestAgentFactory = new MockHarvestAgentFactory();
     private MockTargetInstanceManager mockTargetInstanceManager = null;
     private HarvestAgentManagerImpl harvestAgentManager;

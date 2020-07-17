@@ -12,11 +12,12 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
+import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.TargetDAOImpl;
+import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.TargetInstanceDAOImpl;
 
 @TestConfiguration
 public class TestBaseConfig {
@@ -50,6 +51,38 @@ public class TestBaseConfig {
     public HarvestAgentManager harvestAgentManager() {
         HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
         bean.setHarvestAgentFactory(harvestAgentFactory());
+        return bean;
+    }
+
+    @Bean
+    public TargetInstanceDAO targetInstanceDao() {
+        TargetInstanceDAOImpl bean = new TargetInstanceDAOImpl();
+//        bean.setSessionFactory(sessionFactory().getObject());
+//        bean.setTxTemplate(transactionTemplate());
+//        bean.setAuditor(audit());
+
+        return bean;
+    }
+
+    @Bean
+    public HarvestBandwidthManagerImpl harvestBandwidthManager() {
+        HarvestBandwidthManagerImpl bean = new HarvestBandwidthManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setTargetInstanceDao(targetInstanceDao());
+//        bean.setHarvestCoordinatorDao(harvestCoordinatorDao());
+//        bean.setMinimumBandwidth(minimumBandwidth);
+//        bean.setMaxBandwidthPercent(maxBandwidthPercent);
+//        bean.setAuditor(audit());
+
+        return bean;
+    }
+
+    @Bean
+    public HarvestLogManager harvestLogManager() {
+        HarvestLogManagerImpl bean = new HarvestLogManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+//        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+
         return bean;
     }
 }

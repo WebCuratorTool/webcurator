@@ -1,9 +1,10 @@
-package org.webcurator.core.visualization;
+package org.webcurator.core.visualization.modification;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.visualization.BaseVisualizationTest;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.processor.ModifyProcessor;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
@@ -16,7 +17,7 @@ import java.util.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class TestModifyProcessor extends MockVisualizationCommonConfigureItems {
+public class TestModifyProcessor extends BaseVisualizationTest {
     private ModifyProcessor warcProcessor = null;
 
     @Before
@@ -103,7 +104,6 @@ public class TestModifyProcessor extends MockVisualizationCommonConfigureItems {
                 }
             }
         }
-
         return null;
     }
 }

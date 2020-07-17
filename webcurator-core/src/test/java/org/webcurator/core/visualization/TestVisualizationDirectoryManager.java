@@ -6,7 +6,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 
 import java.io.IOException;
 
-public class TestVisualizationDirectoryManager extends MockVisualizationCommonConfigureItems {
+public class TestVisualizationDirectoryManager extends BaseVisualizationTest {
     @Before
     public void initTest() throws IOException, DigitalAssetStoreException {
         super.initTest();

@@ -1,20 +1,27 @@
-package org.webcurator.core.harvester.coordinator;
+package org.webcurator.core.coordinator;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyRow;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.core.reader.*;
+import org.webcurator.domain.model.dto.SeedHistorySetDTO;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @SuppressWarnings("all")
-public class MockWctCoordinator implements HarvestCoordinator {
+public class MockWctCoordinator implements WctCoordinator {
     private static Log log = LogFactory.getLog(MockWctCoordinator.class);
     private LogReader logReader = null;
     private boolean queuePaused = false;
@@ -34,6 +41,11 @@ public class MockWctCoordinator implements HarvestCoordinator {
     public void checkForBandwidthTransition() {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public boolean pushPruneAndImport(long targetInstanceId, int harvestResultNumber) {
+        return false;
     }
 
     public void completeArchiving(Long targetInstanceOid, String archiveIID) {
@@ -251,6 +263,16 @@ public class MockWctCoordinator implements HarvestCoordinator {
         return null;
     }
 
+    @Override
+    public void finaliseIndex(long targetInstanceId, int harvestNumber) {
+
+    }
+
+    @Override
+    public void notifyAQAComplete(String aqaId) {
+
+    }
+
     public void finaliseIndex(Long harvestResultOid) {
         // TODO Auto-generated method stub
     }
@@ -312,6 +334,11 @@ public class MockWctCoordinator implements HarvestCoordinator {
         removedIndexes.add(hr);
     }
 
+    @Override
+    public void runQaRecommentationService(TargetInstance ti) {
+
+    }
+
     public List<HarvestResult> getRemovedIndexes() {
         return removedIndexes;
     }
@@ -343,5 +370,45 @@ public class MockWctCoordinator implements HarvestCoordinator {
     @Override
     public int getHarvestOptimizationLookAheadHours() {
         return 24;
+    }
+
+    @Override
+    public SeedHistorySetDTO dasQuerySeedHistory(long targetInstanceOid, int harvestNumber) {
+        return null;
+    }
+
+    @Override
+    public void dasModificationComplete(long targetInstanceOid, int harvestNumber) {
+
+    }
+
+    @Override
+    public void dasDownloadFile(long targetInstanceOid, int harvestNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+
+    }
+
+    @Override
+    public void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList) {
+
+    }
+
+    @Override
+    public void dasUpdateHarvestResultStatus(HarvestResultDTO hrDTO) {
+
+    }
+
+    @Override
+    public ModifyRowMetadata uploadFile(long job, int harvestResultNumber, ModifyRow cmd) {
+        return null;
+    }
+
+    @Override
+    public ModifyResult checkFiles(long job, int harvestResultNumber, List<ModifyRowMetadata> items) {
+        return null;
+    }
+
+    @Override
+    public ModifyResult applyPruneAndImport(ModifyApplyCommand cmd) {
+        return null;
     }
 }

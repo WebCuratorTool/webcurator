@@ -58,8 +58,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         PatchUtil.indexer.savePatchJob(this.baseDir, cmd);
     }
 
-    public void indexFile(ArchiveReader reader) throws IOException {
-        String fileName = reader.getStrippedFileName();
+    public void indexFile(ArchiveReader reader, String fileName) throws IOException {
+//        String fileName = reader.getStrippedFileName();
         log.info("Start to index file: {}", fileName);
         this.writeLog("Start indexing from: " + fileName);
 
@@ -210,7 +210,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             ArchiveReader reader = null;
             try {
                 reader = ArchiveReaderFactory.get(f);
-                indexFile(reader);
+                indexFile(reader, f.getName());
             } catch (Exception e) {
                 String err = "Failed to open archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
                 log.error(err);
@@ -226,8 +226,10 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         }
 
         this.statAndSave();
-        progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
         this.writeReport();
+        progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
+
+        this.status = HarvestResult.STATUS_FINISHED;
     }
 
     @Override

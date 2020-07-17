@@ -19,8 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class MockVisualizationCommonConfigureItems {
-    protected static final Logger log = LoggerFactory.getLogger(MockVisualizationCommonConfigureItems.class);
+public class BaseVisualizationTest {
+    protected static final Logger log = LoggerFactory.getLogger(BaseVisualizationTest.class);
     protected String baseDir = "/usr/local/wct/store";
     protected String baseLogDir = "logs";
     protected String baseReportDir = "reports";
