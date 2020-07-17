@@ -291,7 +291,7 @@ public class TargetInstanceResultHandler extends TabHandler {
     /**
      * @param wctCoordinator The wctCoordinator to set.
      */
-    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
         this.wctCoordinator = wctCoordinator;
     }
 

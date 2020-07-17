@@ -848,7 +848,7 @@ public class QueueController {
 		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
-	public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+	public void setWctCoordinator(WctCoordinator wctCoordinator) {
 		this.wctCoordinator = wctCoordinator;
 	}
 

@@ -1,4 +1,4 @@
-package org.webcurator.core.harvester.coordinator;
+package org.webcurator.core.coordinator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,6 +31,10 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.MockHarvestAgent;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
+import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
+import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -55,7 +59,7 @@ import com.google.common.collect.Lists;
 @Import(TestBaseConfig.class)
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
-public class HarvestCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
+public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
     private MockHarvestAgentFactory harvestAgentFactory = new MockHarvestAgentFactory();
     private MockTargetInstanceManager mockTargetInstanceManager = null;
@@ -64,7 +68,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> 
     private HarvestBandwidthManager mockHarvestBandwidthManager;
     private HarvestLogManager mockHarvestLogManager;
 
-    public HarvestCoordinatorImplTest() {
+    public WctCoordinatorImplTest() {
         super(WctCoordinatorImpl.class,
                 "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
     }

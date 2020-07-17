@@ -1,8 +1,9 @@
-package org.webcurator.core.visualization;
+package org.webcurator.core.visualization.networkmap;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.MockVisualizationCommonConfigureItems;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;

@@ -20,7 +20,7 @@ import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
-import org.webcurator.core.harvester.coordinator.*;
+import org.webcurator.core.coordinator.MockWctCoordinator;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.test.BaseWCTTest;
@@ -57,7 +57,7 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 		genHandler.setAgencyUserManager(getAgencyUserManager());
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(getTargetInstanceManager());
-		genHandler.setHarvestCoordinator(new MockHarvestCoordinator());
+		genHandler.setWctCoordinator(new MockWctCoordinator());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);

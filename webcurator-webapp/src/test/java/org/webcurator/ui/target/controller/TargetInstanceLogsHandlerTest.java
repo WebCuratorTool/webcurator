@@ -15,6 +15,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.util.DateUtils;
+import org.webcurator.core.coordinator.MockWctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
@@ -24,7 +26,6 @@ import org.webcurator.core.scheduler.*;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
-import org.webcurator.core.harvester.coordinator.*;
 
 public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLogsHandler> {
 
@@ -56,7 +57,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
 		//genHandler.setHarvestCoordinator(new MockHarvestCoordinator());
-		genHandler.setHarvestCoordinator(new HarvestCoordinatorImpl());
+		genHandler.setWctCoordinator(new WctCoordinatorImpl());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -113,7 +114,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		TargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
 		testInstance.setTargetInstanceManager(targetInstanceManager);
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5001L);
-		testInstance.setHarvestCoordinator(new MockHarvestCoordinator());
+		testInstance.setWctCoordinator(new MockWctCoordinator());
 
 		aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, targetInstance);
 		aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_MODE, true);

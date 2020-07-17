@@ -366,7 +366,7 @@ public class LogReaderController {
     /**
      * @param wctCoordinator the wctCoordinator to set
      */
-    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
         this.wctCoordinator = wctCoordinator;
     }
 

@@ -21,8 +21,8 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
-import org.webcurator.core.harvester.coordinator.MockHarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.MockWctCoordinator;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.MockDigitalAssetStore;
@@ -64,7 +64,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
-		genHandler.setHarvestCoordinator(new HarvestCoordinatorImpl());
+		genHandler.setWctCoordinator(new WctCoordinatorImpl());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -87,7 +87,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 	public final void testProcessOther() {
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-		MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+		MockWctCoordinator coordinator = new MockWctCoordinator();
 		coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
 		MockDigitalAssetStore digitalAssetStore = new MockDigitalAssetStore() {
 			public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
@@ -100,7 +100,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		};
 
 		testInstance.setTargetInstanceManager(targetInstanceManager);
-		testInstance.setHarvestCoordinator(coordinator);
+		testInstance.setWctCoordinator(coordinator);
 		testInstance.setDigitalAssetStore(digitalAssetStore);
 		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
@@ -166,11 +166,11 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 	public final void testProcessOtherReject() {
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-		MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+		MockWctCoordinator coordinator = new MockWctCoordinator();
 		coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
 
 		testInstance.setTargetInstanceManager(targetInstanceManager);
-		testInstance.setHarvestCoordinator(coordinator);
+		testInstance.setWctCoordinator(coordinator);
 		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
 		List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
@@ -221,11 +221,11 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 	public final void testProcessOtherRejectNoReasons() {
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-		MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+		MockWctCoordinator coordinator = new MockWctCoordinator();
 		coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
 
 		testInstance.setTargetInstanceManager(targetInstanceManager);
-		testInstance.setHarvestCoordinator(coordinator);
+		testInstance.setWctCoordinator(coordinator);
 		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
 		List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
@@ -275,11 +275,11 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 	public final void testProcessOtherReindex() {
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-		MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+		MockWctCoordinator coordinator = new MockWctCoordinator();
 		coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
 
 		testInstance.setTargetInstanceManager(targetInstanceManager);
-		testInstance.setHarvestCoordinator(coordinator);
+		testInstance.setWctCoordinator(coordinator);
 		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);

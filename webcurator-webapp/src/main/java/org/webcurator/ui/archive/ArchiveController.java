@@ -256,4 +256,35 @@ public class ArchiveController {
 		this.webCuratorUrl = webCuratorUrl;
 	}
 
+	public ArchiveAdapter getArchiveAdapter() {
+		return archiveAdapter;
+	}
+
+	public void setArchiveAdapter(ArchiveAdapter archiveAdapter) {
+		this.archiveAdapter = archiveAdapter;
+	}
+
+	public TargetInstanceManager getTargetInstanceManager() {
+		return targetInstanceManager;
+	}
+
+	public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
+		this.targetInstanceManager = targetInstanceManager;
+	}
+
+	public SipBuilder getSipBuilder() {
+		return sipBuilder;
+	}
+
+	public void setSipBuilder(SipBuilder sipBuilder) {
+		this.sipBuilder = sipBuilder;
+	}
+
+	public TargetManager getTargetManager() {
+		return targetManager;
+	}
+
+	public void setTargetManager(TargetManager targetManager) {
+		this.targetManager = targetManager;
+	}
 }

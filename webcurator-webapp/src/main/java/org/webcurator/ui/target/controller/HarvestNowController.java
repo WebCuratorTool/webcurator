@@ -184,4 +184,20 @@ public class HarvestNowController {
         }
         return mav;
     }
+
+    public void setTargetInstanceDAO(TargetInstanceDAO targetInstanceDAO) {
+        this.targetInstanceDAO = targetInstanceDAO;
+    }
+
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
+    }
+
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+
+    public void setValidator(HarvestNowValidator validator) {
+        this.validator = validator;
+    }
 }

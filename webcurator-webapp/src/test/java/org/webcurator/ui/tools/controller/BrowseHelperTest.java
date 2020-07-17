@@ -2,7 +2,6 @@ package org.webcurator.ui.tools.controller;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
 import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;

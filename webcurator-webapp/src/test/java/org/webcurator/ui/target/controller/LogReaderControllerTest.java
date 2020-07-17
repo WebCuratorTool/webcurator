@@ -9,7 +9,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.*;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
-import org.webcurator.core.harvester.coordinator.*;
+import org.webcurator.core.coordinator.*;
 import org.webcurator.core.scheduler.*;
 import org.webcurator.domain.model.core.*;
 
@@ -18,7 +18,7 @@ import java.util.List;
 public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 	private TargetInstanceManager tim = null;
-	private HarvestCoordinator hc = null;
+	private WctCoordinator hc = null;
 
 	public LogReaderControllerTest()
 	{
@@ -30,7 +30,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 	{
 		super.setUp();
 		tim = new MockTargetInstanceManager(testFile);
-		hc = new MockHarvestCoordinator();
+		hc = new MockWctCoordinator();
 	}
 
 	private int countReturnedLines(List<String> result)
@@ -53,7 +53,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -86,7 +86,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -119,7 +119,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -152,7 +152,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -186,7 +186,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -219,7 +219,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -252,7 +252,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -285,7 +285,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -318,7 +318,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -351,7 +351,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -384,7 +384,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -417,7 +417,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -450,7 +450,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);
@@ -479,10 +479,10 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 	}
 
 	@Test
-	public final void testSetHarvestCoordinator() {
+	public final void testSetWctCoordinator() {
 		try
 		{
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 		}
 		catch(Exception e)
 		{

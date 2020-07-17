@@ -19,7 +19,7 @@ import org.webcurator.core.archive.MockSipBuilder;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
 import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.targets.MockTargetManager;
@@ -35,7 +35,7 @@ import org.webcurator.common.util.DateUtils;
 public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> {
 
 	private TargetInstanceDAO tidao;
-	private HarvestCoordinatorImpl hc;
+	private WctCoordinatorImpl hc;
 	public HarvestNowControllerTest()
 	{
 		super(HarvestNowController.class,
@@ -56,7 +56,7 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 
 		tim.setTargetInstanceDao(tidao);
 
-		hc = new HarvestCoordinatorImpl();
+		hc = new WctCoordinatorImpl();
 
 		hc.setTargetInstanceManager(tim);
 		hc.setTargetManager(new MockTargetManager(testFile));
@@ -72,8 +72,8 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 		HarvestBandwidthManager mockHarvestBandwidthManager = Mockito.mock(HarvestBandwidthManager.class);
 		hc.setHarvestBandwidthManager(mockHarvestBandwidthManager);
 
-		testInstance.setHarvestCoordinator(hc);
-		testInstance.setTargetInstanceManager(tim);
+		testInstance.setWctCoordinator(hc);
+		testInstance.setTargetInstanceDAO(tidao);
 		testInstance.setMessageSource(new MockMessageSource());
 	}
 

@@ -444,7 +444,7 @@ public class ServletConfig {
     public TargetInstanceGeneralHandler targetInstanceGeneralHandler() {
         TargetInstanceGeneralHandler bean = new TargetInstanceGeneralHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(wctCoordinator);
+        bean.setWctCoordinator(wctCoordinator);
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setAutoQAUrl("${wctCoordinator.autoQAUrl}");
@@ -470,7 +470,7 @@ public class ServletConfig {
     public TargetInstanceStateHandler targetInstanceStateHandler() {
         TargetInstanceStateHandler bean = new TargetInstanceStateHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(wctCoordinator);
+        bean.setWctCoordinator(wctCoordinator);
 
         return bean;
     }
@@ -478,7 +478,7 @@ public class ServletConfig {
     public TargetInstanceLogsHandler targetInstanceLogsHandler() {
         TargetInstanceLogsHandler bean = new TargetInstanceLogsHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(wctCoordinator);
+        bean.setWctCoordinator(wctCoordinator);
 
         return bean;
     }
@@ -486,7 +486,7 @@ public class ServletConfig {
     public TargetInstanceResultHandler targetInstanceResultHandler() {
         TargetInstanceResultHandler bean = new TargetInstanceResultHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(wctCoordinator);
+        bean.setWctCoordinator(wctCoordinator);
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setTargetInstanceDAO(baseConfig.targetInstanceDao());
