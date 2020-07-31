@@ -14,6 +14,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
+import org.webcurator.core.common.Environment;
+import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.util.*;
 import org.webcurator.domain.MockUserRoleDAO;
 import org.webcurator.domain.model.auth.User;
@@ -21,7 +23,7 @@ import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.RolePrivilege;
 import org.springframework.web.context.MockWebApplicationContext;
-
+import static org.mockito.Mockito.mock;
 /**
  * Base class for all junit tests within WCT. Provides a SecurityContext and logged on user
  * and wraps an instance of the class being tested (Generic class T)
@@ -91,6 +93,9 @@ public class BaseWCTTest<T> {
 			
 			// Create a MockApplicationContext
 			ApplicationContextFactory.setApplicationContext(new MockWebApplicationContext());
+
+			Environment mockEnvironment= mock(Environment.class);
+			EnvironmentFactory.setEnvironment(mockEnvironment);
 		}
 		catch(Exception e)
 		{

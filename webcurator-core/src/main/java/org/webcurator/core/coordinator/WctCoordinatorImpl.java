@@ -37,7 +37,6 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.coordinator.*;
-import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
@@ -1819,7 +1818,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     private ModifyResult pushPruneAndImport(ModifyApplyCommand cmd) {
-        DigitalAssetStoreClient digitalAssetStoreClient = (DigitalAssetStoreClient) digitalAssetStoreFactory.getDAS();
+        DigitalAssetStore digitalAssetStoreClient =digitalAssetStoreFactory.getDAS();
         ModifyResult result = digitalAssetStoreClient.initialPruneAndImport(cmd);
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
             log.error("Failed to request modification, {} {}", result.getRespCode(), result.getRespMsg());

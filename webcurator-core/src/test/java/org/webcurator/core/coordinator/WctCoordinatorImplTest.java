@@ -1,10 +1,8 @@
 package org.webcurator.core.coordinator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -13,37 +11,36 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.config.TestBaseConfig;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.webcurator.core.archive.MockSipBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.MockHarvestAgent;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
-import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
-import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.store.DigitalAssetStore;
-import org.webcurator.core.store.DigitalAssetStoreFactory;
-import org.webcurator.core.store.MockDigitalAssetStore;
-import org.webcurator.core.store.MockDigitalAssetStoreFactory;
+import org.webcurator.core.store.*;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
-import org.webcurator.domain.MockTargetInstanceDAO;
+import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -54,9 +51,11 @@ import org.webcurator.test.BaseWCTTest;
 
 import com.google.common.collect.Lists;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 @SuppressWarnings("all")
-@Import(TestBaseConfig.class)
-@RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     private MockHarvestAgentFactory harvestAgentFactory = new MockHarvestAgentFactory();
@@ -96,10 +95,19 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         mockHarvestLogManager = mock(HarvestLogManager.class);
         testInstance.setHarvestLogManager(mockHarvestLogManager);
 
-        tiDao = new MockTargetInstanceDAO(testFile);
+//        tiDao = new MockTargetInstanceDAO(testFile);
+        tiDao = mockTargetInstanceManager.getTargetInstanceDAO();
         testInstance.setTargetInstanceDao(tiDao);
         harvestAgentManager.setTargetInstanceDao(tiDao);
 
+
+        VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager("/usr/local/wct/webapp", "logs", "reports");
+        testInstance.setVisualizationDirectoryManager(directoryManager);
+
+        MockDigitalAssetStoreFactory mockDigitalAssetStoreFactory = new MockDigitalAssetStoreFactory();
+        testInstance.setDigitalAssetStoreFactory(mockDigitalAssetStoreFactory);
+
+        testInstance.setHarvestQaManager(mock(HarvestQaManager.class));
     }
 
     private HarvesterStatusDTO getStatusDTO(String aStatus) {
@@ -906,5 +914,99 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         verify(mockHarvestLogManager).getHopPath(mockTargetInstance, fileName, match);
     }
 
+
+    @Test
+    public void testApplyPruneAndImport() {
+        TargetInstance ti = tiDao.load(5000);
+        List<HarvestResult> hrList = ti.getHarvestResults();
+        assertTrue(hrList.size() > 0);
+
+        HarvestResult hr = hrList.get(0);
+
+        ModifyApplyCommand cmd = new ModifyApplyCommand();
+        cmd.setTargetInstanceId(ti.getOid());
+        cmd.setHarvestResultId(hr.getOid());
+        cmd.setHarvestResultNumber(hr.getHarvestNumber());
+
+        {
+            ModifyResult result = testInstance.applyPruneAndImport(cmd);
+            assertNotEquals(VisualizationConstants.RESP_CODE_SUCCESS, result.getRespCode());
+        }
+
+        {
+            ModifyRowMetadata metadata = new ModifyRowMetadata();
+            metadata.setOption("url");
+            metadata.setUrl("http://a.b.c/");
+            cmd.getDataset().clear();
+            cmd.getDataset().add(metadata);
+
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            tiDao.save(ti);
+            ModifyResult result = testInstance.applyPruneAndImport(cmd);
+            assertEquals(VisualizationConstants.RESP_CODE_SUCCESS, result.getRespCode());
+            assertEquals(TargetInstance.STATE_PATCHING, ti.getState());
+
+            hrList = ti.getHarvestResults();
+            assertTrue(hrList.size() > 1);
+
+            HarvestResult newHarvestResult = hrList.get(hrList.size() - 1);
+            assertEquals(newHarvestResult.getHarvestNumber(), cmd.getNewHarvestResultNumber());
+            assertEquals(HarvestResult.STATE_CRAWLING, newHarvestResult.getState());
+        }
+
+        {
+            ModifyRowMetadata metadata = new ModifyRowMetadata();
+            metadata.setOption("file");
+            metadata.setOption("aaa");
+            cmd.getDataset().clear();
+            cmd.getDataset().add(metadata);
+
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            tiDao.save(ti);
+            ModifyResult result = testInstance.applyPruneAndImport(cmd);
+            assertEquals(VisualizationConstants.RESP_CODE_SUCCESS, result.getRespCode());
+            assertEquals(TargetInstance.STATE_PATCHING, ti.getState());
+
+            hrList = ti.getHarvestResults();
+            assertTrue(hrList.size() > 1);
+
+            HarvestResult newHarvestResult = hrList.get(hrList.size() - 1);
+            assertEquals(newHarvestResult.getHarvestNumber(), cmd.getNewHarvestResultNumber());
+            assertEquals(HarvestResult.STATE_MODIFYING, newHarvestResult.getState());
+        }
+    }
+
+    @Test
+    public void testDasDownloadFile() {
+        long targetInstanceId = 5010;
+        int harvestResultNumber = 1;
+        String fileName = "expand.png";
+        HttpServletRequest req = mock(HttpServletRequest.class);
+        HttpServletResponse rsp = mock(HttpServletResponse.class);
+        ServletOutputStream outputStream = mock(ServletOutputStream.class);
+
+        try {
+            when(rsp.getOutputStream()).thenReturn(outputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+            assert false;
+        }
+
+        Answer answer = new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                log.debug("Received");
+                return new Object();
+            }
+        };
+
+        try {
+            testInstance.dasDownloadFile(targetInstanceId, harvestResultNumber, fileName, req, rsp);
+        } catch (IOException e) {
+            e.printStackTrace();
+            assert false;
+        }
+        assert true;
+    }
 
 }

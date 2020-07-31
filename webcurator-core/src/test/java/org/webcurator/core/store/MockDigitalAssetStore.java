@@ -44,8 +44,6 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 
     public void initiateIndexing(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
-        // TODO Auto-generated method stub
-
     }
 
     public void initiateRemoveIndexes(HarvestResultDTO harvestResult)
@@ -115,7 +113,7 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 
     @Override
     public ModifyResult initialPruneAndImport(ModifyApplyCommand cmd) {
-        return null;
+        return new ModifyResult();
     }
 
     @Override

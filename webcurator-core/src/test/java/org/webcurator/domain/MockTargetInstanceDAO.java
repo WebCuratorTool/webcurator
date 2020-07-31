@@ -351,8 +351,8 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 			if(ti.getOid() == null)
 			{
 				ti.setOid(baseTargetInstanceOid + tiOids.size());
-				tiOids.put(ti.getOid(), ti);
 			}
+			tiOids.put(ti.getOid(), ti);
 			log.debug("Saved TargetInstance "+ti.getOid());
 		}
 		else if(object instanceof HarvestResult)
