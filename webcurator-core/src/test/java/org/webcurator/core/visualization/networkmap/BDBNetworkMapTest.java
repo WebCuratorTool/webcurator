@@ -11,7 +11,7 @@ import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc
 import java.io.File;
 import java.io.IOException;
 
-public class TestBDBNetworkMap extends BaseVisualizationTest {
+public class BDBNetworkMapTest extends BaseVisualizationTest {
     @Before
     public void initTest() throws IOException, DigitalAssetStoreException {
         super.initTest();

@@ -12,10 +12,17 @@ import org.webcurator.core.visualization.modification.processor.ModifyProcessorW
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 
 public class TestModifyProcessor extends BaseVisualizationTest {
     private ModifyProcessor warcProcessor = null;
@@ -37,8 +44,14 @@ public class TestModifyProcessor extends BaseVisualizationTest {
     public void testDownloadFile() throws IOException, DigitalAssetStoreException {
         ModifyRowMetadata metadata = new ModifyRowMetadata();
         metadata.setName("expand.png");
-        File downloadedFile = warcProcessor.downloadFile(targetInstanceId, newHarvestResultNumber, metadata);
-        assertTrue(downloadedFile.exists());
+
+        File downloadedFile = new File(directoryManager.getUploadDir(targetInstanceId), UUID.randomUUID().toString());
+        Files.write(downloadedFile.toPath(), "test content".getBytes(), StandardOpenOption.CREATE);
+
+        when(wctClient.getDownloadFileURL(anyLong(), anyInt(), anyString(), any(File.class))).thenReturn(downloadedFile);
+
+        File resultFile = warcProcessor.downloadFile(targetInstanceId, newHarvestResultNumber, metadata);
+        assertTrue(resultFile.exists());
     }
 
     @Test
@@ -73,6 +86,11 @@ public class TestModifyProcessor extends BaseVisualizationTest {
         cmd.getDataset().add(m);
         Map<String, ModifyRowMetadata> hrsToImport = new HashMap<>();
         hrsToImport.put(targetUrl, m);
+
+        File downloadedFile = new File(directoryManager.getUploadDir(cmd.getTargetInstanceId()), UUID.randomUUID().toString());
+        Files.write(downloadedFile.toPath(), "test content".getBytes(), StandardOpenOption.CREATE);
+
+        when(wctClient.getDownloadFileURL(anyLong(), anyInt(), anyString(), any(File.class))).thenReturn(downloadedFile);
         warcProcessor.importFromFile(targetInstanceId, harvestResultNumber, newHarvestResultNumber, hrsToImport);
 
         List<String> importedUrl = new ArrayList<>();
