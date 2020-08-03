@@ -2,11 +2,14 @@ package org.webcurator.core.visualization.networkmap;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.BaseVisualizationTest;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationProgressBar;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
@@ -22,12 +25,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class TestIndexProcessor extends BaseVisualizationTest {
+public class IndexProcessorTest extends BaseVisualizationTest {
     private IndexProcessor indexer;
 
     @Before
     public void initTest() throws IOException, DigitalAssetStoreException {
         super.initTest();
+
+        NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
+        Resource resource = new ClassPathResource("public_suffix_list.dat");
+
+        try {
+            suffixParser.init(resource.getFile().getAbsolutePath());
+        } catch (Exception e) {
+            log.error("Load domain suffix file failed.", e);
+        }
+        NetworkMapNode.setTomDomainParse(suffixParser);
+
         String dbPath = pool.getDbPath(targetInstanceId, harvestResultNumber);
         File f = new File(dbPath);
         f.deleteOnExit(); //Clear the existing db

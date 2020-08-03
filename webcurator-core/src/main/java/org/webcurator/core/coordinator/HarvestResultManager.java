@@ -6,7 +6,7 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import java.util.List;
 
 public interface HarvestResultManager {
-    void addHarvestResult(HarvestResultDTO hrDTO);
+//    void addHarvestResult(HarvestResultDTO hrDTO);
 
     void removeHarvestResult(HarvestResultDTO hrDTO);
 

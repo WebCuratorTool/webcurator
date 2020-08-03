@@ -197,6 +197,14 @@ public interface TargetInstanceManager {
     List<HarvestResult> getHarvestResults(Long targetInstanceOid);
 
     /**
+     * Retrieve the list of HarvestResults associated with the Target Instance.
+     * @param targetInstanceOid The OID of the Target Instance
+     * @param harvestResultNumber The Number of the Harvest Result
+     * @return A list of the HarvestResults.
+     */
+    HarvestResult getHarvestResult(Long targetInstanceOid, Integer harvestResultNumber);
+
+    /**
      * Set the purged flag and delete any harvest resources.
      * @param aTargetInstance The Target Instance
      */

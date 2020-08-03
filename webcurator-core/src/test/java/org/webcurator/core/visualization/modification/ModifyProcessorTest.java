@@ -24,7 +24,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 
-public class TestModifyProcessor extends BaseVisualizationTest {
+public class ModifyProcessorTest extends BaseVisualizationTest {
     private ModifyProcessor warcProcessor = null;
 
     @Before

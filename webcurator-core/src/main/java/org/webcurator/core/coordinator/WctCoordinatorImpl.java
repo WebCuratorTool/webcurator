@@ -1241,6 +1241,10 @@ public class WctCoordinatorImpl implements WctCoordinator {
         this.inTrayManager = inTrayManager;
     }
 
+    public void setHarvestResultManager(HarvestResultManager harvestResultManager) {
+        this.harvestResultManager = harvestResultManager;
+    }
+
     /**
      * @param daysBeforeDASPurge the daysBeforeDASPurge to set
      */
@@ -1261,7 +1265,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
     public void setSipBuilder(SipBuilder sipBuilder) {
         this.sipBuilder = sipBuilder;
     }
-
 
     public Long createHarvestResult(HarvestResultDTO harvestResultDTO) {
         TargetInstance ti = targetInstanceDao.load(harvestResultDTO.getTargetInstanceOid());
@@ -1803,9 +1806,10 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     private boolean pushPruneAndImport(TargetInstance ti, HarvestResult hr) {
-        //Next step is to excute pruning and imporing, so change the state and status to Modifying Scheduled
-        hr.setState(HarvestResult.STATE_MODIFYING);
-        targetInstanceManager.save(hr);
+        if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+            log.error("Invalid TargetInstance state: {}", ti.getState());
+            return false;
+        }
 
         ModifyApplyCommand cmd = (ModifyApplyCommand) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
@@ -1813,34 +1817,35 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return false;
         }
 
+        //Next step is to excute pruning and imporing, so change the state and status to Modifying Scheduled
         ModifyResult result = pushPruneAndImport(cmd);
         return result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS;
     }
 
     private ModifyResult pushPruneAndImport(ModifyApplyCommand cmd) {
-        DigitalAssetStore digitalAssetStoreClient =digitalAssetStoreFactory.getDAS();
+        DigitalAssetStore digitalAssetStoreClient = digitalAssetStoreFactory.getDAS();
         ModifyResult result = digitalAssetStoreClient.initialPruneAndImport(cmd);
         if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
             log.error("Failed to request modification, {} {}", result.getRespCode(), result.getRespMsg());
             return result;
         }
 
-        TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
-        if (ti == null) {
-            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
-            result.setRespMsg(String.format("Target instance (OID=%d) does not exist in DB", cmd.getTargetInstanceId()));
-            log.error(result.getRespMsg());
-            return result;
-        } else if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_INVALID_TI_STATE);
-            result.setRespMsg("Invalid TargetInstance state: " + ti.getState());
-            log.error(result.getRespMsg());
-            return result;
-        }
-
-        HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
-        hr.setState(HarvestResult.STATE_MODIFYING);
-        targetInstanceDao.save(hr);
+//        TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
+//        if (ti == null) {
+//            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
+//            result.setRespMsg(String.format("Target instance (OID=%d) does not exist in DB", cmd.getTargetInstanceId()));
+//            log.error(result.getRespMsg());
+//            return result;
+//        } else if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+//            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_INVALID_TI_STATE);
+//            result.setRespMsg("Invalid TargetInstance state: " + ti.getState());
+//            log.error(result.getRespMsg());
+//            return result;
+//        }
+//
+//        HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
+//        hr.setState(HarvestResult.STATE_MODIFYING);
+//        targetInstanceDao.save(hr);
 
         return result;
     }
@@ -1930,7 +1935,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList) {
+    public void dasHeartbeat(List<HarvestResultDTO> harvestResultDTOList) {
         for (HarvestResultDTO hrDTO : harvestResultDTOList) {
             if (hrDTO.getState() == HarvestResult.STATE_MODIFYING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
                 dasModificationComplete(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
@@ -1944,7 +1949,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     @Override
     public void dasUpdateHarvestResultStatus(HarvestResultDTO hrDTO) {
-        harvestResultManager.addHarvestResult(hrDTO);
+//        harvestResultManager.addHarvestResult(hrDTO);
+        harvestResultManager.updateHarvestResultStatus(hrDTO);
         if (hrDTO.getState() == HarvestResult.STATE_INDEXING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {
             finaliseIndex(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber());
         } else if (hrDTO.getState() == HarvestResult.STATE_MODIFYING && hrDTO.getStatus() == HarvestResult.STATUS_FINISHED) {

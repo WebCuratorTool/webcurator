@@ -11,13 +11,11 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 
-import java.net.MalformedURLException;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.net.URLConnection;
+import java.util.*;
 
 public class WctCoordinatorClient extends AbstractRestClient {
     public WctCoordinatorClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
@@ -73,14 +71,29 @@ public class WctCoordinatorClient extends AbstractRestClient {
         restTemplate.postForObject(uri, entity, Void.class);
     }
 
-    public URL getDownloadFileURL(long job, int harvestResultNumber, String fileName) throws MalformedURLException {
+    public File getDownloadFileURL(long job, int harvestResultNumber, String fileName, File downloadedFile) throws IOException {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE))
                 .queryParam("job", job)
                 .queryParam("harvestResultNumber", harvestResultNumber)
                 .queryParam("fileName", fileName);
         URI uri = uriComponentsBuilder.build().toUri();
 
-        return uri.toURL();
+        URL url = uri.toURL();
+        URLConnection conn = url.openConnection();
+
+        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadedFile));
+        InputStream inputStream = conn.getInputStream();
+        while (true) {
+            byte[] buf = new byte[1024 * 32];
+            int len = inputStream.read(buf);
+            if (len < 0) {
+                break;
+            }
+            outputStream.write(buf, 0, len);
+        }
+        outputStream.close();
+
+        return downloadedFile;
     }
 
     public void finaliseIndex(long targetInstanceId, int harvestNumber) {

@@ -2,11 +2,10 @@ package org.webcurator.core.store;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
@@ -16,8 +15,9 @@ public class MockIndexer extends Indexer
 
 	public MockIndexer()
 	{
-		WebServiceEndPoint wsEndPoint = new WebServiceEndPoint("TestHost", 0);
-        WCTIndexer wctIndexer = new WCTIndexer();
+		RestTemplateBuilder restTemplateBuilder=new RestTemplateBuilder();
+		WebServiceEndPoint wsEndPoint = new WebServiceEndPoint("http", "TestHost", 0);
+        WCTIndexer wctIndexer = new WCTIndexer(restTemplateBuilder);
         wctIndexer.setDoCreate(true);
         wctIndexer.setWsEndPoint(wsEndPoint);
         List<RunnableIndex> indexers = new ArrayList<RunnableIndex>();

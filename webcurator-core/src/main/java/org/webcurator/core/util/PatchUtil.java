@@ -203,6 +203,13 @@ public class PatchUtil {
             return jobFile.renameTo(historyFile);
         }
 
+        public boolean deleteJob(String baseDir, long targetInstanceId, int harvestResultNumber) {
+            File historyDirectory = new File(baseDir, DIR_JOBS);
+            String jobFileName = getPatchJobName(targetInstanceId, harvestResultNumber) + ".json";
+            File historyFile = new File(historyDirectory, jobFileName);
+            return historyFile.delete();
+        }
+
         public boolean deleteHistoryJob(String baseDir, long targetInstanceId, int harvestResultNumber) {
             File historyDirectory = new File(baseDir, DIR_HISTORY);
             String jobFileName = getPatchJobName(targetInstanceId, harvestResultNumber) + ".json";

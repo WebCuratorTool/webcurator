@@ -28,6 +28,7 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.reader.LogReaderImpl;
@@ -297,6 +298,21 @@ public class DasConfig {
         arcDigitalAssetStoreService.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         arcDigitalAssetStoreService.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         arcDigitalAssetStoreService.setFileArchive(createFileArchive());
+
+        NetworkMapNode.setTomDomainParse(networkMapDomainSuffix());
+    }
+
+    private NetworkMapDomainSuffix networkMapDomainSuffix() {
+        NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
+        Resource resource = new ClassPathResource("public_suffix_list.dat");
+
+        try {
+            suffixParser.init(resource.getFile().getAbsolutePath());
+        } catch (Exception e) {
+            LOGGER.error("Load domain suffix file failed.", e);
+        }
+
+        return suffixParser;
     }
 
     @Bean
@@ -612,21 +628,6 @@ public class DasConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public NetworkMapClient networkMapLocalClient() {
         return new NetworkMapClientLocal(bdbDatabasePool(), visualizationProcessorQueue());
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public NetworkMapDomainSuffix networkMapDomainSuffix() {
-        NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
-        Resource resource = new ClassPathResource("public_suffix_list.dat");
-
-        try {
-            suffixParser.init(resource.getFile().getAbsolutePath());
-        } catch (Exception e) {
-            LOGGER.error("Load domain suffix file failed.", e);
-        }
-
-        return suffixParser;
     }
 
     public CustomDepositField depositFieldDctermsBibliographicCitation() {

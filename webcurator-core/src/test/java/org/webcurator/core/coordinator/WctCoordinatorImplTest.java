@@ -1,8 +1,6 @@
 package org.webcurator.core.coordinator;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyListOf;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -12,6 +10,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,12 +18,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.hamcrest.Matchers;
+import com.anotherbigidea.util.Base64;
+import org.apache.hadoop.thirdparty.guava.common.io.Files;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.webcurator.core.archive.MockSipBuilder;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.MockHarvestAgent;
@@ -36,17 +37,21 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.*;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyRow;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.VisualizationImportedFileDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
+import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 import org.webcurator.test.BaseWCTTest;
 
 import com.google.common.collect.Lists;
@@ -64,6 +69,10 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     private TargetInstanceDAO tiDao;
     private HarvestBandwidthManager mockHarvestBandwidthManager;
     private HarvestLogManager mockHarvestLogManager;
+    private DigitalAssetStore mockDigitalAssetStore;
+    private MockDigitalAssetStoreFactory mockDigitalAssetStoreFactory;
+    private HarvestResultManager mockHarvestResultManager;
+    private VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager("/usr/local/wct/webapp", "logs", "reports");
 
     public WctCoordinatorImplTest() {
         super(WctCoordinatorImpl.class,
@@ -101,13 +110,16 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         harvestAgentManager.setTargetInstanceDao(tiDao);
 
 
-        VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager("/usr/local/wct/webapp", "logs", "reports");
         testInstance.setVisualizationDirectoryManager(directoryManager);
 
-        MockDigitalAssetStoreFactory mockDigitalAssetStoreFactory = new MockDigitalAssetStoreFactory();
+        mockDigitalAssetStore = mock(DigitalAssetStore.class);
+        mockDigitalAssetStoreFactory = new MockDigitalAssetStoreFactory(mockDigitalAssetStore);
         testInstance.setDigitalAssetStoreFactory(mockDigitalAssetStoreFactory);
 
         testInstance.setHarvestQaManager(mock(HarvestQaManager.class));
+
+        mockHarvestResultManager = mock(HarvestResultManager.class);
+        testInstance.setHarvestResultManager(mockHarvestResultManager);
     }
 
     private HarvesterStatusDTO getStatusDTO(String aStatus) {
@@ -934,6 +946,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         }
 
         {
+            //Starting from patch crawling
             ModifyRowMetadata metadata = new ModifyRowMetadata();
             metadata.setOption("url");
             metadata.setUrl("http://a.b.c/");
@@ -955,6 +968,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         }
 
         {
+            //Going to modification process directly
             ModifyRowMetadata metadata = new ModifyRowMetadata();
             metadata.setOption("file");
             metadata.setOption("aaa");
@@ -963,6 +977,9 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
             ti.setState(TargetInstance.STATE_HARVESTED);
             tiDao.save(ti);
+
+            when(mockDigitalAssetStore.initialPruneAndImport(any(ModifyApplyCommand.class))).thenReturn(new ModifyResult());
+
             ModifyResult result = testInstance.applyPruneAndImport(cmd);
             assertEquals(VisualizationConstants.RESP_CODE_SUCCESS, result.getRespCode());
             assertEquals(TargetInstance.STATE_PATCHING, ti.getState());
@@ -1001,6 +1018,12 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         };
 
         try {
+            File fileDirectory = new File(directoryManager.getUploadDir(targetInstanceId));
+            if (!fileDirectory.exists()) {
+                fileDirectory.mkdirs();
+            }
+            File fileTest = new File(directoryManager.getUploadDir(targetInstanceId), fileName);
+            Files.write("test".getBytes(), fileTest);
             testInstance.dasDownloadFile(targetInstanceId, harvestResultNumber, fileName, req, rsp);
         } catch (IOException e) {
             e.printStackTrace();
@@ -1009,4 +1032,125 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         assert true;
     }
 
+    @Test
+    public void testDasHeartbeat() {
+        List<HarvestResultDTO> harvestResultDTOList = new ArrayList<>();
+        HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
+        harvestResultDTOList.add(harvestResultDTO);
+
+        TargetInstance ti = tiDao.load(5000L);
+        HarvestResult hr = ti.getHarvestResult(1);
+        harvestResultDTO.setTargetInstanceOid(ti.getOid());
+        harvestResultDTO.setHarvestNumber(hr.getHarvestNumber());
+        harvestResultDTO.setState(hr.getState());
+        harvestResultDTO.setStatus(HarvestResult.STATUS_PAUSED);
+
+        testInstance.dasHeartbeat(harvestResultDTOList);
+        verify(mockHarvestResultManager).updateHarvestResultsStatus(harvestResultDTOList);
+    }
+
+    @Test
+    public void testModificationComplete() throws DigitalAssetStoreException {
+        long job = 5000L;
+        int harvestResultNumber = 1;
+
+        testInstance.dasModificationComplete(job, harvestResultNumber);
+
+        verify(mockHarvestBandwidthManager).sendBandWidthRestrictions();
+        verify(mockDigitalAssetStore).initiateIndexing(any(HarvestResultDTO.class));
+    }
+
+    @Test
+    public void testDasQuerySeedHistory() {
+        long job = 5000L;
+        int harvestResultNumber = 1;
+
+        TargetInstance ti = tiDao.load(job);
+
+        SeedHistorySetDTO seedHistorySetDTO = testInstance.dasQuerySeedHistory(job, harvestResultNumber);
+
+        assertNotEquals(null, seedHistorySetDTO);
+        assertEquals(ti.getSeedHistory().size(), seedHistorySetDTO.getSeeds().size());
+    }
+
+    @Test
+    public void testDasUpdateHarvestResultStatus() {
+        HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
+
+        TargetInstance ti = tiDao.load(5000L);
+        HarvestResult hr = ti.getHarvestResult(1);
+        harvestResultDTO.setTargetInstanceOid(ti.getOid());
+        harvestResultDTO.setHarvestNumber(hr.getHarvestNumber());
+        harvestResultDTO.setState(hr.getState());
+        harvestResultDTO.setStatus(HarvestResult.STATUS_PAUSED);
+
+        testInstance.dasUpdateHarvestResultStatus(harvestResultDTO);
+        verify(mockHarvestResultManager).updateHarvestResultStatus(harvestResultDTO);
+    }
+
+    @Test
+    public void testPushPruneAndImport() throws IOException {
+        long job = 5000L;
+        int harvestResultNumber = 1;
+
+        TargetInstance ti = tiDao.load(job);
+
+        {
+            ti.setState(TargetInstance.STATE_SCHEDULED);
+            tiDao.save(ti);
+            boolean result = testInstance.pushPruneAndImport(job, harvestResultNumber);
+            assertFalse(result);
+        }
+
+        {
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            tiDao.save(ti);
+
+            PatchUtil.modifier.deleteJob(directoryManager.getBaseDir(), job, harvestResultNumber);
+
+            boolean result = testInstance.pushPruneAndImport(job, harvestResultNumber);
+            assertFalse(result);
+        }
+
+        {
+            ti.setState(TargetInstance.STATE_PATCHING);
+            tiDao.save(ti);
+
+            ModifyApplyCommand cmd = new ModifyApplyCommand();
+            cmd.setTargetInstanceId(job);
+            cmd.setHarvestResultNumber(harvestResultNumber);
+            cmd.setNewHarvestResultNumber(harvestResultNumber);
+            PatchUtil.modifier.savePatchJob(directoryManager.getBaseDir(), cmd);
+
+            when(mockDigitalAssetStore.initialPruneAndImport(any(ModifyApplyCommand.class))).thenReturn(new ModifyResult());
+
+            boolean result = testInstance.pushPruneAndImport(job, harvestResultNumber);
+            assertTrue(result);
+
+            verify(mockDigitalAssetStore).initialPruneAndImport(any(ModifyApplyCommand.class));
+        }
+    }
+
+    @Test
+    public void testSaveImportedFile() {
+        long job = 5000L;
+        int harvestResultNumber = 1;
+        String fileName = "test.png";
+
+        ModifyRowMetadata metadata = new ModifyRowMetadata();
+        metadata.setName(fileName);
+        ModifyRow cmd = new ModifyRow();
+        cmd.setMetadata(metadata);
+        cmd.setContent("base64:" + Base64.encode("test".getBytes()));
+
+        VisualizationImportedFileDAO mockVisualizationImportedFileDAO = mock(VisualizationImportedFileDAO.class);
+        when(mockVisualizationImportedFileDAO.findImportedFile(anyString())).thenReturn(null);
+        testInstance.setVisualizationImportedFileDAO(mockVisualizationImportedFileDAO);
+
+        testInstance.uploadFile(job, harvestResultNumber, cmd);
+
+        File file = new File(directoryManager.getUploadDir(job), fileName);
+        assert file != null;
+        assert file.exists();
+    }
 }

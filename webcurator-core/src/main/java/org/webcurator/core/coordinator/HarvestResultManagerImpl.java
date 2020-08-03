@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationProgressView;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -33,10 +34,10 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
     @Autowired
     private NetworkMapClient networkMapClient;
 
-    @Override
-    public void addHarvestResult(HarvestResultDTO hrDTO) {
-        harvestResults.put(hrDTO.getKey(), hrDTO);
-    }
+//    @Override
+//    public void addHarvestResult(HarvestResultDTO hrDTO) {
+//        harvestResults.put(hrDTO.getKey(), hrDTO);
+//    }
 
     @Override
     public void removeHarvestResult(HarvestResultDTO hrDTO) {
@@ -74,6 +75,12 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
     public void updateHarvestResultStatus(long targetInstanceId, int harvestResultNumber, int state, int status) {
         HarvestResultDTO hrDTO = getHarvestResultDTO(targetInstanceId, harvestResultNumber);
         if (hrDTO != null) {
+            //Update the state in DB
+            if (hrDTO.getState() != state) {
+                HarvestResult hr = targetInstanceManager.getHarvestResult(targetInstanceId, harvestResultNumber);
+                hr.setState(HarvestResult.STATE_MODIFYING);
+                targetInstanceManager.save(hr);
+            }
             hrDTO.setState(state);
             hrDTO.setStatus(status);
         }
@@ -81,14 +88,14 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
 
     @Override
     public void updateHarvestResultStatus(HarvestResultDTO hrDTO) {
-        harvestResults.put(hrDTO.getKey(), hrDTO);
+        updateHarvestResultStatus(hrDTO.getTargetInstanceOid(), hrDTO.getHarvestNumber(), hrDTO.getState(), hrDTO.getStatus());
     }
 
     @Override
     public void updateHarvestResultsStatus(List<HarvestResultDTO> harvestResultDTOList) {
         harvestResults.clear();
         for (HarvestResultDTO hrDTO : harvestResultDTOList) {
-            harvestResults.put(hrDTO.getKey(), hrDTO);
+            updateHarvestResultStatus(hrDTO);
         }
     }
 

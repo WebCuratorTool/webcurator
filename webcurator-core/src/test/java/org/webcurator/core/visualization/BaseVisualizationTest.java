@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static org.mockito.Mockito.mock;
+
 public class BaseVisualizationTest {
     protected static final Logger log = LoggerFactory.getLogger(BaseVisualizationTest.class);
     protected String baseDir = "/usr/local/wct/store";
@@ -40,7 +42,8 @@ public class BaseVisualizationTest {
         SeedHistoryDTO seedHistorySecondary = new SeedHistoryDTO(2, "http://www.baidu.com/", targetInstanceId, false);
         seeds.add(seedHistoryPrimary);
         seeds.add(seedHistorySecondary);
-        wctClient = new WctCoordinatorClient("http", "localhost", 8080, new RestTemplateBuilder());
+        //wctClient = new WctCoordinatorClient("http", "localhost", 8080, new RestTemplateBuilder());
+        wctClient = mock(WctCoordinatorClient.class);
         processorManager = new VisualizationProcessorManager(directoryManager, wctClient, 3);
     }
 

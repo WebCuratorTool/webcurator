@@ -120,6 +120,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			String message = e.getClass().toString() + " - " + e.getMessage();
 			log.debug(message);
 			fail(message);

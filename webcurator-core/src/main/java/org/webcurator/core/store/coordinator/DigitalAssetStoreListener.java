@@ -37,7 +37,7 @@ public interface DigitalAssetStoreListener {
      */
     void dasDownloadFile(long targetInstanceOid, int harvestNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
 
-    void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList);
+    void dasHeartbeat(List<HarvestResultDTO> harvestResultDTOList);
 
     void dasUpdateHarvestResultStatus(HarvestResultDTO hrDTO);
 }

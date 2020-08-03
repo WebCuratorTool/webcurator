@@ -15,14 +15,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings("all")
 public class NetworkMapNode extends NetworkMapNodeDTO {
     private static NetworkMapDomainSuffix topDomainParser = null;
-
-    static {
-        ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
-        if (ctx != null) {
-            topDomainParser = ctx.getBean(NetworkMapDomainSuffix.class);
-        } else {
-            topDomainParser = new NetworkMapDomainSuffix();
-        }
+    public static void setTomDomainParse(NetworkMapDomainSuffix aTopDomainParser){
+        topDomainParser=aTopDomainParser;
     }
 
     @JsonIgnore

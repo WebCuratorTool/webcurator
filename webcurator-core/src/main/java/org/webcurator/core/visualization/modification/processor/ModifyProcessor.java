@@ -168,26 +168,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
             throw new DigitalAssetStoreException(err);
         }
         File downloadedFile = new File(fileDir, tempFileName);
-
-        URL url = wctClient.getDownloadFileURL(job, harvestResultNumber, metadata.getName());
-        URLConnection conn = url.openConnection();
-
-//        File downloadedFile = File.createTempFile(metadata.getName(), ".open");
-//        IOUtils.copy(conn.getInputStream(), Files.newOutputStream(downloadedFile.toPath()));
-
-        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadedFile));
-        InputStream inputStream = conn.getInputStream();
-        while (true) {
-            byte[] buf = new byte[1024 * 32];
-            int len = inputStream.read(buf);
-            if (len < 0) {
-                break;
-            }
-            outputStream.write(buf, 0, len);
-        }
-        outputStream.close();
-
-        return downloadedFile;
+        return wctClient.getDownloadFileURL(job, harvestResultNumber, metadata.getName(), downloadedFile);
     }
 
     protected abstract String archiveType();

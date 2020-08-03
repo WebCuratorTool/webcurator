@@ -238,6 +238,7 @@ public class HeritrixProfileTest extends BaseWCTTest<HeritrixProfile>{
 		}
 	}
 
+	@Ignore
 	@Test
 	public final void testAddMapElementStringStringString() {
 		try

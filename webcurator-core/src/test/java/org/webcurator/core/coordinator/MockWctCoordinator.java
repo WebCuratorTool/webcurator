@@ -388,7 +388,7 @@ public class MockWctCoordinator implements WctCoordinator {
     }
 
     @Override
-    public void dasHeartBeat(List<HarvestResultDTO> harvestResultDTOList) {
+    public void dasHeartbeat(List<HarvestResultDTO> harvestResultDTOList) {
 
     }
 

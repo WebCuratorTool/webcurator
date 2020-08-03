@@ -33,8 +33,8 @@ public class DigitalAssetStoreListenerService implements DigitalAssetStoreListen
 
     @Override
     @RequestMapping(path = WctCoordinatorPaths.DIGITAL_ASSET_STORE_HEARTBEAT, method = {RequestMethod.POST, RequestMethod.GET})
-    public void dasHeartBeat(@RequestBody List<HarvestResultDTO> harvestResultDTOList) {
-        wctCoordinator.dasHeartBeat(harvestResultDTOList);
+    public void dasHeartbeat(@RequestBody List<HarvestResultDTO> harvestResultDTOList) {
+        wctCoordinator.dasHeartbeat(harvestResultDTOList);
     }
 
     @Override

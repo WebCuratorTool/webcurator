@@ -1,12 +1,13 @@
 package org.webcurator.core.visualization.modification.metadata;
 
+import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.util.List;
 
 public class ModifyResult {
-    private int respCode;
-    private String respMsg;
+    private int respCode= VisualizationConstants.RESP_CODE_SUCCESS;
+    private String respMsg="Succeed";
     private List<ModifyRowMetadata> metadataDataset;
     private HarvestResultDTO derivedHarvestResult;
 
