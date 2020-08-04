@@ -34,6 +34,7 @@ public class HarvestResultDTO {
     /**
      * The unique ID of the HarvestResult
      */
+    @JsonIgnore
     protected Long oid;
     /**
      * the id of the target instance that this result belongs to.
@@ -42,6 +43,7 @@ public class HarvestResultDTO {
     /**
      * the date the result was created.
      */
+    @JsonIgnore
     protected Date creationDate;
     /**
      * the number of the harvest.
@@ -50,13 +52,18 @@ public class HarvestResultDTO {
     /**
      * The harvests provenance note.
      */
+    @JsonIgnore
     protected String provenanceNote;
 
+    @JsonIgnore
     protected String createdByFullName;
+
     protected int derivedFrom;
     protected int state = 0;
     protected int status = 0;
     protected int currentProgressPercentage = 0;
+
+    @JsonIgnore
     protected VisualizationProgressView progressView;
 
     public HarvestResultDTO() {
@@ -97,6 +104,7 @@ public class HarvestResultDTO {
     /**
      * @return Returns the creationDate.
      */
+    @JsonIgnore
     public Date getCreationDate() {
         return creationDate;
     }
@@ -104,6 +112,7 @@ public class HarvestResultDTO {
     /**
      * @param creationDate The creationDate to set.
      */
+    @JsonIgnore
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
     }
@@ -125,6 +134,7 @@ public class HarvestResultDTO {
     /**
      * @return Returns the provenanceNote.
      */
+    @JsonIgnore
     public String getProvenanceNote() {
         return provenanceNote;
     }
@@ -132,6 +142,7 @@ public class HarvestResultDTO {
     /**
      * @param provenanceNote The provenanceNote to set.
      */
+    @JsonIgnore
     public void setProvenanceNote(String provenanceNote) {
         this.provenanceNote = provenanceNote;
     }
@@ -166,6 +177,7 @@ public class HarvestResultDTO {
         this.status = status;
     }
 
+    @JsonIgnore
     public String getKey() {
         return PatchUtil.getPatchJobName(this.targetInstanceOid, this.harvestNumber);
     }
@@ -178,10 +190,12 @@ public class HarvestResultDTO {
         this.currentProgressPercentage = currentProgressPercentage;
     }
 
+    @JsonIgnore
     public String getCreatedByFullName() {
         return createdByFullName;
     }
 
+    @JsonIgnore
     public void setCreatedByFullName(String createdByFullName) {
         this.createdByFullName = createdByFullName;
     }
@@ -194,6 +208,7 @@ public class HarvestResultDTO {
         this.derivedFrom = derivedFrom;
     }
 
+    @JsonIgnore
     public int getCrawlingProgressPercentage(NetworkMapClient networkMapClient) {
         if (state == HarvestResult.STATE_CRAWLING) {
             return getProgressPercentage();
@@ -201,6 +216,7 @@ public class HarvestResultDTO {
         return 100;
     }
 
+    @JsonIgnore
     public int getModifyingProgressPercentage(NetworkMapClient networkMapClient) {
         if (state == HarvestResult.STATE_CRAWLING) {
             return 0; //Not started
@@ -215,6 +231,7 @@ public class HarvestResultDTO {
         }
     }
 
+    @JsonIgnore
     public int getIndexingProgressPercentage(NetworkMapClient networkMapClient) {
         if (state == HarvestResult.STATE_CRAWLING || state == HarvestResult.STATE_MODIFYING) {
             return 0; //Not started
@@ -229,6 +246,7 @@ public class HarvestResultDTO {
         }
     }
 
+    @JsonIgnore
     private int getProgressPercentage() {
         if (status == HarvestResult.STATUS_SCHEDULED || status == HarvestResult.STATUS_TERMINATED) {
             return 0;
@@ -256,10 +274,12 @@ public class HarvestResultDTO {
         return null;
     }
 
+    @JsonIgnore
     public VisualizationProgressView getProgressView() {
         return progressView;
     }
 
+    @JsonIgnore
     public void setProgressView(VisualizationProgressView progressView) {
         this.progressView = progressView;
     }

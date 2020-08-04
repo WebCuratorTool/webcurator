@@ -359,6 +359,9 @@ public class HarvestResult implements UserInTrayResource {
      * this will be null.
      */
     public Integer getDerivedFrom() {
+        if (derivedFrom == null) {
+            return Integer.valueOf(0);
+        }
         return derivedFrom;
     }
 

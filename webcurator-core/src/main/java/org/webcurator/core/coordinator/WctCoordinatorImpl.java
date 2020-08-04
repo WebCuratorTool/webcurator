@@ -1514,7 +1514,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         ModifyRowMetadata metadata = cmd.getMetadata();
         File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job));
         if (!uploadedFilePath.exists()) {
-            uploadedFilePath.mkdir();
+            uploadedFilePath.mkdirs();
         }
 
         uploadedFilePath = new File(uploadedFilePath, metadata.getName());
