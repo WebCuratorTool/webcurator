@@ -1,8 +1,8 @@
 package org.webcurator.core.visualization.networkmap;
 
+import java.io.File;
 import java.nio.file.Files;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,8 +11,8 @@ import java.util.Map;
 public class NetworkMapDomainSuffix {
     private final NetworkMapDomainSuffixNode ROOT = new NetworkMapDomainSuffixNode();
 
-    public void init(String suffixFilePath) throws Exception {
-        List<String> lines = Files.readAllLines(Paths.get(suffixFilePath));
+    public void init(File suffixFile) throws Exception {
+        List<String> lines = Files.readAllLines(suffixFile.toPath());
         lines.stream().filter(line -> {
             line = line.trim();
             return line.length() > 0 && !line.startsWith("//");
@@ -53,14 +53,6 @@ public class NetworkMapDomainSuffix {
 
         return String.join(".", result);
     }
-
-//    public static void main(String[] args) throws Exception {
-//        NetworkMapDomainSuffix suf = new NetworkMapDomainSuffix();
-//        suf.init("D:\\Downloads\\public_suffix_list.dat");
-//        String domain = "www.google.com";
-//        String topDomain = suf.getTopDomainName(domain);
-//        System.out.println(domain + ": " + topDomain);
-//    }
 }
 
 class NetworkMapDomainSuffixNode {

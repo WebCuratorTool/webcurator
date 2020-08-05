@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -603,9 +604,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
         Resource resource = new ClassPathResource("modificationH3Profile.xml");
         String profile = null;
         try {
-            profile = new String(Files.readAllBytes(resource.getFile().toPath()));
+            profile = IOUtils.toString(resource.getInputStream()); //new String(Files.readAllBytes(resource.getFile().toPath()));
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Failed to read modificationH3Profile.xml: ", e);
             return processed;
         }
 

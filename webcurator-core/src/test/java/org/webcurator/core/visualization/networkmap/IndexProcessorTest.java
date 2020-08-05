@@ -36,7 +36,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         Resource resource = new ClassPathResource("public_suffix_list.dat");
 
         try {
-            suffixParser.init(resource.getFile().getAbsolutePath());
+            suffixParser.init(resource.getFile());
         } catch (Exception e) {
             log.error("Load domain suffix file failed.", e);
         }

@@ -38,6 +38,8 @@ import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 
 import javax.annotation.PostConstruct;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -303,13 +305,23 @@ public class DasConfig {
     }
 
     private NetworkMapDomainSuffix networkMapDomainSuffix() {
+        //https://publicsuffix.org/list/public_suffix_list.dat
+
         NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
         Resource resource = new ClassPathResource("public_suffix_list.dat");
 
+        Path tempDataFilePath = null;
         try {
-            suffixParser.init(resource.getFile().getAbsolutePath());
+            tempDataFilePath = Files.createTempFile("public-suffix-list", ".dat");
+            tempDataFilePath.toFile().delete();
+            Files.copy(resource.getInputStream(), tempDataFilePath);
+            suffixParser.init(tempDataFilePath.toFile());
         } catch (Exception e) {
             LOGGER.error("Load domain suffix file failed.", e);
+        } finally {
+            if (tempDataFilePath != null && tempDataFilePath.toFile().exists()) {
+                tempDataFilePath.toFile().delete();
+            }
         }
 
         return suffixParser;
