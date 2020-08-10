@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.springframework.mock.web.*;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -16,6 +17,7 @@ import org.webcurator.test.BaseWCTTest;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.site.SiteEditorContext;
 import org.webcurator.ui.site.command.*;
+import org.webcurator.ui.site.validator.SiteAgencyValidator;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabConfig;
 import org.webcurator.core.sites.*;
@@ -35,6 +37,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 		{
 			MockHttpServletRequest aReq = new MockHttpServletRequest();
 			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			ReflectionTestUtils.setField(testInstance, "siteAgencyValidator", new SiteAgencyValidator());
 
 			Site site = siteManager.getSite(9000L, true);
 			SiteEditorContext ctx = new SiteEditorContext(site);
@@ -78,6 +81,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 		{
 			MockHttpServletRequest aReq = new MockHttpServletRequest();
 			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			ReflectionTestUtils.setField(testInstance, "siteAgencyValidator", new SiteAgencyValidator());
 
 			Site site = siteManager.getSite(9000L, true);
 			SiteEditorContext ctx = new SiteEditorContext(site);

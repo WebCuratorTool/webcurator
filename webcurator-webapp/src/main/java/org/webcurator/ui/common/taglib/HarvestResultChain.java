@@ -24,6 +24,7 @@ import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.domain.model.core.HarvestResult;
 
 /**
@@ -34,7 +35,7 @@ import org.webcurator.domain.model.core.HarvestResult;
 public class HarvestResultChain extends TagSupport {
 
 
-	private static final SimpleDateFormat dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd");
+	private static final SimpleDateFormat dateFormatter = SafeSimpleDateFormat.getInstance("yyyy-MM-dd");
 
 	/** Serializable */
 	private static final long serialVersionUID = 1L;

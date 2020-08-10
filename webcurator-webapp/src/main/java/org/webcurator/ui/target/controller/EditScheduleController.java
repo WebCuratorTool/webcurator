@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.DateUtils;
 import org.webcurator.domain.HeatmapDAO;
@@ -74,7 +75,7 @@ import org.webcurator.common.util.Utils;
  */
 public class EditScheduleController {
 
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+	private static final SimpleDateFormat dateFormat = SafeSimpleDateFormat.getInstance("yyyyMMdd");
 
 	@Autowired
 	private SchedulePatternFactory patternFactory;

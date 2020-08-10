@@ -31,14 +31,14 @@ public class DateUtils implements MessageSourceAware {
 	
 	public SimpleDateFormat getDateFormat(String type) { 
 		String format = messageSource.getMessage(type, new Object[] {}, Locale.getDefault());
-		SimpleDateFormat df = new SimpleDateFormat(format);
+		SimpleDateFormat df = SafeSimpleDateFormat.getInstance(format);
 		df.setLenient(false);
 		return df;
 	}
 
 	public PropertyEditor getDateEditor(String style, boolean allowEmpty) {
 		String format = messageSource.getMessage(style, new Object[] {}, Locale.getDefault());
-		SimpleDateFormat df = new SimpleDateFormat(format);
+		SimpleDateFormat df = SafeSimpleDateFormat.getInstance(format);
 		df.setLenient(false);
 		return new CustomDateEditor(df, allowEmpty, format.length());
 	}
@@ -58,7 +58,7 @@ public class DateUtils implements MessageSourceAware {
 
 	public String format(Date dt, String type) { 
 		String format = messageSource.getMessage(type, new Object[] {}, Locale.getDefault());
-		SimpleDateFormat df = new SimpleDateFormat(format);
+		SimpleDateFormat df = SafeSimpleDateFormat.getInstance(format);
 		return dt == null ? "" : df.format(dt);
 	}
 	

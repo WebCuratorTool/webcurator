@@ -9,6 +9,7 @@ import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -20,6 +21,7 @@ import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.*;
+import org.webcurator.ui.admin.validator.ChangePasswordValidator;
 
 public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordController>{
 
@@ -69,11 +71,12 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 	@Test
 	public final void testProcessFormSubmission() {
 		MockHttpServletRequest request = new MockHttpServletRequest();
-        BindingResult bindingResult = new BindException(new CreateUserCommand(), CreateUserCommand.ACTION_EDIT);
+        BindingResult bindingResult;
 		testSetAgencyUserManager();
 		testSetAuthorityManager();
 		testSetMessageSource();
 		testSetEncoder();
+		ReflectionTestUtils.setField(testInstance, "changePasswordValidator", new ChangePasswordValidator());
 
 		try
 		{
@@ -82,6 +85,7 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 			aCommand.setUserOid(1000L);
 			aCommand.setNewPwd("Pa55word");
 			aCommand.setConfirmPwd("Pa55word");
+			bindingResult = new BindException(aCommand, CreateUserCommand.ACTION_SAVE);
 			ModelAndView mav = testInstance.processFormSubmission(request, aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewUsers"));

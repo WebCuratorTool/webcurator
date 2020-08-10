@@ -6,10 +6,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
@@ -27,30 +29,31 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 	}
 	AuthorityManagerImpl authorityManager;
 
+	QualityReviewToolControllerAttribute mockQRTCA = new QualityReviewToolControllerAttribute();
+
     //Override BaseWCTTest setup method
 	public void setUp() throws Exception {
 		//call the overridden method as well
 		super.setUp();
 
-		//add the extra bits
-		testInstance.setArchiveUrl("archiveURL");
-		testInstance.setEnableBrowseTool(true);
-		testInstance.setEnableAccessTool(true);
-		testInstance.setTargetManager(new MockTargetManager(testFile));
-		testInstance.setTargetInstanceDao(new MockTargetInstanceDAO(testFile));
-		testInstance.setTargetInstanceManager(new MockTargetInstanceManager(testFile));
-
+		mockQRTCA.setArchiveUrl("archiveURL");
+		mockQRTCA.setTargetManager(new MockTargetManager(testFile));
+		mockQRTCA.setTargetInstanceDao(new MockTargetInstanceDAO(testFile));
+		mockQRTCA.setTargetInstanceManager(new MockTargetInstanceManager(testFile));
 		HarvestResourceUrlMapper harvestResourceUrlMapper = new HarvestResourceUrlMapper();
 		harvestResourceUrlMapper.setUrlMap("http://test?url={$HarvestResource.Name}");
-		testInstance.setHarvestResourceUrlMapper(harvestResourceUrlMapper);
+		mockQRTCA.setHarvestResourceUrlMapper(harvestResourceUrlMapper);
 	}
 
 
 
 	@Test
 	public final void testHandle() {
-		try
-		{
+		try {
+			mockQRTCA.setEnableBrowseTool(true);
+			mockQRTCA.setEnableAccessTool(true);
+			ReflectionTestUtils.setField(testInstance, "attr", mockQRTCA);
+
 			ModelAndView mav = getHandelMav();
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("quality-review-toc"));
@@ -60,7 +63,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 			assertTrue(it.hasNext());
 			SeedMapElement sme = it.next();
 			assertEquals("http://www.oakleigh.co.uk/", sme.getSeed());
-			assertEquals("curator/tools/browse/111000/http://www.oakleigh.co.uk/", sme.getBrowseUrl());
+			assertEquals("curator/tools/browse/111000/"+ Base64.getEncoder().encodeToString("http://www.oakleigh.co.uk/".getBytes()), sme.getBrowseUrl());
 			assertEquals("http://test?url=http://www.oakleigh.co.uk/", sme.getAccessUrl());
 		}
 		catch (Exception e)
@@ -75,7 +78,9 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 	public final void testHandleWithAccessToolDiasbled() {
 		try
 		{
-			testInstance.setEnableAccessTool(false);
+			mockQRTCA.setEnableBrowseTool(true);
+			mockQRTCA.setEnableAccessTool(false);
+			ReflectionTestUtils.setField(testInstance, "attr", mockQRTCA);
 
 			ModelAndView mav = getHandelMav();
 			assertTrue(mav != null);
@@ -86,7 +91,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 			assertTrue(it.hasNext());
 			SeedMapElement sme = it.next();
 			assertEquals("http://www.oakleigh.co.uk/", sme.getSeed());
-			assertEquals("curator/tools/browse/111000/http://www.oakleigh.co.uk/", sme.getBrowseUrl());
+			assertEquals("curator/tools/browse/111000/"+ Base64.getEncoder().encodeToString("http://www.oakleigh.co.uk/".getBytes()), sme.getBrowseUrl());
 			assertEquals("", sme.getAccessUrl());
 
 		}
@@ -102,7 +107,9 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 	public final void testHandleWithBrowseToolDiasbled() {
 		try
 		{
-			testInstance.setEnableBrowseTool(false);
+			mockQRTCA.setEnableBrowseTool(false);
+			mockQRTCA.setEnableAccessTool(true);
+			ReflectionTestUtils.setField(testInstance, "attr", mockQRTCA);
 
 			ModelAndView mav = getHandelMav();
 			assertTrue(mav != null);
@@ -130,7 +137,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 		comm.setHarvestResultId(111000L);
 		comm.setTargetInstanceOid(5000L);
 
-		ModelAndView mav = testInstance.handle(comm);
+		ModelAndView mav = testInstance.postHandle(comm);
 		return mav;
 	}
 

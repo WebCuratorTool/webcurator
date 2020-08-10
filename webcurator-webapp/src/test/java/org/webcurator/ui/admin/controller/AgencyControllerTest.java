@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindingResult;
 import org.webcurator.test.*;
 
@@ -20,6 +21,7 @@ import org.springframework.context.MockMessageSource;
 import org.webcurator.ui.admin.command.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.domain.model.auth.Agency;
+import org.webcurator.ui.admin.validator.AgencyValidator;
 
 
 /**
@@ -78,13 +80,15 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 	public final void testProcessFormSubmission() {
 		try
 		{
-			BindingResult bindingResult = new BindException(new AgencyCommand(), AgencyCommand.ACTION_EDIT);
+			BindingResult bindingResult;
 			testSetAgencyUserManager();
 			testSetMessageSource();
+			ReflectionTestUtils.setField(testInstance, "agencyValidator", new AgencyValidator());
 
 			AgencyCommand aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_NEW);
 			aCommand.setOid(new Long(2000));
+			bindingResult = new BindException(aCommand, AgencyCommand.ACTION_NEW);
 			ModelAndView mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newAgency"));
@@ -95,6 +99,8 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 			aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_VIEW);
 			aCommand.setOid(new Long(2000));
+			aCommand.setViewOnlyMode(true);
+			bindingResult = new BindException(aCommand, AgencyCommand.ACTION_VIEW);
 			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newAgency"));
@@ -108,6 +114,7 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 			aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_EDIT);
 			aCommand.setOid(new Long(2000));
+			bindingResult = new BindException(aCommand, AgencyCommand.ACTION_EDIT);
 			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("newAgency"));
@@ -121,6 +128,8 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController>{
 			aCommand = new AgencyCommand();
 			aCommand.setActionCommand(AgencyCommand.ACTION_SAVE);
 			aCommand.setName("New Test Agency");
+			aCommand.setAddress("The Agency address");
+			bindingResult = new BindException(aCommand, AgencyCommand.ACTION_SAVE);
 			mav = testInstance.processFormSubmission(aCommand, bindingResult);
 			assertTrue(mav != null);
 			assertTrue(mav.getViewName().equals("viewAgencies"));

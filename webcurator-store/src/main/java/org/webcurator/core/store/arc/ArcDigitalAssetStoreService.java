@@ -67,6 +67,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
@@ -113,8 +114,8 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     /**
      * Arc files meta data date format.
      */
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-    private static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final SimpleDateFormat sdf = SafeSimpleDateFormat.getInstance("yyyyMMddHHmmss");
+    private static final SimpleDateFormat writerDF = SafeSimpleDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss'Z'");
     /**
      * The Indexer
      */

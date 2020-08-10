@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.webcurator.domain.model.core.ArcHarvestResource;
+import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.target.validator.TargetAccessValidatorTest;
@@ -31,7 +32,7 @@ public class HarvestResourceUrlMapperTest extends TestCase {
 		hRsr.setStatusCode(2);
 		hRsr.setArcFileName("BL-123456-20091231235959-00000-localhost.arc.gz");
 
-		HarvestResult hRslt = new HarvestResult();
+		ArcHarvestResult hRslt = new ArcHarvestResult();
 		SimpleDateFormat format = new SimpleDateFormat("d/M/y hh:mm:ss");
 		Date d = format.parse("3/11/2004 10:20:11");
 		hRslt.setCreationDate(d);

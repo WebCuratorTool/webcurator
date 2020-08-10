@@ -31,6 +31,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 
 /**
  * A utility adapter which communicates directly with the 
@@ -75,7 +76,7 @@ public class OMSUploadUtil {
     private String password;
     private int usersGroup = 0;
 
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat("ddMMyyyy");
+    private SimpleDateFormat dateFormatter = SafeSimpleDateFormat.getInstance("ddMMyyyy");
     /* The sessionid to use when uploading files to the OMS */
 	private String sessionId;
 

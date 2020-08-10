@@ -20,6 +20,8 @@ import static org.webcurator.core.archive.Constants.LOG_FILE;
 import static org.webcurator.core.archive.Constants.REPORT_FILE;
 import static org.webcurator.core.archive.Constants.ROOT_FILE;
 
+import org.webcurator.common.util.SafeSimpleDateFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +36,7 @@ import java.util.Map;
  */
 public class SIPUtils {
 	private static final String indents = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+	private static SimpleDateFormat dateFormatter = SafeSimpleDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss");
 
 
 	public static String finishSIP(String sip, String targetInstanceOID, List<ArchiveFile> files) {

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.core.AbstractTarget;
@@ -44,7 +45,7 @@ public class SipBuilder {
 	private TargetManager targetManager = null;
 	
 	/** The SIP date formatter */
-	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+	private static SimpleDateFormat dateFormatter = SafeSimpleDateFormat.getInstance("yyyy-MM-dd");
 	
 	/**
 	 * Escape a string for XML.

@@ -48,6 +48,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xmlbeans.XmlError;
 import org.apache.xmlbeans.XmlOptions;
+import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.archive.dps.DpsDepositFacade.HarvestType;
 
 import java.text.SimpleDateFormat;
@@ -269,8 +270,8 @@ public class DnxMapperImpl implements DnxMapper {
     private String convertDateFormat(WctDataExtractor wctData, String dateStr, String inputFormatStr, String outputFormatStr) {
         String outputDate;
         try {
-            SimpleDateFormat outputFormat = new SimpleDateFormat(outputFormatStr);
-            SimpleDateFormat inputFormat = new SimpleDateFormat(inputFormatStr);
+            SimpleDateFormat outputFormat = SafeSimpleDateFormat.getInstance(outputFormatStr);
+            SimpleDateFormat inputFormat = SafeSimpleDateFormat.getInstance(inputFormatStr);
             Date date = inputFormat.parse(dateStr);
             outputDate = outputFormat.format(date);
         } catch (Exception e) {

@@ -13,8 +13,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
+
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
@@ -23,8 +26,10 @@ import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 import org.webcurator.core.harvester.coordinator.MockHarvestCoordinator;
+import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.MockDigitalAssetStore;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
@@ -103,6 +108,14 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		testInstance.setHarvestCoordinator(coordinator);
 		testInstance.setDigitalAssetStore(digitalAssetStore);
 		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+
+		DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http","wctstore.natlib.govt.nz", 19090, new RestTemplateBuilder());
+		InTrayManagerImpl mockInTrayManager = new InTrayManagerImpl();
+		mockInTrayManager.setWctBaseUrl("http://${core.host}:${core.port}/");
+		ReflectionTestUtils.setField(testInstance, "digitalAssetStoreClient", mockDasClient);
+		ReflectionTestUtils.setField(testInstance, "inTrayManager", mockInTrayManager);
+
+
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
 		List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
 		HarvestResult result = results.get(0);
@@ -362,6 +375,12 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
 		TabbedModelAndView mav;
 		MockDigitalAssetStore digitalAssetStore;
+
+		DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http","wctstore.natlib.govt.nz", 19090, new RestTemplateBuilder());
+		InTrayManagerImpl mockInTrayManager = new InTrayManagerImpl();
+		mockInTrayManager.setWctBaseUrl("http://${core.host}:${core.port}/");
+		ReflectionTestUtils.setField(testInstance, "digitalAssetStoreClient", mockDasClient);
+		ReflectionTestUtils.setField(testInstance, "inTrayManager", mockInTrayManager);
 
 		// Harvest is in ENDORSED state and the DAS returns a valid response DTO
 		digitalAssetStore = new MockDigitalAssetStore() {
