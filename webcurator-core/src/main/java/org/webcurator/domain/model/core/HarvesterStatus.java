@@ -75,10 +75,10 @@ public class HarvesterStatus {
     private String heritrixVersion;
     /** the URLs downloaded successfully (derived field needed for sorting) **/
     @Formula("HS_URLS_DOWN-HS_URLS_FAILED")
-    private transient long urlsSucceeded;
+    private long urlsSucceeded;
     /** the percentage of URLs that failed to download successfully (derived field needed for sorting) **/
     @Formula("HS_URLS_FAILED/((HS_URLS_DOWN+0.00001)/100)")
-    private transient float percentageUrlsFailed;
+    private float percentageUrlsFailed;
     
     /** 
      * Default HarvesterStatus Constructor. 
