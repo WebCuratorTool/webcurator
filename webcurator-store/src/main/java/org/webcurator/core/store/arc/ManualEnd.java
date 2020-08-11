@@ -119,7 +119,7 @@ public class ManualEnd {
                 .queryParam("harvest-result", harvestResultDTO);
 
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, Void.class);
+                null, String.class);
     }
 
     private static void syntax() {

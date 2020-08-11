@@ -46,7 +46,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
             URI uri=uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            restTemplate.postForObject(uri, request, Void.class);
+            restTemplate.postForObject(uri, request, String.class);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new DigitalAssetStoreException(e);
