@@ -25,6 +25,7 @@ dependencies {
     compile 'org.netpreserve.commons:webarchive-commons:1.1.8'
     compile 'commons-net:commons-net:1.4.1'
     compile 'log4j:log4j:1.2.17'
+	compile 'com.sun.xml.ws:jaxws-ri:2.3.2'
     testCompile 'org.jmock:jmock:2.4.0'
     testCompile 'junit:junit:4.12'
     testCompile 'jmock:jmock-cglib:1.2.0'
