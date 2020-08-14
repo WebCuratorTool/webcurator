@@ -8,6 +8,9 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        url='http://builds.archive.org/maven2'
+    }
 }
 
 group = 'org.webcurator'
@@ -39,6 +42,7 @@ dependencies {
     }
     implementation('org.netpreserve.openwayback:openwayback-core:2.4.0'){
         exclude group: 'org.netpreserve.commons', module: 'webarchive-commons'
+        exclude group: 'com.sleepycat', module: 'je'
     }
     implementation('org.apache.tiles:tiles-jsp:3.0.8') {
         // Use Spring boot logging.
@@ -50,17 +54,19 @@ dependencies {
     implementation 'commons-dbcp:commons-dbcp:1.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'mysql:mysql-connector-java:5.1.6'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     implementation 'com.h2database:h2:1.4.199'
-//    implementation 'mysql:mysql-connector-java:5.1.6'
+    implementation 'mysql:mysql-connector-java:8.0.21'
 //    implementation 'com.oracle:ojdbc6:11.2.0.3'
     implementation 'org.postgresql:postgresql:42.2.11'
 
     implementation 'commons-pool:commons-pool:1.3.1-heritrix-1.14.2-webcuratortool-2.0.1'
     implementation ('org.webcurator:webcurator-core:3.0.0-SNAPSHOT'){
         exclude group: 'joda-time', module: 'joda-time'
+        exclude group: 'com.sleepycat', module: 'je'
+        exclude group: 'org.archive', module: 'archive-commons'
+        exclude group: 'org.apache.hadoop', module: 'hadoop-core'
     }
     implementation 'javax.validation:validation-api'
 
@@ -69,6 +75,7 @@ dependencies {
         // Use Spring boot logging.
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'com.sleepycat', module: 'je'
     }
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'
@@ -80,7 +87,7 @@ dependencies {
 }
 
 bootRun{
-    environment SPRING_PROFILES_ACTIVE:'local+mysql'
+    environment SPRING_PROFILES_ACTIVE:'local+postgres'
 }
 war {
     includeEmptyDirs = false

@@ -97,6 +97,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
     @Autowired
     private VisualizationImportedFileDAO visualizationImportedFileDAO;
     /**
+     *
      * The Target Manager.
      */
     @Autowired

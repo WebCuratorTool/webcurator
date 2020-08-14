@@ -8,6 +8,9 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        url='http://builds.archive.org/maven2'
+    }
 }
 
 //apply plubin: 'war'
