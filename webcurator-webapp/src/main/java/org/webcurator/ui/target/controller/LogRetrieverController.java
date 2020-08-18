@@ -27,6 +27,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
@@ -44,7 +45,6 @@ import org.webcurator.ui.target.command.LogRetrieverCommand;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@RequestMapping("/curator/target/log-retriever.html")
 public class LogRetrieverController {
     @Autowired
     private HarvestLogManager harvestLogManager;
@@ -64,13 +64,13 @@ public class LogRetrieverController {
     private PatchingHarvestLogManager patchingHarvestLogManagerIndex;
 
 
-    @GetMapping
+    @RequestMapping(path = "/curator/target/log-retriever.html", method = {RequestMethod.POST, RequestMethod.GET})
     protected ModelAndView handle(@ModelAttribute("logRetrieverCommand") LogRetrieverCommand cmd,
                                   BindingResult bindingResult) throws Exception {
         //Go to patching log reading process
-        if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
-            return handlePatchingRetrieve(cmd, bindingResult);
-        }
+//        if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
+//            return handlePatchingRetrieve(cmd, bindingResult);
+//        }
 
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
 
@@ -86,6 +86,7 @@ public class LogRetrieverController {
         return new ModelAndView(v);
     }
 
+    @RequestMapping(path = "/curator/target/patch-log-retriever.html", method = {RequestMethod.POST, RequestMethod.GET})
     protected ModelAndView handlePatchingRetrieve(@ModelAttribute("logRetrieverCommand") LogRetrieverCommand cmd,
                                                   BindingResult bindingResult) throws Exception {
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());

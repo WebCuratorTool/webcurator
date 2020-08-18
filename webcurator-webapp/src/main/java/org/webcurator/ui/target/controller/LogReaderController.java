@@ -100,9 +100,9 @@ public class LogReaderController {
                                   BindingResult bindingResult) throws Exception {
         validator.validate(cmd, bindingResult);
 
-        if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
-            return handlePatchingLogReader(cmd, bindingResult);
-        }
+//        if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
+//            return handlePatchingLogReader(cmd, bindingResult);
+//        }
 
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
 
@@ -222,7 +222,7 @@ public class LogReaderController {
         return mav;
     }
 
-    //    @RequestMapping(path = "/curator/target/patching-log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
+    @RequestMapping(path = "/curator/target/patch-log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
     protected ModelAndView handlePatchingLogReader(@ModelAttribute("logReaderCommand") LogReaderCommand cmd,
                                                    BindingResult bindingResult) throws Exception {
         validator.validate(cmd, bindingResult);
