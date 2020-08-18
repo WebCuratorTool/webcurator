@@ -348,6 +348,17 @@
 					<derivedFrom></derivedFrom>
 					<arcFiles></arcFiles>
 				</harvestResult>
+				<harvestResult id="21001">
+					<harvestNumber>2</harvestNumber>
+					<resources></resources>
+					<provenanceNote>A note</provenanceNote>
+					<creationDate>01/01/2009 00:00:00</creationDate>
+					<createdBy>1000</createdBy>
+					<state>3</state>
+					<modificationNotes/>
+					<derivedFrom></derivedFrom>
+					<arcFiles></arcFiles>
+				</harvestResult>
 			</harvestResults>
 			<schedule id="11000"/>
 		    <scheduledTime/>

@@ -1421,7 +1421,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
         inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, "subject.archived.failed",
                 new Object[]{ti.getTarget().getName(), ti.getResourceName()}, "message.archived.failed", new Object[]{
                         ti.getTarget().getName(), ti.getResourceName(), message}, ti, true);
-
     }
 
     /**
@@ -1831,24 +1830,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
             log.error("Failed to request modification, {} {}", result.getRespCode(), result.getRespMsg());
             return result;
         }
-
-//        TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
-//        if (ti == null) {
-//            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
-//            result.setRespMsg(String.format("Target instance (OID=%d) does not exist in DB", cmd.getTargetInstanceId()));
-//            log.error(result.getRespMsg());
-//            return result;
-//        } else if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-//            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_INVALID_TI_STATE);
-//            result.setRespMsg("Invalid TargetInstance state: " + ti.getState());
-//            log.error(result.getRespMsg());
-//            return result;
-//        }
-//
-//        HarvestResult hr = ti.getHarvestResult(cmd.getNewHarvestResultNumber());
-//        hr.setState(HarvestResult.STATE_MODIFYING);
-//        targetInstanceDao.save(hr);
-
         return result;
     }
 

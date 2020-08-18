@@ -34,11 +34,6 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
     @Autowired
     private NetworkMapClient networkMapClient;
 
-//    @Override
-//    public void addHarvestResult(HarvestResultDTO hrDTO) {
-//        harvestResults.put(hrDTO.getKey(), hrDTO);
-//    }
-
     @Override
     public void removeHarvestResult(HarvestResultDTO hrDTO) {
         harvestResults.remove(hrDTO.getKey());
@@ -76,7 +71,7 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
         HarvestResultDTO hrDTO = getHarvestResultDTO(targetInstanceId, harvestResultNumber);
         if (hrDTO != null) {
             //Update the state in DB
-            if (hrDTO.getState() != state) {
+            if (harvestResultNumber != 1 && hrDTO.getState() != state) {
                 HarvestResult hr = targetInstanceManager.getHarvestResult(targetInstanceId, harvestResultNumber);
                 hr.setState(HarvestResult.STATE_MODIFYING);
                 targetInstanceManager.save(hr);
@@ -100,43 +95,63 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
     }
 
     private HarvestResultDTO initHarvestResultDTO(long targetInstanceId, int harvestResultNumber) {
-        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceId);
-        if (ti == null) {
-            log.warn("TargetInstance does not exist: {}", targetInstanceId);
-            throw new WCTRuntimeException("TargetInstance does not exist, targetInstanceId: " + targetInstanceId);
-        }
-
-        HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-        if (hr == null) {
-            log.warn("TargetInstance does not exist: {} {}", targetInstanceId, harvestResultNumber);
-            throw new WCTRuntimeException("TargetInstance does not exist, targetInstanceId: " + targetInstanceId + ", harvestResultNumber: " + harvestResultNumber);
-        }
-
         HarvestResultDTO hrDTO = null;
+
+        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceId);
+        if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING) || harvestResultNumber == 1) {
+            hrDTO = new HarvestResultDTO();
+            hrDTO.setTargetInstanceOid(targetInstanceId);
+            hrDTO.setHarvestNumber(harvestResultNumber);
+            hrDTO.setState(HarvestResult.STATE_CRAWLING);
+            hrDTO.setStatus(HarvestResult.STATUS_UNASSESSED);
+            return hrDTO;
+        }
 
         NetworkMapResult remoteResult = networkMapClient.getProcessingHarvestResultDTO(targetInstanceId, harvestResultNumber);
         if (remoteResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
             hrDTO = HarvestResultDTO.getInstance(remoteResult.getPayload());
         } else {
             hrDTO = new HarvestResultDTO();
-            hrDTO.setTargetInstanceOid(targetInstanceId);
-            hrDTO.setHarvestNumber(harvestResultNumber);
-            hrDTO.setState(hr.getState());
-            if (hr.getState() == HarvestResult.STATE_CRAWLING
-                    || hr.getState() == HarvestResult.STATE_MODIFYING
-                    || hr.getState() == HarvestResult.STATE_INDEXING) {
-                hrDTO.setStatus(HarvestResult.STATUS_SCHEDULED);
-            } else {
-                hrDTO.setStatus(HarvestResult.STATUS_UNASSESSED);
-            }
         }
+
+        HarvestResult hr = targetInstanceManager.getHarvestResult(targetInstanceId, harvestResultNumber);
+        if (hr == null) {
+            String err = String.format("Harvest Result does not exist, targetInstanceId=%d, harvestResultNumber=%d", targetInstanceId, harvestResultNumber);
+            log.info(err);
+            throw new WCTRuntimeException(err);
+        }
+
+        hrDTO.setTargetInstanceOid(targetInstanceId);
+        hrDTO.setHarvestNumber(harvestResultNumber);
         hrDTO.setOid(hr.getOid());
-        hrDTO.setCreatedByFullName(hr.getCreatedBy().getFullName());
+        if (hr.getCreatedBy() != null) {
+            hrDTO.setCreatedByFullName(hr.getCreatedBy().getFullName());
+        } else {
+            hrDTO.setCreatedByFullName("Unknown");
+        }
         hrDTO.setDerivedFrom(hr.getDerivedFrom());
         hrDTO.setProvenanceNote(hr.getProvenanceNote());
         hrDTO.setCreationDate(hr.getCreationDate());
+        hrDTO.setState(hr.getState());
+
+        //Normalize state
+        if (hrDTO.getState() == HarvestResult.STATE_CRAWLING
+                || hrDTO.getState() == HarvestResult.STATE_MODIFYING
+                || hrDTO.getState() == HarvestResult.STATE_INDEXING) {
+            hrDTO.setStatus(HarvestResult.STATUS_SCHEDULED);
+        } else {
+            hrDTO.setStatus(HarvestResult.STATUS_UNASSESSED);
+        }
 
         harvestResults.put(hrDTO.getKey(), hrDTO);
         return hrDTO;
+    }
+
+    public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
+        this.targetInstanceManager = targetInstanceManager;
+    }
+
+    public void setNetworkMapClient(NetworkMapClient networkMapClient) {
+        this.networkMapClient = networkMapClient;
     }
 }
