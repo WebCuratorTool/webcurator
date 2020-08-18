@@ -97,7 +97,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
     @Autowired
     private VisualizationImportedFileDAO visualizationImportedFileDAO;
     /**
-     *
      * The Target Manager.
      */
     @Autowired
@@ -211,15 +210,18 @@ public class WctCoordinatorImpl implements WctCoordinator {
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#harvestComplete(HarvestResultDTO)
      */
     public void harvestComplete(HarvestResultDTO aResult) {
-        TargetInstance ti = targetInstanceDao.load(aResult.getTargetInstanceOid());
-        if (ti == null) {
-            throw new WCTRuntimeException("Unknown TargetInstance oid recieved " + aResult.getTargetInstanceOid()
-                    + " failed to save HarvestResult.");
-        }
+        log.debug("Harvest Complete: ti: {}, havestResult: {}", aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
 
-        if (ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+        HarvestResult harvestResult = targetInstanceManager.getHarvestResult(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
+        if (harvestResult != null && harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
             this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
         } else {
+            TargetInstance ti = targetInstanceDao.load(aResult.getTargetInstanceOid());
+            if (ti == null) {
+                throw new WCTRuntimeException("Unknown TargetInstance oid recieved " + aResult.getTargetInstanceOid()
+                        + " failed to save HarvestResult.");
+            }
+
             // The result is for the original harvest, but the TI already has one or more results
             if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
                 // This is a repeat message probably due to a timeout. Leaving this to run
@@ -231,17 +233,15 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
             log.info("'Harvest Complete' message received for job: " + ti.getOid() + ".");
 
-            HarvestResult harvestResult = new HarvestResult(aResult, ti);
+            harvestResult = new HarvestResult(aResult, ti);
+            harvestResult.setProvenanceNote("Original Harvest");
             harvestResult.setState(HarvestResult.STATE_INDEXING);
+            harvestResult.setCreationDate(new Date());
 
-            List<HarvestResult> hrs = ti.getHarvestResults();
-            hrs.add(harvestResult);
-            ti.setHarvestResults(hrs);
-
+            ti.getHarvestResults().add(harvestResult);
             ti.setState(TargetInstance.STATE_HARVESTED);
-
-            targetInstanceDao.save(harvestResult);
             targetInstanceDao.save(ti);
+
             harvestBandwidthManager.sendBandWidthRestrictions();
 
             // IF the associated target record for this TI has no active TIs remaining (scheduled, queued, running,

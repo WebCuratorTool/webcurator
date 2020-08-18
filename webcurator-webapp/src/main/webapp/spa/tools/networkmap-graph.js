@@ -113,7 +113,7 @@ class NetworkMapGraph{
         that.toggleParentNode(nodeId);
     });
 
-    //Event: statbilized
+    //Event: stabilized
     this.network.on("stabilized", function(){
       if(!that.stabilized){
         // console.log("stabilized");
@@ -127,22 +127,30 @@ class NetworkMapGraph{
         that.stabilized=true;
       }else{
         console.log("stabilized");
-        $('#popup-window-loading').hide();
+        // $('#popup-window-loading').hide();
+        setTimeout(function () {$('#popup-window-loading').hide();}, 300);
       }
     });
 
-    //========Revover the scale and position after pyhsics simulation========
+    this.network.once("stabilizationIterationsDone", function() {
+        console.log("stabilizationIterationsDone");
+        //setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+    });
+
+    //========Recover the scale and position after pyhsics simulation========
     this.network.on("release", function(params){
       console.log("release");
       that.viewOptions.scale=that.network.getScale();
       that.viewOptions.position=that.network.getViewPosition();
     });
+
     this.network.on("initRedraw", function(){
       if(that.viewOptions.scale > 0){
         that.network.moveTo(that.viewOptions);
         that.viewOptions.scale = -1;
       }    
     });
+
     //========================================================================
     this.network.on("oncontext", function(params){
       params.event.preventDefault();
@@ -317,45 +325,23 @@ class NetworkMapGraph{
       }
     }
 
-
     //To empty 10% for children
     var width=maxX - minX, height=maxY - minY;
     
     if (parentNode.x===0 || parentNode.y===0) {
       this.windFromCenter(width, height, parentNode);
     }else{
-      this.windToSigleDirection(width, height, parentNode);
+      this.windToSingleDirection(width, height, parentNode);
     }
-
-    // this.scale=this.network.getScale();
 
     var dataset=this.formatDataSet();
     this.network.setData(dataset);
   }
 
-
   //Move the existing from center
   windFromCenter(width, height, parentNode){
     var subWidth=width/5, subHeight=height/5;
     var halfSubWidth=subWidth/2, halfSubHeight=subHeight/2;
-
-    //Moving other nodes
-    // for(var key in this.dataMap){
-    //   var node=this.dataMap[key];
-    //   if(node.x<parentNode.x){
-    //     node.x=node.x - halfSubWidth;
-    //   }else{
-    //     node.x=node.x + halfSubWidth; 
-    //   }
-
-    //   if(node.y<parentNode.y){
-    //     node.y=node.y - halfSubHeight;
-    //   }else{
-    //     node.y=node.y + halfSubHeight;
-    //   }
-    // }
-
-    // var scale=this.network.getScale();
     var children=parentNode.children;
     
     parentNode.x=parentNode.x - subWidth;
@@ -370,23 +356,10 @@ class NetworkMapGraph{
     }
   }
 
-
   //Moving the existing to one direct
-  windToSigleDirection(width, height, parentNode){
+  windToSingleDirection(width, height, parentNode){
     var signX=parentNode.x/Math.abs(parentNode.x), signY=parentNode.y/Math.abs(parentNode.y);
     var subWidth=signX*width/5, subHeight=signY*height/5;
-
-    //Moving other nodes
-    // for(var key in this.dataMap){
-    //   var node=this.dataMap[key];
-    //   var signXX=node.x/Math.abs(node.x), signYY=node.y/Math.abs(node.y);
-    //   if(signX===signXX && signY===signYY && Math.abs(node.x)>Math
-    //     .abs(parentNode.x) && Math.abs(node.y)>Math.abs(parentNode.y)){
-    //     node.x=node.x + subWidth; 
-    //     node.y=node.y + subHeight;
-    //   }
-    // }
-
     var children=parentNode.children;
     for(var i=0;i<children.length;i++){
       var child=children[i];
@@ -468,7 +441,7 @@ class NetworkMapGraph{
   }
 }
 
-//Genereate the position for children node
+//Generate the position for children node
 function generateRandomPosition(width, height){
   var node={};
   node.w=Math.floor(Math.random() * width);

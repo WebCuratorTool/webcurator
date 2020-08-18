@@ -64,13 +64,14 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             // lock the ti for update
             if (!lock(tiOid))
                 break;
-            log.debug("Obtained lock for ti " + tiOid);
-
+            log.debug("Obtained lock for ti {}", tiOid);
             TargetInstance ti = targetInstanceDao.load(tiOid);
             HarvesterStatusDTO harvesterStatusDto = (HarvesterStatusDTO) harvesterStatusMap.get(key);
 
             updateStatusWithEnvironment(harvesterStatusDto);
             HarvesterStatus harvesterStatus = createHarvesterStatus(ti, harvesterStatusDto);
+
+            log.debug("Heartbeat for ti: {}, state: {}", tiOid, harvesterStatus.getStatus());
 
             String harvesterStatusValue = harvesterStatus.getStatus();
             if (harvesterStatusValue.startsWith("Paused")) {
@@ -162,7 +163,6 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
     private void doHeartbeatRunning(HarvestAgentStatusDTO aStatus, TargetInstance ti, HarvesterStatus harvesterStatus, int harvestResultNumber) {
         String state = ti.getState();
         if (state.equals(TargetInstance.STATE_PAUSED) || state.equals(TargetInstance.STATE_QUEUED)) {
-
             if (state.equals(TargetInstance.STATE_QUEUED)) {
                 log.info("HarvestCoordinator: Target Instance state changed from Queued to Running for target instance {}", ti
                         .getOid().toString());

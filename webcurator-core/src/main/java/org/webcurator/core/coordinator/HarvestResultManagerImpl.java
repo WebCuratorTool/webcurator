@@ -68,12 +68,13 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
 
     @Override
     public void updateHarvestResultStatus(long targetInstanceId, int harvestResultNumber, int state, int status) {
+        log.debug("updateHarvestResultStatus: targetInstanceId={}, harvestResultNumber={}, state={}, status={}", targetInstanceId, harvestResultNumber, state, status);
         HarvestResultDTO hrDTO = getHarvestResultDTO(targetInstanceId, harvestResultNumber);
         if (hrDTO != null) {
             //Update the state in DB
-            if (harvestResultNumber != 1 && hrDTO.getState() != state) {
-                HarvestResult hr = targetInstanceManager.getHarvestResult(targetInstanceId, harvestResultNumber);
-                hr.setState(HarvestResult.STATE_MODIFYING);
+            HarvestResult hr = targetInstanceManager.getHarvestResult(targetInstanceId, harvestResultNumber);
+            if (hr != null && hrDTO.getState() != state) {
+                hr.setState(state);
                 targetInstanceManager.save(hr);
             }
             hrDTO.setState(state);
