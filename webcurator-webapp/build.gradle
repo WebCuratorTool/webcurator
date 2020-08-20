@@ -8,13 +8,13 @@ plugins {
 repositories {
     mavenLocal()
     maven {
+        url = 'https://repo1.maven.org/maven2'
+    }
+    maven {
         url = 'https://repo.spring.io/plugins-release'
     }
     maven {
         url = 'https://repo.maven.apache.org/maven2'
-    }
-    maven {
-        url = 'https://repo1.maven.org/maven2'
     }
 }
 
@@ -22,13 +22,11 @@ group = 'org.webcurator'
 version = '3.0.0-SNAPSHOT'
 description = 'Web Curator Tool WebApp'
 
-
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'war'
-
 
 // this needs to be set after the 'java' plugin has been applied
 sourceCompatibility = 1.8
@@ -61,7 +59,7 @@ dependencies {
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     implementation 'com.h2database:h2:1.4.199'
-    implementation 'mysql:mysql-connector-java:5.1.6'
+    implementation 'mysql:mysql-connector-java:8.0.21'
     implementation 'com.oracle:ojdbc6:11.2.0.3'
     implementation 'org.postgresql:postgresql:42.2.11'
 
