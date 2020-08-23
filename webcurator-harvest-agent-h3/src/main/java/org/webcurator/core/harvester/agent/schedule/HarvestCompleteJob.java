@@ -25,7 +25,6 @@ import org.springframework.context.ApplicationContext;
 import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentH3;
-import org.webcurator.core.harvester.agent.HarvesterH3;
 import org.webcurator.core.harvester.agent.exception.HarvestAgentException;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorNotifier;
 import org.webcurator.core.notification.MessageType;

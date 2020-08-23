@@ -12,6 +12,9 @@ import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Collection;
 
 /**
@@ -124,6 +127,8 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
         }
     }
 
+
+
     @PostMapping(path = HarvestCoordinatorPaths.NOTIFY_AQA_COMPLETE)
     public void notifyAQAComplete(@PathVariable(value = "aqa-id") String aqaId) {
         try {
@@ -171,5 +176,10 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
             log.error("Exception in failedArchiving", ex);
             throw ex;
         }
+    }
+
+    @RequestMapping(path = HarvestCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE, method = {RequestMethod.POST, RequestMethod.GET})
+    public void dasDownloadFile(@RequestParam("job") long targetInstanceOid, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        harvestCoordinator.dasDownloadFile(targetInstanceOid, harvestResultNumber, fileName, req, rsp);
     }
 }

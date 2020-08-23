@@ -14,4 +14,5 @@ public class HarvestCoordinatorPaths {
     public static final String ADD_HARVEST_RESOURCES = ROOT_PATH + "/add-harvest-resources/{harvest-result-oid}";
     public static final String COMPLETE_ARCHIVING = ROOT_PATH + "/complete-archiving/{target-instance-oid}";
     public static final String FAILED_ARCHIVING = ROOT_PATH + "/failed-archiving/{target-instance-oid}";
+    public static final String MODIFICATION_DOWNLOAD_IMPORTED_FILE = ROOT_PATH + "/modification-download-imported-file";
 }

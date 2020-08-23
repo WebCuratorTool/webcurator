@@ -4,6 +4,7 @@ public class DigitalAssetStorePaths {
     public static final String ROOT_PATH = "/digital-asset-store";
     public static final String RESOURCE = ROOT_PATH + "/{target-instance-name}";
     public static final String SAVE = ROOT_PATH + "/save/{target-instance-name}";
+    public static final String UPLOAD = ROOT_PATH + "/upload/{target-instance-name}";
     public static final String HEADERS = ROOT_PATH + "/headers/{target-instance-name}";
     public static final String COPY_AND_PRUNE = ROOT_PATH + "/copy-and-prune/{target-instance-name}";
     public static final String PURGE = ROOT_PATH + "/purge";

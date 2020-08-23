@@ -136,8 +136,8 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         try {
             super.initiateHarvest(aJob, params);
             //TODO - what to do with profile and seeds files when harvests aborted? Where are these files actually created?
-            String aProfile=params.get("profile");
-            String aSeeds=params.get("seeds");
+            String aProfile = params.get("profile");
+            String aSeeds = params.get("seeds");
 
             File profile = createProfile(aJob, aProfile);
             createSeedsFile(profile, aSeeds);
@@ -187,7 +187,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
                             if (h3JobState.equals("RUNNING") || h3JobState.equals("PAUSED") || h3JobState.equals("FINISHED")) {
                                 log.info("Harves Agent recovering job " + jobName + " from H3 in state: " + h3JobState);
-                                Map<String, String> params=new HashMap<String, String>();
+                                Map<String, String> params = new HashMap<String, String>();
                                 params.put("profile", "");
                                 params.put("seeds", "");
                                 super.initiateHarvest(jobName, params);
@@ -231,7 +231,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      * from JMX, remove the instance from the Agents list of
      * harvesters and remove the temporary harvest directory.
      *
-     * @param aJob the name of the harvest job to tidy
+     * @param aJob  the name of the harvest job to tidy
      * @param force Delete everything, even if an error has occurred
      */
     private void tidy(String aJob, boolean force) {
@@ -378,7 +378,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
                 for (int i = 0; i < numberOfFiles; i++) {
                     log.debug("Sending ARC " + (i + 1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
-                    digitalAssetStore.save(aJob, fileList[i].toPath());
+                    digitalAssetStore.save(aJob, Constants.DIR_ORIGINAL_HARVEST, fileList[i].toPath());
                     log.debug("Finished sending ARC " + (i + 1) + " of " + numberOfFiles + " to digital asset store for job " + aJob);
                 }
 
@@ -958,8 +958,9 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
 
     /**
      * Execute the shell script in the Heritrix3 server for the job.
-     * @param jobName the job
-     * @param engine the script engine: beanshell, groovy, or nashorn (ECMAScript)
+     *
+     * @param jobName     the job
+     * @param engine      the script engine: beanshell, groovy, or nashorn (ECMAScript)
      * @param shellScript the script to execute
      * @return the script result
      */

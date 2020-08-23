@@ -23,16 +23,7 @@ import static org.webcurator.core.archive.Constants.ROOT_FILE;
 import com.google.common.collect.ImmutableMap;
 import it.unipi.di.util.ExternalSort;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -64,7 +55,6 @@ import org.archive.uid.UUIDGenerator;
 import org.archive.util.anvl.ANVLRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.common.util.SafeSimpleDateFormat;
@@ -79,7 +69,6 @@ import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
@@ -88,6 +77,8 @@ import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
+
+import javax.servlet.ServletInputStream;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -100,8 +91,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     /**
      * The logger.
      */
-    private static Log log = LogFactory
-            .getLog(ArcDigitalAssetStoreService.class);
+    private static Log log = LogFactory.getLog(ArcDigitalAssetStoreService.class);
     /**
      * the base directory for the digital asset stores harvest files.
      */
@@ -163,16 +153,55 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         writerDF.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
-    public void save(String targetInstanceName, String directory, Path path)
-            throws DigitalAssetStoreException {
-        save(targetInstanceName, directory, Collections.singletonList(path));
+    /**
+     * Read data from HTTP API and save to storage of store component
+     *
+     * @param targetInstanceName: Target Instance ID
+     * @param directory:          Sub-directory of input files
+     * @param fileName:           The file's name
+     * @param inputStream:        The input stream
+     * @throws DigitalAssetStoreException
+     */
+    public void save(String targetInstanceName, String directory, String fileName, ServletInputStream inputStream) throws DigitalAssetStoreException {
+        if (directory == null || directory.trim().length() == 0) {
+            directory = "1";
+        }
+
+        // Target destination is always baseDir plus targetInstanceName.
+        File targetDir = new File(baseDir, String.format("%s%s%s", targetInstanceName, File.separator, directory));
+
+        // Create the target dir if is doesn't exist. This will also
+        // create the parent if necessary.
+        if (!targetDir.exists()) {
+            targetDir.mkdirs();
+        }
+
+        // Move the ARC files into the /1 directory.
+        boolean success = true;
+        Exception failureException = null;
+
+        // Loop through all the files, but stop if any of them fail.
+        File destination = new File(targetDir, fileName);
+        log.debug("Moving File to Store: " + fileName + " -> " + destination.getAbsolutePath());
+
+        try {
+            FileUtils.copyInputStreamToFile(inputStream, destination);
+        } catch (IOException ex) {
+            log.error("Failed to move file " + fileName + " to " + destination.getAbsolutePath(), ex);
+            failureException = ex;
+            success = false;
+        }
+
+        // If the copy failed, throw an exception.
+        if (!success) {
+            throw new DigitalAssetStoreException("Failed to move Archive files to " + targetDir + "/" + directory, failureException);
+        }
     }
 
     /**
      * @see DigitalAssetStore#save(String, String, List<java.nio.file.Path>).
      */
-    public void save(String targetInstanceName, String directory, List<Path> paths)
-            throws DigitalAssetStoreException {
+    private void save(String targetInstanceName, String directory, List<Path> paths) throws DigitalAssetStoreException {
         // Target destination is always baseDir plus targetInstanceName.
         File targetDir = new File(baseDir, targetInstanceName);
         String dir = directory + "/";
@@ -190,18 +219,15 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         // Loop through all the files, but stop if any of them fail.
         for (Path path : paths) {
-            File destination = new File(targetDir, "/" + dir
-                    + path.getFileName());
-            log.debug("Moving File to Store: " + path.toString()
-                    + " -> " + destination.getAbsolutePath());
+            File destination = new File(targetDir, "/" + dir + path.getFileName());
+            log.debug("Moving File to Store: " + path.toString() + " -> " + destination.getAbsolutePath());
 
             try {
                 // FileUtils.copyFile(files[i], destination);
                 // DasFileMover fileMover = new InputStreamDasFileMover();
                 dasFileMover.moveFile(path.toFile(), destination);
             } catch (IOException ex) {
-                log.error("Failed to move file " + path.toString()
-                        + " to " + destination.getAbsolutePath(), ex);
+                log.error("Failed to move file " + path.toString() + " to " + destination.getAbsolutePath(), ex);
                 failureException = ex;
                 success = false;
             }
@@ -209,24 +235,14 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         // If the copy failed, throw an exception.
         if (!success) {
-            throw new DigitalAssetStoreException(
-                    "Failed to move Archive files to " + targetDir + "/" + dir,
-                    failureException);
+            throw new DigitalAssetStoreException("Failed to move Archive files to " + targetDir + "/" + dir, failureException);
         }
     }
 
-
-    /**
-     * @see DigitalAssetStore#save(String, List<Path>).
-     */
-    public void save(String targetInstanceName, List<Path> paths)
+    @Override
+    public void save(String targetInstanceName, String directory, Path path)
             throws DigitalAssetStoreException {
-        save(targetInstanceName, "1", paths);
-    }
-
-    public void save(String targetInstanceName, Path path)
-            throws DigitalAssetStoreException {
-        save(targetInstanceName, "1", Collections.singletonList(path));
+        save(targetInstanceName, directory, Collections.singletonList(path));
     }
 
     /**
@@ -515,10 +531,8 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             throws DigitalAssetStoreException {
         try {
             // Calculate the source and destination directories.
-            File sourceDir = new File(baseDir, targetInstanceName + "/"
-                    + orgHarvestResultNum);
-            File destDir = new File(baseDir, targetInstanceName + "/"
-                    + newHarvestResultNum);
+            File sourceDir = new File(baseDir, targetInstanceName + "/" + orgHarvestResultNum);
+            File destDir = new File(baseDir, targetInstanceName + "/" + newHarvestResultNum);
 
             // Ensure the destination directory exists.
             destDir.mkdirs();
@@ -576,8 +590,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     }
 
                     // Create an ARC Writer
-                    WriterPoolSettings settings = new WriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNum, "${prefix}",
-                            ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l);
+                    WriterPoolSettings settings = new WriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNum, "${prefix}", ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l);
                     ARCWriter writer = new ARCWriter(aint, settings);
 
                     // Iterate through all the records, skipping deleted or
@@ -598,26 +611,16 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                         }
 
                         if (!urisToDelete.contains(meta.getUrl())) {
-
-                            // this record is not in the delete list so we
-                            // should
-                            // copy it forward to the arc file, but is there a
-                            // match
+                            // this record is not in the delete list so we should
+                            // copy it forward to the arc file, but is there a match
                             // in the import list?
-                            // If the record's Url is in the imports list, then
-                            // the user
-                            // is opting to replace the content for the
-                            // specified Url so
-                            // we won't copy this record forward into the target
-                            // arc
-                            // file, rather we'll add all imported Urls and
-                            // their associated
-                            // content into an additional newly created arc file
-                            // at the end.
+                            // If the record's Url is in the imports list, then the user
+                            // is opting to replace the content for the specified Url so
+                            // we won't copy this record forward into the target arc
+                            // file, rather we'll add all imported Urls and their associated
+                            // content into an additional newly created arc file at the end.
                             if (!listContainsURL(hrsToImport, meta.getUrl())) {
-                                writer.write(meta.getUrl(), meta.getMimetype(),
-                                        meta.getIp(), dt.getTime(),
-                                        (int) meta.getLength(), record);
+                                writer.write(meta.getUrl(), meta.getMimetype(), meta.getIp(), dt.getTime(), (int) meta.getLength(), record);
                             }
                         }
                     }
@@ -702,23 +705,16 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     // Iterate through all the records, skipping deleted or
                     // imported URLs.
                     while (archiveRecordsIt.hasNext()) {
-                        WARCRecord record = (WARCRecord) archiveRecordsIt
-                                .next();
+                        WARCRecord record = (WARCRecord) archiveRecordsIt.next();
                         ArchiveRecordHeader header = record.getHeader();
-                        String WARCType = (String) header
-                                .getHeaderValue(WARCConstants.HEADER_KEY_TYPE);
-                        String strRecordId = (String) header
-                                .getHeaderValue(WARCConstants.HEADER_KEY_ID);
-                        URI recordId = new URI(strRecordId.substring(
-                                strRecordId.indexOf("<") + 1,
-                                strRecordId.lastIndexOf(">") - 1));
-                        long contentLength = header.getLength()
-                                - header.getContentBegin();
+                        String WARCType = (String) header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE);
+                        String strRecordId = (String) header.getHeaderValue(WARCConstants.HEADER_KEY_ID);
+                        URI recordId = new URI(strRecordId.substring(strRecordId.indexOf("<") + 1, strRecordId.lastIndexOf(">") - 1));
+                        long contentLength = header.getLength() - header.getContentBegin();
 
 
                         if (!WARCType.equals(WARCConstants.WARCRecordType.warcinfo)
-                                && (urisToDelete.contains(header.getUrl()) || listContainsURL(
-                                hrsToImport, header.getUrl()))) {
+                                && (urisToDelete.contains(header.getUrl()) || listContainsURL(hrsToImport, header.getUrl()))) {
                             continue;
                         }
 
@@ -727,11 +723,9 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                                 .iterator();
                         while (hdrFieldsIt.hasNext()) {
                             String key = (String) hdrFieldsIt.next();
-                            String value = header.getHeaderValue(key)
-                                    .toString();
+                            String value = header.getHeaderValue(key).toString();
                             if (key.equals(WARCConstants.ABSOLUTE_OFFSET_KEY)) {
-                                value = new Long(writer.getPosition())
-                                        .toString();
+                                value = new Long(writer.getPosition()).toString();
                             }
                             // we exclude all but three fields to avoid
                             // duplication / erroneous data
@@ -800,16 +794,12 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     WriterPoolSettings settings = new WriterPoolSettingsData(strippedImpArcFilename + "-new", "${prefix}",
                             ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, impArcHeader);
                     ARCWriter arcWriter = new ARCWriter(aint, settings);
-                    for (Iterator<HarvestResourceDTO> it = hrsToImport
-                            .iterator(); it.hasNext(); ) {
+                    for (Iterator<HarvestResourceDTO> it = hrsToImport.iterator(); it.hasNext(); ) {
                         HarvestResourceDTO hr = it.next();
                         if (hr.getLength() > 0L) {
-                            File fin = new File(this.baseDir, "/uploadedFiles/"
-                                    + hr.getTempFileName());
+                            File fin = new File(this.baseDir, "/uploadedFiles/" + hr.getTempFileName());
                             Date dtNow = new Date();
-                            arcWriter.write(hr.getName(), hr.getContentType(),
-                                    "0.0.0.0", dtNow.getTime(), hr.getLength(),
-                                    new java.io.FileInputStream(fin));
+                            arcWriter.write(hr.getName(), hr.getContentType(), "0.0.0.0", dtNow.getTime(), hr.getLength(), new java.io.FileInputStream(fin));
                         }
                     }
                     arcWriter.close();
@@ -818,21 +808,18 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     // Create a WARC Writer
                     // Somewhat arbitrarily use the last filename from the list of original filenames
                     // Compress the file if the (last) original file was compressed
-                    WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename +"-new", "${prefix}",
+                    WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-new", "${prefix}",
                             WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
                     WARCWriter warcWriter = new WARCWriter(aint, settings);
                     for (Iterator<HarvestResourceDTO> it = hrsToImport
                             .iterator(); it.hasNext(); ) {
                         HarvestResourceDTO hr = it.next();
                         if (hr.getLength() > 0L) {
-                            File fin = new File(this.baseDir, "/uploadedFiles/"
-                                    + hr.getTempFileName());
+                            File fin = new File(this.baseDir, "/uploadedFiles/" + hr.getTempFileName());
                             Date dtNow = new Date();
-                            URI recordId = new URI("urn:uuid:"
-                                    + hr.getTempFileName());
+                            URI recordId = new URI("urn:uuid:" + hr.getTempFileName());
                             ANVLRecord namedFields = new ANVLRecord();
-                            namedFields.addLabelValue(
-                                    WARCConstants.HEADER_KEY_IP, "0.0.0.0");
+                            namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
                             WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
                             warcRecordInfo.setUrl(hr.getName());
                             warcRecordInfo.setCreate14DigitDate(writerDF.format(dtNow));
@@ -875,8 +862,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             if (log.isErrorEnabled()) {
                 log.error("Prune and Copy Failed : " + e.getMessage(), e);
             }
-            throw new DigitalAssetStoreException("Prune and Copy Failed : "
-                    + e.getMessage(), e);
+            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
         } catch (IOException e) {
             if (log.isErrorEnabled()) {
                 log.error("Prune and Copy Failed : " + e.getMessage(), e);
@@ -887,13 +873,11 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             if (log.isErrorEnabled()) {
                 log.error("Prune and Copy Failed : " + e.getMessage(), e);
             }
-            throw new DigitalAssetStoreException("Prune and Copy Failed : "
-                    + e.getMessage(), e);
+            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
         } catch (Exception e) {
             log.info(e.getMessage());
             e.printStackTrace();
-            throw new DigitalAssetStoreException("Prune and Copy Failed : "
-                    + e.getMessage(), e);
+            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
         }
     }
 
@@ -926,22 +910,18 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
 
-        if (!file.exists()
-                && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
+        if (!file.exists() && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
             // we need to create sorted crawl.log from crawl.log.
             createSortedCrawlLogFile(logsDir);
-            file = new File(logsDir.getAbsolutePath() + File.separator
-                    + aFileName);
+            file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
         }
         if (!file.exists()) {
             logsDir = new File(targetDir, Constants.DIR_REPORTS);
-            file = new File(logsDir.getAbsolutePath() + File.separator
-                    + aFileName);
+            file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
         }
         if (!file.exists()) {
             logsDir = new File(targetDir, Constants.DIR_CONTENT);
-            file = new File(logsDir.getAbsolutePath() + File.separator
-                    + aFileName);
+            file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
         }
         if (!file.exists()) {
             file = null;
@@ -959,12 +939,8 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         // single space in each record..
         try {
 
-            BufferedReader inputStream = new BufferedReader(new FileReader(
-                    logsDir.getAbsolutePath() + File.separator
-                            + Constants.CRAWL_LOG_FILE));
-            PrintWriter outputStream = new PrintWriter(new FileWriter(
-                    logsDir.getAbsolutePath() + File.separator
-                            + Constants.STRIPPED_CRAWL_LOG_FILE));
+            BufferedReader inputStream = new BufferedReader(new FileReader(logsDir.getAbsolutePath() + File.separator + Constants.CRAWL_LOG_FILE));
+            PrintWriter outputStream = new PrintWriter(new FileWriter(logsDir.getAbsolutePath() + File.separator + Constants.STRIPPED_CRAWL_LOG_FILE));
 
             String inLine = null;
 
@@ -983,14 +959,12 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         // file...
         ExternalSort sort = new ExternalSort();
         try {
-            sort.setInFile(logsDir.getAbsolutePath() + File.separator
-                    + Constants.STRIPPED_CRAWL_LOG_FILE);
+            sort.setInFile(logsDir.getAbsolutePath() + File.separator + Constants.STRIPPED_CRAWL_LOG_FILE);
         } catch (FileNotFoundException e1) {
             return;
         }
         try {
-            sort.setOutFile(logsDir.getAbsolutePath() + File.separator
-                    + Constants.SORTED_CRAWL_LOG_FILE);
+            sort.setOutFile(logsDir.getAbsolutePath() + File.separator + Constants.SORTED_CRAWL_LOG_FILE);
         } catch (FileNotFoundException e1) {
             return;
         }
@@ -1097,15 +1071,12 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                if (log.isDebugEnabled()) {
-                    log.debug("About to purge dir " + toPurge.toString());
-                }
+                log.debug("About to purge dir " + toPurge.toString());
+
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
-                    }
+                    log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
                 }
             }
         } catch (Exception e) {
@@ -1126,20 +1097,15 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                if (log.isDebugEnabled()) {
-                    log.debug("About to purge dir " + toPurge.toString());
-                }
+                log.debug("About to purge dir " + toPurge.toString());
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
-                    }
+                    log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
                 }
             }
         } catch (Exception e) {
-            throw new DigitalAssetStoreException("Failed to complete purge : "
-                    + e.getMessage(), e);
+            throw new DigitalAssetStoreException("Failed to complete purge : " + e.getMessage(), e);
         }
     }
 
@@ -1156,19 +1122,16 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                                       int harvestResultNumber) throws DigitalAssetStoreException {
         ArrayList<File> arcFiles = new ArrayList<File>();
         try {
-            File sourceDir = new File(this.baseDir, "/" + targetInstanceName
-                    + "/" + harvestResultNumber);
+            File sourceDir = new File(this.baseDir, "/" + targetInstanceName + "/" + harvestResultNumber);
             for (File file : sourceDir.listFiles()) {
                 arcFiles.add(file);
             }
             return arcFiles;
         } catch (RuntimeException ex) {
             if (log.isErrorEnabled()) {
-                log.error("Failed to get archive files : " + ex.getMessage(),
-                        ex);
+                log.error("Failed to get archive files : " + ex.getMessage(), ex);
             }
-            throw new DigitalAssetStoreException(
-                    "Failed to get archive files : " + ex.getMessage(), ex);
+            throw new DigitalAssetStoreException("Failed to get archive files : " + ex.getMessage(), ex);
         }
     }
 
@@ -1241,7 +1204,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         private int harvestNumber;
         private WebServiceEndPoint wsEndPoint = null;
 
-
         public ArchivingThread(String targetInstanceOid, String sip,
                                Map attributes, int harvestNumber, WebServiceEndPoint wsEndPoint) {
             super();
@@ -1254,7 +1216,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
 
         public void run() {
             try {
-
                 String targetID = targetInstanceOid + "";
                 ArrayList<ArchiveFile> fileList = new ArrayList<ArchiveFile>();
                 // Get log files
@@ -1274,8 +1235,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     fileList.add(new ArchiveFile(f, ARC_FILE));
                 }
 
-                String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid,
-                        SIP, xAttributes, fileList);
+                String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid, SIP, xAttributes, fileList);
 
                 completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
             } catch (Throwable t) {
@@ -1293,28 +1253,22 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     private void completeArchiving(Long targetInstanceOid, String archiveIID) {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.COMPLETE_ARCHIVING))
-                .queryParam("archive-id", archiveIID);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.COMPLETE_ARCHIVING)).queryParam("archive-id", archiveIID);
 
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), null, String.class);
     }
 
     private void failedArchiving(Long targetInstanceOid, String message) {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.FAILED_ARCHIVING))
-                .queryParam("message", message);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.FAILED_ARCHIVING)).queryParam("message", message);
 
         Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), null, String.class);
     }
 
-    public CustomDepositFormResultDTO getCustomDepositFormDetails(
-            CustomDepositFormCriteriaDTO criteria)
-            throws DigitalAssetStoreException {
+    public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
         return arcDasArchive.getCustomDepositFormDetails(criteria);
     }
 
@@ -1385,7 +1339,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                 if ((i = record.read()) == -1) {
                     throw new IOException("Malformed HTTP Status-Line");
                 }
-                proto[c] = (char)i;
+                proto[c] = (char) i;
             }
             if (!"HTTP".equals(new String(proto))) {
                 throw new IOException("Malformed HTTP Status-Line");
@@ -1393,7 +1347,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             char c0 = '0';
             char c1;
             while ((i = record.read()) != -1) {
-                c1 = (char)i;
+                c1 = (char) i;
                 if (c0 == '\r' && c1 == '\n') {
                     break;
                 }
@@ -1428,5 +1382,4 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     public void setFileArchive(FileArchive fileArchive) {
         this.fileArchive = fileArchive;
     }
-
 }
