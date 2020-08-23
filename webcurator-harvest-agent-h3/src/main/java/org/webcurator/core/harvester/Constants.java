@@ -24,13 +24,15 @@ public final class Constants {
     public static final String BEAN_HARVEST_AGENT = "harvestAgent"; 
     /** the name of the quartz scheduler factory bean. */
     public static final String BEAN_SCHEDULER_FACTORY = "schedulerFactory";
-    /** the name of the harvest coordinator nofifier bean. */
+    /** the name of the harvest coordinator notifier bean. */
     public static final String BEAN_NOTIFIER = "harvestCoordinatorNotifier";
     /** the name of the harvest complete config bean. */
     public static final String BEAN_HARVEST_COMPLETE_CONFIG = "harvestCompleteConfig";
     /** the name of the heritrix3 wrapper configuration bean. */
     public static final String HERITRIX3_WRAPPER_CONFIGURATION = "heritrix3WrapperConfiguration";
 
+    /** the name of the Original Harvest directory. */
+    public static final String DIR_ORIGINAL_HARVEST = "1";
     /** the name of the Logs directory. */
     public static final String DIR_LOGS = "logs";
     /** the name of the reports directory. */

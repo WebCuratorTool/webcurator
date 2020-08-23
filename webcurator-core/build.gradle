@@ -56,12 +56,12 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier.set('sources')
     from(sourceSets.main.allJava)
 }
 
 task testsJar(type: Jar) {
-    classifier = 'tests'
+    archiveClassifier.set('tests')
     from(sourceSets.test.output)
 }
 

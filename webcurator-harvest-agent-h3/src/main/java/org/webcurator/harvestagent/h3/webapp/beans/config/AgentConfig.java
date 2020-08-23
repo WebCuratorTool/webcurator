@@ -4,6 +4,7 @@ import org.quartz.*;
 
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class AgentConfig {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private  RestTemplateBuilder restTemplateBuilder;
+    private RestTemplateBuilder restTemplateBuilder;
 
     // Name of the directory where the temporary harvest data is stored.
     @Value("${harvestAgent.baseHarvestDirectory}")
@@ -141,6 +142,10 @@ public class AgentConfig {
     @Value("${digitalAssetStore.port}")
     private int digitalAssetStorePort;
 
+    // the file transfer mode from harvest agent to store component
+    @Value("${digitalAssetStore.fileUploadMode}")
+    private String digitalAssetStoreFileUploadMode;
+
     // Delay before running the job measured in milliseconds.
     @Value("${heartbeatTrigger.startDelay}")
     private long heartbeatTriggerStartDelay;
@@ -179,7 +184,7 @@ public class AgentConfig {
 
     // The minimum percentage of processor available before an error notification is sent.
     @Value("${processorCheck.errorThreshold}")
-    private int processorCheckErrorThreshold ;
+    private int processorCheckErrorThreshold;
 
     // The percentage of disk used before a warning notification is sent.
     @Value("${diskSpaceChecker.warnThreshold}")
@@ -235,9 +240,9 @@ public class AgentConfig {
         bean.setScheme(h3WrapperScheme);
         bean.setHost(h3WrapperHost);
         bean.setPort(h3WrapperPort);
-        if(h3WrapperKeyStoreFile==null || h3WrapperKeyStoreFile.getName().trim().length()==0 || h3WrapperKeyStoreFile.getName().equals("''")) {
+        if (h3WrapperKeyStoreFile == null || h3WrapperKeyStoreFile.getName().trim().length() == 0 || h3WrapperKeyStoreFile.getName().equals("''")) {
             bean.setKeyStoreFile(null);
-        }else{
+        } else {
             bean.setKeyStoreFile(h3WrapperKeyStoreFile);
         }
         bean.setKeyStorePassword(h3WrapperKeyStorePassword);
@@ -263,7 +268,7 @@ public class AgentConfig {
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public DigitalAssetStore digitalAssetStore() {
         DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
-
+        bean.setFileUploadMode(digitalAssetStoreFileUploadMode);
         return bean;
     }
 
