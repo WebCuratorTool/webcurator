@@ -112,31 +112,6 @@ public abstract class IndexerBase implements RunnableIndex {
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), null, String.class);
     }
 
-    public File getDownloadFileURL(long job, int harvestResultNumber, String fileName, File downloadedFile) throws IOException {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE))
-                .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber)
-                .queryParam("fileName", fileName);
-        URI uri = uriComponentsBuilder.build().toUri();
-
-        URL url = uri.toURL();
-        URLConnection conn = url.openConnection();
-
-        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadedFile));
-        InputStream inputStream = conn.getInputStream();
-        while (true) {
-            byte[] buf = new byte[1024 * 32];
-            int len = inputStream.read(buf);
-            if (len < 0) {
-                break;
-            }
-            outputStream.write(buf, 0, len);
-        }
-        outputStream.close();
-
-        return downloadedFile;
-    }
-
     @Override
     public void removeIndex(Long harvestResultOid) {
         //Default implementation is to do nothing

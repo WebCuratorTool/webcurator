@@ -16,7 +16,7 @@ public class MockIndexer extends Indexer
 
 	public MockIndexer()
 	{
-		WebServiceEndPoint wsEndPoint = new WebServiceEndPoint("TestHost", 0);
+		WebServiceEndPoint wsEndPoint = new WebServiceEndPoint("http","localhost",8080);
         WCTIndexer wctIndexer = new WCTIndexer();
         wctIndexer.setDoCreate(true);
         wctIndexer.setWsEndPoint(wsEndPoint);

@@ -218,7 +218,7 @@ public class Indexer {
 			
 			String host = cl.getArg("host");
 			int port = Integer.parseInt(cl.getArg("port"));
-			WebServiceEndPoint wsEndPoint = new WebServiceEndPoint(host, port);
+			WebServiceEndPoint wsEndPoint = new WebServiceEndPoint("http", host, port);
 			Long targetInstanceOid = Long.parseLong(cl.getArg("ti"));
 			int hrnum = Integer.parseInt(cl.getArg("hrnum"));
 			

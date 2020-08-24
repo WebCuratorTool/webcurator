@@ -1134,7 +1134,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     @Override
-    public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    public void dasDownloadFile(String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         File f = new File(treeToolControllerAttribute.getUploadedFilesDir(), fileName);
 
         OutputStream outputStream = rsp.getOutputStream();

@@ -26,6 +26,8 @@ import it.unipi.di.util.ExternalSort;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -36,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.archive.format.warc.WARCConstants;
@@ -140,8 +143,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     public String baseUrl() {
-        // FIXME: configurable scheme (in class WebServiceEndpoint.java)
-        return "http://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
+        return String.format("%s://%s:%d", wsEndPoint.getScheme(), wsEndPoint.getHost(), wsEndPoint.getPort());
     }
 
     public String getUrl(String appendUrl) {
@@ -719,8 +721,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                         }
 
                         ANVLRecord namedFields = new ANVLRecord();
-                        Iterator hdrFieldsIt = header.getHeaderFieldKeys()
-                                .iterator();
+                        Iterator hdrFieldsIt = header.getHeaderFieldKeys().iterator();
                         while (hdrFieldsIt.hasNext()) {
                             String key = (String) hdrFieldsIt.next();
                             String value = header.getHeaderValue(key).toString();
@@ -811,11 +812,13 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                     WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-new", "${prefix}",
                             WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
                     WARCWriter warcWriter = new WARCWriter(aint, settings);
-                    for (Iterator<HarvestResourceDTO> it = hrsToImport
-                            .iterator(); it.hasNext(); ) {
+                    for (Iterator<HarvestResourceDTO> it = hrsToImport.iterator(); it.hasNext(); ) {
                         HarvestResourceDTO hr = it.next();
                         if (hr.getLength() > 0L) {
                             File fin = new File(this.baseDir, "/uploadedFiles/" + hr.getTempFileName());
+                            if (!fin.exists()) {
+                                fin = getDownloadFileURL(hr.getTempFileName(), fin);
+                            }
                             Date dtNow = new Date();
                             URI recordId = new URI("urn:uuid:" + hr.getTempFileName());
                             ANVLRecord namedFields = new ANVLRecord();
@@ -831,6 +834,8 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
                             warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
 
                             warcWriter.writeRecord(warcRecordInfo);
+
+                            fin.delete();
                         }
                     }
                     warcWriter.close();
@@ -867,8 +872,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             if (log.isErrorEnabled()) {
                 log.error("Prune and Copy Failed : " + e.getMessage(), e);
             }
-            throw new DigitalAssetStoreException("Prune and Copy Failed : "
-                    + e.getMessage(), e);
+            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
         } catch (ParseException e) {
             if (log.isErrorEnabled()) {
                 log.error("Prune and Copy Failed : " + e.getMessage(), e);
@@ -1381,5 +1385,23 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      */
     public void setFileArchive(FileArchive fileArchive) {
         this.fileArchive = fileArchive;
+    }
+
+    public File getDownloadFileURL(String fileName, File downloadedFile) throws IOException {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE))
+                .queryParam("fileName", fileName);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        URL url = uri.toURL();
+        URLConnection conn = url.openConnection();
+
+        OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadedFile));
+        InputStream inputStream = conn.getInputStream();
+
+        IOUtils.copy(inputStream, outputStream);
+
+        outputStream.close();
+
+        return downloadedFile;
     }
 }
