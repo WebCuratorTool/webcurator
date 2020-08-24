@@ -39,7 +39,7 @@ description = 'Harvest Agent - Heritrix 3.x'
 sourceCompatibility = '1.8'
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier.set('sources')
     from(sourceSets.main.allJava)
 }
 
