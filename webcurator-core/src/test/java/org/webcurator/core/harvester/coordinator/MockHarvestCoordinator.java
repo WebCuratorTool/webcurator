@@ -357,7 +357,7 @@ public class MockHarvestCoordinator implements HarvestCoordinator {
     }
 
     @Override
-    public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    public void dasDownloadFile(String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         OutputStream outputStream = rsp.getOutputStream();
         IOUtils.write("Test file", outputStream);
     }

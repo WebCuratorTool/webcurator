@@ -44,6 +44,9 @@ public class DasConfig {
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Value("${wctCoreWsEndpoint.scheme}")
+    private String wctCoreWsEndpointScheme;
+
     @Value("${wctCoreWsEndpoint.host}")
     private String wctCoreWsEndpointHost;
 
@@ -263,13 +266,14 @@ public class DasConfig {
     private String wctStorePort;
 
     @PostConstruct
-    public void init(){
+    public void init() {
         ApplicationContextFactory.setApplicationContext(applicationContext);
     }
 
     @Bean
     public WebServiceEndPoint wctCoreWsEndpoint() {
         WebServiceEndPoint bean = new WebServiceEndPoint();
+        bean.setScheme(wctCoreWsEndpointScheme);
         bean.setHost(wctCoreWsEndpointHost);
         bean.setPort(wctCoreWsEndpointPort);
 
@@ -328,14 +332,14 @@ public class DasConfig {
             bean = createOmsArchive();
         } else if ("dpsArchive".equalsIgnoreCase(archiveType)) {
             bean = createDpsArchive();
-        } else  {
+        } else {
             LOGGER.debug("Instantiating Archive class for name=" + archiveType);
             if (archiveType.trim().length() > 0) {
                 try {
                     Class<?> clazz = Class.forName(archiveType);
                     Object archiveInstance = clazz.newInstance();
                     bean = (Archive) archiveInstance;
-                } catch (InstantiationException|IllegalAccessException|ClassNotFoundException e) {
+                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                     LOGGER.error("Unable to instantiate archive by type/class=" + archiveType, e);
                 }
             }
@@ -350,7 +354,7 @@ public class DasConfig {
         ListFactoryBean runnableIndexers = runnableIndexers();
 
         try {
-            List<RunnableIndex> list = (List<RunnableIndex>)(List<?>) runnableIndexers.getObject();
+            List<RunnableIndex> list = (List<RunnableIndex>) (List<?>) runnableIndexers.getObject();
             bean.setIndexers(list);
         } catch (Exception e) {
             // This is to avoid an 'throws Exception' in the method signature, which would percolate to all related

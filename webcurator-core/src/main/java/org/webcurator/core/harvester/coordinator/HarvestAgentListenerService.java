@@ -179,7 +179,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
     }
 
     @RequestMapping(path = HarvestCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE, method = {RequestMethod.POST, RequestMethod.GET})
-    public void dasDownloadFile(@RequestParam("job") long targetInstanceOid, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-        harvestCoordinator.dasDownloadFile(targetInstanceOid, harvestResultNumber, fileName, req, rsp);
+    public void dasDownloadFile(@RequestParam("fileName") String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        harvestCoordinator.dasDownloadFile(fileName, req, rsp);
     }
 }

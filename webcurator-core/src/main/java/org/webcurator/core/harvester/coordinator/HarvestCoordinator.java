@@ -339,5 +339,5 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
 
     int getHarvestOptimizationLookAheadHours();
 
-    void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
+    void dasDownloadFile(String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException;
 }
