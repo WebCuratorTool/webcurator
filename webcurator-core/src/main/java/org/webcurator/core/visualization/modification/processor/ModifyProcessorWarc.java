@@ -22,9 +22,11 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ModifyProcessorWarc extends ModifyProcessor {
-    public static final String ARCHIVE_TYPE = "WARC";
+    public static final String ARCHIVE_TYPE_WARC = "WARC";
+    public static final String ARCHIVE_TYPE_WARC_GZ = "WARC.GZ";
+
     private WarcFilenameTemplate warcFilenameTemplate = null;
-    private final List<String> impArcHeader = new ArrayList<String>();
+    private final List<String> impArcHeader = new ArrayList<>();
     private final AtomicInteger aint = new AtomicInteger();
     private boolean compressed;
 
@@ -68,7 +70,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
      */
     @Override
     public void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception {
-        if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
+        if (!isArchiveType(fileFrom.getName())) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
         }
@@ -115,7 +117,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         WARCRecord headerRec = (WARCRecord) headerRecordIt.next();
         byte[] buff = new byte[BYTE_BUFF_SIZE];
         StringBuilder metaData = new StringBuilder();
-        int bytesRead = 0;
+        int bytesRead;
         while ((bytesRead = headerRec.read(buff)) != -1) {
             metaData.append(new String(buff, 0, bytesRead));
         }
@@ -147,10 +149,6 @@ public class ModifyProcessorWarc extends ModifyProcessor {
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
             String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
-            String strRecordId = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_ID);
-            URI recordId = new URI(strRecordId.substring(strRecordId.indexOf("<") + 1, strRecordId.lastIndexOf(">") - 1));
-            long contentLength = header.getLength() - header.getContentBegin();
-
             if (WARCType.equals(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo.toString())) {
                 this.writeLog("Skip [warcinfo] record");
                 statisticItem.increaseSkippedRecords();
@@ -175,44 +173,8 @@ public class ModifyProcessorWarc extends ModifyProcessor {
                 }
             });
 
-            WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-            switch (org.archive.format.warc.WARCConstants.WARCRecordType.valueOf(WARCType)) {
-                case warcinfo:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo);
-                    break;
-                case response:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case metadata:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.metadata);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case request:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.request);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case resource:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.resource);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case revisit:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.revisit);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                default:
-                    log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
-                    this.writeLog(String.format("Skip unrecognised [%s] record: %s", WARCType, header.getUrl()));
-                    statisticItem.increaseFailedRecords();
-                    continue;
-            }
+            WARCRecordInfo warcRecordInfo = createWarcRecordInfo(record, header, namedFields, header.getUrl());
 
-            warcRecordInfo.setCreate14DigitDate(header.getDate());
-            warcRecordInfo.setMimetype(header.getMimetype());
-            warcRecordInfo.setRecordId(recordId);
-            warcRecordInfo.setExtraHeaders(namedFields);
-            warcRecordInfo.setContentStream(record);
-            warcRecordInfo.setContentLength(contentLength);
             writer.writeRecord(warcRecordInfo);
             statisticItem.increaseCopiedRecords();
             this.writeLog(String.format("Copy [%s] record: %s", WARCType, header.getUrl()));
@@ -318,7 +280,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
 
     @Override
     public void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException {
-        if (!fileFrom.getName().toUpperCase().endsWith(ARCHIVE_TYPE)) {
+        if (!isArchiveType(fileFrom.getName())) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
         }
@@ -351,12 +313,12 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         WARCRecord headerRec = (WARCRecord) headerRecordIt.next();
         byte[] buff = new byte[BYTE_BUFF_SIZE];
         StringBuilder metaData = new StringBuilder();
-        int bytesRead = 0;
+        int bytesRead;
         while ((bytesRead = headerRec.read(buff)) != -1) {
             metaData.append(new String(buff, 0, bytesRead));
         }
 
-        List<String> l = new ArrayList<String>();
+        List<String> l = new ArrayList<>();
         l.add(metaData.toString());
 
         if (impArcHeader.isEmpty()) {
@@ -380,13 +342,6 @@ public class ModifyProcessorWarc extends ModifyProcessor {
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
             ArchiveRecordHeader header = record.getHeader();
             String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
-            String strRecordId = (String) header
-                    .getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_ID);
-            URI recordId = new URI(strRecordId.substring(
-                    strRecordId.indexOf("<") + 1,
-                    strRecordId.lastIndexOf(">") - 1));
-            long contentLength = header.getLength() - header.getContentBegin();
-
             if (WARCType.equals(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo.toString())) {
                 this.writeLog("Skip [warcinfo] record");
                 statisticItem.increaseSkippedRecords();
@@ -411,43 +366,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
                 }
             });
 
-            WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-            switch (org.archive.format.warc.WARCConstants.WARCRecordType.valueOf(WARCType)) {
-                case warcinfo:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.warcinfo);
-                    break;
-                case response:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case metadata:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.metadata);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case request:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.request);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case resource:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.resource);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                case revisit:
-                    warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.revisit);
-                    warcRecordInfo.setUrl(header.getUrl());
-                    break;
-                default:
-                    log.warn("Ignoring unrecognised type for WARCRecord: " + WARCType);
-                    this.writeLog(String.format("Skip unrecognised [%s] record: %s", WARCType, header.getUrl()));
-                    statisticItem.increaseFailedRecords();
-                    continue;
-            }
-            warcRecordInfo.setCreate14DigitDate(header.getDate());
-            warcRecordInfo.setMimetype(header.getMimetype());
-            warcRecordInfo.setRecordId(recordId);
-            warcRecordInfo.setExtraHeaders(namedFields);
-            warcRecordInfo.setContentStream(record);
-            warcRecordInfo.setContentLength(contentLength);
+            WARCRecordInfo warcRecordInfo = createWarcRecordInfo(record, header, namedFields, header.getUrl());
             writer.writeRecord(warcRecordInfo);
 
             this.writeLog(String.format("Import [%s] record: %s", WARCType, header.getUrl()));
@@ -468,7 +387,10 @@ public class ModifyProcessorWarc extends ModifyProcessor {
 
     private WARCRecordInfo createWarcRecordInfo(WARCRecord record, ArchiveRecordHeader header, ANVLRecord namedFields, String targetUrl) throws URISyntaxException {
         String WARCType = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_TYPE);
-        URI recordId = new URI(String.format("urn:uuid:%s", UUID.randomUUID().toString()));
+        //        URI recordId = new URI(String.format("urn:uuid:%s", UUID.randomUUID().toString()));
+        String strRecordId = (String) header.getHeaderValue(org.archive.format.warc.WARCConstants.HEADER_KEY_ID);
+        URI recordId = new URI(strRecordId.substring(strRecordId.indexOf("<") + 1, strRecordId.lastIndexOf(">") - 1));
+
         long contentLength = header.getLength() - header.getContentBegin();
 
         WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
@@ -509,9 +431,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         return warcRecordInfo;
     }
 
-    @Override
-    public String archiveType() {
-        return ARCHIVE_TYPE;
+    public boolean isArchiveType(String fileName) {
+        return fileName.toUpperCase().endsWith(ARCHIVE_TYPE_WARC) || fileName.toUpperCase().endsWith(ARCHIVE_TYPE_WARC_GZ);
     }
-
 }

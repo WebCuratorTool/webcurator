@@ -23,28 +23,47 @@ public class VisualizationDirectoryManager {
     }
 
     public String getUploadDir(long targetInstanceId) {
-        return String.format(TEMPLATE_UPLOAD, baseDir, targetInstanceId);
+        String s = String.format(TEMPLATE_UPLOAD, baseDir, targetInstanceId);
+        File f = new File(s);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        return s;
     }
 
     public String getBaseLogDir(long targetInstanceId) {
-        return String.format(TEMPLATE_BASE_LOG_REPORT, baseDir, targetInstanceId, baseLogDir);
+        String s = String.format(TEMPLATE_BASE_LOG_REPORT, baseDir, targetInstanceId, baseLogDir);
+        File f = new File(s);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        return s;
     }
 
     public String getBaseReportDir(long targetInstanceId) {
-        return String.format(TEMPLATE_BASE_LOG_REPORT, baseDir, targetInstanceId, baseReportDir);
+        String s = String.format(TEMPLATE_BASE_LOG_REPORT, baseDir, targetInstanceId, baseReportDir);
+        File f = new File(s);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        return s;
     }
 
     public String getPatchLogDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-//        if (harvestResultNumber == 1) {
-//            return getBaseLogDir(targetInstanceId);
-//        }
-        return String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber, prefix);
+        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber, prefix);
+        File f = new File(s);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        return s;
     }
 
     public String getPatchReportDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-//        if (harvestResultNumber == 1) {
-//            return getBaseReportDir(targetInstanceId);
-//        }
-        return String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber, prefix);
+        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber, prefix);
+        File f = new File(s);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        return s;
     }
 }

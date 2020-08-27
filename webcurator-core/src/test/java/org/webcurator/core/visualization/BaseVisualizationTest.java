@@ -1,5 +1,7 @@
 package org.webcurator.core.visualization;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveReaderFactory;
 import org.archive.io.ArchiveRecord;
@@ -26,9 +28,8 @@ public class BaseVisualizationTest {
     protected String baseDir = "/usr/local/wct/store";
     protected String baseLogDir = "logs";
     protected String baseReportDir = "reports";
-    protected VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, baseLogDir, baseReportDir);
-
-    protected BDBNetworkMapPool pool = new BDBNetworkMapPool(baseDir);
+    protected VisualizationDirectoryManager directoryManager = null;
+    protected BDBNetworkMapPool pool = null;
 
     protected long targetInstanceId = 5010;
     protected int harvestResultNumber = 1;
@@ -38,6 +39,16 @@ public class BaseVisualizationTest {
     protected WctCoordinatorClient wctClient;
 
     public void initTest() throws IOException, DigitalAssetStoreException {
+        File arcDir = new File(System.getProperty("user.dir"), "src/test/resources/org/webcurator/domain/model/core/archiveFiles");
+        File destDir = new File(baseDir, String.format("%d%s%d", targetInstanceId, File.separator, harvestResultNumber));
+        if (!destDir.exists()) {
+            destDir.mkdirs();
+        }
+        FileUtils.copyDirectory(arcDir, destDir);
+
+        directoryManager = new VisualizationDirectoryManager(baseDir, baseLogDir, baseReportDir);
+        pool = new BDBNetworkMapPool(baseDir);
+
         SeedHistoryDTO seedHistoryPrimary = new SeedHistoryDTO(1, "http://www.google.com/", targetInstanceId, true);
         SeedHistoryDTO seedHistorySecondary = new SeedHistoryDTO(2, "http://www.baidu.com/", targetInstanceId, false);
         seeds.add(seedHistoryPrimary);

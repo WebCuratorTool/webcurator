@@ -12,8 +12,6 @@ import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.*;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -155,10 +153,6 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         this.delete(baseDir, PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
     }
 
-    public String getArchiveType() {
-        return archiveType();
-    }
-
     public File downloadFile(long job, int harvestResultNumber, ModifyRowMetadata metadata) throws IOException, DigitalAssetStoreException {
         String tempFileName = UUID.randomUUID().toString();
         File dirFile = new File(fileDir);
@@ -170,8 +164,6 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         File downloadedFile = new File(fileDir, tempFileName);
         return wctClient.getDownloadFileURL(job, harvestResultNumber, metadata.getName(), downloadedFile);
     }
-
-    protected abstract String archiveType();
 
     public abstract void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception;
 

@@ -460,7 +460,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         assertNotNull(ti.getArchivedTime());
         assertEquals(ti.getArchiveIdentifier(), archiveId);
         MockDigitalAssetStore store = (MockDigitalAssetStore) factory.getDAS();
-        assertEquals(1, store.getRemovedIndexes().size());
+        assertEquals(2, store.getRemovedIndexes().size());
     }
 
     @Test
