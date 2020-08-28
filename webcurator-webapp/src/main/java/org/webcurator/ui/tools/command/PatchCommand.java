@@ -31,6 +31,7 @@ public class PatchCommand {
     private String userName;
     private String recordingName;
     private String seedUrl;
+    private int harvestNumber;
 
 
     private String actionCmd = null;
@@ -85,5 +86,13 @@ public class PatchCommand {
 
     public void setSeedUrl(String seedUrl) {
         this.seedUrl = seedUrl;
+    }
+
+    public int getHarvestNumber() {
+        return harvestNumber;
+    }
+
+    public void setHarvestNumber(int harvestNumber) {
+        this.harvestNumber = harvestNumber;
     }
 }

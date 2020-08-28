@@ -30,6 +30,7 @@ import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.tools.command.PatchCommand;
 
 import javax.servlet.http.HttpServletRequest;
@@ -74,14 +75,12 @@ public class PatchController {
     @SuppressWarnings("unchecked")
     @RequestMapping(path = "/curator/tools/patch.html", method = RequestMethod.GET)
     protected ModelAndView handleGet(HttpServletRequest req, PatchCommand command, BindingResult bindingResult)	throws Exception {
-        //TargetInstance ti = (TargetInstance) req.getSession().getAttribute("sessionTargetInstance");
+        TargetInstance ti = (TargetInstance) req.getSession().getAttribute("sessionTargetInstance");
 
-        // Set up anonymous webrecorder session
-        long tiOid = 7; // FIXME get real ti id
-        PatchCommand patchCommand = setupPatchSession(tiOid, command.getSeedUrl());
+        command.setRecordingUrl(getRecordingUrl(ti.getOid(), command.getHarvestNumber(), command.getSeedUrl()));
 
         ModelAndView mav = new ModelAndView("patch");
-        mav.addObject("command", patchCommand);
+        mav.addObject("command", command);
 
         if (bindingResult.hasErrors()) {
             mav.addObject(Constants.GBL_ERRORS, bindingResult);
@@ -111,11 +110,8 @@ public class PatchController {
     }
 
     // FIXME maybe separate method not really needed
-    private PatchCommand setupPatchSession(long tiOid, String seedUrl) {
-        String url = "http://localhost:1991/" + tiOid + "/record/" + seedUrl;
-        PatchCommand command = new PatchCommand();
-        command.setRecordingUrl(url);
-        return command;
+    private String getRecordingUrl(long tiOid, int harvestNumber, String seedUrl) {
+        return "http://localhost:1991/" + tiOid + "-" + harvestNumber + "/record/" + seedUrl;
     }
 
 }

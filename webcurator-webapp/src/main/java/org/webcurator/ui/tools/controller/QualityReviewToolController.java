@@ -86,6 +86,8 @@ public class QualityReviewToolController {
 		//Do not load fully as this loads ALL resources, regardless of whether they're seeds. Causes OutOfMemory for large harvests.
 		HarvestResult result = attr.targetInstanceDao.getHarvestResult(harvestResultId, false);
 
+		cmd.setHarvestNumber(result.getHarvestNumber());
+
 		// v1.2 - The seeds are now against the Target Instance. We should prefer the seeds
 		// in the instances over those on the target.
 		Set<Seed> seeds = new LinkedHashSet<Seed>();

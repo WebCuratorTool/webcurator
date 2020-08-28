@@ -33,7 +33,7 @@ a {
 			<table width=100%>
 			    <tr>
 			        <td>
-			            Pywb status: [not implemented yet]
+			        Start a recording session with entry point <c:out value="${command.seedUrl}"/>
 			        </td>
 			    </tr>
 				<tr>

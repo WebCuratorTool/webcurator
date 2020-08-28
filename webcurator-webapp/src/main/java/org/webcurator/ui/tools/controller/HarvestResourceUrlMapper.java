@@ -54,7 +54,8 @@ public class HarvestResourceUrlMapper {
 		.replaceAll("\\{\\$HarvestResult\\.DerivedFrom\\}", (result.getDerivedFrom() == null)?"":String.valueOf(result.getDerivedFrom()))
 		.replaceAll("\\{\\$HarvestResult\\.HarvestNumber\\}", String.valueOf(result.getHarvestNumber()))
 		.replaceAll("\\{\\$HarvestResult\\.ProvenanceNote\\}", (result.getProvenanceNote() == null)?"":result.getProvenanceNote())
-		.replaceAll("\\{\\$HarvestResult\\.State\\}", String.valueOf(result.getState()));
+		.replaceAll("\\{\\$HarvestResult\\.State\\}", String.valueOf(result.getState()))
+		.replaceAll("\\{\\$TargetInstance\\.Oid\\}", String.valueOf(result.getTargetInstance().getOid()));
 
 		if(hRsr instanceof ArcHarvestResourceDTO)
 		{

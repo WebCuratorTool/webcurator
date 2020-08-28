@@ -16,7 +16,8 @@
 							<c:choose> 
 			  				<c:when test="${seed.primary == true}" > 
 								<b><c:out value="${seed.seed}"/></b>
-							</c:when> 
+								<c:set var="primarySeed" value="${seed.seed}"/>
+							</c:when>
 							<c:otherwise> 
 								<c:out value="${seed.seed}"/>
 							</c:otherwise> 
@@ -84,6 +85,17 @@
 			<td width="30%"><a href="curator/tools/treetool.html?loadTree=<c:out value="${command.harvestResultId}"/>&targetInstanceOid=<c:out value="${targetInstanceOid}"/>&logFileName=aqa-report(<c:out value="${command.harvestNumber}"/>).xml">Tree View</a></td>			
 			<td width="70%">Graphical view of harvested data.</td>			
 		</tr>
+		<tr>
+			<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
+		</tr>
+
+		<tr>
+		<%-- TODO we could also create a drop-down of all seeds, so the user can choose which seed to use as the starting point --%>
+			<td width="30%"><a href="curator/tools/patch.html?harvestNumber=<c:out value="${command.harvestNumber}"/>&seedUrl=<c:out value="${primarySeed}"/>">Patch this harvest</a></td>
+			<td width="70%">Patch the harvest with a pywb recording session.</td>
+		</tr>
+
+
 		<tr>
 			<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
 		</tr>

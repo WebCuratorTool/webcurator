@@ -89,6 +89,8 @@ public class WaybackIndexer extends IndexerBase {
         }
         else
         {
+            // Create the subdir for this harvest
+			new File(getWaybackInputHarvestSubdir()).mkdirs();
 	        for(MonitoredFile f: indexFiles)
 	        {
 	        	if(f.getStatus() == FileStatus.INITIAL)
@@ -160,6 +162,8 @@ public class WaybackIndexer extends IndexerBase {
 	        {
         		f.removeFromInput();
 	        }
+	        // Finally remove the subdir for this harvest
+	        new File(getWaybackInputHarvestSubdir()).delete();
         }
 	}
 	
@@ -220,6 +224,16 @@ public class WaybackIndexer extends IndexerBase {
             }
         }
 	}
+
+
+	/**
+	 *
+	 * @return The subdirectory for the current harvest
+	 */
+	private String getWaybackInputHarvestSubdir() {
+    	return waybackInputFolder + File.separator + result.getTargetInstanceOid() + "-" + result.getHarvestNumber()
+																	+ File.separator + "archive";
+	}
 	
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
@@ -274,7 +288,7 @@ public class WaybackIndexer extends IndexerBase {
 		
 		protected void copyToInput()
 		{
-			File inputFile = new File(waybackInputFolder+"/"+getVersionedName());
+			File inputFile = new File(getWaybackInputHarvestSubdir() + File.separator + getVersionedName());
 			try
 			{
 				copyFile(theFile, inputFile);
@@ -288,7 +302,7 @@ public class WaybackIndexer extends IndexerBase {
 		
 		protected void removeFromInput()
 		{
-			File inputFile = new File(waybackInputFolder+"/"+getVersionedName());
+			File inputFile = new File(getWaybackInputHarvestSubdir() + File.separator + getVersionedName());
 			if(inputFile.exists())
 			{
 				if(inputFile.delete())
