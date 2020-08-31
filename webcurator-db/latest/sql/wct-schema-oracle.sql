@@ -68,7 +68,7 @@ create table DB_WCT.BANDWIDTH_RESTRICTIONS (BR_OID number(19,0) not null, BR_BAN
 create table DB_WCT.DUBLIN_CORE (DC_OID number(19,0) not null, DC_CONTRIBUTOR varchar2(255), DC_COVERAGE varchar2(255), DC_CREATOR varchar2(255), DC_DESCRIPTION varchar2(2000), DC_FORMAT varchar2(255), DC_IDENTIFIER varchar2(255), DC_IDENTIFIER_ISBN varchar2(13), DC_IDENTIFIER_ISSN varchar2(9), DC_LANGUAGE varchar2(255), DC_PUBLISHER varchar2(255), DC_RELATION varchar2(255), DC_SOURCE varchar2(255), DC_SUBJECT varchar2(2000), DC_TITLE varchar2(255), DC_TYPE varchar2(50), primary key (DC_OID));
 create table DB_WCT.GROUP_MEMBER (AT_OID number(19,0) not null, GM_CHILD_ID number(19,0), GM_PARENT_ID number(19,0), primary key (AT_OID));
 create table DB_WCT.HARVEST_RESOURCE (HRC_OID number(19,0) not null, HRC_LENGTH number(19,0), HRC_NAME varchar2(1020) not null, HRC_HARVEST_RESULT_OID number(19,0), HRC_STATUS_CODE number(10,0) not null, primary key (HRC_OID));
-create table DB_WCT.HARVEST_RESULT (HR_OID number(19,0) not null, HR_HARVEST_NO number(10,0), HR_TARGET_INSTANCE_ID number(19,0), HR_PROVENANCE_NOTE varchar2(1024) not null, HR_CREATED_DATE date, HR_CREATED_BY_ID number(19,0), HR_STATE number(10,0), HR_DERIVED_FROM number(10,0), HR_INDEX number(10,0), HR_RR_OID number(19,0), primary key (HR_OID));
+create table DB_WCT.HARVEST_RESULT (HR_OID number(19,0) not null, HR_HARVEST_NO number(10,0), HR_TARGET_INSTANCE_ID number(19,0), HR_PROVENANCE_NOTE varchar2(1024) not null, HR_CREATED_DATE date, HR_CREATED_BY_ID number(19,0), HR_STATE number(10,0), HR_DERIVED_FROM number(10,0), HR_INDEX number(10,0) default 0, HR_RR_OID number(19,0), primary key (HR_OID));
 create table DB_WCT.HARVEST_STATUS (HS_OID number(19,0) not null, HS_AVG_KB double precision, HS_AVG_URI double precision, HS_DATA_AMOUNT number(19,0), HS_ELAPSED_TIME number(19,0), HS_JOB_NAME varchar2(500), HS_STATUS varchar2(255), HS_URLS_DOWN number(19,0), HS_URLS_FAILED number(19,0), HS_ALERTS number(10,0), HS_APP_VERSION varchar2(255), HS_HRTX_VERSION varchar2(255), primary key (HS_OID));
 create table DB_WCT.HR_MODIFICATION_NOTE (HMN_HR_OID number(19,0) not null, HMN_NOTE varchar2(2000), HMN_INDEX number(10,0) not null, primary key (HMN_HR_OID, HMN_INDEX));
 create table DB_WCT.NOTIFICATION (NOT_OID number(19,0) not null, NOT_MESSAGE varchar2(2000), NOT_USR_OID number(19,0) not null, NOT_SENDER varchar2(80) not null, NOT_SENT_DATE timestamp(9), NOT_SUBJECT varchar2(255) not null, primary key (NOT_OID));
@@ -187,7 +187,7 @@ alter table DB_WCT.INDICATOR_REPORT_LINE add constraint FK_IRL_I_OID foreign key
 alter table DB_WCT.PO_H3_BLOCK_URL add constraint PBU_FK_1 foreign key (PBU_PROF_OVER_OID) references DB_WCT.PROFILE_OVERRIDES;
 alter table DB_WCT.PO_H3_INCLUDE_URL add constraint PIU_FK_1 foreign key (PIU_PROF_OVER_OID) references DB_WCT.PROFILE_OVERRIDES;
 
-create table DB_WCT.ID_GENERATOR ( IG_TYPE varchar2(255),  IG_VALUE number(10,0) ) ;
+create table DB_WCT.ID_GENERATOR ( IG_TYPE varchar2(255),  IG_VALUE number(19,0) ) ;
 create view DB_WCT.URL_PERMISSION_MAPPING_VIEW as 
  SELECT upm.upm_oid, upm.upm_domain, p.pe_oid, p.pe_end_date, p.pe_owning_agency_id, up.up_pattern, st.st_active
    FROM DB_WCT.URL_PERMISSION_MAPPING upm

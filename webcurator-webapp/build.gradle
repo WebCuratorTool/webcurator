@@ -39,11 +39,6 @@ configurations {
 }
 
 dependencies {
-    implementation('org.webcurator:webcurator-db-repository:3.0.0-SNAPSHOT') {
-        // Use Spring boot logging.
-        exclude group: 'commons-logging', module: 'commons-logging'
-        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-    }
     implementation('org.netpreserve.openwayback:openwayback-core:2.4.0'){
         exclude group: 'org.netpreserve.commons', module: 'webarchive-commons'
     }
