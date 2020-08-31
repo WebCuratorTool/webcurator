@@ -23,7 +23,6 @@ import java.util.*;
  * XML files.
  */
 @Configuration
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class BrowseServletConfig {
 
     @Value("${browseHelper.prefix}")

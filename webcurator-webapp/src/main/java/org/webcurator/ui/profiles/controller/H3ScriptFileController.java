@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 @Controller
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class H3ScriptFileController {
     /** The profile manager to load the profile */
     @Autowired

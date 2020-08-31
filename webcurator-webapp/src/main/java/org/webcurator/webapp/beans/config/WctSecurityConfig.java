@@ -68,7 +68,6 @@ import java.util.List;
  */
 @Configuration
 @EnableWebSecurity
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
