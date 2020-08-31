@@ -256,6 +256,51 @@ public class BaseConfig {
     @Value("${qualityReviewToolController.webArchiveTarget}")
     private String qualityReviewToolControllerWebArchiveTarget;
 
+    @Value("${crawlPoliteness.polite.delayFactor}")
+    private double crawlPolitenessPoliteDelayFactor;
+
+    @Value("${crawlPoliteness.polite.minDelayMs}")
+    private long crawlPolitenessPoliteMinDelayMs;
+
+    @Value("${crawlPoliteness.polite.MaxDelayMs}")
+    private long crawlPolitenessPoliteMaxDelayMs;
+
+    @Value("${crawlPoliteness.polite.respectCrawlDelayUpToSeconds}")
+    private long crawlPolitenessPoliteRespectCrawlDelay;
+
+    @Value("${crawlPoliteness.polite.maxPerHostBandwidthUsageKbSec}")
+    private long crawlPolitenessPoliteMaxPerHostBandwidth;
+
+    @Value("${crawlPoliteness.medium.delayFactor}")
+    private double crawlPolitenessMediumDelayFactor;
+
+    @Value("${crawlPoliteness.medium.minDelayMs}")
+    private long crawlPolitenessMediumMinDelayMs;
+
+    @Value("${crawlPoliteness.medium.MaxDelayMs}")
+    private long crawlPolitenessMediumMaxDelayMs;
+
+    @Value("${crawlPoliteness.medium.respectCrawlDelayUpToSeconds}")
+    private long crawlPolitenessMediumRespectCrawlDelay;
+
+    @Value("${crawlPoliteness.medium.maxPerHostBandwidthUsageKbSec}")
+    private long crawlPolitenessMediumMaxPerHostBandwidth;
+
+    @Value("${crawlPoliteness.aggressive.delayFactor}")
+    private double crawlPolitenessAggressiveDelayFactor;
+
+    @Value("${crawlPoliteness.aggressive.minDelayMs}")
+    private long crawlPolitenessAggressiveMinDelayMs;
+
+    @Value("${crawlPoliteness.aggressive.MaxDelayMs}")
+    private long crawlPolitenessAggressiveMaxDelayMs;
+
+    @Value("${crawlPoliteness.aggressive.respectCrawlDelayUpToSeconds}")
+    private long crawlPolitenessAggressiveRespectCrawlDelay;
+
+    @Value("${crawlPoliteness.aggressive.maxPerHostBandwidthUsageKbSec}")
+    private long crawlPolitenessAggressiveMaxPerHostBandwidth;
+
     @Autowired
     private ListsConfig listsConfig;
 
@@ -1162,7 +1207,7 @@ public class BaseConfig {
     public PolitenessOptions politePolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
-        return new PolitenessOptions(10.0, 9000L, 90000L, 180L, 400L);
+        return new PolitenessOptions(crawlPolitenessPoliteDelayFactor, crawlPolitenessPoliteMinDelayMs, crawlPolitenessPoliteMaxDelayMs, crawlPolitenessPoliteRespectCrawlDelay, crawlPolitenessPoliteMaxPerHostBandwidth);
     }
 
     @Bean
@@ -1171,7 +1216,7 @@ public class BaseConfig {
     public PolitenessOptions mediumPolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
-        return new PolitenessOptions(5.0, 3000L, 30000L, 30L, 800L);
+        return new PolitenessOptions(crawlPolitenessMediumDelayFactor, crawlPolitenessMediumMinDelayMs, crawlPolitenessMediumMaxDelayMs, crawlPolitenessMediumRespectCrawlDelay, crawlPolitenessMediumMaxPerHostBandwidth);
     }
 
     @Bean
@@ -1180,6 +1225,6 @@ public class BaseConfig {
     public PolitenessOptions aggressivePolitenessOptions() {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
-        return new PolitenessOptions(1.0, 1000L, 10000L, 2L, 2000L);
+        return new PolitenessOptions(crawlPolitenessAggressiveDelayFactor, crawlPolitenessAggressiveMinDelayMs, crawlPolitenessAggressiveMaxDelayMs, crawlPolitenessAggressiveRespectCrawlDelay, crawlPolitenessAggressiveMaxPerHostBandwidth);
     }
 }

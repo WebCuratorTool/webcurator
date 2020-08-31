@@ -33,6 +33,7 @@ import org.webcurator.core.util.ApplicationContextFactory;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -129,6 +130,10 @@ public class AgentConfig {
     @Value("${harvestAgent.attemptHarvestRecovery}")
     private String harvestAgentAttemptHarvestRecovery;
 
+    @Value("${harvestAgent.allowedAgencies}")
+    private String allowedAgencies;
+
+
     // The host protocol type of the digital asset store.
     @Value("${digitalAssetStore.scheme}")
     private String digitalAssetStoreScheme;
@@ -220,7 +225,13 @@ public class AgentConfig {
         bean.setName(harvestAgentName);
         bean.setProvenanceNote(harvestAgentProvenanceNote);
         bean.setAlertThreshold(harvestAgentAlertThreshold);
-        bean.setAllowedAgencies(new ArrayList());
+        if(allowedAgencies.isEmpty() || allowedAgencies == null){
+            bean.setAllowedAgencies(new ArrayList());
+        }
+        else{
+            List<String> splitAgencies = Arrays.asList(allowedAgencies.split("\\s*,\\s*"));
+            bean.setAllowedAgencies(new ArrayList<String>(splitAgencies));
+        }
         bean.setDigitalAssetStore(digitalAssetStore());
         //bean.setHarvestCoordinatorNotifier(harvestCoordinatorNotifier());
 
