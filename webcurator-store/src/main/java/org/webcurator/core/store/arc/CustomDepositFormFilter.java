@@ -11,13 +11,13 @@ import java.io.IOException;
 @Component
 public class CustomDepositFormFilter implements Filter {
 
-    @Value("${core.host}")
+    @Value("${webapp.host}")
     String core;
 
-    @Value("${core.port}")
+    @Value("${webapp.port}")
     String corePort;
 
-    @Value("${core.scheme}")
+    @Value("${webapp.scheme}")
     String coreScheme;
 
     public CustomDepositFormFilter(){
