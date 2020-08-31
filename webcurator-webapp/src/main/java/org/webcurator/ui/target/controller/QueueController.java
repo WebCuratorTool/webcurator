@@ -69,7 +69,6 @@ import java.util.*;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class QueueController {
 	private Logger log = LoggerFactory.getLogger(getClass());
 

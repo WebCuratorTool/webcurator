@@ -50,7 +50,6 @@ import java.util.*;
  *
  */
 @Controller
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class H3ScriptConsoleController {
 	/** The profile manager to load the profile */
 	@Autowired

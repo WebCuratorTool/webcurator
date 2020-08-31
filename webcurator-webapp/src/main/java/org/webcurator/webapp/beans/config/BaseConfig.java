@@ -81,7 +81,6 @@ import java.util.*;
 @SuppressWarnings("all")
 @Configuration
 @EnableTransactionManagement
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);
 

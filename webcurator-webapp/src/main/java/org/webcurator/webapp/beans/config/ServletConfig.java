@@ -62,7 +62,6 @@ import java.util.Properties;
  *
  */
 @Configuration
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class ServletConfig {
 
     @Value("${queueController.enableQaModule}")

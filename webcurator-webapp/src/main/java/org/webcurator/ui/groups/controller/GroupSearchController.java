@@ -55,7 +55,6 @@ import org.webcurator.ui.groups.command.SearchCommand;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class GroupSearchController {
 	/** the manager for accessing target and group data. */
 	@Autowired
