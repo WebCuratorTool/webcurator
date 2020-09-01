@@ -16,6 +16,9 @@ update db_wct.id_generator set ig_value=(COALESCE((select max(ahf_oid) from db_w
 update db_wct.id_generator set ig_value=(COALESCE((select max(hrc_oid) from db_wct.harvest_resource), 0)) where ig_type='HarvestResource';
 update db_wct.id_generator set ig_value=(COALESCE((select max(aud_oid) from db_wct.wctaudit), 0)) where ig_type='Audit';
 update db_wct.id_generator set ig_value=(COALESCE((select max(not_oid) from db_wct.notification), 0)) where ig_type='Notification';
+update db_wct.id_generator set ig_value=(COALESCE((select max(hr_oid) from db_wct.harvest_result), 0)) where ig_type='HarvestResult';
+update db_wct.id_generator set ig_value=(COALESCE((select max(prt_oid) from db_wct.permission_template), 0)) where ig_type='PermissionTemplate';
+update db_wct.id_generator set ig_value=(COALESCE((select max(pc_oid) from db_wct.profile_credentials), 0)) where ig_type='Profile Security Credential';
 update db_wct.id_generator set ig_value=greatest(
 	(COALESCE((select max(ti_oid) from db_wct.target_instance), 0)),
 	(COALESCE((select max(ic_oid) from db_wct.indicator_criteria), 0)),
