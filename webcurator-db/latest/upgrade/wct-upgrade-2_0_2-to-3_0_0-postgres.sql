@@ -19,6 +19,7 @@ update db_wct.id_generator set ig_value=(COALESCE((select max(not_oid) from db_w
 update db_wct.id_generator set ig_value=(COALESCE((select max(hr_oid) from db_wct.harvest_result), 0)) where ig_type='HarvestResult';
 update db_wct.id_generator set ig_value=(COALESCE((select max(prt_oid) from db_wct.permission_template), 0)) where ig_type='PermissionTemplate';
 update db_wct.id_generator set ig_value=(COALESCE((select max(pc_oid) from db_wct.profile_credentials), 0)) where ig_type='Profile Security Credential';
+update db_wct.id_generator set ig_value=(COALESCE((select max(pex_oid) from db_wct.permission_exclusion), 0)) where ig_type='PermExclusion';
 update db_wct.id_generator set ig_value=greatest(
 	(COALESCE((select max(ti_oid) from db_wct.target_instance), 0)),
 	(COALESCE((select max(ic_oid) from db_wct.indicator_criteria), 0)),
