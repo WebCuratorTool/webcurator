@@ -45,7 +45,6 @@ import java.util.List;
  */
 @SuppressWarnings({"all"})
 @Configuration
-@PropertySource(value = "classpath:wct-agent.properties")
 public class AgentConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(AgentConfig.class);
 

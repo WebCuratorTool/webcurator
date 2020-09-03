@@ -20,7 +20,6 @@ import java.util.Map;
  * XML files.
  */
 @Configuration
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class ListsConfig {
 
     @Value("${groupTypes.subgroup}")

@@ -33,7 +33,6 @@ import org.webcurator.common.ui.Constants;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@PropertySource(value = "classpath:wct-webapp.properties")
 public class ManagementController {
 
 	/** enables the Management page (QA version) when true **/

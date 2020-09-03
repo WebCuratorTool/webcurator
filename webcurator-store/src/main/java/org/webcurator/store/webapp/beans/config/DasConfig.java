@@ -37,17 +37,16 @@ import java.util.*;
  */
 @SuppressWarnings("all")
 @Configuration
-@PropertySource(value = "classpath:wct-das.properties")
 public class DasConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(DasConfig.class);
 
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Value("${wctCoreWsEndpoint.host}")
+    @Value("${webapp.host}")
     private String wctCoreWsEndpointHost;
 
-    @Value("${wctCoreWsEndpoint.port}")
+    @Value("${webapp.port}")
     private int wctCoreWsEndpointPort;
 
     // the base directory for the arc store
