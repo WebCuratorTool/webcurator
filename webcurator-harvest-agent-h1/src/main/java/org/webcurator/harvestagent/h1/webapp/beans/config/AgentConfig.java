@@ -105,6 +105,10 @@ public class AgentConfig {
     @Value("${digitalAssetStore.port}")
     private int digitalAssetStorePort;
 
+    // the file transfer mode from harvest agent to store component
+    @Value("${digitalAssetStore.fileUploadMode}")
+    private String digitalAssetStoreFileUploadMode;
+
     // Delay before running the job measured in milliseconds.
     @Value("${heartbeatTrigger.startDelay}")
     private long heartbeatTriggerStartDelay;
@@ -210,7 +214,7 @@ public class AgentConfig {
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public DigitalAssetStore digitalAssetStore() {
         DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
-
+        bean.setFileUploadMode(digitalAssetStoreFileUploadMode);
         return bean;
     }
 
