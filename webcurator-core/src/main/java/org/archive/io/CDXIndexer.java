@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.IndexerBase;
 import org.webcurator.core.store.RunnableIndex;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -19,10 +18,6 @@ public class CDXIndexer extends IndexerBase{
 
     public CDXIndexer() {
         super();
-    }
-
-    public CDXIndexer(RestTemplateBuilder restTemplateBuilder) {
-        super(restTemplateBuilder);
     }
 
     protected CDXIndexer(CDXIndexer original)

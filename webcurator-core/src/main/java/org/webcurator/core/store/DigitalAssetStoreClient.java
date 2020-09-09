@@ -34,8 +34,8 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
     /* The way to upload warcs, logs and reports to store component */
     private String fileUploadMode;
 
-    public DigitalAssetStoreClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
-        super(scheme, host, port, restTemplateBuilder);
+    public DigitalAssetStoreClient(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
     }
 
     private void internalUploadStream(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
@@ -307,7 +307,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         if (!customDepositFormURL.startsWith("/")) {
             customDepositFormURL = "/" + customDepositFormURL;
         }
-        String urlPrefix = "http://" + getHost() + ":" + getPort();
+        String urlPrefix = baseUrl;
         response.setUrlForCustomDepositForm(urlPrefix + customDepositFormURL);
     }
 

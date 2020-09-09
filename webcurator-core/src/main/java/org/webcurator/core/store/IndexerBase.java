@@ -1,9 +1,6 @@
 package org.webcurator.core.store;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
@@ -15,50 +12,37 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
-import org.webcurator.core.rest.RestClientResponseHandler;
-import org.webcurator.core.util.WebServiceEndPoint;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
-public abstract class IndexerBase implements RunnableIndex {
+public abstract class IndexerBase extends AbstractRestClient implements RunnableIndex {
     private static final Log log = LogFactory.getLog(IndexerBase.class);
 
-    private WebServiceEndPoint wsEndPoint;
     private boolean defaultIndexer = false;
     private Mode mode = Mode.INDEX;
-    protected final RestTemplateBuilder restTemplateBuilder;
 
     public class ARCFilter implements FilenameFilter {
         public boolean accept(File dir, String name) {
-            return (name.toLowerCase().endsWith(".arc") ||
+            return name.toLowerCase().endsWith(".arc") ||
                     name.toLowerCase().endsWith(".arc.gz") ||
                     name.toLowerCase().endsWith(".warc") ||
-                    name.toLowerCase().endsWith(".warc.gz"));
+                    name.toLowerCase().endsWith(".warc.gz");
         }
     }
 
     public IndexerBase() {
-        this(new RestTemplateBuilder());
+        super();
     }
 
-    public IndexerBase(RestTemplateBuilder restTemplateBuilder) {
-        this.restTemplateBuilder = restTemplateBuilder;
-        restTemplateBuilder.errorHandler(new RestClientResponseHandler());
-    }
 
+    public IndexerBase(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
+    }
 
     protected IndexerBase(IndexerBase original) {
+        super(original.baseUrl, original.restTemplateBuilder);
         this.defaultIndexer = original.defaultIndexer;
-        this.wsEndPoint = original.wsEndPoint;
-        this.restTemplateBuilder = original.restTemplateBuilder;
-    }
-
-    public String baseUrl() {
-        return "http://" + wsEndPoint.getHost() + ":" + wsEndPoint.getPort();
-    }
-
-    public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
     }
 
     protected abstract HarvestResultDTO getResult();
@@ -115,13 +99,5 @@ public abstract class IndexerBase implements RunnableIndex {
     @Override
     public void removeIndex(Long harvestResultOid) {
         //Default implementation is to do nothing
-    }
-
-    public void setWsEndPoint(WebServiceEndPoint wsEndPoint) {
-        this.wsEndPoint = wsEndPoint;
-    }
-
-    public WebServiceEndPoint getWsEndPoint() {
-        return wsEndPoint;
     }
 }

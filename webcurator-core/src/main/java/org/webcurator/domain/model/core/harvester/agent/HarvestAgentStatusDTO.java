@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 
 /**
@@ -32,12 +31,8 @@ public class HarvestAgentStatusDTO {
     private String name;
     /** the harvester type of the harvest agent. */
     private String harvesterType;
-    /** the protocol type of the harvest agent. */
-    private String scheme;
-    /** the host name of the harvest agent. */
-    private String host;
-    /** the port of the harvest agent. */
-    private int port;
+    /** the base url of the harvest agent. */
+    private String baseUrl;
     /** the service of the harvest agent. */
     private String service;
     /** the log reader service of the harvest agent. */
@@ -103,34 +98,6 @@ public class HarvestAgentStatusDTO {
         }
         
         return harvesterStatus.size();
-    }
-
-    /**
-     * @return Returns the scheme
-     */
-    public String getScheme() {
-        return scheme;
-    }
-
-    /**
-     * @param scheme The scheme of the harvest agent
-     */
-    public void setScheme(String scheme) {
-        this.scheme = scheme;
-    }
-
-    /**
-     * @return Returns the host.
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * @param aHost The host to set.
-     */
-    public void setHost(String aHost) {
-        this.host = aHost;
     }
 
     /**
@@ -217,18 +184,12 @@ public class HarvestAgentStatusDTO {
         this.harvesterType = aHarvesterType;
     }
 
-    /**
-     * @return Returns the port.
-     */
-    public int getPort() {
-        return port;
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
-    /**
-     * @param aPort The port to set.
-     */
-    public void setPort(int aPort) {
-        this.port = aPort;
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     /**

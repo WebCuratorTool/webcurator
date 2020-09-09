@@ -12,7 +12,6 @@ import java.io.PrintWriter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class CrawlLogIndexer extends IndexerBase {
@@ -33,10 +32,6 @@ public class CrawlLogIndexer extends IndexerBase {
 
     public CrawlLogIndexer() {
         super();
-    }
-
-    public CrawlLogIndexer(RestTemplateBuilder restTemplateBuilder) {
-        super(restTemplateBuilder);
     }
 
     protected CrawlLogIndexer(CrawlLogIndexer original)

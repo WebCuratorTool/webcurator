@@ -10,6 +10,7 @@ import com.google.common.io.Files;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.test.BaseWCTStoreTest;
 import org.webcurator.core.store.MockIndexer;
@@ -55,13 +56,12 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 
     public void setUp() throws Exception {
         super.setUp();
+        testInstance.setBaseUrl("http://localhost:8080");
+        testInstance.setRestTemplateBuilder(new RestTemplateBuilder());
         testInstance.setBaseDir(baseDir);
 //		testInstance.setArchive(new MockArchive());
         testInstance.setDasFileMover(new MockDasFileMover());
         testInstance.setIndexer(new MockIndexer());
-
-        WebServiceEndPoint wsEndPoint = new WebServiceEndPoint("http", "localhost", 8080);
-        testInstance.setWsEndPoint(wsEndPoint);
     }
 
     @Test

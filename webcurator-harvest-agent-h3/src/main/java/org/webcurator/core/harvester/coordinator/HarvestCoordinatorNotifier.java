@@ -46,8 +46,8 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
      */
     public String attemptRecovery = "false";
 
-    public HarvestCoordinatorNotifier(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
-        super(scheme, host, port, restTemplateBuilder);
+    public HarvestCoordinatorNotifier(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
     }
 
     /* (non-Javadoc)

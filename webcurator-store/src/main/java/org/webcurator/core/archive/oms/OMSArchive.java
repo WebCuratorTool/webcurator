@@ -70,7 +70,7 @@ public class OMSArchive extends BaseArchive {
 	 * @param xAttributes Any extra attributes that may be required for archival (generally contains parameters for OMS meta-data)
 	 * @param files A list of files (@see org.webcurator.core.archive.ArchiveFile) to archive 
 	 * @return A unique archive identifier (IID returned form the OMS system)
-	 * @throws OMSArchiveException
+	 * @throws OMSUploadException
 	 */
 	public String submitToArchive(String targetInstanceOID, String SIP, Map xAttributes, List<ArchiveFile> files) throws OMSUploadException{
 		String IID = null;

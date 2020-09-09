@@ -365,11 +365,9 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	}
 
 	@Override
-	public void recoverHarvests(String haScheme, String haHost, int haPort, String haService, List<String> activeJobs){
+	public void recoverHarvests(String baseUrl, String haService, List<String> activeJobs){
 		HarvestAgentStatusDTO tempHarvestAgentStatusDTO = new HarvestAgentStatusDTO();
-		tempHarvestAgentStatusDTO.setScheme(haScheme);
-		tempHarvestAgentStatusDTO.setHost(haHost);
-		tempHarvestAgentStatusDTO.setPort(haPort);
+		tempHarvestAgentStatusDTO.setBaseUrl(baseUrl);
 		HarvestAgent agent  = harvestAgentFactory.getHarvestAgent(tempHarvestAgentStatusDTO);
 		agent.recoverHarvests(activeJobs);
 	}

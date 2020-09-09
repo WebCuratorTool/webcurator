@@ -27,34 +27,28 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
-public class WCTIndexer extends IndexerBase
-{
-	private static Log log = LogFactory.getLog(WCTIndexer.class);
-	
-	private HarvestResultDTO result;
-	private File directory;
-	private boolean doCreate = false;
+public class WCTIndexer extends IndexerBase {
+    private static Log log = LogFactory.getLog(WCTIndexer.class);
 
-    public WCTIndexer() {
-        super();
+    private HarvestResultDTO result;
+    private File directory;
+    private boolean doCreate = false;
+
+    public WCTIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
     }
 
-    public WCTIndexer(RestTemplateBuilder restTemplateBuilder) {
-        super(restTemplateBuilder);
+    protected WCTIndexer(WCTIndexer original) {
+        super(original);
     }
-
-    protected WCTIndexer(WCTIndexer original)
-	{
-		super(original);
-	}
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     protected Long createIndex() {
         Long harvestResultOid = Long.MIN_VALUE;
         // Step 1. Save the Harvest Result to the database.
-		log.info("Initialising index for job " + getResult().getTargetInstanceOid());
+        log.info("Initialising index for job " + getResult().getTargetInstanceOid());
 
-		try {
+        try {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonStr = objectMapper.writeValueAsString(getResult());
             log.debug(jsonStr);
@@ -70,46 +64,44 @@ public class WCTIndexer extends IndexerBase
 
             harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Long.class);
             log.info("Initialised index for job " + getResult().getTargetInstanceOid());
-        }catch (JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             log.error("Parsing json failed.");
             log.error(e);
         }
         return harvestResultOid;
-	}
-	
-	@Override
-	public Long begin() {
-    	Long harvestResultOid = null;
-    	if(doCreate) { 
-    		harvestResultOid = this.createIndex();
-    		log.debug("Created new Harvest Result: " + harvestResultOid);
-    	}
-    	else {
-    		log.debug("Using Harvest Result " + getResult().getOid());
-    		harvestResultOid = getResult().getOid();
-    	}
-    	
-    	return harvestResultOid;
-	}
-	
-	@Override
-	public void indexFiles(Long harvestResultOid) {
-		// Step 2. Save the Index for each file.
+    }
+
+    @Override
+    public Long begin() {
+        Long harvestResultOid = null;
+        if (doCreate) {
+            harvestResultOid = this.createIndex();
+            log.debug("Created new Harvest Result: " + harvestResultOid);
+        } else {
+            log.debug("Using Harvest Result " + getResult().getOid());
+            harvestResultOid = getResult().getOid();
+        }
+
+        return harvestResultOid;
+    }
+
+    @Override
+    public void indexFiles(Long harvestResultOid) {
+        // Step 2. Save the Index for each file.
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
         File[] fileList = directory.listFiles(new ARCFilter());
-        if(fileList == null) { 
-        	log.error("Could not find any archive files in directory: " + directory.getAbsolutePath() );
-        }
-        else {
-            for(File f: fileList) {
-        		ArcHarvestFileDTO ahf = new ArcHarvestFileDTO();
+        if (fileList == null) {
+            log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
+        } else {
+            for (File f : fileList) {
+                ArcHarvestFileDTO ahf = new ArcHarvestFileDTO();
                 ahf.setName(f.getName());
                 ahf.setBaseDir(directory.getAbsolutePath());
-            	
+
                 try {
                     ahf.setCompressed(ahf.checkIsCompressed());
 
-                	log.info("Indexing " + ahf.getName());
+                    log.info("Indexing " + ahf.getName());
                     Map<String, HarvestResourceDTO> resources = ahf.index();
                     Collection<HarvestResourceDTO> dtos = resources.values();
 
@@ -121,24 +113,22 @@ public class WCTIndexer extends IndexerBase
                     //Release memory used by Collections///////////////
                     dtos.clear();
                     resources.clear();
-                    if(ahf.getHarvestResult() != null) {
+                    if (ahf.getHarvestResult() != null) {
                         ahf.getHarvestResult().getArcFiles().clear();
                         ahf.getHarvestResult().getResources().clear();
                     }
                     //////////////////////////////////////////////////////
 
                     log.info("Completed indexing of " + ahf.getName());
-                }
-                catch(IOException ex) { 
-                	log.error("Could not index file " + ahf.getName() + ". Ignoring and continuing with other files. "+ex.getClass().getCanonicalName()+": "+ ex.getMessage());
-                }
-                catch(ParseException ex) { 
-                	log.error("Could not index file " + ahf.getName() + ". Ignoring and continuing with other files. "+ex.getClass().getCanonicalName()+": "+ ex.getMessage());
+                } catch (IOException ex) {
+                    log.error("Could not index file " + ahf.getName() + ". Ignoring and continuing with other files. " + ex.getClass().getCanonicalName() + ": " + ex.getMessage());
+                } catch (ParseException ex) {
+                    log.error("Could not index file " + ahf.getName() + ". Ignoring and continuing with other files. " + ex.getClass().getCanonicalName() + ": " + ex.getMessage());
                 }
             }
         }
-        log.info("Completed indexing for job " + getResult().getTargetInstanceOid());		
-	}
+        log.info("Completed indexing for job " + getResult().getTargetInstanceOid());
+    }
 
     @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     protected void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO arcHarvestFileDTO) {
@@ -161,7 +151,7 @@ public class WCTIndexer extends IndexerBase
 
             Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
             restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, String.class);
-        }catch (JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             log.error("Parsing json failed.");
             log.error(e);
         }
@@ -171,8 +161,8 @@ public class WCTIndexer extends IndexerBase
     protected void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> harvestResourceDTOs) {
         try {
             Collection<ArcHarvestResourceDTO> arcHarvestResourceDTOs = new ArrayList<ArcHarvestResourceDTO>();
-            harvestResourceDTOs.forEach(dto->{
-                arcHarvestResourceDTOs.add((ArcHarvestResourceDTO)dto);
+            harvestResourceDTOs.forEach(dto -> {
+                arcHarvestResourceDTOs.add((ArcHarvestResourceDTO) dto);
             });
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -190,42 +180,42 @@ public class WCTIndexer extends IndexerBase
 
             Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
             restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, String.class);
-        }catch (JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             log.error("Parsing json failed.");
             log.error(e);
         }
     }
 
     @Override
-	public String getName() {
-		return getClass().getCanonicalName();
-	}
+    public String getName() {
+        return getClass().getCanonicalName();
+    }
 
-	public void setDoCreate(boolean doCreate) {
-		this.doCreate = doCreate;
-	}
+    public void setDoCreate(boolean doCreate) {
+        this.doCreate = doCreate;
+    }
 
-	@Override
-	public void initialise(HarvestResultDTO result, File directory) {
-		this.result = result;
-		this.directory = directory;
-	}
+    @Override
+    public void initialise(HarvestResultDTO result, File directory) {
+        this.result = result;
+        this.directory = directory;
+    }
 
-	@Override
-	protected HarvestResultDTO getResult() {
-		return result;
-	}
+    @Override
+    protected HarvestResultDTO getResult() {
+        return result;
+    }
 
-	@Override
-	public RunnableIndex getCopy() {
-		return new WCTIndexer(this);
-	}
+    @Override
+    public RunnableIndex getCopy() {
+        return new WCTIndexer(this);
+    }
 
-	@Override
-	public boolean isEnabled() {
-		//WCT indexer is always enabled
-		return true;
-	}
-	
+    @Override
+    public boolean isEnabled() {
+        //WCT indexer is always enabled
+        return true;
+    }
+
 }
 

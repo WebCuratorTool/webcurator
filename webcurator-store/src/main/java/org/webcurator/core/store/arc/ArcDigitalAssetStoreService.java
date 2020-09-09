@@ -31,7 +31,6 @@ import java.net.URLConnection;
 import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -65,14 +64,13 @@ import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
-import org.webcurator.core.rest.RestClientResponseHandler;
+import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
-import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.ArcHarvestFileDTO;
 import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -90,7 +88,7 @@ import javax.servlet.ServletInputStream;
  * @author bbeaumont
  */
 @SuppressWarnings("all")
-public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvider {
+public class ArcDigitalAssetStoreService extends AbstractRestClient implements DigitalAssetStore, LogProvider {
     /**
      * The logger.
      */
@@ -117,10 +115,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
      * The DAS File Mover
      */
     private DasFileMover dasFileMover = null;
-    /**
-     * The core
-     */
-    private WebServiceEndPoint wsEndPoint = null;
 
     private FileArchive fileArchive = null;
 
@@ -130,24 +124,12 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
 
-    private final RestTemplateBuilder restTemplateBuilder;
-
     public ArcDigitalAssetStoreService() {
-        this(new RestTemplateBuilder());
+        super();
     }
 
-    public ArcDigitalAssetStoreService(RestTemplateBuilder restTemplateBuilder) {
-        this.restTemplateBuilder = restTemplateBuilder;
-        restTemplateBuilder.errorHandler(new RestClientResponseHandler())
-                .setConnectTimeout(Duration.ofSeconds(15L));
-    }
-
-    public String baseUrl() {
-        return String.format("%s://%s:%d", wsEndPoint.getScheme(), wsEndPoint.getHost(), wsEndPoint.getPort());
-    }
-
-    public String getUrl(String appendUrl) {
-        return baseUrl() + appendUrl;
+    public ArcDigitalAssetStoreService(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
     }
 
     static {
@@ -1197,7 +1179,7 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
             throws DigitalAssetStoreException {
         // Kick off the archiving in a separate thread.
         ArchivingThread thread = new ArchivingThread(targetInstanceOid, SIP,
-                xAttributes, harvestNumber, wsEndPoint);
+                xAttributes, harvestNumber);
         new Thread(thread).start();
     }
 
@@ -1206,16 +1188,13 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         private String SIP = null;
         private Map xAttributes = null;
         private int harvestNumber;
-        private WebServiceEndPoint wsEndPoint = null;
 
-        public ArchivingThread(String targetInstanceOid, String sip,
-                               Map attributes, int harvestNumber, WebServiceEndPoint wsEndPoint) {
+        public ArchivingThread(String targetInstanceOid, String sip, Map attributes, int harvestNumber) {
             super();
             this.targetInstanceOid = targetInstanceOid;
             SIP = sip;
             xAttributes = attributes;
             this.harvestNumber = harvestNumber;
-            this.wsEndPoint = wsEndPoint;
         }
 
         public void run() {
@@ -1326,12 +1305,6 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
         this.dasFileMover = fileMover;
     }
 
-    /**
-     * @param wsEndPoint the wsEndPoint to set
-     */
-    public void setWsEndPoint(WebServiceEndPoint wsEndPoint) {
-        this.wsEndPoint = wsEndPoint;
-    }
 
     // Moves the ArchiveRecord stream past the HTTP status line;
     // checks if it starts with HTTP and ends with CRLF

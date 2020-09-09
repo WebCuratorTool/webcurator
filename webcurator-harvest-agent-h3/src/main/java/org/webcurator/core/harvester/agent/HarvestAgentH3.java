@@ -65,17 +65,9 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      */
     private HarvesterType harvesterType;
     /**
-     * the protocol type of the harvest agent.
+     * the base url of the harvest agent.
      */
-    private String scheme = "";
-    /**
-     * the host name of the harvest agent.
-     */
-    private String host = "";
-    /**
-     * the harvest agent control port.
-     */
-    private int port = 0;
+    private String baseUrl = "";
     /**
      * the harvest agent service endpoint.
      */
@@ -456,9 +448,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
     public HarvestAgentStatusDTO getStatus() {
         //TODO - might need adjustment for when harvest has stopped/gone
         HarvestAgentStatusDTO status = new HarvestAgentStatusDTO();
-        status.setScheme(scheme);
-        status.setHost(host);
-        status.setPort(port);
+        status.setBaseUrl(baseUrl);
         status.setService(service);
         status.setLogReaderService(logReaderService);
         status.setName(name);
@@ -632,24 +622,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         harvestCoordinatorNotifier.heartbeat(getStatus());
     }
 
-    public String getScheme() {
-        return scheme;
-    }
-
-    public void setScheme(String scheme) {
-        this.scheme = scheme;
-    }
-
-    /**
-     * @param aHost The host to set.
-     */
-    public void setHost(String aHost) {
-        this.host = aHost;
-    }
-
-    public String getHost() {
-        return host;
-    }
 
     /**
      * @param aMaxHarvests The maxHarvests to set.
@@ -672,11 +644,12 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         return harvesterType;
     }
 
-    /**
-     * @param aPort The port to set.
-     */
-    public void setPort(int aPort) {
-        this.port = aPort;
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     /**

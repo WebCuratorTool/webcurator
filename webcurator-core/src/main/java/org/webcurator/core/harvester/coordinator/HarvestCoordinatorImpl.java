@@ -163,7 +163,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 //			log.info("RecoverHarvests: sending data back for TI: " + ti.getJobName());
             activeJobs.add(ti.getJobName());
         }
-        harvestAgentManager.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService(), activeJobs);
+        harvestAgentManager.recoverHarvests(aStatus.getBaseUrl(), aStatus.getService(), activeJobs);
     }
 
     /**
@@ -1296,11 +1296,9 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     @Override
-    public void recoverHarvests(String scheme, String host, int port, String service) {
+    public void recoverHarvests(String baseUrl, String service) {
         HarvestAgentStatusDTO tempHarvestAgentStatusDTO = new HarvestAgentStatusDTO();
-        tempHarvestAgentStatusDTO.setScheme(scheme);
-        tempHarvestAgentStatusDTO.setHost(host);
-        tempHarvestAgentStatusDTO.setPort(port);
+        tempHarvestAgentStatusDTO.setBaseUrl(baseUrl);
         tempHarvestAgentStatusDTO.setService(service);
         this.recoverHarvests(tempHarvestAgentStatusDTO);
     }

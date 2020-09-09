@@ -28,7 +28,7 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
     /**
      * the logger.
      */
-    private static Logger log = LoggerFactory.getLogger(HarvestAgentListenerService.class);
+    private static final Logger log = LoggerFactory.getLogger(HarvestAgentListenerService.class);
     /**
      * the harvest coordinator to delegate to.
      */
@@ -45,14 +45,14 @@ public class HarvestAgentListenerService implements HarvestAgentListener, CheckN
      */
     @PostMapping(path = HarvestCoordinatorPaths.HEARTBEAT)
     public void heartbeat(@RequestBody HarvestAgentStatusDTO aStatus) {
-        log.info("Received heartbeat from {}://{}:{}", aStatus.getScheme(), aStatus.getHost(), aStatus.getPort());
+        log.info("Received heartbeat from {}}", aStatus.getBaseUrl());
         harvestCoordinator.heartbeat(aStatus);
     }
 
     @RequestMapping(path = HarvestCoordinatorPaths.RECOVERY, method = {RequestMethod.POST, RequestMethod.GET})
     public void requestRecovery(@RequestBody HarvestAgentStatusDTO aStatus) {
-        log.info("Received recovery request from {}://{}:{}", aStatus.getScheme(), aStatus.getHost(), aStatus.getPort());
-        harvestCoordinator.recoverHarvests(aStatus.getScheme(), aStatus.getHost(), aStatus.getPort(), aStatus.getService());
+        log.info("Received recovery request from {}", aStatus.getBaseUrl());
+        harvestCoordinator.recoverHarvests(aStatus.getBaseUrl(), aStatus.getService());
     }
 
     /*

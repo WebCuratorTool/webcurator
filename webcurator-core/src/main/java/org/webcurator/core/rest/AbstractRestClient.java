@@ -14,37 +14,24 @@ import java.time.Duration;
 abstract public class AbstractRestClient {
     protected Logger log = LoggerFactory.getLogger(getClass());
 
-    /**
-     * the protocol type for the client.
+    /*
+     * the service url for the server, e.x: https://localhost:8080/wct.
      */
-    protected String scheme = "http";
-    /**
-     * the host name or ip-address for the client.
-     */
-    protected String host = "localhost";
-    /**
-     * the port number for the client.
-     */
-    protected int port = 8080;
+    protected String baseUrl;
+    protected RestTemplateBuilder restTemplateBuilder;
 
-    protected final RestTemplateBuilder restTemplateBuilder;
+    public AbstractRestClient() {
+    }
 
-
-    public AbstractRestClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
-        this.scheme = scheme;
-        this.host = host;
-        this.port = port;
+    public AbstractRestClient(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        this.baseUrl = baseUrl;
         this.restTemplateBuilder = restTemplateBuilder;
         this.restTemplateBuilder.errorHandler(new RestClientResponseHandler())
                 .setConnectTimeout(Duration.ofSeconds(15L));
     }
 
-    public String baseUrl() {
-        return String.format("%s://%s:%d", scheme, host, port);
-    }
-
     public String getUrl(String appendUrl) {
-        return String.format("%s%s", this.baseUrl(), appendUrl);
+        return String.format("%s%s", this.baseUrl, appendUrl);
     }
 
     public HttpEntity<String> createHttpRequestEntity(Object objRequest) {
@@ -62,11 +49,11 @@ abstract public class AbstractRestClient {
 
         String json = this.encode2json(objRequest);
 
-        HttpEntity<String> request = null;
+        HttpEntity<String> request;
         if (headers == null) {
-            request = new HttpEntity<String>(json);
+            request = new HttpEntity<>(json);
         } else {
-            request = new HttpEntity<String>(json, headers);
+            request = new HttpEntity<>(json, headers);
         }
 
         return request;
@@ -74,7 +61,7 @@ abstract public class AbstractRestClient {
 
     public String encode2json(Object objRequest) {
         ObjectMapper objectMapper = new ObjectMapper();
-        String jsonRequest = null;
+        String jsonRequest;
         try {
             jsonRequest = objectMapper.writeValueAsString(objRequest);
             log.debug(jsonRequest);
@@ -83,34 +70,26 @@ abstract public class AbstractRestClient {
             return null;
         }
 
-        return jsonRequest.toString();
+        return jsonRequest;
     }
 
     public String toString() {
-        return String.format("%s@%s",this.getClass().getName(), this.baseUrl());
+        return String.format("%s@%s", this.getClass().getName(), this.baseUrl);
     }
 
-    public String getScheme() {
-        return scheme;
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
-    public void setScheme(String scheme) {
-        this.scheme = scheme;
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
-    public String getHost() {
-        return host;
+    public RestTemplateBuilder getRestTemplateBuilder() {
+        return restTemplateBuilder;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
+    public void setRestTemplateBuilder(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplateBuilder = restTemplateBuilder;
     }
 }
