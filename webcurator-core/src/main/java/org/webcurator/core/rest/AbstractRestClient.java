@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import java.net.URI;
 import java.time.Duration;
 
 abstract public class AbstractRestClient {
@@ -91,5 +92,36 @@ abstract public class AbstractRestClient {
 
     public void setRestTemplateBuilder(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplateBuilder = restTemplateBuilder;
+    }
+
+    public String getScheme() {
+        try {
+            URI uri = URI.create(baseUrl);
+            return uri.getScheme();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public String getHost() {
+        try {
+            URI uri = URI.create(baseUrl);
+            return uri.getHost();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public int getPort() {
+        try {
+            URI uri = URI.create(baseUrl);
+            if (uri.getPort() > 0) {
+                return uri.getPort();
+            } else {
+                return 80;
+            }
+        } catch (Exception e) {
+            return -1;
+        }
     }
 }
