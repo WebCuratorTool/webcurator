@@ -4,12 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Bytes;
 import org.apache.commons.httpclient.Header;
+import org.apache.commons.io.IOUtils;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,13 +17,12 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreCopyAndPruneDTO;
-import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 import reactor.core.publisher.Mono;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -33,60 +31,71 @@ import java.util.stream.Collectors;
 @SuppressWarnings("all")
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public class DigitalAssetStoreClient extends AbstractRestClient implements DigitalAssetStore {
+    /* The way to upload warcs, logs and reports to store component */
+    private String fileUploadMode;
+
     public DigitalAssetStoreClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
         super(scheme, host, port, restTemplateBuilder);
     }
 
-    private void internalSave(String targetInstanceName, HarvestStoreDTO harvestStoreDTO) throws DigitalAssetStoreException{
-        try {
-            HttpEntity<String> request = this.createHttpRequestEntity(harvestStoreDTO);
+    private void internalUploadStream(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
+        File file = path.toFile();
+        if (!file.exists() || !file.isFile()) {
+            throw new DigitalAssetStoreException("File does not exist: " + path);
+        }
 
+        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.UPLOAD));
+        uriComponentsBuilder.queryParam("directory", directory);
+        uriComponentsBuilder.queryParam("fileName", file.getName());
+
+        try {
+            URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
+            URLConnection conn = url.openConnection();
+            conn.setRequestProperty("Content-Type", "application/octet-stream");
+            conn.setDoOutput(true);
+            OutputStream outputStream = conn.getOutputStream();
+
+            //Upload file
+            IOUtils.copy(new FileInputStream(file), outputStream);
+            outputStream.flush();
+            outputStream.close();
+
+            InputStream inputStream = conn.getInputStream();
+            String resultStr = IOUtils.toString(inputStream);
+
+            log.debug(resultStr);
+        } catch (IOException e) {
+            log.error("Upload file content failed", e);
+            throw new DigitalAssetStoreException(e);
+        }
+    }
+
+
+    private void internalUploadMetadata(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
+        try {
             Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SAVE));
-            URI uri=uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+            uriComponentsBuilder.queryParam("directory", directory);
+            uriComponentsBuilder.queryParam("filePath", path.toFile().getAbsolutePath());
+
+            URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
             RestTemplate restTemplate = restTemplateBuilder.build();
-            restTemplate.postForObject(uri, request, String.class);
+            restTemplate.getForObject(uri, String.class);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Upload file path failed", e);
             throw new DigitalAssetStoreException(e);
         }
     }
 
     @Override
     public void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
-        requestBody.setDirectory(directory);
-        requestBody.setPathFromPath(path);
-
-        internalSave(targetInstanceName, requestBody);
-    }
-
-    @Override
-    // Assuming that without any values set will keep infinitely retrying
-    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-    public void save(String targetInstanceName, Path path) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
-        requestBody.setPathFromPath(path);
-
-        internalSave(targetInstanceName, requestBody);
-    }
-
-    @Override
-    public void save(String targetInstanceName, String directory, List<Path> paths) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
-        requestBody.setDirectory(directory);
-        requestBody.setPathsFromPath(paths);
-
-        internalSave(targetInstanceName, requestBody);
-    }
-
-    @Override
-    public void save(String targetInstanceName, List<Path> paths) throws DigitalAssetStoreException {
-        HarvestStoreDTO requestBody=new HarvestStoreDTO();
-        requestBody.setPathsFromPath(paths);
-
-        internalSave(targetInstanceName, requestBody);
+        if (this.fileUploadMode.equals(FILE_UPLOAD_MODE_COPY)) {
+            this.internalUploadMetadata(targetInstanceName, directory, path);
+        } else {
+            this.internalUploadStream(targetInstanceName, directory, path);
+        }
     }
 
     public Path getResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException {
@@ -99,7 +108,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         String url = uriComponentsBuilder.buildAndExpand(pathVariables).toUriString();
 
         WebClient client = WebClient.create(url);
-        Mono<byte[]> mono  = client.method(HttpMethod.POST)
+        Mono<byte[]> mono = client.method(HttpMethod.POST)
                 .body(BodyInserters.fromObject(jsonStr))
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM)
@@ -139,7 +148,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
                 .queryParam("harvest-result-number", harvestResultNumber)
                 .queryParam("resource", resource);
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-        URI uri =  uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+        URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         ResponseEntity<List<Header>> listResponse = restTemplate.exchange(uri, HttpMethod.POST, request,
@@ -152,8 +161,10 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
                                          List<String> urisToDelete, List<HarvestResourceDTO> harvestResourcesToImport) throws DigitalAssetStoreException {
         HarvestStoreCopyAndPruneDTO dto = new HarvestStoreCopyAndPruneDTO();
         dto.setUrisToDelete(urisToDelete);
-        if(harvestResourcesToImport!=null){
-            dto.setHarvestResourcesToImport(harvestResourcesToImport.stream().map(o->{return (ArcHarvestResourceDTO)o;}).collect(Collectors.toList()));
+        if (harvestResourcesToImport != null) {
+            dto.setHarvestResourcesToImport(harvestResourcesToImport.stream().map(o -> {
+                return (ArcHarvestResourceDTO) o;
+            }).collect(Collectors.toList()));
         }
 
         HttpEntity<String> request = this.createHttpRequestEntity(dto);
@@ -298,5 +309,18 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         }
         String urlPrefix = "http://" + getHost() + ":" + getPort();
         response.setUrlForCustomDepositForm(urlPrefix + customDepositFormURL);
+    }
+
+    public String getFileUploadMode() {
+        return fileUploadMode;
+    }
+
+    public void setFileUploadMode(String fileUploadMode) {
+        //Take copy as the default file transfering type
+        if (fileUploadMode == null || !fileUploadMode.equalsIgnoreCase(FILE_UPLOAD_MODE_STREAM)) {
+            this.fileUploadMode = FILE_UPLOAD_MODE_COPY;
+        } else {
+            this.fileUploadMode = FILE_UPLOAD_MODE_STREAM;
+        }
     }
 }

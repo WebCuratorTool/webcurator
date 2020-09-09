@@ -20,7 +20,8 @@ import java.util.Arrays;
 )
 @EnableAutoConfiguration(exclude = {SecurityAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
 public class WebappApplication {
-
+//    @Autowired
+//    private HarvestCoordinatorImpl harvestCoordinator;
     public static void main(String[] args) {
         try {
             SpringApplication.run(WebappApplication.class, args);

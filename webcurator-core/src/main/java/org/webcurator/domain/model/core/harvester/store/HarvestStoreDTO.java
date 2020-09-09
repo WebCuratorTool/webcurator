@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class HarvestStoreDTO {
-    private String directory=null;
+    private String directory="";
     private String path=null;
     private List<String> paths=null;
 
