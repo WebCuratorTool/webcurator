@@ -54,9 +54,9 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(org.webcurator.core.harvester.agent.HarvestAgentStatus)
      */
 
-    public void heartbeat(HarvestAgentStatusDTO aStatus) {
+    public void heartbeat(HarvestAgentStatusDTO aStatus){
         try {
-            log.debug("WCT: Start of heartbeat");
+            log.info("WCT: Start of heartbeat");
 
             RestTemplate restTemplate = restTemplateBuilder.build();
 
@@ -65,7 +65,8 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
             HttpEntity<String> request = this.createHttpRequestEntity(aStatus);
 
             restTemplate.postForObject(uri, request, String.class);
-            log.debug("WCT: End of heartbeat");
+            log.info("WCT: End of heartbeat");
+
         } catch (Exception ex) {
             log.error("Heartbeat Notification failed : " + ex.getMessage(), ex);
         }
@@ -100,7 +101,7 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
      */
     public void harvestComplete(HarvestResultDTO aResult) {
         try {
-            log.debug("WCT: Start of harvestComplete");
+            log.info("WCT: Start of harvestComplete");
 
             HttpEntity<String> request = this.createHttpRequestEntity(aResult);
 
@@ -110,7 +111,7 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
 
             restTemplate.postForObject(uri, request, String.class);
 
-            log.debug("WCT: End of HarvestComplete");
+            log.info("WCT: End of HarvestComplete");
         } catch (Exception ex) {
             log.error("Harvest Complete Notification failed : " + ex.getMessage(), ex);
             throw new WCTRuntimeException(ex);
