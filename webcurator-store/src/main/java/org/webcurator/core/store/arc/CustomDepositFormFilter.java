@@ -12,7 +12,7 @@ import java.io.IOException;
 public class CustomDepositFormFilter implements Filter {
 
     @Value("${webapp.baseUrl}")
-    String coreBaseUrl;
+    String webappBaseUrl;
 
     public CustomDepositFormFilter(){
     }
@@ -24,13 +24,13 @@ public class CustomDepositFormFilter implements Filter {
         // Set CORS headers for all responses
         HttpServletResponse response = (HttpServletResponse) res;
         response.setHeader("Access-Control-Allow-Headers","Access-Control-Allow-Origin,Access-Control-Allow-Methods");
-        response.setHeader("Access-Control-Allow-Origin", coreBaseUrl);
+        response.setHeader("Access-Control-Allow-Origin", webappBaseUrl);
         response.setHeader("Access-Control-Allow-Methods","GET,POST,HEAD,OPTIONS");
 
         // Set CORS headers for all requests
         MutableHttpServletRequest mutableRequest = new MutableHttpServletRequest((HttpServletRequest) req);
         mutableRequest.putHeader("Access-Control-Allow-Headers","Access-Control-Allow-Origin,Access-Control-Allow-Methods");
-        mutableRequest.putHeader("Access-Control-Allow-Origin", coreBaseUrl);
+        mutableRequest.putHeader("Access-Control-Allow-Origin", webappBaseUrl);
         mutableRequest.putHeader("Access-Control-Allow-Methods","GET,POST,HEAD,OPTIONS");
 
         chain.doFilter(mutableRequest, response);

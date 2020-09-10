@@ -6,7 +6,7 @@
 <%
 	DPSArchive dpsArchive = (DPSArchive)ApplicationContextFactory.getApplicationContext().getBean(DPSArchive.class);
 	response.addHeader("Cache-Control", "no-store");
-	response.addHeader("Access-Control-Allow-Origin", dpsArchive.getCoreScheme() + "://" + dpsArchive.getCoreHost() + ":" + dpsArchive.getCorePort());
+	response.addHeader("Access-Control-Allow-Origin", dpsArchive.getWebappBaseUrl());
 	response.addHeader("Access-Control-Expose-Headers","Access-Control-Allow-Origin");
 	String query = request.getParameter("query");
 	if ("getProducerName".equals(query)) {
