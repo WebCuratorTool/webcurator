@@ -13,14 +13,18 @@ import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 import java.util.Arrays;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "org.webcurator.harvestagent.h1", "org.webcurator.core.harvester", "org.webcurator.core.rest", "org.webcurator.core.reader"},
+@ComponentScan(basePackages = {"org.webcurator.harvestagent.h1", "org.webcurator.core.harvester", "org.webcurator.core.rest", "org.webcurator.core.reader"},
         // HarvestAgentListenerService should be running on webcurator-webapp.
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-                classes = { HarvestAgentListenerService.class, HarvestCoordinatorImpl.class })
+                classes = {HarvestAgentListenerService.class, HarvestCoordinatorImpl.class})
 )
 public class HarvestAgentApplication {
     public static void main(String[] args) {
-        SpringApplication.run(HarvestAgentApplication.class, args);
+        try {
+            SpringApplication.run(HarvestAgentApplication.class, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Bean
