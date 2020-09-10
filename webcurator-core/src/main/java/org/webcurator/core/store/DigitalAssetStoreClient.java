@@ -20,9 +20,11 @@ import org.webcurator.domain.model.core.harvester.store.HarvestStoreCopyAndPrune
 import reactor.core.publisher.Mono;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -105,38 +107,71 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.RESOURCE))
                 .queryParam("harvest-result-number", harvestResultNumber);
-        String url = uriComponentsBuilder.buildAndExpand(pathVariables).toUriString();
-
-        WebClient client = WebClient.create(url);
-        Mono<byte[]> mono = client.method(HttpMethod.POST)
-                .body(BodyInserters.fromObject(jsonStr))
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM)
-                .exchange()
-                .flatMap(response -> response.bodyToMono(ByteArrayResource.class))
-                .map(ByteArrayResource::getByteArray);
-        byte[] buf = mono.block();
-
-        FileOutputStream fos = null;
         try {
+            URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+            HttpURLConnection urlConnection = (HttpURLConnection)uri.toURL().openConnection();
+            urlConnection.setRequestMethod("POST");
+            urlConnection.setDoInput(true);
+            urlConnection.setDoOutput(true);
+
+            urlConnection.setRequestProperty("Content-Type","application/json");
+            urlConnection.setRequestProperty("Content-Length",Integer.toString(jsonStr.length()));
+            urlConnection.getOutputStream().write(jsonStr.getBytes());
+
             File file = File.createTempFile("wctd", "tmp");
-            fos = new FileOutputStream(file);
-            fos.write(buf);
-            fos.flush();
+            IOUtils.copy(urlConnection.getInputStream(), Files.newOutputStream(file.toPath()));
+
             return file.toPath();
-        } catch (IOException ex) {
-            throw new DigitalAssetStoreException("Failed to get resource for " + targetInstanceName + " " +
-                    harvestResultNumber + ": " + ex.getMessage(), ex);
-        } finally {
-            try {
-                if (fos != null) {
-                    fos.close();
-                }
-            } catch (IOException ex) {
-                throw new DigitalAssetStoreException("Failed to get resource for " + targetInstanceName + " " +
-                        harvestResultNumber + ": " + ex.getMessage(), ex);
-            }
+        } catch (IOException e) {
+            String err = "Failed to get resource for " + targetInstanceName + " " + harvestResultNumber + ": " + e.getMessage();
+            log.error(err, e);
+            throw new DigitalAssetStoreException(err, e);
         }
+
+//        String url = uriComponentsBuilder.buildAndExpand(pathVariables).toUriString();
+//        WebClient client = WebClient.create(url);
+//        Mono<byte[]> mono = client.method(HttpMethod.POST)
+//                .body(BodyInserters.fromObject(jsonStr))
+//                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+//                .accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM)
+//                .exchange()
+//                .flatMap(response -> response.bodyToMono(ByteArrayResource.class))
+//                .map(ByteArrayResource::getByteArray);
+//        byte[] buf = mono.block();
+//        if (buf == null) {
+//            String err = "Failed to get resource for " + targetInstanceName + " " + harvestResultNumber + ", buf is null.";
+//            log.error(err);
+//            throw new DigitalAssetStoreException(err);
+//        }
+//
+//        FileOutputStream fos = null;
+//        try {
+//            File file = File.createTempFile("wctd", "tmp");
+//            fos = new FileOutputStream(file);
+//            if (fos == null) {
+//                String err = "Failed to get resource for " + targetInstanceName + " " + harvestResultNumber + ", fos is null. File:" + file.getAbsolutePath() + ".";
+//                log.error(err);
+//                throw new DigitalAssetStoreException(err);
+//            }
+//
+//            fos.write(buf);
+//            fos.flush();
+//            return file.toPath();
+//        } catch (IOException ex) {
+//            String err = "Failed to get resource for " + targetInstanceName + " " + harvestResultNumber + ": " + ex.getMessage();
+//            log.error(err, ex);
+//            throw new DigitalAssetStoreException(err, ex);
+//        } finally {
+//            try {
+//                if (fos != null) {
+//                    fos.close();
+//                }
+//            } catch (IOException ex) {
+//                String err = "Failed to get resource for " + targetInstanceName + " " + harvestResultNumber + ": " + ex.getMessage();
+//                log.error(err, ex);
+//                throw new DigitalAssetStoreException(err, ex);
+//            }
+//        }
     }
 
     public List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource)

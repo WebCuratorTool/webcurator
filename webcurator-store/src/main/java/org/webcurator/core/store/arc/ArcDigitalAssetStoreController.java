@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -31,20 +32,20 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @Qualifier("arcDigitalAssetStoreService")
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
-    @PostMapping(path = DigitalAssetStorePaths.RESOURCE, produces = "application/octet-stream")
-    public @ResponseBody
-    byte[] getResourceExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                               @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                               @RequestBody ArcHarvestResourceDTO resource) throws DigitalAssetStoreException {
+    //produces = "application/octet-stream",
+    @PostMapping(path = DigitalAssetStorePaths.RESOURCE)
+    public void getResourceExternal(@PathVariable(value = "target-instance-name") String targetInstanceName,
+                                    @RequestParam(value = "harvest-result-number") int harvestResultNumber,
+                                    @RequestBody ArcHarvestResourceDTO resource,
+                                    HttpServletRequest req, HttpServletResponse rsp) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-name: {}, harvest-result-number: {}", targetInstanceName, harvestResultNumber);
         Path path = getResource(targetInstanceName, harvestResultNumber, resource);
-        byte[] buf = null;
         try {
-            buf = IOUtils.toByteArray(path.toUri());
+            IOUtils.copy(Files.newInputStream(path), rsp.getOutputStream());
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Copy stream failed", e);
+            throw new DigitalAssetStoreException(e);
         }
-        return buf;
     }
 
     @Override
