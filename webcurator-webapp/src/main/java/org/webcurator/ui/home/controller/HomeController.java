@@ -26,6 +26,8 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
 import org.webcurator.auth.AuthorityManager;
@@ -71,6 +73,12 @@ public class HomeController extends AbstractController {
 	/** enables the new Qa Home page **/
     @Value("${queueController.enableQaModule}")
 	private boolean enableQaModule;
+
+    // Default request mapping for root application context
+	@RequestMapping(method = RequestMethod.GET, path = "/")
+	protected ModelAndView defaultPage(){
+		return new ModelAndView("redirect:/curator/home.html");
+	}
 
     @Override
     protected ModelAndView handleRequestInternal(HttpServletRequest req, HttpServletResponse resp) throws Exception {
