@@ -12,74 +12,78 @@ import java.io.PrintWriter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class CrawlLogIndexer extends IndexerBase {
-	//Static variables
-	private static Log log = LogFactory.getLog(CrawlLogIndexer.class);
+    //Static variables
+    private static Log log = LogFactory.getLog(CrawlLogIndexer.class);
 
-	//Passed in variables
-	private HarvestResultDTO result;
-	private File directory;
-	
-	//Spring initialised variables (to be copied in copy constructor)
-	private String crawlLogFileName;
-	private String strippedLogFileName;
-	private String sortedLogFileName;
-	private String logsSubFolder;
+    //Passed in variables
+    private HarvestResultDTO result;
+    private File directory;
 
-	private boolean enabled = false;
+    //Spring initialised variables (to be copied in copy constructor)
+    private String crawlLogFileName;
+    private String strippedLogFileName;
+    private String sortedLogFileName;
+    private String logsSubFolder;
 
-    public CrawlLogIndexer() {
+    private boolean enabled = false;
+
+    public CrawlLogIndexer(){
         super();
     }
 
-    protected CrawlLogIndexer(CrawlLogIndexer original)
-	{
-		super(original);
-		crawlLogFileName = original.crawlLogFileName;
-		strippedLogFileName = original.strippedLogFileName;
-		sortedLogFileName = original.sortedLogFileName;
-		logsSubFolder = original.logsSubFolder;
-		enabled = original.enabled;
-	}
-	
-	@Override
-	public RunnableIndex getCopy() {
-		return new CrawlLogIndexer(this);
-	}
+    public CrawlLogIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
+    }
 
-	@Override
-	protected HarvestResultDTO getResult() {
-		return result;
-	}
+    protected CrawlLogIndexer(CrawlLogIndexer original) {
+        super(original);
+        crawlLogFileName = original.crawlLogFileName;
+        strippedLogFileName = original.strippedLogFileName;
+        sortedLogFileName = original.sortedLogFileName;
+        logsSubFolder = original.logsSubFolder;
+        enabled = original.enabled;
+    }
 
-	@Override
-	public Long begin() {
-		return getResult().getOid();
-	}
+    @Override
+    public RunnableIndex getCopy() {
+        return new CrawlLogIndexer(this);
+    }
 
-	@Override
-	public String getName() {
-		return getClass().getCanonicalName();
-	}
+    @Override
+    protected HarvestResultDTO getResult() {
+        return result;
+    }
 
-	@Override
-	public void indexFiles(Long harvestResultOid) {
-		
-		// sort the crawl.log file to create a sortedcrawl.log file in the same
-		// directory.
+    @Override
+    public Long begin() {
+        return getResult().getOid();
+    }
+
+    @Override
+    public String getName() {
+        return getClass().getCanonicalName();
+    }
+
+    @Override
+    public void indexFiles(Long harvestResultOid) {
+
+        // sort the crawl.log file to create a sortedcrawl.log file in the same
+        // directory.
         log.info("Generating " + sortedLogFileName + " file for " + getResult().getTargetInstanceOid());
 
-		// create path to log files folder from input directory..
-		String logPath = directory.getAbsolutePath().substring(0, directory.getAbsolutePath().length()-1);
+        // create path to log files folder from input directory..
+        String logPath = directory.getAbsolutePath().substring(0, directory.getAbsolutePath().length() - 1);
         logPath = logPath + logsSubFolder + directory.separator;
 
         // write new 'stripped' crawl.log, replacing multiple spaces with a single space in each record..
         try {
-            
+
             BufferedReader inputStream = new BufferedReader(new FileReader(logPath + crawlLogFileName));
-            PrintWriter outputStream   = new PrintWriter(new FileWriter(logPath + strippedLogFileName));
+            PrintWriter outputStream = new PrintWriter(new FileWriter(logPath + strippedLogFileName));
 
             String inLine = null;
 
@@ -92,90 +96,89 @@ public class CrawlLogIndexer extends IndexerBase {
 
         } catch (IOException e) {
 
-        	log.error("Could not create " + strippedLogFileName + " file in directory: " + logPath );
-        	return;
+            log.error("Could not create " + strippedLogFileName + " file in directory: " + logPath);
+            return;
         }
-        
-		// sort the 'stripped' crawl.log file to create a 'sorted' crawl.log file...
+
+        // sort the 'stripped' crawl.log file to create a 'sorted' crawl.log file...
         ExternalSort sort = new ExternalSort();
         try {
-			sort.setInFile(logPath + strippedLogFileName);
-		} catch (FileNotFoundException e1) {
-        	log.error("Could not find " + strippedLogFileName + " file in directory: " + logPath );
-        	return;
-		}
+            sort.setInFile(logPath + strippedLogFileName);
+        } catch (FileNotFoundException e1) {
+            log.error("Could not find " + strippedLogFileName + " file in directory: " + logPath);
+            return;
+        }
         try {
-			sort.setOutFile(logPath + sortedLogFileName);
-		} catch (FileNotFoundException e1) {
-        	log.error("Could not find directory: " + logPath );
-        	return;
-		}
-		// sort on fourth column (url) then first column (timestamp)..
-		int[] cols = {3,0};
-		sort.setColumns(cols);
-		sort.setSeparator(' ');  // space 
-        
-		try {
-			sort.run();
-		} catch (IOException e1) {
-        	log.error("Could not sort " + crawlLogFileName + " file in directory: " + logPath );
-        	return;
-		}
-		
-		log.info("Completed sort of crawl.log for job " + getResult().getTargetInstanceOid());
-	}
-	
-	@Override
-	public void removeIndex(Long harvestResultOid)
-	{
-		return;
-	}
-	
-	@Override
-	public void initialise(HarvestResultDTO result, File directory) {
-		this.result = result;
-		this.directory = directory;
-	}
+            sort.setOutFile(logPath + sortedLogFileName);
+        } catch (FileNotFoundException e1) {
+            log.error("Could not find directory: " + logPath);
+            return;
+        }
+        // sort on fourth column (url) then first column (timestamp)..
+        int[] cols = {3, 0};
+        sort.setColumns(cols);
+        sort.setSeparator(' ');  // space
 
-	public void setCrawlLogFileName(String crawlLogFileName) {
-		this.crawlLogFileName = crawlLogFileName;
-	}
+        try {
+            sort.run();
+        } catch (IOException e1) {
+            log.error("Could not sort " + crawlLogFileName + " file in directory: " + logPath);
+            return;
+        }
 
-	public String getCrawlLogFileName() {
-		return crawlLogFileName;
-	}
+        log.info("Completed sort of crawl.log for job " + getResult().getTargetInstanceOid());
+    }
 
-	public void setStrippedLogFileName(String strippedLogFileName) {
-		this.strippedLogFileName = strippedLogFileName;
-	}
+    @Override
+    public void removeIndex(Long harvestResultOid) {
+        return;
+    }
 
-	public String getStrippedLogFileName() {
-		return strippedLogFileName;
-	}
+    @Override
+    public void initialise(HarvestResultDTO result, File directory) {
+        this.result = result;
+        this.directory = directory;
+    }
 
-	public void setSortedLogFileName(String sortedLogFileName) {
-		this.sortedLogFileName = sortedLogFileName;
-	}
+    public void setCrawlLogFileName(String crawlLogFileName) {
+        this.crawlLogFileName = crawlLogFileName;
+    }
 
-	public String getSortedLogFileName() {
-		return sortedLogFileName;
-	}
+    public String getCrawlLogFileName() {
+        return crawlLogFileName;
+    }
 
-	public void setLogsSubFolder(String logsSubFolder) {
-		this.logsSubFolder = logsSubFolder;
-	}
+    public void setStrippedLogFileName(String strippedLogFileName) {
+        this.strippedLogFileName = strippedLogFileName;
+    }
 
-	public String getLogsSubFolder() {
-		return logsSubFolder;
-	}
+    public String getStrippedLogFileName() {
+        return strippedLogFileName;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    public void setSortedLogFileName(String sortedLogFileName) {
+        this.sortedLogFileName = sortedLogFileName;
+    }
 
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public String getSortedLogFileName() {
+        return sortedLogFileName;
+    }
+
+    public void setLogsSubFolder(String logsSubFolder) {
+        this.logsSubFolder = logsSubFolder;
+    }
+
+    public String getLogsSubFolder() {
+        return logsSubFolder;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
 }

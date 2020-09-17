@@ -372,7 +372,7 @@ public class DasConfig {
 
     @Bean
     public WaybackIndexer waybackIndexer() {
-        WaybackIndexer bean = new WaybackIndexer();
+        WaybackIndexer bean = new WaybackIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(waybackIndexerEnabled);
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setWaittime(waybackIndexerWaitTime);
@@ -386,7 +386,7 @@ public class DasConfig {
 
     @Bean
     public CrawlLogIndexer crawlLogIndexer() {
-        CrawlLogIndexer bean = new CrawlLogIndexer();
+        CrawlLogIndexer bean = new CrawlLogIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(crawlLogIndexerEnabled);
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setLogsSubFolder(crawlLogIndexerLogsSubFolder);
@@ -399,7 +399,7 @@ public class DasConfig {
 
     @Bean
     public CDXIndexer cdxIndexer() {
-        CDXIndexer bean = new CDXIndexer();
+        CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(cdxIndexerEnabled);
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
 
