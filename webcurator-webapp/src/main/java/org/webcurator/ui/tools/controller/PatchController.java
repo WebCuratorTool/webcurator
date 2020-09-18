@@ -96,9 +96,19 @@ public class PatchController {
     protected ModelAndView handlePost(HttpServletRequest req, HttpServletResponse resp, PatchCommand command, BindingResult bindingResult)	throws Exception {
 
         // redirect to pywb recording page
+        // FIXME this may be unnecessary: we could just use a link to have the browser jump there directly
         if (command.isAction(PatchCommand.ACTION_RECORD)) {
             resp.sendRedirect(command.getRecordingUrl());
             return null;
+        }
+
+        // Register and import the newly generated warc files
+        if (command.isAction((PatchCommand.ACTION_SAVE))) {
+
+            // cf. The TreeToolController and its use of DigitalAssetService.copyAndPrune
+
+            // this method has an arg 'urisToDelete' which we might be able to use for deduplication
+
         }
 
         // TODO other cases
