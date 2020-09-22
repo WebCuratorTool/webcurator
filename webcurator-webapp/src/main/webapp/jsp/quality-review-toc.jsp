@@ -91,7 +91,7 @@
 
 		<tr>
 		<%-- TODO we could also create a drop-down of all seeds, so the user can choose which seed to use as the starting point --%>
-			<td width="30%"><a href="curator/tools/patch.html?harvestNumber=<c:out value="${command.harvestNumber}"/>&seedUrl=<c:out value="${primarySeed}"/>">Patch this harvest</a></td>
+			<td width="30%"><a href="curator/tools/patch.html?harvestResultId=<c:out value="${command.harvestResultId}"/>&targetInstanceOid=<c:out value="${targetInstanceOid}"/>&harvestNumber=<c:out value="${command.harvestNumber}"/>&seedUrl=<c:out value="${primarySeed}"/>">Patch this harvest</a></td>
 			<td width="70%">Patch the harvest with a pywb recording session.</td>
 		</tr>
 

@@ -38,15 +38,19 @@ a {
 			    </tr>
 				<tr>
 					<td>
-					    <form action="curator/tools/patch.html" method="POST" target="_blank">
+				    	<a href="<c:out value='${command.recordingUrl}'/>" target="_blank"><img src="images/resume-icon.gif" alt="Start recording session"></a>
+				    </td>
+				    <td>
+					    <form action="curator/tools/patch.html" method="POST">
 					        <input type="hidden" name="recordingUrl" value="<c:out value='${command.recordingUrl}'/>"/>
-					        <input type="hidden" name="userName" value="<c:out value='${command.userName}'/>"/>
-					        <input type="hidden" name="recordingName" value="<c:out value='${command.recordingName}'/>"/>
-					        <input type="hidden" name="seedUrl" value="<c:out value='${command.seedUrl}'/>"/>
-					        <input type="hidden" name="sessionCookie" value="<c:out value='${command.sessionCookie}'/>"/>
-					        <input type="hidden" name="actionCmd" value="<c:out value='${PatchCommand.ACTION_RECORD}'/>"/>
-					        <input type="image" src="images/resume-icon.gif"/>
+					        <input type="hidden" name="actionCmd" value="<c:out value='${PatchCommand.ACTION_SAVE}'/>"/>
+					        <input type="image" src="images/generic-btn-save.gif"/>
 				    	</form>
+					</td>
+					<td>
+				        <a href="curator/target/quality-review-toc.html?targetInstanceOid=<c:out value='${command.targetInstanceOid}'/>&harvestResultId=<c:out value='${command.harvestResultId}'/>&harvestNumber=<c:out value='${command.harvestNumber}'/>">
+				          <img src="images/generic-btn-cancel.gif" alt="Cancel"/>
+				        </a>
 					</td>
 				</tr>
 			</table>

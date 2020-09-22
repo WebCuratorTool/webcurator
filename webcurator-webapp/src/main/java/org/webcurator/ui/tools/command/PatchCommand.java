@@ -32,6 +32,8 @@ public class PatchCommand {
     private String recordingName;
     private String seedUrl;
     private int harvestNumber;
+    private long targetInstanceOid;
+    private long harvestResultId;
 
 
     private String actionCmd = null;
@@ -94,5 +96,21 @@ public class PatchCommand {
 
     public void setHarvestNumber(int harvestNumber) {
         this.harvestNumber = harvestNumber;
+    }
+
+    public long getTargetInstanceOid() {
+        return targetInstanceOid;
+    }
+
+    public void setTargetInstanceOid(long targetInstanceOid) {
+        this.targetInstanceOid = targetInstanceOid;
+    }
+
+    public long getHarvestResultId() {
+        return harvestResultId;
+    }
+
+    public void setHarvestResultId(long harvestResultId) {
+        this.harvestResultId = harvestResultId;
     }
 }

@@ -26,6 +26,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.Constants;
@@ -74,10 +75,9 @@ public class PatchController {
      */
     @SuppressWarnings("unchecked")
     @RequestMapping(path = "/curator/tools/patch.html", method = RequestMethod.GET)
-    protected ModelAndView handleGet(HttpServletRequest req, PatchCommand command, BindingResult bindingResult)	throws Exception {
-        TargetInstance ti = (TargetInstance) req.getSession().getAttribute("sessionTargetInstance");
+    protected ModelAndView handleGet(PatchCommand command, BindingResult bindingResult)	throws Exception {
 
-        command.setRecordingUrl(getRecordingUrl(ti.getOid(), command.getHarvestNumber(), command.getSeedUrl()));
+        command.setRecordingUrl(getRecordingUrl(command.getTargetInstanceOid(), command.getHarvestNumber(), command.getSeedUrl()));
 
         ModelAndView mav = new ModelAndView("patch");
         mav.addObject("command", command);
@@ -95,23 +95,13 @@ public class PatchController {
     @RequestMapping(path = "/curator/tools/patch.html", method = RequestMethod.POST)
     protected ModelAndView handlePost(HttpServletRequest req, HttpServletResponse resp, PatchCommand command, BindingResult bindingResult)	throws Exception {
 
-        // redirect to pywb recording page
-        // FIXME this may be unnecessary: we could just use a link to have the browser jump there directly
-        if (command.isAction(PatchCommand.ACTION_RECORD)) {
-            resp.sendRedirect(command.getRecordingUrl());
-            return null;
-        }
-
         // Register and import the newly generated warc files
         if (command.isAction((PatchCommand.ACTION_SAVE))) {
-
-            // cf. The TreeToolController and its use of DigitalAssetService.copyAndPrune
-
-            // this method has an arg 'urisToDelete' which we might be able to use for deduplication
-
+            // This functionality will require modifications to a part of the code base
+            // that is also touched by the visualisation branch
         }
 
-        // TODO other cases
+        // TODO other cases?
 
         ModelAndView mav = new ModelAndView("patch");
         if(bindingResult.hasErrors()){mav.addObject( Constants.GBL_ERRORS, bindingResult);}
