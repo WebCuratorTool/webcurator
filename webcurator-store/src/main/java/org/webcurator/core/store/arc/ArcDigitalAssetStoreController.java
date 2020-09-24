@@ -8,15 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
 import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.DigitalAssetStoreHarvestSaveDTO;
 import org.webcurator.core.store.DigitalAssetStorePaths;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.store.HarvestStoreCopyAndPruneDTO;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -154,24 +157,28 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
         return arcDigitalAssetStoreService.getCustomDepositFormDetails(criteria);
     }
 
-    @RequestMapping(path = DigitalAssetStorePaths.UPLOAD, method = {RequestMethod.POST, RequestMethod.GET}, produces = "application/octet-stream")
-    public void externalUpload(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                               @RequestParam("directory") String directory,
-                               @RequestParam("fileName") String fileName,
-                               HttpServletRequest req,
-                               HttpServletResponse rsp) throws DigitalAssetStoreException, IOException {
-        log.debug("Get file upload request, targetInstance: {}, directory: {}, fileName: {}", targetInstanceName, directory, fileName);
-        arcDigitalAssetStoreService.save(targetInstanceName, directory, fileName, req.getInputStream());
-        IOUtils.write("Success", rsp.getOutputStream());
-    }
-
     @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})
-    public void externalSave(@PathVariable(value = "target-instance-name") String targetInstanceName,
-                             @RequestParam("directory") String directory,
-                             @RequestParam("filePath") String filePath) throws DigitalAssetStoreException {
-        log.debug("Save harvest, target-instance-name: {}, directory: {}, filePath: {}", targetInstanceName, directory, filePath);
-        File f = new File(filePath);
-        save(targetInstanceName, directory, f.toPath());
+    public void externalSave(@RequestBody DigitalAssetStoreHarvestSaveDTO dto) throws DigitalAssetStoreException {
+        log.debug("Save harvest, {}", dto.toString());
+        File f = new File(dto.getFilePath());
+        if (dto.getFileUploadMode().equalsIgnoreCase(FILE_UPLOAD_MODE_STREAM)) {
+            String link = String.format("%s%s?filePath=%s", dto.getHarvestBaseUrl(), HarvestCoordinatorPaths.DOWNLOAD, dto.getFilePath());
+
+            try {
+                URL url = URI.create(link).toURL();
+                URLConnection conn = url.openConnection();
+                conn.setRequestProperty("Content-Type", "application/octet-stream");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+
+                arcDigitalAssetStoreService.save(dto.getTargetInstanceName(), dto.getDirectory(), f.getName(), conn.getInputStream());
+            } catch (IOException e) {
+                log.error("Download file from harvest agent failed", e);
+                throw new DigitalAssetStoreException(e);
+            }
+        } else {
+            save(dto.getTargetInstanceName(), dto.getDirectory(), f.toPath());
+        }
     }
 
     @Override

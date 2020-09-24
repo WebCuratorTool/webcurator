@@ -229,10 +229,9 @@ public class AgentConfig {
         bean.setName(harvestAgentName);
         bean.setProvenanceNote(harvestAgentProvenanceNote);
         bean.setAlertThreshold(harvestAgentAlertThreshold);
-        if(allowedAgencies.isEmpty() || allowedAgencies == null){
+        if (allowedAgencies.isEmpty() || allowedAgencies == null) {
             bean.setAllowedAgencies(new ArrayList());
-        }
-        else{
+        } else {
             List<String> splitAgencies = Arrays.asList(allowedAgencies.split("\\s*,\\s*"));
             bean.setAllowedAgencies(new ArrayList<String>(splitAgencies));
         }
@@ -279,6 +278,7 @@ public class AgentConfig {
     public DigitalAssetStore digitalAssetStore() {
         DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
         bean.setFileUploadMode(digitalAssetStoreFileUploadMode);
+        bean.setHarvestBaseUrl(String.format("%s://%s:%d", harvestAgentScheme, harvestAgentHost, harvestAgentPort));
         return bean;
     }
 

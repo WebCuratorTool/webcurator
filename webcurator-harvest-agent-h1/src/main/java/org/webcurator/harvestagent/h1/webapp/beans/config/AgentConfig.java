@@ -215,6 +215,7 @@ public class AgentConfig {
     public DigitalAssetStore digitalAssetStore() {
         DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
         bean.setFileUploadMode(digitalAssetStoreFileUploadMode);
+        bean.setHarvestBaseUrl(String.format("%s://%s:%d", harvestAgentScheme, harvestAgentHost, harvestAgentPort));
         return bean;
     }
 
