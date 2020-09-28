@@ -71,12 +71,13 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
         }
     }
 
+    @Ignore
     @Test
     public void testSaveLargeFileViaStream() {
         RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
         DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
-        dasClient.setHarvestBaseUrl("http://localhost:8081");
+        dasClient.setHarvestBaseUrl("http://localhost:8083");
 
         File arcDir = new File("/home/leefr/tmp/1122/1");
         assertNotNull(arcDir);

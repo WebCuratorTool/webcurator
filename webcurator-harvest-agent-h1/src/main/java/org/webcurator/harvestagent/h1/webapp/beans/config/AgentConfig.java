@@ -53,6 +53,10 @@ public class AgentConfig {
     @Value("${harvestAgent.baseHarvestDirectory}")
     private String harvestAgentBaseHarvestDirectory;
 
+    // Agent scheme, host, port and context path that the core knows about.
+    @Value("${harvestAgent.baseUrl}")
+    private String harvestAgentBaseUrl;
+
     // Agent host protocol type that the core knows about.
     @Value("${harvestAgent.scheme}")
     private String harvestAgentScheme;
@@ -215,7 +219,7 @@ public class AgentConfig {
     public DigitalAssetStore digitalAssetStore() {
         DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
         bean.setFileUploadMode(digitalAssetStoreFileUploadMode);
-        bean.setHarvestBaseUrl(String.format("%s://%s:%d", harvestAgentScheme, harvestAgentHost, harvestAgentPort));
+        bean.setHarvestBaseUrl(harvestAgentBaseUrl);
         return bean;
     }
 
