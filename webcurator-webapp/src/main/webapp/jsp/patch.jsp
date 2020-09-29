@@ -17,7 +17,7 @@
 			<table width=100%>
 			    <tr>
 			        <td>
-			        Start a recording session with entry point <b><c:out value="${command.seedUrl}"/></b>
+			        Start a recording session with seed <b><c:out value="${command.seedUrl}"/></b>
 			        </td>
 			    </tr>
 				<tr>
@@ -27,6 +27,9 @@
 				    <td align="right">
 					    <form action="curator/tools/patch.html" method="POST">
 					        <input type="hidden" name="recordingUrl" value="<c:out value='${command.recordingUrl}'/>"/>
+					        <input type="hidden" name="targetInstanceOid" value="<c:out value='${command.targetInstanceOid}'/>"/>
+					        <input type="hidden" name="harvestResultId" value="<c:out value='${command.harvestResultId}'/>"/>
+					        <input type="hidden" name="harvestNumber" value="<c:out value='${command.harvestNumber}'/>"/>
 					        <input type="hidden" name="actionCmd" value="<c:out value='${PatchCommand.ACTION_SAVE}'/>"/>
 					        <input type="image" src="images/generic-btn-done.gif"/>
 				    	</form>

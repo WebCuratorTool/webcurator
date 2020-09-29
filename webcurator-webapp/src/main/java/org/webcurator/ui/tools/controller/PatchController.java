@@ -99,13 +99,16 @@ public class PatchController {
         if (command.isAction((PatchCommand.ACTION_SAVE))) {
             // This functionality will require modifications to a part of the code base
             // that is also touched by the visualisation branch
+            // For now: go back to the quality review tools page
+            ModelAndView mav = new ModelAndView("redirect:/curator/target/quality-review-toc.html?targetInstanceOid=" +
+                                        command.getTargetInstanceOid() + "&harvestNumber=" + command.getHarvestNumber() +
+                                        "&harvestResultId=" + command.getHarvestResultId());
+            if(bindingResult.hasErrors()){mav.addObject( Constants.GBL_ERRORS, bindingResult);}
+            return mav;
         }
 
-        // TODO other cases?
-
-        ModelAndView mav = new ModelAndView("patch");
-        if(bindingResult.hasErrors()){mav.addObject( Constants.GBL_ERRORS, bindingResult);}
-        return mav;
+        // TODO other cases? ACTION_CANCEL should probably trigger clean-up of new warc files
+        return null;
 
     }
 
