@@ -272,7 +272,7 @@ progress::-moz-progress-bar {
 
 .fixed-size {
 	width: 100%;
-	height: 64vh;
+	height: 100%;
 	overflow: auto;
 	position: relative;
 }
