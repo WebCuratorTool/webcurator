@@ -505,7 +505,7 @@ function getSelectedProfile(profilesList) {
 			</c:choose>
 			<fmt:formatNumber var="indicatorValue" value="${indicator.floatValue}" pattern="0" />
 					<c:if test="${indicator.indicatorCriteria.enableReport eq 'true'}">
-					<a id="home" href="/curator/target/qa-indicator-report.html?indicatorOid=${indicator.oid}" class="panel_links">
+					<a id="home" href="curator/target/qa-indicator-report.html?indicatorOid=${indicator.oid}" class="panel_links">
 					</c:if>
 				<wct:unit value="${indicatorValue}" unit="${indicator.unit}" /> ${indicator.name}&nbsp; 
 				<c:choose>

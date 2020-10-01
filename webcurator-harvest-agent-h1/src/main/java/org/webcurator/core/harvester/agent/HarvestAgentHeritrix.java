@@ -64,17 +64,10 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
      */
     private HarvesterType harvesterType;
     /**
-     * the protocol type of the harvest agent.
+     * the base url of the harvest server.
      */
-    private String scheme = "";
-    /**
-     * the host name of the harvest agent.
-     */
-    private String host = "";
-    /**
-     * the harvest agent control port.
-     */
-    private int port = 0;
+    private String baseUrl = "";
+
     /**
      * the harvest agent service endpoint.
      */
@@ -378,9 +371,7 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
      */
     public HarvestAgentStatusDTO getStatus() {
         HarvestAgentStatusDTO status = new HarvestAgentStatusDTO();
-        status.setScheme(scheme);
-        status.setHost(host);
-        status.setPort(port);
+        status.setBaseUrl(baseUrl);
         status.setService(service);
         status.setLogReaderService(logReaderService);
         status.setName(name);
@@ -551,21 +542,6 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         harvestCoordinatorNotifier.heartbeat(getStatus());
     }
 
-    public String getScheme() {
-        return scheme;
-    }
-
-    public void setScheme(String scheme) {
-        this.scheme = scheme;
-    }
-
-    /**
-     * @param aHost The host to set.
-     */
-    public void setHost(String aHost) {
-        this.host = aHost;
-    }
-
     /**
      * @param aMaxHarvests The maxHarvests to set.
      */
@@ -587,11 +563,12 @@ public class HarvestAgentHeritrix extends AbstractHarvestAgent implements LogPro
         return harvesterType;
     }
 
-    /**
-     * @param aPort The port to set.
-     */
-    public void setPort(int aPort) {
-        this.port = aPort;
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 
     /**

@@ -77,8 +77,8 @@ import javax.xml.ws.Service;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class DPSArchive extends BaseArchive {
 
-    @Value("${core.scheme}")
-    String coreScheme;
+    @Value("${webapp.baseUrl}")
+    String webappBaseUrl;
 
     /**
      * A very light-weight version of the com.exlibris.digitool.deposit.service.xmlbeans.DepData
@@ -863,7 +863,7 @@ public class DPSArchive extends BaseArchive {
 
     }
 
-    public String getCoreScheme() { return coreScheme; }
-    public void setCoreScheme(String cs) {this.coreScheme = cs; }
+    public String getWebappBaseUrl() { return webappBaseUrl; }
+    public void setWebappBaseUrl(String baseURL) {this.webappBaseUrl = baseURL; }
 
 }

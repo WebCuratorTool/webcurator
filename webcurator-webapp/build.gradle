@@ -103,17 +103,17 @@ tasks.withType(JavaCompile) {
 
 build.dependsOn war, sourcesJar
 
-def updateVersion() {
-    println sourceSets.main.output.resourcesDir
-
-    def configFile = new File(sourceSets.main.output.resourcesDir, 'application.properties')
-
-    println "updating version to '${version}' in ${configFile}"
-    String configContent = configFile.getText('UTF-8')
-    configContent = configContent.replaceAll(/project\.version=.*/, "project.version=${version}")
-    configFile.write(configContent, 'UTF-8')
-}
-
-allprojects {
-    updateVersion()
-}
+//def updateVersion() {
+//    println sourceSets.main.output.resourcesDir
+//
+//    def configFile = new File(sourceSets.main.output.resourcesDir, 'application.properties')
+//
+//    println "updating version to '${version}' in ${configFile}"
+//    String configContent = configFile.getText('UTF-8')
+//    configContent = configContent.replaceAll(/project\.version=.*/, "project.version=${version}")
+//    configFile.write(configContent, 'UTF-8')
+//}
+//
+//allprojects {
+//    updateVersion()
+//}

@@ -38,8 +38,8 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
 	/** The harvest agent that the this notifier is running on. */
 	HarvestAgent agent;
 
-    public HarvestCoordinatorNotifier(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
-        super(scheme, host, port, restTemplateBuilder);
+    public HarvestCoordinatorNotifier(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
     }
 
     /* (non-Javadoc)

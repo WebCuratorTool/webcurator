@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
@@ -53,21 +52,13 @@ public class AgentConfig {
     @Value("${harvestAgent.baseHarvestDirectory}")
     private String harvestAgentBaseHarvestDirectory;
 
-    // Agent host protocol type that the core knows about.
-    @Value("${harvestAgent.scheme}")
-    private String harvestAgentScheme;
-
-    // Agent host name or ip address that the core knows about.
-    @Value("${harvestAgent.host}")
-    private String harvestAgentHost;
+    // Agent scheme, host, port and context path that the core knows about.
+    @Value("${harvestAgent.baseUrl}")
+    private String harvestAgentBaseUrl;
 
     // The max number of harvest to be run concurrently on this agent.
     @Value("${harvestAgent.maxHarvests}")
     private int harvestAgentMaxHarvests;
-
-    // The port the agent is listening on for http connections.
-    @Value("${harvestAgent.port}")
-    private int harvestAgentPort;
 
     // The name of the agent. Must be unique.
     @Value("${harvestAgent.name}")
@@ -81,29 +72,13 @@ public class AgentConfig {
     @Value("${harvestAgent.alertThreshold}")
     private int harvestAgentAlertThreshold;
 
-    // The protocol type of the core.
-    @Value("${harvestCoordinatorNotifier.scheme}")
-    private String harvestCoordinatorNotifierScheme;
+    // The scheme, host, port and context path of the core.
+    @Value("${harvestCoordinatorNotifier.baseUrl}")
+    private String harvestCoordinatorNotifierBaseUrl;
 
-    // The host name or ip address of the core.
-    @Value("${harvestCoordinatorNotifier.host}")
-    private String harvestCoordinatorNotifierHost;
-
-    // The port that the core is listening on for http connections.
-    @Value("${harvestCoordinatorNotifier.port}")
-    private int harvestCoordinatorNotifierPort;
-
-    // The host protocol type of the digital asset store.
-    @Value("${digitalAssetStore.scheme}")
-    private String digitalAssetStoreScheme;
-
-    // The host name or ip address of the digital asset store.
-    @Value("${digitalAssetStore.host}")
-    private String digitalAssetStoreHost;
-
-    // The port that the digital asset store is listening on for http connections.
-    @Value("${digitalAssetStore.port}")
-    private int digitalAssetStorePort;
+    // The scheme, host, port and context path of the digital asset store.
+    @Value("${digitalAssetStore.baseUrl}")
+    private String digitalAssetStoreBaseUrl;
 
     // the file transfer mode from harvest agent to store component
     @Value("${digitalAssetStore.fileUploadMode}")
@@ -183,10 +158,8 @@ public class AgentConfig {
     public HarvestAgentHeritrix harvestAgent() {
         HarvestAgentHeritrix bean = new HarvestAgentHeritrix();
         bean.setBaseHarvestDirectory(harvestAgentBaseHarvestDirectory);
-        bean.setScheme(harvestAgentScheme);
-        bean.setHost(harvestAgentHost);
+        bean.setBaseUrl(harvestAgentBaseUrl);
         bean.setMaxHarvests(harvestAgentMaxHarvests);
-        bean.setPort(harvestAgentPort);
 //        bean.setService(harvestAgentService);
 //        bean.setLogReaderService(harvestAgentLogReaderService);
         bean.setName(harvestAgentName);
@@ -203,7 +176,7 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public HarvestCoordinatorNotifier harvestCoordinatorNotifier() {
-        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierScheme, harvestCoordinatorNotifierHost, harvestCoordinatorNotifierPort, restTemplateBuilder);
+        HarvestCoordinatorNotifier bean = new HarvestCoordinatorNotifier(harvestCoordinatorNotifierBaseUrl, restTemplateBuilder);
         //bean.setAgent(harvestAgent());
 
         return bean;
@@ -213,7 +186,7 @@ public class AgentConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default" and default-lazy-init="false"
     public DigitalAssetStore digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreBaseUrl, restTemplateBuilder);
         bean.setFileUploadMode(digitalAssetStoreFileUploadMode);
         return bean;
     }

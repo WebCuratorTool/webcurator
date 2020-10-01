@@ -679,13 +679,7 @@ public class HarvestAgentManagerImplTest {
 
 	private HarvestAgentStatusDTO createRandomHarvestAgentStatusDTO(){
 		HarvestAgentStatusDTO agentStatusDTO = new HarvestAgentStatusDTO();
-		String scheme = "http";
-		String host = "www.nlnz.org";
-		int port = 8080;
-		agentStatusDTO.setScheme(scheme);
-		agentStatusDTO.setHost(host);
-		agentStatusDTO.setPort(port);
-
+		agentStatusDTO.setBaseUrl("http://www.nlnz.org:8080");
 		return agentStatusDTO;
 	}
 }

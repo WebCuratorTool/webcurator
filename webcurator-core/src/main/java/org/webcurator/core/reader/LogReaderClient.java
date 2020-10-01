@@ -43,12 +43,13 @@ import java.util.Map;
  */
 public class LogReaderClient extends AbstractRestClient implements LogReader {
     /**
-     * Constructor to initialise the host, port and service.
-     * @param host the name of the host
-     * @param port the port number
+     * Constructor to initialise the base url and rest template
+     *
+     * @param baseUrl:             the base url of server
+     * @param restTemplateBuilder: the rest template
      */
-    public LogReaderClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
-       super(scheme, host, port, restTemplateBuilder);
+    public LogReaderClient(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+       super(baseUrl, restTemplateBuilder);
     }
 
     /* (non-Javadoc)

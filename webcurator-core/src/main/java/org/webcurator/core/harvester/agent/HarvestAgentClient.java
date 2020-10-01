@@ -23,13 +23,13 @@ import java.util.Map;
 @SuppressWarnings("all")
 public class HarvestAgentClient extends AbstractRestClient implements HarvestAgent {
     /**
-     * Constructor to initialise the host, port and service.
+     * Constructor to initialise the base url and rest template
      *
-     * @param host the name of the host
-     * @param port the port number
+     * @param baseUrl:             the base url of server
+     * @param restTemplateBuilder: the rest template
      */
-    public HarvestAgentClient(String scheme, String host, int port, RestTemplateBuilder restTemplateBuilder) {
-        super(scheme, host, port, restTemplateBuilder);
+    public HarvestAgentClient(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
     }
 
 
@@ -39,7 +39,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
     public void initiateHarvest(String job, Map<String, String> params) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.INITIATE_HARVEST));
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
-        URI uri=uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
+        URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uri, params, String.class);
@@ -237,7 +237,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.IS_VALID_PROFILE));
 
         RestTemplate restTemplate = restTemplateBuilder.build();
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),request,
+        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request,
                 Boolean.class);
         return result;
     }

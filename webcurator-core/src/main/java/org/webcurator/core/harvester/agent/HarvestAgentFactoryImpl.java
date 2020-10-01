@@ -25,10 +25,10 @@ import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
  */
 public class HarvestAgentFactoryImpl implements HarvestAgentFactory {
     public HarvestAgent getHarvestAgent(HarvestAgentStatusDTO harvestAgentStatusDTO) {
-        return new HarvestAgentClient(harvestAgentStatusDTO.getScheme(), harvestAgentStatusDTO.getHost(), harvestAgentStatusDTO.getPort(), new RestTemplateBuilder());
+        return new HarvestAgentClient(harvestAgentStatusDTO.getBaseUrl(), new RestTemplateBuilder());
     }
 
     public LogReader getLogReader(HarvestAgentStatusDTO harvestAgentStatusDTO) {
-        return new LogReaderClient(harvestAgentStatusDTO.getScheme(), harvestAgentStatusDTO.getHost(), harvestAgentStatusDTO.getPort(), new RestTemplateBuilder());
+        return new LogReaderClient(harvestAgentStatusDTO.getBaseUrl(), new RestTemplateBuilder());
     }
 }

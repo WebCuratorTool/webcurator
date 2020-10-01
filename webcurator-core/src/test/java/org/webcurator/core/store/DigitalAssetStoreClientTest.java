@@ -23,7 +23,7 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        testInstance = new DigitalAssetStoreClient("http", "wctstore.natlib.govt.nz", 19090, new RestTemplateBuilder());
+        testInstance = new DigitalAssetStoreClient("http://wctstore.natlib.govt.nz:19090", new RestTemplateBuilder());
     }
 
     @Test
@@ -51,7 +51,7 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
     @Test
     public void testSaveFileViaStream() {
         RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
-        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
+        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
 
         File arcDir = WCTTestUtils.getResourceAsFile(archivePath);

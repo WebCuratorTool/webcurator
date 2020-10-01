@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
@@ -25,7 +24,6 @@ import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
 import org.webcurator.core.store.arc.*;
 import org.webcurator.core.util.ApplicationContextFactory;
-import org.webcurator.core.util.WebServiceEndPoint;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -43,14 +41,8 @@ public class DasConfig {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Value("${webapp.scheme}")
-    private String wctCoreWsEndpointScheme;
-
-    @Value("${webapp.host}")
-    private String wctCoreWsEndpointHost;
-
-    @Value("${webapp.port}")
-    private int wctCoreWsEndpointPort;
+    @Value("${webapp.baseUrl}")
+    private String wctCoreWsEndpointBaseUrl;
 
     // the base directory for the arc store
     @Value("${arcDigitalAssetStoreService.baseDir}")
@@ -264,29 +256,21 @@ public class DasConfig {
     @Value("${server.port}")
     private String wctStorePort;
 
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
+
     @PostConstruct
     public void init() {
         ApplicationContextFactory.setApplicationContext(applicationContext);
     }
 
     @Bean
-    public WebServiceEndPoint wctCoreWsEndpoint() {
-        WebServiceEndPoint bean = new WebServiceEndPoint();
-        bean.setScheme(wctCoreWsEndpointScheme);
-        bean.setHost(wctCoreWsEndpointHost);
-        bean.setPort(wctCoreWsEndpointPort);
-
-        return bean;
-    }
-
-    @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(new RestTemplateBuilder());
+        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl, new RestTemplateBuilder());
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
         bean.setIndexer(indexer());
-        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setDasFileMover(createDasFileMover());
         bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
@@ -382,17 +366,15 @@ public class DasConfig {
 
     @Bean
     public WCTIndexer wctIndexer() {
-        WCTIndexer bean = new WCTIndexer();
-        bean.setWsEndPoint(wctCoreWsEndpoint());
-
+        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         return bean;
     }
 
     @Bean
     public WaybackIndexer waybackIndexer() {
-        WaybackIndexer bean = new WaybackIndexer();
+        WaybackIndexer bean = new WaybackIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(waybackIndexerEnabled);
-        bean.setWsEndPoint(wctCoreWsEndpoint());
+//        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setWaittime(waybackIndexerWaitTime);
         bean.setTimeout(waybackIndexerTimeout);
         bean.setWaybackInputFolder(waybackIndexerWaybackInputFolder);
@@ -404,9 +386,9 @@ public class DasConfig {
 
     @Bean
     public CrawlLogIndexer crawlLogIndexer() {
-        CrawlLogIndexer bean = new CrawlLogIndexer();
+        CrawlLogIndexer bean = new CrawlLogIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(crawlLogIndexerEnabled);
-        bean.setWsEndPoint(wctCoreWsEndpoint());
+//        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setLogsSubFolder(crawlLogIndexerLogsSubFolder);
         bean.setCrawlLogFileName(crawlLogIndexerCrawlLogFileName);
         bean.setStrippedLogFileName(crawlLogIndexerStrippedLogFileName);
@@ -417,9 +399,9 @@ public class DasConfig {
 
     @Bean
     public CDXIndexer cdxIndexer() {
-        CDXIndexer bean = new CDXIndexer();
+        CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(cdxIndexerEnabled);
-        bean.setWsEndPoint(wctCoreWsEndpoint());
+//        bean.setWsEndPoint(wctCoreWsEndpoint());
 
         return bean;
     }

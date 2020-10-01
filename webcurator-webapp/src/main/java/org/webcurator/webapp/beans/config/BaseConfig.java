@@ -115,14 +115,8 @@ public class BaseConfig {
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
 
-    @Value("${digitalAssetStore.scheme}")
-    private String digitalAssetStoreScheme;
-
-    @Value("${digitalAssetStore.host}")
-    private String digitalAssetStoreHost;
-
-    @Value("${digitalAssetStore.port}")
-    private int digitalAssetStorePort;
+    @Value("${digitalAssetStore.baseUrl}")
+    private String digitalAssetStoreBaseUrl;
 
     @Value("${harvestCoordinator.minimumBandwidth}")
     private int minimumBandwidth;
@@ -399,7 +393,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public DigitalAssetStoreClient digitalAssetStore() {
-        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder);
+        DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreBaseUrl, restTemplateBuilder);
         return bean;
     }
 
@@ -409,7 +403,7 @@ public class BaseConfig {
     public DigitalAssetStoreFactoryImpl digitalAssetStoreFactory() {
         DigitalAssetStoreFactoryImpl bean = new DigitalAssetStoreFactoryImpl();
         bean.setDAS(digitalAssetStore());
-        bean.setLogReader(new LogReaderClient(digitalAssetStoreScheme, digitalAssetStoreHost, digitalAssetStorePort, restTemplateBuilder));
+        bean.setLogReader(new LogReaderClient(digitalAssetStoreBaseUrl, restTemplateBuilder));
         return bean;
     }
 
