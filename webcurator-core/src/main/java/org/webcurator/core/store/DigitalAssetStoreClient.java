@@ -26,7 +26,7 @@ import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 @SuppressWarnings("all")
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
@@ -161,11 +161,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
                                          List<String> urisToDelete, List<HarvestResourceDTO> harvestResourcesToImport) throws DigitalAssetStoreException {
         HarvestStoreCopyAndPruneDTO dto = new HarvestStoreCopyAndPruneDTO();
         dto.setUrisToDelete(urisToDelete);
-        if (harvestResourcesToImport != null) {
-            dto.setHarvestResourcesToImport(harvestResourcesToImport.stream().map(o -> {
-                return (ArcHarvestResourceDTO) o;
-            }).collect(Collectors.toList()));
-        }
+        dto.setHarvestResourcesToImport(harvestResourcesToImport);
 
         HttpEntity<String> request = this.createHttpRequestEntity(dto);
 

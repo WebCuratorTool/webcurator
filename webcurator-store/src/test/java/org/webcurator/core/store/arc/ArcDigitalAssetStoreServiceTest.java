@@ -10,6 +10,8 @@ import com.google.common.io.Files;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.test.BaseWCTStoreTest;
 import org.webcurator.core.store.MockIndexer;
@@ -174,6 +176,23 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         assertEquals(1, arcFiles.length);
 
         delDir(destDir);
+    }
+
+    @Ignore //Ignore because it rely on the service of Store Component
+    @Test
+    public void testCopyAndPruneFromClient(){
+        RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
+        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
+        dasClient.setFileUploadMode("stream");
+
+        try {
+            dasClient.copyAndPrune("5050",1,2,new ArrayList<String>(),new ArrayList<HarvestResourceDTO>());
+        } catch (DigitalAssetStoreException e) {
+            e.printStackTrace();
+            assert false;
+        }
+
+        assert true;
     }
 
     private static void copy(String fromFileName, String toFileName) throws IOException {

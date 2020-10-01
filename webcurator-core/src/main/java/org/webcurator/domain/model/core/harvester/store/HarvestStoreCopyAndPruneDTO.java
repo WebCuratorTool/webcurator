@@ -1,12 +1,12 @@
 package org.webcurator.domain.model.core.harvester.store;
 
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
+import org.webcurator.domain.model.core.HarvestResourceDTO;
 
 import java.util.List;
 
 public class HarvestStoreCopyAndPruneDTO {
     List<String> urisToDelete;
-    List<ArcHarvestResourceDTO> harvestResourcesToImport;
+    List<HarvestResourceDTO> harvestResourcesToImport;
 
     public List<String> getUrisToDelete() {
         return urisToDelete;
@@ -16,11 +16,11 @@ public class HarvestStoreCopyAndPruneDTO {
         this.urisToDelete = urisToDelete;
     }
 
-    public List<ArcHarvestResourceDTO> getHarvestResourcesToImport() {
+    public List<HarvestResourceDTO> getHarvestResourcesToImport() {
         return harvestResourcesToImport;
     }
 
-    public void setHarvestResourcesToImport(List<ArcHarvestResourceDTO> harvestResourcesToImport) {
+    public void setHarvestResourcesToImport(List<HarvestResourceDTO> harvestResourcesToImport) {
         this.harvestResourcesToImport = harvestResourcesToImport;
     }
 }

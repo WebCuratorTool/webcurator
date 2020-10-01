@@ -35,8 +35,8 @@ abstract public class AbstractRestClient {
         this.host = host;
         this.port = port;
         this.restTemplateBuilder = restTemplateBuilder;
-        this.restTemplateBuilder.errorHandler(new RestClientResponseHandler())
-                .setConnectTimeout(Duration.ofSeconds(15L));
+        this.restTemplateBuilder.errorHandler(new RestClientResponseHandler());
+        this.restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(15L));
     }
 
     public String baseUrl() {
@@ -87,7 +87,7 @@ abstract public class AbstractRestClient {
     }
 
     public String toString() {
-        return String.format("%s@%s",this.getClass().getName(), this.baseUrl());
+        return String.format("%s@%s", this.getClass().getName(), this.baseUrl());
     }
 
     public String getScheme() {
