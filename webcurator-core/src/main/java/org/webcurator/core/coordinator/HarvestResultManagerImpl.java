@@ -103,7 +103,7 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
             hrDTO = new HarvestResultDTO();
             hrDTO.setTargetInstanceOid(targetInstanceId);
             hrDTO.setHarvestNumber(harvestResultNumber);
-            hrDTO.setState(HarvestResult.STATE_CRAWLING);
+            hrDTO.setState(HarvestResult.STATE_UNASSESSED);
             hrDTO.setStatus(HarvestResult.STATUS_UNASSESSED);
             return hrDTO;
         }
