@@ -3,6 +3,8 @@ package org.webcurator.ui.tools.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.httpclient.Header;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
@@ -34,15 +39,27 @@ import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.target.command.PatchingProgressCommand;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component("harvestModificationHandler")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class HarvestModificationHandler {
+    private static final Pattern p = Pattern.compile("\\/(\\d+)\\/(.*)");
+    private static final Pattern CHARSET_PATTERN = Pattern.compile(";\\s+charset=([A-Za-z0-9].[A-Za-z0-9_\\-\\.:]*)");
+    private static final Charset CHARSET_LATIN_1 = StandardCharsets.UTF_8; // StandardCharsets.ISO_8859_1;
+
     private static final Logger log = LoggerFactory.getLogger(HarvestModificationHandler.class);
     @Autowired
     private TargetInstanceDAO targetInstanceDAO;
@@ -274,14 +291,14 @@ public class HarvestModificationHandler {
             log.error(e.getMessage());
         }
 
-        HarvestResult hr=targetInstanceDAO.getHarvestResult(harvestResultId);
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(harvestResultId);
         result.put("respCode", 0);
         result.put("respMsg", "Success");
         result.put("targetInstanceOid", targetInstanceId);
         result.put("harvestResultNumber", harvestResultNumber);
         result.put("derivedHarvestNumber", hr.getDerivedFrom());
         result.put("createdOwner", hr.getCreatedBy().getFullName());
-        result.put("createdDate",hr.getCreationDate());
+        result.put("createdDate", hr.getCreationDate());
         result.put("hrState", hrDTO.getState());
         result.put("hrStatus", hrDTO.getStatus());
 
@@ -362,5 +379,69 @@ public class HarvestModificationHandler {
         pair.put("data", data);
 
         result.put(key, pair);
+    }
+
+    public void handleDownload(Long hrOid, String url, HttpServletRequest req, HttpServletResponse res) throws IOException, DigitalAssetStoreException {
+        url = new String(Base64.getDecoder().decode(url));
+
+        // Build a command with the items from the URL.
+        // Load the HarvestResourceDTO from the quality review facade.
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(hrOid);
+        if (hr == null) {        // If the resource is not found, go to an error page.
+            log.error("Resource not found: {}", url);
+            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+
+        TargetInstance ti = hr.getTargetInstance();
+        if (ti == null) {        // If the resource is not found, go to an error page.
+            log.error("Resource not found: {}", url);
+            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+
+        List<Header> headers = new ArrayList<>();
+        try {        // catch any DigitalAssetStoreException and log assumptions
+            headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), url);
+        } catch (Exception e) {
+            log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+
+        int statusCode = Integer.parseInt(getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE"));
+
+        // Send the headers for a redirect.
+        if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
+            res.setStatus(statusCode);
+            String location = getHeaderValue(headers, "Location");
+            res.setHeader("Location", location);
+        }
+
+        // Get the content type.
+        res.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
+
+        Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), url);
+        IOUtils.copy(Files.newInputStream(path), res.getOutputStream());
+    }
+
+    private String getHeaderValue(List<Header> headers, String key) {
+        if (headers != null) {
+            for (Header h : headers) {
+                if (key.equalsIgnoreCase(h.getName())) {
+                    return h.getValue().trim();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get everything before the semi-colon.
+     *
+     * @param realContentType The full content type from the Heritrix ARC file.
+     * @return The part of the content type before the semi-colon.
+     */
+    private String getSimpleContentType(String realContentType) {
+        return (realContentType == null || realContentType.indexOf(';') < 0) ? realContentType
+                : realContentType.substring(0, realContentType.indexOf(';'));
+
     }
 }

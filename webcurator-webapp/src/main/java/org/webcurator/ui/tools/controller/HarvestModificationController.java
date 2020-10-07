@@ -13,6 +13,8 @@ import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata
 import org.webcurator.core.visualization.modification.service.ModifyService;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -83,5 +85,10 @@ public class HarvestModificationController implements ModifyService {
                                                            @RequestParam("harvestResultId") long harvestResultId,
                                                            @RequestParam("harvestNumber") int harvestResultNumber) throws IOException {
         return harvestModificationHandler.getDerivedHarvestResults(targetInstanceId, harvestResultId, harvestResultNumber);
+    }
+
+    @RequestMapping(path = "/curator/tools/download/{hrOid}/**", method = {RequestMethod.POST, RequestMethod.GET})
+    protected void handleDownload(@PathVariable("hrOid") Long hrOid, @RequestParam("url") String url, HttpServletRequest req, HttpServletResponse res) throws Exception {
+        harvestModificationHandler.handleDownload(hrOid, url, req, res);
     }
 }

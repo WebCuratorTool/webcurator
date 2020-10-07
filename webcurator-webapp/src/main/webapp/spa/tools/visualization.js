@@ -163,7 +163,7 @@ function contextMenuCallback(key, data, source, target){
   }else if(action==='prune'){
     target.pruneHarvest(dataset);
   }else if(action==='browse'){
-    // 
+    browseUrl(data);
   }else if(action==='undo'){
     target.undo(dataset, source);
   }else if(action==='clear'){
@@ -193,13 +193,15 @@ var itemsClearHarvest={
                   "clear-selected": {"name": "Selected"},
                   "clear-all": {"name": "All"},
               };
-var itemsBrowse={
-                  "browse-Url": {name: "Review this URL", icon: "fas fa-dice-one"},
+var itemsBrowse={ "browse-Download": {name: "Download", icon: "fas fa-download"},
+                  "sep1": "---------",
+                  "browse-Local": {name: "Review this URL", icon: "fas fa-dice-one"},
                   "browse-InAccessTool": {name: "Review in Access Tool", icon: "fas fa-dice-two"},
                   "browse-LiveSite": {name: "Live Site", icon: "fas fa-dice-three"},
                   "browse-ArchiveOne": {name: "Archive One", icon: "fas fa-dice-four"},
                   "browse-ArchiveTwo": {name: "Archive Two", icon: "fas fa-dice-five"},
-                  "browse-WebArchive": {name: "Web Archive", icon: "fas fa-dice-six"}
+                  "browse-WebArchive": {name: "Web Archive", icon: "fas fa-dice-six"
+                   }
                 };
 var itemsExportLinks={
                   "export-selected": {"name": "Selected"},
@@ -220,8 +222,9 @@ var contextMenuItemsUrlBasic={
                   // "clearHarvest": {name: "Clear", icon: "delete", items: itemsClearHarvest},
                   // "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "fab fa-think-peaks", items: itemsHierarchyOutlink},
                   "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "far fa-eye", items: itemsHierarchyOutlink},
-                  // "sep3": "---------",
+                  "sep3": "---------",
                   // "browseUrl": {name: "Browse Current", icon: "fab fa-chrome", items: itemsBrowse},
+                  "browse": {name: "Browse URL", icon: "fab fa-chrome"},
                   "sep4": "---------",
                   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
                       "exportInspect-selected": {"name": "Selected"},
@@ -233,9 +236,12 @@ var contextMenuItemsUrlTree={
                   "import-current": {name: "Import", icon: "fas fa-file-import"},
                   "sep1": "---------",
                   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
-                  // "sep2": "---------",
-                  // "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
+                  "sep2": "---------",
+                  "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "far fa-eye", items: itemsHierarchyOutlink},
                   "sep3": "---------",
+                  // "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
+                  "browse": {name: "Browse URL", icon: "fab fa-chrome"},
+                  "sep4": "---------",
                   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
                       "exportInspect-selected": {"name": "Selected"},
                       "exportInspect-all": {"name": "All"}

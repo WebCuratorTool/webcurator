@@ -280,10 +280,10 @@ public class BrowseController {
             mav.addObject("Content-Type", realContentType);
             return mav;
         } else { // If there are no replacements, send the content back directly.
-            long contentLength = Long.parseLong(getHeaderValue(headers, "HTTP-RESPONSE-CONTENT_LENGTH"));
+//            long contentLength = Long.parseLong(getHeaderValue(headers, "HTTP-RESPONSE-CONTENT_LENGTH"));
 
             Date dt = new Date();
-            if (contentLength > MAX_MEMORY_SIZE) {
+//            if (contentLength > MAX_MEMORY_SIZE) {
                 Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
                 ModelAndView mav = new ModelAndView("browse-tool-other");
                 mav.addObject("file", path);
@@ -291,19 +291,19 @@ public class BrowseController {
 
                 log.info("TIME TO GET RESOURCE(old): " + (new Date().getTime() - dt.getTime()));
                 return mav;
-            } else {
-                byte[] bytesBuffer = null;
-                try {
-                    bytesBuffer = digitalAssetStore.getSmallResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
-                } catch (org.webcurator.core.exceptions.DigitalAssetStoreException e) {
-                    log.warn("Could not retrieve resource: " + command.getResource());
-                }
-                ModelAndView mav = new ModelAndView("browse-tool-other-small");
-                mav.addObject("bytesBuffer", bytesBuffer);
-                mav.addObject("contentType", realContentType);
-                log.debug("TIME TO GET RESOURCE(new): " + (new Date().getTime() - dt.getTime()));
-                return mav;
-            }
+//            } else {
+//                byte[] bytesBuffer = null;
+//                try {
+//                    bytesBuffer = digitalAssetStore.getSmallResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
+//                } catch (org.webcurator.core.exceptions.DigitalAssetStoreException e) {
+//                    log.warn("Could not retrieve resource: " + command.getResource());
+//                }
+//                ModelAndView mav = new ModelAndView("browse-tool-other-small");
+//                mav.addObject("bytesBuffer", bytesBuffer);
+//                mav.addObject("contentType", realContentType);
+//                log.debug("TIME TO GET RESOURCE(new): " + (new Date().getTime() - dt.getTime()));
+//                return mav;
+//            }
         }
 
     }
