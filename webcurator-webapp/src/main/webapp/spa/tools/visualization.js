@@ -176,6 +176,8 @@ function contextMenuCallback(key, data, source, target){
     target.exportImportData(dataset);
   }else if(action==='edit'){
     target.editImport(data);
+  }else if(action==='copy'){
+    // navigator.clipboard.write(JSON.stringify(data));
   }
 }
 
@@ -229,7 +231,10 @@ var contextMenuItemsUrlBasic={
                   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
                       "exportInspect-selected": {"name": "Selected"},
                       "exportInspect-all": {"name": "All"}
-                  }}
+                  }},
+                  // "sep5": "---------",
+                  // "copy": {name: "Copy Value", icon: "far fa-copy"},
+
                 };
 var contextMenuItemsUrlTree={
                   "hoppath-current": {name: "HopPath", icon: "fas fa-link"},

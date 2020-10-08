@@ -75,6 +75,26 @@ class CustomizedAgGrid{
 	}
 }
 
+function formatLazyloadData(dataset){
+	if (!dataset) {return;}
+	for(var i=0;i<dataset.length;i++){
+		var e=dataset[i];
+		var urlLength=e.url.length;
+		if (urlLength > 80) {
+			e.title=e.url.substring(0,80)+'...';
+		}else{
+			e.title=e.url;
+		}
+	    
+	    if (e.outlinks && e.outlinks.length > 0) {
+	    	e.lazy = true;
+	    	e.folder = true;
+	    }
+	    delete e['children'];
+	}
+	return dataset;
+}
+
 var prunedDataMap={}, importDataMap={};
 class HierarchyTree{
 	constructor(container, jobId, harvestResultNumber){
@@ -90,6 +110,28 @@ class HierarchyTree{
 			table: {checkboxColumnIdx: 0, nodeColumnIdx: 1},
 			// viewport: {enabled: true, count: 3200},
 			source: [],
+
+			lazyLoad: function(event, data) {
+		        var deferredResult = jQuery.Deferred();
+		        var result = [];
+		        var urlOutlinks="/networkmap/get/outlinks?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&id=" + data.node.data.id;
+		        fetchHttp(urlOutlinks, {}, function(response){
+					if (response.rspCode != 0) {
+						alert(response.rspMsg);
+						return;	 
+			        }
+			        var dataset=JSON.parse(response.payload);
+					console.log(dataset);
+
+					dataset=formatLazyloadData(dataset);
+
+		  			deferredResult.resolve(dataset);
+            		// expandChildren(data.tree.rootNode);
+				});
+
+		        data.result = deferredResult;
+		    },
+
 			renderColumns: function(event, data) {
 				var node = data.node;
 				var $tdList = $(node.tr).find(">td");
@@ -121,27 +163,15 @@ class HierarchyTree{
 	} 
 
 	draw(dataset){
-		var searchCondition=[];
-		for(var i=0;i<dataset.length;i++){
-			var node=dataset[i];
-			searchCondition.push(node.id);
+		dataset=formatLazyloadData(dataset);
+
+
+		if($.ui.fancytree.getTree(this.container)){
+			$.ui.fancytree.getTree(this.container).destroy();
 		}
 
-		var that=this;
-		fetchHttp(this.sourceUrlRootUrls, searchCondition, function(response){
-			if (response.rspCode != 0) {
-				alert(response.rspMsg);
-				return;	 
-	        }
-	        var data=JSON.parse(response.payload);
-			if($.ui.fancytree.getTree(that.container)){
-				$.ui.fancytree.getTree(that.container).destroy();
-			}
-  			that.formatDataForTreeGrid(data);
-  			console.log(data);
-  			that.options.source=data;
-  			$(that.container).fancytree(that.options);
-		});
+		this.options.source=dataset;
+		$(this.container).fancytree(this.options);
 	}
 
 	setRowData(dataset){
