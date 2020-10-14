@@ -162,10 +162,11 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
-                        try { 
+                        try {
+                        	// Note: this DELETE cascades to ARC_HARVEST_RESOURCE as per the db schema
                             log.debug("Before deleting harvest result resources");
-							currentSession().createQuery("DELETE HarvestResource WHERE result.oid=:hrOid").setLong("hrOid", harvestResultId)
-									.executeUpdate();
+                            currentSession().createNativeQuery("DELETE FROM {h-schema}HARVEST_RESOURCE WHERE HRC_HARVEST_RESULT_OID=?1")
+										.setParameter(1, harvestResultId).executeUpdate();
                             log.debug("After deleting harvest result resources");
                         }
                         catch(Exception ex) {
