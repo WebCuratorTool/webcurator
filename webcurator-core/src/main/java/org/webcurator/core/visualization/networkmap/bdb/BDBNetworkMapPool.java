@@ -14,9 +14,11 @@ public class BDBNetworkMapPool {
     private final List<BDBNetworkMap> queue = new ArrayList<>();
     private final Map<String, BDBNetworkMap> map = new Hashtable<>();
     private final String dbRootPath;
+    private final String dbVersion;
 
-    public BDBNetworkMapPool(String dbRootPath) {
+    public BDBNetworkMapPool(String dbRootPath, String dbVersion) {
         this.dbRootPath = dbRootPath;
+        this.dbVersion = dbVersion;
     }
 
     //Create and open a DB
@@ -53,7 +55,7 @@ public class BDBNetworkMapPool {
 
         BDBNetworkMap db = new BDBNetworkMap();
         try {
-            db.initializeDB(dbPath, dbName);
+            db.initializeDB(dbPath, dbName, dbVersion);
             queue.add(db);
             map.put(dbName, db);
         } catch (IOException e) {
@@ -87,7 +89,7 @@ public class BDBNetworkMapPool {
 
         BDBNetworkMap db = new BDBNetworkMap();
         try {
-            db.initializeDB(dbPath, dbName);
+            db.initializeDB(dbPath, dbName, dbVersion);
             queue.add(db);
             map.put(dbName, db);
         } catch (IOException e) {
@@ -115,5 +117,9 @@ public class BDBNetworkMapPool {
 
     public String getDbName(long job, int harvestResultNumber) {
         return String.format("%d_%d", job, harvestResultNumber);
+    }
+
+    public String getDbVersion() {
+        return dbVersion;
     }
 }

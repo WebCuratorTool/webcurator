@@ -4,20 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-
   <title>Target Instance</title>
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="../dist/font/fontawesome-free.min.css">
-<!--  <link rel="stylesheet" href="../dist/bootstrap/4.4.1/css/bootstrap.min.css">-->
   <link rel="stylesheet" href="../dist/adminlte/css/adminlte.min.css">
   <link rel="stylesheet" href="../dist/fancytree/skin-win8/ui.fancytree.min.css">
-  <!-- <link rel="stylesheet" href="../dist/fancytree/modules/plain-scrollbar.css"> -->
   <link rel="stylesheet" href="../dist/jquery/menu/jquery.contextMenu.css">
-  <!-- <link rel="stylesheet" href="../dist/plugins/datetimepicker-bootstrap-4.min.css"> -->
-  <!-- <link rel="stylesheet" href="../dist/plugins/tempusdominus-bootstrap-4.min.css"> -->
   <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
   <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
   <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css">
+  <link rel="stylesheet" href="../dist/toastr/toastr.min.css">
+
   <link rel="stylesheet" href="visualization.css">
 </head>
 <!--
@@ -31,200 +27,237 @@ to get the desired effect
 |---------------------------------------------------------|
 -->
 <body unselectable="on" class="layout-navbar-fixed sidebar-collapse">
-<div class="wrapper">
-  <nav class="main-header navbar navbar-expand navbar-white navbar-light" style="padding: 0;">
-    <!-- Left navbar links -->
-    <ul class="navbar-nav">
-      <li class="nav-item"><a onclick="$('#networkmap-side-container').toggle();" role="button"  class="nav-link"><i class="fas fa-bars"></i></a></li>
-      <li class="nav-item d-none d-sm-inline-block"><a class="nav-link btn-side-group-type" name="statuscode">Status Code</a></li>
-      <li class="nav-item d-none d-sm-inline-block"><a class="nav-link btn-side-group-type" name="contenttype">Content Type</a></li>
-      
-      <li class="nav-item"><a class="nav-link"><span id="networkmap-side-title" style="margin-left: 200px;">Domain: root</span></a></li>
-    </ul>
+<nav class="main-header navbar navbar-expand navbar-dark">
+  <!-- Left navbar links -->
+  <ul class="navbar-nav">
+    <div class="btn-group btn-group-toggle" id="btn-group-main-tabs" data-toggle="buttons">
+      <label class="btn bg-info active" name="networkmap">
+        <input type="radio" name="options" autocomplete="off" checked> <i class="fas fa-vector-square"></i>
+      </label>
+      <label class="btn bg-info" name="tree-harvest-struct">
+        <input type="radio" name="options" autocomplete="off"> <i class="fas fa-bezier-curve"></i>
+      </label>
+      <label class="btn bg-info" name="tree-url-names">
+        <input type="radio" name="options" autocomplete="off"> <i class="fa fa-folder-open"></i>
+      </label>
+      <label class="btn bg-info" name="candidate-query">
+        <input type="radio" name="options" autocomplete="off"> <i class="far fa-list-alt"></i>
+      </label>
+    </div>
+  </ul>
 
-
-    <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item d-none d-sm-inline-block">
-        <a onclick="networkmap.graph.reload();" class="nav-link">Reload</a>
-      </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a onclick="networkmap.graph.collapseAll();" class="nav-link">Collapse</a>
-      </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a onclick="$('#popup-window-modify-harvest').show();" class="nav-link">Modify</a>
-      </li>
-
-      <!-- Derived Harvest Results -->
-      <li class="nav-item dropdown">
-        <a class="nav-link" data-toggle="dropdown" href="#" onclick="updateDerivedHarvestResults();">
-          <i class="far fa-folder-open"></i>
-          <!-- Derived -->
-          <span class="badge badge-warning navbar-badge hidden" id="derived-hr-badge">0</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="derived-hr-list">
-          <span class="dropdown-item dropdown-header">Derived Harvest Results</span>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-external-link-square-alt"></i> 1
-            <span class="float-right text-muted text-sm">Summary</span>
-          </a>
+  <ul class="navbar-nav navbar-info navbar-light" style="margin-left: 10px; ">
+    <li class="nav-item">
+      <a class="nav-link" href="#" onclick="$('#popup-window-query-input').show();"><i class="fas fa-binoculars"></i></a>
+    </li>
+    
+    <!-- SEARCH FORM -->
+    <form class="form-inline ml-3">
+      <div class="input-group input-group">
+        <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+        <div class="input-group-append">
+          <button class="btn btn-navbar" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
         </div>
-      </li>
+      </div>
+    </form>
+
+    <li class="nav-item">
+      <a class="nav-link" href="#" onclick="$('#popup-window-query-input').show();"><i class="far fa-trash-alt"></i></a>
+    </li>
+  </ul>
+  
 
 
-      <li class="nav-item">
-        <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
+  <!-- Right navbar links -->
+  <ul class="navbar-nav ml-auto">
+    <!-- Derived Harvest Results -->
+    <li class="nav-item dropdown" style="margin-right: 5px;">
+      <a class="nav-link bg-info" data-toggle="dropdown" href="#" onclick="updateDerivedHarvestResults();">
+        <i class="fas fa-project-diagram">&nbsp;Derived</i>
+        <!-- Derived -->
+        <span class="badge badge-warning navbar-badge hidden" id="derived-hr-badge">0</span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="derived-hr-list">
+        <span class="dropdown-item dropdown-header">Derived Harvest Results</span>
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item">
+          <i class="fas fa-external-link-square-alt"></i> 1
+          <span class="float-right text-muted text-sm">Summary</span>
+        </a>
+      </div>
+    </li>
+
+    <!-- To be modified: Cart -->
+    <div class="btn-group">
+      <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modify-harvest').show();"><i class="fas fa-shopping-cart">&nbsp; To Be Modified</i></button>
+      <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
+        <span class="sr-only">Toggle Dropdown</span>
+        <div class="dropdown-menu" role="menu">
+          <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Single Import</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item template-download" href="#" template="bulk-modification-template.csv"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Modification Template</a>
+        </div>
+      </button>
+    </div>
+
+    <li class="nav-item">
+      <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
+    </li>
+    <li class="nav-item">
+      <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
+    </li>
+  </ul>
+</nav> <!-- End of Header -->
+
+<div id="main-tab-group">
+  <!-- Network Map -->
+  <div class="card main-tab" id="networkmap">
+    <div class="card-body" style="height: calc(100vh - 50px); width: 100vw;">
+      <!-- Networmap Canvas -->
+      <div id="network-map-canvas" style="position: absolute; height: calc(100% + 2px); width: calc(100% + 2px); margin-left: -1px; margin-top: -1px;"></div>
+
+      <div class="card" style="position: absolute; left: 1px; top: 5px; width: 400px; margin: 0; padding: 0;">
+        <div class="card-header" style="height: 35px; padding-top: 3px;">
+          <h3 class="card-title">Catagory</h3>
+          <div class="card-tools">
+            <button type="button" class="btn btn-tool btn-side-group-type text-primary" name="statuscode">Status</button>
+            <button type="button" class="btn btn-tool btn-side-group-type" name="contenttype">Type</button>
+            <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+          </div>
+        </div>
+        <div class="card-body" style="margin: 0; padding: 0; height: calc(100vh - 85px);">
+           <!-- Side Card -->
+          <div id="networkmap-side-container" style="height: 100%; width: 100%;">
+            <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
+            <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
+          </div> <!-- end of side card -->
+        </div> <!-- end of card body -->
+      </div> <!-- end of card -->
+
+      <!-- Domain Name -->
+      <div style="position: absolute; left: 450px; top: 5px; margin: 0; padding: 0;">
+        <h3 class="text-info">Current Domain: <span class="text-success" id="networkmap-side-title">Root</span></h3>
+      </div>
+
+      <!-- Redraw and Collapse -->
+      <div style="position: absolute; right: 5px; top: 5px; margin: 0; padding: 0;">
+        <div class="btn-group">
+          <!-- <button type="button" class="btn btn-default" onclick="networkmap.reload();">Reload</button> -->
+          <button type="button" class="btn btn-default" onclick="networkmap.graph.redraw();">Redraw</button>
+          <button type="button" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse</button>
+        </div>
+      </div>
+    </div>    <!-- End of card body -->
+    <div class="overlay dark"><div class="spin-overlay text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+  </div>
+
+
+  <!-- TreeView: Harvest Struct -->
+  <div class="card main-tab hidden" id="tree-harvest-struct">
+    <div class="card-body" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
+      <table id="hierachy-tree-harvest-struct" style="width: 100%; outline: none;">
+        <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
+        <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
+      </table>
+    </div>
+    <div class="overlay dark"><div class="spin-overlay text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+  </div>
+
+
+  <!-- TreeView: URL Names -->
+  <div class="card main-tab hidden" id="tree-url-names">
+    <nav class="navbar navbar-expand navbar-light none-margin-padding" style="background-color: #D5D8DC;">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="$('#popup-window-query-input').show();"><i class="fas fa-binoculars"></i>&nbsp; Query</a>
+        </li>
+      </ul>
+      <!-- <input class="form-control inspect-only-search-item" type="search" placeholder="Filter" aria-label="Search" for="candidateGrid" disabled="disabled" style="width: 250px; margin-left: 10px;"> -->
+      <!-- Right navbar links -->
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="gPopupModifyHarvest.hierarchyTreeUrlNames.clearAll();"><i class="far fa-trash-alt"></i> &nbsp; Clear</a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="card-body" style="width: 100%; height:calc(100vh - 97px); overflow-x: hidden; overflow-y: scroll;">
+        <table id="hierachy-tree-url-names" style="width: 100%; outline: none;">
+          <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
+          <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
+      </table>
+    </div>
+    <div class="overlay dark"><div class="spin-overlay text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+  </div>
+
+  <!-- Query Grid -->
+  <div class="card main-tab hidden" id="candidate-query">
+    <nav class="navbar navbar-expand navbar-light none-margin-padding" style="background-color: #D5D8DC;">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="$('#popup-window-query-input').show();"><i class="fas fa-binoculars"></i>&nbsp; Query</a>
+        </li>
+      </ul>
+      <input class="form-control" type="search" placeholder="Filter" aria-label="Search" style="width: 250px; margin-left: 10px;">
+      <!-- Right navbar links -->
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="gPopupModifyHarvest.gridCandidate.clearAll();"><i class="far fa-trash-alt"></i> &nbsp; Clear</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- </div> -->
+    <div class="card-body" style="width: 100%; height:calc(100vh - 97px); overflow: hidden;">
+      <div id="grid-modify-candidate" class="ag-theme-balham" style="width: 100%; height: 100%;"> </div>
+    </div>
+    <div class="overlay dark"><div class="spin-overlay text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+  </div>
+</div>
+
+<!-- Popup window for inspection and modification -->
+<div class="popup-window" id="popup-window-modify-harvest">
+<div class="card none-margin-padding" style="margin: 5% 20% 5% 20%; border: solid; border-width: 5px; border-color: #343a40;">
+  <nav class="navbar navbar-expand navbar-dark navbar-light">
+    <ul class="navbar-nav">
+      <li class="nav-item text-light">
+        &nbsp;To Be Pruned and Imported &nbsp;
       </li>
-      <li class="nav-item">
-        <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
-      </li>
+    </ul>
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto"> 
+      <input class="form-control" type="search" placeholder="Filter" aria-label="Search" style="width: 250px; margin-left: 10px;">
     </ul>
   </nav>
 
-  <div style="height: 100vh; width: 100vw;">
-    <!-- Networmap Canvas -->
-    <div id="network-map-canvas" style="height: 100%; width: 100%;"></div>
-    <!-- Side Card -->
-    <div class="bg-default" style="position: absolute; left: 0; bottom: 3px; width: 380px; height: calc(100% - 50px); display: none;" id="networkmap-side-container">
-      <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
-      <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
-    </div> <!-- end of card -->
-  </div>
-
-</div>
-
-
-<!-- Popup window for inspection and modification -->
-<div class="card none-margin-padding bg-light"  id="popup-window-modify-harvest">
-  <div class="card-body none-margin-padding">
-      <nav class="main-header navbar navbar-expand" style="padding: 0;">
-          <!-- Left navbar links -->
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <input class="form-control" type="search" placeholder="Filter" aria-label="Search" for="candidateGrid">
-            </li>
-
-            <li class="nav-item" style="margin-left: 10px;">
-              <div class="btn-group">
-                <button type="button" class="btn btn-primary dropdown-toggle dropdown-icon" data-toggle="dropdown">
-                  Action
-                  <span class="sr-only">Toggle Dropdown</span>
-                  <div class="dropdown-menu" role="menu">
-                    <a class="dropdown-item" href="#" onclick="$('#popup-window-query-input').show();"><i class="fas fa-search"></i> &nbsp; Inspect By Query</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-link text-primary"></i> &nbsp;Inspect Starting URLs</a>
-                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadInvalidUrls();"><i class="fas fa-link text-warning"></i> &nbsp;Inspect Invalid URLs</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkPrune();"><i class="far fa-times-circle text-secondary"></i> &nbsp; Bulk Prune</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-primary"></i> &nbsp; Single Import</a>
-                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showBulkImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Bulk Import</a>
-                    <!-- <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.loadSeedUrls();"><i class="fas fa-file-upload text-success"></i> &nbsp;Upload File</a> -->
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.gridCandidate.clearAll();"><i class="far fa-trash-alt"></i> &nbsp; Clear</a>
-                  </div>
-                </button>
-              </div>
-            </li>
-            
-          </ul>
-          <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-              <div class="btn-group btn-nav-tab">
-                <button type="button" class="btn btn-primary" for="prune" id="tab-btn-prune">To Be Pruned</button>
-                <button type="button" class="btn btn-outline-primary" for="import" id="tab-btn-import">To Be Imported</button>
-              </div>
-            </li>               
-            <li class="nav-item">
-              <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
-            </li>
-            <li class="nav-item">
-              <a onclick="$('#popup-window-modify-harvest').hide();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
-            </li>
-          </ul>
-      </nav>
-
-      <div class="row">
-        <div class="col-7">
-          <div class="tab-content">
-            <div id="grid-modify-candidate" class="ag-theme-balham grid-modify-harvest"> </div>
-            <div id="popup-window-hierarchy" class="card hidden" style="height: 100%;">
-              <div class="card-header">
-                <h3 class="card-title">Outlinks Tree</h3>
-                <div class="card-tools">
-                  <button type="button" class="btn btn-tool" data-card-widget="remove" onclick="javascript: $('#popup-window-hierarchy').hide(); $('#grid-modify-candidate').show();"><i class="fas fa-times"></i>
-                  </button>
-                </div>
-                <!-- /.card-tools -->
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body" style="height: calc(100% - 30px);">
-                <div class="fixed-size">
-                  <table id="hierachy-tree" style="width: 70vw; outline: none;">
-                      <colgroup>
-                          <col width="50px">
-                          <col width="*">
-                          <col width="80px">
-                          <col width="80px">
-                          <col width="80px">
-                          <col width="80px">
-                          <col width="80px">
-                          <col width="80px">
-                          <col width="80px">
-                      </colgroup>
-                      <thead>
-                      <tr>
-                          <th>Action</th>
-                          <th>URL</th>
-                          <th>Type</th>
-                          <th>Status</th>
-                          <th>Size</th>
-                          <th>URLs</th>
-                          <th>Success</th>
-                          <th>Failed</th>
-                          <th>TotSize</th>
-                      </tr>
-                      </thead>
-                  </table>
-                </div>
-              </div>
-              <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
-          </div>
-
-        </div>
-        <div class="col-5">
-
-
-          <div class="tab-content" id="grid-tobe-modified">
-            <div id="grid-modify-prune" class="ag-theme-balham grid-modify-harvest"> </div>
-            <div id="grid-modify-import" class="ag-theme-balham grid-modify-harvest hidden"> </div>
-          </div>
-
-        </div>
+  <!-- /.card-header -->
+  <div class="card-body none-margin-padding" style="width: 60vw;">
+      <div id="grid-group-tobe-modified" style="width: calc(100% - 15px); height: 50vh;">
+        <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: 100%;"></div>
       </div>
 
-      <div class="input-group" style="margin: 5px 2px 0 2px; width: calc(100% - 4px);">
-        <textarea id="provenance-note" class="form-control" rows="1"  placeholder="Provenance Note ..."></textarea>
+      <div class="input-group" style="margin: 5px 2px 0 2px; width: calc(100% - 15px);">
+        <textarea id="provenance-note" class="form-control" rows="3"  placeholder="Provenance Note ..."></textarea>
       </div>
   </div>  <!-- End of card body -->
 
   <div class="card-footer">
     <div class="row">
-      <div class="col-10"></div>
-      <div class="col-1">
+      <div class="col-8"></div>
+      <div class="col-2">
           <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.apply();">Apply</button>
       </div>
-      <div class="col-1">
+      <div class="col-2">
           <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modify-harvest').hide();">Close</button>
       </div>
     </div>
   </div>
 </div> 
-
+</div>
 
 <!-- Popup Hop Path-->
 <div class="popup-window" id="popup-window-hop-path">
@@ -255,68 +288,40 @@ to get the desired effect
     <!-- /.card-tools -->
   </div>
   <!-- /.card-header -->
-  <div class="card-body" style="margin: 5px; padding: 5px 5px 0 5px; background-color: white;">
-        <div class="form-group">
-          <label for="specifyTargetUrlInput">Specify Target URL</label>
-          <input type="input" class="form-control" id="specifyTargetUrlInput" placeholder="Specify Target URL">
-        </div>
-  </div>
-
-  <div class="card-body" style="margin: 5px; padding: 5px 5px 0 5px; background-color: white;" id="card-body-source">
-        <div class="form-group">
-          <!-- <label for="importFromFileInput">Import from disk file</label> -->
-          <div class="custom-control custom-radio">
-            <input class="custom-control-input" type="radio" id="customRadio1" name="customRadio" flag="File" checked>
-            <label for="customRadio1" class="custom-control-label">Option 1: Re-crawl from disk file</label>
-          </div>
-          <div class="input-group">
-            <div class="custom-file">
-              <input type="file" class="custom-file-input" id="sourceFile" name="sourceFile">
-              <label class="custom-file-label" for="sourceFile" id="label-source-file">Choose file</label>
-            </div>
-            <div class="input-group-append">
-              <!-- <span class="input-group-text" id="">Upload</span> -->
-              <!-- <input type="submit" value="import" id="submit"/> -->
-            </div>
-          </div>
-          <br/>
-          
-          <div class="form-group clearfix" id="radio-group-modified-date">
-            <label for="radio-group-modified-date">Modified Datetime</label>
-            <div class="custom-control custom-radio d-inline">
-              <input type="radio" id="radioModifiedDateModeTbc" name="r1" flag="TBC" checked>
-              <label for="radioModifiedDateModeTbc" style="font-weight: normal;">TBC</label>
-            </div>
-            <div class="custom-control custom-radio d-inline">
-              <input type="radio" id="radioModifiedDateModeFile" name="r1" flag="File">
-              <label for="radioModifiedDateModeFile" style="font-weight: normal;">File Modified Time</label>
-            </div>
-            <div class="custom-control custom-radio d-inline">
-              <input type="radio" id="radioModifiedDateModeCustom" name="r1" flag="CUSTOM">
-              <label for="radioModifiedDateModeCustom" style="font-weight: normal;">Custom</label>
-              <input type="datetime-local" id="datetime-local-customizard">
-            </div>
-            <!-- <div class="custom-control d-inline"  style="width: 12vw;">
-              <input type="datetime-local" id="datetime-local-customizard">
-            </div>   -->          
-          </div>
-        </div>
-  </div>
   
-  <div class="card-body" style="margin: 5px; padding: 5px 5px 0 5px; background-color: white;" id="card-body-modified-date">
-        <div class="custom-control custom-radio">
-          <input class="custom-control-input" type="radio" id="customRadio2" name="customRadio" flag="URL">
-          <label for="customRadio2" class="custom-control-label">Option 2: Re-crawl from URL</label>
+  <div class="card-body">
+    <div class="form-group">
+      <label for="specifyTargetUrlInput">Specify Target URL</label>
+      <input type="input" class="form-control" id="specifyTargetUrlInput" placeholder="Specify Target URL">
+    </div>
+
+    <div class="form-group">
+      <label for="sourceFile">Import from disk file</label>
+      <div class="input-group">
+        <div class="custom-file">
+          <input type="file" class="custom-file-input" id="sourceFile" name="sourceFile">
+          <label class="custom-file-label" for="sourceFile" id="label-source-file">Choose file</label>
         </div>
-        <div class="custom-control">
-          <label class="text-secondary">Source URL: the same as Target URL</label>
-          <!-- <input type="input" class="form-control" id="importFromUrlInput" placeholder="Source URL">
-          <div class="input-group-append">
-            <span class="input-group-text" onclick="useTargetURL();">Use Target URL</span>
-          </div> -->
-        </div>
-        <br/>
-  </div>  <!-- /.card-body -->
+      </div>
+    </div>
+      
+    <div class="form-group clearfix" id="radio-group-modified-date">
+      <label for="radio-group-modified-date">Modified Datetime</label>
+      <div class="custom-control custom-radio d-inline">
+        <input type="radio" id="radioModifiedDateModeTbc" name="r1" flag="TBC" checked>
+        <label for="radioModifiedDateModeTbc" style="font-weight: normal;">TBC</label>
+      </div>
+      <div class="custom-control custom-radio d-inline">
+        <input type="radio" id="radioModifiedDateModeFile" name="r1" flag="File">
+        <label for="radioModifiedDateModeFile" style="font-weight: normal;">File Modified Time</label>
+      </div>
+      <div class="custom-control custom-radio d-inline">
+        <input type="radio" id="radioModifiedDateModeCustom" name="r1" flag="CUSTOM">
+        <label for="radioModifiedDateModeCustom" style="font-weight: normal;">Custom</label>
+        <input type="datetime-local" id="datetime-local-customizard">
+      </div>  
+    </div>
+  </div>
 
   <div class="card-footer">
     <div class="row">
@@ -327,9 +332,7 @@ to get the desired effect
         </div>
       </div>
       <div class="col-2">
-          <!-- <button type="button" class="btn btn-block btn-primary" onclick="spPrunedImported($('#tab-btn-import'));">Import</button> -->
-          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleImport();">Re-crawl</button>
-          <!-- <input type="submit" value="Re-crawl" class="btn btn-block btn-primary" id="submit"/> -->
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleImport();">Import</button>
       </div>
       <div class="col-2">
           <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-single-import').hide();">Close</button>
@@ -340,7 +343,10 @@ to get the desired effect
 </div>
 
 
+
+
 <!-- Popup Bulk Import-->
+<input type="file" class="hidden" id="bulkImportMetadataFile">
 <div class="popup-window" id="popup-window-bulk-import">
 <div class="card card-primary popup-content">
   <div class="card-header">
@@ -348,106 +354,58 @@ to get the desired effect
     <div class="card-tools"><button type="button" class="btn btn-tool" onclick="$('#popup-window-bulk-import').hide();"><i class="fas fa-times"></i></button></div>
     <!-- /.card-tools -->
   </div>  <!-- /.card-header -->
-  <div class="card-body">
-    <div class="tab-bulk-import" id="tab-bulk-import-0">
-      <p> You could download a <a href="/spa/tools/bulk-import-template.csv">Template</a> from here.</p>
-      <div class="form-group">
-        <label for="specifyTargetUrlInput">Please upload a METADATA file:</label>
-        <div class="custom-file">
-          <input type="file" class="custom-file-input" id="bulkImportMetadataFile">
-          <label class="custom-file-label" for="bulkImportMetadataFile" id="label-bulk-import-metadata-file">Choose file</label>
-        </div>
+
+  <div class="card-body tab-bulk-import" id="tab-bulk-import-0">
+<!--     <div class="form-group">
+      <label for="specifyTargetUrlInput">Please upload a METADATA file:</label>
+      <div class="custom-file">
+        <input type="file" class="custom-file-input" id="bulkImportMetadataFile">
+        <label class="custom-file-label" for="bulkImportMetadataFile" id="label-bulk-import-metadata-file">Choose file</label>
       </div>
-      <div class="form-group">
-        <label>Column separator:</label>
-        <select class="custom-select" id="bulk-import-column-separator">
-          <option>Tab</option>
-          <option>,</option>
-          <option>|</option>
-        </select>
+    </div> -->
+    <div class="form-group">
+      <label>Column separator:</label>
+      <select class="custom-select" id="bulk-import-column-separator">
+        <option>Tab</option>
+        <option>,</option>
+        <option>|</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <div class="custom-control custom-checkbox">
+        <input class="custom-control-input" type="checkbox" id="checkbox-ignore-invalid-prune-urls">
+        <label for="checkbox-ignore-invalid-prune-urls" class="custom-control-label">Ignore invalid URLs to be pruned</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="custom-control custom-checkbox">
+        <input class="custom-control-input" type="checkbox" id="checkbox-ignore-duplicated-prune-urls" checked>
+        <label for="checkbox-ignore-duplicated-prune-urls" class="custom-control-label">Ignore duplicated URLs to be pruned</label>
       </div>
     </div>
 
-
-    <div class="tab-bulk-import hidden" id="tab-bulk-import-1">
-      <div id="grid-bulk-import-prepare" class="ag-theme-balham grid-modify-harvest" style="width: 100%; height: 30vh;"> </div>
-      <br/>
-      <p id="tip-bulk-import-prepare">All rows are valid.</p>
-      <p id="tip-bulk-import-prepare-invalid" class="hidden">Please upload relevant files <a href="javascript:$('#bulkImportContentFile').trigger('click');">Choose content files</a></p>
-
-
-      <input type="file" class="hidden" id="bulkImportContentFile" onchange="gPopupModifyHarvest.processorModify.bulkUploadFiles();" multiple>
-    </div>
-
-  </div>  <!-- /.card-body -->
-
-  <div class="card-footer">
-    <div class="row">
-      <div class="col-8">
-        <div class="custom-control custom-checkbox">
+    <div class="form-group">
+      <div class="custom-control custom-checkbox">
           <input class="custom-control-input" type="checkbox" id="checkbox-prune-of-bulk-import" checked>
           <label for="checkbox-prune-of-bulk-import" class="custom-control-label">Prune the existing content when exist</label>
         </div>
-      </div>
-      <div class="col-2">
-          <button type="button" class="btn btn-block btn-primary" id="btn-bulk-import-submit" step="0">Next</button>
-      </div>
-      <div class="col-2">
-          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-bulk-import').hide();">Close</button>
-      </div>
     </div>
-  </div>
+  </div>  <!-- /.card-body -->
 
-</div> <!-- /.card -->
-</div>
-
-
-<!-- Popup Bulk Prune-->
-<div class="popup-window" id="popup-window-bulk-prune">
-<div class="card card-primary popup-content">
-  <div class="card-header">
-    <h3 class="card-title">Bulk Prune</h3>
-    <div class="card-tools"><button type="button" class="btn btn-tool" onclick="$('#popup-window-bulk-prune').hide();"><i class="fas fa-times"></i></button></div>
-    <!-- /.card-tools -->
-  </div>  <!-- /.card-header -->
-  <div class="card-body">
-      <p> You could download a <a href="/spa/tools/bulk-prune-template.csv">Template</a> from here.</p>
-      <div class="form-group">
-        <label for="specifyTargetUrlInput">Please upload a METADATA file:</label>
-        <div class="custom-file">
-          <input type="file" class="custom-file-input" id="bulkPruneMetadataFile">
-          <label class="custom-file-label" for="bulkPruneMetadataFile" id="label-bulk-prune-metadata-file">Choose file</label>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="custom-control custom-checkbox">
-          <input class="custom-control-input" type="checkbox" id="checkbox-ignore-invalid-prune-urls">
-          <label for="checkbox-ignore-invalid-prune-urls" class="custom-control-label">Ignore invalid URLs to be pruned</label>
-        </div>
-      </div>
-      <div class="form-group">
-        <div class="custom-control custom-checkbox">
-          <input class="custom-control-input" type="checkbox" id="checkbox-ignore-duplicated-prune-urls" checked>
-          <label for="checkbox-ignore-duplicated-prune-urls" class="custom-control-label">Ignore duplicated URLs to be pruned</label>
-        </div>
-      </div>
+  <div class="card-body tab-bulk-import hidden" id="tab-bulk-import-1">
+      <div id="grid-bulk-import-prepare" class="ag-theme-balham grid-modify-harvest" style="width: 100%; height: 30vh;"> </div>
   </div>  <!-- /.card-body -->
 
   <div class="card-footer">
     <div class="row">
       <div class="col-8"></div>
-      <div class="col-2">
-          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.bulkPrune();">Prune</button>
-      </div>
-      <div class="col-2">
-          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-bulk-prune').hide();">Close</button>
-      </div>
+      <div class="col-2"><button type="button" class="btn btn-block btn-primary" id="btn-bulk-import-submit" step="0">Next</button></div>
+      <div class="col-2"><button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-bulk-import').hide();">Close</button></div>
     </div>
   </div>
-
 </div> <!-- /.card -->
 </div>
-
 
 
 <!-- Popup Query Input-->
@@ -523,23 +481,13 @@ to get the desired effect
 </div> <!-- /.card -->
 </div>
 
-
-<div id="popup-window-loading">
-  <div class="spin-overlay"><i class="fas fa-circle-notch text-default"></i></div>
+<div id="popup-window-loading" class="hidden">
+  <div class="spin-overlay text-secondary"><i class="fas fa-circle-notch text-default"></i></div>
+  <div id="progressIndexer" class="text-secondary hidden" style="width: 100%; text-align: center; font-size: 1.5em;">Indexing: <span class="text-dark" id="progressIndexerValue">0</span>%</div>
 </div>
-
-<!-- Progress bar of indexing -->
-<div id="popup-window-progress">
-  <div style="margin-top: 45vh;">
-    <div style="width: 100%; text-align: center;">Indexing: <span id="progressIndexerValue">0</span>%</div>
-    <progress value="0" max="100" data-label="0% Complete" id="progressIndexer"></progress>
-  </div>
-</div>
-
 
 
 <script src="../dist/jquery/jquery-3.4.1.min.js"></script>
-<!-- <script src="../dist/jquery/require.js"></script> -->
 <script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="../dist/plugins/bs-custom-file-input.min.js"></script>
 <script src="../dist/adminlte/js/adminlte.js"></script>
@@ -547,24 +495,19 @@ to get the desired effect
 <script src="../dist/fancytree/jquery.fancytree-all-deps.min.js"></script>
 <script src="../dist/fancytree/modules/jquery.fancytree.table.js"></script>
 <script src="../dist/fancytree/modules/jquery.fancytree.wide.js"></script>
-<!-- <script src="../dist/fancytree/modules/jquery.fancytree.filter.js"></script> -->
-<!-- <script src="../dist/fancytree/modules/plain-scrollbar.js"></script> -->
 <script src="../dist/fancytree/modules/jquery.fancytree.logger.js"></script>
-<!-- <script src="../dist/chartjs/Chart.js"></script> -->
 <script src="../dist/jquery/menu/jquery.contextMenu.js"></script>
 <script src="../dist/jquery/menu/jquery.ui.position.js"></script>
 <script src="../dist/ag-grid/ag-grid-community.js"></script>
-<!-- <script src="../dist/google/loader.js"></script> -->
-<!-- <script src="../dist/d3/d3.js"></script> -->
 <script src="../dist/plugins/moment-with-locales.min.js"></script>
 <script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script>
-<!-- <script src="../dist/plugins/datetimepicker-bootstrap-4.min.js"></script> -->
-<!-- <script src="../dist/plugins/tempusdominus-bootstrap-4.min.js"></script> -->
+<script src="../dist/save-file/FileSaver.js"></script>
+<script src="../dist/toastr/toastr.js"></script>
+
 <script src="visualization.js"></script>
 <script src="networkmap-graph.js"></script>
 <script src="networkmap-grid.js"></script>
 <script src="networkmap-menumap.js"></script>
-<!-- <script src="networkmap-sunburst.js"></script> -->
 <script src="networkmap.js"></script>
 <script src="popup-modify-harvest-processor.js"></script>
 <script src="popup-modify-harvest.js"></script>
@@ -572,7 +515,6 @@ to get the desired effect
 <script src="url-browse.js"></script>
 
 <script>
-    // $('#popup-window-loading').show();
     var urlParameters=getUrlVars();
     var jobId=parseInt(urlParameters["targetInstanceOid"]);
     var harvestResultId=parseInt(urlParameters["harvestResultId"]);
@@ -581,11 +523,11 @@ to get the desired effect
     var visHopPath=new HopPath('hoppath-canvas', jobId, harvestResultNumber);
     var networkmap=new NetworkMap();
     var gPopupModifyHarvest=new PopupModifyHarvest(jobId, harvestResultId, harvestResultNumber);
-    // var hierarchyTree=new HierarchyTree("#hierachy-tree", jobId, harvestResultNumber);
     
     console.log(parent);
     var gParentHarvestResultViewTab=parent;
     var isToFullScreen=false;
+
     function toggleScreenSize(){
       console.log(isToFullScreen);
       if(!gParentHarvestResultViewTab || !gParentHarvestResultViewTab.toggleContentWindowSize){
@@ -603,29 +545,45 @@ to get the desired effect
       isToFullScreen=!isToFullScreen;
     }
 
-    $(function(){
-        console.log(parent);
-        
-        toggleScreenSize();
+    function useTargetURL(){
+      var url=$("#specifyTargetUrlInput").val();
+      $('#importFromUrlInput').val(url);
+    }
 
-        updateDerivedHarvestResults();
+    function openBulkImportSchemaFile(){
+      // $("#label-bulk-import-file").trigger('click');
+      $("#bulkImportMetadataFile").trigger('click');
+    }
 
-        bsCustomFileInput.init();
+    // Initial UI
+    var currentMainTab='networkmap';
+    function initUI(){
+        $('#btn-group-main-tabs label').on('click', function(e){
+          currentMainTab=$(this).attr('name');
+          $('.main-tab').hide();
+          $('#'+currentMainTab).show();
 
-        // document.addEventListener('contextmenu', event => event.preventDefault());
-        sp("networkmap");
-        
-        networkmap.init(jobId, harvestResultNumber);
-        // hierarchyTree.draw();
+          if(currentMainTab === 'candidate-query'){
+            $('.inspect-only-search-item').removeAttr('disabled');
+            $('.inspect-only-menu-item').show();
+          }else if(currentMainTab === 'tree-url-names'){
+            $('.inspect-only-search-item').attr('disabled', 'disabled');
+            $('.inspect-only-menu-item').show();
+          }else{
+            $('.inspect-only-search-item').attr('disabled', 'disabled');
+            $('.inspect-only-menu-item').hide();
+          }
+        });
 
-        $("input[name=search]").on("change search", function(e){
-          var n,
-            tree = $.ui.fancytree.getTree(),
-            match = $.trim($(this).val());
+        $('#btn-group-tobe-modified label').on('click', function(e){
+          var name=$(this).attr('name');
+          $('.grid-modify-harvest').hide();
+          $('#grid-modify-'+name).show();
+        });
 
-          // Pass a string to perform case insensitive matching
-          n = tree.filterNodes(match, { mode: "hide" });
-          $("span.matches").text(n ? "(" + n + " matches)" : "");
+        $('.template-download').on('click', function(e){
+          var name=$(this).attr('template');
+          downloadRemote('/spa/tools/'+name, name);
         });
 
         $('.btn-side-group-type').on('click', function(e){
@@ -643,39 +601,27 @@ to get the desired effect
           $('#networkmap-side-container').show();
         });
 
-        $(".btn-nav-tab button").on("click", function(e){
-          $(".btn-nav-tab button").removeClass("btn-primary");
-          $(".btn-nav-tab button").addClass("btn-outline-primary");
-          $(this).removeClass("btn-outline-primary");
-          $(this).addClass("btn-primary");
 
-          var tab=$(this).attr("for");
-          $("#grid-tobe-modified .grid-modify-harvest").hide();
-          $("#grid-modify-"+tab).show();
-        });
+        // $('#bulkImportMetadataFile').on('change', function(event){
+        //     var file=event.target.files[0];
+        //     console.log(file);
+        // });
+
 
         // Search input filter
+        $("#candidate-query input[type='search']").on('input', function(e){
+          var val=$(this).val();
+          gPopupModifyHarvest.gridCandidate.filter(val);
+        });
+
         $("#popup-window-modify-harvest input[type='search']").on('input', function(e){
           var val=$(this).val();
           gPopupModifyHarvest.gridPrune.filter(val);
           gPopupModifyHarvest.gridImport.filter(val);
-          gPopupModifyHarvest.gridCandidate.filter(val);
-          gPopupModifyHarvest.hierarchyTree.filter(val);
-          // var key=$(this).attr('for');
-          // var target;
-          // if(key==='prune'){
-          //   target=gPopupModifyHarvest.gridPrune;
-          // }else if(key==='import'){
-          //   target=gPopupModifyHarvest.gridImport;
-          // }else if(key==='candidateGrid'){
-          //   target=gPopupModifyHarvest.gridCandidate;
-          // }else if(key==='candidateTree'){
-          //   target=gPopupModifyHarvest.hierarchyTree;
-          // }
-          // target.filter(val);
         });
 
-        // $("#datetime-local-customizard").datetimepicker();
+        
+
 
         $('#btn-bulk-import-submit').on('click', function(e){
           var step=$(this).attr('step');
@@ -686,18 +632,97 @@ to get the desired effect
           }
         });
 
-        $("#a-link-summary").trigger('click');
+        bsCustomFileInput.init(); //For file input: to set filename to input text
+        // $("#a-link-summary").trigger('click');
+    }
+
+    // Initial Data
+    function initData(){
+      updateDerivedHarvestResults();
+      networkmap.init(jobId, harvestResultNumber);
+      gPopupModifyHarvest.initTreeWithSeedUrls();
+      gPopupModifyHarvest.initTreeWithSearchCommand(null);
+    }
+
+    var timerProgress;
+    function reindex(){
+      var reqUrl="/visualization/index/initial?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+      fetchHttp(reqUrl, null, function(response){
+        console.log(response.rspCode + ': ' + response.rspMsg);
+
+        if (response.rspCode!==0) {
+          return;
+        }
+
+        //show progress bar
+        g_TurnOnOverlayLoading();
+        $('#progressIndexer').show();
+
+        //refresh progress
+        timerProgress=setInterval(function(){
+          refreshprogress();
+        }, 1200);
+      });
+    }
+
+    //Checking and show progress
+    function refreshprogress(){
+      var reqUrl="/curator/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+      fetch(reqUrl, { 
+        method: 'GET',
+        redirect: 'follow',
+        headers: {'Content-Type': 'application/json'},
+      }).then((response) => {
+        console.log(response);
+        return response.json();
+      }).then((response) => {
+        console.log(response.rspCode + ': ' + response.rspMsg);
+
+        var progressPercentage=0;
+        if(response.rspCode===0){
+          var responseProgressBar=JSON.parse(response.payload);
+          progressPercentage=responseProgressBar.progressPercentage;
+
+          $('#progressIndexerValue').html(progressPercentage);
+        }
+        
+        if((response.rspCode===0 && progressPercentage >= 100) || response.rspCode!=0){
+          clearInterval(timerProgress);
+          $('#progressIndexer').hide();
+          g_TurnOffOverlayLoading();
+          initGlobalSettings();
+        }
+      });
+    }
+
+    //Fetch global settings and trigger the loading of data
+    function initGlobalSettings(){
+      fetchHttp('/get/global-settings?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+harvestResultNumber,{}, function(rsp){
+        if (!rsp) {
+          alert('Failed to get global settings from server.');
+          return;
+        }
+
+        var currentVersion=rsp.currentVersion;
+        var globalVersion=rsp.globalVersion;
+        if (rsp.retrieveResult === "0") {
+          _browse_openwayback=rsp.openWayBack;
+          initData();
+        }else if(rsp.retrieveResult === "9" && confirm("Index file is missing or need to be updated. Would you reindex the harvest result?")) {        //If could not get the BDB version or the BDB does not exit, then prompt with users to confim redex.
+          reindex();
+        }
+      });
+    }
+
+    //Main initial function
+    $(function(){
+        console.log(parent);
+        
+        toggleScreenSize();
+
+        initUI();
+
+        initGlobalSettings();
     });
-
-    
-    function useTargetURL(){
-      var url=$("#specifyTargetUrlInput").val();
-      $('#importFromUrlInput').val(url);
-    }
-
-    function openBulkImportSchemaFile(){
-      // $("#label-bulk-import-file").trigger('click');
-      $("#bulkImportMetadataFile").trigger('click');
-    }
 </script>
 </body>

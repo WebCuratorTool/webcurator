@@ -150,7 +150,7 @@ public class BrowseController {
     /**
      * The handle method is the entry method into the browse controller.
      */
-    @RequestMapping(path = "/curator/tools/browse/{hrOid}/**", method = {RequestMethod.POST, RequestMethod.GET})
+//    @RequestMapping(path = "/curator/tools/browse/{hrOid}/**", method = {RequestMethod.POST, RequestMethod.GET})
     protected ModelAndView handle(@PathVariable("hrOid") Long hrOid, HttpServletRequest req, HttpServletResponse res) throws Exception {
         // Build a command with the items from the URL.
         BrowseCommand command = new BrowseCommand();
@@ -205,7 +205,6 @@ public class BrowseController {
             headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), command.getResource());
         } catch (Exception e) {
             log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
-//            throw new Exception(e);
             res.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
 
@@ -249,61 +248,43 @@ public class BrowseController {
                 log.warn(e.getMessage());
             }
             ModelAndView mav = new ModelAndView("browse-tool-html");
-
-            if (content != null) {
-                // We might need to use a different base URL if a BASE HREF tag
-                // is used. We use the TagMagix class to perform the search.
-                // Note that TagMagix leaves leading/trailing slashes on the
-                // URL, so we need to do that
-                String baseUrl = command.getResource();
-                Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern("BASE", "HREF");
-                Matcher m = baseUrlGetter.matcher(content);
-                if (m.find()) {
-                    String u = m.group(1);
-                    if (u.startsWith("\"") && u.endsWith("\"") || u.startsWith("'") && u.endsWith("'")) {
-                        // Ensure the detected Base HREF is not commented
-                        // out (unusual case, but we have seen it).
-                        int lastEndComment = content.lastIndexOf("-->", m.start());
-                        int lastStartComment = content.lastIndexOf("<!--", m.start());
-                        if (lastStartComment < 0 || lastEndComment > lastStartComment) {
-                            baseUrl = u.substring(1, u.length() - 1);
-                        }
-                    }
-                }
-
-                browseHelper.fix(content, simpleContentType, command.getHrOid(), baseUrl);
-                mav.addObject("content", content.toString());
-            } else {
-                mav.addObject("content", "");
+            if (content == null) {
+                content = new StringBuilder();
             }
 
+            // We might need to use a different base URL if a BASE HREF tag
+            // is used. We use the TagMagix class to perform the search.
+            // Note that TagMagix leaves leading/trailing slashes on the
+            // URL, so we need to do that
+            String baseUrl = command.getResource();
+            Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern("BASE", "HREF");
+            Matcher m = baseUrlGetter.matcher(content);
+            if (m.find()) {
+                String u = m.group(1);
+                if (u.startsWith("\"") && u.endsWith("\"") || u.startsWith("'") && u.endsWith("'")) {
+                    // Ensure the detected Base HREF is not commented
+                    // out (unusual case, but we have seen it).
+                    int lastEndComment = content.lastIndexOf("-->", m.start());
+                    int lastStartComment = content.lastIndexOf("<!--", m.start());
+                    if (lastStartComment < 0 || lastEndComment > lastStartComment) {
+                        baseUrl = u.substring(1, u.length() - 1);
+                    }
+                }
+            }
+
+            browseHelper.fix(content, simpleContentType, command.getHrOid(), baseUrl);
+            mav.addObject("content", content.toString());
             mav.addObject("Content-Type", realContentType);
             return mav;
         } else { // If there are no replacements, send the content back directly.
-//            long contentLength = Long.parseLong(getHeaderValue(headers, "HTTP-RESPONSE-CONTENT_LENGTH"));
-
             Date dt = new Date();
-//            if (contentLength > MAX_MEMORY_SIZE) {
-                Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
-                ModelAndView mav = new ModelAndView("browse-tool-other");
-                mav.addObject("file", path);
-                mav.addObject("contentType", realContentType);
+            Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
+            ModelAndView mav = new ModelAndView("browse-tool-other");
+            mav.addObject("file", path);
+            mav.addObject("contentType", realContentType);
 
-                log.info("TIME TO GET RESOURCE(old): " + (new Date().getTime() - dt.getTime()));
-                return mav;
-//            } else {
-//                byte[] bytesBuffer = null;
-//                try {
-//                    bytesBuffer = digitalAssetStore.getSmallResource(ti.getOid(), hr.getHarvestNumber(), command.getResource());
-//                } catch (org.webcurator.core.exceptions.DigitalAssetStoreException e) {
-//                    log.warn("Could not retrieve resource: " + command.getResource());
-//                }
-//                ModelAndView mav = new ModelAndView("browse-tool-other-small");
-//                mav.addObject("bytesBuffer", bytesBuffer);
-//                mav.addObject("contentType", realContentType);
-//                log.debug("TIME TO GET RESOURCE(new): " + (new Date().getTime() - dt.getTime()));
-//                return mav;
-//            }
+            log.info("TIME TO GET RESOURCE(old): " + (new Date().getTime() - dt.getTime()));
+            return mav;
         }
 
     }

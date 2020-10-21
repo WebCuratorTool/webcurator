@@ -7,76 +7,31 @@ class NetworkMap{
 		this.timerProgress;
 	}
 
-
 	init(jobId, harvestResultNumber){
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
-		var reqUrl="/networkmap/get/common?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&key=keyGroupByDomain";
+		var reqUrl="/networkmap/get/all/domains?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
 		var that=this;
+		$('#networkmap .overlay').show();
     	fetchHttp(reqUrl, null, function(response){
     		console.log(response.rspCode + ': ' + response.rspMsg);
-    		if (response.rspCode === 0 && response.payload !== null) {
-    			var data=JSON.parse(response.payload);
-    			that.formatData(data);
-    			that.initDraw(data);
-    			return true;
-    		}else if(response.rspCode === -1){
-    			if (confirm("Index file is missing. Would you reindex the harvest result?")) {
-    				that.reindex();
-    			}
+    		if (response.rspCode !== 0 || response.payload === null){
+    			$('#networkmap .overlay').hide();
+    			alert('Failed to load domains from BDB: ' + response.payload);
+    			return;
     		}
+			var data=JSON.parse(response.payload);
+			that.data=data;
+			that.formatData(data);
+			that.initDraw(data);
     	});
 	}
 
-	reindex(){
-		var reqUrl="/visualization/index/initial?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
-		var that=this;
-		fetchHttp(reqUrl, null, function(response){
-			console.log(response.rspCode + ': ' + response.rspMsg);
-
-			if (response.rspCode!==0) {
-				return;
-			}
-
-			//show progress bar
-			$('#popup-window-progress').show();
-
-			//refresh progress
-			that.timerProgress=setInterval(function(){
-				that.refreshprogress();
-			}, 3000);
-		});
-	}
-
-	refreshprogress(){
-		var reqUrl="/curator/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
-		var that=this;
-		fetch(reqUrl, { 
-	    method: 'GET',
-	    redirect: 'follow',
-	    headers: {'Content-Type': 'application/json'},
-	  }).then((response) => {
-	  	console.log(response);
-	    return response.json();
-	  }).then((response) => {
-    	console.log(response.rspCode + ': ' + response.rspMsg);
-
-			var progressPercentage=0;
-			if(response.rspCode===0){
-				var responseProgressBar=JSON.parse(response.payload);
-				progressPercentage=responseProgressBar.progressPercentage;
-
-				$('#progressIndexerValue').html(progressPercentage);
-				$('#progressIndexer').val(progressPercentage);
-				$('#progressIndexer').attr('data-label', progressPercentage + '% Complete');
-			}
-			
-			if((response.rspCode===0 && progressPercentage >= 100) || response.rspCode!=0){
-				clearInterval(that.timerProgress);
-				$('#popup-window-progress').hide();
-				that.init(that.jobId, that.harvestResultNumber);
-			}
-	  });
+	reload(){
+		this.graph=new NetworkMapGraph('network-map-canvas');
+		// this.graph.network.destroy();
+		this.init(this.jobId, this.harvestResultNumber);
+		$('#networkmap-side-title').html('Root');
 	}
 
 	initDraw(node){
@@ -119,7 +74,7 @@ class NetworkMap{
 			title=title.substr(0, 60) + '...';
 		}
 
-		$('#networkmap-side-title').text('Domain: ' + title);
+		$('#networkmap-side-title').text(title);
 	}
 
 	contextMenuCallback(key, condition, source){

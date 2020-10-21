@@ -1,10 +1,16 @@
 package org.webcurator.ui.tools.controller;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.io.IOUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.util.Utils;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
@@ -28,7 +32,10 @@ import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.metadata.ModifyRow;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -41,11 +48,13 @@ import org.webcurator.ui.target.command.PatchingProgressCommand;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -96,6 +105,12 @@ public class HarvestModificationHandler {
 
     @Value("${core.base.dir}")
     private String baseDir;
+
+    @Value("${qualityReviewToolController.archiveUrl}")
+    private String openWayBack;
+
+    @Autowired
+    private BrowseHelper browseHelper;
 
     public void clickStart(long targetInstanceId, int harvestResultNumber) throws WCTRuntimeException, DigitalAssetStoreException {
         HarvestResultDTO hr = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
@@ -406,20 +421,129 @@ public class HarvestModificationHandler {
             res.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
 
-        int statusCode = Integer.parseInt(getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE"));
+        String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
+        if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        int statusCode = Integer.parseInt(strStatusCode);
 
         // Send the headers for a redirect.
         if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
             res.setStatus(statusCode);
             String location = getHeaderValue(headers, "Location");
-            res.setHeader("Location", location);
+            if (!Utils.isEmpty(location) && !location.startsWith("http")) {
+                location = url + location;
+            }
+            String encodedLocation = Base64.getEncoder().encodeToString(location.getBytes());
+            res.setHeader("Location", String.format("/curator/tools/browse/%d/?url=%s", hrOid, encodedLocation));
+        } else {
+            // Get the content type.
+            res.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
+            Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), url);
+            IOUtils.copy(Files.newInputStream(path), res.getOutputStream());
+        }
+    }
+
+
+    public void handleBrowse(Long hrOid, String url, HttpServletRequest req, HttpServletResponse res) throws IOException, DigitalAssetStoreException {
+        url = new String(Base64.getDecoder().decode(url));
+
+        // Build a command with the items from the URL.
+        // Load the HarvestResourceDTO from the quality review facade.
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(hrOid);
+        if (hr == null) {        // If the resource is not found, go to an error page.
+            log.error("Resource not found: {}", url);
+            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+
+        TargetInstance ti = hr.getTargetInstance();
+        if (ti == null) {        // If the resource is not found, go to an error page.
+            log.error("Resource not found: {}", url);
+            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+
+        List<Header> headers = new ArrayList<>();
+        try {        // catch any DigitalAssetStoreException and log assumptions
+            headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), url);
+        } catch (Exception e) {
+            log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+
+        // Get the content type.
+        String realContentType = getHeaderValue(headers, "Content-Type");
+        String simpleContentType = this.getSimpleContentType(realContentType);
+
+        String charset = null;
+        if (realContentType != null) {
+            Matcher charsetMatcher = CHARSET_PATTERN.matcher(realContentType);
+            if (charsetMatcher.find()) {
+                charset = charsetMatcher.group(1);
+                log.debug("Desired charset: " + charset + " for " + url);
+            } else {
+                log.debug("No charset for: " + url);
+                charset = CHARSET_LATIN_1.name();
+                realContentType += ";charset=" + charset;
+            }
+        }
+
+        String baseUrl = "/curator/tools/";
+
+        String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
+        if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        int statusCode = Integer.parseInt(getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE"));
+        // Send the headers for a redirect.
+        if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
+            res.setStatus(statusCode);
+            String location = getHeaderValue(headers, "Location");
+            if (!Utils.isEmpty(location) && !location.startsWith("http")) {
+                location = url + location;
+            }
+            String encodedLocation = Base64.getEncoder().encodeToString(location.getBytes());
+            res.setHeader("Location", String.format("%s/browse/%d/?url=%s", baseUrl, hrOid, encodedLocation));
+            return;
         }
 
         // Get the content type.
         res.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
 
         Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), url);
-        IOUtils.copy(Files.newInputStream(path), res.getOutputStream());
+        if (!browseHelper.isReplaceable(simpleContentType)) {
+            IOUtils.copy(Files.newInputStream(path), res.getOutputStream());
+            path.toFile().delete();
+            return;
+        }
+
+        int fileLength = (int) path.toFile().length();
+        byte[] buf = new byte[fileLength];
+        IOUtils.read(Files.newInputStream(path), buf);
+        path.toFile().delete();
+
+        StringBuilder content = new StringBuilder(new String(buf));
+
+        Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern("BASE", "HREF");
+        Matcher m = baseUrlGetter.matcher(content);
+        if (m.find()) {
+            String u = m.group(1);
+            if (u.startsWith("\"") && u.endsWith("\"") || u.startsWith("'") && u.endsWith("'")) {
+                // Ensure the detected Base HREF is not commented
+                // out (unusual case, but we have seen it).
+                int lastEndComment = content.lastIndexOf("-->", m.start());
+                int lastStartComment = content.lastIndexOf("<!--", m.start());
+                if (lastStartComment < 0 || lastEndComment > lastStartComment) {
+                    baseUrl = u.substring(1, u.length() - 1);
+                }
+            }
+        }
+        browseHelper.fix(content, simpleContentType, hrOid, baseUrl);
+
+        res.getOutputStream().write(content.toString().getBytes());
     }
 
     private String getHeaderValue(List<Header> headers, String key) {
@@ -442,6 +566,152 @@ public class HarvestModificationHandler {
     private String getSimpleContentType(String realContentType) {
         return (realContentType == null || realContentType.indexOf(';') < 0) ? realContentType
                 : realContentType.substring(0, realContentType.indexOf(';'));
+    }
 
+    public Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber) {
+        NetworkMapResult resultDbVersion = networkMapClient.getDbVersion(targetInstanceId, harvestResultNumber);
+        NetworkDbVersionDTO versionDTO = networkMapClient.getDbVersionDTO(resultDbVersion.getPayload());
+        Map<String, String> map = new HashMap<>();
+        map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
+        map.put("globalVersion", versionDTO.getGlobalVersion());
+        map.put("currentVersion", versionDTO.getCurrentVersion());
+        map.put("openWayBack", openWayBack);
+        return map;
+    }
+
+
+    public List<BulkImportFileRow> buildImportParse(long targetInstanceId, int harvestResultNumber, ModifyRow cmd) throws IOException, DigitalAssetStoreException {
+        int idx = cmd.getContent().indexOf("base64");
+        if (idx < 0) {
+            log.error("Not a base64 encoded stream");
+            return null;
+        }
+        byte[] doc = Base64.getDecoder().decode(cmd.getContent().substring(idx + 7));
+        ByteArrayInputStream docInputStream = new ByteArrayInputStream(doc);
+
+        Workbook workbook = new XSSFWorkbook(docInputStream);
+        Sheet sheet = workbook.getSheetAt(0);
+
+        List<BulkImportFileRow> importFileRows = new ArrayList<>();
+        int i = 0;
+        Map<Integer, String> headerIndex = new HashMap<>();
+        for (Row row : sheet) {
+            int col = 0;
+
+            if (i == 0) {
+                for (Cell cell : row) {
+                    String colValue = cell.getStringCellValue();
+                    headerIndex.put(col, colValue);
+                    col++;
+                }
+
+            } else {
+                BulkImportFileRow bulkImportFileRowObject = new BulkImportFileRow();
+                for (Cell cell : row) {
+                    String colKey = headerIndex.get(col);
+                    String colValue = cell.getStringCellValue();
+                    BulkImportFileRow.setValue(bulkImportFileRowObject, colKey, colValue);
+                    col++;
+                }
+                importFileRows.add(bulkImportFileRowObject);
+            }
+
+            i++;
+        }
+
+        for (BulkImportFileRow row : importFileRows) {
+            if (Utils.isEmpty(row.getTarget())) {
+                row.setRespCode(-1);
+                continue;
+            }
+
+            NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, row.getTarget());
+
+            String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, row.getTarget());
+            if (networkMapResult == null || networkMapResult.getRspCode() != 0) {
+                log.warn(err);
+                row.setRespCode(-1);
+                continue;
+            }
+
+            String json = (String) networkMapResult.getPayload();
+            NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+            if (node == null) {
+                log.warn(err);
+                row.setRespCode(-1);
+            }else{
+                row.copy(node);
+                row.setRespCode(0);
+
+                node.clear();
+            }
+        }
+
+        return importFileRows;
+    }
+}
+
+class BulkImportFileRow extends NetworkMapNodeDTO{
+    private String option;
+    private String target;
+    private String modificationDateMode;
+    private String modificationDateTime;
+    private int respCode;
+
+    @JsonIgnore
+    public static void setValue(BulkImportFileRow row, String key, String value) {
+        if (Utils.isEmpty(key) || Utils.isEmpty(value)) {
+            return;
+        }
+
+        if (key.trim().equalsIgnoreCase("option")) {
+            row.option = value.toUpperCase();
+        } else if (key.trim().equalsIgnoreCase("target")) {
+            row.target = value;
+        } else if (key.trim().equalsIgnoreCase("modificationDateMode")) {
+            row.modificationDateMode = value.toUpperCase();
+        } else if (key.trim().equalsIgnoreCase("modificationDateTime")) {
+            row.modificationDateTime = value;
+        }
+    }
+
+    public String getOption() {
+        return option;
+    }
+
+    public void setOption(String option) {
+        this.option = option;
+    }
+
+    public String getTarget() {
+        return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
+    }
+
+    public String getModificationDateMode() {
+        return modificationDateMode;
+    }
+
+    public void setModificationDateMode(String modificationDateMode) {
+        this.modificationDateMode = modificationDateMode;
+    }
+
+    public String getModificationDateTime() {
+        return modificationDateTime;
+    }
+
+    public void setModificationDateTime(String modificationDateTime) {
+        this.modificationDateTime = modificationDateTime;
+    }
+
+    public int getRespCode() {
+        return respCode;
+    }
+
+    public void setRespCode(int respCode) {
+        this.respCode = respCode;
     }
 }

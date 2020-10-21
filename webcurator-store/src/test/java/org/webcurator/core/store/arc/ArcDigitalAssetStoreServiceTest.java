@@ -1,24 +1,34 @@
 package org.webcurator.core.store.arc;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
+import org.drools.core.common.NetworkNode;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
+import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.test.BaseWCTStoreTest;
 import org.webcurator.core.store.MockIndexer;
 import org.apache.commons.httpclient.Header;
+import sun.security.ec.ECDSAOperations;
 
 public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigitalAssetStoreService> {
 
@@ -50,9 +60,30 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
             resultDir.mkdirs();
 
             // copy the test files into them
-//			copy(baseDir + "/" + TestCARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
-//            copy(baseDir + "/" + TestCWARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
+            // copy(baseDir + "/" + TestCARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
+            // copy(baseDir + "/" + TestCWARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
         }
+
+        VisualizationProcessorManager processorManager = mock(VisualizationProcessorManager.class);
+        VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, "logs", "reports");
+        WctCoordinatorClient wctClient = mock(WctCoordinatorClient.class);
+        Set<SeedHistoryDTO> seedHistoryDTOS = new LinkedHashSet<>();
+        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO();
+        seedHistoryDTO.setSeed("https://www.kiwisaver.govt.nz/");
+        seedHistoryDTO.setPrimary(true);
+        seedHistoryDTO.setTargetInstanceOid(targetInstanceOid);
+        seedHistoryDTO.setOid(0);
+        seedHistoryDTOS.add(seedHistoryDTO);
+        when(wctClient.getSeedUrls(targetInstanceOid, harvestResultNumber)).thenReturn(seedHistoryDTOS);
+
+        NetworkMapDomainSuffix aTopDomainParser = new NetworkMapDomainSuffix();
+        NetworkMapNode.setTopDomainParse(aTopDomainParser);
+
+        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir);
+        IndexProcessor indexProcessor = new IndexProcessorWarc(dbPool, targetInstanceOid, harvestResultNumber);
+        indexProcessor.init(processorManager, directoryManager, wctClient);
+        indexProcessor.processInternal();
+
     }
 
     public void setUp() throws Exception {

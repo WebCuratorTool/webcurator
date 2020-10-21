@@ -9,7 +9,7 @@ class ModifyHarvestProcessor{
 	}
 
 	uploadFile(cmd, file, callback){
-		$('#popup-window-loading').show();
+		// $('#popup-window-loading').show();
 		this.offset = 0;
 		this.recurseUploadFile(cmd, file, callback);
 	}
@@ -73,7 +73,7 @@ class ModifyHarvestProcessor{
 	}
 
 	singleImport(){
-		var singleImportMode=$('#single-impot-mode').html().toUpperCase();
+		var singleImportMode=$('#single-import-mode').html().toUpperCase();
 		if (singleImportMode==='NEW') {
 			this.singleImportNew();
 		}else{
@@ -142,13 +142,6 @@ class ModifyHarvestProcessor{
 			}
 
 			node.name='--';
-			// node.name=$('#importFromUrlInput').val();
-			// if(!node.name.toLowerCase().startsWith("http://") &&
-			// 	!node.name.toLowerCase().startsWith("https://")){
-			// 	alert("You must specify a valid source URL.");
-			// 	return;
-			// }
-
 			node.modifiedMode='TBC';
 			node.lastModified=0;
 
@@ -246,117 +239,114 @@ class ModifyHarvestProcessor{
 		$('#bulkImportContentFile').val(null);
 	}
 
+	bulkValidateImportMetaData(dataset){
+		var map={};
+
+		for(var i=0;i<dataset.length;i++){
+			var node=dataset[i];
+
+			var target=node.target;
+			if(map[target]){
+				alert("Duplicated target URL at line: " + (i+1) + " and " + map[target]);
+				return;
+			}else{
+				map[target]=i;
+			}
+
+			var option=node.option;
+			var modificationDateMode=node.modificationDateMode;
+			var modificationDateTime=node.modificationDateTime;
+
+			if(option==="FILE"){
+				if(!target.toLowerCase().startsWith("http://")){
+					alert("You must specify a valid target URL at line:" + (i+1) + ". URL starts with: http://");
+					return;
+				}
+
+				if(modificationDateMode==='TBC' || modificationDateMode==='FILE'){
+					node.modificationDateTime=modificationDateMode;
+					node.lastModified=0;
+				}else if (modificationDateMode==='CUSTOM') {
+					var dt=moment(modificationDateTime);
+					if(!dt){
+						alert("Invalid modification datetime at line: " + (i+1));
+						return;
+					}
+
+					node.lastModified=dt.valueOf();
+				}else{
+					alert("Invalid modification mode or datetime at line: " + (i+1));
+					return;
+				}
+			}else if(option==='PRUNE' || option==='RECRAWL'){
+				node.modifiedMode='TBC';
+				node.lastModifiedDate=0;
+				if(!target.toLowerCase().startsWith("http://") &&
+					!target.toLowerCase().startsWith("https://")){
+					alert("You must specify a valid target URL at line:" + (i+1));
+					return;
+				}
+			}else{
+				delete dataset[i];
+				console.log('Skip invalid line: ' + (i+1));
+			}
+		}
+
+		return map;
+	}
+
+	bulkOpenMetadataFile(){
+		var that=this;
+		$('#bulkImportMetadataFile').on('change', function(event){
+            var file=event.target.files[0];
+            console.log(file);
+
+            if(!file){
+				alert("You must specify a metadata file name to import.");
+				return;
+			}
+
+			var reader = new FileReader();
+			reader.addEventListener("loadend", function () {
+				var url="/bulk-import/parse?targetInstanceOid=" + that.jobId + "&harvestNumber=" + that.harvestResultNumber;
+				var req={
+					content: reader.result,
+					metadata: {}
+				};
+				fetchHttp(url, req, function(rsp){
+					var newBulkTargetUrlMap=that.bulkValidateImportMetaData(rsp);
+					if (!newBulkTargetUrlMap) {
+						return;
+					}
+
+					var gridImportNodes=gPopupModifyHarvest.gridToBeModified.getAllNodes();
+					for(var i=0; i<gridImportNodes.length; i++){
+						var key=gridImportNodes[i].url;
+						if(newBulkTargetUrlMap[key]>=0){
+							alert("Duplicated target URL at line: " + (newBulkTargetUrlMap[key]+1));
+							return;
+						}
+					}
+
+					that.nextBulkImportTab(0);
+					gPopupModifyHarvest.gridImportPrepare.setRowData(rsp);
+				});
+
+			});
+
+			reader.readAsDataURL(file);
+        });
+		$('#bulkImportMetadataFile').trigger('click');
+	}
+
 	bulkImportStep0(){
 		var file=$('#bulkImportMetadataFile')[0].files[0];
 		if(!file){
 			alert("You must specify a metadata file name to import.");
 			return;
 		}
-		var that=this;
-		var reader = new FileReader();
-		reader.addEventListener("loadend", function () {
-			var newBulkTargetUrlMap={}; //Using a map to check duplicated target urls;
-			var dataset=[];
-			var text=reader.result;
-			var columnSeparator=$('#bulk-import-column-separator').val();
-			if(columnSeparator==='Tab'){
-				columnSeparator='\t';
-			}
-
-			var lines=text.split('\n');
-			for(var i=0;i<lines.length;i++){
-				var line=lines[i].trim();
-
-				console.log(line);
-
-				var columns=line.split(columnSeparator); //Type, Target, Source, Datetime
-				if(columns.length!==4){
-					alert("Invalid metadata format");
-					return;
-				}
-
-				var type=columns[0].trim(), target=columns[1].trim(), source=columns[2].trim(), modifydatetime=columns[3].trim().toUpperCase();
-				var node={
-					option: type,
-					url: target,
-					name: source,
-					lastModified: modifydatetime,
-					uploadedFlag: -1
-				}
-
-				if(newBulkTargetUrlMap[target]){
-					alert("Duplicated target URL at line: " + (i+1));
-					return;
-				}else{
-					newBulkTargetUrlMap[target]=i;
-				}
-
-
-				if(type.toLowerCase()==="file"){
-					node.option="File";
-					if(!target.toLowerCase().startsWith("http://")){
-						alert("You must specify a valid target URL at line:" + (i+1) + ". URL starts with: http://");
-						return;
-					}
-
-					if(modifydatetime==='TBC' || modifydatetime==='FILE'){
-						node.modifiedMode=modifydatetime;
-						node.lastModified=0;
-					}else{
-						node.modifiedMode='CUSTOM';
-						var dt=moment(modifydatetime);
-						if(!dt){
-							alert("Invalid modification datetime at line: " + (i+1));
-							return;
-						}
-
-						node.lastModified=dt.valueOf();
-					}
-
-					dataset.push(node);
-				}else if(type.toLowerCase()==='url'){
-					node.modifiedMode='TBC';
-					node.lastModifiedDate=0;
-					node.option='URL';
-					if(!target.toLowerCase().startsWith("http://") &&
-						!target.toLowerCase().startsWith("https://")){
-						alert("You must specify a valid target URL at line:" + (i+1));
-						return;
-					}
-
-					// if(!source.toLowerCase().startsWith("http://") &&
-					// 	!source.toLowerCase().startsWith("https://")){
-					// 	alert("You must specify a valid source URL at line:" + (i+1));
-					// 	return;
-					// }
-					dataset.push(node);
-				}else{
-					//alert("Import type must be 'file' or 'url' at line: " + (i+1));
-					//return;
-					console.log('Skip invalid line: ' + line);
-				}
-			}
-
-
-			var gridImportNodes=gPopupModifyHarvest.gridImport.getAllNodes();
-			for(var i=0; i<gridImportNodes.length; i++){
-				var key=gridImportNodes[i].url;
-				if(newBulkTargetUrlMap[key]>=0){
-					alert("Duplicated target URL at line: " + (newBulkTargetUrlMap[key]+1));
-					return;
-				}
-			}
-
-
-			that.checkFilesExistAtServerSide(dataset, function(response){
-				that.nextBulkImportTab(0);
-				gPopupModifyHarvest.gridImportPrepare.setRowData(response.metadataDataset);
-			});
-
-		});
-
-		// reader.readAsDataURL(file);
-		reader.readAsText(file);
+		
+		// reader.readAsText(file);
 	}
 
 	bulkImportStep1(){

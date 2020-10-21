@@ -25,10 +25,22 @@ public class NetworkMapController implements NetworkMapService {
     }
 
     @Override
-    @RequestMapping(path = VisualizationConstants.PATH_GET_COMMON, method = {RequestMethod.POST}, produces = "application/json")
-    public NetworkMapResult get(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("key") String key) {
-        return client.get(job, harvestResultNumber, key);
+    @RequestMapping(path = VisualizationConstants.PATH_GET_DB_VERSION, method = {RequestMethod.POST}, produces = "application/json")
+    public NetworkMapResult getDbVersion(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+        NetworkMapResult result = null;
+        try {
+            result = client.getDbVersion(job, harvestResultNumber);
+        } catch (Throwable e) {
+            result = NetworkMapResult.getSystemError();
+        }
+        return result;
     }
+
+//    @Override
+//    @RequestMapping(path = VisualizationConstants.PATH_GET_COMMON, method = {RequestMethod.POST}, produces = "application/json")
+//    public NetworkMapResult get(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("key") String key) {
+//        return client.get(job, harvestResultNumber, key);
+//    }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_NODE, method = {RequestMethod.POST}, produces = "application/json")
@@ -40,6 +52,12 @@ public class NetworkMapController implements NetworkMapService {
     @RequestMapping(path = VisualizationConstants.PATH_GET_OUTLINKS, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult getOutlinks(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("id") long id) {
         return client.getOutlinks(job, harvestResultNumber, id);
+    }
+
+    @Override
+    @RequestMapping(path = VisualizationConstants.PATH_GET_URLS_CASCADED_BY_PATH, method = {RequestMethod.POST}, produces = "application/json")
+    public NetworkMapResult searchUrl2CascadePaths(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("title") String title, @RequestBody NetworkMapServiceSearchCommand searchCommand) {
+        return client.searchUrl2CascadePaths(job, harvestResultNumber, title, searchCommand);
     }
 
     @Override

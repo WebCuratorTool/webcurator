@@ -9,6 +9,7 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface VisualizationServiceInterface {
     Logger log = LoggerFactory.getLogger(VisualizationServiceInterface.class);
@@ -52,6 +53,22 @@ public interface VisualizationServiceInterface {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             return objectMapper.readValue(json, new TypeReference<List<NetworkMapNodeDTO>>() {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    default public Map<String, String> getMapFromJson(String json) {
+        if (json == null) {
+            return null;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {
             });
         } catch (IOException e) {
             e.printStackTrace();

@@ -3,20 +3,18 @@ package org.webcurator.core.visualization.networkmap.metadata;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.context.ApplicationContext;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.URLResolverFunc;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
 public class NetworkMapNode extends NetworkMapNodeDTO {
     private static NetworkMapDomainSuffix topDomainParser = null;
-    public static void setTomDomainParse(NetworkMapDomainSuffix aTopDomainParser){
-        topDomainParser=aTopDomainParser;
+
+    public static void setTopDomainParse(NetworkMapDomainSuffix aTopDomainParser) {
+        topDomainParser = aTopDomainParser;
     }
 
     @JsonIgnore
@@ -29,6 +27,10 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
     protected boolean responseParseFlag = false;
     @JsonIgnore
     protected boolean metadataParseFlag = false;
+    @JsonIgnore
+    protected String domain;
+    @JsonIgnore
+    protected String topDomain;
 
     public NetworkMapNode() {
     }
@@ -53,37 +55,6 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
     }
 
     @JsonIgnore
-    public void increaseTotUrls(int totUrls) {
-        this.totUrls += totUrls;
-    }
-
-    @JsonIgnore
-    public void increaseTotSuccess(int totSuccess) {
-        this.totSuccess += totSuccess;
-    }
-
-    @JsonIgnore
-    public void increaseTotFailed(int totFailed) {
-        this.totFailed += totFailed;
-    }
-
-    @JsonIgnore
-    public void increaseTotSize(long totSize) {
-        this.totSize += totSize;
-    }
-
-    @JsonIgnore
-    public void accumulate(int statusCode, long contentLength, String contentType) {
-        this.increaseTotSize(contentLength);
-        if (isSuccess(statusCode)) {
-            this.increaseTotSuccess(1);
-        } else {
-            this.increaseTotFailed(1);
-        }
-        this.increaseTotUrls(1);
-    }
-
-    @JsonIgnore
     public void accumulate(List<NetworkMapNode> list) {
         if (list == null) {
             return;
@@ -97,11 +68,6 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
     @JsonIgnore
     public void clearChildren() {
         this.children.clear(); //Not clear the grand children
-    }
-
-    @JsonIgnore
-    public boolean isSuccess(int statusCode) {
-        return statusCode >= 200 && statusCode < 400;
     }
 
     @JsonIgnore
@@ -124,6 +90,17 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
             this.domain = host;
             this.topDomain = topDomainParser.getTopDomainName(host);
         }
+    }
+
+    @JsonIgnore
+    public static String getTopDomainName(String url) {
+        String topDomainName = "Unknown";
+
+        String lowerDomainName = URLResolverFunc.url2domain(url);
+        if (lowerDomainName != null) {
+            topDomainName = topDomainParser.getTopDomainName(lowerDomainName);
+        }
+        return topDomainName;
     }
 
     @JsonIgnore
@@ -176,6 +153,26 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
         this.metadataParseFlag = metadataParseFlag;
     }
 
+    @JsonIgnore
+    public String getDomain() {
+        return domain;
+    }
+
+    @JsonIgnore
+    public void setDomain(String domain) {
+        this.domain = domain;
+    }
+
+    @JsonIgnore
+    public String getTopDomain() {
+        return topDomain;
+    }
+
+    @JsonIgnore
+    public void setTopDomain(String topDomain) {
+        this.topDomain = topDomain;
+    }
+
     public static NetworkMapNode getNodeEntity(String json) {
         if (json == null) {
             return null;
@@ -202,16 +199,5 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
         }
 
         return json;
-    }
-
-    @JsonIgnore
-    public String getUnlString() {
-        String strOutlinks = outlinks.stream().map(outlink -> {
-            return Long.toString(outlink);
-        }).collect(Collectors.joining(","));
-        return String.format("%d %s %s %s %d %d %d %d %d %d %d %s %s %d %d %d %s %b [%s]",
-                id, url, domain, topDomain, seedType, totUrls, totSuccess, totFailed, totSize,
-                domainId, contentLength, contentType, statusCode, parentId, offset, fetchTimeMs,
-                fileName, isSeed, strOutlinks);
     }
 }

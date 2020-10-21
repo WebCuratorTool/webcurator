@@ -4,7 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.BaseVisualizationTest;
 import org.webcurator.core.visualization.VisualizationConstants;
@@ -19,7 +18,6 @@ import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +27,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
     private IndexProcessor indexer;
 
     @Before
-    public void initTest() throws IOException, DigitalAssetStoreException {
+    public void initTest() throws Exception {
         super.initTest();
 
         NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
@@ -40,7 +38,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         } catch (Exception e) {
             log.error("Load domain suffix file failed.", e);
         }
-        NetworkMapNode.setTomDomainParse(suffixParser);
+        NetworkMapNode.setTopDomainParse(suffixParser);
 
         String dbPath = pool.getDbPath(targetInstanceId, harvestResultNumber);
         File f = new File(dbPath);

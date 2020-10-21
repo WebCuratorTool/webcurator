@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
+import org.jsoup.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,7 +185,6 @@ public class BrowseHelper {
      * @param currentResource The URL of the current resource.
      */
     public void fix(StringBuilder content, String contentType, long hrOid, String currentResource) {
-
         String resourcePrefix = prefix + "/" + hrOid + "/?url=";
         String jsPrefix = prefix.replaceFirst("curator/tools/browse", "replay/client-rewrite.js");
 
@@ -402,20 +402,25 @@ public class BrowseHelper {
     }
 
     public static String encodeUrl(String s) {
-        try {
-            return URLEncoder.encode(s, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            log.error("Failed to encode: {}, error: {}", s, e.getMessage());
-        }
-        return s;
+//        try {
+//            return URLEncoder.encode(s, "UTF-8");
+//            return Base64.getEncoder().encodeToString(s.getBytes());
+//        } catch (UnsupportedEncodingException e) {
+//            log.error("Failed to encode: {}, error: {}", s, e.getMessage());
+//        }
+//        return s;
+
+        return Base64.getEncoder().encodeToString(s.getBytes());
     }
 
     public static String decodeUrl(String s) {
-        try {
-            return URLDecoder.decode(s, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            log.error("Failed to decode: {}, error: {}", s, e.getMessage());
-        }
-        return s;
+//        try {
+//            return URLDecoder.decode(s, "UTF-8");
+//        } catch (UnsupportedEncodingException e) {
+//            log.error("Failed to decode: {}, error: {}", s, e.getMessage());
+//        }
+//        return s;
+
+        return new String(Base64.getDecoder().decode(s));
     }
 }

@@ -1,11 +1,15 @@
 package org.webcurator.core.visualization.networkmap.bdb;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sleepycat.je.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapTreeViewPath;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,17 +26,12 @@ import java.util.List;
 @SuppressWarnings("all")
 public class BDBNetworkMap {
     private static final Logger log = LoggerFactory.getLogger(BDBNetworkMap.class);
-    public final static String PATH_ROOT_URLS = "rootUrls";
-    public final static String PATH_MALFORMED_URLS = "malformedUrls";
-    public final static String PATH_COUNT_DOMAIN = "countDomain";
-    public final static String PATH_COUNT_URL = "countUrl";
-
-    public final static String PATH_GROUP_BY_DOMAIN = "keyGroupByDomain";
-    public final static String PATH_GROUP_BY_CONTENT_TYPE = "keyGroupByContentType";
-    public final static String PATH_GROUP_BY_STATUS_CODE = "keyGroupByStatusCode";
-    public final static String PATH_METADATA_DOMAIN_NAME = "keyMetadataDomainName";
-    public final static String PATH_METADATA_CONTENT_TYPE = "keyMetadataContentType";
-    public final static String PATH_METADATA_STATUS_CODE = "keyMetadataStatusCode";
+    private final static String KEY_DB_VERSION = "Version";
+    private final static String KEY_ROOT_URLS = "RootUrls";
+    private final static String KEY_MALFORMED_URLS = "MalformedUrls";
+    public final static String KEY_URL_COUNT = "UrlCount";
+    private final static String KEY_INDIVIDUAL_DOMAIN = "domain_";
+    private final static String KEY_GROUP_BY_DOMAIN = "GroupByDomain";
 
     public final static Charset UTF8 = StandardCharsets.UTF_8;
 
@@ -49,7 +48,7 @@ public class BDBNetworkMap {
      * name of BDBJE db within the path directory
      */
     private String dbName;
-
+    private String dbVersion;
     /**
      * BDBJE Environment
      */
@@ -65,10 +64,10 @@ public class BDBNetworkMap {
      * @param theDbName Name of files in thePath
      * @throws IOException for usual reasons, plus as database exceptions
      */
-    public void initializeDB(final String thePath, final String theDbName)
-            throws IOException {
-        path = thePath;
-        dbName = theDbName;
+    public void initializeDB(final String thePath, final String theDbName, final String dbVersion) throws IOException {
+        this.path = thePath;
+        this.dbName = theDbName;
+        this.dbVersion = dbVersion;
 
         EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setCacheSize(1024 * 1024);
@@ -112,7 +111,7 @@ public class BDBNetworkMap {
      * @param s
      * @return byte array representation of String s in UTF-8
      */
-    public static byte[] stringToBytes(String s) {
+    private static byte[] stringToBytes(String s) {
         return s.getBytes(UTF8);
     }
 
@@ -120,7 +119,7 @@ public class BDBNetworkMap {
      * @param ba
      * @return String of UTF-8 encoded bytes ba
      */
-    public static String bytesToString(byte[] ba) {
+    private static String bytesToString(byte[] ba) {
         return new String(ba, UTF8);
     }
 
@@ -155,18 +154,18 @@ public class BDBNetworkMap {
         }
     }
 
-    public void put(String keyStr, String valueStr) throws DatabaseException {
+    private void put(String keyStr, String valueStr) throws DatabaseException {
 //        System.out.println(keyStr + ": " + valueStr);
         DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
         DatabaseEntry data = new DatabaseEntry(stringToBytes(valueStr));
         db.put(null, key, data);
     }
 
-    public void put(long id, String valueStr) throws DatabaseException {
+    private void put(long id, String valueStr) throws DatabaseException {
         put(Long.toString(id), valueStr);
     }
 
-    public void put(String keyStr, Object obj) throws DatabaseException {
+    private void put(String keyStr, Object obj) throws DatabaseException {
         String json = "{}";
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -177,11 +176,11 @@ public class BDBNetworkMap {
         put(keyStr, json);
     }
 
-    public void put(long id, Object obj) throws DatabaseException {
+    private void put(long id, Object obj) throws DatabaseException {
         put(Long.toString(id), obj);
     }
 
-    public String get(String keyStr) throws DatabaseException {
+    private String get(String keyStr) throws DatabaseException {
         String result = null;
         DatabaseEntry key = new DatabaseEntry(stringToBytes(keyStr));
         DatabaseEntry data = new DatabaseEntry();
@@ -194,7 +193,7 @@ public class BDBNetworkMap {
     }
 
 
-    public String get(long id) throws DatabaseException {
+    private String get(long id) throws DatabaseException {
         return get(Long.toString(id));
     }
 
@@ -206,7 +205,7 @@ public class BDBNetworkMap {
         db.delete(null, new DatabaseEntry(stringToBytes(keyStr)));
     }
 
-    public List<String> searchKeys(String substring) {
+    private List<String> searchKeys(String substring) {
         List<String> result = new ArrayList<>();
 
         // Open the cursor.
@@ -238,8 +237,8 @@ public class BDBNetworkMap {
         return result;
     }
 
-    public Cursor openCursor(){
-       return db.openCursor(null, null);
+    public Cursor openCursor() {
+        return db.openCursor(null, null);
     }
 
     /**
@@ -271,40 +270,151 @@ public class BDBNetworkMap {
     }
 
 
-//    public static void main(String[] args) throws IOException {
-//        BDBNetworkMap db = new BDBNetworkMap();
-//        db.initializeDB("/usr/local/wct/store/_db_temp", "resource.db");
-//
-//        long MAX_TRY = 1000000;
-//
-//        long startTime = System.currentTimeMillis();
-//        for (long id = 1; id <= MAX_TRY; id++) {
-//            db.put(id, "Content:" + id);
-//            if (id % 1000 == 0) {
-//                long endTime = System.currentTimeMillis();
-//                System.out.println("Running write:" + id + ", time used:" + (endTime - startTime));
-//                startTime = endTime;
-//            }
-//        }
-//
-//        db.shutdownDB();
-//
-//        db.initializeDB("/usr/local/wct/store/_db_temp", "resource.db");
-//
-//        startTime = System.currentTimeMillis();
-//        for (long id = 1; id <= MAX_TRY; id++) {
-//            String str = db.get(id);
-//            if (str == null) {
-//                System.out.println("Error:" + id);
-//            }
-//
-//            if (id % 1000 == 0) {
-//                long endTime = System.currentTimeMillis();
-//                System.out.println("Running read:" + id + ", time used:" + (endTime - startTime));
-//                startTime = endTime;
-//            }
-//        }
-//
-//        db.shutdownDB();
-//    }
+    private void putIdList(String key, List<Long> idList) {
+        this.put(key, idList);
+    }
+
+    private List<Long> getIdList(String key) {
+        String json = this.get(key);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<Long>>() {
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public void putUrl(NetworkMapNodeDTO url) {
+        String key = "uid_" + url.getId();
+        String unl = url.toUnlString();
+        this.put(key, unl);
+    }
+
+    public NetworkMapNodeDTO getUrl(long id) {
+        String key = "uid_" + id;
+        String unl = this.get(key);
+
+        NetworkMapNodeDTO n = new NetworkMapNodeDTO();
+        try {
+            n.toObjectFromUnl(unl);
+        } catch (Exception e) {
+            return null;
+        }
+        return n;
+    }
+
+    public String getUrlString(long id) {
+        String key = "uid_" + id;
+        return this.get(key);
+    }
+
+    public void putUrlNamePairUrlId(String urlName, long urlId) {
+        String key = "url_" + urlName;
+        this.put(key, urlId);
+    }
+
+    public long getUrlIdByUrlName(String urlName) {
+        String key = "url_" + urlName;
+        String urlId = this.get(key);
+        return Long.parseLong(urlId);
+    }
+
+    public NetworkMapNodeDTO getUrlByUrlName(String urlName) {
+        String key1 = "url_" + urlName;
+        String urlId = this.get(key1);
+        String key2 = "uid_" + urlId;
+        String unl = this.get(key2);
+        NetworkMapNodeDTO n = new NetworkMapNodeDTO();
+        try {
+            n.toObjectFromUnl(unl);
+        } catch (Exception e) {
+            return null;
+        }
+        return n;
+    }
+
+    public void putTreeViewPath(NetworkMapTreeViewPath path) {
+        String key = "path_" + path.getId();
+        String unl = path.toUnlString();
+        log.debug("TreeViewPath: {}", unl);
+        this.put(key, unl);
+    }
+
+    public NetworkMapTreeViewPath getTreeViewPath(long id) {
+        String key = "path_" + id;
+        String unl = this.get(key);
+        NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();
+        try {
+            path.toObjectFromUnl(unl);
+        } catch (Exception e) {
+            return null;
+        }
+        return path;
+    }
+
+    public void putRootUrlIdList(List<Long> list) {
+        this.put(KEY_ROOT_URLS, list);
+    }
+
+    public List<Long> getRootUrlIdList() {
+        return this.getIdList(KEY_ROOT_URLS);
+    }
+
+    public void putMalformedUrlIdList(List<Long> list) {
+        this.put(KEY_MALFORMED_URLS, list);
+    }
+
+    public List<Long> getMalformedUrlIdList() {
+        return this.getIdList(KEY_MALFORMED_URLS);
+    }
+
+    public void putIndividualDomainIdList(long domainId, List<Long> list) {
+        String key = KEY_INDIVIDUAL_DOMAIN + "_" + domainId;
+        this.put(key, list);
+    }
+
+    public List<Long> getIndividualDomainIdList(long domainId) {
+        String key = KEY_INDIVIDUAL_DOMAIN + "_" + domainId;
+        return this.getIdList(key);
+    }
+
+    public void putRootDomain(NetworkMapDomain domain) {
+        this.put(KEY_GROUP_BY_DOMAIN, domain);
+    }
+
+    public NetworkMapDomain getRootDomain() {
+        String json = this.get(KEY_GROUP_BY_DOMAIN);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(json, NetworkMapDomain.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public String getRootDomainString() {
+        return this.get(KEY_GROUP_BY_DOMAIN);
+    }
+
+    public void putDbVersionStamp(String dbVersion) {
+        this.put(KEY_DB_VERSION, dbVersion);
+    }
+
+    public String getDbVersionStamp() {
+        return this.get(KEY_DB_VERSION);
+    }
+
+    public void putUrlCount(long urlCount) {
+        this.put(KEY_URL_COUNT, urlCount);
+    }
+
+    public long getUrlCount() {
+        String val = this.get(KEY_URL_COUNT);
+        return Long.parseLong(val);
+    }
 }

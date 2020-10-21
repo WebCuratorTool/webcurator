@@ -28,7 +28,7 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
     private ModifyProcessor warcProcessor = null;
 
     @Before
-    public void initTest() throws IOException, DigitalAssetStoreException {
+    public void initTest() throws Exception {
         super.initTest();
 
         List<File> dirs = new LinkedList<>();

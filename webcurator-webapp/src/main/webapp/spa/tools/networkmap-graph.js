@@ -81,7 +81,7 @@ class NetworkMapGraph{
   }
 
   draw(data){
-    $('#popup-window-loading').show();
+    $('#networkmap .overlay').show();
 
     this.originalData=data;
     this.dataMap=this.initialDataSet(data);
@@ -127,14 +127,12 @@ class NetworkMapGraph{
         that.stabilized=true;
       }else{
         console.log("stabilized");
-        // $('#popup-window-loading').hide();
-        setTimeout(function () {$('#popup-window-loading').hide();}, 300);
+        setTimeout(function () {$('#networkmap .overlay').hide();}, 300);
       }
     });
 
     this.network.once("stabilizationIterationsDone", function() {
         console.log("stabilizationIterationsDone");
-        //setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
     });
 
     //========Recover the scale and position after pyhsics simulation========
@@ -371,7 +369,7 @@ class NetworkMapGraph{
     }
   }
 
-  reload(){
+  redraw(){
     // this.viewOptions.scale=this.network.getScale();
     this.stabilized=false;
     this.options.physics.stabilization.iterations=300;

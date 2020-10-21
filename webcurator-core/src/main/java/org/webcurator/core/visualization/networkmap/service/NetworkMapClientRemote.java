@@ -31,17 +31,47 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
     }
 
     @Override
-    public NetworkMapResult get(long job, int harvestResultNumber, String key) {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_COMMON))
+    public NetworkMapResult getDbVersion(long job, int harvestResultNumber) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_DB_VERSION))
                 .queryParam("job", job)
-                .queryParam("harvestResultNumber", harvestResultNumber)
-                .queryParam("key", key);
+                .queryParam("harvestResultNumber", harvestResultNumber);
         URI uri = uriComponentsBuilder.build().toUri();
 
         RestTemplate restTemplate = restTemplateBuilder.build();
 
         NetworkMapResult result;
         result = restTemplate.postForObject(uri, null, NetworkMapResult.class);
+        return result;
+    }
+
+//    @Override
+//    public NetworkMapResult get(long job, int harvestResultNumber, String key) {
+//        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_COMMON))
+//                .queryParam("job", job)
+//                .queryParam("harvestResultNumber", harvestResultNumber)
+//                .queryParam("key", key);
+//        URI uri = uriComponentsBuilder.build().toUri();
+//
+//        RestTemplate restTemplate = restTemplateBuilder.build();
+//
+//        NetworkMapResult result;
+//        result = restTemplate.postForObject(uri, null, NetworkMapResult.class);
+//        return result;
+//    }
+
+    @Override
+    public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, String title, NetworkMapServiceSearchCommand searchCommand) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_URLS_CASCADED_BY_PATH))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber)
+                .queryParam("title", title);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        HttpEntity<String> request = createHttpRequestEntity(searchCommand);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        NetworkMapResult result;
+        result = restTemplate.postForObject(uri, request, NetworkMapResult.class);
         return result;
     }
 

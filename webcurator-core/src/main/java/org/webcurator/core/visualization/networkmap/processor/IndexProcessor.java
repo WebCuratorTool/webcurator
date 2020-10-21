@@ -13,10 +13,8 @@ import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapApplyCommand;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomainManager;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.*;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
@@ -24,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
 public abstract class IndexProcessor extends VisualizationAbstractProcessor {
@@ -32,12 +31,14 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     protected Map<String, NetworkMapNode> urls = new Hashtable<>();
     protected BDBNetworkMap db;
-    protected AtomicLong atomicIdGeneratorDomain = new AtomicLong();
-    protected AtomicLong atomicIdGeneratorUrl = new AtomicLong();
+    protected AtomicLong atomicIdGeneratorUrl = new AtomicLong(0);
+    protected AtomicLong atomicIdGeneratorPath = new AtomicLong(0);
     protected Map<String, Boolean> seeds = new HashMap<>();
+    protected BDBNetworkMapPool pool;
 
     public IndexProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         super(targetInstanceId, harvestResultNumber);
+        this.pool = pool;
         this.flag = "IDX";
         this.reportTitle = StatisticItem.getPrintTitle();
         this.state = HarvestResult.STATE_INDEXING;
@@ -59,7 +60,6 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     }
 
     public void indexFile(ArchiveReader reader, String fileName) throws IOException {
-//        String fileName = reader.getStrippedFileName();
         log.info("Start to index file: {}", fileName);
         this.writeLog("Start indexing from: " + fileName);
 
@@ -115,6 +115,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             // if url u-->v then domain du->dv, DU->DV, du->DV, DU->dv
             NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
             NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
+            node.setDomainId(domainNodeLower.getId());
             if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
                 domainNodeHigh.setSeed(true);
                 domainNodeLower.setSeed(true);
@@ -138,8 +139,21 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 parentDomainNodeLower.addOutlink(domainNodeLower.getId());
             }
         });
-        db.put(BDBNetworkMap.PATH_GROUP_BY_DOMAIN, rootDomainNode);
+        db.putRootDomain(rootDomainNode);
         this.writeLog("Finished storing domain nodes");
+
+        //Saving the links of each domain
+        Map<Long, List<NetworkMapNode>> groupedByDomain = this.urls.values().stream().collect(Collectors.groupingBy(NetworkMapNode::getDomainId));
+        groupedByDomain.forEach((k, v) -> {
+            this.tryBlock();
+            List<Long> listUrlIDs = v.stream().map(NetworkMapNode::getId).collect(Collectors.toList());
+            db.putIndividualDomainIdList(k, listUrlIDs);
+        });
+
+        //Create the treeview, permenit the paths and set parentPathId for all networkmap nodes.
+        NetworkMapTreeNodeDTO rootTreeNode = this.classifyTreePaths();
+        this.permenitCascadePath(rootTreeNode, -1);
+        rootTreeNode.destroy();
 
         //Process and save url
         List<Long> rootUrls = new ArrayList<>();
@@ -147,9 +161,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         this.urls.values().forEach(e -> {
             this.tryBlock();
 
-            db.put(e.getId(), e.getUnlString());             //Indexed by ID, ID->NODE
-            db.put(e.getUrl(), e.getId()); //Indexed by URL, URL->ID->NODE
-
+            db.putUrl(e); //Indexed by ID, ID->NODE
+            db.putUrlNamePairUrlId(e.getUrl(), e.getId());//Indexed by URL, URL->ID->NODE
             if (e.isSeed() || e.getParentId() <= 0) {
                 rootUrls.add(e.getId());
             }
@@ -158,10 +171,12 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 malformedUrls.add(e.getId());
             }
         });
-        db.put(BDBNetworkMap.PATH_ROOT_URLS, rootUrls);
+        db.putRootUrlIdList(rootUrls);
         rootUrls.clear();
-        db.put(BDBNetworkMap.PATH_MALFORMED_URLS, malformedUrls);
+        db.putMalformedUrlIdList(malformedUrls);
         malformedUrls.clear();
+
+        db.putUrlCount(this.urls.size());
 
         this.writeLog("Finished storing url nodes");
     }
@@ -174,6 +189,51 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     public void clear() {
         this.urls.values().forEach(NetworkMapNode::clear);
         this.urls.clear();
+    }
+
+    private NetworkMapTreeNodeDTO classifyTreePaths() {
+        List<NetworkMapTreeNodeDTO> allTreeNodes = this.urls.values().parallelStream().map(networkMapNode -> {
+            NetworkMapTreeNodeDTO treeNodeDTO = new NetworkMapTreeNodeDTO();
+            treeNodeDTO.setId(networkMapNode.getId());
+            treeNodeDTO.setViewType(NetworkMapTreeNodeDTO.VIEW_TYPE_DOMAIN);
+            treeNodeDTO.setUrl(networkMapNode.getUrl());
+            treeNodeDTO.setContentType(networkMapNode.getContentType());
+            treeNodeDTO.setStatusCode(networkMapNode.getStatusCode());
+            treeNodeDTO.setContentLength(networkMapNode.getContentLength());
+            treeNodeDTO.setFolder(false);
+            treeNodeDTO.setLazy(false);
+            treeNodeDTO.accumulate();
+            return treeNodeDTO;
+        }).collect(Collectors.toList());
+
+        NetworkMapTreeNodeDTO rootTreeNode = new NetworkMapTreeNodeDTO();
+        rootTreeNode.setChildren(allTreeNodes);
+
+        NetworkMapCascadePath cascadeProcessor = new NetworkMapCascadePath();
+        cascadeProcessor.classifyTreePaths(rootTreeNode);
+
+        return rootTreeNode;
+    }
+
+    private void permenitCascadePath(NetworkMapTreeNodeDTO rootTreeNode, long parentPathId) {
+        //
+        if (rootTreeNode.getChildren().size() == 0) {
+            NetworkMapNode networkMapNode = this.urls.get(rootTreeNode.getUrl());
+            if (networkMapNode != null) {
+                networkMapNode.setParentPathId(parentPathId);
+            }
+        } else {
+            NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();
+            path.setId(atomicIdGeneratorPath.getAndIncrement());
+            path.setParentPathId(parentPathId);
+            path.setTitle(rootTreeNode.getTitle());
+
+            db.putTreeViewPath(path);
+
+            for (NetworkMapTreeNodeDTO subTreeNode : rootTreeNode.getChildren()) {
+                permenitCascadePath(subTreeNode, path.getId());
+            }
+        }
     }
 
     @Override
@@ -226,6 +286,9 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         }
 
         this.statAndSave();
+
+        db.putDbVersionStamp(pool.getDbVersion());
+
         this.writeReport();
         progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
 

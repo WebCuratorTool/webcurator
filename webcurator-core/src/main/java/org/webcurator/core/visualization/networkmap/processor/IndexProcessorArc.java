@@ -52,7 +52,7 @@ public class IndexProcessorArc extends IndexProcessor {
             return;
         }
 
-        NetworkMapNode res = new NetworkMapNode(atomicIdGeneratorUrl.incrementAndGet());
+        NetworkMapNode res = new NetworkMapNode(atomicIdGeneratorUrl.getAndIncrement());
         res.setUrlAndDomain(header.getUrl());
         res.setOffset(header.getOffset());
         res.setStatusCode(record.getStatusCode());

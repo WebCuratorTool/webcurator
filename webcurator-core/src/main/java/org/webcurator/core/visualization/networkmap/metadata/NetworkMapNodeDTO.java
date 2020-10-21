@@ -1,37 +1,24 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.webcurator.core.util.URLResolverFunc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class NetworkMapNodeDTO {
+public class NetworkMapNodeDTO extends NetworkMapCommonNode implements NetworkMapUnlStructure {
+    public final static int UNL_FIELDS_COUNT_MAX = 18;
+
     public static final int SEED_TYPE_PRIMARY = 0;
     public static final int SEED_TYPE_SECONDARY = 1;
     public static final int SEED_TYPE_OTHER = 2;
-    
-    protected long id;
+
     protected String url;
-    protected String domain;
-    protected String topDomain;
-    protected boolean isSeed = false; //true: if url equals seed or domain contains seed url.
-    protected int seedType = -1;
 
-    /////////////////////////////////////////////////////////////////////////////////////////
-    // 1. Domain: the total items of all urls contained in this domain.
-    // 2. URL: the total items of all urls directly link to this url and the url itself
-    protected int totUrls = 0;
-    protected int totSuccess = 0;
-    protected int totFailed = 0;
-    protected long totSize = 0;
-    ///////////////////////////////////////////////////////////////////////////////////////////
-
-    protected long domainId = -1; //default: no domain
-    protected long contentLength;
-    protected String contentType;
-    protected int statusCode;
     protected long parentId = -1;
+    protected long parentPathId = -1;
+
     protected long offset;
     protected long fetchTimeMs; //ms: time used to download the page
     protected String fileName;
@@ -41,14 +28,6 @@ public class NetworkMapNodeDTO {
 
     protected String title;
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public String getUrl() {
         return url;
     }
@@ -57,105 +36,6 @@ public class NetworkMapNodeDTO {
         this.url = url;
     }
 
-    public String getDomain() {
-        return domain;
-    }
-
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public String getTopDomain() {
-        return topDomain;
-    }
-
-    public void setTopDomain(String topDomain) {
-        this.topDomain = topDomain;
-    }
-
-    public boolean isSeed() {
-        return isSeed;
-    }
-
-    public void setSeed(boolean seed) {
-        isSeed = seed;
-    }
-
-    public int getSeedType() {
-        return seedType;
-    }
-
-    public void setSeedType(int seedType) {
-        this.seedType = seedType;
-    }
-
-    public int getTotUrls() {
-        return totUrls;
-    }
-
-    public void setTotUrls(int totUrls) {
-        this.totUrls = totUrls;
-    }
-
-    public int getTotSuccess() {
-        return totSuccess;
-    }
-
-    public void setTotSuccess(int totSuccess) {
-        this.totSuccess = totSuccess;
-    }
-
-    public int getTotFailed() {
-        return totFailed;
-    }
-
-    public void setTotFailed(int totFailed) {
-        this.totFailed = totFailed;
-    }
-
-    public long getTotSize() {
-        return totSize;
-    }
-
-    public void setTotSize(long totSize) {
-        this.totSize = totSize;
-    }
-
-    public long getDomainId() {
-        return domainId;
-    }
-
-    public void setDomainId(long domainId) {
-        this.domainId = domainId;
-    }
-
-    public long getContentLength() {
-        return contentLength;
-    }
-
-    public void setContentLength(long contentLength) {
-        this.contentLength = contentLength;
-//        this.totSize += contentLength;
-    }
-
-    public String getContentType() {
-        if (contentType == null) {
-            return "Unknown";
-        }
-        return contentType;
-    }
-
-    public void setContentType(String contentType) {
-        this.contentType = URLResolverFunc.trimContentType(contentType);
-    }
-
-    public int getStatusCode() {
-        return statusCode;
-    }
-
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
-    }
 
     public long getParentId() {
         return parentId;
@@ -163,6 +43,14 @@ public class NetworkMapNodeDTO {
 
     public void setParentId(long parentId) {
         this.parentId = parentId;
+    }
+
+    public long getParentPathId() {
+        return parentPathId;
+    }
+
+    public void setParentPathId(long parentPathId) {
+        this.parentPathId = parentPathId;
     }
 
     public long getOffset() {
@@ -214,6 +102,19 @@ public class NetworkMapNodeDTO {
     }
 
     @JsonIgnore
+    public void copy(NetworkMapNodeDTO that) {
+        super.copy(that);
+        this.url = that.url;
+        this.title = that.title;
+        this.parentId = that.parentId;
+        this.offset = that.offset;
+        this.fetchTimeMs = that.fetchTimeMs;
+        this.fileName = that.fileName;
+        this.outlinks = that.getOutlinks();
+        this.children = that.getChildren();
+    }
+
+    @JsonIgnore
     public void clear() {
         this.outlinks.clear();
         this.children.forEach(NetworkMapNodeDTO::clear);
@@ -223,5 +124,53 @@ public class NetworkMapNodeDTO {
     @JsonIgnore
     public void putChild(NetworkMapNodeDTO e) {
         this.children.add(e);
+    }
+
+    @JsonIgnore
+    @Override
+    public String toUnlString() {
+        String strOutlinks = outlinks.stream().map(outlink -> Long.toString(outlink)).collect(Collectors.joining(","));
+        return String.format("%d\n%s\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%s\n%s\n%d\n%d\n%d\n%s\n%b\n[%s]\n%d",
+                id, url, seedType, totUrls, totSuccess, totFailed, totSize,
+                domainId, contentLength, contentType, statusCode, parentId, offset, fetchTimeMs,
+                fileName, isSeed, strOutlinks, parentPathId);
+    }
+
+    @JsonIgnore
+    @Override
+    public void toObjectFromUnl(String unl) throws Exception {
+        if (unl == null) {
+            throw new Exception("Unl could not be null.");
+        }
+        String[] items = unl.split(UNL_FIELDS_SEPARATOR);
+        if (items.length != UNL_FIELDS_COUNT_MAX) {
+            throw new Exception("Item number=" + items.length + " does not equal to UNL_FIELDS_COUNT_MAX=" + UNL_FIELDS_COUNT_MAX);
+        }
+
+        this.setId(Long.parseLong(items[0]));
+        this.setUrl(items[1]);
+        this.setSeedType(Integer.parseInt(items[2]));
+        this.setTotUrls(Integer.parseInt(items[3]));
+        this.setTotSuccess(Integer.parseInt(items[4]));
+        this.setTotFailed(Integer.parseInt(items[5]));
+        this.setTotSize(Integer.parseInt(items[6]));
+        this.setDomainId(Integer.parseInt(items[7]));
+        this.setContentLength(Long.parseLong(items[8]));
+        this.setContentType(items[9]);
+        this.setStatusCode(Integer.parseInt(items[10]));
+        this.setParentId(Long.parseLong(items[11]));
+        this.setOffset(Long.parseLong(items[12]));
+        this.setFetchTimeMs(Long.parseLong(items[13]));
+        this.setFileName(items[14]);
+        this.setSeed(Boolean.parseBoolean(items[15]));
+
+        String strOutlinks = items[16];
+        List<Long> outlinks = new ArrayList<>();
+        if (strOutlinks.length() > 2) {
+            strOutlinks = strOutlinks.substring(1, strOutlinks.length() - 1);
+            outlinks = Arrays.stream(strOutlinks.split(",")).map(Long::parseLong).collect(Collectors.toList());
+        }
+        this.setOutlinks(outlinks);
+        this.setParentPathId(Long.parseLong(items[17]));
     }
 }

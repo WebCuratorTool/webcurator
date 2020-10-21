@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class TestVisualizationDirectoryManager extends BaseVisualizationTest {
     @Before
-    public void initTest() throws IOException, DigitalAssetStoreException {
+    public void initTest() throws Exception {
         super.initTest();
     }
 

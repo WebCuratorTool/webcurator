@@ -37,8 +37,9 @@ public class BaseVisualizationTest {
     protected Set<SeedHistoryDTO> seeds = new HashSet<>();
     protected VisualizationProcessorManager processorManager;
     protected WctCoordinatorClient wctClient;
+    protected String dbVersion = "4.0.0";
 
-    public void initTest() throws IOException, DigitalAssetStoreException {
+    public void initTest() throws Exception {
         File arcDir = new File(System.getProperty("user.dir"), "src/test/resources/org/webcurator/domain/model/core/archiveFiles");
         File destDir = new File(baseDir, String.format("%d%s%d", targetInstanceId, File.separator, harvestResultNumber));
         if (!destDir.exists()) {
@@ -47,7 +48,7 @@ public class BaseVisualizationTest {
         FileUtils.copyDirectory(arcDir, destDir);
 
         directoryManager = new VisualizationDirectoryManager(baseDir, baseLogDir, baseReportDir);
-        pool = new BDBNetworkMapPool(baseDir);
+        pool = new BDBNetworkMapPool(baseDir, dbVersion);
 
         SeedHistoryDTO seedHistoryPrimary = new SeedHistoryDTO(1, "http://www.google.com/", targetInstanceId, true);
         SeedHistoryDTO seedHistorySecondary = new SeedHistoryDTO(2, "http://www.baidu.com/", targetInstanceId, false);

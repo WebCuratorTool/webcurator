@@ -26,6 +26,10 @@ html,body,canvas{
 	display: none;
 }
 
+.text-link{
+	color: #ABB2B9;
+}
+
 .bg-black{
 	background: black;
 }
@@ -50,20 +54,20 @@ html,body,canvas{
 	z-index: 9999;
 
     -webkit-animation-name: spin;
-    -webkit-animation-duration: 4000ms;
+    -webkit-animation-duration: 1200ms;
     -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: linear;
     -moz-animation-name: spin;
-    -moz-animation-duration: 4000ms;
+    -moz-animation-duration: 1200ms;
     -moz-animation-iteration-count: infinite;
     -moz-animation-timing-function: linear;
     -ms-animation-name: spin;
-    -ms-animation-duration: 4000ms;
+    -ms-animation-duration: 1200ms;
     -ms-animation-iteration-count: infinite;
     -ms-animation-timing-function: linear;
     
     animation-name: spin;
-    animation-duration: 4000ms;
+    animation-duration: 1200ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
 }
@@ -180,6 +184,7 @@ progress::-moz-progress-bar {
 	height: 100vh;
 	z-index: 9001;
 }
+
 #popup-window-progress
 {
 	display: none;
@@ -201,28 +206,8 @@ progress::-moz-progress-bar {
 	height: 100vh;
 	z-index: 2001;
 	/*padding: 8vh 10vw 0vh 10vw;*/
-	/*background: rgba(0,0,0,0.2);*/
+	background: rgba(0,0,0,0.2);
 }
-
-#popup-window-modify-harvest{
-	position: absolute;
-	top: 0;
-	left: 0;
-	display: none;
-	width: 100vw;
-	height: 100vh;
-	z-index: 2001;
-	/*margin: 5vh 5vw 0 5vw;*/
-	/*border: 5px solid #343a40; */
-	/*#6c757d*/
-	/*border-radius: 10px;*/
-	/*background: #F1E4E1;*/
-	/*background: #f8f9fa;*/
-	/*background: #D9E5F0;*/
-	/*padding-bottom: 10px;*/
-	/*position: relative;*/
-}
-
 
 #popup-window-hop-path .popup-content{
 	display: block;
@@ -287,6 +272,19 @@ progress::-moz-progress-bar {
     height: 100%;
 }
 
+.main-tab{
+	padding: 0;
+	margin: 0;
+	width: 100vw;
+	height: calc(100vh - 50px);
+}
+.main-tab .card-body{
+	padding: 0;
+	margin: 0;
+}
+.main-tab .overlay{
+	display: none;
+}
 
 #domain-tree{
 	width: 100%;

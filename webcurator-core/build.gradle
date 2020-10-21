@@ -16,7 +16,7 @@ dependencies {
         exclude group: 'javax.servlet', module: 'servlet-api'
         exclude group: 'commons-pool', module: 'commons-pool'
     }
-    compile 'org.archive:archive-commons:1.0-SNAPSHOT'
+//    compile 'org.archive:archive-commons:1.0-SNAPSHOT'
     compile 'commons-codec:commons-codec:1.3'
     compile 'commons-collections:commons-collections:3.1'
     compile 'commons-httpclient:commons-httpclient:3.1.1-heritrix-1.14.2-webcuratortool-2.0.1'

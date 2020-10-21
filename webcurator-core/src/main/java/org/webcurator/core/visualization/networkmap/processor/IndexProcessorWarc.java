@@ -10,6 +10,7 @@ import org.archive.io.ArchiveRecordHeader;
 import org.archive.io.RecoverableIOException;
 import org.archive.io.warc.WARCConstants;
 import org.archive.io.warc.WARCRecord;
+import org.webcurator.common.util.Utils;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -62,8 +63,17 @@ public class IndexProcessorWarc extends IndexProcessor {
         res.setFileName(fileName); //Save the warc file name
 
         String type = rec.getHeader().getHeaderValue(WARCConstants.HEADER_KEY_TYPE).toString();
+
         if (type.equals(org.archive.format.warc.WARCConstants.WARCRecordType.request.toString())) {
             res.setRequestParseFlag(true);
+            HttpHeaders httpHeaders = new HttpHeaderParser().parseHeaders(record);
+            String referer = httpHeaders.getValue("Referer");
+            if (res.isMetadataParseFlag() && res.isSeed() && !Utils.isEmpty(referer)) { //Correct the viaUrl if Metadata is processed before this
+                res.setSeed(false);
+                res.setViaUrl(referer);
+            } else if (!res.isMetadataParseFlag()) {
+                res.setViaUrl(referer);
+            }
         } else if (type.equals(org.archive.format.warc.WARCConstants.WARCRecordType.response.toString())) {
             res.setResponseParseFlag(true);
             res.setUrlAndDomain(header.getUrl());
@@ -105,22 +115,29 @@ public class IndexProcessorWarc extends IndexProcessor {
             if (sFetchTimeMs != null) {
                 res.setFetchTimeMs(Long.parseLong(sFetchTimeMs));
             }
-            res.setSeed(httpHeaders.get("seed") != null);
-            if (res.isSeed()) {
-                if (seeds.containsKey(key)) {
-                    if (seeds.get(key)) {
-                        res.setSeedType(NetworkMapNode.SEED_TYPE_PRIMARY);  //Primary Seed Url
+
+            if (seeds.containsKey(key)) {
+                res.setSeed(true);
+                if (seeds.get(key)) {
+                    res.setSeedType(NetworkMapNode.SEED_TYPE_PRIMARY);  //Primary Seed Url
+                } else {
+                    res.setSeedType(NetworkMapNode.SEED_TYPE_SECONDARY);  //Secondary Seed Url
+                }
+            } else {
+                res.setSeed(httpHeaders.get("seed") != null);
+                if (res.isSeed()) {
+                    if (res.isRequestParseFlag() && !Utils.isEmpty(res.getViaUrl())) {
+                        res.setSeed(false); //Correct it to un-seed if there is referer field exists in request record.
                     } else {
-                        res.setSeedType(NetworkMapNode.SEED_TYPE_SECONDARY);  //Secondary Seed Url
+                        res.setSeedType(NetworkMapNode.SEED_TYPE_OTHER); //Other kind Seed Url. e.g. patching source urls.}
                     }
                 } else {
-                    res.setSeedType(NetworkMapNode.SEED_TYPE_OTHER); //Other kind Seed Url. e.g. patching source urls.
+                    res.setViaUrl(httpHeaders.getValue("via"));
                 }
             }
             res.setHasOutlinks(httpHeaders.get("outlink") != null);
-            res.setViaUrl(httpHeaders.getValue("via"));
-        }
 
-        this.writeLog("Extracted URL: " + res.getUrl() + ", this.urls.size=" + this.urls.size());
+            this.writeLog("Extracted URL: " + res.getUrl() + ", this.urls.size=" + this.urls.size());
+        }
     }
 }

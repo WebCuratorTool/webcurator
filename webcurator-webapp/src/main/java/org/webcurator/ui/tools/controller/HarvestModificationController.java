@@ -91,4 +91,27 @@ public class HarvestModificationController implements ModifyService {
     protected void handleDownload(@PathVariable("hrOid") Long hrOid, @RequestParam("url") String url, HttpServletRequest req, HttpServletResponse res) throws Exception {
         harvestModificationHandler.handleDownload(hrOid, url, req, res);
     }
+
+    @RequestMapping(path = "/curator/tools/browse/{hrOid}/**", method = {RequestMethod.POST, RequestMethod.GET})
+    protected void handleBrowse(@PathVariable("hrOid") Long hrOid, @RequestParam("url") String url, HttpServletRequest req, HttpServletResponse res) throws Exception {
+        harvestModificationHandler.handleBrowse(hrOid, url, req, res);
+    }
+
+    @RequestMapping(path = "/curator/get/global-settings", method = {RequestMethod.POST, RequestMethod.GET})
+    protected Map<String, String> getGlobalSettings(@RequestParam("targetInstanceOid") long targetInstanceId,
+                                                    @RequestParam("harvestResultId") long harvestResultId,
+                                                    @RequestParam("harvestNumber") int harvestResultNumber) {
+        return harvestModificationHandler.getGlobalSettings(targetInstanceId, harvestResultId, harvestResultNumber);
+    }
+
+    @RequestMapping(path = "/curator/bulk-import/parse", method = {RequestMethod.POST, RequestMethod.GET})
+    protected List<BulkImportFileRow> buildImportParse(@RequestParam("targetInstanceOid") long targetInstanceId,
+                                                       @RequestParam("harvestNumber") int harvestResultNumber,
+                                                       @RequestBody ModifyRow cmd) {
+        try {
+            return harvestModificationHandler.buildImportParse(targetInstanceId, harvestResultNumber, cmd);
+        } catch (IOException | DigitalAssetStoreException e) {
+            return null;
+        }
+    }
 }

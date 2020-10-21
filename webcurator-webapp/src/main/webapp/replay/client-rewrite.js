@@ -1,5 +1,5 @@
 function encodeUrl(url){
-    return encodeURIComponent(url);
+    return btoa(url);
 }
 function xResolveUrl(url) {
    var image = new Image();

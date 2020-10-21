@@ -8,7 +8,6 @@ function getUrlVars() {
 
 var gUrl=null, gReq=null, gCallback=null;
 function fetchHttp(url, req, callback){
-  $('#popup-window-loading').show();
   var ROOT_URL='/curator';
   var reqUrl=ROOT_URL + url;
   var reqBodyPayload="{}";
@@ -35,21 +34,9 @@ function fetchHttp(url, req, callback){
     if(response.headers && response.headers.get('Content-Type') && response.headers.get('Content-Type').startsWith('application/json')){
       console.log('Fetch success and callback');
       return response.json();
-    }else{
-      $('#popup-window-loading').hide();
-      console.log('Fetch invalid content: ' + response.headers.get('Content-Type'));
-      // fetchHttp(url, req, callback);
-      return null;
     }
   }).then((response) => {
-    if(response){
-      var keep=callback(response);
-      if(!keep){
-        $('#popup-window-loading').hide();
-      }
-    }else{
-      $('#popup-window-loading').hide();
-    }
+    callback(response);
   });
 }
 
@@ -163,7 +150,9 @@ function contextMenuCallback(key, data, source, target){
   }else if(action==='prune'){
     target.pruneHarvest(dataset);
   }else if(action==='browse'){
-    browseUrl(data);
+    browseUrl(data, scope);
+  }else if(action==='download'){
+    downloadUrl(data);
   }else if(action==='undo'){
     target.undo(dataset, source);
   }else if(action==='clear'){
@@ -186,25 +175,16 @@ var itemsPruneHarvest={
                   "prune-current": {"name": "Current"},
                   "prune-selected": {"name": "Selected"}
               };
-var itemsHierarchyOutlink={
-                  "outlinks-current": {"name": "Current"},
-                  "outlinks-selected": {"name": "Selected"}
+var itemsRecrawlHarvest={
+                  "recrawl-current": {"name": "Current"},
+                  "recrawl-selected": {"name": "Selected"}
               };
-var itemsClearHarvest={
-                  "clear-current": {"name": "Current"},
-                  "clear-selected": {"name": "Selected"},
-                  "clear-all": {"name": "All"},
-              };
-var itemsBrowse={ "browse-Download": {name: "Download", icon: "fas fa-download"},
-                  "sep1": "---------",
-                  "browse-Local": {name: "Review this URL", icon: "fas fa-dice-one"},
-                  "browse-InAccessTool": {name: "Review in Access Tool", icon: "fas fa-dice-two"},
-                  "browse-LiveSite": {name: "Live Site", icon: "fas fa-dice-three"},
-                  "browse-ArchiveOne": {name: "Archive One", icon: "fas fa-dice-four"},
-                  "browse-ArchiveTwo": {name: "Archive Two", icon: "fas fa-dice-five"},
-                  "browse-WebArchive": {name: "Web Archive", icon: "fas fa-dice-six"
-                   }
+
+var itemsBrowse={ "browse-local": {name: "WCT Browse", icon: "far fa-dot-circle"},
+                  "browse-livesite": {name: "Live Site Browse", icon: "far fa-dot-circle"},
+                  "browse-openwayback": {name: "OpenWayback Browse", icon: "far fa-dot-circle"},
                 };
+
 var itemsExportLinks={
                   "export-selected": {"name": "Selected"},
                   "export-all": {"name": "All"}
@@ -217,47 +197,34 @@ var itemsUndo={
 
 var contextMenuItemsUrlBasic={
                   "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
-                  "import-current": {name: "Import Current", icon: "fas fa-file-import"},
                   "sep1": "---------",
                   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
+                  "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
+                  "import-current": {name: "Import From File", icon: "fas fa-file-import"},
                   "sep2": "---------",
-                  // "clearHarvest": {name: "Clear", icon: "delete", items: itemsClearHarvest},
-                  // "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "fab fa-think-peaks", items: itemsHierarchyOutlink},
-                  "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "far fa-eye", items: itemsHierarchyOutlink},
+                  "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
+                  "download": {name: "Download", icon: "fas fa-download text-warning"},
                   "sep3": "---------",
-                  // "browseUrl": {name: "Browse Current", icon: "fab fa-chrome", items: itemsBrowse},
-                  "browse": {name: "Browse URL", icon: "fab fa-chrome"},
-                  "sep4": "---------",
                   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
                       "exportInspect-selected": {"name": "Selected"},
                       "exportInspect-all": {"name": "All"}
                   }},
-                  // "sep5": "---------",
-                  // "copy": {name: "Copy Value", icon: "far fa-copy"},
+                };
 
+var contextMenuItemsUrlGrid=JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
+var contextMenuItemsUrlTree=JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
+
+var contextMenuItemsFolderTree={
+                  "pruneFolder": {name: "Prune Folder", icon: "far fa-times-circle"},
+                  "recrawlFolder": {name: "Recrawl Folder", icon: "fas fa-redo"},
                 };
-var contextMenuItemsUrlTree={
-                  "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
-                  "import-current": {name: "Import", icon: "fas fa-file-import"},
-                  "sep1": "---------",
-                  "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
-                  "sep2": "---------",
-                  "hierarchyOutlinks": {name: "Inspect Outlinks", icon: "far fa-eye", items: itemsHierarchyOutlink},
-                  "sep3": "---------",
-                  // "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
-                  "browse": {name: "Browse URL", icon: "fab fa-chrome"},
-                  "sep4": "---------",
-                  "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
-                      "exportInspect-selected": {"name": "Selected"},
-                      "exportInspect-all": {"name": "All"}
-                  }}
-                };
-var contextMenuItemsPrune={
+var contextMenuItemsToBeModified={
     "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
     "sep1": "---------",
     "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
-    // "sep2": "---------",
-    // "browseUrl": {name: "Browse", icon: "fab fa-chrome", items: itemsBrowse},
+    "sep2": "---------",
+    "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
+    "download": {name: "Download", icon: "fas fa-download text-warning"},
     "sep3": "---------",
     "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
         "exportPrune-selected": {"name": "Selected"},
@@ -265,16 +232,19 @@ var contextMenuItemsPrune={
     }}
 };
 
-var contextMenuItemsImport={
-  "edit-current": {name: "Edit", icon: "fas fa-edit"},
-  "sep1": "---------",
-  "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
-  "sep2": "---------",
-  "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
-      "exportImport-selected": {"name": "Selected"},
-      "exportImport-all": {"name": "All"}
-  }}
-};
+// var contextMenuItemsImport={
+//   "edit-current": {name: "Edit", icon: "fas fa-edit"},
+//   "sep1": "---------",
+//   "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
+//   "sep2": "---------",
+//   "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
+//   "download": {name: "Download", icon: "fas fa-download text-warning"},
+//   "sep3": "---------",
+//   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
+//       "exportImport-selected": {"name": "Selected"},
+//       "exportImport-all": {"name": "All"}
+//   }}
+// };
 
 function formatModifyHavestGridRow(params){
   if(!params.data.flag){
@@ -310,7 +280,7 @@ var gridOptionsCandidate={
   columnDefs: [
     {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
     {headerName: "Normal", children:[
-      {headerName: "URL", field: "url", width: 400, filter: true, cellRenderer:  (row) => {
+      {headerName: "URL", field: "url", width: 1000, filter: true, cellRenderer:  (row) => {
           if(row.data.seedType===-1 || row.data.seedType===2){
             return row.data.url;
           }
@@ -321,7 +291,7 @@ var gridOptionsCandidate={
             return '<span class="right badge badge-warning">S</span>&nbsp;' + row.data.url;
           }
       }},
-      {headerName: "Type", field: "contentType", width: 120, filter: true},
+      {headerName: "Type", field: "contentType", width: 200, filter: true},
       {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
       {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
     ]},
@@ -336,27 +306,17 @@ var gridOptionsCandidate={
   getRowClass: formatModifyHavestGridRow
 };
 
-var gridOptionsPrune={
-  suppressRowClickSelection: true,
-  rowSelection: 'multiple',
-  defaultColDef: {
-    resizable: true,
-    filter: true,
-    sortable: true
-  },
-  rowData: [],
-  components: {
-    renderImportOption: renderImportOption
-  },
-  columnDefs: [
-    {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
-    {headerName: "URL", field: "url", width: 1000, filter: true},
-  ],
-  // rowClassRules: gridRowClassRules
-  getRowClass: formatModifyHavestGridRow
-};
+function getGridOption(params){
+  if (params.value === 'Prune') { //Prune
+    return 'text-danger';
+  }else if (params.value === 'Import') { //Import by File
+    return 'text-primary';
+  }else{ //Recrawl
+    return 'text-warning';
+  }
+}
 
-var gridOptionsImport={
+var gridOptionsToBeModified={
   suppressRowClickSelection: true,
   rowSelection: 'multiple',
   defaultColDef: {
@@ -370,7 +330,7 @@ var gridOptionsImport={
   },
   columnDefs: [
     {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
-    {headerName: "Option", field: "option", width:80, cellClass: function(params) { return (params.value==='File'?'text-primary':'text-danger');}},
+    {headerName: "Option", field: "option", width:80, cellClass: function(params) { return getGridOption(params);}},
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
@@ -387,7 +347,6 @@ var gridOptionsImport={
         }
     }},
   ],
-  // getRowClass: formatModifyHavestGridRow
   getRowClass: formatModifyHavestGridRow
 };
 
@@ -404,7 +363,7 @@ var gridOptionsImportPrepare={
     renderImportOption: renderImportOption
   },
   columnDefs: [
-    {headerName: "Option", field: "option", width:80, cellClass: function(params) { return (params.value==='File'?'text-primary':'text-danger');}},
+    {headerName: "Option", field: "option", width:80, cellClass: function(params) {return getGridOption(params);}},
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
@@ -424,12 +383,14 @@ var gridOptionsImportPrepare={
         var badge='';
         if(row.data.respCode && row.data.respCode===1){
           badge = '<i class="fas fa-check-circle text-success"></i>';
+          return badge+'&nbsp;'+row.data.respMsg;
         }else if(row.data.respCode && row.data.respCode<0){
-          badge = '<i class="fas fa-times-circle text-danger"></i>';            
+          badge = '<i class="fas fa-times-circle text-danger"></i>';  
+          return badge+'&nbsp;'+row.data.respMsg;          
         }else{
-          badge = '<i class="fas fa-cloud-upload-alt text-info"></i>';
+          badge = '<a href="javascript: gPopupModifyHarvest.showImport(\''+row.data.url+'\');"<i class="fas fa-cloud-upload-alt text-info">Upload</i></a>';
+          return badge;
         }
-        return badge+'&nbsp;'+row.data.respMsg;
     }},
     
   ],
@@ -495,4 +456,20 @@ function popupDerivedSummaryWindow(derivedHarvestId, derivedHarvestNumber){
   var reqUrl='/spa/tools/patching-view-hr.html?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+derivedHarvestNumber;
   $('#body-derived-summary').html('<iframe src="'+reqUrl+'" style="width: 100vw; height: 1000px;"></iframe>');
   $('#popup-window-derived-summary').show();
+}
+
+
+var overlayLoadingReferedNumber=0;
+function g_TurnOnOverlayLoading(){
+  if (overlayLoadingReferedNumber===0) {
+      $('#popup-window-loading').show();
+  }
+  overlayLoadingReferedNumber++;
+}
+
+function g_TurnOffOverlayLoading(){
+  overlayLoadingReferedNumber--;
+  if (overlayLoadingReferedNumber === 0) {
+    $('#popup-window-loading').hide();
+  }
 }
