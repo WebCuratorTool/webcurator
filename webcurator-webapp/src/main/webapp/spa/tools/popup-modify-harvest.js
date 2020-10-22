@@ -106,7 +106,8 @@ class HierarchyTree{
 		this.harvestResultNumber=harvestResultNumber;
 		this.sourceUrlRootUrls="/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
 		this.options={
-			extensions: ["table", "wide"],
+			extensions: ["table", "wide", "filter"],
+			quicksearch: true,
 			checkbox: true,
 			// autoScroll: true,
 			// selectMode: 3,
@@ -190,6 +191,18 @@ class HierarchyTree{
 				}else{
 					$(data.node.tr).attr("menu", "url");
 				}
+			},
+			filter: {
+				autoApply: true,   // Re-apply last filter if lazy data is loaded
+				autoExpand: false, // Expand all branches that contain matches while filtered
+				counter: true,     // Show a badge with number of matching child nodes near parent icons
+				fuzzy: false,      // Match single characters in order, e.g. 'fb' will match 'FooBar'
+				hideExpandedCounter: true,  // Hide counter badge if parent is expanded
+				hideExpanders: false,       // Hide expanders if all child nodes are hidden by filter
+				highlight: true,   // Highlight matches by wrapping inside <mark> tags
+				leavesOnly: false, // Match end nodes only
+				nodata: true,      // Display a 'no data' status node if result is empty
+				mode: "dimm"       // Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
 			},
 			
 	    };
@@ -296,6 +309,25 @@ class HierarchyTree{
 			$.ui.fancytree.getTree(this.container).destroy();
 		}
 	}
+
+	filter(match){
+		var tree=$.ui.fancytree.getTree(this.container);
+		var filterFunc = tree.filterNodes; //tree.filterBranches
+		var option={
+				autoApply: false,   // Re-apply last filter if lazy data is loaded
+				autoExpand: true, // Expand all branches that contain matches while filtered
+				counter: true,     // Show a badge with number of matching child nodes near parent icons
+				fuzzy: false,      // Match single characters in order, e.g. 'fb' will match 'FooBar'
+				hideExpandedCounter: true,  // Hide counter badge if parent is expanded
+				hideExpanders: false,       // Hide expanders if all child nodes are hidden by filter
+				highlight: true,   // Highlight matches by wrapping inside <mark> tags
+				leavesOnly: true, // Match end nodes only
+				nodata: true,      // Display a 'no data' status node if result is empty
+				mode: "hide"       //dimm or hide Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
+		}
+		var n = filterFunc.call(tree, match, option);
+		console.log("filter out: "+n);
+	}
 }
 
 class PopupModifyHarvest{
@@ -303,8 +335,8 @@ class PopupModifyHarvest{
 		this.jobId=jobId;
 		this.harvestResultId=harvestResultId;
 		this.harvestResultNumber=harvestResultNumber;
-		this.hierarchyTreeUrlNames=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber);
 		this.hierarchyTreeHarvestStruct=new HierarchyTree("#hierachy-tree-harvest-struct", jobId, harvestResultNumber);
+		this.hierarchyTreeUrlNames=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber);
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlGrid);
 		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, contextMenuItemsToBeModified);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, null);
@@ -313,12 +345,30 @@ class PopupModifyHarvest{
 		this.uriInvalidUrl="/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 	}
 
+	popupQueryWindow(){
+		if (currentMainTab === 'tree-url-names') {
+			$('#popup-window-query-input').show();
+		}else if (currentMainTab === 'candidate-query') {
+			$('#popup-window-query-input').show();
+		}
+	}
+
+	clear(){
+		if (currentMainTab === 'tree-url-names') {
+			this.hierarchyTreeUrlNames.clearAll();
+		}else if (currentMainTab === 'candidate-query') {
+			this.gridCandidate.clearAll();
+		}
+	}
+
 	filter(val){
-		// this.gridPrune.filter(val);
-		// this.gridImport.filter(val);
-		this.gridCandidate.filter(val);
-		// this.hierarchyTreeUrlNames.filter(val);
-		// this.hierarchyTreeHarvestStruct.filter(val);
+		if (currentMainTab === 'tree-harvest-struct') {
+			this.hierarchyTreeHarvestStruct.filter(val);
+		}if (currentMainTab === 'tree-url-names') {
+			this.hierarchyTreeUrlNames.filter(val);
+		}else if (currentMainTab === 'candidate-query') {
+			this.gridCandidate.filter(val);
+		}
 	}
 
 	setRowStyle(){
@@ -371,60 +421,81 @@ class PopupModifyHarvest{
 		this.setRowStyle();
 	}
 
-	pruneHarvestByUrls(dataset){
-		if(!dataset || dataset.length===0){
-			return;
-		}
+	// pruneHarvestByUrls(dataset){
+	// 	if(!dataset || dataset.length===0){
+	// 		return;
+	// 	}
 
-		var reqAry=[];
-		for(var i=0; i<dataset.length; i++){
-        	reqAry.push(dataset[i].url);
-        }
+	// 	var reqAry=[];
+	// 	for(var i=0; i<dataset.length; i++){
+ //        	reqAry.push(dataset[i].url);
+ //        }
 
-        var that=this;
-        var reqUrl="/networkmap/get/query-urls-by-names?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
-        fetchHttp(reqUrl, reqAry, function(response){
-        	if (response.rspCode!=0) {
-        		alert(response.rspMsg);
-        		return;
-        	}
-        	var data=JSON.parse(response.payload);
-        	that.pruneHarvest(data);
-			$('#tab-btn-import').trigger('click');
-        });
-	}
+ //        var that=this;
+ //        var reqUrl="/networkmap/get/query-urls-by-names?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+ //        fetchHttp(reqUrl, reqAry, function(response){
+ //        	if (response.rspCode!=0) {
+ //        		alert(response.rspMsg);
+ //        		return;
+ //        	}
+ //        	var data=JSON.parse(response.payload);
+ //        	that.pruneHarvest(data);
+	// 		$('#tab-btn-import').trigger('click');
+ //        });
+	// }
 
 	pruneHarvest(data){
-		$('#tab-btn-prune').trigger('click');
-		if(!data){
-			return;
-		}
+		_moveHarvest2ToBeModifiedList(data, 'prune');
+	}
+
+	recrawl(data){
+		_moveHarvest2ToBeModifiedList(data, 'recrawl');
+	}
+
+	import(data){
+		_moveHarvest2ToBeModifiedList(data, 'import');
+	}
+
+	_moveHarvest2ToBeModifiedList(data, action){
+		if(!data){return;}
 
 		var map={};
 		for(var i=0; i< data.length; i++){
 			var node=data[i];
-			map[node.id]=node;
+			if (node.outlinkNum > 0 && !confirm('There are urls contain outlinks, would you like to ' + action + ' them?')) {
+				return;
+			}
+			map[node.url]=node;
 		}
 
-		// Add to 'to be pruned' grid, and marked as new
-		this.gridPrune.gridOptions.api.forEachNode(function(node, index){
-			if(map[node.data.id]){
-				delete map[node.data.id];
+		//Checking duplicated rows
+		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
+			if (map[node.data.url] && !confirm('There are duplicated urls in to be modified list, would you like to replace them?')) {
+				return;
+			}
+		});
+
+		// Add to 'to be modified' grid, and marked as new
+		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
+			if(map[node.data.url]){
+				delete map[node.data.url];
 				node.data.flag='new';
 			}else{
 				node.data.flag='normal';
 			}
+			node.data.option=action;
 		});
-		this.gridPrune.gridOptions.api.redrawRows(true);
+		this.gridToBeModified.gridOptions.api.redrawRows(true);
 
 		map=JSON.parse(JSON.stringify(map));
 		var dataset=[];
 		for(var key in map){
 			var node=map[key];
 			node.flag='new';
+			node.option=action;
 			dataset.push(node);
 		}
-		this.gridPrune.gridOptions.api.updateRowData({ add: dataset});
+		this.gridToBeModified.gridOptions.api.updateRowData({add: dataset});
 
 		this.setRowStyle();
 	}
@@ -511,17 +582,7 @@ class PopupModifyHarvest{
 		$('#popup-window-bulk-import').show();
 	}
 
-	showOutlinks(data){
-		if(!data){
-			return;
-		}
-		$('#grid-modify-candidate').hide();
-		$('#popup-window-hierarchy').show();
-
-		this.hierarchyTree.draw(data);
-
-		this.setRowStyle();
-	}
+	
 
 	inspectHarvest(data){		
 		var map={};
@@ -530,16 +591,11 @@ class PopupModifyHarvest{
 			map[node.id]=node;
 		}
 
-		this.gridPrune.gridOptions.api.forEachNode(function(node, index){
+		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
+			var id=map[node.data.id];
 			if(map[node.data.id]){
 				// delete map[node.data.id];
-				map[node.data.id].flag='prune';
-			}
-		});
-		this.gridImport.gridOptions.api.forEachNode(function(node, index){
-			if(map[node.data.id]){
-				// delete map[node.data.id];
-				map[node.data.id].flag='import';
+				map[node.data.id].flag=node.data.option;
 			}
 		});
 

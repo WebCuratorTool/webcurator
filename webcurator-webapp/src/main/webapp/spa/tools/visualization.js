@@ -145,8 +145,8 @@ function contextMenuCallback(key, data, source, target){
     visHopPath.draw(data.id);
   }else if(action==='import'){
     target.showImport(data);
-  }else if(action==='outlinks'){
-    target.showOutlinks(dataset);
+  }else if(action==='recrawl'){
+    target.recrawl(dataset);
   }else if(action==='prune'){
     target.pruneHarvest(dataset);
   }else if(action==='browse'){
@@ -172,52 +172,56 @@ function contextMenuCallback(key, data, source, target){
 
 
 var itemsPruneHarvest={
-                  "prune-current": {"name": "Current"},
-                  "prune-selected": {"name": "Selected"}
-              };
-var itemsRecrawlHarvest={
-                  "recrawl-current": {"name": "Current"},
-                  "recrawl-selected": {"name": "Selected"}
-              };
+    "prune-current": {"name": "Current"},
+    "prune-selected": {"name": "Selected"}
+};
 
-var itemsBrowse={ "browse-local": {name: "WCT Browse", icon: "far fa-dot-circle"},
-                  "browse-livesite": {name: "Live Site Browse", icon: "far fa-dot-circle"},
-                  "browse-openwayback": {name: "OpenWayback Browse", icon: "far fa-dot-circle"},
-                };
+var itemsRecrawlHarvest={
+    "recrawl-current": {"name": "Current"},
+    "recrawl-selected": {"name": "Selected"}
+};
+
+var itemsBrowse={ 
+  "browse-local": {name: "WCT Browse", icon: "far fa-dot-circle"},
+  "browse-livesite": {name: "Live Site Browse", icon: "far fa-dot-circle"},
+  "browse-openwayback": {name: "OpenWayback Browse", icon: "far fa-dot-circle"},
+};
 
 var itemsExportLinks={
-                  "export-selected": {"name": "Selected"},
-                  "export-all": {"name": "All"}
-              };
+    "export-selected": {"name": "Selected"},
+    "export-all": {"name": "All"}
+};
+
 var itemsUndo={
-                  "undo-current": {name: "Current"},
-                  "undo-selected": {name: "Selected"},
-                  "undo-all": {name: "All"}
-                };
+  "undo-current": {name: "Current"},
+  "undo-selected": {name: "Selected"},
+  "undo-all": {name: "All"}
+};
 
 var contextMenuItemsUrlBasic={
-                  "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
-                  "sep1": "---------",
-                  "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
-                  "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
-                  "import-current": {name: "Import From File", icon: "fas fa-file-import"},
-                  "sep2": "---------",
-                  "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
-                  "download": {name: "Download", icon: "fas fa-download text-warning"},
-                  "sep3": "---------",
-                  "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
-                      "exportInspect-selected": {"name": "Selected"},
-                      "exportInspect-all": {"name": "All"}
-                  }},
-                };
+  "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
+  "sep1": "---------",
+  "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
+  "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
+  "import-current": {name: "Import From File", icon: "fas fa-file-import"},
+  "sep2": "---------",
+  "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
+  "download": {name: "Download", icon: "fas fa-download text-warning"},
+  "sep3": "---------",
+  "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
+      "exportInspect-selected": {"name": "Selected"},
+      "exportInspect-all": {"name": "All"}
+  }},
+};
 
 var contextMenuItemsUrlGrid=JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
 var contextMenuItemsUrlTree=JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
 
 var contextMenuItemsFolderTree={
-                  "pruneFolder": {name: "Prune Folder", icon: "far fa-times-circle"},
-                  "recrawlFolder": {name: "Recrawl Folder", icon: "fas fa-redo"},
-                };
+  "pruneFolder": {name: "Prune Folder", icon: "far fa-times-circle"},
+  "recrawlFolder": {name: "Recrawl Folder", icon: "fas fa-redo"},
+};
+
 var contextMenuItemsToBeModified={
     "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
     "sep1": "---------",
@@ -253,6 +257,8 @@ function formatModifyHavestGridRow(params){
 
   if (params.data.flag==='prune') {
     return 'grid-row-delete';
+  }else if (params.data.flag==='recrawl') {
+    return 'grid-row-recrawl';
   }else if (params.data.flag==='import') {
     return 'grid-row-import';
   }else if (params.data.flag==='new') {

@@ -14,6 +14,8 @@ public class NetworkMapCommonNode {
     protected long totSize = 0;
     ///////////////////////////////////////////////////////////////////////////////////////////
 
+    protected int outlinkNum=0;
+
     protected long domainId = -1; //default: no domain
     protected long contentLength;
     protected String contentType;
@@ -28,6 +30,14 @@ public class NetworkMapCommonNode {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public int getOutlinkNum() {
+        return outlinkNum;
+    }
+
+    public void setOutlinkNum(int outlinkNum) {
+        this.outlinkNum = outlinkNum;
     }
 
     public int getTotUrls() {
@@ -176,6 +186,7 @@ public class NetworkMapCommonNode {
         this.totSize = that.totSize;
         this.totSuccess = that.totSuccess;
         this.totUrls = that.totUrls;
+        this.outlinkNum=that.outlinkNum;
     }
 
     @JsonIgnore

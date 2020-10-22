@@ -172,5 +172,6 @@ public class NetworkMapNodeDTO extends NetworkMapCommonNode implements NetworkMa
         }
         this.setOutlinks(outlinks);
         this.setParentPathId(Long.parseLong(items[17]));
+        this.setOutlinkNum(this.getOutlinks().size());
     }
 }

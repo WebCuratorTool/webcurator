@@ -185,7 +185,7 @@ public class BrowseHelper {
      * @param currentResource The URL of the current resource.
      */
     public void fix(StringBuilder content, String contentType, long hrOid, String currentResource) {
-        String resourcePrefix = prefix + "/" + hrOid + "/?url=";
+        String resourcePrefix = getResourcePrefix(hrOid);
         String jsPrefix = prefix.replaceFirst("curator/tools/browse", "replay/client-rewrite.js");
 
         // The Wayback 1.2 tool adds a <base href="..."> tag after the <head> tag
@@ -422,5 +422,9 @@ public class BrowseHelper {
 //        return s;
 
         return new String(Base64.getDecoder().decode(s));
+    }
+
+    public String getResourcePrefix(long hrOid) {
+        return prefix + "/" + hrOid + "/?url=";
     }
 }

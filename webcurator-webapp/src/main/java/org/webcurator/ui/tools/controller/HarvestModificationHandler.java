@@ -32,7 +32,6 @@ import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
-import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.metadata.ModifyRow;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
@@ -54,7 +53,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -448,25 +446,25 @@ public class HarvestModificationHandler {
 
 
     public void handleBrowse(Long hrOid, String url, HttpServletRequest req, HttpServletResponse res) throws IOException, DigitalAssetStoreException {
-        url = new String(Base64.getDecoder().decode(url));
+        String baseUrl = new String(Base64.getDecoder().decode(url));
 
         // Build a command with the items from the URL.
         // Load the HarvestResourceDTO from the quality review facade.
         HarvestResult hr = targetInstanceDAO.getHarvestResult(hrOid);
         if (hr == null) {        // If the resource is not found, go to an error page.
-            log.error("Resource not found: {}", url);
+            log.error("Resource not found: {}", baseUrl);
             res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
         TargetInstance ti = hr.getTargetInstance();
         if (ti == null) {        // If the resource is not found, go to an error page.
-            log.error("Resource not found: {}", url);
+            log.error("Resource not found: {}", baseUrl);
             res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
         List<Header> headers = new ArrayList<>();
         try {        // catch any DigitalAssetStoreException and log assumptions
-            headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), url);
+            headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), baseUrl);
         } catch (Exception e) {
             log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
             res.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -481,15 +479,13 @@ public class HarvestModificationHandler {
             Matcher charsetMatcher = CHARSET_PATTERN.matcher(realContentType);
             if (charsetMatcher.find()) {
                 charset = charsetMatcher.group(1);
-                log.debug("Desired charset: " + charset + " for " + url);
+                log.debug("Desired charset: " + charset + " for " + baseUrl);
             } else {
-                log.debug("No charset for: " + url);
+                log.debug("No charset for: " + baseUrl);
                 charset = CHARSET_LATIN_1.name();
                 realContentType += ";charset=" + charset;
             }
         }
-
-        String baseUrl = "/curator/tools/";
 
         String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
         if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
@@ -503,17 +499,17 @@ public class HarvestModificationHandler {
             res.setStatus(statusCode);
             String location = getHeaderValue(headers, "Location");
             if (!Utils.isEmpty(location) && !location.startsWith("http")) {
-                location = url + location;
+                location = baseUrl + location;
             }
             String encodedLocation = Base64.getEncoder().encodeToString(location.getBytes());
-            res.setHeader("Location", String.format("%s/browse/%d/?url=%s", baseUrl, hrOid, encodedLocation));
+            res.setHeader("Location", browseHelper.getResourcePrefix(hrOid) + encodedLocation);
             return;
         }
 
         // Get the content type.
         res.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
 
-        Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), url);
+        Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), baseUrl);
         if (!browseHelper.isReplaceable(simpleContentType)) {
             IOUtils.copy(Files.newInputStream(path), res.getOutputStream());
             path.toFile().delete();
@@ -639,7 +635,7 @@ public class HarvestModificationHandler {
             if (node == null) {
                 log.warn(err);
                 row.setRespCode(-1);
-            }else{
+            } else {
                 row.copy(node);
                 row.setRespCode(0);
 
@@ -651,7 +647,7 @@ public class HarvestModificationHandler {
     }
 }
 
-class BulkImportFileRow extends NetworkMapNodeDTO{
+class BulkImportFileRow extends NetworkMapNodeDTO {
     private String option;
     private String target;
     private String modificationDateMode;

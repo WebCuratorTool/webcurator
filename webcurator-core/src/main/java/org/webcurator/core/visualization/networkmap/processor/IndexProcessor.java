@@ -176,7 +176,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         db.putMalformedUrlIdList(malformedUrls);
         malformedUrls.clear();
 
-        db.putUrlCount(this.urls.size());
+        db.putUrlCount(atomicIdGeneratorUrl.incrementAndGet());
 
         this.writeLog("Finished storing url nodes");
     }
@@ -224,7 +224,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             }
         } else {
             NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();
-            path.setId(atomicIdGeneratorPath.getAndIncrement());
+            path.setId(atomicIdGeneratorPath.incrementAndGet());
             path.setParentPathId(parentPathId);
             path.setTitle(rootTreeNode.getTitle());
 
