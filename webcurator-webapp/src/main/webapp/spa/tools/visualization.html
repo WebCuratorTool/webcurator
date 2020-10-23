@@ -148,7 +148,7 @@ to get the desired effect
   <!-- TreeView: Harvest Struct -->
   <div class="card main-tab hidden" id="tree-harvest-struct">
     <div class="card-body" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
-      <table id="hierachy-tree-harvest-struct" style="width: 100%; outline: none;">
+      <table id="hierachy-tree-harvest-struct" class="hierachy-tree" style="width: 100%; outline: none;">
         <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
         <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
       </table>
@@ -159,7 +159,7 @@ to get the desired effect
   <!-- TreeView: URL Names -->
   <div class="card main-tab hidden" id="tree-url-names">
     <div class="card-body" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
-        <table id="hierachy-tree-url-names" style="width: 100%; outline: none;">
+        <table id="hierachy-tree-url-names" class="hierachy-tree" style="width: 100%; outline: none;">
           <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
           <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
       </table>
@@ -510,6 +510,14 @@ to get the desired effect
     function openBulkImportSchemaFile(){
       // $("#label-bulk-import-file").trigger('click');
       $("#bulkImportMetadataFile").trigger('click');
+    }
+
+    function popupQueryWindow(){
+      if (currentMainTab === 'tree-url-names') {
+        $('#popup-window-query-input').show();
+      }else if (currentMainTab === 'candidate-query') {
+        $('#popup-window-query-input').show();
+      }
     }
 
     // Initial UI

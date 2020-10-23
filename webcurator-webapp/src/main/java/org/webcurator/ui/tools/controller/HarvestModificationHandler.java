@@ -576,7 +576,7 @@ public class HarvestModificationHandler {
     }
 
 
-    public List<BulkImportFileRow> buildImportParse(long targetInstanceId, int harvestResultNumber, ModifyRow cmd) throws IOException, DigitalAssetStoreException {
+    public List<BulkImportFileRow> bulkImportParse(long targetInstanceId, int harvestResultNumber, ModifyRow cmd) throws IOException, DigitalAssetStoreException {
         int idx = cmd.getContent().indexOf("base64");
         if (idx < 0) {
             log.error("Not a base64 encoded stream");

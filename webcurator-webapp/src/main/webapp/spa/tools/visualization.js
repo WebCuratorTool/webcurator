@@ -159,10 +159,8 @@ function contextMenuCallback(key, data, source, target){
     source.clear(dataset);
   }else if(action==='exportInspect'){
     target.exportInspectData(dataset);
-  }else if(action==='exportPrune'){
+  }else if(action==='exportToBeModified'){
     target.exportPruneData(dataset);
-  }else if(action==='exportImport'){
-    target.exportImportData(dataset);
   }else if(action==='edit'){
     target.editImport(data);
   }else if(action==='copy'){
@@ -231,24 +229,11 @@ var contextMenuItemsToBeModified={
     "download": {name: "Download", icon: "fas fa-download text-warning"},
     "sep3": "---------",
     "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
-        "exportPrune-selected": {"name": "Selected"},
-        "exportPrune-all": {"name": "All"}
+        "exportToBeModified-selected": {"name": "Selected"},
+        "exportToBeModified-all": {"name": "All"}
     }}
 };
 
-// var contextMenuItemsImport={
-//   "edit-current": {name: "Edit", icon: "fas fa-edit"},
-//   "sep1": "---------",
-//   "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
-//   "sep2": "---------",
-//   "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
-//   "download": {name: "Download", icon: "fas fa-download text-warning"},
-//   "sep3": "---------",
-//   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
-//       "exportImport-selected": {"name": "Selected"},
-//       "exportImport-all": {"name": "All"}
-//   }}
-// };
 
 function formatModifyHavestGridRow(params){
   if(!params.data.flag){

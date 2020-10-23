@@ -184,7 +184,10 @@ class HierarchyTree{
 
 				nodeData.url=data.node.title;
 				$(data.node.tr).attr("data", JSON.stringify(nodeData));
-				$(data.node.tr).attr("id", "tree-row-"+nodeData.id);
+				// $(data.node.tr).attr("id", "tree-row-"+nodeData.id);
+				if (nodeData.id > 0) {
+					$(data.node.tr).attr("idx", ""+nodeData.id);
+				}
 
 				if (nodeData.viewType && nodeData.viewType===2 && nodeData.id===-1){
 					$(data.node.tr).attr("menu", "folder");
@@ -345,14 +348,6 @@ class PopupModifyHarvest{
 		this.uriInvalidUrl="/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 	}
 
-	popupQueryWindow(){
-		if (currentMainTab === 'tree-url-names') {
-			$('#popup-window-query-input').show();
-		}else if (currentMainTab === 'candidate-query') {
-			$('#popup-window-query-input').show();
-		}
-	}
-
 	clear(){
 		if (currentMainTab === 'tree-url-names') {
 			this.hierarchyTreeUrlNames.clearAll();
@@ -372,46 +367,33 @@ class PopupModifyHarvest{
 	}
 
 	setRowStyle(){
-		prunedDataMap={};
-		// this.gridPrune.gridOptions.api.forEachNode(function(node, index){
-		// 	prunedDataMap[node.data.id]=true;
-		// });
-		importDataMap={};
-		// this.gridImport.gridOptions.api.forEachNode(function(node, index){
-		// 	importDataMap[node.data.id]=true;
-		// });
+		toBeModifiedDataMap={};
+		this.gridCandidate.gridOptions.api.forEachNode(function(node, index){
+			if (node.data.id > 0) {
+				toBeModifiedDataMap[node.data.id]=node.data;
+			}
+		});
 
 		//Set class for tree view
-		$('#hierachy-tree td').removeClass("tree-row-delete");
-		$('#hierachy-tree td').removeClass("tree-row-import");
-		$('#hierachy-tree td').removeClass("tree-row-delete-import");
-		for(var key in prunedDataMap){
-			if(!importDataMap[key]){
-				$("#tree-row-"+key+" td").addClass("tree-row-delete");
+		$('.hierachy-tree td').removeClass("tree-row-delete");
+		$('.hierachy-tree td').removeClass("tree-row-recrawl");
+		$('.hierachy-tree td').removeClass("tree-row-import");
+		for(var key in toBeModifiedDataMap){
+			var option=toBeModifiedDataMap[key].option;
+			var classOfTreeRow='';
+			if (option === 'prune') {
+				classOfTreeRow='tree-row-delete';
+			}else if (option==='recrawl') {
+				classOfTreeRow='tree-row-recrawl';
 			}else{
-				$("#tree-row-"+key+" td").addClass("tree-row-delete-import");
+				classOfTreeRow='tree-row-import';
 			}
-		}
-		for(var key in importDataMap){
-			if(!prunedDataMap[key]){
-				$("#tree-row-"+key+" td").addClass("tree-row-import");
-			}
+			$('.hierachy-tree td[idx="' + key + ' "]').addClass(classOfTreeRow);
 		}
 
 		//Set class for grid candidate
 		this.gridCandidate.gridOptions.api.forEachNode(function(node, index){
-			var key=node.data.id;
-			if(prunedDataMap[key]){
-				if(!importDataMap[key]){
-					node.data.flag='prune';
-				}else{
-					node.data.flag='prune-import';
-				}
-			}else if(importDataMap[key]){
-				node.data.flag='import';
-			}else{
-				node.data.flag='normal';
-			}
+			node.data.flag=importDataMap[node.data.id].option;
 		});
 		this.gridCandidate.gridOptions.api.redrawRows(true);
 	}
@@ -420,29 +402,6 @@ class PopupModifyHarvest{
 		source.clear(data);
 		this.setRowStyle();
 	}
-
-	// pruneHarvestByUrls(dataset){
-	// 	if(!dataset || dataset.length===0){
-	// 		return;
-	// 	}
-
-	// 	var reqAry=[];
-	// 	for(var i=0; i<dataset.length; i++){
- //        	reqAry.push(dataset[i].url);
- //        }
-
- //        var that=this;
- //        var reqUrl="/networkmap/get/query-urls-by-names?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
- //        fetchHttp(reqUrl, reqAry, function(response){
- //        	if (response.rspCode!=0) {
- //        		alert(response.rspMsg);
- //        		return;
- //        	}
- //        	var data=JSON.parse(response.payload);
- //        	that.pruneHarvest(data);
-	// 		$('#tab-btn-import').trigger('click');
- //        });
-	// }
 
 	pruneHarvest(data){
 		_moveHarvest2ToBeModifiedList(data, 'prune');
@@ -581,8 +540,6 @@ class PopupModifyHarvest{
 		this.processorModify.nextBulkImportTab(1);
 		$('#popup-window-bulk-import').show();
 	}
-
-	
 
 	inspectHarvest(data){		
 		var map={};
@@ -747,10 +704,9 @@ class PopupModifyHarvest{
 		});
 	}
 
-	loadInvalidUrls(){
-		this.loadUrls(this.uriInvalidUrl);
+	exportData(data, exportType){
+		
 	}
-
 
 	exportInspectData(data){
 		var lines=[], row=[];

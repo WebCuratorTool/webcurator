@@ -105,13 +105,21 @@ public class HarvestModificationController implements ModifyService {
     }
 
     @RequestMapping(path = "/curator/bulk-import/parse", method = {RequestMethod.POST, RequestMethod.GET})
-    protected List<BulkImportFileRow> buildImportParse(@RequestParam("targetInstanceOid") long targetInstanceId,
-                                                       @RequestParam("harvestNumber") int harvestResultNumber,
-                                                       @RequestBody ModifyRow cmd) {
+    protected List<BulkImportFileRow> bulkImportParse(@RequestParam("targetInstanceOid") long targetInstanceId,
+                                                      @RequestParam("harvestNumber") int harvestResultNumber,
+                                                      @RequestBody ModifyRow cmd) {
         try {
-            return harvestModificationHandler.buildImportParse(targetInstanceId, harvestResultNumber, cmd);
+            return harvestModificationHandler.bulkImportParse(targetInstanceId, harvestResultNumber, cmd);
         } catch (IOException | DigitalAssetStoreException e) {
             return null;
         }
+    }
+
+    @RequestMapping(path = "/curator/bulk-import/parse", method = {RequestMethod.POST, RequestMethod.GET})
+    protected void exportData(@RequestParam("targetInstanceOid") long targetInstanceId,
+                              @RequestParam("harvestNumber") int harvestResultNumber,
+                              @RequestBody List<ModifyRowMetadata> dataset,
+                              HttpServletRequest req, HttpServletResponse res) {
+
     }
 }

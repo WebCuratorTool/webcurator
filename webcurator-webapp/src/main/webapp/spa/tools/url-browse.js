@@ -14,7 +14,6 @@ function browseUrl(data, _browse_type){
 }
 
 function downloadUrl(data){
-	_browse_type=_browse_type.toUpperCase();
 	var url='/curator/tools/download/'+harvestResultId+'/?url='+btoa(data.url);
 	downloadRemote(url, data.url);
 }
