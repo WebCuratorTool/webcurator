@@ -55,9 +55,8 @@ import org.webcurator.ui.site.command.SiteSearchCommand;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@RequestMapping("/curator/site/search.html")
+@RequestMapping(path = {"/curator/site", "/curator/site/", "/curator/site/search.html"})
 public class SiteSearchController {
-
     /**
      * the site manager.
      */

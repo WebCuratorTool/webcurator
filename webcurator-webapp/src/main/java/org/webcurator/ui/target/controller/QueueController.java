@@ -24,15 +24,11 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.common.ui.Constants;
@@ -69,6 +65,7 @@ import java.util.*;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping(path = {"/curator/ti","/curator/ti/","/curator/target/queue.html"})
 public class QueueController {
 	private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -121,7 +118,7 @@ public class QueueController {
 		return processFilter(aReq, aResp, null, bindingResult);
 	}
 
-	@RequestMapping(value = "/curator/target/queue.html", method = RequestMethod.GET)
+	@GetMapping
 	public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp)
 			throws Exception {
 		return showForm(aReq, aResp, null);
@@ -142,7 +139,7 @@ public class QueueController {
 		session.removeAttribute(Constants.GBL_SESS_EDIT_MODE);
 	}
 
-	@RequestMapping(value = "/curator/target/queue.html", method = RequestMethod.POST)
+	@PostMapping
 	protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, @ModelAttribute TargetInstanceCommand command,
 												 BindingResult bindingResult) throws Exception {
 		if (command == null || command.getCmd() == null) {

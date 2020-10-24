@@ -46,7 +46,6 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Flag;
 import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.common.ui.Constants;
-import org.webcurator.ui.admin.validator.CreateFlagValidator;
 
 /**
  * Manages the Flags Administration view and the actions associated with a Flag group definition
@@ -67,8 +66,6 @@ public class FlagController {
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
-    @Autowired
-    private CreateFlagValidator createFlagValidator;
     /** Default Constructor. */
     public FlagController() {
         log = LogFactory.getLog(FlagController.class);
@@ -90,7 +87,6 @@ public class FlagController {
     @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/flags.html")
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute FlagCommand flagCommand, BindingResult bindingResult)
             throws Exception {
-        createFlagValidator.validate(flagCommand, bindingResult);
         ModelAndView mav = new ModelAndView();
         if (flagCommand != null) {
 

@@ -22,6 +22,8 @@ import org.webcurator.core.permissionmapping.UrlUtils;
  * @author bprice
  */
 public class AgencyCommand {
+	/** The name of the delete agency action. */
+	public static final String ACTION_DELETE = "delete";
     /** The name of the edit agency action. */
     public static final String ACTION_EDIT = "edit";
     /** The name of the save agency action. */
