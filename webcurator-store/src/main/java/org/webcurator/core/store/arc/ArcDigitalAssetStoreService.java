@@ -69,6 +69,7 @@ import org.webcurator.core.visualization.modification.processor.ModifyProcessorW
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
@@ -486,7 +487,9 @@ public class ArcDigitalAssetStoreService implements DigitalAssetStore, LogProvid
     }
 
     private NetworkMapNodeDTO queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
-        NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapUrl url = new NetworkMapUrl();
+        url.setUrlName(resourceUrl);
+        NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, url);
 
         String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, resourceUrl);
         if (result == null || result.getRspCode() != 0) {

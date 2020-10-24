@@ -158,9 +158,9 @@ function contextMenuCallback(key, data, source, target){
   }else if(action==='clear'){
     source.clear(dataset);
   }else if(action==='exportInspect'){
-    target.exportInspectData(dataset);
+    target.exportData(dataset);
   }else if(action==='exportToBeModified'){
-    target.exportPruneData(dataset);
+    target.exportData(dataset);
   }else if(action==='edit'){
     target.editImport(data);
   }else if(action==='copy'){
@@ -321,7 +321,7 @@ var gridOptionsToBeModified={
   },
   columnDefs: [
     {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
-    {headerName: "Option", field: "option", width:80, cellClass: function(params) { return getGridOption(params);}},
+    {headerName: "Option", field: "option", width:80},
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {

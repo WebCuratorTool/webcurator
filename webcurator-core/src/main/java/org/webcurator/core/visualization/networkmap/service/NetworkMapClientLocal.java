@@ -242,7 +242,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         Map<Long, NetworkMapTreeNodeDTO> map = new HashMap<>();
         NetworkMapTreeNodeDTO rootTreeNode = new NetworkMapTreeNodeDTO();
-        map.put((long) 0, rootTreeNode);
+        map.put((long) -1, rootTreeNode);
 
         List<NetworkMapNodeDTO> allNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
         for (NetworkMapNodeDTO networkMapNode : allNetworkMapNodes) {
@@ -260,6 +260,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 }
 
                 NetworkMapTreeViewPath path = db.getTreeViewPath(parentPathId);
+                if (path == null) {
+                    log.error("parentPath does not exist, parentPathId={}", parentPathId);
+                    break;
+                }
                 parentTreeNode = new NetworkMapTreeNodeDTO();
                 parentTreeNode.setTitle(path.getTitle());
                 parentTreeNode.getChildren().add(treeNode);
@@ -272,6 +276,9 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
         map.clear();
 
+        if (Utils.isEmpty(rootTreeNode.getTitle()) && rootTreeNode.getChildren().size() == 1) {
+            rootTreeNode = rootTreeNode.getChildren().get(0);
+        }
 
         NetworkMapCascadePath cascadePathProcessor = new NetworkMapCascadePath();
         cascadePathProcessor.summarize(rootTreeNode);
@@ -414,13 +421,17 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     }
 
     @Override
-    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, String urlName) {
+    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrl url) {
         BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
+        String urlName = url.getUrlName();
         NetworkMapNodeDTO networkMapNode = db.getUrlByUrlName(urlName);
+        if (networkMapNode == null) {
+            return NetworkMapResult.getDataNotExistResult();
+        }
 
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(this.obj2Json(networkMapNode));

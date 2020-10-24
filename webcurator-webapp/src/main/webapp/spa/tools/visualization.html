@@ -54,7 +54,7 @@ to get the desired effect
       <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
       <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
       <div class="input-group-append">
-        <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="gPopupModifyHarvest.popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
+        <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
         <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
       </div>
     </div>
@@ -221,7 +221,6 @@ to get the desired effect
 <div class="card card-primary popup-content">
   <div class="card-header">
     <h3 class="card-title">Hop Path</h3>
-
     <div class="card-tools">
       <button type="button" class="btn btn-tool" onclick="$('#popup-window-hop-path').hide();"><i class="fas fa-times"></i>
       </button>
@@ -229,7 +228,7 @@ to get the desired effect
     <!-- /.card-tools -->
   </div>
   <!-- /.card-header -->
-  <div class="card-body none-margin-padding"  id="hoppath-canvas" style="background: white; height: calc(100% - 50px);">
+  <div class="card-body none-margin-padding" id="hoppath-canvas" style="background: white; height: calc(100% - 50px);">
   </div>   <!-- /.card-body -->
 </div> <!-- /.card -->
 </div>

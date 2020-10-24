@@ -48,10 +48,7 @@ public class HarvestModificationController implements ModifyService {
     }
 
     @RequestMapping(path = "/curator/modification/operate", method = {RequestMethod.POST, RequestMethod.GET})
-    public ModifyResult operateHarvestResultModification(@RequestParam("stage") String stage,
-                                                         @RequestParam("command") String command,
-                                                         @RequestParam("targetInstanceId") long targetInstanceId,
-                                                         @RequestParam("harvestNumber") int harvestNumber) {
+    public ModifyResult operateHarvestResultModification(@RequestParam("stage") String stage, @RequestParam("command") String command, @RequestParam("targetInstanceId") long targetInstanceId, @RequestParam("harvestNumber") int harvestNumber) {
         ModifyResult result = new ModifyResult();
         try {
             if (command.equalsIgnoreCase("start")) {
@@ -74,52 +71,37 @@ public class HarvestModificationController implements ModifyService {
     }
 
     @RequestMapping(path = "/curator/target/patching-hr-view-data", method = {RequestMethod.POST, RequestMethod.GET})
-    public Map<String, Object> getHarvestResultViewData(@RequestParam("targetInstanceOid") long targetInstanceId,
-                                                        @RequestParam("harvestResultId") long harvestResultId,
-                                                        @RequestParam("harvestNumber") int harvestResultNumber) throws IOException, NoSuchAlgorithmException {
+    public Map<String, Object> getHarvestResultViewData(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws IOException, NoSuchAlgorithmException {
         return harvestModificationHandler.getHarvestResultViewData(targetInstanceId, harvestResultId, harvestResultNumber);
     }
 
     @RequestMapping(path = "/curator/target/derived-harvest-results", method = {RequestMethod.POST, RequestMethod.GET})
-    public List<HarvestResultDTO> getDerivedHarvestResults(@RequestParam("targetInstanceOid") long targetInstanceId,
-                                                           @RequestParam("harvestResultId") long harvestResultId,
-                                                           @RequestParam("harvestNumber") int harvestResultNumber) throws IOException {
+    public List<HarvestResultDTO> getDerivedHarvestResults(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) throws IOException {
         return harvestModificationHandler.getDerivedHarvestResults(targetInstanceId, harvestResultId, harvestResultNumber);
     }
 
     @RequestMapping(path = "/curator/tools/download/{hrOid}/**", method = {RequestMethod.POST, RequestMethod.GET})
-    protected void handleDownload(@PathVariable("hrOid") Long hrOid, @RequestParam("url") String url, HttpServletRequest req, HttpServletResponse res) throws Exception {
-        harvestModificationHandler.handleDownload(hrOid, url, req, res);
+    protected void handleDownload(@PathVariable("hrOid") Long hrOid, @RequestParam("url") String url, HttpServletRequest req, HttpServletResponse rsp) throws Exception {
+        harvestModificationHandler.handleDownload(hrOid, url, req, rsp);
     }
 
     @RequestMapping(path = "/curator/tools/browse/{hrOid}/**", method = {RequestMethod.POST, RequestMethod.GET})
-    protected void handleBrowse(@PathVariable("hrOid") Long hrOid, @RequestParam("url") String url, HttpServletRequest req, HttpServletResponse res) throws Exception {
-        harvestModificationHandler.handleBrowse(hrOid, url, req, res);
+    protected void handleBrowse(@PathVariable("hrOid") Long hrOid, @RequestParam("url") String url, HttpServletRequest req, HttpServletResponse rsp) throws Exception {
+        harvestModificationHandler.handleBrowse(hrOid, url, req, rsp);
     }
 
     @RequestMapping(path = "/curator/get/global-settings", method = {RequestMethod.POST, RequestMethod.GET})
-    protected Map<String, String> getGlobalSettings(@RequestParam("targetInstanceOid") long targetInstanceId,
-                                                    @RequestParam("harvestResultId") long harvestResultId,
-                                                    @RequestParam("harvestNumber") int harvestResultNumber) {
+    protected Map<String, String> getGlobalSettings(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) {
         return harvestModificationHandler.getGlobalSettings(targetInstanceId, harvestResultId, harvestResultNumber);
     }
 
     @RequestMapping(path = "/curator/bulk-import/parse", method = {RequestMethod.POST, RequestMethod.GET})
-    protected List<BulkImportFileRow> bulkImportParse(@RequestParam("targetInstanceOid") long targetInstanceId,
-                                                      @RequestParam("harvestNumber") int harvestResultNumber,
-                                                      @RequestBody ModifyRow cmd) {
-        try {
-            return harvestModificationHandler.bulkImportParse(targetInstanceId, harvestResultNumber, cmd);
-        } catch (IOException | DigitalAssetStoreException e) {
-            return null;
-        }
+    protected List<BulkImportFileRow> bulkImportParse(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody ModifyRow cmd) throws IOException, DigitalAssetStoreException {
+        return harvestModificationHandler.bulkImportParse(targetInstanceId, harvestResultNumber, cmd);
     }
 
-    @RequestMapping(path = "/curator/bulk-import/parse", method = {RequestMethod.POST, RequestMethod.GET})
-    protected void exportData(@RequestParam("targetInstanceOid") long targetInstanceId,
-                              @RequestParam("harvestNumber") int harvestResultNumber,
-                              @RequestBody List<ModifyRowMetadata> dataset,
-                              HttpServletRequest req, HttpServletResponse res) {
-
+    @RequestMapping(path = "/curator/export/data", method = {RequestMethod.POST, RequestMethod.GET})
+    protected void exportData(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody List<ModifyRowMetadata> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        harvestModificationHandler.exportData(targetInstanceId, harvestResultNumber, dataset, req, rsp);
     }
 }

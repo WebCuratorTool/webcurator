@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 
 import java.util.List;
 
@@ -110,8 +111,8 @@ public class NetworkMapController implements NetworkMapService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_URL_BY_NAME, method = {RequestMethod.POST}, produces = "application/json")
-    public NetworkMapResult getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("urlName") String urlName) {
-        return client.getUrlByName(job, harvestResultNumber, urlName);
+    public NetworkMapResult getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody NetworkMapUrl url) {
+        return client.getUrlByName(job, harvestResultNumber, url);
     }
 
     @Override

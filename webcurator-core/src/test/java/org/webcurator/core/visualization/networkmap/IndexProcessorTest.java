@@ -10,6 +10,7 @@ import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
@@ -70,7 +71,9 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         assert warcFileFrom != null;
         List<String> listToBePrunedUrl = getRandomUrlsFromWarcFile(warcFileFrom);
         listToBePrunedUrl.forEach(actualUrl -> {
-            NetworkMapResult result = localClient.getUrlByName(targetInstanceId, harvestResultNumber, actualUrl);
+            NetworkMapUrl url=new NetworkMapUrl();
+            url.setUrlName(actualUrl);
+            NetworkMapResult result = localClient.getUrlByName(targetInstanceId, harvestResultNumber, url);
             assert result != null;
             assert result.getRspCode() == VisualizationConstants.RESP_CODE_SUCCESS;
             assert result.getPayload() != null;

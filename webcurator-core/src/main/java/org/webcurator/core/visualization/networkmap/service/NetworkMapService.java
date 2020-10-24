@@ -5,6 +5,7 @@ import org.webcurator.core.visualization.VisualizationServiceInterface;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     NetworkMapResult getHierarchy(long job, int harvestResultNumber, List<Long> ids);
 
-    NetworkMapResult getUrlByName(long job, int harvestResultNumber, String urlName);
+    NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrl url);
 
     NetworkMapResult getUrlsByNames(long job, int harvestResultNumber, List<String> urlNameList);
 

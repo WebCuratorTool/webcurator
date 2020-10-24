@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sleepycat.je.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.common.util.Utils;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
@@ -327,6 +328,9 @@ public class BDBNetworkMap {
         String urlId = this.get(key1);
         String key2 = "uid_" + urlId;
         String unl = this.get(key2);
+        if (Utils.isEmpty(unl)) {
+            return null;
+        }
         NetworkMapNodeDTO n = new NetworkMapNodeDTO();
         try {
             n.toObjectFromUnl(unl);

@@ -6,10 +6,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.io.IOUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +15,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.webcurator.common.util.Utils;
 import org.webcurator.core.coordinator.HarvestResultManager;
@@ -37,6 +36,7 @@ import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata
 import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -394,7 +394,7 @@ public class HarvestModificationHandler {
         result.put(key, pair);
     }
 
-    public void handleDownload(Long hrOid, String url, HttpServletRequest req, HttpServletResponse res) throws IOException, DigitalAssetStoreException {
+    public void handleDownload(Long hrOid, String url, HttpServletRequest req, HttpServletResponse rsp) throws IOException, DigitalAssetStoreException {
         url = new String(Base64.getDecoder().decode(url));
 
         // Build a command with the items from the URL.
@@ -402,13 +402,13 @@ public class HarvestModificationHandler {
         HarvestResult hr = targetInstanceDAO.getHarvestResult(hrOid);
         if (hr == null) {        // If the resource is not found, go to an error page.
             log.error("Resource not found: {}", url);
-            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
         TargetInstance ti = hr.getTargetInstance();
         if (ti == null) {        // If the resource is not found, go to an error page.
             log.error("Resource not found: {}", url);
-            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
         List<Header> headers = new ArrayList<>();
@@ -416,12 +416,12 @@ public class HarvestModificationHandler {
             headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), url);
         } catch (Exception e) {
             log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
-            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
 
         String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
         if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
-            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
@@ -429,23 +429,23 @@ public class HarvestModificationHandler {
 
         // Send the headers for a redirect.
         if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
-            res.setStatus(statusCode);
+            rsp.setStatus(statusCode);
             String location = getHeaderValue(headers, "Location");
             if (!Utils.isEmpty(location) && !location.startsWith("http")) {
                 location = url + location;
             }
             String encodedLocation = Base64.getEncoder().encodeToString(location.getBytes());
-            res.setHeader("Location", String.format("/curator/tools/browse/%d/?url=%s", hrOid, encodedLocation));
+            rsp.setHeader("Location", String.format("/curator/tools/browse/%d/?url=%s", hrOid, encodedLocation));
         } else {
             // Get the content type.
-            res.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
+            rsp.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
             Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), url);
-            IOUtils.copy(Files.newInputStream(path), res.getOutputStream());
+            IOUtils.copy(Files.newInputStream(path), rsp.getOutputStream());
         }
     }
 
 
-    public void handleBrowse(Long hrOid, String url, HttpServletRequest req, HttpServletResponse res) throws IOException, DigitalAssetStoreException {
+    public void handleBrowse(Long hrOid, String url, HttpServletRequest req, HttpServletResponse rsp) throws IOException, DigitalAssetStoreException {
         String baseUrl = new String(Base64.getDecoder().decode(url));
 
         // Build a command with the items from the URL.
@@ -453,13 +453,13 @@ public class HarvestModificationHandler {
         HarvestResult hr = targetInstanceDAO.getHarvestResult(hrOid);
         if (hr == null) {        // If the resource is not found, go to an error page.
             log.error("Resource not found: {}", baseUrl);
-            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
         TargetInstance ti = hr.getTargetInstance();
         if (ti == null) {        // If the resource is not found, go to an error page.
             log.error("Resource not found: {}", baseUrl);
-            res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
 
         List<Header> headers = new ArrayList<>();
@@ -467,7 +467,7 @@ public class HarvestModificationHandler {
             headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), baseUrl);
         } catch (Exception e) {
             log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
-            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
 
         // Get the content type.
@@ -489,29 +489,29 @@ public class HarvestModificationHandler {
 
         String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
         if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
-            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
         int statusCode = Integer.parseInt(getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE"));
         // Send the headers for a redirect.
         if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
-            res.setStatus(statusCode);
+            rsp.setStatus(statusCode);
             String location = getHeaderValue(headers, "Location");
             if (!Utils.isEmpty(location) && !location.startsWith("http")) {
                 location = baseUrl + location;
             }
             String encodedLocation = Base64.getEncoder().encodeToString(location.getBytes());
-            res.setHeader("Location", browseHelper.getResourcePrefix(hrOid) + encodedLocation);
+            rsp.setHeader("Location", browseHelper.getResourcePrefix(hrOid) + encodedLocation);
             return;
         }
 
         // Get the content type.
-        res.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
+        rsp.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
 
         Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), baseUrl);
         if (!browseHelper.isReplaceable(simpleContentType)) {
-            IOUtils.copy(Files.newInputStream(path), res.getOutputStream());
+            IOUtils.copy(Files.newInputStream(path), rsp.getOutputStream());
             path.toFile().delete();
             return;
         }
@@ -539,7 +539,7 @@ public class HarvestModificationHandler {
         }
         browseHelper.fix(content, simpleContentType, hrOid, baseUrl);
 
-        res.getOutputStream().write(content.toString().getBytes());
+        rsp.getOutputStream().write(content.toString().getBytes());
     }
 
     private String getHeaderValue(List<Header> headers, String key) {
@@ -621,10 +621,12 @@ public class HarvestModificationHandler {
                 continue;
             }
 
-            NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, row.getTarget());
+            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
+            networkMapUrl.setUrlName(row.getTarget());
+            NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
 
             String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, row.getTarget());
-            if (networkMapResult == null || networkMapResult.getRspCode() != 0) {
+            if (networkMapResult == null || networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
                 log.warn(err);
                 row.setRespCode(-1);
                 continue;
@@ -644,6 +646,90 @@ public class HarvestModificationHandler {
         }
 
         return importFileRows;
+    }
+
+
+    protected void exportData(long targetInstanceId, int harvestResultNumber, List<ModifyRowMetadata> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        Resource resource = new ClassPathResource("bulk-modification-template.xlsx");
+        Workbook workbook = new XSSFWorkbook(resource.getInputStream());
+        Sheet sheet = workbook.getSheetAt(0);
+
+        int rowIndex = 1;
+        for (ModifyRowMetadata rowMetadata : dataset) {
+            if (Utils.isEmpty(rowMetadata.getUrl())) {
+                continue;
+            }
+
+            Row rowExcel = sheet.createRow(rowIndex++);
+            if (!Utils.isEmpty(rowMetadata.getOption())) {
+                Cell colOption = rowExcel.createCell(0);
+                colOption.setCellValue(rowMetadata.getOption());
+            }
+
+            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
+            networkMapUrl.setUrlName(rowMetadata.getUrl());
+            NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
+            if (result.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+                Cell colExistingFlag = rowExcel.createCell(1);
+                colExistingFlag.setCellValue("No");
+            } else if (result.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
+                Cell colExistingFlag = rowExcel.createCell(1);
+                colExistingFlag.setCellValue("Yes");
+
+                NetworkMapNodeDTO nodeDTO = networkMapClient.getNodeEntity(result.getPayload());
+                if (nodeDTO == null) {
+                    Cell colTarget = rowExcel.createCell(2);
+                    colTarget.setCellValue(rowMetadata.getUrl());
+                    log.error("Could not find URL node with: {}", rowMetadata.getUrl());
+                    continue;
+                }
+
+                Cell colTarget = rowExcel.createCell(2);
+                colTarget.setCellValue(nodeDTO.getUrl());
+
+                if (!Utils.isEmpty(rowMetadata.getName())) {
+                    Cell colLocalFileName = rowExcel.createCell(3);
+                    colLocalFileName.setCellValue(rowMetadata.getName());
+                }
+
+                if (!Utils.isEmpty(rowMetadata.getModifiedMode())) {
+                    Cell colModifiedMode = rowExcel.createCell(4);
+                    colModifiedMode.setCellValue(rowMetadata.getModifiedMode());
+                }
+
+                if (rowMetadata.getLastModified() > 0) {
+                    Cell colLastModified = rowExcel.createCell(5);
+                    colLastModified.setCellValue(rowMetadata.getLastModified());
+                }
+
+                Cell colContentType = rowExcel.createCell(6);
+                colContentType.setCellValue(nodeDTO.getContentType());
+
+                Cell colStatusCode = rowExcel.createCell(7);
+                colStatusCode.setCellValue(nodeDTO.getStatusCode());
+
+                Cell colContentLength = rowExcel.createCell(8);
+                colContentLength.setCellValue(nodeDTO.getContentLength());
+
+                Cell colTotUrls = rowExcel.createCell(9);
+                colTotUrls.setCellValue(nodeDTO.getTotUrls());
+
+                Cell colTotFailed = rowExcel.createCell(10);
+                colTotFailed.setCellValue(nodeDTO.getTotFailed());
+
+                Cell colTotSuccess = rowExcel.createCell(11);
+                colTotSuccess.setCellValue(nodeDTO.getTotSuccess());
+
+                Cell colTotContentLength = rowExcel.createCell(12);
+                colTotContentLength.setCellValue(nodeDTO.getTotSize());
+            } else {
+                log.warn(result.getRspMsg());
+            }
+        }
+
+        rsp.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        workbook.write(rsp.getOutputStream());
+        workbook.close();
     }
 }
 

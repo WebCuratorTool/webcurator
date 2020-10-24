@@ -367,7 +367,7 @@ class PopupModifyHarvest{
 	}
 
 	setRowStyle(){
-		toBeModifiedDataMap={};
+		var toBeModifiedDataMap={};
 		this.gridCandidate.gridOptions.api.forEachNode(function(node, index){
 			if (node.data.id > 0) {
 				toBeModifiedDataMap[node.data.id]=node.data;
@@ -393,7 +393,11 @@ class PopupModifyHarvest{
 
 		//Set class for grid candidate
 		this.gridCandidate.gridOptions.api.forEachNode(function(node, index){
-			node.data.flag=importDataMap[node.data.id].option;
+			if (importDataMap[node.data.id] && importDataMap[node.data.id].option) {
+				node.data.flag=importDataMap[node.data.id].option;
+			}else{
+				node.data.flag='normal';
+			}
 		});
 		this.gridCandidate.gridOptions.api.redrawRows(true);
 	}
@@ -404,15 +408,15 @@ class PopupModifyHarvest{
 	}
 
 	pruneHarvest(data){
-		_moveHarvest2ToBeModifiedList(data, 'prune');
+		this._moveHarvest2ToBeModifiedList(data, 'prune');
 	}
 
 	recrawl(data){
-		_moveHarvest2ToBeModifiedList(data, 'recrawl');
+		this._moveHarvest2ToBeModifiedList(data, 'recrawl');
 	}
 
 	import(data){
-		_moveHarvest2ToBeModifiedList(data, 'import');
+		this._moveHarvest2ToBeModifiedList(data, 'import');
 	}
 
 	_moveHarvest2ToBeModifiedList(data, action){
@@ -438,11 +442,11 @@ class PopupModifyHarvest{
 		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
 			if(map[node.data.url]){
 				delete map[node.data.url];
+				node.data.option=action;
 				node.data.flag='new';
 			}else{
 				node.data.flag='normal';
 			}
-			node.data.option=action;
 		});
 		this.gridToBeModified.gridOptions.api.redrawRows(true);
 
@@ -462,7 +466,7 @@ class PopupModifyHarvest{
 	showBulkPrune(){
 		$('#bulkPruneMetadataFile').val(null);
 		$('#label-bulk-prune-metadata-file').html('Choose file');
-    	$('#popup-window-bulk-prune').show();
+    $('#popup-window-bulk-prune').show();
 	}
 
 	showImport(data){
@@ -660,7 +664,7 @@ class PopupModifyHarvest{
 
 			var data=JSON.parse(response.payload);
 			if(data.length===0){
-				g_TurnOffOverlayLoading();	
+				g_TurnOffOverlayLoading();
 				alert('No data found!');
 			}else{
 				that.gridCandidate.setRowData(data);
@@ -704,82 +708,39 @@ class PopupModifyHarvest{
 		});
 	}
 
-	exportData(data, exportType){
-		
+	exportData(req){
+		var url="/curator/export/data?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
+		fetch(url, { 
+	    method: 'POST',
+	    redirect: 'follow',
+	    headers: {'Content-Type': 'application/json'},
+	    body: JSON.stringify(req)
+	  }).then((res) => {
+			if (res.ok) {
+				return res.blob();
+			}
+			return null;
+		}).then((blob) => {
+			console.log(blob);
+			if(blob){
+				saveAs(blob, name);
+			}
+		});
 	}
 
 	exportInspectData(data){
-		var lines=[], row=[];
-		row.push('URL');
-		row.push('Type');
-		row.push('Status');
-		row.push('Size');
-		row.push('Outlink-TotUrls');
-		row.push('Outlink-Failed');
-		row.push('Outlink-Success');
-		row.push('Outlink-TotSize');
-		var line=row.join('\t');
-		lines.push(line);
-
+		var req=[];
 		for(var i=0; i<data.length; i++){
-			var d=data[i];
-			row=[];
-			row.push(d.url);
-			row.push(d.contentType);
-			row.push(d.statusCode);
-			row.push(d.contentLength);
-			row.push(d.totUrls);
-			row.push(d.totFailed);
-			row.push(d.totSuccess);
-			row.push(d.totSize);
-			lines.push(row.join('\t'));
+			var row={};
+			row.url=data[i].url;
+			req.push(row);
 		}
-		
-		var content=lines.join('\r\n');
 
-		saveData(content, 'harvest_links_inspect.csv');
+		this.exportData(req);
 	}
 
-	exportPruneData(data){
-		var lines=[], row=[];
-		row.push('URL');
-		var line=row.join('\t');
-		lines.push(line);
-
-		for(var i=0; i<data.length; i++){
-			var d=data[i];
-			row=[];
-			row.push(d.url);
-			lines.push(row.join('\t'));
-		}
-		
-		var content=lines.join('\r\n');
-
-		saveData(content, 'harvest_links_prune.csv');
-	}
-
-	exportImportData(data){
-		var lines=[], row=[];
-		row.push('Option');
-		row.push('Target');
-		row.push('Source');
-		row.push('ModifiedDate');
-		var line=row.join('\t');
-		lines.push(line);
-
-		for(var i=0; i<data.length; i++){
-			var d=data[i];
-			row=[];
-			row.push(d.option);
-			row.push(d.url);
-			row.push(d.name);
-			row.push(d.lastModified);
-			lines.push(row.join('\t'));
-		}
-		
-		var content=lines.join('\r\n');
-
-		saveData(content, 'harvest_links_import.csv');
+	exportToBeModified(data){
+		this.exportData(data);
 	}
 
 	insertImportData(dataset){
