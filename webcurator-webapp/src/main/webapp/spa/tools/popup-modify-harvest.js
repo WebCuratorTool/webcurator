@@ -709,6 +709,7 @@ class PopupModifyHarvest{
 	}
 
 	exportData(req){
+		g_TurnOnOverlayLoading();
 		var url="/curator/export/data?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
 		fetch(url, { 
 	    method: 'POST',
@@ -721,6 +722,7 @@ class PopupModifyHarvest{
 			}
 			return null;
 		}).then((blob) => {
+			g_TurnOffOverlayLoading();
 			console.log(blob);
 			if(blob){
 				saveAs(blob, name);
@@ -728,24 +730,9 @@ class PopupModifyHarvest{
 		});
 	}
 
-	exportInspectData(data){
-		var req=[];
-		for(var i=0; i<data.length; i++){
-			var row={};
-			row.url=data[i].url;
-			req.push(row);
-		}
-
-		this.exportData(req);
-	}
-
-	exportToBeModified(data){
-		this.exportData(data);
-	}
-
 	insertImportData(dataset){
-		this.gridImport.insert(dataset);
-		// this.setRowStyle();
+		this.gridToBeModified.insert(dataset);
+		this.setRowStyle();
 	}
 
 	//Save and reindexing

@@ -321,6 +321,13 @@ var gridOptionsToBeModified={
   },
   columnDefs: [
     {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
+    {headerName: "Flag", field: "existingFlag", width:80, cellRenderer:  (row) => {
+        if (!row.data.existingFlag) {
+          return '<span class="right badge badge-danger">New</span>';
+        }else{
+          return '';
+        }
+    }},
     {headerName: "Option", field: "option", width:80},
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
@@ -354,7 +361,14 @@ var gridOptionsImportPrepare={
     renderImportOption: renderImportOption
   },
   columnDefs: [
-    {headerName: "Option", field: "option", width:80, cellClass: function(params) {return getGridOption(params);}},
+    {headerName: "Flag", field: "existingFlag", width:80, cellRenderer:  (row) => {
+        if (!row.data.existingFlag) {
+          return '<span class="right badge badge-danger">New</span>';
+        }else{
+          return '';
+        }
+    }},
+    {headerName: "Option", field: "option", width:80},
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {

@@ -55,6 +55,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -446,6 +450,9 @@ public class HarvestModificationHandler {
 
 
     public void handleBrowse(Long hrOid, String url, HttpServletRequest req, HttpServletResponse rsp) throws IOException, DigitalAssetStoreException {
+        if (!Utils.isEmpty(url) && url.startsWith("/")) {
+            url = url.substring(1);
+        }
         String baseUrl = new String(Base64.getDecoder().decode(url));
 
         // Build a command with the items from the URL.
@@ -576,12 +583,15 @@ public class HarvestModificationHandler {
     }
 
 
-    public List<BulkImportFileRow> bulkImportParse(long targetInstanceId, int harvestResultNumber, ModifyRow cmd) throws IOException, DigitalAssetStoreException {
+    public NetworkMapResult bulkImportParse(long targetInstanceId, int harvestResultNumber, ModifyRow cmd) throws IOException, DigitalAssetStoreException {
+        NetworkMapResult result = NetworkMapResult.getSuccessResult();
+
         int idx = cmd.getContent().indexOf("base64");
         if (idx < 0) {
             log.error("Not a base64 encoded stream");
-            return null;
+            return NetworkMapResult.getBadRequestResult("Invalid metadata file: is not a base64 encoded stream.");
         }
+
         byte[] doc = Base64.getDecoder().decode(cmd.getContent().substring(idx + 7));
         ByteArrayInputStream docInputStream = new ByteArrayInputStream(doc);
 
@@ -596,7 +606,7 @@ public class HarvestModificationHandler {
 
             if (i == 0) {
                 for (Cell cell : row) {
-                    String colValue = cell.getStringCellValue();
+                    String colValue = getValueFromCell(cell);
                     headerIndex.put(col, colValue);
                     col++;
                 }
@@ -605,7 +615,7 @@ public class HarvestModificationHandler {
                 BulkImportFileRow bulkImportFileRowObject = new BulkImportFileRow();
                 for (Cell cell : row) {
                     String colKey = headerIndex.get(col);
-                    String colValue = cell.getStringCellValue();
+                    String colValue = getValueFromCell(cell);
                     BulkImportFileRow.setValue(bulkImportFileRowObject, colKey, colValue);
                     col++;
                 }
@@ -616,9 +626,8 @@ public class HarvestModificationHandler {
         }
 
         for (BulkImportFileRow row : importFileRows) {
-            if (Utils.isEmpty(row.getTarget())) {
-                row.setRespCode(-1);
-                continue;
+            if (Utils.isEmpty(row.getOption()) || Utils.isEmpty(row.getTarget())) {
+                return NetworkMapResult.getBadRequestResult("Option field and target field can not be empty.");
             }
 
             NetworkMapUrl networkMapUrl = new NetworkMapUrl();
@@ -626,9 +635,14 @@ public class HarvestModificationHandler {
             NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
 
             String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, row.getTarget());
-            if (networkMapResult == null || networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
-                log.warn(err);
-                row.setRespCode(-1);
+            if (networkMapResult == null || (networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS && networkMapResult.getRspCode() != NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST)) {
+                log.error(err);
+                return NetworkMapResult.getBadRequestResult(err);
+            }
+
+            if (networkMapResult.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+                row.setExistingFlag(false);
+                row.setUrl(row.getTarget());
                 continue;
             }
 
@@ -636,18 +650,38 @@ public class HarvestModificationHandler {
             NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
             if (node == null) {
                 log.warn(err);
-                row.setRespCode(-1);
-            } else {
-                row.copy(node);
-                row.setRespCode(0);
-
-                node.clear();
+                return NetworkMapResult.getBadRequestResult(err);
             }
+
+            row.copy(node);
+            row.setExistingFlag(true);
+            row.setRespCode(0);
+            node.clear();
         }
 
-        return importFileRows;
+        result.setPayload(networkMapClient.obj2Json(importFileRows));
+        return result;
     }
 
+    private String getValueFromCell(Cell cell) {
+        CellType type = cell.getCellType();
+        String value;
+        switch (cell.getCellType()) {
+            case STRING:
+            case BLANK:
+                value = cell.getStringCellValue();
+                break;
+            case NUMERIC:
+                value = String.format("%f", cell.getNumericCellValue());
+                break;
+            case BOOLEAN:
+                value = Boolean.toString(cell.getBooleanCellValue());
+                break;
+            default:
+                value = "";
+        }
+        return value;
+    }
 
     protected void exportData(long targetInstanceId, int harvestResultNumber, List<ModifyRowMetadata> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         Resource resource = new ClassPathResource("bulk-modification-template.xlsx");
@@ -670,21 +704,21 @@ public class HarvestModificationHandler {
             networkMapUrl.setUrlName(rowMetadata.getUrl());
             NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
             if (result.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
-                Cell colExistingFlag = rowExcel.createCell(1);
+                Cell colExistingFlag = rowExcel.createCell(2);
                 colExistingFlag.setCellValue("No");
             } else if (result.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
-                Cell colExistingFlag = rowExcel.createCell(1);
+                Cell colExistingFlag = rowExcel.createCell(2);
                 colExistingFlag.setCellValue("Yes");
 
                 NetworkMapNodeDTO nodeDTO = networkMapClient.getNodeEntity(result.getPayload());
                 if (nodeDTO == null) {
-                    Cell colTarget = rowExcel.createCell(2);
+                    Cell colTarget = rowExcel.createCell(1);
                     colTarget.setCellValue(rowMetadata.getUrl());
                     log.error("Could not find URL node with: {}", rowMetadata.getUrl());
                     continue;
                 }
 
-                Cell colTarget = rowExcel.createCell(2);
+                Cell colTarget = rowExcel.createCell(1);
                 colTarget.setCellValue(nodeDTO.getUrl());
 
                 if (!Utils.isEmpty(rowMetadata.getName())) {
@@ -734,10 +768,11 @@ public class HarvestModificationHandler {
 }
 
 class BulkImportFileRow extends NetworkMapNodeDTO {
+    private boolean existingFlag;
     private String option;
     private String target;
-    private String modificationDateMode;
-    private String modificationDateTime;
+    private String modifiedMode;
+    private long lastModifiedDate;
     private int respCode;
 
     @JsonIgnore
@@ -745,16 +780,41 @@ class BulkImportFileRow extends NetworkMapNodeDTO {
         if (Utils.isEmpty(key) || Utils.isEmpty(value)) {
             return;
         }
-
         if (key.trim().equalsIgnoreCase("option")) {
             row.option = value.toUpperCase();
         } else if (key.trim().equalsIgnoreCase("target")) {
             row.target = value;
-        } else if (key.trim().equalsIgnoreCase("modificationDateMode")) {
-            row.modificationDateMode = value.toUpperCase();
-        } else if (key.trim().equalsIgnoreCase("modificationDateTime")) {
-            row.modificationDateTime = value;
+        } else if (key.trim().equalsIgnoreCase("modifiedMode")) {
+            row.modifiedMode = value.toUpperCase();
+        } else if (key.trim().equalsIgnoreCase("lastModifiedDate")) {
+            LocalDateTime dt = parseDateTime(value);
+            if (dt == null) {
+                row.lastModifiedDate = -1;
+            } else {
+                row.lastModifiedDate = dt.toEpochSecond(ZoneOffset.UTC);
+            }
         }
+    }
+
+    public static LocalDateTime parseDateTime(String val) {
+        DateTimeFormatter[] dateTimeFormatterList = {DateTimeFormatter.BASIC_ISO_DATE, DateTimeFormatter.ISO_DATE_TIME, DateTimeFormatter.ISO_LOCAL_DATE_TIME, DateTimeFormatter.ISO_LOCAL_DATE};
+        for (DateTimeFormatter formatter : dateTimeFormatterList) {
+            try {
+                LocalDateTime dt = LocalDateTime.parse(val, formatter);
+                return dt;
+            } catch (DateTimeParseException e) {
+                continue;
+            }
+        }
+        return null;
+    }
+
+    public boolean isExistingFlag() {
+        return existingFlag;
+    }
+
+    public void setExistingFlag(boolean existingFlag) {
+        this.existingFlag = existingFlag;
     }
 
     public String getOption() {
@@ -773,20 +833,20 @@ class BulkImportFileRow extends NetworkMapNodeDTO {
         this.target = target;
     }
 
-    public String getModificationDateMode() {
-        return modificationDateMode;
+    public String getModifiedMode() {
+        return modifiedMode;
     }
 
-    public void setModificationDateMode(String modificationDateMode) {
-        this.modificationDateMode = modificationDateMode;
+    public void setModifiedMode(String modifiedMode) {
+        this.modifiedMode = modifiedMode;
     }
 
-    public String getModificationDateTime() {
-        return modificationDateTime;
+    public long getLastModifiedDate() {
+        return lastModifiedDate;
     }
 
-    public void setModificationDateTime(String modificationDateTime) {
-        this.modificationDateTime = modificationDateTime;
+    public void setLastModifiedDate(long lastModifiedDate) {
+        this.lastModifiedDate = lastModifiedDate;
     }
 
     public int getRespCode() {

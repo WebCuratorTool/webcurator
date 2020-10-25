@@ -30,6 +30,7 @@ import org.archive.wayback.archivalurl.ArchivalUrlResultURIConverter;
 import org.jsoup.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.common.util.Utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -271,6 +272,11 @@ public class BrowseHelper {
     }
 
     public String convertUrl(Long hrOid, String currentResource, String urlToConvert) {
+        //For embeded image
+        if (!Utils.isEmpty(urlToConvert) && urlToConvert.startsWith("data:image")) {
+            return urlToConvert;
+        }
+
         String resourcePrefix = prefix + "/" + hrOid + "/?url=";
         String absUrl = getAbsURL(currentResource, urlToConvert);
 

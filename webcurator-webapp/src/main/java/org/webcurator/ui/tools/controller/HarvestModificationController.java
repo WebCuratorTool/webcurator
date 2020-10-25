@@ -11,6 +11,7 @@ import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.metadata.ModifyRow;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
 import org.webcurator.core.visualization.modification.service.ModifyService;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -96,7 +97,7 @@ public class HarvestModificationController implements ModifyService {
     }
 
     @RequestMapping(path = "/curator/bulk-import/parse", method = {RequestMethod.POST, RequestMethod.GET})
-    protected List<BulkImportFileRow> bulkImportParse(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody ModifyRow cmd) throws IOException, DigitalAssetStoreException {
+    protected NetworkMapResult bulkImportParse(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody ModifyRow cmd) throws IOException, DigitalAssetStoreException {
         return harvestModificationHandler.bulkImportParse(targetInstanceId, harvestResultNumber, cmd);
     }
 
