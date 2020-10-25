@@ -27,153 +27,143 @@ to get the desired effect
 |---------------------------------------------------------|
 -->
 <body unselectable="on" class="layout-navbar-fixed sidebar-collapse">
-<nav class="main-header navbar navbar-expand navbar-dark">
-  <!-- Left navbar links -->
-  <ul class="navbar-nav">
-    <div class="btn-group btn-group-toggle" id="btn-group-main-tabs" data-toggle="buttons">
-      <label class="btn bg-secondary active" name="networkmap">
-        <input type="radio" name="options" autocomplete="off" checked> <i class="fas fa-vector-square"></i>
-      </label>
-      <label class="btn bg-secondary" name="tree-harvest-struct">
-        <input type="radio" name="options" autocomplete="off"> <i class="fas fa-bezier-curve"></i>
-      </label>
-      <label class="btn bg-secondary" name="tree-url-names">
-        <input type="radio" name="options" autocomplete="off"> <i class="fa fa-folder-open"></i>
-      </label>
-      <label class="btn bg-secondary" name="candidate-query">
-        <input type="radio" name="options" autocomplete="off"> <i class="far fa-list-alt"></i>
-      </label>
-    </div>
-  </ul>
-
-  <!-- SEARCH FORM -->
-  <form class="form-inline ml-3" style="margin-left: 10px;" id="menu-tool-bar">
-    <div class="input-group">
-      <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="networkmap" disabled="disabled">
-      <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-harvest-struct" style="display: none;">
-      <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
-      <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
-      <div class="input-group-append">
-        <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
-        <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
+<div class="card main-tab" id="main-tab-group">
+  <nav class="main-header navbar navbar-expand navbar-dark">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <div class="btn-group btn-group-toggle" id="btn-group-main-tabs" data-toggle="buttons">
+        <label class="btn bg-secondary active" name="networkmap">
+          <input type="radio" name="options" autocomplete="off" checked> <i class="fas fa-vector-square"></i>
+        </label>
+        <label class="btn bg-secondary" name="tree-harvest-struct">
+          <input type="radio" name="options" autocomplete="off"> <i class="fas fa-bezier-curve"></i>
+        </label>
+        <label class="btn bg-secondary" name="tree-url-names">
+          <input type="radio" name="options" autocomplete="off"> <i class="fa fa-folder-open"></i>
+        </label>
+        <label class="btn bg-secondary" name="candidate-query">
+          <input type="radio" name="options" autocomplete="off"> <i class="far fa-list-alt"></i>
+        </label>
       </div>
-    </div>
-  </form>
+    </ul>
 
-  <!-- Right navbar links -->
-  <ul class="navbar-nav ml-auto">
-    <!-- Derived Harvest Results -->
-    <li class="nav-item dropdown" style="margin-right: 5px;">
-      <a class="nav-link bg-secondary" data-toggle="dropdown" href="#" onclick="updateDerivedHarvestResults();">
-        <i class="fas fa-project-diagram">&nbsp;Derived</i>
-        <!-- Derived -->
-        <span class="badge badge-warning navbar-badge hidden" id="derived-hr-badge">0</span>
-      </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="derived-hr-list">
-        <span class="dropdown-item dropdown-header">Derived Harvest Results</span>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-external-link-square-alt"></i> 1
-          <span class="float-right text-muted text-sm">Summary</span>
+    <!-- SEARCH FORM -->
+    <form class="form-inline ml-3" style="margin-left: 10px;" id="menu-tool-bar">
+      <div class="input-group">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="networkmap" disabled="disabled">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-harvest-struct" style="display: none;">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
+        <div class="input-group-append">
+          <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
+          <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+      <!-- Derived Harvest Results -->
+      <li class="nav-item dropdown" style="margin-right: 5px;">
+        <a class="nav-link bg-secondary" data-toggle="dropdown" href="#" onclick="updateDerivedHarvestResults();">
+          <i class="fas fa-project-diagram">&nbsp;Derived</i>
+          <!-- Derived -->
+          <span class="badge badge-warning navbar-badge hidden" id="derived-hr-badge">0</span>
         </a>
-      </div>
-    </li>
-
-    <!-- To be modified: Cart -->
-    <div class="btn-group">
-      <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modify-harvest').show();"><i class="fas fa-shopping-cart">&nbsp; To Be Modified</i></button>
-      <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
-        <span class="sr-only">Toggle Dropdown</span>
-        <div class="dropdown-menu" role="menu">
-          <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Single Import</a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="derived-hr-list">
+          <span class="dropdown-item dropdown-header">Derived Harvest Results</span>
           <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item template-download" href="#" template="bulk-modification-template.csv"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Modification Template</a>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-external-link-square-alt"></i> 1
+            <span class="float-right text-muted text-sm">Summary</span>
+          </a>
         </div>
-      </button>
+      </li>
+
+      <!-- To be modified: Cart -->
+      <div class="btn-group">
+        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modify-harvest').show();"><i class="fas fa-shopping-cart">&nbsp; To Be Modified</i></button>
+        <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
+          <span class="sr-only">Toggle Dropdown</span>
+          <div class="dropdown-menu" role="menu">
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Single Import</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item template-download" href="#" template="bulk-modification-template.csv"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Modification Template</a>
+          </div>
+        </button>
+      </div>
+
+      <li class="nav-item">
+        <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
+      </li>
+      <li class="nav-item">
+        <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
+      </li>
+    </ul>
+  </nav> <!-- End of Header -->
+
+  <!-- Network Map -->
+  <div class="card-body" id="networkmap" style="height: calc(100vh - 50px); width: 100vw;">
+    <!-- Networmap Canvas -->
+    <div id="network-map-canvas" style="position: absolute; height: calc(100% + 2px); width: calc(100% + 2px); margin-left: -1px; margin-top: -1px;"></div>
+
+    <div class="card" style="position: absolute; left: 1px; top: 60px; width: 400px; margin: 0; padding: 0;">
+      <div class="card-header" style="padding-top: 3px;">
+        <h3 class="card-title">Catagory</h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool btn-side-group-type text-primary" name="statuscode">Status</button>
+          <button type="button" class="btn btn-tool btn-side-group-type" name="contenttype">Type</button>
+          <button type="button" class="btn btn-tool text-primary" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="card-body" style="margin: 0; padding: 0; height: calc(100vh - 100px);">
+         <!-- Side Card -->
+        <div id="networkmap-side-container" style="height: 100%; width: 100%;">
+          <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
+          <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
+        </div> <!-- end of side card -->
+      </div> <!-- end of card body -->
+    </div> <!-- end of card -->
+
+    <!-- Domain Name -->
+    <div style="position: absolute; left: 450px; top: 60px; margin: 0; padding: 0;">
+      <h3 class="text-muted">Current Domain: <span class="text-dark" id="networkmap-side-title">Root</span></h3>
     </div>
 
-    <li class="nav-item">
-      <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
-    </li>
-    <li class="nav-item">
-      <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
-    </li>
-  </ul>
-</nav> <!-- End of Header -->
-
-<div id="main-tab-group">
-  <!-- Network Map -->
-  <div class="card main-tab" id="networkmap">
-    <div class="card-body" style="height: calc(100vh - 50px); width: 100vw;">
-      <!-- Networmap Canvas -->
-      <div id="network-map-canvas" style="position: absolute; height: calc(100% + 2px); width: calc(100% + 2px); margin-left: -1px; margin-top: -1px;"></div>
-
-      <div class="card" style="position: absolute; left: 1px; top: 5px; width: 400px; margin: 0; padding: 0;">
-        <div class="card-header" style="padding-top: 3px;">
-          <h3 class="card-title">Catagory</h3>
-          <div class="card-tools">
-            <button type="button" class="btn btn-tool btn-side-group-type text-primary" name="statuscode">Status</button>
-            <button type="button" class="btn btn-tool btn-side-group-type" name="contenttype">Type</button>
-            <button type="button" class="btn btn-tool text-primary" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-          </div>
-        </div>
-        <div class="card-body" style="margin: 0; padding: 0; height: calc(100vh - 102px);">
-           <!-- Side Card -->
-          <div id="networkmap-side-container" style="height: 100%; width: 100%;">
-            <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
-            <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
-          </div> <!-- end of side card -->
-        </div> <!-- end of card body -->
-      </div> <!-- end of card -->
-
-      <!-- Domain Name -->
-      <div style="position: absolute; left: 450px; top: 5px; margin: 0; padding: 0;">
-        <h3 class="text-muted">Current Domain: <span class="text-dark" id="networkmap-side-title">Root</span></h3>
+    <!-- Redraw and Collapse -->
+    <div style="position: absolute; right: 5px; top: 60px; margin: 0; padding: 0;">
+      <div class="btn-group">
+        <!-- <button type="button" class="btn btn-default" onclick="networkmap.reload();">Reload</button> -->
+        <button type="button" class="btn btn-default" onclick="networkmap.graph.redraw();">Redraw</button>
+        <button type="button" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse</button>
       </div>
+    </div>
+  </div>    <!-- End of card body -->
 
-      <!-- Redraw and Collapse -->
-      <div style="position: absolute; right: 5px; top: 5px; margin: 0; padding: 0;">
-        <div class="btn-group">
-          <!-- <button type="button" class="btn btn-default" onclick="networkmap.reload();">Reload</button> -->
-          <button type="button" class="btn btn-default" onclick="networkmap.graph.redraw();">Redraw</button>
-          <button type="button" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse</button>
-        </div>
-      </div>
-    </div>    <!-- End of card body -->
-    <div class="overlay2 dark"><div class="spin-overlay2 text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
-  </div>
 
   <!-- TreeView: Harvest Struct -->
-  <div class="card main-tab hidden" id="tree-harvest-struct">
-    <div class="card-body" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
-      <table id="hierachy-tree-harvest-struct" class="hierachy-tree" style="width: 100%; outline: none;">
+  <div class="card-body hidden" id="tree-harvest-struct" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
+    <table id="hierachy-tree-harvest-struct" class="hierachy-tree" style="width: 100%; outline: none;">
+      <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
+      <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
+    </table>
+  </div>
+    
+  <!-- TreeView: URL Names -->
+  <div class="card-body hidden" id="tree-url-names" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
+      <table id="hierachy-tree-url-names" class="hierachy-tree" style="width: 100%; outline: none;">
         <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
         <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
-      </table>
-    </div>
-    <div class="overlay2 dark"><div class="spin-overlay2 text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
-  </div>
-
-  <!-- TreeView: URL Names -->
-  <div class="card main-tab hidden" id="tree-url-names">
-    <div class="card-body" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
-        <table id="hierachy-tree-url-names" class="hierachy-tree" style="width: 100%; outline: none;">
-          <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
-          <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
-      </table>
-    </div>
-    <div class="overlay2 dark"><div class="spin-overlay2 text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+    </table>
   </div>
 
   <!-- Query Grid -->
-  <div class="card main-tab hidden" id="candidate-query">
-    <div class="card-body" style="width: 100%; height: 100%; overflow: hidden;">
-      <div id="grid-modify-candidate" class="ag-theme-balham" style="width: 100%; height: 100%;"> </div>
-    </div>
-    <div class="overlay2 dark"><div class="spin-overlay2 text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+  <div class="card-body hidden" id="candidate-query" style="width: 100%; height: 100%; overflow: hidden;">
+    <div id="grid-modify-candidate" class="ag-theme-balham" style="width: 100%; height: 100%;"> </div>
   </div>
+  <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
 </div>
 
 <!-- Popup window for modification -->
@@ -320,7 +310,7 @@ to get the desired effect
         <div class="col-2"><button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-bulk-import').hide();">Close</button></div>
       </div>
     </div>
-    <div class="overlay dark"><div class="spin-overlay text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+    <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
   </div> <!-- /.card -->
 </div>
 
@@ -399,7 +389,7 @@ to get the desired effect
 </div>
 
 <div id="popup-window-loading" class="hidden">
-  <div class="spin-overlay text-secondary"><i class="fas fa-circle-notch text-default"></i></div>
+  <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
   <div id="progressIndexer" class="text-secondary hidden" style="width: 100%; text-align: center; font-size: 1.5em;">Indexing: <span class="text-dark" id="progressIndexerValue">0</span>%</div>
 </div>
 
@@ -480,7 +470,7 @@ to get the desired effect
     function initUI(){
         $('#btn-group-main-tabs label').on('click', function(e){
           currentMainTab=$(this).attr('name');
-          $('.main-tab').hide();
+          $('#main-tab-group .card-body').hide();
           $('#'+currentMainTab).show();
 
           //Show related input
@@ -545,7 +535,6 @@ to get the desired effect
         });
 
         bsCustomFileInput.init(); //For file input: to set filename to input text
-        // $("#a-link-summary").trigger('click');
     }
 
     // Initial Data

@@ -241,17 +241,17 @@ class ModifyHarvestProcessor{
 
 	_bulkValidateImportMetaData(dataset){
 		var map={};
-
+		var isValid=true;
 		for(var i=0;i<dataset.length;i++){
 			var node=dataset[i];
-
+			node.respCode=0;
+			node.respMsg='';
 			var target=node.target;
 			if(map[target]){
-				alert("Duplicated target URL at line: " + (i+1) + " and " + map[target]);
-				return;
-			}else{
-				map[target]=i;
+				node.respMsg+="Duplicated target URL at line: " + (i+1);
+				isValid=false;
 			}
+			map[target]=node;
 
 			var option=node.option;
 			var modifiedMode=node.modifiedMode;
@@ -259,8 +259,9 @@ class ModifyHarvestProcessor{
 
 			if(option==="FILE"){
 				if(!target.toLowerCase().startsWith("http://")){
-					alert("You must specify a valid target URL at line:" + (i+1) + ". URL starts with: http://");
-					return;
+					node.respCode=-1;
+					node.respMsg+="You must specify a valid target URL at line:" + (i+1) + ". URL starts with: http://";
+					isValid=false;
 				}
 
 				if(modifiedMode==='TBC' || modifiedMode==='FILE'){
@@ -268,22 +269,25 @@ class ModifyHarvestProcessor{
 				}else if (modifiedMode==='CUSTOM') {
 					var dt=moment(lastModifiedDate);
 					if(!dt){
-						alert("Invalid modification datetime at line: " + (i+1));
-						return;
+						node.respCode=-1;
+						node.respMsg+="Invalid modification datetime at line: " + (i+1);
+						isValid=false;
 					}
 
 					node.lastModified=dt.valueOf();
 				}else{
-					alert("Invalid modification mode or datetime at line: " + (i+1));
-					return;
+					node.respCode=-1;
+					node.respMsg+="Invalid modification mode or datetime at line: " + (i+1);
+					isValid=false;
 				}
 			}else if(option==='PRUNE' || option==='RECRAWL'){
 				node.modifiedMode='TBC';
 				node.lastModifiedDate=0;
 				if(!target.toLowerCase().startsWith("http://") &&
 					!target.toLowerCase().startsWith("https://")){
-					alert("You must specify a valid target URL at line:" + (i+1));
-					return;
+					node.respCode=-1;
+					node.respMsg+="You must specify a valid target URL at line:" + (i+1);
+					isValid=false;
 				}
 			}else{
 				delete dataset[i];
@@ -294,13 +298,14 @@ class ModifyHarvestProcessor{
 		var gridImportNodes=gPopupModifyHarvest.gridToBeModified.getAllNodes();
 		for(var i=0; i<gridImportNodes.length; i++){
 			var key=gridImportNodes[i].url;
-			if(map[key]>=0){
-				alert("Duplicated target URL at line: " + (map[key]+1));
-				return;
+			if(map[key]){
+				node.respCode=-1;
+				map[key].respMsg+="Duplicated target URL at line: " + (map[key]+1);
+				isValid=false;
 			}
 		}
 
-		return map;
+		return isValid;
 	}
 
 	bulkOpenMetadataFile(){
@@ -327,10 +332,7 @@ class ModifyHarvestProcessor{
 
 				var dataset=JSON.parse(rsp.payload);
 				
-				var newBulkTargetUrlMap=that._bulkValidateImportMetaData(dataset);
-				if (!newBulkTargetUrlMap) {
-					return;
-				}
+				that._bulkValidateImportMetaData(dataset);
 
 				gPopupModifyHarvest.gridImportPrepare.setRowData(dataset);
 			});

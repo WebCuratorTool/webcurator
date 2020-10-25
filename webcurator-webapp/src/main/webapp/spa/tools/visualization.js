@@ -361,19 +361,20 @@ var gridOptionsImportPrepare={
     renderImportOption: renderImportOption
   },
   columnDefs: [
-    {headerName: "Flag", field: "existingFlag", width:80, cellRenderer:  (row) => {
+    {headerName: "Option", field: "option", width:80},
+    {headerName: "Target", field: "url", width: 400, cellRenderer:  (row) => {
         if (!row.data.existingFlag) {
-          return '<span class="right badge badge-danger">New</span>';
+          return '<span class="right badge badge-danger">New</span>&nbsp;'+row.data.url;
         }else{
-          return '';
+          return row.data.url;
         }
     }},
-    {headerName: "Option", field: "option", width:80},
-    {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
-        console.log(modifiedMode);
-        console.log(row.data.lastModified);
+        if (row.data.respCode!=0) {
+          return row.data.modifiedMode;
+        }
+
         var modifiedMode=row.data.modifiedMode.toUpperCase();
         if(modifiedMode==='TBC'){
           return 'TBC';
@@ -384,18 +385,14 @@ var gridOptionsImportPrepare={
           return modifiedMode;
         }
     }},
-    {headerName: "Progress", field: "respCode", width: 200, pinned: "right", cellRenderer:  (row) => {
-        var badge='';
-        if(row.data.respCode && row.data.respCode===1){
-          badge = '<i class="fas fa-check-circle text-success"></i>';
-          return badge+'&nbsp;'+row.data.respMsg;
-        }else if(row.data.respCode && row.data.respCode<0){
-          badge = '<i class="fas fa-times-circle text-danger"></i>';  
-          return badge+'&nbsp;'+row.data.respMsg;          
-        }else{
-          badge = '<a href="javascript: gPopupModifyHarvest.showImport(\''+row.data.url+'\');"<i class="fas fa-cloud-upload-alt text-info">Upload</i></a>';
-          return badge;
+    {headerName: "Action", field: "respCode", width: 120, pinned: "right", cellRenderer:  (row) => {
+        if (row.data.respCode!=0) {
+          return '<a href="javascript: deleteImportedRow('+row.rowIndex+')"><i class="fas fa-times-circle text-danger"></i><a/>&nbsp;' + row.data.respMsg;
         }
+        if (row.data.option==='FILE' && !row.data.isValidFile) {
+          return '<a href="javascript: uploadImportedFile('+row.rowIndex+')"><i class="fas fa-cloud-upload-alt text-info">Upload</i><a/>';
+        }
+        return '<i class="fas fa-check-circle text-success"></i>';
     }},
     
   ],
@@ -466,15 +463,18 @@ function popupDerivedSummaryWindow(derivedHarvestId, derivedHarvestNumber){
 
 var overlayLoadingReferedNumber=0;
 function g_TurnOnOverlayLoading(){
+  console.log('Loading on: ' + overlayLoadingReferedNumber);
   if (overlayLoadingReferedNumber===0) {
-      $('#popup-window-loading').show();
+      $('#main-tab-group .overlay').show();
   }
   overlayLoadingReferedNumber++;
 }
 
 function g_TurnOffOverlayLoading(){
+  console.log('Loading off: ' + overlayLoadingReferedNumber);
+
   overlayLoadingReferedNumber--;
   if (overlayLoadingReferedNumber === 0) {
-    $('#popup-window-loading').hide();
+    $('#main-tab-group .overlay').hide();
   }
 }

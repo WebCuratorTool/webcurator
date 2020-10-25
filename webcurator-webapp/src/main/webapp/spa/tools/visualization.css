@@ -43,13 +43,7 @@ html,body,canvas{
 	width: 10px;
 }
 
-.overlay2{
-	display: none;
-	width: 80px;
-	height: 80px;
-}
-
-.spin-overlay2 {
+.overlay i{
     width: 80px;
     height: 80px;
     line-height: 80px;
@@ -60,37 +54,37 @@ html,body,canvas{
 	margin-top: calc(40vh - 80px);
 	z-index: 9999;
 
-    -webkit-animation-name: spin2;
+    -webkit-animation-name: spin;
     -webkit-animation-duration: 1200ms;
     -webkit-animation-iteration-count: infinite;
     -webkit-animation-timing-function: linear;
-    -moz-animation-name: spin2;
+    -moz-animation-name: spin;
     -moz-animation-duration: 1200ms;
     -moz-animation-iteration-count: infinite;
     -moz-animation-timing-function: linear;
-    -ms-animation-name: spin2;
+    -ms-animation-name: spin;
     -ms-animation-duration: 1200ms;
     -ms-animation-iteration-count: infinite;
     -ms-animation-timing-function: linear;
     
-    animation-name: spin2;
+    animation-name: spin;
     animation-duration: 1200ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
 }
-@-ms-keyframes spin2 {
+@-ms-keyframes spin {
     from { -ms-transform: rotate(0deg); }
     to { -ms-transform: rotate(180deg); }
 }
-@-moz-keyframes spin2 {
+@-moz-keyframes spin {
     from { -moz-transform: rotate(0deg); }
     to { -moz-transform: rotate(180deg); }
 }
-@-webkit-keyframes spin2 {
+@-webkit-keyframes spin {
     from { -webkit-transform: rotate(0deg); }
     to { -webkit-transform: rotate(180deg); }
 }
-@keyframes spin2 {
+@keyframes spin {
     from {transform:rotate(0deg); }
     to {transform:rotate(180deg); }
 }
@@ -279,7 +273,7 @@ progress::-moz-progress-bar {
 	padding: 0;
 	margin: 0;
 	width: 100vw;
-	height: calc(100vh - 50px);
+	height: 100vh;
 }
 .main-tab .card-body{
 	padding: 0;

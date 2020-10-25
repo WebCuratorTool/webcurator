@@ -12,11 +12,11 @@ class NetworkMap{
 		this.harvestResultNumber=harvestResultNumber;
 		var reqUrl="/networkmap/get/all/domains?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
 		var that=this;
-		$('#networkmap .overlay').show();
+		g_TurnOnOverlayLoading();
     	fetchHttp(reqUrl, null, function(response){
     		console.log(response.rspCode + ': ' + response.rspMsg);
     		if (response.rspCode !== 0 || response.payload === null){
-    			$('#networkmap .overlay').hide();
+    			g_TurnOffOverlayLoading();
     			alert('Failed to load domains from BDB: ' + response.payload);
     			return;
     		}
