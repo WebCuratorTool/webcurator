@@ -99,7 +99,6 @@ public class AgencyController {
 
         ModelAndView mav = null;
         if (bindingResult.hasErrors()) {
-            mav = new ModelAndView();
             mav = populateAgencyList();
             mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
             mav.addObject(Constants.GBL_ERRORS, bindingResult);
@@ -161,17 +160,18 @@ public class AgencyController {
             mav.addObject(Constants.GBL_CMD_DATA, populatedCmd);
             mav.setViewName("newAgency");
         } else if (AgencyCommand.ACTION_DELETE.equals(agencyCommand.getActionCommand())) {
-            mav = populateAgencyList();
+
 
             Agency agency = agencyUserManager.getAgencyByOid(agencyCommand.getOid());
             if (agency.getUsers() != null && agency.getUsers().size() > 0) {
                 bindingResult.reject("Error", "The agency is used by users. Could not be deleted.");
-
+                mav = populateAgencyList();
                 mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
                 mav.addObject(Constants.GBL_ERRORS, bindingResult);
                 return mav;
             } else {
                 agencyUserManager.deleteAgency(agency);
+                mav = populateAgencyList();
             }
         } else {
             mav = populateAgencyList();

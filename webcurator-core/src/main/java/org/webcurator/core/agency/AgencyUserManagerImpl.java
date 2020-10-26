@@ -195,24 +195,19 @@ public class AgencyUserManagerImpl implements AgencyUserManager {
     }
 
     public void deleteAgency(Agency agency) throws WCTRuntimeException {
-        if (authorityManager.hasPrivilege(Privilege.MANAGE_AGENCIES, Privilege.SCOPE_ALL)) {
-            throw new WCTRuntimeException("The current user is not allowed to delete the agency");
-        }
-
         List<ProfileDTO> profiles=profileManager.getAgencyDTOs(agency,true,null);
         if (profiles!=null && profiles.size()>1){
             throw new WCTRuntimeException("The agency is used by Profile, could not be deleted");
         }
 
-        
-
         if (authorityManager.hasPrivilege(Privilege.MANAGE_AGENCIES, Privilege.SCOPE_ALL)) {
             Profile defaultProfile=profileManager.getDefaultProfile(agency);
-            profileManager.delete();
+            profileManager.delete(defaultProfile);
             userRoleDAO.delete(agency);
             auditor.audit(Agency.class.getName(), agency.getOid(), Auditor.ACTION_DELETE_AGENCY, "Agency " + agency.getName() + " has been deleted");
         } else {
             log.warn("The current user is not allowed to delete the agency");
+            throw new WCTRuntimeException("The current user is not allowed to delete the agency");
         }
     }
 
