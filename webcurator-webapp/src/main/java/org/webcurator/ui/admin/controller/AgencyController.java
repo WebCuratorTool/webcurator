@@ -1,18 +1,3 @@
-/*
- *  Copyright 2006 The National Library of New Zealand
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 package org.webcurator.ui.admin.controller;
 
 import java.text.NumberFormat;
@@ -39,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
+import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.ui.admin.command.AgencyCommand;
 import org.webcurator.common.ui.Constants;
@@ -98,85 +84,79 @@ public class AgencyController {
         agencyValidator.validate(agencyCommand, bindingResult);
 
         ModelAndView mav = null;
-        if (bindingResult.hasErrors()) {
-            mav = populateAgencyList();
-            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-            mav.addObject(Constants.GBL_ERRORS, bindingResult);
-            mav.setViewName("newAgency");
-            return mav;
-        }
-
-        if (AgencyCommand.ACTION_NEW.equals(agencyCommand.getActionCommand())) {
-            //Display the Create Agency screen
-
-            mav = populateAgencyList();
-            mav.setViewName("newAgency");
-        } else if (AgencyCommand.ACTION_SAVE.equals(agencyCommand.getActionCommand())) {
-            //Save the new Agency details
-            boolean update = false;
-            Agency agency = new Agency();
-
-            if (agencyCommand.getOid() != null) {
-                update = true;
-                agency.setOid(agencyCommand.getOid());
-            }
-
-            agency.setName(agencyCommand.getName());
-            agency.setAddress(agencyCommand.getAddress());
-            agency.setPhone(agencyCommand.getPhone());
-            agency.setFax(agencyCommand.getFax());
-            agency.setEmail(agencyCommand.getEmail());
-            agency.setAgencyURL(agencyCommand.getAgencyURL());
-            agency.setAgencyLogoURL(agencyCommand.getAgencyLogoURL());
-            agency.setShowTasks(agencyCommand.getShowTasks());
-            agency.setDefaultDescriptionType(agencyCommand.getDescriptionType());
-
-            agencyUserManager.updateAgency(agency, update);
-            mav = populateAgencyList();
-            if (update == true) {
-                mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.updated", new Object[]{agencyCommand.getName()}, Locale.getDefault()));
-            } else {
-                mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.created", new Object[]{agencyCommand.getName()}, Locale.getDefault()));
-            }
-        } else if (AgencyCommand.ACTION_VIEW.equals(agencyCommand.getActionCommand()) ||
-                AgencyCommand.ACTION_EDIT.equals(agencyCommand.getActionCommand())) {
-
-            Agency agency = agencyUserManager.getAgencyByOid(agencyCommand.getOid());
-            AgencyCommand populatedCmd = new AgencyCommand();
-            populatedCmd.setOid(agency.getOid());
-            populatedCmd.setName(agency.getName());
-            populatedCmd.setAddress(agency.getAddress());
-            populatedCmd.setPhone(agency.getPhone());
-            populatedCmd.setFax(agency.getFax());
-            populatedCmd.setEmail(agency.getEmail());
-            populatedCmd.setAgencyURL(agency.getAgencyURL());
-            populatedCmd.setAgencyLogoURL(agency.getAgencyLogoURL());
-            populatedCmd.setShowTasks(agency.getShowTasks());
-            populatedCmd.setViewOnlyMode(AgencyCommand.ACTION_VIEW.equals(agencyCommand.getActionCommand()));
-            populatedCmd.setDescriptionType(agency.getDefaultDescriptionType());
-
-            mav = new ModelAndView();
-            mav = populateAgencyList();
-            mav.addObject(Constants.GBL_CMD_DATA, populatedCmd);
-            mav.setViewName("newAgency");
-        } else if (AgencyCommand.ACTION_DELETE.equals(agencyCommand.getActionCommand())) {
-
-
-            Agency agency = agencyUserManager.getAgencyByOid(agencyCommand.getOid());
-            if (agency.getUsers() != null && agency.getUsers().size() > 0) {
-                bindingResult.reject("Error", "The agency is used by users. Could not be deleted.");
+        if (agencyCommand != null) {
+            if (bindingResult.hasErrors()) {
+//                mav = new ModelAndView();
                 mav = populateAgencyList();
                 mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
                 mav.addObject(Constants.GBL_ERRORS, bindingResult);
-                return mav;
+                mav.setViewName("newAgency");
+
+            } else if (AgencyCommand.ACTION_NEW.equals(agencyCommand.getActionCommand())) {
+                //Display the Create Agency screen
+
+                mav = populateAgencyList();
+                mav.setViewName("newAgency");
+            } else if (AgencyCommand.ACTION_SAVE.equals(agencyCommand.getActionCommand())) {
+                //Save the new Agency details
+                boolean update = false;
+                Agency agency = new Agency();
+
+                if (agencyCommand.getOid() != null) {
+                    update = true;
+                    agency.setOid(agencyCommand.getOid());
+                }
+
+                agency.setName(agencyCommand.getName());
+                agency.setAddress(agencyCommand.getAddress());
+                agency.setPhone(agencyCommand.getPhone());
+                agency.setFax(agencyCommand.getFax());
+                agency.setEmail(agencyCommand.getEmail());
+                agency.setAgencyURL(agencyCommand.getAgencyURL());
+                agency.setAgencyLogoURL(agencyCommand.getAgencyLogoURL());
+                agency.setShowTasks(agencyCommand.getShowTasks());
+                agency.setDefaultDescriptionType(agencyCommand.getDescriptionType());
+
+                try {
+                    agencyUserManager.updateAgency(agency, update);
+                } catch (WCTRuntimeException e) {
+                    bindingResult.reject("Error", "Duplicated ");
+                }
+
+                mav = populateAgencyList();
+                if (update == true) {
+                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.updated", new Object[]{agencyCommand.getName()}, Locale.getDefault()));
+                } else {
+                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.created", new Object[]{agencyCommand.getName()}, Locale.getDefault()));
+                }
+            } else if (AgencyCommand.ACTION_VIEW.equals(agencyCommand.getActionCommand()) ||
+                    AgencyCommand.ACTION_EDIT.equals(agencyCommand.getActionCommand())) {
+
+                Agency agency = agencyUserManager.getAgencyByOid(agencyCommand.getOid());
+                AgencyCommand populatedCmd = new AgencyCommand();
+                populatedCmd.setOid(agency.getOid());
+                populatedCmd.setName(agency.getName());
+                populatedCmd.setAddress(agency.getAddress());
+                populatedCmd.setPhone(agency.getPhone());
+                populatedCmd.setFax(agency.getFax());
+                populatedCmd.setEmail(agency.getEmail());
+                populatedCmd.setAgencyURL(agency.getAgencyURL());
+                populatedCmd.setAgencyLogoURL(agency.getAgencyLogoURL());
+                populatedCmd.setShowTasks(agency.getShowTasks());
+                populatedCmd.setViewOnlyMode(AgencyCommand.ACTION_VIEW.equals(agencyCommand.getActionCommand()));
+                populatedCmd.setDescriptionType(agency.getDefaultDescriptionType());
+
+                mav = new ModelAndView();
+                mav = populateAgencyList();
+                mav.addObject(Constants.GBL_CMD_DATA, populatedCmd);
+                mav.setViewName("newAgency");
             } else {
-                agencyUserManager.deleteAgency(agency);
                 mav = populateAgencyList();
             }
         } else {
+            log.warn("No Action provided for AgencyController.");
             mav = populateAgencyList();
         }
-
 
         mav.addObject("descriptionTypes", dublinCoreTypesList);
         return mav;
@@ -214,4 +194,3 @@ public class AgencyController {
 
 
 }
-

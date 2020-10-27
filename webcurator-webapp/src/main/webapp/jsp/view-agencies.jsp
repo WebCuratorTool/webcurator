@@ -43,10 +43,6 @@ function setAction(index, actionCmd)
 				<img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
 				<input type="image" title="edit" src="images/action-icon-edit.gif" alt="click here to EDIT this item" width="18" height="18" border="0" onclick="javascript:setAction(<c:out value="${count}"/>, '<%= AgencyCommand.ACTION_EDIT%>');"/>
 			</authority:hasPrivilege>
-			<authority:hasPrivilege privilege="<%= Privilege.MANAGE_AGENCIES %>" scope="<%= Privilege.SCOPE_AGENCY %>">
-				<img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-				<input type="image" title="delete" src="images/action-icon-delete.gif" alt="click here to Delete this item" width="18" height="18" border="0" onclick="javascript:setAction(<c:out value="${count}"/>, '<%= AgencyCommand.ACTION_DELETE%>');"/>
-			</authority:hasPrivilege>
 			</form>
 		</td>
 	</tr>

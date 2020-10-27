@@ -15,16 +15,21 @@
  */
 package org.webcurator.ui.admin.validator;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
+import org.webcurator.common.util.Utils;
+import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.ui.admin.command.AgencyCommand;
 import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.common.validation.ValidatorUtil;
+
+import java.util.List;
 
 /**
  * Validates the Agency creation action, and checks all the fields used in creating an agency
@@ -42,6 +47,9 @@ public class AgencyValidator extends AbstractBaseValidator {
     public boolean supports(Class aClass) {
         return aClass.equals(AgencyCommand.class);
     }
+
+    @Autowired
+    private AgencyUserManager agencyUserManager;
 
     /**
      * @see org.springframework.validation.Validator#validate(Object, Errors).
@@ -71,7 +79,29 @@ public class AgencyValidator extends AbstractBaseValidator {
             if (cmd.getAgencyLogoURL() != null && cmd.getAgencyLogoURL().length() > 0) {
                 ValidatorUtil.validateURL(aErrors, cmd.getAgencyLogoURL(), "invalid.url", new Object[]{cmd.getAgencyLogoURL()}, "Invalid URL");
             }
+
+            Agency existingAgency = findAgencyByName(cmd.getName());
+            if ((cmd.getOid() != null && cmd.getOid() >= 0 && existingAgency != null && existingAgency.getOid().longValue() != cmd.getOid().longValue())
+                    || ((cmd.getOid() == null || cmd.getOid() < 0) && existingAgency != null)) { //For existing agency
+                aErrors.reject("Duplicated Agency Name is not allowed", "Duplicated Agency Name is not allowed");
+            }
         }
+    }
+
+
+    private Agency findAgencyByName(String agencyName) {
+        if (Utils.isEmpty(agencyName)) {
+            return null;
+        }
+
+        List agencies = agencyUserManager.getAgencies();
+        for (Object obj : agencies) {
+            Agency agency = (Agency) obj;
+            if (agency.getName().equals(agencyName)) {
+                return agency;
+            }
+        }
+        return null;
     }
 
 }

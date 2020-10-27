@@ -179,8 +179,6 @@ public interface AgencyUserManager {
 
     public void deleteRejReason(RejReason reason);
 
-    public void deleteAgency(Agency agency) throws WCTRuntimeException;
-
     public RejReason getRejReasonByOid(Long oid);
 
     public void updateRejReason(RejReason reason, boolean update);
