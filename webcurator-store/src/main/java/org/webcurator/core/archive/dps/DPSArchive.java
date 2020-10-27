@@ -70,8 +70,7 @@ import javax.xml.ws.Service;
 
 /**
  * A specific DPS-based archiver for the National Library of New Zealand's DPS archival system.
- *
- * @author Nicolai Moles-Benfell
+ *=======
  */
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)

@@ -197,7 +197,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	
     /** The total number of crawls (<code>TargetInstance</code>s) associated with the Target **/
     @Column(name = "AT_CRAWLS")
-	@Formula("(SELECT COUNT(*) FROM DB_WCT.TARGET_INSTANCE TI WHERE TI.TI_TARGET_ID=AT_OID)")
+	@Formula("(SELECT COUNT(*) FROM {h-schema}TARGET_INSTANCE TI WHERE TI.TI_TARGET_ID=AT_OID)")
     private int crawls = 0;
     
     /** The oid of the <code>TargetInstance</code> denoted as the <code>Target</code>s reference crawl **/

@@ -45,17 +45,21 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
     /* (non-Javadoc)
      * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(org.webcurator.core.harvester.agent.HarvestAgentStatus)
      */
-    public void heartbeat(HarvestAgentStatusDTO aStatus) throws HttpClientErrorException, IllegalArgumentException{
-        log.debug("WCT: Start of heartbeat");
+    public void heartbeat(HarvestAgentStatusDTO aStatus){
+        try{
+            log.info("WCT: Start of heartbeat");
 
-        RestTemplate restTemplate = restTemplateBuilder.build();
+            RestTemplate restTemplate = restTemplateBuilder.build();
 
-        String uri = getUrl(HarvestCoordinatorPaths.HEARTBEAT);
+            String uri = getUrl(HarvestCoordinatorPaths.HEARTBEAT);
 
-        HttpEntity<String> request = this.createHttpRequestEntity(aStatus);
+            HttpEntity<String> request = this.createHttpRequestEntity(aStatus);
 
-        restTemplate.postForObject(uri, request, String.class);
-        log.debug("WCT: End of heartbeat");
+            restTemplate.postForObject(uri, request, String.class);
+            log.info("WCT: End of heartbeat");
+        } catch (Exception ex) {
+            log.error("Heartbeat Notification failed : " + ex.getMessage(), ex);
+        }
     }
 
     @Override
@@ -68,7 +72,7 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
      */
     public void harvestComplete(HarvestResultDTO aResult) {
         try {
-            log.debug("WCT: Start of harvestComplete");
+            log.info("WCT: Start of harvestComplete");
 
             HttpEntity<String> request = this.createHttpRequestEntity(aResult);
 
@@ -78,7 +82,7 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
 
             restTemplate.postForObject(uri, request, String.class);
 
-            log.debug("WCT: End of HarvestComplete");
+            log.info("WCT: End of HarvestComplete");
         }
         catch(Exception ex) {
             if (log.isErrorEnabled()) {
