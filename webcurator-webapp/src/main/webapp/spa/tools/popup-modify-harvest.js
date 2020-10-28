@@ -99,99 +99,99 @@ function formatLazyloadData(dataset, isDomain){
 	return dataset;
 }
 
-function treeRenderColumns(event, treeNode) {
-	var nodeData=treeNode.node.data;
-
-	var $tdList = $(treeNode.node.tr).find(">td");
-
-	if (nodeData.contentType && nodeData.contentType!=='unknown') {
-		$tdList.eq(2).text(nodeData.contentType);
-	}
-
-	if (nodeData.statusCode > 0) {
-		$tdList.eq(3).text(nodeData.statusCode);
-	}
-	
-	if (nodeData.contentLength > 0){
-		$tdList.eq(4).text(formatContentLength(nodeData.contentLength));
-	}
-
-	$tdList.eq(5).text(nodeData.totUrls);
-	$tdList.eq(6).text(nodeData.totSuccess);
-	$tdList.eq(7).text(nodeData.totFailed);
-	$tdList.eq(8).text(formatContentLength(nodeData.totSize));
-
-	$(treeNode.node.tr).attr("key", ""+treeNode.node.key);
-
-	// $(treeNode.node.tr).attr("data", JSON.stringify(nodeData));
-	if (nodeData.id > 0) {
-		$(treeNode.node.tr).attr("idx", ""+nodeData.id);
-	}
-
-	// if (nodeData.viewType && nodeData.viewType===2 && nodeData.id===-1){
-	// 	$(treeNode.node.tr).attr("menu", "folder");
-	// }else{
-	// 	$(treeNode.node.tr).attr("menu", "url");
-	// }
-}
-
-var treeOptionsBasic={
+const treeOptionsBasic={
 	extensions: ["table", "wide", "filter"],
 	quicksearch: true,
 	checkbox: true,
 	table: {checkboxColumnIdx: 0, nodeColumnIdx: 1},
 	source: [],
-};
+	selectMode: 3,
+	renderColumns: function(event, treeNode) {
+		var nodeData=treeNode.node.data;
 
-var treeOptionsHarvestStruct=JSON.parse(JSON.stringify(treeOptionsBasic));
-treeOptionsHarvestStruct.renderColumns=function(event, data){
-	treeRenderColumns(event, data);
-};
-treeOptionsHarvestStruct.icon=function(event, data){
-	if (data.node.folder) {
-		return "fas fa-share-alt text-dark";
-	}else{
-		return "fas fa-link text-link";
+		var $tdList = $(treeNode.node.tr).find(">td");
+
+		if (nodeData.contentType && nodeData.contentType!=='unknown') {
+			$tdList.eq(2).text(nodeData.contentType);
+		}
+
+		if (nodeData.statusCode > 0) {
+			$tdList.eq(3).text(nodeData.statusCode);
+		}
+		
+		if (nodeData.contentLength > 0){
+			$tdList.eq(4).text(formatContentLength(nodeData.contentLength));
+		}
+
+		$tdList.eq(5).text(nodeData.totUrls);
+		$tdList.eq(6).text(nodeData.totSuccess);
+		$tdList.eq(7).text(nodeData.totFailed);
+		$tdList.eq(8).text(formatContentLength(nodeData.totSize));
+
+		$(treeNode.node.tr).attr("key", ""+treeNode.node.key);
+
+		// $(treeNode.node.tr).attr("data", JSON.stringify(nodeData));
+		if (nodeData.id > 0) {
+			$(treeNode.node.tr).attr("idx", ""+nodeData.id);
+		}
+
+		// if (nodeData.viewType && nodeData.viewType===2 && nodeData.id===-1){
+		// 	$(treeNode.node.tr).attr("menu", "folder");
+		// }else{
+		// 	$(treeNode.node.tr).attr("menu", "url");
+		// }
 	}
 };
-treeOptionsHarvestStruct.lazyLoad=function(event, data) {
-	var nodeData=data.node.data;
-    var deferredResult = jQuery.Deferred();
-    var result = [];
-    var isDomain=nodeData.isDomain;
-    var viewType=nodeData.viewType;
-    var urlOutlinks = "/networkmap/get/outlinks?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&id=" + nodeData.id;
-
-    fetchHttp(urlOutlinks, {}, function(response){
-    	var dataset=[];
-		if (response.rspCode != 0) {
-			alert(response.rspMsg);
-        }else{
-        	dataset=JSON.parse(response.payload);
-
-        	if (!isDomain && (!viewType || viewType!==2)) {
-        		dataset=formatLazyloadData(dataset, false);
-        	}
-        }
-        
-			deferredResult.resolve(dataset);
-	});
-
-    data.result = deferredResult;
-};
 
 
-var treeOptionsCascadedPath=JSON.parse(JSON.stringify(treeOptionsBasic));
-treeOptionsCascadedPath.renderColumns=function(event, data){
-	treeRenderColumns(event, data);
-};
-treeOptionsCascadedPath.icon = function(event, data){
-	if (data.node.folder) {
-		return "fa fa-folder-open text-dark";
-	}else{
-		return "fas fa-link text-link";
-	}
-};
+const treeOptionsHarvestStruct=Object.assign({
+	icon: function(event, data){
+		if (data.node.folder) {
+			return "fas fa-share-alt text-dark";
+		}else{
+			return "fas fa-link text-link";
+		}
+	},
+
+	lazyLoad: function(event, data) {
+		var nodeData=data.node.data;
+	    var deferredResult = jQuery.Deferred();
+	    var result = [];
+	    var isDomain=nodeData.isDomain;
+	    var viewType=nodeData.viewType;
+	    var urlOutlinks = "/networkmap/get/outlinks?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&id=" + nodeData.id;
+
+	    fetchHttp(urlOutlinks, {}, function(response){
+	    	var dataset=[];
+			if (response.rspCode != 0) {
+				alert(response.rspMsg);
+	        }else{
+	        	dataset=JSON.parse(response.payload);
+
+	        	if (!isDomain && (!viewType || viewType!==2)) {
+	        		dataset=formatLazyloadData(dataset, false);
+	        	}
+	        }
+	        
+				deferredResult.resolve(dataset);
+		});
+
+	    data.result = deferredResult;
+	},
+}, treeOptionsBasic);
+
+
+const treeOptionsCascadedPath=Object.assign({
+	icon: function(event, data){
+		if (data.node.folder) {
+			return "fa fa-folder-open text-dark";
+		}else{
+			return "fas fa-link text-link";
+		}
+	},
+
+}, treeOptionsBasic);
+
 
 class HierarchyTree{
 	constructor(container, jobId, harvestResultNumber, options){
@@ -281,11 +281,17 @@ class HierarchyTree{
 		var selData=[];
 		var selNodes = $.ui.fancytree.getTree(this.container).getSelectedNodes();
 		for(var i=0; i<selNodes.length; i++){
-			selData.push(selNodes[i].data);
+			var treeNode=selNodes[i];
+			var nodeData=this._getDataFromNode(treeNode);
+			if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
+				|| (this.container==='#hierachy-tree-harvest-struct' && treeNode.folder!=null)) {
+				selData.push(nodeData);
+			}
+			// selData.push(selNodes[i].data);
 			// $.ui.fancytree.getTree(this.container).applyCommand('indent', selNodes[i]);
 		}
 
-		console.log(selData);
+		// console.log(selData);
 		return selData;
 	}
 
@@ -298,7 +304,11 @@ class HierarchyTree{
 
 	_walkAllNodes(dataset, treeNode){
 		var nodeData=this._getDataFromNode(treeNode);
-		dataset.push(nodeData);
+
+		if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
+			|| (this.container==='#hierachy-tree-harvest-struct' && treeNode.folder!=null)) {
+			dataset.push(nodeData);
+		}
 
 		var childrenNodes=treeNode.children;
 		if (!childrenNodes) {
@@ -410,6 +420,9 @@ class PopupModifyHarvest{
 	}
 
 	pruneHarvest(data){
+		for(var i=0; i< data.length; i++){
+			data[i].existingFlag=true;
+		}
 		this._moveHarvest2ToBeModifiedList(data, 'prune');
 	}
 
@@ -708,9 +721,9 @@ class PopupModifyHarvest{
 		});
 	}
 
-	exportData(data){
+	exportData(req){
 		g_TurnOnOverlayLoading();
-		var req=[];
+		// var req=[];
 		// for (var i = 0; i< data.length; i++) {
 		// 	var node=data[i];
 		// 	if (node.viewType && node.viewType===2 && ) {}

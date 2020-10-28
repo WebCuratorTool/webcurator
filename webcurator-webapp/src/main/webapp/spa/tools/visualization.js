@@ -332,8 +332,10 @@ var gridOptionsToBeModified={
     {headerName: "Target", field: "url", width: 400},
     {headerName: "Source", field: "name", width: 400},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
-        console.log(modifiedMode);
-        console.log(row.data.lastModified);
+        if (row.data.respCode!=0 || !row.data.modifiedMode) {
+          return '-';
+        }
+        
         var modifiedMode=row.data.modifiedMode.toUpperCase();
         if(modifiedMode==='TBC'){
           return 'TBC';
@@ -378,7 +380,7 @@ var gridOptionsImportPrepare={
     }},
     {headerName: "File", field: "name", width: 200},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
-        if (row.data.respCode!=0) {
+        if (row.data.respCode!=0 || !row.data.modifiedMode) {
           return '-';
         }
 
