@@ -82,7 +82,7 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
         RestTemplate template=mock(RestTemplate.class);
         when(restTemplateBuilder.build()).thenReturn(template);
 
-        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
+        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
 
         try {

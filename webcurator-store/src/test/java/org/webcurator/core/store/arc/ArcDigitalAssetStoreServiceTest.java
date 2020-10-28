@@ -181,7 +181,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
     @Test
     public void testCopyAndPruneFromClient(){
         RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
-        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
+        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
 
         try {

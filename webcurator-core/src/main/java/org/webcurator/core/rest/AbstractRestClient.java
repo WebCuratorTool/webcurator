@@ -27,7 +27,8 @@ abstract public class AbstractRestClient {
     public AbstractRestClient(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
         this.baseUrl = baseUrl;
         this.restTemplateBuilder = restTemplateBuilder == null ? new RestTemplateBuilder() : restTemplateBuilder;
-        this.restTemplateBuilder.errorHandler(new RestClientResponseHandler()).setConnectTimeout(Duration.ofSeconds(15L));
+        this.restTemplateBuilder.errorHandler(new RestClientResponseHandler());
+        this.restTemplateBuilder.setConnectTimeout(Duration.ofSeconds(15L));
     }
 
     public String getUrl(String appendUrl) {

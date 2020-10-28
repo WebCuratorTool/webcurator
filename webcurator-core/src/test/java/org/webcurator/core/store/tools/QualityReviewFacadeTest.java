@@ -36,7 +36,7 @@ public class QualityReviewFacadeTest extends BaseWCTTest<QualityReviewFacade> {
 
         RestTemplateBuilder restTemplateBuilder = mock(RestTemplateBuilder.class);
         when(restTemplateBuilder.build()).thenReturn(mock(RestTemplate.class));
-        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
+        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
 
         testInstance.setDigialAssetStore(dasClient);

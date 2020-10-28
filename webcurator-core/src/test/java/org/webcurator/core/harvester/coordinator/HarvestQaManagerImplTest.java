@@ -39,7 +39,7 @@ public class HarvestQaManagerImplTest extends BaseWCTTest<HarvestQaManagerImpl> 
 
         RestTemplateBuilder restTemplateBuilder = mock(RestTemplateBuilder.class);
         when(restTemplateBuilder.build()).thenReturn(mock(RestTemplate.class));
-        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
+        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
 
         qualityReviewFacade.setDigialAssetStore(dasClient);
