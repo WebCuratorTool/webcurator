@@ -110,7 +110,7 @@ public class UserRoleDAOImpl implements UserRoleDAO {
     
     public List getUsers() {
         Query q = sessionFactory.getCurrentSession().createQuery("Select u from " + User.class.getCanonicalName()
-                                                                    + " u order by u.userName");
+                                                                    + " u order by u.username");
         return q.getResultList();
     }
     
