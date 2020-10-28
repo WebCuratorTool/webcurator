@@ -53,6 +53,7 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
         RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
         DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
+        dasClient.setHarvestBaseUrl("http://localhost:8081");
 
         File arcDir = WCTTestUtils.getResourceAsFile(archivePath);
         assertNotNull(arcDir);
@@ -63,6 +64,30 @@ public class DigitalAssetStoreClientTest extends BaseWCTTest<DigitalAssetStoreCl
         for (File arcFile : arcFiles) {
             try {
                 dasClient.save("5050", "1", arcFile.toPath());
+            } catch (DigitalAssetStoreException e) {
+                e.printStackTrace();
+                assert false;
+            }
+        }
+    }
+
+    @Ignore
+    @Test
+    public void testSaveLargeFileViaStream() {
+        RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
+        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http", "localhost", 8082, restTemplateBuilder);
+        dasClient.setFileUploadMode("stream");
+        dasClient.setHarvestBaseUrl("http://localhost:8083");
+
+        File arcDir = new File("/home/leefr/tmp/1122/1");
+        assertNotNull(arcDir);
+
+        File[] arcFiles = arcDir.listFiles();
+        assertNotNull(arcFiles);
+
+        for (File arcFile : arcFiles) {
+            try {
+                dasClient.save("1122", "1", arcFile.toPath());
             } catch (DigitalAssetStoreException e) {
                 e.printStackTrace();
                 assert false;

@@ -79,8 +79,6 @@ import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
-import javax.servlet.ServletInputStream;
-
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
  * completed harvest data from the digital asset store.
@@ -146,7 +144,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * @param inputStream:        The input stream
      * @throws DigitalAssetStoreException
      */
-    public void save(String targetInstanceName, String directory, String fileName, ServletInputStream inputStream) throws DigitalAssetStoreException {
+    public void save(String targetInstanceName, String directory, String fileName, InputStream inputStream) throws DigitalAssetStoreException {
         if (directory == null || directory.trim().length() == 0) {
             directory = "1";
         }

@@ -56,6 +56,14 @@ public class AgentConfig {
     @Value("${harvestAgent.baseUrl}")
     private String harvestAgentBaseUrl;
 
+    // Agent host protocol type that the core knows about.
+    @Value("${harvestAgent.scheme}")
+    private String harvestAgentScheme;
+
+    // Agent host name or ip address that the core knows about.
+    @Value("${harvestAgent.host}")
+    private String harvestAgentHost;
+
     // The max number of harvest to be run concurrently on this agent.
     @Value("${harvestAgent.maxHarvests}")
     private int harvestAgentMaxHarvests;
@@ -188,6 +196,7 @@ public class AgentConfig {
     public DigitalAssetStore digitalAssetStore() {
         DigitalAssetStoreClient bean = new DigitalAssetStoreClient(digitalAssetStoreBaseUrl, restTemplateBuilder);
         bean.setFileUploadMode(digitalAssetStoreFileUploadMode);
+        bean.setHarvestBaseUrl(harvestAgentBaseUrl);
         return bean;
     }
 
