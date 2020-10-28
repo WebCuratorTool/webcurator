@@ -90,10 +90,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                                                  @RequestParam(value = "new-harvest-result-number") int newHarvestResultNumber,
                                                  @RequestBody HarvestStoreCopyAndPruneDTO dto) throws DigitalAssetStoreException {
         log.debug("Copy and prune, target-instance-name: {}, original-harvest-result-number: {}, new-harvest-result-number: {}", targetInstanceName, originalHarvestResultNumber, newHarvestResultNumber);
-        List<HarvestResourceDTO> harvestStoreDTOS = dto.getHarvestResourcesToImport().stream().map(hsDto -> {
-            return (HarvestResourceDTO) hsDto;
-        }).collect(Collectors.toList());
-        return copyAndPrune(targetInstanceName, originalHarvestResultNumber, newHarvestResultNumber, dto.getUrisToDelete(), harvestStoreDTOS);
+        return copyAndPrune(targetInstanceName, originalHarvestResultNumber, newHarvestResultNumber, dto.getUrisToDelete(), dto.getHarvestResourcesToImport());
     }
 
     @Override
