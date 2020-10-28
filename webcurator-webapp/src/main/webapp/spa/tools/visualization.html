@@ -48,15 +48,15 @@ to get the desired effect
     </ul>
 
     <!-- SEARCH FORM -->
-    <form class="form-inline ml-3" style="margin-left: 10px;" id="menu-tool-bar">
+    <form class="form-inline ml-3 hidden" style="margin-left: 10px;" id="menu-tool-bar">
       <div class="input-group">
-        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="networkmap" disabled="disabled">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="networkmap" style="display: none;">
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-harvest-struct" style="display: none;">
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
         <div class="input-group-append">
-          <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
-          <button type="button" class="btn btn-flat btn-outline-secondary" disabled="disabled" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
+          <button type="button" class="btn btn-flat btn-outline-secondary" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
+          <button type="button" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
         </div>
       </div>
     </form>
@@ -90,7 +90,7 @@ to get the desired effect
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item template-download" href="#" template="bulk-modification-template.csv"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Modification Template</a>
+            <a class="dropdown-item template-download" href="#" template="bulk-modification-template.xlsx"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Modification Template</a>
           </div>
         </button>
       </div>
@@ -105,7 +105,7 @@ to get the desired effect
   </nav> <!-- End of Header -->
 
   <!-- Network Map -->
-  <div class="card-body" id="networkmap" style="height: calc(100vh - 50px); width: 100vw;">
+  <div class="card-body card-main" id="networkmap" style="height: calc(100vh - 50px); width: 100vw;">
     <!-- Networmap Canvas -->
     <div id="network-map-canvas" style="position: absolute; height: calc(100% + 2px); width: calc(100% + 2px); margin-left: -1px; margin-top: -1px;"></div>
 
@@ -118,9 +118,9 @@ to get the desired effect
           <button type="button" class="btn btn-tool text-primary" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
         </div>
       </div>
-      <div class="card-body" style="margin: 0; padding: 0; height: calc(100vh - 100px);">
+      <div class="card-body" id="networkmap-side-container" style="margin: 0; padding: 0; height: calc(100vh - 100px);">
          <!-- Side Card -->
-        <div id="networkmap-side-container" style="height: 100%; width: 100%;">
+        <div style="height: 100%; width: 100%;">
           <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
           <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
         </div> <!-- end of side card -->
@@ -144,7 +144,7 @@ to get the desired effect
 
 
   <!-- TreeView: Harvest Struct -->
-  <div class="card-body hidden" id="tree-harvest-struct" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
+  <div class="card-body card-main hidden" id="tree-harvest-struct" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
     <table id="hierachy-tree-harvest-struct" class="hierachy-tree" style="width: 100%; outline: none;">
       <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
       <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
@@ -152,7 +152,7 @@ to get the desired effect
   </div>
     
   <!-- TreeView: URL Names -->
-  <div class="card-body hidden" id="tree-url-names" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
+  <div class="card-body card-main hidden" id="tree-url-names" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
       <table id="hierachy-tree-url-names" class="hierachy-tree" style="width: 100%; outline: none;">
         <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
         <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
@@ -160,7 +160,7 @@ to get the desired effect
   </div>
 
   <!-- Query Grid -->
-  <div class="card-body hidden" id="candidate-query" style="width: 100%; height: 100%; overflow: hidden;">
+  <div class="card-body card-main hidden" id="candidate-query" style="width: 100%; height: 100%; overflow: hidden;">
     <div id="grid-modify-candidate" class="ag-theme-balham" style="width: 100%; height: 100%;"> </div>
   </div>
   <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
@@ -300,7 +300,7 @@ to get the desired effect
     </div>  <!-- /.card-header -->
 
     <div class="card-body none-margin-padding">
-        <div id="grid-bulk-import-prepare" class="ag-theme-balham" style="width: 100%; height: 50vh;"> </div>
+        <div id="grid-bulk-import-prepare" class="ag-theme-balham" style="width: 100%; height: 65vh;"> </div>
     </div>  <!-- /.card-body -->
 
     <div class="card-footer">
@@ -470,19 +470,18 @@ to get the desired effect
     function initUI(){
         $('#btn-group-main-tabs label').on('click', function(e){
           currentMainTab=$(this).attr('name');
-          $('#main-tab-group .card-body').hide();
+          $('#main-tab-group .card-main').hide();
           $('#'+currentMainTab).show();
+
+          if (currentMainTab === 'networkmap' || currentMainTab==='tree-harvest-struct') {
+            $('#menu-tool-bar').fadeOut();
+          }else{
+            $('#menu-tool-bar').fadeIn();
+          }
 
           //Show related input
           $('#menu-tool-bar input').hide();
           $('#menu-tool-bar input[name="'+currentMainTab+'"]').show();
-
-          //Enable related button
-          if (currentMainTab==='networkmap' ||currentMainTab==='tree-harvest-struct'){
-            $('#menu-tool-bar button').attr('disabled','disabled');
-          }else{
-            $('#menu-tool-bar button').removeAttr('disabled');
-          }
         });
 
         $('#btn-group-tobe-modified label').on('click', function(e){
@@ -508,9 +507,7 @@ to get the desired effect
 
           $('.btn-side-group-type').removeClass('text-primary');
           $(this).addClass('text-primary');
-          $('#networkmap-side-container').show();
         });
-
 
         $('#bulkImportMetadataFile').on('change', function(event){
             var file=event.target.files[0];
@@ -524,8 +521,10 @@ to get the desired effect
 
 
         // Search input filter
-        $("#menu-tool-bar input[type='search']").on('input', function(e){
-          gPopupModifyHarvest.filter($(this).val());
+        $("#menu-tool-bar input[type='search']").on('keyup', function(e){
+          if (e.keyCode===13) {
+            gPopupModifyHarvest.filter($(this).val());
+          }
         });
 
         $("#popup-window-modify-harvest input[type='search']").on('input', function(e){

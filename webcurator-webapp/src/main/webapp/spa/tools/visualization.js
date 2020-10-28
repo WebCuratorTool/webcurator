@@ -362,17 +362,24 @@ var gridOptionsImportPrepare={
   },
   columnDefs: [
     {headerName: "Option", field: "option", width:80},
-    {headerName: "Target", field: "url", width: 400, cellRenderer:  (row) => {
+    {headerName: "Target", field: "url", width: 600, cellRenderer:  (row) => {
         if (!row.data.existingFlag) {
           return '<span class="right badge badge-danger">New</span>&nbsp;'+row.data.url;
         }else{
           return row.data.url;
         }
     }},
-    {headerName: "Source", field: "name", width: 400},
+    {headerName: "Validation Result", field: "respMsg", width: 300, cellRenderer:  (row) => {
+        if (row.data.respCode===0) {
+          return 'OK';
+        }else{
+          return row.data.respMsg;
+        }
+    }},
+    {headerName: "File", field: "name", width: 200},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
         if (row.data.respCode!=0) {
-          return row.data.modifiedMode;
+          return '-';
         }
 
         var modifiedMode=row.data.modifiedMode.toUpperCase();
@@ -382,7 +389,7 @@ var gridOptionsImportPrepare={
           var dt=moment(row.data.lastModified);
           return dt.format('YYYY-MM-DDTHH:mm');
         }else{
-          return modifiedMode;
+          return 'N/A';
         }
     }},
     {headerName: "Action", field: "respCode", width: 120, pinned: "right", cellRenderer:  (row) => {
@@ -394,6 +401,8 @@ var gridOptionsImportPrepare={
         }
         return '<i class="fas fa-check-circle text-success"></i>';
     }},
+
+    
     
   ],
   // getRowClass: formatModifyHavestGridRow

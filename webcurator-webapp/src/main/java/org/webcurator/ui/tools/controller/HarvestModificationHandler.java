@@ -619,6 +619,10 @@ public class HarvestModificationHandler {
                     BulkImportFileRow.setValue(bulkImportFileRowObject, colKey, colValue);
                     col++;
                 }
+                if (Utils.isEmpty(bulkImportFileRowObject.getOption()) || Utils.isEmpty(bulkImportFileRowObject.getTarget())) {
+                    log.warn("Invalid row: " + i);
+                    continue;
+                }
                 importFileRows.add(bulkImportFileRowObject);
             }
 
@@ -635,7 +639,7 @@ public class HarvestModificationHandler {
             NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
 
             String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, row.getTarget());
-            if (networkMapResult == null || (networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS && networkMapResult.getRspCode() != NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST)) {
+            if (networkMapResult == null) {
                 log.error(err);
                 return NetworkMapResult.getBadRequestResult(err);
             }
@@ -643,20 +647,19 @@ public class HarvestModificationHandler {
             if (networkMapResult.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
                 row.setExistingFlag(false);
                 row.setUrl(row.getTarget());
-                continue;
-            }
+            } else if (networkMapResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
+                String json = (String) networkMapResult.getPayload();
+                NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+                if (node == null) {
+                    log.warn(err);
+                    return NetworkMapResult.getBadRequestResult(err);
+                }
 
-            String json = (String) networkMapResult.getPayload();
-            NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
-            if (node == null) {
-                log.warn(err);
-                return NetworkMapResult.getBadRequestResult(err);
+                row.copy(node);
+                row.setExistingFlag(true);
+                row.setRespCode(0);
+                node.clear();
             }
-
-            row.copy(node);
-            row.setExistingFlag(true);
-            row.setRespCode(0);
-            node.clear();
         }
 
         result.setPayload(networkMapClient.obj2Json(importFileRows));

@@ -80,12 +80,13 @@ function formatLazyloadData(dataset, isDomain){
 
 	for(var i=0;i<dataset.length;i++){
 		var e=dataset[i];
-		var urlLength=e.url.length;
-		if (urlLength > 150) {
-			e.title=e.url.substring(0,150)+'...';
-		}else{
-			e.title=e.url;
-		}
+		e.title=e.url;
+		// var urlLength=e.url.length;
+		// if (urlLength > 150) {
+		// 	e.title=e.url.substring(0,150)+'...';
+		// }else{
+		// 	e.title=e.url;
+		// }
 	    
 	    if (!isDomain && e.outlinks && e.outlinks.length > 0) {
 	    	e.lazy = true;
@@ -98,140 +99,131 @@ function formatLazyloadData(dataset, isDomain){
 	return dataset;
 }
 
-var prunedDataMap={}, importDataMap={};
+function treeRenderColumns(event, treeNode) {
+	var nodeData=treeNode.node.data;
+
+	var $tdList = $(treeNode.node.tr).find(">td");
+
+	if (nodeData.contentType && nodeData.contentType!=='unknown') {
+		$tdList.eq(2).text(nodeData.contentType);
+	}
+
+	if (nodeData.statusCode > 0) {
+		$tdList.eq(3).text(nodeData.statusCode);
+	}
+	
+	if (nodeData.contentLength > 0){
+		$tdList.eq(4).text(formatContentLength(nodeData.contentLength));
+	}
+
+	$tdList.eq(5).text(nodeData.totUrls);
+	$tdList.eq(6).text(nodeData.totSuccess);
+	$tdList.eq(7).text(nodeData.totFailed);
+	$tdList.eq(8).text(formatContentLength(nodeData.totSize));
+
+	$(treeNode.node.tr).attr("key", ""+treeNode.node.key);
+
+	// $(treeNode.node.tr).attr("data", JSON.stringify(nodeData));
+	if (nodeData.id > 0) {
+		$(treeNode.node.tr).attr("idx", ""+nodeData.id);
+	}
+
+	// if (nodeData.viewType && nodeData.viewType===2 && nodeData.id===-1){
+	// 	$(treeNode.node.tr).attr("menu", "folder");
+	// }else{
+	// 	$(treeNode.node.tr).attr("menu", "url");
+	// }
+}
+
+var treeOptionsBasic={
+	extensions: ["table", "wide", "filter"],
+	quicksearch: true,
+	checkbox: true,
+	table: {checkboxColumnIdx: 0, nodeColumnIdx: 1},
+	source: [],
+};
+
+var treeOptionsHarvestStruct=JSON.parse(JSON.stringify(treeOptionsBasic));
+treeOptionsHarvestStruct.renderColumns=function(event, data){
+	treeRenderColumns(event, data);
+};
+treeOptionsHarvestStruct.icon=function(event, data){
+	if (data.node.folder) {
+		return "fas fa-share-alt text-dark";
+	}else{
+		return "fas fa-link text-link";
+	}
+};
+treeOptionsHarvestStruct.lazyLoad=function(event, data) {
+	var nodeData=data.node.data;
+    var deferredResult = jQuery.Deferred();
+    var result = [];
+    var isDomain=nodeData.isDomain;
+    var viewType=nodeData.viewType;
+    var urlOutlinks = "/networkmap/get/outlinks?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&id=" + nodeData.id;
+
+    fetchHttp(urlOutlinks, {}, function(response){
+    	var dataset=[];
+		if (response.rspCode != 0) {
+			alert(response.rspMsg);
+        }else{
+        	dataset=JSON.parse(response.payload);
+
+        	if (!isDomain && (!viewType || viewType!==2)) {
+        		dataset=formatLazyloadData(dataset, false);
+        	}
+        }
+        
+			deferredResult.resolve(dataset);
+	});
+
+    data.result = deferredResult;
+};
+
+
+var treeOptionsCascadedPath=JSON.parse(JSON.stringify(treeOptionsBasic));
+treeOptionsCascadedPath.renderColumns=function(event, data){
+	treeRenderColumns(event, data);
+};
+treeOptionsCascadedPath.icon = function(event, data){
+	if (data.node.folder) {
+		return "fa fa-folder-open text-dark";
+	}else{
+		return "fas fa-link text-link";
+	}
+};
+
 class HierarchyTree{
-	constructor(container, jobId, harvestResultNumber){
+	constructor(container, jobId, harvestResultNumber, options){
+		var that=this;
+		this.dataset=[];
 		this.container=container;
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
 		this.sourceUrlRootUrls="/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
-		this.options={
-			extensions: ["table", "wide", "filter"],
-			quicksearch: true,
-			checkbox: true,
-			// autoScroll: true,
-			// selectMode: 3,
-			table: {checkboxColumnIdx: 0, nodeColumnIdx: 1},
-			// viewport: {enabled: true, count: 3200},
-			source: [],
-			icon: function(event, data){
-				var nodeData=data.node.data;
-				if (nodeData.viewType && nodeData.viewType===2) {
-					if (data.node.folder) {
-						return "fa fa-folder-open text-dark";
-					}else{
-						return "fas fa-link text-link";
-					}
-				}else{
-					if(data.node.folder){
-						return "fas fa-share-alt text-dark";
-					}else{
-				    	return "fas fa-link text-link";
-				    }
-				}
-			},
-			lazyLoad: function(event, data) {
-				var nodeData=data.node.data;
-		        var deferredResult = jQuery.Deferred();
-		        var result = [];
-		        var isDomain=nodeData.isDomain;
-		        var viewType=nodeData.viewType;
-		        var urlOutlinks='';
-		        if(viewType && viewType===2){
-		        	urlOutlinks = "/networkmap/get/urls/by-domain?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&title=" + btoa(data.node.title);
-		        }else{
-		        	urlOutlinks = "/networkmap/get/outlinks?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&id=" + nodeData.id;
-		        }
-
-		        fetchHttp(urlOutlinks, {}, function(response){
-		        	var dataset=[];
-					if (response.rspCode != 0) {
-						alert(response.rspMsg);
-			        }else{
-			        	dataset=JSON.parse(response.payload);
-
-			        	if (!isDomain && (!viewType || viewType!==2)) {
-			        		dataset=formatLazyloadData(dataset, false);
-			        	}
-			        }
-			        
-		  			deferredResult.resolve(dataset);
-				});
-
-		        data.result = deferredResult;
-		    },
-
-			renderColumns: function(event, data) {
-				var nodeData = data.node.data;
-				var $tdList = $(data.node.tr).find(">td");
-
-				if (nodeData.contentType && nodeData.contentType!=='unknown') {
-					$tdList.eq(2).text(nodeData.contentType);
-				}
-
-				if (nodeData.statusCode > 0) {
-					$tdList.eq(3).text(nodeData.statusCode);
-				}
-				
-				if (nodeData.contentLength > 0){
-					$tdList.eq(4).text(formatContentLength(nodeData.contentLength));
-				}
-
-				$tdList.eq(5).text(nodeData.totUrls);
-				$tdList.eq(6).text(nodeData.totSuccess);
-				$tdList.eq(7).text(nodeData.totFailed);
-				$tdList.eq(8).text(formatContentLength(nodeData.totSize));
-
-				nodeData.url=data.node.title;
-				$(data.node.tr).attr("data", JSON.stringify(nodeData));
-				// $(data.node.tr).attr("id", "tree-row-"+nodeData.id);
-				if (nodeData.id > 0) {
-					$(data.node.tr).attr("idx", ""+nodeData.id);
-				}
-
-				if (nodeData.viewType && nodeData.viewType===2 && nodeData.id===-1){
-					$(data.node.tr).attr("menu", "folder");
-				}else{
-					$(data.node.tr).attr("menu", "url");
-				}
-			},
-			filter: {
-				autoApply: true,   // Re-apply last filter if lazy data is loaded
-				autoExpand: false, // Expand all branches that contain matches while filtered
-				counter: true,     // Show a badge with number of matching child nodes near parent icons
-				fuzzy: false,      // Match single characters in order, e.g. 'fb' will match 'FooBar'
-				hideExpandedCounter: true,  // Hide counter badge if parent is expanded
-				hideExpanders: false,       // Hide expanders if all child nodes are hidden by filter
-				highlight: true,   // Highlight matches by wrapping inside <mark> tags
-				leavesOnly: false, // Match end nodes only
-				nodata: true,      // Display a 'no data' status node if result is empty
-				mode: "dimm"       // Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
-			},
-			
-	    };
-
-	    var that=this;
+		this.options=options;
         $.contextMenu({
-		        selector: this.container + ' tr[menu="url"]', 
+		        selector: this.container + ' tr', 
 		        trigger: 'right',
 		        reposition: true,
 		        callback: function(key, options) {
-		            var node=JSON.parse($(this).attr('data'));
-		            contextMenuCallback(key, node, that, gPopupModifyHarvest);
+		            // var node=JSON.parse($(this).attr('data'));
+		            var treeNodeKey=$(this).attr('key');
+		            var treeNode=$.ui.fancytree.getTree(that.container).getNodeByKey(treeNodeKey);
+		            var nodeData=that._getDataFromNode(treeNode);
+
+		            contextMenuCallback(key, nodeData, that, gPopupModifyHarvest);
 		        },
 		        items: contextMenuItemsUrlTree
     	});
-    	// $.contextMenu({
-		   //      selector: this.container + ' tr[menu="folder"]', 
-		   //      trigger: 'right',
-		   //      reposition: true,
-		   //      callback: function(key, options) {
-		   //          var node=JSON.parse($(this).attr('data'));
-		   //          contextMenuCallback(key, node, that, gPopupModifyHarvest);
-		   //      },
-		   //      items: contextMenuItemsFolderTree
-    	// });
-	} 
+	}
+
+	_getDataFromNode(treeNode){
+		var nodeData=treeNode.data;
+		nodeData.url=treeNode.title;
+		nodeData.folder=treeNode.folder;
+		return nodeData;
+	}
 
 	draw(dataset){
 		dataset=formatLazyloadData(dataset);
@@ -298,13 +290,23 @@ class HierarchyTree{
 	}
 
 	getAllNodes(){
-		var data=[];
-		var rows=$(this.container+' tr[role="row"]');
-		$.each(rows, function(index, value){
-			var node=JSON.parse($(value).attr('data'));
-			data.push(node);
-		});
-		return data;
+		var dataset=[];
+		var rootNode= $.ui.fancytree.getTree(this.container).getRootNode();
+		this._walkAllNodes(dataset, rootNode);
+		return dataset;
+	}
+
+	_walkAllNodes(dataset, treeNode){
+		var nodeData=this._getDataFromNode(treeNode);
+		dataset.push(nodeData);
+
+		var childrenNodes=treeNode.children;
+		if (!childrenNodes) {
+			return;
+		}
+		for(var i=0; i<childrenNodes.length; i++){
+			this._walkAllNodes(dataset, childrenNodes[i]);
+		}
 	}
 
 	clearAll(){
@@ -338,8 +340,8 @@ class PopupModifyHarvest{
 		this.jobId=jobId;
 		this.harvestResultId=harvestResultId;
 		this.harvestResultNumber=harvestResultNumber;
-		this.hierarchyTreeHarvestStruct=new HierarchyTree("#hierachy-tree-harvest-struct", jobId, harvestResultNumber);
-		this.hierarchyTreeUrlNames=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber);
+		this.hierarchyTreeHarvestStruct=new HierarchyTree("#hierachy-tree-harvest-struct", jobId, harvestResultNumber, treeOptionsHarvestStruct);
+		this.hierarchyTreeUrlNames=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber, treeOptionsCascadedPath);
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlGrid);
 		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, contextMenuItemsToBeModified);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, null);
@@ -393,8 +395,8 @@ class PopupModifyHarvest{
 
 		//Set class for grid candidate
 		this.gridCandidate.gridOptions.api.forEachNode(function(node, index){
-			if (importDataMap[node.data.id] && importDataMap[node.data.id].option) {
-				node.data.flag=importDataMap[node.data.id].option;
+			if (toBeModifiedDataMap[node.data.id] && toBeModifiedDataMap[node.data.id].option) {
+				node.data.flag=toBeModifiedDataMap[node.data.id].option;
 			}else{
 				node.data.flag='normal';
 			}
@@ -706,15 +708,21 @@ class PopupModifyHarvest{
 		});
 	}
 
-	exportData(req){
+	exportData(data){
 		g_TurnOnOverlayLoading();
+		var req=[];
+		// for (var i = 0; i< data.length; i++) {
+		// 	var node=data[i];
+		// 	if (node.viewType && node.viewType===2 && ) {}
+		// 	data[i]
+		// }
 		var url="/curator/export/data?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
 		fetch(url, { 
-	    method: 'POST',
-	    redirect: 'follow',
-	    headers: {'Content-Type': 'application/json'},
-	    body: JSON.stringify(req)
-	  }).then((res) => {
+		    method: 'POST',
+		    redirect: 'follow',
+		    headers: {'Content-Type': 'application/json'},
+		    body: JSON.stringify(req)
+		}).then((res) => {
 			if (res.ok) {
 				return res.blob();
 			}
@@ -723,7 +731,7 @@ class PopupModifyHarvest{
 			g_TurnOffOverlayLoading();
 			console.log(blob);
 			if(blob){
-				saveAs(blob, name);
+				saveAs(blob, "wct_export_data.xlsx");
 			}
 		});
 	}

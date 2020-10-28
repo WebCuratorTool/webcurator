@@ -226,9 +226,9 @@ progress::-moz-progress-bar {
 }
 
 #popup-window-bulk-import .popup-content{
-	width: 50vw; 
-	/*height: 40vh;*/
-	margin: 20vh 25vw 20vh 25vw;
+	width: 70vw; 
+	/*height: 70vh;*/
+	margin: 100px 15%;
 	border: 5px solid #007bff;
 	border-radius: 10px;
 	background: #F1E4E1;
