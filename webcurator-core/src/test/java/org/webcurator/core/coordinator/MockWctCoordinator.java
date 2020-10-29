@@ -8,8 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
-import org.webcurator.core.visualization.modification.metadata.ModifyRow;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -398,12 +397,12 @@ public class MockWctCoordinator implements WctCoordinator {
     }
 
     @Override
-    public ModifyRowMetadata uploadFile(long job, int harvestResultNumber, ModifyRow cmd) {
+    public ModifyRowFullData uploadFile(long job, int harvestResultNumber, ModifyRowFullData cmd) {
         return null;
     }
 
     @Override
-    public ModifyResult checkFiles(long job, int harvestResultNumber, List<ModifyRowMetadata> items) {
+    public ModifyResult checkFiles(long job, int harvestResultNumber, List<ModifyRowFullData> items) {
         return null;
     }
 

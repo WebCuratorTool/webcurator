@@ -28,7 +28,6 @@ import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.test.BaseWCTStoreTest;
 import org.webcurator.core.store.MockIndexer;
 import org.apache.commons.httpclient.Header;
-import sun.security.ec.ECDSAOperations;
 
 public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigitalAssetStoreService> {
 
@@ -38,6 +37,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 
     private static long targetInstanceOid = 14055;
     private static int harvestResultNumber = 1;
+    private static String dbVersion = "4.0.0";
 
     private class ARCFilter implements FilenameFilter {
         public boolean accept(File dir, String name) {
@@ -79,7 +79,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         NetworkMapDomainSuffix aTopDomainParser = new NetworkMapDomainSuffix();
         NetworkMapNode.setTopDomainParse(aTopDomainParser);
 
-        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir);
+        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir, dbVersion);
         IndexProcessor indexProcessor = new IndexProcessorWarc(dbPool, targetInstanceOid, harvestResultNumber);
         indexProcessor.init(processorManager, directoryManager, wctClient);
         indexProcessor.processInternal();
@@ -88,7 +88,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 
     public void setUp() throws Exception {
         super.setUp();
-        BDBNetworkMapPool bdbNetworkMapPool = new BDBNetworkMapPool(baseDir);
+        BDBNetworkMapPool bdbNetworkMapPool = new BDBNetworkMapPool(baseDir, dbVersion);
         VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, "logs", "report");
         WctCoordinatorClient wctCoordinatorClient = new WctCoordinatorClient("http", "localhost", 8080, new RestTemplateBuilder());
         VisualizationProcessorManager processorManager = new VisualizationProcessorManager(directoryManager, wctCoordinatorClient, 1);

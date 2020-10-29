@@ -8,8 +8,7 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
-import org.webcurator.core.visualization.modification.metadata.ModifyRow;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.modification.service.ModifyService;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -32,13 +31,13 @@ public class HarvestModificationController implements ModifyService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_UPLOAD_FILE, method = RequestMethod.POST, produces = "application/json")
-    public ModifyRowMetadata uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody ModifyRow cmd) {
+    public ModifyRowFullData uploadFile(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody ModifyRowFullData cmd) {
         return wctCoordinator.uploadFile(job, harvestResultNumber, cmd);
     }
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_CHECK_FILES, method = RequestMethod.POST, produces = "application/json")
-    public ModifyResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<ModifyRowMetadata> items) {
+    public ModifyResult checkFiles(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> items) {
         return wctCoordinator.checkFiles(job, harvestResultNumber, items);
     }
 
@@ -97,12 +96,17 @@ public class HarvestModificationController implements ModifyService {
     }
 
     @RequestMapping(path = "/curator/bulk-import/parse", method = {RequestMethod.POST, RequestMethod.GET})
-    protected NetworkMapResult bulkImportParse(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody ModifyRow cmd) throws IOException, DigitalAssetStoreException {
+    protected NetworkMapResult bulkImportParse(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody ModifyRowFullData cmd) throws IOException, DigitalAssetStoreException {
         return harvestModificationHandler.bulkImportParse(targetInstanceId, harvestResultNumber, cmd);
     }
 
     @RequestMapping(path = "/curator/export/data", method = {RequestMethod.POST, RequestMethod.GET})
-    protected void exportData(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody List<ModifyRowMetadata> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    protected void exportData(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         harvestModificationHandler.exportData(targetInstanceId, harvestResultNumber, dataset, req, rsp);
+    }
+
+    @RequestMapping(path = "/curator/check-and-append", method = {RequestMethod.POST, RequestMethod.GET})
+    public NetworkMapResult checkAndAppendModificationRows(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> dataset) {
+        return harvestModificationHandler.checkAndAppendModificationRows(targetInstanceId, harvestResultNumber, dataset);
     }
 }

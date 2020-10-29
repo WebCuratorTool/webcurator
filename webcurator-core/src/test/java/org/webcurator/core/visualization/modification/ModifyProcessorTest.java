@@ -7,7 +7,7 @@ import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.BaseVisualizationTest;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.processor.ModifyProcessor;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.modification.processor.ModifyProcessorWarc;
 
 import java.io.File;
@@ -42,8 +42,8 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
 
     @Test
     public void testDownloadFile() throws IOException, DigitalAssetStoreException {
-        ModifyRowMetadata metadata = new ModifyRowMetadata();
-        metadata.setName("expand.png");
+        ModifyRowFullData metadata = new ModifyRowFullData();
+        metadata.setUploadFileName("expand.png");
 
         File downloadedFile = new File(directoryManager.getUploadDir(targetInstanceId), UUID.randomUUID().toString());
         Files.write(downloadedFile.toPath(), "test content".getBytes(), StandardOpenOption.CREATE);
@@ -61,7 +61,7 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
 
         List<String> listToBePrunedUrl = getRandomUrlsFromWarcFile(warcFileFrom);
 
-        Map<String, ModifyRowMetadata> hrsToImport = new HashMap<>();
+        Map<String, ModifyRowFullData> hrsToImport = new HashMap<>();
 
         warcProcessor.copyArchiveRecords(warcFileFrom, listToBePrunedUrl, hrsToImport, newHarvestResultNumber);
 
@@ -77,14 +77,14 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
     public void testImportByFile() throws Exception {
         String targetUrl = String.format("http://www.weikeduo.com/%s/", UUID.randomUUID().toString());
         ModifyApplyCommand cmd = getApplyCommand();
-        ModifyRowMetadata m = new ModifyRowMetadata();
+        ModifyRowFullData m = new ModifyRowFullData();
         m.setOption("file");
         m.setUrl(targetUrl);
-        m.setName("expand.png");
+        m.setUploadFileName("expand.png");
         m.setModifiedMode("TBC");
         m.setContentType("image/png");
         cmd.getDataset().add(m);
-        Map<String, ModifyRowMetadata> hrsToImport = new HashMap<>();
+        Map<String, ModifyRowFullData> hrsToImport = new HashMap<>();
         hrsToImport.put(targetUrl, m);
 
         File downloadedFile = new File(directoryManager.getUploadDir(cmd.getTargetInstanceId()), UUID.randomUUID().toString());

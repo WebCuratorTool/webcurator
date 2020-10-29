@@ -8,7 +8,7 @@ import java.util.List;
 public class ModifyResult {
     private int respCode= VisualizationConstants.RESP_CODE_SUCCESS;
     private String respMsg="Succeed";
-    private List<ModifyRowMetadata> metadataDataset;
+    private List<ModifyRowFullData> metadataDataset;
     private HarvestResultDTO derivedHarvestResult;
 
     public int getRespCode() {
@@ -27,11 +27,11 @@ public class ModifyResult {
         this.respMsg = respMsg;
     }
 
-    public List<ModifyRowMetadata> getMetadataDataset() {
+    public List<ModifyRowFullData> getMetadataDataset() {
         return metadataDataset;
     }
 
-    public void setMetadataDataset(List<ModifyRowMetadata> metadataDataset) {
+    public void setMetadataDataset(List<ModifyRowFullData> metadataDataset) {
         this.metadataDataset = metadataDataset;
     }
 

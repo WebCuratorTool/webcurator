@@ -1,6 +1,5 @@
 package org.webcurator.ui.tools.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,8 +30,7 @@ import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
-import org.webcurator.core.visualization.modification.metadata.ModifyRow;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
@@ -55,10 +53,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -265,9 +259,9 @@ public class HarvestModificationHandler {
             pruneAndImportCommandApply = new ModifyApplyCommand();
         }
 
-        Map<String, ModifyRowMetadata> mapToBePruned = new HashMap<>();
-        Map<String, ModifyRowMetadata> mapToBeImportedByFile = new HashMap<>();
-        Map<String, ModifyRowMetadata> mapToBeImportedByURL = new HashMap<>();
+        Map<String, ModifyRowFullData> mapToBePruned = new HashMap<>();
+        Map<String, ModifyRowFullData> mapToBeImportedByFile = new HashMap<>();
+        Map<String, ModifyRowFullData> mapToBeImportedByURL = new HashMap<>();
         pruneAndImportCommandApply.getDataset().forEach(e -> {
             e.setRespCode(VisualizationConstants.RESP_CODE_INDEX_NOT_EXIST);
             if (e.getOption().equalsIgnoreCase("prune")) {
@@ -352,7 +346,7 @@ public class HarvestModificationHandler {
             return mapIndexedUrlNodes;
         }
 
-        List<String> listQueryUrlStatus = cmd.getDataset().stream().map(ModifyRowMetadata::getUrl).collect(Collectors.toList());
+        List<String> listQueryUrlStatus = cmd.getDataset().stream().map(ModifyRowFullData::getUrl).collect(Collectors.toList());
         NetworkMapResult urlsResult = networkMapClient.getUrlsByNames(targetInstanceId, harvestResultNumber, listQueryUrlStatus);
         if (urlsResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
             return mapIndexedUrlNodes;
@@ -368,7 +362,7 @@ public class HarvestModificationHandler {
         return mapIndexedUrlNodes;
     }
 
-    private void appendIndexedResult(Map<String, Boolean> mapIndexedUrlNodes, Map<String, ModifyRowMetadata> mapTargetUrlNodes) {
+    private void appendIndexedResult(Map<String, Boolean> mapIndexedUrlNodes, Map<String, ModifyRowFullData> mapTargetUrlNodes) {
         mapTargetUrlNodes.forEach((k, v) -> {
             if (mapIndexedUrlNodes.containsKey(k)) {
                 v.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
@@ -582,23 +576,20 @@ public class HarvestModificationHandler {
         return map;
     }
 
-
-    public NetworkMapResult bulkImportParse(long targetInstanceId, int harvestResultNumber, ModifyRow cmd) throws IOException, DigitalAssetStoreException {
-        NetworkMapResult result = NetworkMapResult.getSuccessResult();
-
-        int idx = cmd.getContent().indexOf("base64");
+    public NetworkMapResult bulkImportParse(long targetInstanceId, int harvestResultNumber, ModifyRowFullData cmd) throws IOException, DigitalAssetStoreException {
+        int idx = cmd.getUploadFileContent().indexOf("base64");
         if (idx < 0) {
             log.error("Not a base64 encoded stream");
             return NetworkMapResult.getBadRequestResult("Invalid metadata file: is not a base64 encoded stream.");
         }
 
-        byte[] doc = Base64.getDecoder().decode(cmd.getContent().substring(idx + 7));
+        byte[] doc = Base64.getDecoder().decode(cmd.getUploadFileContent().substring(idx + 7));
         ByteArrayInputStream docInputStream = new ByteArrayInputStream(doc);
 
         Workbook workbook = new XSSFWorkbook(docInputStream);
         Sheet sheet = workbook.getSheetAt(0);
 
-        List<BulkImportFileRow> importFileRows = new ArrayList<>();
+        List<ModifyRowFullData> importFileRows = new ArrayList<>();
         int i = 0;
         Map<Integer, String> headerIndex = new HashMap<>();
         for (Row row : sheet) {
@@ -612,56 +603,27 @@ public class HarvestModificationHandler {
                 }
 
             } else {
-                BulkImportFileRow bulkImportFileRowObject = new BulkImportFileRow();
+                ModifyRowFullData bulkImportFileRowObject = new ModifyRowFullData();
                 for (Cell cell : row) {
                     String colKey = headerIndex.get(col);
                     String colValue = getValueFromCell(cell);
-                    BulkImportFileRow.setValue(bulkImportFileRowObject, colKey, colValue);
+                    ModifyRowFullData.setValue(bulkImportFileRowObject, colKey, colValue);
                     col++;
                 }
-                if (Utils.isEmpty(bulkImportFileRowObject.getOption()) || Utils.isEmpty(bulkImportFileRowObject.getTarget())) {
+                if (Utils.isEmpty(bulkImportFileRowObject.getOption()) || Utils.isEmpty(bulkImportFileRowObject.getUrl())) {
                     log.warn("Invalid row: " + i);
                     continue;
                 }
-                importFileRows.add(bulkImportFileRowObject);
+
+                if (!Utils.isEmpty(bulkImportFileRowObject.getOption()) && !Utils.isEmpty(bulkImportFileRowObject.getUrl())) {
+                    importFileRows.add(bulkImportFileRowObject);
+                }
             }
 
             i++;
         }
 
-        for (BulkImportFileRow row : importFileRows) {
-            if (Utils.isEmpty(row.getOption()) || Utils.isEmpty(row.getTarget())) {
-                return NetworkMapResult.getBadRequestResult("Option field and target field can not be empty.");
-            }
-
-            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
-            networkMapUrl.setUrlName(row.getTarget());
-            NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
-
-            String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, row.getTarget());
-            if (networkMapResult == null) {
-                log.error(err);
-                return NetworkMapResult.getBadRequestResult(err);
-            }
-
-            if (networkMapResult.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
-                row.setExistingFlag(false);
-                row.setUrl(row.getTarget());
-            } else if (networkMapResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
-                String json = (String) networkMapResult.getPayload();
-                NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
-                if (node == null) {
-                    log.warn(err);
-                    return NetworkMapResult.getBadRequestResult(err);
-                }
-
-                row.copy(node);
-                row.setExistingFlag(true);
-                row.setRespCode(0);
-                node.clear();
-            }
-        }
-
+        NetworkMapResult result = NetworkMapResult.getSuccessResult();
         result.setPayload(networkMapClient.obj2Json(importFileRows));
         return result;
     }
@@ -686,13 +648,13 @@ public class HarvestModificationHandler {
         return value;
     }
 
-    protected void exportData(long targetInstanceId, int harvestResultNumber, List<ModifyRowMetadata> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    protected void exportData(long targetInstanceId, int harvestResultNumber, List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         Resource resource = new ClassPathResource("bulk-modification-template.xlsx");
         Workbook workbook = new XSSFWorkbook(resource.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
 
         int rowIndex = 1;
-        for (ModifyRowMetadata rowMetadata : dataset) {
+        for (ModifyRowFullData rowMetadata : dataset) {
             if (Utils.isEmpty(rowMetadata.getUrl())) {
                 continue;
             }
@@ -724,9 +686,9 @@ public class HarvestModificationHandler {
                 Cell colTarget = rowExcel.createCell(1);
                 colTarget.setCellValue(nodeDTO.getUrl());
 
-                if (!Utils.isEmpty(rowMetadata.getName())) {
+                if (!Utils.isEmpty(rowMetadata.getUploadFileName())) {
                     Cell colLocalFileName = rowExcel.createCell(3);
-                    colLocalFileName.setCellValue(rowMetadata.getName());
+                    colLocalFileName.setCellValue(rowMetadata.getUploadFileName());
                 }
 
                 if (!Utils.isEmpty(rowMetadata.getModifiedMode())) {
@@ -734,9 +696,9 @@ public class HarvestModificationHandler {
                     colModifiedMode.setCellValue(rowMetadata.getModifiedMode());
                 }
 
-                if (rowMetadata.getLastModified() > 0) {
+                if (rowMetadata.getLastModifiedDate() > 0) {
                     Cell colLastModified = rowExcel.createCell(5);
-                    colLastModified.setCellValue(rowMetadata.getLastModified());
+                    colLastModified.setCellValue(rowMetadata.getLastModifiedDate());
                 }
 
                 Cell colContentType = rowExcel.createCell(6);
@@ -768,95 +730,47 @@ public class HarvestModificationHandler {
         workbook.write(rsp.getOutputStream());
         workbook.close();
     }
-}
 
-class BulkImportFileRow extends NetworkMapNodeDTO {
-    private boolean existingFlag;
-    private String option;
-    private String target;
-    private String modifiedMode;
-    private long lastModifiedDate;
-    private int respCode;
 
-    @JsonIgnore
-    public static void setValue(BulkImportFileRow row, String key, String value) {
-        if (Utils.isEmpty(key) || Utils.isEmpty(value)) {
-            return;
+    public NetworkMapResult checkAndAppendModificationRows(long targetInstanceId, int harvestResultNumber, List<ModifyRowFullData> dataset) {
+        if (dataset == null) {
+            return NetworkMapResult.getBadRequestResult();
         }
-        if (key.trim().equalsIgnoreCase("option")) {
-            row.option = value.toUpperCase();
-        } else if (key.trim().equalsIgnoreCase("target")) {
-            row.target = value;
-        } else if (key.trim().equalsIgnoreCase("modifiedMode")) {
-            row.modifiedMode = value.toUpperCase();
-        } else if (key.trim().equalsIgnoreCase("lastModifiedDate")) {
-            LocalDateTime dt = parseDateTime(value);
-            if (dt == null) {
-                row.lastModifiedDate = -1;
-            } else {
-                row.lastModifiedDate = dt.toEpochSecond(ZoneOffset.UTC);
+
+        for (ModifyRowFullData row : dataset) {
+            if (Utils.isEmpty(row.getOption()) || Utils.isEmpty(row.getUrl())) {
+                return NetworkMapResult.getBadRequestResult("Option field and target field can not be empty.");
+            }
+
+            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
+            networkMapUrl.setUrlName(row.getUrl());
+            NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
+
+            String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, row.getUrl());
+            if (networkMapResult == null) {
+                log.error(err);
+                return NetworkMapResult.getBadRequestResult(err);
+            }
+
+            if (networkMapResult.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
+                row.setExistingFlag(false);
+                row.setUrl(row.getUrl());
+            } else if (networkMapResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
+                String json = (String) networkMapResult.getPayload();
+                NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+                if (node == null) {
+                    log.warn(err);
+                    return NetworkMapResult.getBadRequestResult(err);
+                }
+
+                row.copy(node);
+                row.setExistingFlag(true);
+                row.setRespCode(0);
+                node.clear();
             }
         }
-    }
-
-    public static LocalDateTime parseDateTime(String val) {
-        DateTimeFormatter[] dateTimeFormatterList = {DateTimeFormatter.BASIC_ISO_DATE, DateTimeFormatter.ISO_DATE_TIME, DateTimeFormatter.ISO_LOCAL_DATE_TIME, DateTimeFormatter.ISO_LOCAL_DATE};
-        for (DateTimeFormatter formatter : dateTimeFormatterList) {
-            try {
-                LocalDateTime dt = LocalDateTime.parse(val, formatter);
-                return dt;
-            } catch (DateTimeParseException e) {
-                continue;
-            }
-        }
-        return null;
-    }
-
-    public boolean isExistingFlag() {
-        return existingFlag;
-    }
-
-    public void setExistingFlag(boolean existingFlag) {
-        this.existingFlag = existingFlag;
-    }
-
-    public String getOption() {
-        return option;
-    }
-
-    public void setOption(String option) {
-        this.option = option;
-    }
-
-    public String getTarget() {
-        return target;
-    }
-
-    public void setTarget(String target) {
-        this.target = target;
-    }
-
-    public String getModifiedMode() {
-        return modifiedMode;
-    }
-
-    public void setModifiedMode(String modifiedMode) {
-        this.modifiedMode = modifiedMode;
-    }
-
-    public long getLastModifiedDate() {
-        return lastModifiedDate;
-    }
-
-    public void setLastModifiedDate(long lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
-    }
-
-    public int getRespCode() {
-        return respCode;
-    }
-
-    public void setRespCode(int respCode) {
-        this.respCode = respCode;
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(networkMapClient.obj2Json(dataset));
+        return result;
     }
 }

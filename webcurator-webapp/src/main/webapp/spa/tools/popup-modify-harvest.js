@@ -40,6 +40,28 @@ class CustomizedAgGrid{
 		return data;
 	}
 
+	getNodeByDataIndex(rowIndex){
+		var result;
+		this.grid.gridOptions.api.forEachNode(function(node, index){
+			if(node.data.index===rowIndex){
+				result=node.data;
+				return;
+			}
+		});
+		return result;
+	}
+
+	getNodeByUrl(url){
+		var result;
+		this.grid.gridOptions.api.forEachNode(function(node, index){
+			if(node.data.url===url){
+				result=node.data;
+				return;
+			}
+		});
+		return result;
+	}
+
 	clearAll(){
 		this.grid.gridOptions.api.setRowData([]);
 	}
@@ -56,6 +78,16 @@ class CustomizedAgGrid{
 			}
 		});
 		this.grid.gridOptions.api.updateRowData({remove: dataset});
+	}
+
+	removeByDataIndex(rowIndex){
+		var node=this.getNodeByDataIndex(rowIndex);
+		if(!node){
+			return;
+		}
+		var dataset=[];
+		dataset.push(node);
+		this.clear(dataset);
 	}
 
 	insert(dataset){
@@ -80,14 +112,7 @@ function formatLazyloadData(dataset, isDomain){
 
 	for(var i=0;i<dataset.length;i++){
 		var e=dataset[i];
-		e.title=e.url;
-		// var urlLength=e.url.length;
-		// if (urlLength > 150) {
-		// 	e.title=e.url.substring(0,150)+'...';
-		// }else{
-		// 	e.title=e.url;
-		// }
-	    
+		e.title=e.url;  
 	    if (!isDomain && e.outlinks && e.outlinks.length > 0) {
 	    	e.lazy = true;
 	    	e.folder = true;
@@ -419,24 +444,33 @@ class PopupModifyHarvest{
 		this.setRowStyle();
 	}
 
-	pruneHarvest(data){
-		for(var i=0; i< data.length; i++){
-			data[i].existingFlag=true;
+	modify(dataset, option){
+		for (var i = dataset.length - 1; i >= 0; i--) {
+			dataset[i].option=option;
+			dataset[i].flag='new';
 		}
-		this._moveHarvest2ToBeModifiedList(data, 'prune');
+		var that=this;
+		this._appendAndMoveHarvest2ToBeModifiedList(dataset, function(data){
+			that._moveHarvest2ToBeModifiedList(data);
+		});
 	}
 
-	recrawl(data){
-		this._moveHarvest2ToBeModifiedList(data, 'recrawl');
+	_appendAndMoveHarvest2ToBeModifiedList(data, callback){
+		var that=this;
+		var url="/check-and-append?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
+		fetchHttp(url, data, function(rsp){
+			if (rsp.rspCode!==0) {
+				alert(rsp.rspMsg);
+				return;
+			}
+
+			var dataset=JSON.parse(rsp.payload);
+			callback(dataset);
+		});
 	}
 
-	import(data){
-		this._moveHarvest2ToBeModifiedList(data, 'import');
-	}
-
-	_moveHarvest2ToBeModifiedList(data, action){
+	_moveHarvest2ToBeModifiedList(data){
 		if(!data){return;}
-
 		var map={};
 		var isPruneOutlink=false;
 		for(var i=0; i< data.length; i++){
@@ -445,7 +479,7 @@ class PopupModifyHarvest{
 			if (isPruneOutlink || node.outlinkNum <= 0){
 				continue;
 			}
-			isPruneOutlink=confirm('There are urls contain outlinks, would you like to ' + action + ' them?');
+			isPruneOutlink=confirm('There are urls contain outlinks, would you like to ' + node.option + ' them?');
 			if (!isPruneOutlink) {
 				return;
 			}
@@ -465,9 +499,8 @@ class PopupModifyHarvest{
 		// Add to 'to be modified' grid, and marked as new
 		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
 			if(map[node.data.url]){
+				node.data=map[node.data.url];
 				delete map[node.data.url];
-				node.data.option=action;
-				node.data.flag='new';
 			}else{
 				node.data.flag='normal';
 			}
@@ -478,8 +511,6 @@ class PopupModifyHarvest{
 		var dataset=[];
 		for(var key in map){
 			var node=map[key];
-			node.flag='new';
-			node.option=action;
 			dataset.push(node);
 		}
 		this.gridToBeModified.gridOptions.api.updateRowData({add: dataset});
@@ -487,15 +518,22 @@ class PopupModifyHarvest{
 		this.setRowStyle();
 	}
 
-	showBulkPrune(){
-		$('#bulkPruneMetadataFile').val(null);
-		$('#label-bulk-prune-metadata-file').html('Choose file');
-    $('#popup-window-bulk-prune').show();
+	showImportFromRowIndex(rowIndex){
+		var data=this.gridImportPrepare.getNodeByDataIndex(rowIndex);
+		this.showImport(data);
 	}
 
 	showImport(data){
-		$('#single-impot-mode').html('New');
-		this.enableEditImport(true);
+		var d;
+		if (data && data.index && data.index > 0) {
+			$('#single-import-index').html(data.index);
+			$('#specifyTargetUrlInput').attr('disabled', 'disabled');
+			d=moment(data.lastModifiedDate);
+		}else{
+			$('#single-import-index').html(-1);
+			$('#specifyTargetUrlInput').removeClass('disabled');
+			d=moment();
+		}
 
 		if(data){
 			$('#specifyTargetUrlInput').val(data.url);
@@ -507,66 +545,10 @@ class PopupModifyHarvest{
 		$('#sourceFile').val(null);
 		$('#label-source-file').html('Choose file');
 
-		var d=moment();
 		var ds=d.format('YYYY-MM-DDTHH:mm');
 		$("#datetime-local-customizard").val(ds);
 		
-    $('#popup-window-single-import').show();
-    // this.processorModify.setNode(data);
-	}
-
-	editImport(node){
-		if(!node){
-			alert("Input parameter is missed");
-			return;
-		}
-
-		this.processorModify.currentEdittingNode=node;
-
-		$('#single-impot-mode').html('Edit');
-		this.enableEditImport(false);
-
-		$('#specifyTargetUrlInput').val(node.url);
-		$('#popup-window-single-import input[name="customRadio"]').prop('checked', false);
-		if(node.option.toLowerCase()==='file'){
-			$('#customRadio1').prop('checked', true);
-			$('#sourceFile').val(null);
-			$('#label-source-file').html('Choose file');
-		}else{
-			$('#customRadio2').prop('checked', true);
-			$('#importFromUrlInput').val(node.name);
-		}
-
-		//Modified Datetime
-		var lastModified=node.lastModified;
-		$('#popup-window-single-import input[name="r1"]').prop('checked', false);
-		$('#popup-window-single-import input[flag=" + node.modifiedMode + "]').prop('checked', true);
-		if(lastModified <= 0){ //TBC
-			lastModified=moment();
-		}else{
-			lastModified=moment(lastModified);
-		}
-
-		var formatLastModified=lastModified.format('YYYY-MM-DDTHH:mm');
-		$("#datetime-local-customizard").val(formatLastModified);
-
-    	$('#popup-window-single-import').show();
-	}
-
-	//To make import input disabled or available 
-	enableEditImport(flag){
-		flag=!flag;
-		$('#specifyTargetUrlInput').prop('disabled', flag);
-		$('#popup-window-single-import input[name="customRadio"]').prop('disabled', flag);
-		$('#sourceFile').prop('disabled', flag);
-		$('#label-source-file').prop('disabled', flag);
-		$('#importFromUrlInput').prop('disabled', flag);
-
-	}
-
-	showBulkImport(){
-		this.processorModify.nextBulkImportTab(1);
-		$('#popup-window-bulk-import').show();
+	    $('#popup-window-single-import').show();
 	}
 
 	inspectHarvest(data){		
@@ -747,11 +729,6 @@ class PopupModifyHarvest{
 				saveAs(blob, "wct_export_data.xlsx");
 			}
 		});
-	}
-
-	insertImportData(dataset){
-		this.gridToBeModified.insert(dataset);
-		this.setRowStyle();
 	}
 
 	//Save and reindexing

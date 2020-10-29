@@ -19,7 +19,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,8 +42,7 @@ import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
-import org.webcurator.core.visualization.modification.metadata.ModifyRow;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.profiles.Heritrix3Profile;
@@ -1483,55 +1481,26 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public ModifyRowMetadata uploadFile(long job, int harvestResultNumber, ModifyRow cmd) {
-        ModifyRowMetadata result = this.saveImportedFile(job, cmd);
-        if (result == null || !(result.getRespCode() == VisualizationConstants.RESP_CODE_SUCCESS || result.getRespCode() == VisualizationConstants.RESP_CODE_FILE_EXIST)) {
-            return result;
-        }
+    public ModifyRowFullData uploadFile(long job, int harvestResultNumber, ModifyRowFullData cmd) {
+        ModifyRowFullData result = this.saveImportedFile(job, cmd);
 
-        ModifyRowMetadata metadata = cmd.getMetadata();
-        VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
-        if (vif == null) {
-            vif = new VisualizationImportedFile();
-        }
-
-        vif.setFileName(metadata.getName());
-        vif.setContentLength(metadata.getLength());
-        vif.setContentType(metadata.getContentType());
-        vif.setLastModifiedDate(metadata.getLastModified());
-
-        LocalDateTime localDateTime = LocalDateTime.now();
-        String uploadedDate = String.format("%04d%02d%02d", localDateTime.getYear(), localDateTime.getMonthValue(), localDateTime.getDayOfMonth());
-        String uploadedTime = String.format("%02d%02d%02d", localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond());
-
-        vif.setUploadedDate(uploadedDate);
-        vif.setUploadedTime(uploadedTime);
-
-        visualizationImportedFileDAO.save(vif);
         return result;
     }
 
-    private ModifyRowMetadata saveImportedFile(long job, ModifyRow cmd) {
-        ModifyRowMetadata metadata = cmd.getMetadata();
+    private ModifyRowFullData saveImportedFile(long job, ModifyRowFullData cmd) {
         File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job));
         if (!uploadedFilePath.exists()) {
             uploadedFilePath.mkdirs();
         }
 
-        uploadedFilePath = new File(uploadedFilePath, metadata.getName());
-        if (cmd.isStart() && uploadedFilePath.exists()) {
-            if (metadata.isReplaceFlag()) {
-                uploadedFilePath.deleteOnExit();
-            } else {
-                metadata.setRespCode(VisualizationConstants.FILE_EXIST_YES);
-                metadata.setRespMsg(String.format("File %s has been exist, return without replacement.", metadata.getName()));
-                return metadata;
-            }
+        uploadedFilePath = new File(uploadedFilePath, cmd.getUploadFileName());
+        if (uploadedFilePath.exists()) {
+            uploadedFilePath.delete();
         }
 
         try {
-            int idx = cmd.getContent().indexOf("base64");
-            byte[] doc = Base64.getDecoder().decode(cmd.getContent().substring(idx + 7));
+            int idx = cmd.getUploadFileContent().indexOf("base64");
+            byte[] doc = Base64.getDecoder().decode(cmd.getUploadFileContent().substring(idx + 7));
             if (uploadedFilePath.exists()) {
                 Files.write(uploadedFilePath.toPath(), doc, StandardOpenOption.APPEND);
             } else {
@@ -1539,17 +1508,17 @@ public class WctCoordinatorImpl implements WctCoordinator {
             }
         } catch (IOException e) {
             log.error(e.getMessage());
-            metadata.setRespCode(VisualizationConstants.RESP_CODE_ERROR_FILE_IO);
-            metadata.setRespMsg("Failed to write upload file to " + uploadedFilePath.getAbsolutePath());
-            return metadata;
+            cmd.setRespCode(VisualizationConstants.RESP_CODE_ERROR_FILE_IO);
+            cmd.setRespMsg("Failed to write upload file to " + uploadedFilePath.getAbsolutePath());
+            return cmd;
         }
 
-        metadata.setRespCode(VisualizationConstants.FILE_EXIST_YES);
-        metadata.setRespMsg("OK");
-        return metadata;
+        cmd.setRespCode(VisualizationConstants.FILE_EXIST_YES);
+        cmd.setRespMsg("OK");
+        return cmd;
     }
 
-    public ModifyResult modificationDownloadFile(long job, int harvestResultNumber, ModifyRowMetadata metadata, HttpServletResponse resp) {
+    public ModifyResult modificationDownloadFile(long job, int harvestResultNumber, ModifyRowFullData metadata, HttpServletResponse resp) {
         ModifyResult result = new ModifyResult();
 
         //Ignore elements which are not 'file'
@@ -1560,8 +1529,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         //Check does file exist
-        File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job), metadata.getName());
-        VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
+        File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job), metadata.getUploadFileName());
+        VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getUploadFileName());
         if (!uploadedFilePath.exists() || vif == null) {
             result.setRespCode(VisualizationConstants.FILE_EXIST_NO); //Not exist
             result.setRespMsg("File or metadata is not uploaded");
@@ -1582,27 +1551,26 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return result;
     }
 
-    @Override
-    public ModifyResult checkFiles(long job, int harvestResultNumber, List<ModifyRowMetadata> items) {
+    public ModifyResult checkFiles(long job, int harvestResultNumber, List<ModifyRowFullData> items) {
         return this.checkFiles(job, items);
     }
 
-    private ModifyResult checkFiles(long job, List<ModifyRowMetadata> items) {
+    private ModifyResult checkFiles(long job, List<ModifyRowFullData> items) {
         ModifyResult result = new ModifyResult();
 
         /**
          * Checking do files exist and attaching properties for existing files
          */
         boolean isValid = true;
-        for (ModifyRowMetadata metadata : items) {
+        for (ModifyRowFullData metadata : items) {
             //Ignore elements which are not 'file'
             if (!metadata.getOption().equalsIgnoreCase("FILE")) {
                 continue;
             }
 
             //Check do files exist: walk through all elemenets
-            File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job), metadata.getName());
-            VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getName());
+            File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job), metadata.getUploadFileName());
+            VisualizationImportedFile vif = visualizationImportedFileDAO.findImportedFile(metadata.getUploadFileName());
             if (!uploadedFilePath.exists() || vif == null) {
                 metadata.setRespCode(VisualizationConstants.FILE_EXIST_NO); //Not exist
                 metadata.setRespMsg("File or metadata is not uploaded");
@@ -1611,11 +1579,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 metadata.setRespCode(VisualizationConstants.FILE_EXIST_YES); //Exist
                 metadata.setRespMsg("OK");
                 metadata.setContentType(vif.getContentType());
-                metadata.setLength(vif.getContentLength());
+                metadata.setUploadFileLength(vif.getContentLength());
 
                 //Replace last modified date if the mode is "TBC"
                 if (metadata.getModifiedMode().equalsIgnoreCase("FILE")) {
-                    metadata.setLastModified(vif.getLastModifiedDate());
+                    metadata.setLastModifiedDate(vif.getLastModifiedDate());
                 }
             }
         }
@@ -1663,7 +1631,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         boolean isNeedHarvest = false;
-        for (ModifyRowMetadata row : cmd.getDataset()) {
+        for (ModifyRowFullData row : cmd.getDataset()) {
             if (row.getOption().equalsIgnoreCase("url")) {
                 isNeedHarvest = true;
                 break;

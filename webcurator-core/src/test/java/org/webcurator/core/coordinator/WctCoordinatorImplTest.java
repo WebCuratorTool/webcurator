@@ -42,8 +42,7 @@ import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
-import org.webcurator.core.visualization.modification.metadata.ModifyRow;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.VisualizationImportedFileDAO;
 import org.webcurator.domain.model.core.*;
@@ -947,7 +946,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
         {
             //Starting from patch crawling
-            ModifyRowMetadata metadata = new ModifyRowMetadata();
+            ModifyRowFullData metadata = new ModifyRowFullData();
             metadata.setOption("url");
             metadata.setUrl("http://a.b.c/");
             cmd.getDataset().clear();
@@ -969,7 +968,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
         {
             //Going to modification process directly
-            ModifyRowMetadata metadata = new ModifyRowMetadata();
+            ModifyRowFullData metadata = new ModifyRowFullData();
             metadata.setOption("file");
             metadata.setOption("aaa");
             cmd.getDataset().clear();
@@ -1137,11 +1136,9 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         int harvestResultNumber = 1;
         String fileName = "test.png";
 
-        ModifyRowMetadata metadata = new ModifyRowMetadata();
-        metadata.setName(fileName);
-        ModifyRow cmd = new ModifyRow();
-        cmd.setMetadata(metadata);
-        cmd.setContent("base64:" + Base64.encode("test".getBytes()));
+        ModifyRowFullData cmd = new ModifyRowFullData();
+        cmd.setUploadFileName(fileName);
+        cmd.setUploadFileContent("base64:" + Base64.encode("test".getBytes()));
 
         VisualizationImportedFileDAO mockVisualizationImportedFileDAO = mock(VisualizationImportedFileDAO.class);
         when(mockVisualizationImportedFileDAO.findImportedFile(anyString())).thenReturn(null);

@@ -12,7 +12,7 @@ import org.archive.util.anvl.ANVLRecord;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 
 import java.io.*;
 import java.net.*;
@@ -69,7 +69,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
      * call. So it is skipped before entering the loop that copies each record.
      */
     @Override
-    public void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception {
+    public void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowFullData> hrsToImport, int newHarvestResultNumber) throws Exception {
         if (!isArchiveType(fileFrom.getName())) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -194,7 +194,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
     }
 
     @Override
-    public void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, ModifyRowMetadata> hrsToImport) throws Exception {
+    public void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, ModifyRowFullData> hrsToImport) throws Exception {
         this.writeLog("Start to import from file");
         ModifyProcessor.StatisticItem statisticItem = new ModifyProcessor.StatisticItem();
         statisticItems.add(statisticItem);
@@ -218,7 +218,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
                 WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
         WARCWriter warcWriter = new WARCWriter(aint, settings);
 
-        for (ModifyRowMetadata fProps : hrsToImport.values()) {
+        for (ModifyRowFullData fProps : hrsToImport.values()) {
             this.tryBlock();
 
             if (!fProps.getOption().equalsIgnoreCase("file")) {
@@ -229,7 +229,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
             try {
                 Date warcDate = new Date();
                 if (fProps.getModifiedMode().equalsIgnoreCase("FILE") || fProps.getModifiedMode().equalsIgnoreCase("CUSTOM")) {
-                    warcDate.setTime(fProps.getLastModified());
+                    warcDate.setTime(fProps.getLastModifiedDate());
                 }
                 log.debug("WARC-Date: {}", writerDF.format(warcDate));
 
@@ -253,10 +253,10 @@ public class ModifyProcessorWarc extends ModifyProcessor {
                 this.writeLog(String.format("[INFO] Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
                 statisticItem.increaseCopiedRecords();
 
-                progressItemFileImported.setCurLength(progressItemFileImported.getCurLength() + fProps.getLength());
+                progressItemFileImported.setCurLength(progressItemFileImported.getCurLength() + fProps.getUploadFileLength());
             } catch (IOException | URISyntaxException | DigitalAssetStoreException e) {
                 log.error(e.getMessage());
-                this.writeLog(String.format("[ERROR] Imported a record from file, name: %s, size: %d. Error: %s", fProps.getName(), fProps.getLength(), e.getMessage()));
+                this.writeLog(String.format("[ERROR] Imported a record from file, name: %s, size: %d. Error: %s", fProps.getUploadFileName(), fProps.getUploadFileLength(), e.getMessage()));
                 statisticItem.increaseFailedRecords();
                 throw e;
             } finally {

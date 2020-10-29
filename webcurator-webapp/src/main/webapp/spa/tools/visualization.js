@@ -145,10 +145,8 @@ function contextMenuCallback(key, data, source, target){
     visHopPath.draw(data.id);
   }else if(action==='import'){
     target.showImport(data);
-  }else if(action==='recrawl'){
-    target.recrawl(dataset);
-  }else if(action==='prune'){
-    target.pruneHarvest(dataset);
+  }else if(action==='prune' || action==='recrawl'){
+    target.modify(dataset, action);
   }else if(action==='browse'){
     browseUrl(data, scope);
   }else if(action==='download'){
@@ -321,30 +319,47 @@ var gridOptionsToBeModified={
   },
   columnDefs: [
     {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
-    {headerName: "Flag", field: "existingFlag", width:80, cellRenderer:  (row) => {
+    {headerName: "Option", field: "option", width:80},
+    {headerName: "URL", field: "url", width: 600, cellRenderer:  (row) => {
         if (!row.data.existingFlag) {
-          return '<span class="right badge badge-danger">New</span>';
+          return '<span class="right badge badge-danger">New</span>&nbsp;'+row.data.url;
         }else{
-          return '';
+          return row.data.url;
         }
     }},
-    {headerName: "Option", field: "option", width:80},
-    {headerName: "Target", field: "url", width: 400},
-    {headerName: "Source", field: "name", width: 400},
-    {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
+    {headerName: "Uploaded File Name", field: "uploadFileName", width: 200},
+    {headerName: "Modified Mode", field: "modifiedMode", width: 150},
+    {headerName: "Modified Date", field: "lastModified", width: 160, cellRenderer:  (row) => {
         if (row.data.respCode!=0 || !row.data.modifiedMode) {
           return '-';
         }
-        
+
+
         var modifiedMode=row.data.modifiedMode.toUpperCase();
-        if(modifiedMode==='TBC'){
+        if(row.data.option.toUpperCase() !=='FILE' || modifiedMode==='TBC'){
           return 'TBC';
         }else if(row.data.lastModified > 0){
           var dt=moment(row.data.lastModified);
           return dt.format('YYYY-MM-DDTHH:mm');
         }else{
-          return modifiedMode;
+          return '-';
         }
+    }},
+    {headerName: "Validation Result", field: "respMsg", width: 300, cellRenderer:  (row) => {
+        if (row.data.respCode===0) {
+          return 'OK';
+        }else{
+          return row.data.respMsg;
+        }
+    }},
+    {headerName: "Action", field: "respCode", width: 120, pinned: "right", cellRenderer:  (row) => {
+        if (row.data.respCode!=0) {
+          return '<a href="javascript: deleteImportedRow('+row.rowIndex+')"><i class="fas fa-times-circle text-danger"></i><a/>&nbsp;' + row.data.respMsg;
+        }
+        if (row.data.option==='FILE' && !row.data.isValidFile) {
+          return '<a href="javascript: uploadImportedFile('+row.rowIndex+')"><i class="fas fa-cloud-upload-alt text-info">Upload</i><a/>';
+        }
+        return '<i class="fas fa-check-circle text-success"></i>';
     }},
   ],
   getRowClass: formatModifyHavestGridRow
@@ -371,13 +386,7 @@ var gridOptionsImportPrepare={
           return row.data.url;
         }
     }},
-    {headerName: "Validation Result", field: "respMsg", width: 300, cellRenderer:  (row) => {
-        if (row.data.respCode===0) {
-          return 'OK';
-        }else{
-          return row.data.respMsg;
-        }
-    }},
+    
     {headerName: "File", field: "name", width: 200},
     {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  (row) => {
         if (row.data.respCode!=0 || !row.data.modifiedMode) {
@@ -394,14 +403,19 @@ var gridOptionsImportPrepare={
           return 'N/A';
         }
     }},
+    {headerName: "Validation Result", field: "respMsg", width: 300, cellRenderer:  (row) => {
+        if (row.data.respCode===0) {
+          return '<i class="fas fa-check-circle text-success"> OK</i>';
+        }else{
+          return  '<i class="fas fa-times-circle text-danger"> '+row.data.respMsg+'</i>';
+        }
+    }},
     {headerName: "Action", field: "respCode", width: 120, pinned: "right", cellRenderer:  (row) => {
-        if (row.data.respCode!=0) {
-          return '<a href="javascript: deleteImportedRow('+row.rowIndex+')"><i class="fas fa-times-circle text-danger"></i><a/>&nbsp;' + row.data.respMsg;
-        }
         if (row.data.option==='FILE' && !row.data.isValidFile) {
-          return '<a href="javascript: uploadImportedFile('+row.rowIndex+')"><i class="fas fa-cloud-upload-alt text-info">Upload</i><a/>';
+          return '<a href="javascript: gPopupModifyHarvest.gridImportPrepare.removeByDataIndex('+row.data.index+')"><span class="right badge badge-primary">Cancel</span><a/>' + '&nbsp;|&nbsp;<a href="javascript: gPopupModifyHarvest.showImportFromRowIndex('+row.data.index+')"><span class="right badge badge-danger">Upload</span><a/>';
+        }else{
+          return '<a href="javascript: gPopupModifyHarvest.gridImportPrepare.removeByDataIndex('+row.data.index+')"><span class="right badge badge-primary">Cancel</span><a/>';
         }
-        return '<i class="fas fa-check-circle text-success"></i>';
     }},
 
     

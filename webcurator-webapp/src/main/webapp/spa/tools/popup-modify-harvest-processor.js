@@ -73,103 +73,63 @@ class ModifyHarvestProcessor{
 	}
 
 	singleImport(){
-		var singleImportMode=$('#single-import-mode').html().toUpperCase();
-		if (singleImportMode==='NEW') {
-			this.singleImportNew();
+		var node;
+		var currentRowIndex=parseInt($('#single-import-index').html());
+		if (currentRowIndex > 0) {
+			node=gPopupModifyHarvest.gridImportPrepare.getNodeByDataIndex(currentRowIndex);
 		}else{
-			this.singleImportEdit();
+			node={url: $("#specifyTargetUrlInput").val(),};
 		}
-	}
-
-	singleImportNew(){
-		var that=this;
-		var node={
-			url: $("#specifyTargetUrlInput").val(),
-		};
 
 		// Check if targetURL exist in "to be imported" table
-		this.tobeReplaceNode=null;
-		gPopupModifyHarvest.gridImport.gridOptions.api.forEachNode(function(row, index){
-			if(node.url===row.data.url){
-				that.tobeReplaceNode=row.data;
-			}
-		});
+		this.tobeReplaceNode=gPopupModifyHarvest.gridToBeModified.getNodeByUrl(node.url);
 		if (this.tobeReplaceNode) {
 			var decision=confirm("The targetUrl has been exist in the ToBeImported table. \n Would you replace it?");
 			if(!decision){
 				return;
 			}
 		}
-		node.pruneFlag=$("#checkbox-prune-of-single-import").is(":checked");
-		node.option=$("#popup-window-single-import input[name='customRadio']:checked").attr("flag");
-		if(node.option==='File'){
-			if(!node.url.toLowerCase().startsWith("http://")){
-				alert("You must specify a valid target URL. Starts with: http://");
-				return;
-			}
-			var file=$('#sourceFile')[0].files[0];
-			if(!file){
-				alert("You must specify a source file name to import.");
-				return;
-			}
-			node.name=file.name;
-			node.length=file.size;
-			node.contentType=file.type;
 
-			var modifiedMode=$("#radio-group-modified-date input[name='r1']:checked").attr("flag");
-			node.modifiedMode=modifiedMode;
-			if (modifiedMode.toUpperCase() === 'TBC') {
-				node.lastModified=0;
-			}else if (modifiedMode.toUpperCase() === 'FILE') {
-				node.lastModified=file.lastModified;
-			}else if (modifiedMode.toUpperCase() === 'CUSTOM') {
-				var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
-				node.lastModified=customModifiedDate;
-			}else{
-				alert('Invalid modified mode: ' + modifiedMode);
-				return;
-			}
-
-			var that=this;
-			this.uploadFile(node, file, function(cmd, resp){
-				that.singleImportCallback(resp, cmd);
-			});
-		}else{
-			if(!node.url.toLowerCase().startsWith("http://") &&
-				!node.url.toLowerCase().startsWith("https://")){
-				alert("You must specify a valid target URL.");
-				return;
-			}
-
-			node.name='--';
-			node.modifiedMode='TBC';
-			node.lastModified=0;
-
-			this.singleImportCallback(null, node);
+		if(!node.url.toLowerCase().startsWith("http://")){
+			alert("You must specify a valid target URL. Starts with: http://");
+			return;
 		}
-	}
+		var file=$('#sourceFile')[0].files[0];
+		if(!file){
+			alert("You must specify a source file name to import.");
+			return;
+		}
+		node.uploadFileName=file.name;
+		node.uploadFileLength=file.size;
+		node.contentType=file.type;
 
-	singleImportEdit(){
-		//Only supporting lastModifiedDate
-		var modifiedMode=$("#radio-group-modified-date input[type='radio']:checked").attr("flag");
-		this.currentEdittingNode.modifiedMode=modifiedMode;
+		var modifiedMode=$("#radio-group-modified-date input[name='r1']:checked").attr("flag");
+		node.modifiedMode=modifiedMode;
 		if (modifiedMode.toUpperCase() === 'TBC') {
-			this.currentEdittingNode.lastModified=0;
+			node.lastModifiedDate=0;
 		}else if (modifiedMode.toUpperCase() === 'FILE') {
-			this.currentEdittingNode.lastModified=file.lastModified;
+			node.lastModifiedDate=file.lastModified;
 		}else if (modifiedMode.toUpperCase() === 'CUSTOM') {
 			var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
-			this.currentEdittingNode.lastModified=customModifiedDate;
+			node.lastModifiedDate=customModifiedDate;
 		}else{
 			alert('Invalid modified mode: ' + modifiedMode);
 			return;
 		}
 
-		$('#popup-window-single-import').hide();
+		node.uploadFile=file;
+		
+		var dataset=[];
+		dataset.push(node);
 
-		gPopupModifyHarvest.gridImport.gridOptions.api.redrawRows(true);
+		if (currentRowIndex > 0) {
+			gPopupModifyHarvest.gridImportPrepare.gridOptions.api.redrawRows(true);
+		}else{
+			gPopupModifyHarvest.modify(dataset, 'file');
+		}
+
+		$('#popup-window-single-import').hide();
 	}
-	
 
 	bulkUploadFiles(){
 		var dataset=gPopupModifyHarvest.gridImportPrepare.getAllNodes();
@@ -239,14 +199,20 @@ class ModifyHarvestProcessor{
 		$('#bulkImportContentFile').val(null);
 	}
 
-	_bulkValidateImportMetaData(dataset){
+	bulkOpenMetadataFile(){
+        setTimeout(function(){
+    		$('#bulkImportMetadataFile').trigger('click');
+		}, 200);
+    }
+
+    _validateToBeImportedData(dataset){
 		var map={};
 		var isValid=true;
 		for(var i=0;i<dataset.length;i++){
 			var node=dataset[i];
 			node.respCode=0;
 			node.respMsg='';
-			var target=node.target;
+			var target=node.url;
 			if(map[target]){
 				node.respMsg+="Duplicated target URL at line: " + (i+1);
 				isValid=false;
@@ -308,20 +274,13 @@ class ModifyHarvestProcessor{
 		return isValid;
 	}
 
-	bulkOpenMetadataFile(){
-        setTimeout(function(){
-    		$('#bulkImportMetadataFile').trigger('click');
-		}, 200);
-    }
-
 	bulkUploadMetadataFile(file){
 		var that=this;
 		var reader = new FileReader();
 		reader.addEventListener("loadend", function () {
 			var url="/bulk-import/parse?targetInstanceOid=" + that.jobId + "&harvestNumber=" + that.harvestResultNumber;
 			var req={
-				content: reader.result,
-				metadata: {}
+				uploadFileContent: reader.result,
 			};
 			fetchHttp(url, req, function(rsp){
 				$('#popup-window-bulk-import .overlay').hide();
@@ -331,10 +290,14 @@ class ModifyHarvestProcessor{
 				}
 
 				var dataset=JSON.parse(rsp.payload);
-				
-				that._bulkValidateImportMetaData(dataset);
 
-				gPopupModifyHarvest.gridImportPrepare.setRowData(dataset);
+				gPopupModifyHarvest._appendAndMoveHarvest2ToBeModifiedList(dataset, function(data){
+					that._validateToBeImportedData(data);
+					for (var i = data.length - 1; i >= 0; i--) {
+						data[i].index=i;
+					}
+					gPopupModifyHarvest.gridImportPrepare.setRowData(data);
+				});
 			});
 		});
 
@@ -347,7 +310,7 @@ class ModifyHarvestProcessor{
 	bulkAddData2ToBeImportedGrid(){
 		var that=this;
 		var dataset=gPopupModifyHarvest.gridImportPrepare.getAllNodes();
-		gPopupModifyHarvest.insertImportData(dataset);
+		gPopupModifyHarvest._moveHarvest2ToBeModifiedList(dataset);
 		$('#popup-window-bulk-import').hide();
 	}
 
@@ -363,85 +326,5 @@ class ModifyHarvestProcessor{
 
 			callback(response);
 		});
-	}
-
-	nextBulkImportTab(step){
-      step=(step+1) % 2;
-      $('.tab-bulk-import').hide();
-      $('#tab-bulk-import-'+step).show();
-      $('#btn-bulk-import-submit').attr('step', step);
-      if(step===0){
-        $('#bulkImportMetadataFile').val(null);
-        $('#label-bulk-import-metadata-file').html('Choose file');
-        $('#bulkImportContentFile').val(null);
-        $('#btn-bulk-import-submit').html('Next');        
-      }else{
-        $('#btn-bulk-import-submit').html('Re-crawl');
-        $('#btn-bulk-import-submit').attr('status', 'recrawl');
-      }
-    }
-
-
-    bulkPrune(){
-		var file=$('#bulkPruneMetadataFile')[0].files[0];
-		if(!file){
-			alert("You must specify a metadata file name to prune.");
-			return;
-		}
-		var ignoreInvalidURLsFlag=$("#checkbox-ignore-invalid-prune-urls").is(":checked");
-		var ignoreDuplicatedURLsFlag=$("#checkbox-ignore-duplicated-prune-urls").is(":checked");
-
-		var that=this;
-		var reader = new FileReader();
-		reader.addEventListener("loadend", function () {
-			var searchCondition={
-	          "domainNames": [],
-	          "contentTypes": [],
-	          "statusCodes": [],
-	          "urlNames": []
-	        }
-
-	        var map={};
-			var gridImportNodes=gPopupModifyHarvest.gridImport.getAllNodes();
-			for(var i=0; i<gridImportNodes.length; i++){
-				var key=gridImportNodes[i].url;
-				map[key]=2;
-			}
-
-			var text=reader.result;
-			var lines=text.split('\n');
-			for(var i=0;i<lines.length;i++){
-				var url=lines[i].trim();
-
-				console.log(url);
-
-				if(!url.toLowerCase().startsWith("http://") &&
-					!url.toLowerCase().startsWith("https://")){
-					if(!ignoreInvalidURLsFlag){
-						alert("You must specify a valid URL at line:" + (i+1));
-						return;
-					}
-				}
-
-				if(map[url]===2 || map[url]===1){
-					if(!ignoreDuplicatedURLsFlag){
-						alert('Duplicated URL: ' + url);
-						return;
-					}
-				}else{
-					map[url]=1;
-					searchCondition.urlNames.push(url);
-				}
-			}
-
-			$('#popup-window-bulk-prune').hide();
-
-			gPopupModifyHarvest.checkUrls(searchCondition, 'prune');
-
-		});
-
-		// reader.readAsDataURL(file);
-		reader.readAsText(file);
-
 	}
 }

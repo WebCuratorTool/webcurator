@@ -7,7 +7,7 @@ import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
-import org.webcurator.core.visualization.modification.metadata.ModifyRowMetadata;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.*;
@@ -80,7 +80,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         final List<String> urisToDelete = new LinkedList<>();
         final List<String> urisToImportByUrl = new LinkedList<>();
         final List<String> urisToImportByFile = new LinkedList<>();
-        final Map<String, ModifyRowMetadata> hrsToImport = new HashMap<>();
+        final Map<String, ModifyRowFullData> hrsToImport = new HashMap<>();
         cmd.getDataset().forEach(e -> {
             if (e.getOption().equalsIgnoreCase("prune")) {
                 urisToDelete.add(e.getUrl());
@@ -110,7 +110,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         final AtomicLong totMaxLength = new AtomicLong(0);
         hrsToImport.values().forEach(toImportFile -> {
             if (toImportFile.getOption().equalsIgnoreCase("file")) {
-                totMaxLength.addAndGet(toImportFile.getLength());
+                totMaxLength.addAndGet(toImportFile.getContentLength());
             }
         });
         progressItemFileImported.setMaxLength(totMaxLength.get());
@@ -153,7 +153,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         this.delete(baseDir, PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
     }
 
-    public File downloadFile(long job, int harvestResultNumber, ModifyRowMetadata metadata) throws IOException, DigitalAssetStoreException {
+    public File downloadFile(long job, int harvestResultNumber, ModifyRowFullData metadata) throws IOException, DigitalAssetStoreException {
         String tempFileName = UUID.randomUUID().toString();
         File dirFile = new File(fileDir);
         if (!dirFile.exists() && !dirFile.mkdir()) {
@@ -162,12 +162,12 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
             throw new DigitalAssetStoreException(err);
         }
         File downloadedFile = new File(fileDir, tempFileName);
-        return wctClient.getDownloadFileURL(job, harvestResultNumber, metadata.getName(), downloadedFile);
+        return wctClient.getDownloadFileURL(job, harvestResultNumber, metadata.getCachedFileName(), downloadedFile);
     }
 
-    public abstract void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowMetadata> hrsToImport, int newHarvestResultNumber) throws Exception;
+    public abstract void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowFullData> hrsToImport, int newHarvestResultNumber) throws Exception;
 
-    public abstract void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, ModifyRowMetadata> hrsToImport) throws Exception;
+    public abstract void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, ModifyRowFullData> hrsToImport) throws Exception;
 
     public abstract void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException;
 
