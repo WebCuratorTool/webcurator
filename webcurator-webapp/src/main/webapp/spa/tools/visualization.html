@@ -167,45 +167,73 @@ to get the desired effect
 </div>
 
 <!-- Popup window for modification -->
-<div class="popup-window" id="popup-window-modify-harvest">
-<div class="card none-margin-padding" style="margin: 5% 20% 5% 20%; border: solid; border-width: 5px; border-color: #343a40;">
-  <nav class="navbar navbar-expand navbar-dark navbar-light">
+<div class="card card-dark popup-window hidden" id="popup-window-modify-harvest" style="border: solid; border-color: #343a40; border-width: 0 10px 10px 10px; background: white; border-radius: 0;">
+  <nav class="navbar navbar-expand navbar-dark">
+    <input class="form-control" type="search" placeholder="Filter" aria-label="Search" style="width: 250px;">
     <ul class="navbar-nav">
-      <li class="nav-item text-light">
-        &nbsp;To Be Pruned and Imported &nbsp;
+      <li class="nav-item" style="margin-left: 30vw;">
+         <h3 class="card-title text-white">To Be Modified</h3>
       </li>
     </ul>
+
     <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto"> 
-      <input class="form-control" type="search" placeholder="Filter" aria-label="Search" style="width: 250px; margin-left: 10px;">
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <button type="button" class="btn btn-block btn-success" onclick="gPopupModifyHarvest.apply();" style="width: 150px; margin-right: 10px;">Apply</button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modify-harvest').hide();" style="width: 150px; margin-left: 10px;">Close</button>
+      </li>
     </ul>
   </nav>
 
-  <!-- /.card-header -->
-  <div class="card-body none-margin-padding" style="width: 60vw;">
-      <div id="grid-group-tobe-modified" style="width: calc(100% - 15px); height: 50vh;">
-        <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: 100%;"></div>
-      </div>
-
-      <div class="input-group" style="margin: 5px 2px 0 2px; width: calc(100% - 15px);">
-        <textarea id="provenance-note" class="form-control" rows="3"  placeholder="Provenance Note ..."></textarea>
+  <div class="card-body none-margin-padding">
+      <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: calc(85vh - 75px);"></div>
+      <div class="row" style="margin-top: 5px; height: 15vh;">
+        <div class="col-6">
+          <div class="form-group">
+            <label for="provenance-note">Provenance Note</label>
+            <textarea id="provenance-note" class="form-control" rows="3"  placeholder="Provenance Note ..."></textarea>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="form-group" id="radio-group-replace-status">
+            <label for="radio-group-modified-date">Replacement Existing URLs by Status</label>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="radioReplaceStatusAll" name="r-status" flag="all" checked>
+              <label for="radioReplaceStatusAll" style="font-weight: normal;">To replace all existing urls</label>
+            </div>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="radioReplaceStatusFailed" name="r-status" flag="failed">
+              <label for="radioReplaceStatusFailed" style="font-weight: normal;">To replace failed existing urls</label>
+            </div>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="radioReplaceStatusNone" name="r-status" flag="none">
+              <label for="radioReplaceStatusNone" style="font-weight: normal;">To Not replace any existing urls</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <div class="form-group" id="radio-group-replace-outlinks">
+            <label for="radio-group-modified-date">Replacement Existing URLs by Outlinks</label>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="radioReplaceOutlinksAll" name="r-outlinks" flag="all" checked>
+              <label for="radioReplaceOutlinksAll" style="font-weight: normal;">To replace all existing urls</label>
+            </div>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="radioReplaceOutlinksFailed" name="r-outlinks" flag="failed">
+              <label for="radioReplaceOutlinksFailed" style="font-weight: normal;">To replace existing urls without outlinks</label>
+            </div>
+            <div class="custom-control custom-radio">
+              <input type="radio" id="radioReplaceOutlinksNone" name="r-outlinks" flag="none">
+              <label for="radioReplaceOutlinksNone" style="font-weight: normal;">To NOT replace any existing urls</label>
+            </div>  
+          </div>
+        </div>
       </div>
   </div>  <!-- End of card body -->
-
-  <div class="card-footer">
-    <div class="row">
-      <div class="col-8"></div>
-      <div class="col-2">
-          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.apply();">Apply</button>
-      </div>
-      <div class="col-2">
-          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modify-harvest').hide();">Close</button>
-      </div>
-    </div>
-  </div>
-  <div class="overlay2 dark"><div class="spin-overlay2 text-white"><i class="fas fa-circle-notch text-default"></i></div></div>
+  <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
 </div> 
-</div>
 
 <!-- Popup Hop Path-->
 <div class="popup-window" id="popup-window-hop-path">

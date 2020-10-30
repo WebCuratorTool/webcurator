@@ -72,133 +72,6 @@ class ModifyHarvestProcessor{
 		}
 	}
 
-	singleImport(){
-		var node;
-		var currentRowIndex=parseInt($('#single-import-index').html());
-		if (currentRowIndex > 0) {
-			node=gPopupModifyHarvest.gridImportPrepare.getNodeByDataIndex(currentRowIndex);
-		}else{
-			node={url: $("#specifyTargetUrlInput").val(),};
-		}
-
-		// Check if targetURL exist in "to be imported" table
-		this.tobeReplaceNode=gPopupModifyHarvest.gridToBeModified.getNodeByUrl(node.url);
-		if (this.tobeReplaceNode) {
-			var decision=confirm("The targetUrl has been exist in the ToBeImported table. \n Would you replace it?");
-			if(!decision){
-				return;
-			}
-		}
-
-		if(!node.url.toLowerCase().startsWith("http://")){
-			alert("You must specify a valid target URL. Starts with: http://");
-			return;
-		}
-		var file=$('#sourceFile')[0].files[0];
-		if(!file){
-			alert("You must specify a source file name to import.");
-			return;
-		}
-		node.uploadFileName=file.name;
-		node.uploadFileLength=file.size;
-		node.contentType=file.type;
-
-		var modifiedMode=$("#radio-group-modified-date input[name='r1']:checked").attr("flag");
-		node.modifiedMode=modifiedMode;
-		if (modifiedMode.toUpperCase() === 'TBC') {
-			node.lastModifiedDate=0;
-		}else if (modifiedMode.toUpperCase() === 'FILE') {
-			node.lastModifiedDate=file.lastModified;
-		}else if (modifiedMode.toUpperCase() === 'CUSTOM') {
-			var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
-			node.lastModifiedDate=customModifiedDate;
-		}else{
-			alert('Invalid modified mode: ' + modifiedMode);
-			return;
-		}
-
-		node.uploadFile=file;
-		
-		var dataset=[];
-		dataset.push(node);
-
-		if (currentRowIndex > 0) {
-			gPopupModifyHarvest.gridImportPrepare.gridOptions.api.redrawRows(true);
-		}else{
-			gPopupModifyHarvest.modify(dataset, 'file');
-		}
-
-		$('#popup-window-single-import').hide();
-	}
-
-	bulkUploadFiles(){
-		var dataset=gPopupModifyHarvest.gridImportPrepare.getAllNodes();
-		var bulkFileNameMap={};
-		for(var j=0; j<dataset.length; j++){
-			var node=dataset[j];
-			if(node.option.toLowerCase()!=='file' || node.respCode===1){
-				continue;
-			}
-			var ary=bulkFileNameMap[node.name];
-			if(!ary){
-				ary=[node];
-				bulkFileNameMap[node.name]=ary;
-			}else{
-				ary.push(node);
-			}
-		}
-
-		var that=this;
-		var files=$('#bulkImportContentFile')[0].files;
-		for(var i=0; i<files.length; i++){
-			var file=files[i];
-			var node={name: file.name};
-
-			var ary=bulkFileNameMap[node.name];
-			if(!ary){
-				console.log("Selected file not match any item to be bulk imported. Selected file name: " + cmd.srcName);
-				continue;
-			}
-
-			for(var j=0; j<ary.length; j++){
-				ary[j].length=file.size;
-				ary[j].contentType=file.type;
-				ary[j].lastModified=file.lastModified;
-				ary[j].uploadedFlag=0;
-			}
-
-			this.uploadFile(node, file, function(cmd, response){
-				var ary=bulkFileNameMap[cmd.name];
-				if(!ary){
-					console.log("System error. Selected file name: " + cmd.name);
-					return;
-				}
-
-				for(var j=0; j<ary.length; j++){
-					ary[j].respCode=response.respCode;
-					ary[j].respMsg=response.respMsg;
-					ary[j].uploadedFlag=1;
-				}
-				gPopupModifyHarvest.gridImportPrepare.gridOptions.api.redrawRows(true);
-
-				delete bulkFileNameMap[cmd.name];
-				var unUploadedNumber=0;
-				for(var key in bulkFileNameMap){
-					unUploadedNumber++;
-				}
-				if(unUploadedNumber>0){
-					var html=$('#tip-bulk-import-prepare-invalid').html();
-					$('#tip-bulk-import-prepare').html(html);
-				}else{
-					$('#tip-bulk-import-prepare').html('All rows are valid.');
-				}
-			});
-		}
-
-		gPopupModifyHarvest.gridImportPrepare.gridOptions.api.redrawRows(true);
-		$('#bulkImportContentFile').val(null);
-	}
-
 	bulkOpenMetadataFile(){
         setTimeout(function(){
     		$('#bulkImportMetadataFile').trigger('click');
@@ -242,7 +115,7 @@ class ModifyHarvestProcessor{
 
 					node.lastModified=dt.valueOf();
 				}else{
-					node.respCode=-1;
+					node.respCode=1;
 					node.respMsg+="Invalid modification mode or datetime at line: " + (i+1);
 					isValid=false;
 				}
@@ -312,6 +185,69 @@ class ModifyHarvestProcessor{
 		var dataset=gPopupModifyHarvest.gridImportPrepare.getAllNodes();
 		gPopupModifyHarvest._moveHarvest2ToBeModifiedList(dataset);
 		$('#popup-window-bulk-import').hide();
+	}
+
+	singleImport(){
+		var node;
+		var currentRowIndex=parseInt($('#single-import-index').html());
+		if (currentRowIndex > 0) {
+			node=gPopupModifyHarvest.gridImportPrepare.getNodeByDataIndex(currentRowIndex);
+		}else{
+			node={url: $("#specifyTargetUrlInput").val(),};
+		}
+
+		// Check if targetURL exist in "to be imported" table
+		this.tobeReplaceNode=gPopupModifyHarvest.gridToBeModified.getNodeByUrl(node.url);
+		if (this.tobeReplaceNode) {
+			var decision=confirm("The targetUrl has been exist in the ToBeImported table. \n Would you replace it?");
+			if(!decision){
+				return;
+			}
+		}
+
+		if(!node.url.toLowerCase().startsWith("http://")
+			&& !node.url.toLowerCase().startsWith("https://")){
+			alert("You must specify a valid target URL. Starts with: http:// or https://");
+			return;
+		}
+		var file=$('#sourceFile')[0].files[0];
+		if(!file){
+			alert("You must specify a source file name to import.");
+			return;
+		}
+		node.uploadFileName=file.name;
+		node.uploadFileLength=file.size;
+		node.contentType=file.type;
+
+		var modifiedMode=$("#radio-group-modified-date input[name='r1']:checked").attr("flag");
+		node.modifiedMode=modifiedMode;
+		if (modifiedMode.toUpperCase() === 'TBC') {
+			node.lastModifiedDate=0;
+		}else if (modifiedMode.toUpperCase() === 'FILE') {
+			node.lastModifiedDate=file.lastModified;
+		}else if (modifiedMode.toUpperCase() === 'CUSTOM') {
+			var customModifiedDate=moment($("#datetime-local-customizard").val()).valueOf();
+			node.lastModifiedDate=customModifiedDate;
+		}else{
+			alert('Invalid modified mode: ' + modifiedMode);
+			return;
+		}
+
+		node.uploadFile=file;
+		if (node.respCode === 1) {
+			node.respCode = 0;
+		}
+
+		var dataset=[];
+		dataset.push(node);
+
+		if (currentRowIndex > 0) {
+			gPopupModifyHarvest.gridImportPrepare.gridOptions.api.redrawRows(true);
+		}else{
+			gPopupModifyHarvest.modify(dataset, 'file');
+		}
+
+		$('#popup-window-single-import').hide();
 	}
 
 	checkFilesExistAtServerSide(dataset, callback){	
