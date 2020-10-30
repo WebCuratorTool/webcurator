@@ -378,8 +378,9 @@ class PopupModifyHarvest{
 		this.hierarchyTreeHarvestStruct=new HierarchyTree("#hierachy-tree-harvest-struct", jobId, harvestResultNumber, treeOptionsHarvestStruct);
 		this.hierarchyTreeUrlNames=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber, treeOptionsCascadedPath);
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlGrid);
-		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, contextMenuItemsToBeModified);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, null);
+		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, contextMenuItemsToBeModified);
+		this.gridToBeModifiedVerified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified-verified', gridOptionsToBeModifiedVerified, null);
 		this.processorModify=new ModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
 		this.uriSeedUrl="/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		this.uriInvalidUrl="/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
@@ -405,7 +406,7 @@ class PopupModifyHarvest{
 
 	setRowStyle(){
 		var toBeModifiedDataMap={};
-		this.gridCandidate.gridOptions.api.forEachNode(function(node, index){
+		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
 			if (node.data.id > 0) {
 				toBeModifiedDataMap[node.data.id]=node.data;
 			}
@@ -414,7 +415,7 @@ class PopupModifyHarvest{
 		//Set class for tree view
 		$('.hierachy-tree td').removeClass("tree-row-delete");
 		$('.hierachy-tree td').removeClass("tree-row-recrawl");
-		$('.hierachy-tree td').removeClass("tree-row-import");
+		$('.hierachy-tree td').removeClass("tree-row-file");
 		for(var key in toBeModifiedDataMap){
 			var option=toBeModifiedDataMap[key].option;
 			var classOfTreeRow='';
@@ -423,15 +424,16 @@ class PopupModifyHarvest{
 			}else if (option==='recrawl') {
 				classOfTreeRow='tree-row-recrawl';
 			}else{
-				classOfTreeRow='tree-row-import';
+				classOfTreeRow='tree-row-file';
 			}
-			$('.hierachy-tree td[idx="' + key + ' "]').addClass(classOfTreeRow);
+			$('.hierachy-tree tr[idx="' + key + '"] td').addClass(classOfTreeRow);
 		}
 
 		//Set class for grid candidate
 		this.gridCandidate.gridOptions.api.forEachNode(function(node, index){
 			if (toBeModifiedDataMap[node.data.id] && toBeModifiedDataMap[node.data.id].option) {
 				node.data.flag=toBeModifiedDataMap[node.data.id].option;
+				console.log(node.data.flag);
 			}else{
 				node.data.flag='normal';
 			}
@@ -521,6 +523,11 @@ class PopupModifyHarvest{
 	showImportFromRowIndex(rowIndex){
 		var data=this.gridImportPrepare.getNodeByDataIndex(rowIndex);
 		this.showImport(data);
+	}
+
+	showRecrawl(){
+		$('#specifyTargetUrlInputForRecrawl').val('');
+		$('#popup-window-single-recrawl').show();
 	}
 
 	showImport(data){
@@ -638,7 +645,7 @@ class PopupModifyHarvest{
 
 			var data=JSON.parse(response.payload);
 			if(flag==='prune'){
-				that.pruneHarvest(data);
+				that.modify(data, 'prune');
 			}else if(flag==='inspect'){
 				that.inspectHarvest(data);
 			}
@@ -733,14 +740,89 @@ class PopupModifyHarvest{
 
 	//Save and reindexing
 	apply(){
-		var dataset=this.gridImport.getAllNodes();
-		var pruned=this.gridPrune.getAllNodes();
-		for(var i=0; i<pruned.length; i++){
-			var node={
-				option: 'prune',
-				url: pruned[i].url
+		var replaceModeByStatus=parseInt($("#radio-group-replace-status input[name='r-status']:checked").attr("flag"));
+		var replaceModeByOutlinks=parseInt($("#radio-group-replace-outlinks input[name='r-outlink']:checked").attr("flag"));
+
+		var dataset=this.gridToBeModified.getAllNodes();
+		var map={};
+		var isValid=true;
+		for(var i=0;i<dataset.length;i++){
+			var node=dataset[i];
+			node.respCode=0;
+			node.respMsg='';
+			var target=node.url;
+			if(map[target]){
+				node.respCode=-1;
+				node.respMsg+="Duplicated target URL at line: " + (i+1);
+				isValid=false;
 			}
-			dataset.push(node);
+			map[target]=node;
+
+
+			if(!target.toLowerCase().startsWith("http://") &&
+				!target.toLowerCase().startsWith("https://")){
+				node.respCode=-1;
+				node.respMsg+="You must specify a valid target URL at line:" + (i+1);
+				isValid=false;
+			}
+
+			var option=node.option.toUpperCase();
+			if(option==="FILE"){
+				if(!node.file){
+					node.respCode=1;
+					node.respMsg+='File is not uploaded at line' + (i+1);
+					isValid=false;
+				}
+
+				var modifiedMode=node.modifiedMode;
+				var lastModifiedDate=node.lastModifiedDate;
+				if(modifiedMode!=='TBC' && modifiedMode!=='FILE' && modifiedMode!=='CUSTOM'){
+					node.respCode=-1;
+					node.respMsg+='Invalid modifiedMode at line: ' + (i+1);
+					isValid=false;
+				}
+
+				if((modifiedMode==='FILE' || modifiedMode==='CUSTOM') && lastModifiedDate<=0){
+					node.respCode=-1;
+					node.respMsg+="Invalid modification datetime at line: " + (i+1);
+					isValid=false;
+				}
+			}
+
+			var replaceAble=true;
+			if (replaceAble && replaceModeByStatus===2 && isSuccessNode(node.statusCode)) {
+				node.respCode=-1;
+				node.respMsg+="Successful URL could not be replaced at line: " + (i+1);
+				replaceAble=false;
+			}
+			if (replaceAble && replaceModeByStatus===3 && node.existingFlag) {
+				node.respCode=-1;
+				node.respMsg+="Existing URL could not be replaced at line: " + (i+1);
+				replaceAble=false;
+			}
+
+			if (replaceAble && replaceModeByOutlinks===2 && node.outlinks.length > 0) {
+				node.respCode=-1;
+				node.respMsg+="URL with outlinks could not be replaced at line: " + (i+1);
+				replaceAble=false;
+			}
+			if (replaceAble && replaceModeByOutlinks===3 && node.existingFlag) {
+				node.respCode=-1;
+				node.respMsg+="Existing URL could not be replaced at line: " + (i+1);
+				replaceAble=false;
+			}
+
+			if(!replaceAble){
+				isValid=false;
+			}
+		}
+
+		if(!isValid){
+			this.gridToBeModifiedVerified.setRowData(dataset);
+			$('#popup-window-modify-harvest .card-body').hide();
+			$('#card-body-tobe-modified-verified').show();
+			alert('Please correct or cancel invalid rows!');
+			return;
 		}
 
 		var applyCommand={

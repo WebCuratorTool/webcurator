@@ -82,11 +82,12 @@ to get the desired effect
 
       <!-- To be modified: Cart -->
       <div class="btn-group">
-        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modify-harvest').show();"><i class="fas fa-shopping-cart">&nbsp; To Be Modified</i></button>
+        <button type="button" class="btn btn-flat btn-success" onclick="javascript: $('#popup-window-modify-harvest .card-body').hide(); $('#card-body-tobe-modified').show(); $('#popup-window-modify-harvest').show();"><i class="fas fa-shopping-cart">&nbsp; To Be Modified</i></button>
         <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
           <span class="sr-only">Toggle Dropdown</span>
           <div class="dropdown-menu" role="menu">
-            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Single Import</a>
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showRecrawl();"><i class="fas fa-link text-info"></i> &nbsp; Repair by Crawl</a>
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Repair by File</a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
             <div class="dropdown-divider"></div>
@@ -187,7 +188,7 @@ to get the desired effect
     </ul>
   </nav>
 
-  <div class="card-body none-margin-padding">
+  <div class="card-body none-margin-padding" id="card-body-tobe-modified">
       <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: calc(85vh - 75px);"></div>
       <div class="row" style="margin-top: 5px; height: 15vh;">
         <div class="col-6">
@@ -200,15 +201,15 @@ to get the desired effect
           <div class="form-group" id="radio-group-replace-status">
             <label for="radio-group-modified-date">Replacement Existing URLs by Status</label>
             <div class="custom-control custom-radio">
-              <input type="radio" id="radioReplaceStatusAll" name="r-status" flag="all" checked>
+              <input type="radio" id="radioReplaceStatusAll" name="r-status" flag="1" checked>
               <label for="radioReplaceStatusAll" style="font-weight: normal;">To replace all existing urls</label>
             </div>
             <div class="custom-control custom-radio">
-              <input type="radio" id="radioReplaceStatusFailed" name="r-status" flag="failed">
+              <input type="radio" id="radioReplaceStatusFailed" name="r-status" flag="2">
               <label for="radioReplaceStatusFailed" style="font-weight: normal;">To replace failed existing urls</label>
             </div>
             <div class="custom-control custom-radio">
-              <input type="radio" id="radioReplaceStatusNone" name="r-status" flag="none">
+              <input type="radio" id="radioReplaceStatusNone" name="r-status" flag="3">
               <label for="radioReplaceStatusNone" style="font-weight: normal;">To Not replace any existing urls</label>
             </div>
           </div>
@@ -217,21 +218,24 @@ to get the desired effect
           <div class="form-group" id="radio-group-replace-outlinks">
             <label for="radio-group-modified-date">Replacement Existing URLs by Outlinks</label>
             <div class="custom-control custom-radio">
-              <input type="radio" id="radioReplaceOutlinksAll" name="r-outlinks" flag="all" checked>
+              <input type="radio" id="radioReplaceOutlinksAll" name="r-outlinks" flag="1" checked>
               <label for="radioReplaceOutlinksAll" style="font-weight: normal;">To replace all existing urls</label>
             </div>
             <div class="custom-control custom-radio">
-              <input type="radio" id="radioReplaceOutlinksFailed" name="r-outlinks" flag="failed">
+              <input type="radio" id="radioReplaceOutlinksFailed" name="r-outlinks" flag="2">
               <label for="radioReplaceOutlinksFailed" style="font-weight: normal;">To replace existing urls without outlinks</label>
             </div>
             <div class="custom-control custom-radio">
-              <input type="radio" id="radioReplaceOutlinksNone" name="r-outlinks" flag="none">
+              <input type="radio" id="radioReplaceOutlinksNone" name="r-outlinks" flag="3">
               <label for="radioReplaceOutlinksNone" style="font-weight: normal;">To NOT replace any existing urls</label>
             </div>  
           </div>
         </div>
       </div>
   </div>  <!-- End of card body -->
+  <div class="card-body none-margin-padding" id="card-body-tobe-modified-verified">
+    <div id="grid-modify-tobe-modified-verified" class="ag-theme-balham" style="width: 100%; height: calc(100vh - 75px);"></div>
+  </div>
   <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
 </div> 
 
@@ -249,6 +253,43 @@ to get the desired effect
   <!-- /.card-header -->
   <div class="card-body none-margin-padding" id="hoppath-canvas" style="background: white; height: calc(100% - 50px);">
   </div>   <!-- /.card-body -->
+</div> <!-- /.card -->
+</div>
+
+<!-- Popup Single Patch Crawl-->
+<div class="popup-window" id="popup-window-single-recrawl">
+<div class="card card-primary popup-content">
+  <div class="card-header">
+    <h3 class="card-title">Single Patch Crawl</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" onclick="$('#popup-window-single-recrawl').hide();"><i class="fas fa-times"></i></button>
+    </div>
+    <!-- /.card-tools -->
+  </div>  <!-- /.card-header -->
+  
+  <div class="card-body">
+    <div class="form-group">
+      <label for="specifyTargetUrlInputForRecrawl">Specify Target URL</label>
+      <input type="input" class="form-control" id="specifyTargetUrlInputForRecrawl" placeholder="Specify Target URL">
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="row">
+      <div class="col-8">
+        <div class="custom-control custom-checkbox">
+          <input class="custom-control-input" type="checkbox" id="checkbox-prune-of-single-import" checked>
+          <label for="checkbox-prune-of-single-import" class="custom-control-label">Prune the existing content when exist</label>
+        </div>
+      </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleRecrawl();">OK</button>
+      </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-single-recrawl').hide();">Close</button>
+      </div>
+    </div>
+  </div>
 </div> <!-- /.card -->
 </div>
 
@@ -308,7 +349,7 @@ to get the desired effect
         </div>
       </div>
       <div class="col-2">
-          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleImport();">Import</button>
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleImport();">OK</button>
       </div>
       <div class="col-2">
           <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-single-import').hide();">Close</button>

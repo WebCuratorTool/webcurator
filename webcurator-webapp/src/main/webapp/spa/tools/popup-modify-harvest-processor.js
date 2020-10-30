@@ -87,6 +87,7 @@ class ModifyHarvestProcessor{
 			node.respMsg='';
 			var target=node.url;
 			if(map[target]){
+				node.respCode=-1;
 				node.respMsg+="Duplicated target URL at line: " + (i+1);
 				isValid=false;
 			}
@@ -96,13 +97,14 @@ class ModifyHarvestProcessor{
 			var modifiedMode=node.modifiedMode;
 			var lastModifiedDate=node.lastModifiedDate;
 
-			if(option==="FILE"){
-				if(!target.toLowerCase().startsWith("http://")){
-					node.respCode=-1;
-					node.respMsg+="You must specify a valid target URL at line:" + (i+1) + ". URL starts with: http://";
-					isValid=false;
-				}
+			if(!target.toLowerCase().startsWith("http://") &&
+				!target.toLowerCase().startsWith("https://")){
+				node.respCode=-1;
+				node.respMsg+="You must specify a valid target URL at line:" + (i+1);
+				isValid=false;
+			}
 
+			if(option==="FILE"){
 				if(modifiedMode==='TBC' || modifiedMode==='FILE'){
 					node.lastModified=0;
 				}else if (modifiedMode==='CUSTOM') {
@@ -122,12 +124,6 @@ class ModifyHarvestProcessor{
 			}else if(option==='PRUNE' || option==='RECRAWL'){
 				node.modifiedMode='TBC';
 				node.lastModifiedDate=0;
-				if(!target.toLowerCase().startsWith("http://") &&
-					!target.toLowerCase().startsWith("https://")){
-					node.respCode=-1;
-					node.respMsg+="You must specify a valid target URL at line:" + (i+1);
-					isValid=false;
-				}
 			}else{
 				delete dataset[i];
 				console.log('Skip invalid line: ' + (i+1));
@@ -163,7 +159,7 @@ class ModifyHarvestProcessor{
 				}
 
 				var dataset=JSON.parse(rsp.payload);
-
+				that._validateToBeImportedData(dataset);
 				gPopupModifyHarvest._appendAndMoveHarvest2ToBeModifiedList(dataset, function(data){
 					that._validateToBeImportedData(data);
 					for (var i = data.length - 1; i >= 0; i--) {
@@ -181,10 +177,22 @@ class ModifyHarvestProcessor{
 	}
 
 	bulkAddData2ToBeImportedGrid(){
-		var that=this;
 		var dataset=gPopupModifyHarvest.gridImportPrepare.getAllNodes();
+		var valid=this._validateToBeImportedData(dataset);
+		if(!valid){
+			alert('Please correct or cancel the invalid rows');
+			return;
+		}
 		gPopupModifyHarvest._moveHarvest2ToBeModifiedList(dataset);
 		$('#popup-window-bulk-import').hide();
+	}
+
+	bulkCancelRowByRowIndex(rowIndex){
+		gPopupModifyHarvest.gridImportPrepare.removeByDataIndex(rowIndex);
+
+		var dataset=gPopupModifyHarvest.gridImportPrepare.getAllNodes();
+		this._validateToBeImportedData(dataset);
+		gPopupModifyHarvest.gridImportPrepare.setRowData(dataset);
 	}
 
 	singleImport(){
@@ -248,6 +256,32 @@ class ModifyHarvestProcessor{
 		}
 
 		$('#popup-window-single-import').hide();
+	}
+
+	singleRecrawl(){
+		var node={url: $("#specifyTargetUrlInputForRecrawl").val(),};
+
+		// Check if targetURL exist in "to be imported" table
+		this.tobeReplaceNode=gPopupModifyHarvest.gridToBeModified.getNodeByUrl(node.url);
+		if (this.tobeReplaceNode) {
+			var decision=confirm("The targetUrl has been exist in the ToBeImported table. \n Would you replace it?");
+			if(!decision){
+				return;
+			}
+		}
+
+		if(!node.url.toLowerCase().startsWith("http://")
+			&& !node.url.toLowerCase().startsWith("https://")){
+			alert("You must specify a valid target URL. Starts with: http:// or https://");
+			return;
+		}
+
+		var dataset=[];
+		dataset.push(node);
+
+		gPopupModifyHarvest.modify(dataset, 'recrawl');
+
+		$('#popup-window-single-recrawl').hide();
 	}
 
 	checkFilesExistAtServerSide(dataset, callback){	

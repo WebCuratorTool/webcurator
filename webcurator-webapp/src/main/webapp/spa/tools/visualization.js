@@ -232,19 +232,22 @@ var contextMenuItemsToBeModified={
     }}
 };
 
+function isSuccessNode(statusCode){
+  return statusCode >= 200 && statusCode < 400;
+}
 
 function formatModifyHavestGridRow(params){
   if(!params.data.flag){
     return 'grid-row-normal';
   }
-
-  if (params.data.flag==='prune') {
+  var flag=params.data.flag.toUpperCase();
+  if (flag==='PRUNE') {
     return 'grid-row-delete';
-  }else if (params.data.flag==='recrawl') {
+  }else if (flag==='RECRAWL') {
     return 'grid-row-recrawl';
-  }else if (params.data.flag==='import') {
-    return 'grid-row-import';
-  }else if (params.data.flag==='new') {
+  }else if (flag==='FILE') {
+    return 'grid-row-file';
+  }else if (flag==='NEW') {
     return 'grid-row-new';
   }
 
@@ -393,14 +396,11 @@ var gridOptionsImportPrepare={
     {headerName: "Validation", children:[
       {headerName: "Result", field: "respMsg", width: 200, pinned: "right", cellRenderer:  cellRendererRespMsg},
       {headerName: "Action", field: "respCode", width: 80, pinned: "right", cellRenderer:  (row) => {
-        return '<a href="javascript: gPopupModifyHarvest.gridImportPrepare.removeByDataIndex('+row.data.index+')"><span class="right badge badge-primary">Cancel</span><a/>';
+        return '<a href="javascript: gPopupModifyHarvest.processorModify.bulkCancelRowByRowIndex('+row.data.index+')"><span class="right badge badge-primary">Cancel</span><a/>';
       }},
     ]},
   ],
-  // getRowClass: formatModifyHavestGridRow
-  getRowClass: formatModifyHavestGridRow
 };
-
 
 var gridOptionsToBeModified={
   suppressRowClickSelection: true,
@@ -415,8 +415,8 @@ var gridOptionsToBeModified={
     renderImportOption: renderImportOption
   },
   columnDefs: [
+    {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
     {headerName: "Normal", children:[
-      {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
       {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
@@ -433,7 +433,41 @@ var gridOptionsToBeModified={
   getRowClass: formatModifyHavestGridRow
 };
 
-
+var gridOptionsToBeModifiedVerified={
+  suppressRowClickSelection: true,
+  rowSelection: 'multiple',
+  defaultColDef: {
+    resizable: true,
+    filter: true,
+    sortable: true
+  },
+  rowData: [],
+  components: {
+    renderImportOption: renderImportOption
+  },
+  columnDefs: [
+    {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
+    {headerName: "Normal", children:[
+      {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
+      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},
+      {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
+      {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer:  cellRendererModifiedMode},
+      {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  cellRendererModifiedDate},
+    ]},
+    {headerName: "Outlinks", children:[
+      {headerName: "TotUrls", field: "totUrls", width: 100, filter: 'agNumberColumnFilter'},
+      {headerName: "Failed", field: "totFailed", width: 100, filter: 'agNumberColumnFilter'},
+      {headerName: "Success", field: "totSuccess", width: 100, filter: 'agNumberColumnFilter'},
+      {headerName: "TotSize", field: "totSize", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
+    ]},
+    {headerName: "Validation", children:[
+      {headerName: "Result", field: "respMsg", width: 200, pinned: "right", cellRenderer:  cellRendererRespMsg},
+      {headerName: "Action", field: "respCode", width: 80, pinned: "right", cellRenderer:  (row) => {
+        return '<a href="javascript: gPopupModifyHarvest.processorModify.bulkCancelRowByRowIndex('+row.data.index+')"><span class="right badge badge-primary">Cancel</span><a/>';
+      }},
+    ]},
+  ],
+};
 
 var StateMap={
     0: 'Finished',

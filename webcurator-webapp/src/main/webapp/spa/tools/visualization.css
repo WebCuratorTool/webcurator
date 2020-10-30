@@ -130,23 +130,46 @@ progress::-moz-progress-bar {
 	/*font-style: italic;*/
 	/*font-weight: normal;*/
 }
-.grid-row-import div{
+.grid-row-recrawl div{
 	/*text-decoration: line-through;*/
 	/*font-style: italic;*/
 	/*font-weight: normal;*/
 	color: red;
 }
-.grid-row-delete-import div{
-  	text-decoration: line-through;
- 	color: red;
+.grid-row-file div{
+	/*text-decoration: line-through;*/
+	/*font-style: italic;*/
+	/*font-weight: normal;*/
+	color: red;
 }
+
 .grid-row-new div{
 	font-weight: bold;
 }
+
 .grid-cell-centered{
 	text-align: center;
 	color: #6610f2;
 	font-weight: normal;
+}
+
+.tree-row-delete{
+  	text-decoration: line-through;
+}
+.tree-row-delete span{
+  	text-decoration: line-through;
+}
+.tree-row-file{
+	color: red;
+}
+.tree-row-file span{
+	color: red;
+}
+.tree-row-recrawl{
+	color: red;
+}
+.tree-row-recrawl span{
+	color: red;
 }
 
 .tab-content{
@@ -158,18 +181,6 @@ progress::-moz-progress-bar {
 	height: 100%;
 }
 
-.tree-row-delete{
-  	text-decoration: line-through;
-}
-.tree-row-delete span{
-  	text-decoration: line-through;
-}
-.tree-row-import{
-	color: red;
-}
-.tree-row-import span{
-	color: red;
-}
 
 #popup-window-loading
 {
@@ -211,6 +222,15 @@ progress::-moz-progress-bar {
 	width: 70vw; 
 	height: 90vh;
 	margin: 5vh 15vw 5vh 15vw;
+	border: 5px solid #007bff;
+	border-radius: 10px;
+	background: #F1E4E1;
+}
+
+#popup-window-single-recrawl .popup-content{
+	width: 50vw; 
+	/*height: 40vh;*/
+	margin: 20vh 25vw 20vh 25vw;
 	border: 5px solid #007bff;
 	border-radius: 10px;
 	background: #F1E4E1;
