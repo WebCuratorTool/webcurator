@@ -51,6 +51,17 @@ class CustomizedAgGrid{
 		return result;
 	}
 
+	getNodeByDataId(id){
+		var result;
+		this.grid.gridOptions.api.forEachNode(function(node, index){
+			if(node.data.id===id){
+				result=node.data;
+				return;
+			}
+		});
+		return result;
+	}
+
 	getNodeByUrl(url){
 		var result;
 		this.grid.gridOptions.api.forEachNode(function(node, index){
@@ -124,6 +135,7 @@ function formatLazyloadData(dataset, isDomain){
 	return dataset;
 }
 
+
 const treeOptionsBasic={
 	extensions: ["table", "wide", "filter"],
 	quicksearch: true,
@@ -158,6 +170,12 @@ const treeOptionsBasic={
 		// $(treeNode.node.tr).attr("data", JSON.stringify(nodeData));
 		if (nodeData.id > 0) {
 			$(treeNode.node.tr).attr("idx", ""+nodeData.id);
+
+			var toBeModifiedNode=gPopupModifyHarvest.gridToBeModified.getNodeByDataId(nodeData.id);
+			if (toBeModifiedNode) {
+				var classOfTreeRow=gPopupModifyHarvest.getTreeNodeStyle(toBeModifiedNode.option);
+				$(treeNode.node.tr.children).addClass(classOfTreeRow);
+			}
 		}
 
 		// if (nodeData.viewType && nodeData.viewType===2 && nodeData.id===-1){
@@ -404,6 +422,24 @@ class PopupModifyHarvest{
 		}
 	}
 
+	getTreeNodeStyle(option){
+		if(!option){
+			return '';
+		}
+
+		option=option.toLowerCase();
+		var classOfTreeRow='';
+		if (option === 'prune') {
+			classOfTreeRow='tree-row-delete';
+		}else if (option==='recrawl') {
+			classOfTreeRow='tree-row-recrawl';
+		}else{
+			classOfTreeRow='tree-row-file';
+		}
+
+		return classOfTreeRow;		
+	}
+
 	setRowStyle(){
 		var toBeModifiedDataMap={};
 		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
@@ -417,15 +453,8 @@ class PopupModifyHarvest{
 		$('.hierachy-tree td').removeClass("tree-row-recrawl");
 		$('.hierachy-tree td').removeClass("tree-row-file");
 		for(var key in toBeModifiedDataMap){
-			var option=toBeModifiedDataMap[key].option;
-			var classOfTreeRow='';
-			if (option === 'prune') {
-				classOfTreeRow='tree-row-delete';
-			}else if (option==='recrawl') {
-				classOfTreeRow='tree-row-recrawl';
-			}else{
-				classOfTreeRow='tree-row-file';
-			}
+			var classOfTreeRow=this.getTreeNodeStyle(toBeModifiedDataMap[key].option);
+			console.log('.hierachy-tree tr[idx="' + key + '"] td' + classOfTreeRow);
 			$('.hierachy-tree tr[idx="' + key + '"] td').addClass(classOfTreeRow);
 		}
 
@@ -791,50 +820,61 @@ class PopupModifyHarvest{
 
 			var replaceAble=true;
 			if (replaceAble && replaceModeByStatus===2 && isSuccessNode(node.statusCode)) {
-				node.respCode=-1;
-				node.respMsg+="Successful URL could not be replaced at line: " + (i+1);
+				node.respCode=9;
+				node.respMsg+="Existing successful URL will not be pruned";
 				replaceAble=false;
 			}
 			if (replaceAble && replaceModeByStatus===3 && node.existingFlag) {
-				node.respCode=-1;
-				node.respMsg+="Existing URL could not be replaced at line: " + (i+1);
+				node.respCode=9;
+				node.respMsg+="Existing URL will not be pruned";
 				replaceAble=false;
 			}
 
 			if (replaceAble && replaceModeByOutlinks===2 && node.outlinks.length > 0) {
-				node.respCode=-1;
-				node.respMsg+="URL with outlinks could not be replaced at line: " + (i+1);
+				node.respCode=9;
+				node.respMsg+="Existing URL with outlinks will not be pruned";
 				replaceAble=false;
 			}
 			if (replaceAble && replaceModeByOutlinks===3 && node.existingFlag) {
-				node.respCode=-1;
-				node.respMsg+="Existing URL could not be replaced at line: " + (i+1);
+				node.respCode=9;
+				node.respMsg+="Existing URL will not be pruned";
 				replaceAble=false;
-			}
-
-			if(!replaceAble){
-				isValid=false;
 			}
 		}
 
-		if(!isValid){
-			this.gridToBeModifiedVerified.setRowData(dataset);
-			$('#popup-window-modify-harvest .card-body').hide();
-			$('#card-body-tobe-modified-verified').show();
+		if (!isValid) {
 			alert('Please correct or cancel invalid rows!');
 			return;
 		}
 
+
+		if (replaceAble) {
+			this.submit();
+		}else{
+			this.gridToBeModifiedVerified.setRowData(dataset);
+			$('#popup-window-modify-verify').show();
+		}
+	}
+
+	submit(){
+		$('#popup-window-modify-verify').hide();
+		g_TurnOnOverlayLoading();
+
+		//Uploading files 
+
+		var dataset=this.gridToBeModified.getAllNodes();
+		var replaceModeByStatus=parseInt($("#radio-group-replace-status input[name='r-status']:checked").attr("flag"));
+		var replaceModeByOutlinks=parseInt($("#radio-group-replace-outlinks input[name='r-outlink']:checked").attr("flag"));
 		var applyCommand={
 			targetInstanceId: this.jobId,
 			harvestResultId: this.harvestResultId,
 			harvestResultNumber: this.harvestResultNumber,
 			newHarvestResultNumber: 0,
+			replaceOptionStatus: replaceModeByStatus,
+			replaceOptionOutlink: replaceModeByOutlinks,
 			dataset: dataset,
 			provenanceNote: $('#provenance-note').val(),
 		};
-
-		g_TurnOnOverlayLoading();
 		var that=this;
 		var url="/modification/apply";
 		fetchHttp(url, applyCommand, function(response){
@@ -842,9 +882,7 @@ class PopupModifyHarvest{
 			if(response.respCode !== 0){
 				alert(response.respMsg);
 			}else{
-				$("#popup-window-modify-harvest").hide();
 				updateDerivedHarvestResults(response.derivedHarvestResult);
-				// popupDerivedSummaryWindow(response.derivedHarvestResult.oid, response.derivedHarvestResult.harvestNumber);
 			}
 		});
 	}

@@ -415,7 +415,9 @@ var gridOptionsToBeModified={
     renderImportOption: renderImportOption
   },
   columnDefs: [
-    {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
+    {headerName: "Check", children:[
+      {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
+    ]},
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
       {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},
@@ -429,6 +431,9 @@ var gridOptionsToBeModified={
       {headerName: "Success", field: "totSuccess", width: 100, filter: 'agNumberColumnFilter'},
       {headerName: "TotSize", field: "totSize", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
     ]},
+    // {headerName: "Validation", children:[
+    //   {headerName: "Result", field: "respMsg", width: 200, pinned: "right", cellRenderer:  cellRendererRespMsg},
+    // ]},
   ],
   getRowClass: formatModifyHavestGridRow
 };
@@ -461,14 +466,18 @@ var gridOptionsToBeModifiedVerified={
       {headerName: "TotSize", field: "totSize", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
     ]},
     {headerName: "Validation", children:[
-      {headerName: "Result", field: "respMsg", width: 200, pinned: "right", cellRenderer:  cellRendererRespMsg},
-      {headerName: "Action", field: "respCode", width: 80, pinned: "right", cellRenderer:  (row) => {
-        return '<a href="javascript: gPopupModifyHarvest.processorModify.bulkCancelRowByRowIndex('+row.data.index+')"><span class="right badge badge-primary">Cancel</span><a/>';
+      {headerName: "Result", field: "respMsg", width: 600, pinned: "right", cellRenderer:  (row) => {
+          if (row.data.respCode > 0) {
+            return  '<i class="fas fa-exclamation-triangle text-warning"> '+row.data.respMsg+'</i>';
+          }else if (row.data.respCode < 0) {
+            return  '<i class="fas fa-exclamation-triangle text-danger"> '+row.data.respMsg+'</i>';
+          }else{
+            return '';
+          }
       }},
     ]},
   ],
 };
-
 var StateMap={
     0: 'Finished',
     1: 'Endorsed',
