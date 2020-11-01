@@ -1253,13 +1253,4 @@ public class BaseConfig {
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
         return new PolitenessOptions(1.0, 1000L, 10000L, 2L, 2000L);
     }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public VisualizationImportedFileDAO getVisualizationImportedFileDAO() {
-        VisualizationImportedFileDAOImpl visualizationImportedFileDAO = new VisualizationImportedFileDAOImpl();
-        visualizationImportedFileDAO.setSessionFactory(sessionFactory().getObject());
-        return visualizationImportedFileDAO;
-    }
 }

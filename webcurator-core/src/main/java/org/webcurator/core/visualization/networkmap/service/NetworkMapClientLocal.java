@@ -452,7 +452,9 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         List<NetworkMapNodeDTO> urlList = new ArrayList<>();
         for (String urlName : urlNameList) {
             NetworkMapNodeDTO node = db.getUrlByUrlName(urlName);
-            urlList.add(node);
+            if (node!=null){
+                urlList.add(node);
+            }
         }
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(obj2Json(urlList));

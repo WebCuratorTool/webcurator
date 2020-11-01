@@ -16,12 +16,10 @@ import java.util.Date;
 public class ModifyRowFullData extends NetworkMapNodeDTO {
     protected static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+    private long index;
     private boolean existingFlag;
     private String option;
 
-    private int respCode;
-    private String respMsg;
-    
     private String uploadFileName;
     private String uploadFileContent;
     private long uploadFileLength;
@@ -30,6 +28,9 @@ public class ModifyRowFullData extends NetworkMapNodeDTO {
     private String lastModifiedPresentationString = "";
 
     private String cachedFileName;
+
+    private int respCode;
+    private String respMsg;
 
     @JsonIgnore
     public static void setValue(ModifyRowFullData row, String key, String value) {
@@ -81,6 +82,14 @@ public class ModifyRowFullData extends NetworkMapNodeDTO {
 
     public void setLastModifiedPresentationString(String lastModifiedPresentationString) {
         this.lastModifiedPresentationString = lastModifiedPresentationString;
+    }
+
+    public long getIndex() {
+        return index;
+    }
+
+    public void setIndex(long index) {
+        this.index = index;
     }
 
     public boolean isExistingFlag() {

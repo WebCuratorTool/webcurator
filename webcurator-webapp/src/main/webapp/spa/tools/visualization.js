@@ -385,6 +385,9 @@ var gridOptionsImportPrepare={
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer: cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer: cellRendererModifiedDate},
+      {headerName: "Type", field: "contentType", width: 200, filter: true},
+      {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
+      {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
     ]},
     {headerName: "Outlinks", children:[
       {headerName: "TotUrls", field: "totUrls", width: 100, filter: 'agNumberColumnFilter'},
@@ -424,6 +427,9 @@ var gridOptionsToBeModified={
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer:  cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  cellRendererModifiedDate},
+      {headerName: "Type", field: "contentType", width: 200, filter: true},
+      {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
+      {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
     ]},
     {headerName: "Outlinks", children:[
       {headerName: "TotUrls", field: "totUrls", width: 100, filter: 'agNumberColumnFilter'},
@@ -458,6 +464,9 @@ var gridOptionsToBeModifiedVerified={
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer:  cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  cellRendererModifiedDate},
+      {headerName: "Type", field: "contentType", width: 200, filter: true},
+      {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
+      {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
     ]},
     {headerName: "Outlinks", children:[
       {headerName: "TotUrls", field: "totUrls", width: 100, filter: 'agNumberColumnFilter'},
@@ -466,13 +475,13 @@ var gridOptionsToBeModifiedVerified={
       {headerName: "TotSize", field: "totSize", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
     ]},
     {headerName: "Validation", children:[
-      {headerName: "Result", field: "respMsg", width: 600, pinned: "right", cellRenderer:  (row) => {
+      {headerName: "Result", field: "respMsg", width: 500, pinned: "right", cellRenderer:  (row) => {
           if (row.data.respCode > 0) {
-            return  '<i class="fas fa-exclamation-triangle text-warning"> '+row.data.respMsg+'</i>';
+            return  '<i class="fas fa-exclamation-triangle text-warning"></i> '+row.data.respMsg;
           }else if (row.data.respCode < 0) {
-            return  '<i class="fas fa-exclamation-triangle text-danger"> '+row.data.respMsg+'</i>';
+            return  '<i class="fas fa-exclamation-triangle text-danger"></i> '+row.data.respMsg;
           }else{
-            return '';
+            return 'OK';
           }
       }},
     ]},

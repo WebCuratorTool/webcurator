@@ -169,50 +169,33 @@ to get the desired effect
   <div class="card-body card-main hidden" id="pop-tobe-modified" style="width: 100%; height: calc(100vh - 50px);">
         <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: calc(85vh - 85px);"></div>
         <div class="row" style="margin-top: 5px; height: 15vh;">
-          <div class="col-6">
+          <div class="col-8">
             <div class="form-group">
               <label for="provenance-note">Provenance Note</label>
               <textarea id="provenance-note" class="form-control" rows="3"  placeholder="Provenance Note ..."></textarea>
             </div>
           </div>
-          <div class="col-3">
+          <div class="col-4">
             <div class="form-group" id="radio-group-replace-status">
-              <label for="radio-group-modified-date">Replacement Existing URLs by Status</label>
+              <label for="radio-group-modified-date">Prune the existing URLs when repairing the URLs</label>
               <div class="custom-control custom-radio">
                 <input type="radio" id="radioReplaceStatusAll" name="r-status" flag="1" checked>
-                <label for="radioReplaceStatusAll" style="font-weight: normal;">To replace all existing urls</label>
+                <label for="radioReplaceStatusAll" style="font-weight: normal;">Prune all existing urls</label>
               </div>
               <div class="custom-control custom-radio">
                 <input type="radio" id="radioReplaceStatusFailed" name="r-status" flag="2">
-                <label for="radioReplaceStatusFailed" style="font-weight: normal;">To replace failed existing urls</label>
+                <label for="radioReplaceStatusFailed" style="font-weight: normal;">Prune failed existing urls</label>
               </div>
               <div class="custom-control custom-radio">
                 <input type="radio" id="radioReplaceStatusNone" name="r-status" flag="3">
-                <label for="radioReplaceStatusNone" style="font-weight: normal;">To Not replace any existing urls</label>
+                <label for="radioReplaceStatusNone" style="font-weight: normal;">Not prune existing urls</label>
               </div>
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="form-group" id="radio-group-replace-outlinks">
-              <label for="radio-group-modified-date">Replacement Existing URLs by Outlinks</label>
-              <div class="custom-control custom-radio">
-                <input type="radio" id="radioReplaceOutlinksAll" name="r-outlinks" flag="1" checked>
-                <label for="radioReplaceOutlinksAll" style="font-weight: normal;">To replace all existing urls</label>
-              </div>
-              <div class="custom-control custom-radio">
-                <input type="radio" id="radioReplaceOutlinksFailed" name="r-outlinks" flag="2">
-                <label for="radioReplaceOutlinksFailed" style="font-weight: normal;">To replace existing urls without outlinks</label>
-              </div>
-              <div class="custom-control custom-radio">
-                <input type="radio" id="radioReplaceOutlinksNone" name="r-outlinks" flag="3">
-                <label for="radioReplaceOutlinksNone" style="font-weight: normal;">To NOT replace any existing urls</label>
-              </div>  
             </div>
           </div>
         </div>
 
         <div style="position: absolute; bottom: 0; width: 100%;">
-          <button type="button" class="btn btn-block btn-flat btn-outline-success btn-lg" onclick="gPopupModifyHarvest.apply();">Apply</button>
+          <button type="button" class="btn btn-block btn-flat btn-success btn-lg" onclick="gPopupModifyHarvest.apply();">Apply</button>
         </div>
   </div> 
 

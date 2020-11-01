@@ -476,13 +476,22 @@ class PopupModifyHarvest{
 	}
 
 	modify(dataset, option){
-		for (var i = dataset.length - 1; i >= 0; i--) {
+		var map={};
+		for (var i = 0; i < dataset.length; i++) {
 			dataset[i].option=option;
 			dataset[i].flag='new';
+			dataset[i].index=i;
+			map[i]=dataset[i];
 		}
 		var that=this;
-		this._appendAndMoveHarvest2ToBeModifiedList(dataset, function(data){
-			that._moveHarvest2ToBeModifiedList(data);
+		this._appendAndMoveHarvest2ToBeModifiedList(dataset, function(handledDateset){
+			for (var i = 0; i < handledDateset.length; i++) {
+				var oldNode=map[handledDateset[i].index];
+				if (oldNode) {
+					handledDateset[i].uploadFile=oldNode.uploadFile;
+				}
+			}
+			that._moveHarvest2ToBeModifiedList(handledDateset);
 		});
 	}
 
@@ -507,13 +516,6 @@ class PopupModifyHarvest{
 		for(var i=0; i< data.length; i++){
 			var node=data[i];
 			map[node.url]=node;
-			if (isPruneOutlink || node.outlinkNum <= 0){
-				continue;
-			}
-			isPruneOutlink=confirm('There are urls contain outlinks, would you like to ' + node.option + ' them?');
-			if (!isPruneOutlink) {
-				return;
-			}
 		}
 
 		//Checking duplicated rows
@@ -538,7 +540,6 @@ class PopupModifyHarvest{
 		});
 		this.gridToBeModified.gridOptions.api.redrawRows(true);
 
-		map=JSON.parse(JSON.stringify(map));
 		var dataset=[];
 		for(var key in map){
 			var node=map[key];
@@ -769,10 +770,13 @@ class PopupModifyHarvest{
 
 	//Save and reindexing
 	apply(){
-		var replaceModeByStatus=parseInt($("#radio-group-replace-status input[name='r-status']:checked").attr("flag"));
-		var replaceModeByOutlinks=parseInt($("#radio-group-replace-outlinks input[name='r-outlink']:checked").attr("flag"));
-
 		var dataset=this.gridToBeModified.getAllNodes();
+		if(!dataset || dataset.length === 0){
+			alert('Please input the URLs to be modified.');
+			return;
+		}
+
+		var replaceModeByStatus=parseInt($("#radio-group-replace-status input[name='r-status']:checked").attr("flag"));
 		var map={};
 		var isValid=true;
 		for(var i=0;i<dataset.length;i++){
@@ -797,13 +801,13 @@ class PopupModifyHarvest{
 
 			var option=node.option.toUpperCase();
 			if(option==="FILE"){
-				if(!node.file){
+				if(!node.uploadFile){
 					node.respCode=1;
 					node.respMsg+='File is not uploaded at line' + (i+1);
 					isValid=false;
 				}
 
-				var modifiedMode=node.modifiedMode;
+				var modifiedMode=node.modifiedMode.toUpperCase();
 				var lastModifiedDate=node.lastModifiedDate;
 				if(modifiedMode!=='TBC' && modifiedMode!=='FILE' && modifiedMode!=='CUSTOM'){
 					node.respCode=-1;
@@ -819,25 +823,14 @@ class PopupModifyHarvest{
 			}
 
 			var replaceAble=true;
-			if (replaceAble && replaceModeByStatus===2 && isSuccessNode(node.statusCode)) {
+			if (replaceAble && replaceModeByStatus===1 && node.outlinkNum > 0) {
 				node.respCode=9;
-				node.respMsg+="Existing successful URL will not be pruned";
+				node.respMsg+="Existing URL with outlinks will be pruned";
 				replaceAble=false;
 			}
-			if (replaceAble && replaceModeByStatus===3 && node.existingFlag) {
+			if (replaceAble && replaceModeByStatus===2 && !isSuccessNode(node.statusCode) && node.outlinkNum > 0) {
 				node.respCode=9;
-				node.respMsg+="Existing URL will not be pruned";
-				replaceAble=false;
-			}
-
-			if (replaceAble && replaceModeByOutlinks===2 && node.outlinks.length > 0) {
-				node.respCode=9;
-				node.respMsg+="Existing URL with outlinks will not be pruned";
-				replaceAble=false;
-			}
-			if (replaceAble && replaceModeByOutlinks===3 && node.existingFlag) {
-				node.respCode=9;
-				node.respMsg+="Existing URL will not be pruned";
+				node.respMsg+="Existing URL with outlinks will be pruned";
 				replaceAble=false;
 			}
 		}
@@ -847,43 +840,78 @@ class PopupModifyHarvest{
 			return;
 		}
 
-
-		if (replaceAble) {
-			this.submit();
-		}else{
-			this.gridToBeModifiedVerified.setRowData(dataset);
-			$('#popup-window-modify-verify').show();
-		}
+		this.gridToBeModifiedVerified.setRowData(dataset);
+		$('#popup-window-modify-verify').show();
 	}
 
 	submit(){
 		$('#popup-window-modify-verify').hide();
 		g_TurnOnOverlayLoading();
 
-		//Uploading files 
 
 		var dataset=this.gridToBeModified.getAllNodes();
-		var replaceModeByStatus=parseInt($("#radio-group-replace-status input[name='r-status']:checked").attr("flag"));
-		var replaceModeByOutlinks=parseInt($("#radio-group-replace-outlinks input[name='r-outlink']:checked").attr("flag"));
-		var applyCommand={
-			targetInstanceId: this.jobId,
-			harvestResultId: this.harvestResultId,
-			harvestResultNumber: this.harvestResultNumber,
-			newHarvestResultNumber: 0,
-			replaceOptionStatus: replaceModeByStatus,
-			replaceOptionOutlink: replaceModeByOutlinks,
-			dataset: dataset,
-			provenanceNote: $('#provenance-note').val(),
-		};
-		var that=this;
-		var url="/modification/apply";
-		fetchHttp(url, applyCommand, function(response){
-			g_TurnOffOverlayLoading();
-			if(response.respCode !== 0){
-				alert(response.respMsg);
-			}else{
-				updateDerivedHarvestResults(response.derivedHarvestResult);
+
+		//Uploading files 
+		var toBeUploadedNodes=[];
+		for(var i=0;i < dataset.length; i++){
+			if(dataset[i].uploadFile){
+				toBeUploadedNodes.push(dataset[i]);
 			}
+		}
+
+		var that=this;
+		this.recurseUploadFiles(toBeUploadedNodes, 0, function(){
+			var replaceModeByStatus=parseInt($("#radio-group-replace-status input[name='r-status']:checked").attr("flag"));
+			var applyCommand={
+				targetInstanceId: that.jobId,
+				harvestResultId: that.harvestResultId,
+				harvestResultNumber: that.harvestResultNumber,
+				newHarvestResultNumber: 0,
+				replaceOptionStatus: replaceModeByStatus,
+				replaceOptionOutlink: 1,
+				dataset: dataset,
+				provenanceNote: $('#provenance-note').val(),
+			};
+			
+			var url="/modification/apply";
+			fetchHttp(url, applyCommand, function(response){
+				g_TurnOffOverlayLoading();
+				if(response.respCode !== 0){
+					alert(response.respMsg);
+				}else{
+					updateDerivedHarvestResults(response.derivedHarvestResult);
+				}
+			});
 		});
+	}
+
+	// Upload file
+	recurseUploadFiles(toBeUploadedNodes, idx, callback){
+		if(!toBeUploadedNodes || idx >= toBeUploadedNodes.length){
+			callback();
+			return;
+		}
+
+		var that=this;
+		var reader = new FileReader();
+		reader.addEventListener("loadend", function () {
+			var req=toBeUploadedNodes[idx];
+			req.uploadFileContent=reader.result;
+			
+
+			var url="/modification/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber;
+			fetchHttp(url, req, function(rsp){
+				req.uploadFileContent='';
+				if (rsp.respCode !== 0) {
+					g_TurnOffOverlayLoading();
+					alert(rsp.respMsg);
+					return;
+				}
+				req.cachedFileName=rsp.cachedFileName;
+				that.recurseUploadFiles(toBeUploadedNodes, idx+1, callback);
+			});
+		});
+
+		reader.readAsDataURL(toBeUploadedNodes[idx].uploadFile);
 	}
 }

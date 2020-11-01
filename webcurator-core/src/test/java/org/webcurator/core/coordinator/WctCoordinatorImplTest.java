@@ -44,7 +44,6 @@ import org.webcurator.core.visualization.modification.metadata.ModifyApplyComman
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.VisualizationImportedFileDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -1139,10 +1138,6 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         ModifyRowFullData cmd = new ModifyRowFullData();
         cmd.setUploadFileName(fileName);
         cmd.setUploadFileContent("base64:" + Base64.encode("test".getBytes()));
-
-        VisualizationImportedFileDAO mockVisualizationImportedFileDAO = mock(VisualizationImportedFileDAO.class);
-        when(mockVisualizationImportedFileDAO.findImportedFile(anyString())).thenReturn(null);
-        testInstance.setVisualizationImportedFileDAO(mockVisualizationImportedFileDAO);
 
         testInstance.uploadFile(job, harvestResultNumber, cmd);
 
