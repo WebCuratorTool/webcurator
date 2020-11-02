@@ -197,8 +197,8 @@ to get the desired effect
 
     <!-- Modification Cart -->
     <div class="card-body none-margin-padding flag-apply" id="pop-tobe-modified" style="width: calc(80vw - 10px); height: 80vh;">
-          <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: 65vh;"></div>
-          <div class="row" style="margin-top: 5px; height: 15vh;">
+          <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: calc(80vh - 150px);"></div>
+          <div class="row" style="margin: 10px 5px 0 5px; height: 150px;">
             <div class="col-8">
               <div class="form-group">
                 <label for="provenance-note">Provenance Note</label>
@@ -450,9 +450,11 @@ to get the desired effect
 </div> <!-- /.card -->
 </div>
 
-<div id="popup-window-loading" class="hidden">
-  <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
-  <div id="progressIndexer" class="text-secondary hidden" style="width: 100%; text-align: center; font-size: 1.5em;">Indexing: <span class="text-dark" id="progressIndexerValue">0</span>%</div>
+<div id="popup-window-index" class="card popup-window hidden">
+  <div class="card-body" style="width: 100vw; height: 100vh;">
+      <div id="progressIndexer" class="text-dark" style="width: 100%; margin-top: calc(40vh); text-align: center; font-size: 1.5em;">Indexing: <span id="progressIndexerValue">0</span>%</div>
+  </div>
+  <div class="overlay dark"><i class="fas fa-circle-notch"></i></div>
 </div>
 
 
@@ -617,8 +619,8 @@ to get the desired effect
         }
 
         //show progress bar
-        g_TurnOnOverlayLoading();
-        $('#progressIndexer').show();
+        // g_TurnOnOverlayLoading();
+        $('#popup-window-index').show();
 
         //refresh progress
         timerProgress=setInterval(function(){
@@ -650,8 +652,8 @@ to get the desired effect
         
         if((response.rspCode===0 && progressPercentage >= 100) || response.rspCode!=0){
           clearInterval(timerProgress);
-          $('#progressIndexer').hide();
-          g_TurnOffOverlayLoading();
+          $('#popup-window-index').hide();
+          // g_TurnOffOverlayLoading();
           initGlobalSettings();
         }
       });
