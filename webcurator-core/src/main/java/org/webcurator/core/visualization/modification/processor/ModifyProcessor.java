@@ -8,6 +8,9 @@ import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.*;
@@ -29,8 +32,12 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
     protected static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
     protected static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     protected static final DateTimeFormatter fTimestamp17 = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+    protected final List<String> urisToDelete = new LinkedList<>();
+    protected final List<String> urisToImportByRecrawl = new LinkedList<>();
+    protected final List<String> urisToImportByFile = new LinkedList<>();
+    protected final Map<String, ModifyRowFullData> hrsToImport = new HashMap<>();
 
-    private ModifyApplyCommand cmd;
+    protected ModifyApplyCommand cmd;
 
     private ModifyProcessor(long targetInstanceId, int harvestResultNumber) {
         super(targetInstanceId, harvestResultNumber);
@@ -77,17 +84,14 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         List<File> patchArchiveFiles = PatchUtil.listWarcFiles(patchHarvestDir);
 
         //Initial to be pruned and to be imported list
-        final List<String> urisToDelete = new LinkedList<>();
-        final List<String> urisToImportByUrl = new LinkedList<>();
-        final List<String> urisToImportByFile = new LinkedList<>();
-        final Map<String, ModifyRowFullData> hrsToImport = new HashMap<>();
+
         cmd.getDataset().forEach(e -> {
-            if (e.getOption().equalsIgnoreCase("prune")) {
+            if (e.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_PRUNE)) {
                 urisToDelete.add(e.getUrl());
-            } else if (e.getOption().equalsIgnoreCase("url")) {
-                urisToImportByUrl.add(e.getUrl());
+            } else if (e.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_RECRAWL)) {
+                urisToImportByRecrawl.add(e.getUrl());
                 hrsToImport.put(e.getUrl(), e);
-            } else if (e.getOption().equalsIgnoreCase("file")) {
+            } else if (e.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_FILE)) {
                 urisToImportByFile.add(e.getUrl());
                 hrsToImport.put(e.getUrl(), e);
             }
@@ -109,34 +113,49 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         VisualizationProgressBar.ProgressItem progressItemFileImported = progressBar.getProgressItem("ImportedFiles");
         final AtomicLong totMaxLength = new AtomicLong(0);
         hrsToImport.values().forEach(toImportFile -> {
-            if (toImportFile.getOption().equalsIgnoreCase("file")) {
+            if (toImportFile.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_FILE)) {
                 totMaxLength.addAndGet(toImportFile.getContentLength());
             }
         });
         progressItemFileImported.setMaxLength(totMaxLength.get());
 
-        //Process copy and file import
-        for (File f : derivedArchiveFiles) {
-            this.tryBlock();
-            copyArchiveRecords(f, urisToDelete, hrsToImport, cmd.getNewHarvestResultNumber());
-            VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
-            item.setCurLength(item.getMaxLength());
+        //Initial the file template
+        for (File f : patchArchiveFiles) {
+            initialFileNameTemplate(f);
         }
 
         //Process source URL import
         for (File f : patchArchiveFiles) {
             this.tryBlock();
-            importFromPatchHarvest(f, urisToDelete, urisToImportByUrl, cmd.getNewHarvestResultNumber());
+            importFromPatchHarvest(f);
             VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
             item.setCurLength(item.getMaxLength());
         }
 
         //Process file import
         if (progressItemFileImported.getMaxLength() > 0) {
-            importFromFile(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), cmd.getNewHarvestResultNumber(), hrsToImport);
+            importFromFile();
             progressItemFileImported.setCurLength(progressItemFileImported.getMaxLength());
         }
+
+        //Process copy and file import
+        for (File f : derivedArchiveFiles) {
+            this.tryBlock();
+            copyArchiveRecords(f);
+            VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
+            item.setCurLength(item.getMaxLength());
+        }
+
         writeReport();
+
+        clear();
+    }
+
+    private void clear() {
+        this.urisToDelete.clear();
+        this.urisToImportByRecrawl.clear();
+        this.urisToImportByFile.clear();
+        this.hrsToImport.clear();
     }
 
     @Override
@@ -154,22 +173,65 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
     }
 
     public File downloadFile(long job, int harvestResultNumber, ModifyRowFullData metadata) throws IOException, DigitalAssetStoreException {
-        String tempFileName = UUID.randomUUID().toString();
         File dirFile = new File(fileDir);
         if (!dirFile.exists() && !dirFile.mkdir()) {
             String err = String.format("Make dir failed: %s", fileDir);
             log.error(err);
             throw new DigitalAssetStoreException(err);
         }
-        File downloadedFile = new File(fileDir, tempFileName);
+        File downloadedFile = new File(fileDir, metadata.getCachedFileName());
         return wctClient.getDownloadFileURL(job, harvestResultNumber, metadata.getCachedFileName(), downloadedFile);
     }
 
-    public abstract void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowFullData> hrsToImport, int newHarvestResultNumber) throws Exception;
+    protected boolean isAllowedPrune(long job, int harvestResultNumber, long id) {
+        if (cmd.getReplaceOptionStatus() == ModifyApplyCommand.REPLACE_OPTION_STATUS_ALL) {
+            return true;
+        }
 
-    public abstract void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, ModifyRowFullData> hrsToImport) throws Exception;
+        if (cmd.getReplaceOptionStatus() == ModifyApplyCommand.REPLACE_OPTION_STATUS_FAILED && id > 0) {
+            NetworkMapResult networkMapResult = networkMapClient.getNode(job, harvestResultNumber, id);
+            if (networkMapResult == null || networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
+                return false;
+            }
 
-    public abstract void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException, InterruptedException;
+            NetworkMapNodeDTO node = networkMapClient.getNodeEntity(networkMapResult.getPayload());
+            if (node != null && !node.isSuccess()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected boolean isAllowedPrune(long job, int harvestResultNumber, String url) {
+        if (cmd.getReplaceOptionStatus() == ModifyApplyCommand.REPLACE_OPTION_STATUS_ALL) {
+            return true;
+        }
+
+        if (cmd.getReplaceOptionStatus() == ModifyApplyCommand.REPLACE_OPTION_STATUS_FAILED) {
+            NetworkMapUrl queryCondition=new NetworkMapUrl();
+            queryCondition.setUrlName(url);
+            NetworkMapResult networkMapResult = networkMapClient.getUrlByName(job, harvestResultNumber, queryCondition);
+            if (networkMapResult == null || networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
+                return false;
+            }
+
+            NetworkMapNodeDTO node = networkMapClient.getNodeEntity(networkMapResult.getPayload());
+            if (node != null && !node.isSuccess()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public abstract void initialFileNameTemplate(File fileFrom) throws Exception;
+
+    public abstract void copyArchiveRecords(File fileFrom) throws Exception;
+
+    public abstract void importFromFile() throws Exception;
+
+    public abstract void importFromPatchHarvest(File fileFrom) throws IOException, URISyntaxException, InterruptedException;
 
     static class WarcFilenameTemplate {
         private String prefix;

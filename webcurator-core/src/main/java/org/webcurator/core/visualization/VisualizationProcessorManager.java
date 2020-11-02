@@ -3,7 +3,10 @@ package org.webcurator.core.visualization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
@@ -33,7 +36,8 @@ public class VisualizationProcessorManager {
         }
 
         //Execute processor with thread pool
-        processor.init(this, visualizationDirectoryManager, wctCoordinatorClient);
+        NetworkMapService networkMapClient = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(NetworkMapClient.class);
+        processor.init(this, visualizationDirectoryManager, wctCoordinatorClient, networkMapClient);
         Future<Boolean> futureResult = thread_pool.submit(processor);
 
         //Cache the current running

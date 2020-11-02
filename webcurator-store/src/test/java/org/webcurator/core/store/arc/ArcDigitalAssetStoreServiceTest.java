@@ -8,11 +8,9 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
-import org.drools.core.common.NetworkNode;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
@@ -35,9 +33,9 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
     //	private static String TestCARC = "IAH-20080610152724-00000-test.arc.gz";
 //    private static String TestCWARC = "IAH-20080610152754-00000-test.warc.gz";
 
-    private static long targetInstanceOid = 14055;
-    private static int harvestResultNumber = 1;
-    private static String dbVersion = "4.0.0";
+    private static final long targetInstanceOid = 14055;
+    private static final int harvestResultNumber = 1;
+    private static final String dbVersion = "4.0.0";
 
     private class ARCFilter implements FilenameFilter {
         public boolean accept(File dir, String name) {
@@ -80,10 +78,12 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         NetworkMapNode.setTopDomainParse(aTopDomainParser);
 
         BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir, dbVersion);
-        IndexProcessor indexProcessor = new IndexProcessorWarc(dbPool, targetInstanceOid, harvestResultNumber);
-        indexProcessor.init(processorManager, directoryManager, wctClient);
-        indexProcessor.processInternal();
 
+        NetworkMapClient networkMapClient = new NetworkMapClientLocal(dbPool, null);
+
+        IndexProcessor indexProcessor = new IndexProcessorWarc(dbPool, targetInstanceOid, harvestResultNumber);
+        indexProcessor.init(processorManager, directoryManager, wctClient, networkMapClient);
+        indexProcessor.processInternal();
     }
 
     public void setUp() throws Exception {
@@ -91,8 +91,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         BDBNetworkMapPool bdbNetworkMapPool = new BDBNetworkMapPool(baseDir, dbVersion);
         VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, "logs", "report");
         WctCoordinatorClient wctCoordinatorClient = new WctCoordinatorClient("http", "localhost", 8080, new RestTemplateBuilder());
+        NetworkMapClient networkMapClient = new NetworkMapClientLocal(bdbNetworkMapPool, null);
         VisualizationProcessorManager processorManager = new VisualizationProcessorManager(directoryManager, wctCoordinatorClient, 1);
-        NetworkMapClient networkMapClient = new NetworkMapClientLocal(bdbNetworkMapPool, processorManager);
         testInstance.setBaseDir(baseDir);
 //		testInstance.setArchive(new MockArchive());
         testInstance.setDasFileMover(new MockDasFileMover());
@@ -108,8 +108,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         String name = "https://www.kiwisaver.govt.nz/";
 
         Path res = testInstance.getResource(targetInstanceOid, harvestResultNumber, name);
-        assertTrue(res != null);
-        assertTrue(res.toFile().length() == length);
+        assertNotNull(res);
+        assertEquals(res.toFile().length(), length);
     }
 
     @Test
@@ -118,8 +118,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         String name = "https://www.kiwisaver.govt.nz/";
 
         Path res = testInstance.getResource(targetInstanceOid, harvestResultNumber, name);
-        assertTrue(res != null);
-        assertTrue(res.toFile().length() == resLength);
+        assertNotNull(res);
+        assertEquals(res.toFile().length(), resLength);
     }
 
     @Ignore
@@ -130,8 +130,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         String name = "https://www.kiwisaver.govt.nz/";
 
         byte[] res = testInstance.getSmallResource(targetInstanceOid, harvestResultNumber, name);
-        assertTrue(res != null);
-        assertTrue(res.length == length);
+        assertNotNull(res);
+        assertEquals(res.length, length);
     }
 
     @Test
@@ -140,8 +140,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         String name = "https://www.kiwisaver.govt.nz/";
 
         byte[] res = testInstance.getSmallResource(targetInstanceOid, harvestResultNumber, name);
-        assertTrue(res != null);
-        assertTrue(res.length == resLength);
+        assertNotNull(res);
+        assertEquals(res.length, resLength);
     }
 
     @Ignore
@@ -152,8 +152,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         String name = "https://www.kiwisaver.govt.nz/";
 
         List<Header> headers = testInstance.getHeaders(targetInstanceOid, harvestResultNumber, name);
-        assertTrue(headers != null);
-        assertTrue(headers.size() == 4);
+        assertNotNull(headers);
+        assertEquals(4, headers.size());
     }
 
     @Test
@@ -161,8 +161,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         String name = "https://www.kiwisaver.govt.nz/";
 
         List<Header> headers = testInstance.getHeaders(targetInstanceOid, harvestResultNumber, name);
-        assertTrue(headers != null);
-        assertTrue(headers.size() == 13);
+        assertNotNull(headers);
+        assertEquals(13, headers.size());
     }
 
     private static void copy(String fromFileName, String toFileName) throws IOException {

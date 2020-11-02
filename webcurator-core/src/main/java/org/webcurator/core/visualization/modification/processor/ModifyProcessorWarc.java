@@ -34,6 +34,29 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         super(cmd);
     }
 
+    @Override
+    public void initialFileNameTemplate(File fileFrom) throws Exception {
+        if (!isArchiveType(fileFrom.getName())) {
+            log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
+            return;
+        }
+
+        // Get the reader for this ARC File
+        ArchiveReader reader = ArchiveReaderFactory.get(fileFrom);
+        if (!(reader instanceof WARCReader)) {
+            log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
+            return;
+        }
+        this.writeLog(String.format("Start to copy and prune a WARC file: %s size: %d", fileFrom.getName(), fileFrom.length()));
+
+        // Use the original filename
+        String strippedImpArcFilename = reader.getStrippedFileName();
+        if (this.warcFilenameTemplate == null) {
+            this.warcFilenameTemplate = new ModifyProcessor.WarcFilenameTemplate(strippedImpArcFilename);
+        }
+
+        reader.close();
+    }
 
     /**
      * Post 1.6.1 code.
@@ -69,7 +92,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
      * call. So it is skipped before entering the loop that copies each record.
      */
     @Override
-    public void copyArchiveRecords(File fileFrom, List<String> urisToDelete, Map<String, ModifyRowFullData> hrsToImport, int newHarvestResultNumber) throws Exception {
+    public void copyArchiveRecords(File fileFrom) throws Exception {
         if (!isArchiveType(fileFrom.getName())) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -136,7 +159,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         archiveRecordsIt.next();
 
         // Create a WARC Writer
-        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + newHarvestResultNumber, "${prefix}",
+        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + cmd.getNewHarvestResultNumber(), "${prefix}",
                 ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l, new UUIDGenerator());
         WARCWriter writer = new WARCWriter(aint, settings);
 
@@ -194,7 +217,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
     }
 
     @Override
-    public void importFromFile(long job, int harvestResultNumber, int newHarvestResultNumber, Map<String, ModifyRowFullData> hrsToImport) throws Exception {
+    public void importFromFile() throws Exception {
         this.writeLog("Start to import from file");
         ModifyProcessor.StatisticItem statisticItem = new ModifyProcessor.StatisticItem();
         statisticItems.add(statisticItem);
@@ -214,15 +237,19 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         // Create a WARC Writer
         // Somewhat arbitrarily use the last filename from the list of original filenames
         // Compress the file if the (last) original file was compressed
-        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + newHarvestResultNumber, "${prefix}",
+        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + cmd.getNewHarvestResultNumber(), "${prefix}",
                 WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
         WARCWriter warcWriter = new WARCWriter(aint, settings);
 
         for (ModifyRowFullData fProps : hrsToImport.values()) {
             this.tryBlock();
 
-            if (!fProps.getOption().equalsIgnoreCase("file")) {
+            if (!fProps.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_FILE)) {
                 continue;
+            }
+
+            if (this.isAllowedPrune(cmd.getTargetInstanceId(), cmd.getHarvestResultNumber(), fProps.getId())) {
+                this.urisToDelete.add(fProps.getUrl());
             }
 
             File tempFile = null;
@@ -233,7 +260,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
                 }
                 log.debug("WARC-Date: {}", writerDF.format(warcDate));
 
-                tempFile = this.downloadFile(job, harvestResultNumber, fProps);
+                tempFile = this.downloadFile(cmd.getTargetInstanceId(), cmd.getHarvestResultNumber(), fProps);
 
                 InputStream fin = Files.newInputStream(tempFile.toPath());
                 URI recordId = new URI("urn:uuid:" + tempFile.getName());
@@ -279,7 +306,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
 
 
     @Override
-    public void importFromPatchHarvest(File fileFrom, List<String> urisToDelete, List<String> urisToImportByUrl, int newHarvestResultNumber) throws IOException, URISyntaxException {
+    public void importFromPatchHarvest(File fileFrom) throws IOException, URISyntaxException {
         if (!isArchiveType(fileFrom.getName())) {
             log.warn("Unsupported file format: {}", fileFrom.getAbsolutePath());
             return;
@@ -331,7 +358,7 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         // Bypass warc header metadata as it has been read above from a different ArchiveReader
         archiveRecordsIt.next();
 
-        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + newHarvestResultNumber, "${prefix}",
+        WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "~" + cmd.getNewHarvestResultNumber(), "${prefix}",
                 ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l, new UUIDGenerator());
         WARCWriter writer = new WARCWriter(aint, settings);
 
@@ -349,9 +376,13 @@ public class ModifyProcessorWarc extends ModifyProcessor {
             }
 
             /*If the url is to be pruned, but not to be imported*/
-            if (urisToDelete.contains(header.getUrl()) && !urisToImportByUrl.contains(header.getUrl())) {
+            if (urisToDelete.contains(header.getUrl()) && !urisToImportByRecrawl.contains(header.getUrl())) {
                 this.writeLog(String.format("Prune [%s] record: %s", WARCType, header.getUrl()));
                 continue;
+            }
+
+            if (this.isAllowedPrune(cmd.getTargetInstanceId(), cmd.getHarvestResultNumber(), header.getUrl())) {
+                this.urisToDelete.add(header.getUrl());
             }
 
             ANVLRecord namedFields = new ANVLRecord();

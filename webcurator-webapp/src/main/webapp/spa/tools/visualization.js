@@ -418,7 +418,7 @@ var gridOptionsToBeModified={
     renderImportOption: renderImportOption
   },
   columnDefs: [
-    {headerName: "Check", children:[
+    {headerName: "", children:[
       {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
     ]},
     {headerName: "Normal", children:[
@@ -457,7 +457,7 @@ var gridOptionsToBeModifiedVerified={
     renderImportOption: renderImportOption
   },
   columnDefs: [
-    {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
+    // {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
       {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},

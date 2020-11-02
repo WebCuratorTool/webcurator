@@ -138,6 +138,11 @@ public class NetworkMapCommonNode {
     }
 
     @JsonIgnore
+    public boolean isSuccess() {
+        return statusCode >= 200 && statusCode < 400;
+    }
+
+    @JsonIgnore
     public void increaseTotUrls(int totUrls) {
         this.totUrls += totUrls;
     }

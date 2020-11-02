@@ -186,6 +186,11 @@ class ModifyHarvestProcessor{
 		dataset.push(node);
 
 		if (currentRowIndex > 0) {
+			gPopupModifyHarvest.gridImportPrepare.gridOptions.api.forEachNode(function(oldNode, index){
+				if(oldNode.data.index===node.index){
+					oldNode.data=node;
+				}
+			});
 			gPopupModifyHarvest.gridImportPrepare.gridOptions.api.redrawRows(true);
 		}else{
 			gPopupModifyHarvest.modify(dataset, 'file');

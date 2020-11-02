@@ -345,3 +345,7 @@ div#tree {
 #popup-window-derived-summary{
 	height: 100vh;
 }
+
+#btn-group-modification button{
+	width: 150px;
+}

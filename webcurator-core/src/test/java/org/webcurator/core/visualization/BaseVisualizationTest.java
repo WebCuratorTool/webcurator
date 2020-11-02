@@ -15,6 +15,8 @@ import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.File;
@@ -30,6 +32,7 @@ public class BaseVisualizationTest {
     protected String baseReportDir = "reports";
     protected VisualizationDirectoryManager directoryManager = null;
     protected BDBNetworkMapPool pool = null;
+    protected NetworkMapService networkMapClient = null;
 
     protected long targetInstanceId = 5010;
     protected int harvestResultNumber = 1;
@@ -56,7 +59,9 @@ public class BaseVisualizationTest {
         seeds.add(seedHistorySecondary);
         //wctClient = new WctCoordinatorClient("http", "localhost", 8080, new RestTemplateBuilder());
         wctClient = mock(WctCoordinatorClient.class);
+
         processorManager = new VisualizationProcessorManager(directoryManager, wctClient, 3);
+        networkMapClient = new NetworkMapClientLocal(pool, processorManager);
     }
 
     public boolean isUrlExistInWarcFile(File warcFile, List<String> urls) throws IOException {

@@ -769,7 +769,7 @@ class PopupModifyHarvest{
 	}
 
 	//Save and reindexing
-	apply(){
+	preApply(){
 		var dataset=this.gridToBeModified.getAllNodes();
 		if(!dataset || dataset.length === 0){
 			alert('Please input the URLs to be modified.');
@@ -823,6 +823,11 @@ class PopupModifyHarvest{
 			}
 
 			var replaceAble=true;
+			if (option === 'PRUNE' && node.outlinkNum > 0) {
+				node.respCode=9;
+				node.respMsg+="Existing URL with outlinks will be pruned";
+				replaceAble=false;
+			}
 			if (replaceAble && replaceModeByStatus===1 && node.outlinkNum > 0) {
 				node.respCode=9;
 				node.respMsg+="Existing URL with outlinks will be pruned";
@@ -841,13 +846,16 @@ class PopupModifyHarvest{
 		}
 
 		this.gridToBeModifiedVerified.setRowData(dataset);
-		$('#popup-window-modify-verify').show();
+		$('#popup-window-modification .flag-apply').hide();
+		$('#popup-window-modification .flag-submit').show();
 	}
 
-	submit(){
-		$('#popup-window-modify-verify').hide();
-		g_TurnOnOverlayLoading();
+	confirmApply(){
+		$('#popup-window-modification').hide();
+		$('#popup-window-modification .flag-apply').show();
+		$('#popup-window-modification .flag-submit').hide();
 
+		g_TurnOnOverlayLoading();
 
 		var dataset=this.gridToBeModified.getAllNodes();
 

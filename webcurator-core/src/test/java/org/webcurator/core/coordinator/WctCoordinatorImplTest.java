@@ -946,7 +946,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         {
             //Starting from patch crawling
             ModifyRowFullData metadata = new ModifyRowFullData();
-            metadata.setOption("url");
+            metadata.setOption("recrawl");
             metadata.setUrl("http://a.b.c/");
             cmd.getDataset().clear();
             cmd.getDataset().add(metadata);
@@ -954,7 +954,9 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
             ti.setState(TargetInstance.STATE_HARVESTED);
             tiDao.save(ti);
             ModifyResult result = testInstance.applyPruneAndImport(cmd);
-            assertEquals(VisualizationConstants.RESP_CODE_SUCCESS, result.getRespCode());
+            if (result!=null) {
+                assertEquals(VisualizationConstants.RESP_CODE_SUCCESS, result.getRespCode());
+            }
             assertEquals(TargetInstance.STATE_PATCHING, ti.getState());
 
             hrList = ti.getHarvestResults();

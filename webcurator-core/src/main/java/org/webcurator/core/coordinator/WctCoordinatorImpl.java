@@ -586,7 +586,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         // Create the seeds file contents.
         final StringBuilder seeds = new StringBuilder();
         cmd.getDataset().stream().filter(e -> {
-            return e.getOption().equalsIgnoreCase("url");
+            return e.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_RECRAWL);
         }).forEach(e -> {
             seeds.append(e.getUrl());
             seeds.append("\n");
@@ -1486,7 +1486,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
             uploadedFilePath.mkdirs();
         }
 
-        String cacheFileName=UUID.randomUUID().toString();
+        String cacheFileName = UUID.randomUUID().toString();
 
         uploadedFilePath = new File(uploadedFilePath, cacheFileName);
         if (uploadedFilePath.exists()) {
@@ -1565,7 +1565,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
             //Check do files exist: walk through all elemenets
             File uploadedFilePath = new File(visualizationDirectoryManager.getUploadDir(job), metadata.getCachedFileName());
-            if (!uploadedFilePath.exists() ) {
+            if (!uploadedFilePath.exists()) {
                 metadata.setRespCode(VisualizationConstants.FILE_EXIST_NO); //Not exist
                 metadata.setRespMsg("File or metadata is not uploaded");
                 isValid = false;
@@ -1616,7 +1616,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         boolean isNeedHarvest = false;
         for (ModifyRowFullData row : cmd.getDataset()) {
-            if (row.getOption().equalsIgnoreCase("url")) {
+            if (row.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_RECRAWL)) {
                 isNeedHarvest = true;
                 break;
             }
@@ -1638,9 +1638,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
             result = patchHarvest(cmd);
         }
 
-        result.setDerivedHarvestResult(hrDTO);
+        if (result != null) {
+            result.setDerivedHarvestResult(hrDTO);
+            log.debug(result.getRespMsg());
+        }
 
-        log.debug(result.getRespMsg());
         return result;
     }
 
@@ -1778,9 +1780,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
     private ModifyResult pushPruneAndImport(ModifyApplyCommand cmd) {
         DigitalAssetStore digitalAssetStoreClient = digitalAssetStoreFactory.getDAS();
         ModifyResult result = digitalAssetStoreClient.initialPruneAndImport(cmd);
-        if (result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
+        if (result != null && result.getRespCode() != VisualizationConstants.RESP_CODE_SUCCESS) {
             log.error("Failed to request modification, {} {}", result.getRespCode(), result.getRespMsg());
-            return result;
         }
         return result;
     }

@@ -264,11 +264,11 @@ public class HarvestModificationHandler {
         Map<String, ModifyRowFullData> mapToBeImportedByURL = new HashMap<>();
         pruneAndImportCommandApply.getDataset().forEach(e -> {
             e.setRespCode(VisualizationConstants.RESP_CODE_INDEX_NOT_EXIST);
-            if (e.getOption().equalsIgnoreCase("prune")) {
+            if (e.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_PRUNE)) {
                 mapToBePruned.put(e.getUrl(), e);
-            } else if (e.getOption().equalsIgnoreCase("file")) {
+            } else if (e.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_FILE)) {
                 mapToBeImportedByFile.put(e.getUrl(), e);
-            } else if (e.getOption().equalsIgnoreCase("url")) {
+            } else if (e.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_RECRAWL)) {
                 mapToBeImportedByURL.put(e.getUrl(), e);
             }
         });

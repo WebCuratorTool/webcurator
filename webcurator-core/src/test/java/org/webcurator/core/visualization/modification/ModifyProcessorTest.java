@@ -2,6 +2,7 @@ package org.webcurator.core.visualization.modification;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.BaseVisualizationTest;
@@ -37,15 +38,15 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
 
         ModifyApplyCommand cmd = getApplyCommand();
         warcProcessor = new ModifyProcessorWarc(cmd);
-        warcProcessor.init(this.processorManager, this.directoryManager, this.wctClient);
+        warcProcessor.init(this.processorManager, this.directoryManager, this.wctClient, this.networkMapClient);
     }
 
     @Test
     public void testDownloadFile() throws IOException, DigitalAssetStoreException {
         ModifyRowFullData metadata = new ModifyRowFullData();
-        metadata.setUploadFileName("expand.png");
+        metadata.setCachedFileName("expand.png");
 
-        File downloadedFile = new File(directoryManager.getUploadDir(targetInstanceId), UUID.randomUUID().toString());
+        File downloadedFile = new File(directoryManager.getUploadDir(targetInstanceId), metadata.getCachedFileName());
         Files.write(downloadedFile.toPath(), "test content".getBytes(), StandardOpenOption.CREATE);
 
         when(wctClient.getDownloadFileURL(anyLong(), anyInt(), anyString(), any(File.class))).thenReturn(downloadedFile);
@@ -63,7 +64,10 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
 
         Map<String, ModifyRowFullData> hrsToImport = new HashMap<>();
 
-        warcProcessor.copyArchiveRecords(warcFileFrom, listToBePrunedUrl, hrsToImport, newHarvestResultNumber);
+        ReflectionTestUtils.setField(warcProcessor, "urisToDelete", listToBePrunedUrl);
+        ReflectionTestUtils.setField(warcProcessor, "hrsToImport", hrsToImport);
+
+        warcProcessor.copyArchiveRecords(warcFileFrom);
 
         File destDirectory = new File(directoryManager.getBaseDir(), String.format("%d%s%d", targetInstanceId, File.separator, newHarvestResultNumber));
         File warcFileNew = new File(destDirectory, getModifiedWarcFileName(warcFileFrom));
@@ -81,6 +85,7 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
         m.setOption("file");
         m.setUrl(targetUrl);
         m.setUploadFileName("expand.png");
+        m.setCachedFileName("expand.png");
         m.setModifiedMode("TBC");
         m.setContentType("image/png");
         cmd.getDataset().add(m);
@@ -91,7 +96,9 @@ public class ModifyProcessorTest extends BaseVisualizationTest {
         Files.write(downloadedFile.toPath(), "test content".getBytes(), StandardOpenOption.CREATE);
 
         when(wctClient.getDownloadFileURL(anyLong(), anyInt(), anyString(), any(File.class))).thenReturn(downloadedFile);
-        warcProcessor.importFromFile(targetInstanceId, harvestResultNumber, newHarvestResultNumber, hrsToImport);
+
+        ReflectionTestUtils.setField(warcProcessor, "hrsToImport", hrsToImport);
+        warcProcessor.importFromFile();
 
         List<String> importedUrl = new ArrayList<>();
         importedUrl.add(targetUrl);

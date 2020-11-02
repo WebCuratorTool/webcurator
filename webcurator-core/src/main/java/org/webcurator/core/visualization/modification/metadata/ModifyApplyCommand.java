@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ModifyApplyCommand extends VisualizationAbstractApplyCommand {
+    public static final String OPTION_PRUNE = "prune";
+    public static final String OPTION_RECRAWL = "recrawl";
+    public static final String OPTION_FILE = "file";
     public static final int REPLACE_OPTION_STATUS_ALL = 1;
     public static final int REPLACE_OPTION_STATUS_FAILED = 2;
     public static final int REPLACE_OPTION_STATUS_NONE = 3;

@@ -46,7 +46,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         f.deleteOnExit(); //Clear the existing db
 
         indexer = new IndexProcessorWarc(pool, targetInstanceId, harvestResultNumber);
-        indexer.init(processorManager, directoryManager, wctClient);
+        indexer.init(processorManager, directoryManager, wctClient, networkMapClient);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         assert warcFileFrom != null;
         List<String> listToBePrunedUrl = getRandomUrlsFromWarcFile(warcFileFrom);
         listToBePrunedUrl.forEach(actualUrl -> {
-            NetworkMapUrl url=new NetworkMapUrl();
+            NetworkMapUrl url = new NetworkMapUrl();
             url.setUrlName(actualUrl);
             NetworkMapResult result = localClient.getUrlByName(targetInstanceId, harvestResultNumber, url);
             assert result != null;
