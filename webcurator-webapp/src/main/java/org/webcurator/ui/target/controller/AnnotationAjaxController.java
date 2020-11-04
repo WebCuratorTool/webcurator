@@ -55,8 +55,9 @@ public class AnnotationAjaxController {
 	@PostMapping
 	protected ModelAndView processFormSubmission(@RequestParam("targetOid") Long targetOid,
 												 @RequestParam("targetInstanceOid") Long targetInstanceOid,
+												 @RequestParam("ajax_request_type") String ajaxRequest,
 												 HttpServletRequest request) throws Exception {
-		String ajaxRequest = request.getParameter(Constants.AJAX_REQUEST_TYPE);
+//		String ajaxRequest = request.getParameter(Constants.AJAX_REQUEST_TYPE);
 		if (ajaxRequest.equals(Constants.AJAX_REQUEST_FOR_TI_ANNOTATIONS)) {
 			return processTargetInstanceRequest(request, targetOid, targetInstanceOid);
 		}
@@ -122,9 +123,10 @@ public class AnnotationAjaxController {
 	@GetMapping
 	protected ModelAndView showForm(@RequestParam("targetOid") Long targetOid,
 									@RequestParam("targetInstanceOid") Long targetInstanceOid,
+									@RequestParam("ajax_request_type") String ajaxRequest,
 									HttpServletRequest request) throws Exception {
 
-		String ajaxRequest = request.getParameter(Constants.AJAX_REQUEST_TYPE);
+//		String ajaxRequest = request.getParameter(Constants.AJAX_REQUEST_TYPE);
 		if (ajaxRequest.equals(Constants.AJAX_REQUEST_FOR_TI_ANNOTATIONS)) {
 			return processTargetInstanceRequest(request, targetOid, targetInstanceOid);
 		}
