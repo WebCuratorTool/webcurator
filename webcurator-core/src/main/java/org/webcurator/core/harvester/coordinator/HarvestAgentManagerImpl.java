@@ -373,12 +373,12 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	}
 
 	@Override
-	public boolean lock(Long tiOid) {
+	synchronized public boolean lock(Long tiOid) {
 		return targetInstanceLocks.add(tiOid);
 	}
 
 	@Override
-	public void unLock(Long tiOid) {
+	synchronized public void unLock(Long tiOid) {
 		targetInstanceLocks.remove(tiOid);
 	}
 
