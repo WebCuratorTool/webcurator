@@ -363,17 +363,28 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
         }
 
-        // if the target is not approved to be harvested then do not harvest
-        if (queuePaused || !isTargetApproved(aTargetInstance) || aHarvestAgent.getMemoryWarning()) {
+        if (!harvestAgentManager.lock(aTargetInstance.getOid())){
+            log.error("Target Instance is locked: {}", aTargetInstance.getOid());
             return;
+        }else{
+            log.debug("Target Instance is locked: {}", aTargetInstance.getOid());
         }
 
-        // Prepare the instance for harvesting by storing its current
-        // information.
-        prepareHarvest(aTargetInstance);
+        try {
+            // if the target is not approved to be harvested then do not harvest
+            if (queuePaused || !isTargetApproved(aTargetInstance) || aHarvestAgent.getMemoryWarning()) {
+                return;
+            }
 
-        // Run the actual harvest.
-        _harvest(aTargetInstance, aHarvestAgent);
+            // Prepare the instance for harvesting by storing its current
+            // information.
+            prepareHarvest(aTargetInstance);
+
+            // Run the actual harvest.
+            _harvest(aTargetInstance, aHarvestAgent);
+        }finally {
+            harvestAgentManager.unLock(aTargetInstance.getOid());
+        }
     }
 
     private void prepareHarvest(TargetInstance aTargetInstance) {
@@ -430,6 +441,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         if (aHarvestAgent == null) {
             throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
+        }
+
+        if (!aTargetInstance.getState().equals(TargetInstance.STATE_QUEUED) && !aTargetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)){
+            log.error("Target instance {} at state {} could not be initialed.",aTargetInstance.getOid(), aTargetInstance.getState());
+            return;
         }
 
         // if the target is not approved to be harvested then do not harvest
@@ -734,15 +750,23 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     private boolean loadAndStartOptimizable(QueuedTargetInstanceDTO qti) {
-        TargetInstance targetInstance = loadTargetInstance(qti.getOid());
-        AbstractTarget abstractTarget = targetInstance.getTarget();
-        if (abstractTarget.getObjectType() == AbstractTarget.TYPE_TARGET) {
-            Target target = targetManager.load(abstractTarget.getOid());
-            if (target.isAllowOptimize()) {
-                boolean harvesterWasAvailableForOptimize = startOptimisableInstance(targetInstance, qti.getAgencyName());
-                return harvesterWasAvailableForOptimize;
-            }
+        if (!harvestAgentManager.lock(qti.getOid())){
+           return false;
         }
+        try {
+            TargetInstance targetInstance = loadTargetInstance(qti.getOid());
+            AbstractTarget abstractTarget = targetInstance.getTarget();
+            if (abstractTarget.getObjectType() == AbstractTarget.TYPE_TARGET) {
+                Target target = targetManager.load(abstractTarget.getOid());
+                if (target.isAllowOptimize()) {
+                    boolean harvesterWasAvailableForOptimize = startOptimisableInstance(targetInstance, qti.getAgencyName());
+                    return harvesterWasAvailableForOptimize;
+                }
+            }
+        }finally {
+            harvestAgentManager.unLock(qti.getOid());
+        }
+
         return false;
     }
 
@@ -1318,6 +1342,4 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     public void setHarvestQaManager(HarvestQaManager harvestQaManager) {
         this.harvestQaManager = harvestQaManager;
     }
-
-
 }

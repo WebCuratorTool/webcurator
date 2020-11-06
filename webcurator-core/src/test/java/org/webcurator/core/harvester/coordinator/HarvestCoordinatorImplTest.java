@@ -902,5 +902,38 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         verify(mockHarvestLogManager).getHopPath(mockTargetInstance, fileName, match);
     }
 
+    @Test
+    public void testComprehensiveHarvest(){
+        long tiOid=5000L;
+        TargetInstance ti = tiDao.load(tiOid);
+        ti.setState(TargetInstance.STATE_SCHEDULED);
 
+        HashMap<String, HarvesterStatusDTO> aHarvesterStatus = new HashMap<String, HarvesterStatusDTO>();
+
+        aHarvesterStatus.put("Target-5002", getStatusDTO("Running"));
+        HarvestAgentStatusDTO aStatus = new HarvestAgentStatusDTO();
+        aStatus.setName("Test Agent");
+        aStatus.setHarvesterStatus(aHarvesterStatus);
+        aStatus.setMaxHarvests(2);
+        aStatus.setHarvesterType(HarvesterType.HERITRIX1.name());
+        testInstance.heartbeat(aStatus);
+
+        QueuedTargetInstanceDTO dto = new QueuedTargetInstanceDTO(ti.getOid(), ti.getScheduledTime(), ti.getPriority(),
+                ti.getState(), ti.getBandwidthPercent(), ti.getOwningUser().getAgency().getName());
+
+        when(mockHarvestBandwidthManager.isMiniumBandwidthAvailable(any(QueuedTargetInstanceDTO.class))).thenReturn(true);
+//        when(tiDao.getQueue()).thenReturn(theQueue);
+
+        testInstance.setHarvestOptimizationEnabled(true);
+
+        testInstance.processSchedule();
+
+        ti = tiDao.load(tiOid);
+        assertTrue(ti.getState().equals(TargetInstance.STATE_RUNNING));
+
+        ti.setState(TargetInstance.STATE_SCHEDULED);
+        testInstance.harvest(ti, aStatus);
+        ti = tiDao.load(tiOid);
+        assertTrue(ti.getState().equals(TargetInstance.STATE_RUNNING));
+    }
 }
