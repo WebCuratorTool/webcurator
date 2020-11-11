@@ -79,7 +79,7 @@ public class ArcIndexProcessorTest {
         String line = null;
 
         int lineCount = 0;
-        br.readLine(); // skip first line
+//        br.readLine(); // skip first line
         while ((line = br.readLine()) != null) {
             lineCount++;
             if (lineCount < 12)
