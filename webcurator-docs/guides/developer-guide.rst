@@ -8,7 +8,7 @@ Introduction
 
 This guide, designed for a Web Curator Tool developer and contributor, covers
 how to develop and contribute to the Web Curator Tool. The source for both
-code and documentation can be found at: http://dia-nz.github.io/webcurator/
+code and documentation can be found at: https://github.com/WebCuratorTool/webcurator/
 
 For information on how to install and setup the Web Curator Tool, see the Web
 Curator Tool System Administrator Guide. For information on using the Web
@@ -43,7 +43,7 @@ Source Code Repository
 ----------------------
 
 Source code for the Web Curator Tool is stored in github at:
-http://dia-nz.github.io/webcurator/
+https://github.com/WebCuratorTool/webcurator/
 Contributors to the codebase will require a github account.
 
 Issue tracking
@@ -64,8 +64,6 @@ Background information
 -   The version of the Web Curator Tool you are using
 
 -   The database type and version (for example, MySql 8.0.12)
-
--   The servlet container type and version (for example, Tomcat 9.0.13)
 
 -   The operating system type and version (for example, RHEL 7.6)
 
@@ -146,26 +144,30 @@ The following diagram illustrates the basic architecture and its components.
 
 |diagramWebCuratorToolArchitecturalConnections|
 
+//TODO - update diagram
+
 Some important notes
 --------------------
 
--   The Harvest Agents and the Store talk to the Web Curator Tool WebApp, but
-    the WebApp does not talk to the Harvest Agents or Store. This means that
-    Harvest Agents can come and go.
+-  The Harvest Agents initiate contact with the Web Curator Tool WebApp. They
+   signal to the WebApp that they exist by sending heartbeat messages. This means
+   that Harvest Agents can be added dynamically to the pool of available harvesters.
 
--   The Harvest Agents and Store signal to the WebApp that they exist by sending
-    heartbeat messages.
+-  The Webapp and Harvest Agents are pre-configured with connection details for
+   the Store. The Store receives completed harvests from the Harvest Agents, and
+   performs tasks as requested by the Webapp.
 
--   The Heritrix H1 agent/crawler contains its Heritrix1 crawler.
+-  The legacy H1 Harvest Agent is self-contained. It contains the Heritrix v1
+   crawler as a dependency.
 
--   The Heritrix H3 crawlers are not aware of their agents. Instead the
-    Heritrix H3 agent tracks the Heritrix3 crawler. Each Heritrix H3 agent runs
-    as a web application (war). Each Heritrix3 crawler (jar) runs in own JVM.
+-  The Heritrix H3 crawlers are not aware of their agents. Instead the H3 Harvest
+   Agent tracks the Heritrix3 crawler. They run as separate applications within
+   their own JVMs.
 
--   The WebCurator Store runs as a web application (war).
+-  The WebCurator Store runs as a web application (war).
 
--   The Web Curator Tool WebApp is the only component that communicates with the
-    SQL database.
+-  The Web Curator Tool WebApp is the only component that communicates with the
+   SQL database.
 
 
 Building
@@ -178,12 +180,14 @@ Build requirements
 ~~~~~~~~~~~~~~~~~~
 Building the Web Curator Tool from source requires the following:
 
--   Java 8 (1.8) JDK or above (64bit recommended). Current development assumes
-    using the Oracle JDK, but long-term it may be better to switch to OpenJDK.
+-  Java 8 (1.8) JDK or above (64bit recommended). Current development assumes
+   using the Oracle JDK, but long-term it may be better to switch to OpenJDK.
 
--   Maven 3+ or later.
+-  Maven 3+ or later.
 
--   Git (required to clone the project source from Github).
+-  Gradle 4.4+ or later
+
+-  Git (required to clone the project source from Github).
 
 As the artifact targets are Java-based, it should be possible to build the
 artifacts on either Linux, Solaris or Windows targets.
@@ -193,21 +197,20 @@ Development platforms
 The following platforms have been used during the development of the Web
 Curator Tool:
 
--  Sun Solaris 10
-
 -  Red Hat Linux EL3.
 
--  Ubuntu GNU/Linux 16.04 LTS and later
+-  Ubuntu GNU/Linux 16.04, 18.04 LTS
 
--  Windows 7 Ultimate, Windows 2000, Windows XP Pro, Windows Server 2003
+-  Mint GNU/Linux 19.1 LTS
+
+-  Windows 7 Ultimate, Windows 10
 
 Web Application Server platforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The Web Curator Tool currently requires that its `.war` components run in a
-Web Application Server.
+The Web Curator Tool is built on top of the Spring Boot framework. Each component is compiled and run
+separately, as either a `.war` or `.jar` binary, which contains it's own embedded Apache Tomcat server.
 
-Development has used Tomcat (currently version 8.x) Web Application Server for
-development. Testing has also taken place using jetty.
+Previous versions of WCT (< v2.0.2) were required to run in a dedicated Apache Tomcat Web Application server.
 
 Database platforms
 ~~~~~~~~~~~~~~~~~~
@@ -241,177 +244,22 @@ Install the maven dependencies by running from the root project folder:
 Building with unit tests
 ~~~~~~~~~~~~~~~~~~~~~~~~
 This can be run from the root project folder, or from a specific subproject
-folder, such as `wct-core`, `harvest-agent-h1`, `harvest-agent-h3` or
-`wct-core`.
-::
+folder, such as `webcurator-core`, `webcurator-webapp`, `harvest-agent-h3` or
+`webcurator-store`. ::
 
-    mvn clean install -P<database-type>
-
-The `-P<database-type>` parameter is one of `mysql`, `oracle`, `postgres`, as
-applicable. The `-Ph2` option, if used, is only intended for use with Jetty,
-and cannot be used to create the .war file with the current version of Hibernate.
-
-The digital asset store (`wct-store`) and harvest agents (`h1-harvest-agent` and
-`h3-harvest-agent`) do not need a database, so there is no need to specify
-anything database-related when building or running those specific components.
+    gradle clean install
 
 The artifacts produced by the build (in general these will be `.jar` and `.war`
-files) will be found in the `target` subfolders of each subproject. The `.war`
-files are generally copied to the Tomcat `webapps` folder for deployment.
+files) will be found in the `build/libs` subfolders of each subproject.
 
 Building and skipping unit tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 This can be run from the root project folder, or from a specific subproject
-folder, such as `wct-core`, `harvest-agent-h1`, `harvest-agent-h3` or
-`wct-core`.::
+folder, such as `webcurator-core`, `webcurator-webapp`, `harvest-agent-h3` or
+`webcurator-store`. ::
 
-    mvn clean install -P<database-type> -DskipTests=true
+    gradle clean install -x test
 
-Running with jetty
-~~~~~~~~~~~~~~~~~~
-Jetty is an inbuilt lightweight web application server than eliminates the need
-to run an Web Curator Tool component under Tomcat. It is not production capable
-but is useful for development. `wct-core`, `harvest-agent-h1`, `harvest-agent-h3`
-and `wct-store` can all be run using Jetty.
-
-*Note that for `wct-harvest-agent` and `wct-store`, you will see a warning that a
-profile couldn't be activated. This is not important.*
-
-To run the component under jetty use the following command::
-
-    mvn jetty:run <command-line-parameters> -P<database-type>
-
-Note that the command line parameters will vary based on the different
-components. If the command line parameter is not specified, a default is used.
-
-For these examples, `core-host` is `localhost`, `core-port` is `8080`,
-`h1-agent-port` is `8081`, `h3-agent-port` is `8086` and `das-port` is `8082`
-but any valid port can be used.
-
-`wct-core` under Jetty and H2 **first time**
-    `wct-core` can run with a H2 database (as specified with the `Ph2` parameter,
-    which removes the need to run against MySQL, Postgres or Oracle. The first
-    time this is run, the `-Dhbm2ddl.auto=create` creates a new instance of this
-    database.
-
-    The H2 database is stored in the user's home directory (for *nix systems this would be `~/DB_WCT.*.db`).
-    Unfortunately, it appears that the `-Dhbm2ddl.auto=create` option doesn't entirely clear a pre-existing database:
-    In testing we found that the tables `ABSTRACT_TARGET`, `PERMISSION`, `SITE`, `URL_PATTERN` and
-    `URL_PERMISSION_MAPPING` were not cleared. For this reason, before running with the `-Dhbm2ddl.auto=create` option,
-    we recommend that the user deletes the H2 database (if it already exists), by deleting the files `DB_WCT.*.db` found
-    in the user's home directory.
-
-    ::
-
-        mvn jetty:run -Ph2 -Dhbm2ddl.auto=create \
-            -Dcore.host="<core-host>" -Dcore.port="<core-port>" -Ddas.port="<das-port>" \
-            -Darc.store.dir="<arc-store-directory>" \
-            -DarchiveType=fileArchive \
-            -Dfile.archive.repository="<file-archive-repository>" \
-            -Dfile.archive.files="<file-archive-files>" \
-            -Dlog4j.log.dir="<log4j-log-dir>" \
-            -Dattach.dir="<attachments-directory>"
-
-    In this scenario the bootstrap user will be created. Note that the tables
-    are cleared using this command.
-
-`wct-core` under Jetty and H2 **subsequent times** (when the h2 database already exists)
-    ::
-
-        mvn jetty:run -Ph2 \
-            -Dcore.host="<core-host>" -Dcore.port="<core-port>" -Ddas.port="<das-port>" \
-            -Darc.store.dir="<arc-store-directory>" \
-            -DarchiveType=fileArchive \
-            -Dfile.archive.repository="<file-archive-repository>" \
-            -Dfile.archive.files="<file-archive-files>" \
-            -Dlog4j.log.dir="<log4j-log-dir>" \
-            -Dattach.dir="<attachments-directory>"
-
-`wct-core` under Jetty and oracle
-    If using the Oracle database profile, the Oracle driver is required to run
-    Jetty. This driver is not availabe via Maven repositories for licensing
-    reasons - it needs to be downloaded and manually installed.
-
-    In general the steps are:
-
-    1.  Obtain the appropriate driver for your installation (see Oracle documentation).
-
-    2.  Install it into your maven repository. This is generally done by using
-        a command like::
-
-            mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc14 -Dversion=<version> -Dpackaging=jar -Dfile=<jar-location>
-
-    3.  Change the relevant `pom.xml` to reflect the Oracle jar version in use.
-
-    4.  Add a dependency in the pom.xml for the jetty plugin (refer to the mysql
-        profile as a reference).
-
-    More detailed instructions can be found via internet search engines.
-
-    Note also that if you are installing a new database, you will need to create
-    a tablespace called `WCT_DATA` in order for database creation scripts to
-    function as expected.  Since this is a database specific configuration, it
-    cannot be defaulted easily.
-    ::
-
-        mvn jetty:run \
-            -Dcore.host="<core-host>" -Dcore.port="<core-port>" -Ddas.port="<das-port>" \
-            -Darc.store.dir="<arc-store-directory>" \
-            -DarchiveType=fileArchive \
-            -Dfile.archive.repository="<file-archive-repository>" \
-            -Dfile.archive.files="<file-archive-files>" \
-            -Dlog4j.log.dir="<log4j-log-dir>" \
-            -Dattach.dir="<attachments-directory>"
-
-`harvest-agent-h1` under Jetty
-    ::
-
-        mvn jetty:run \
-            -Dcore.host="<core-host>" -Dcore.port="<core-port" \
-            -Dagent.port="<h1-agent-port>" \
-            -Ddas.host="<das-host>" -Ddas.port="<das-port>" \
-            -Dharvest.tmp.dir="<harvest-temp-directory>" \
-            -Dlog4j.log.dir="<log4j-directory>" \
-            -Dattach.dir="<attachments-directory>"
-
-`harvest-agent-h3` under Jetty
-    `harvest-agent-h3` requires a separate instance of Heritrix3 to run. See the
-    :doc:`System Administrator Guide <system-administrator-guide>` for details
-    on how to setup and run Heritrix3.
-
-    There may be conflicts with the JMX port of other components. You can change
-    the port used by editing the `build/jetty/jetty-jmx.xml` and changing the
-    port from `localhost:9004` to another unused port.
-
-    ::
-
-        mvn jetty:run \
-            -Dcore.host="<core-host>" -Dcore.port="<core-port" \
-            -Dagent.port="<h3-agent-port>" \
-            -Ddas.host="<das-host>" -Ddas.port="<das-port>" \
-            -Dharvest.tmp.dir="<harvest-temp-directory>" \
-            -Dlog4j.log.dir="<log4j-directory>" \
-            -Dattach.dir="<attachments-directory>"
-
-`wct-store` under Jetty
-    ::
-
-        mvn jetty:run \
-            -Dcore.host="<core-host>" -Dcore.port="<core-port>" -Ddas.port="<das-port>" \
-            -Darc.store.dir="<arc-store-directory>" \
-            -DarchiveType=fileArchive \
-            -Dfile.archive.repository="<file-archive-repository>" \
-            -Dfile.archive.files="<file-archive-files>" \
-            -Dlog4j.log.dir="<log4j-log-directory>" \
-            -Dattach.dir="<attachments-directory>"
-
-XDoclet
-~~~~~~~
-XDoclet is still used to generate `hibernate.cfg.xml` and the `.hbm.xml` files.
-This is configured via the `xdoclet-maven-plugin` and the antrun plugin.
-
-Future development that includes a Hibernate upgrade will remove the dependency
-on XDoclet.
 
 Configuration
 =============
@@ -422,25 +270,13 @@ Configuration details
 The :doc:`System Administrator Guide <system-administrator-guide>` contains
 detailed information about configuring the Web Curator Tool.
 
-The configuration files are generally found in the `build` subfolder of each
-subproject.
+The configuration files are generally found in the `src/main/resources` subfolder
+of each subproject.
 
 You may need to change various configuration settings in one of these files to
 make them work for your specific environment. The MySQL configuration should
 require minimal/no changes if using the default installations. The H2
 configuration should require no changes to start.
-
-Maven filtering
----------------
-
-Maven has a feature called *filtering* where it tries to replace placeholders
-like `${core.port}` with a property value that has been configured. This is an
-optional feature which is off by default, however WCT makes use of it for some
-of the build resources. Any `<resource>` with a `<filtering>` value of `true`
-is filtered, and the properties are supplied in two places: the `<properties>`
-tag, and via the `properties-maven-plugin`. These properties are also used to
-resolve these placeholders inside the `pom.xml` itself, e.g.
-`${databaseType}`.
 
 
 Developer Guidelines
@@ -535,8 +371,8 @@ Git Workflow
 
 This workflow is a hybrid of several popular git workflows (Github Flow,
 Atlassian Simple Git, Cactus Model, Stable Mainline Model), designed to fit the
-needs of the NLNZ and KB collaborative development of WCT. It will use a shared
-repository model via Github using the https://github.com/DIA-NZ/webcurator
+needs of the NLNZ and KB-NL collaborative development of WCT. It will use a shared
+repository model via Github using the https://github.com/WebCuratorTool/webcurator
 repository.
 
 Commit Messages
@@ -831,15 +667,6 @@ Containerization ensures that each Web Curator Tool can run in its own
 container connected to other containers. (TODO Describe the advantages of
 containerization and what it means for the WCT).
 
-Repository split
-~~~~~~~~~~~~~~~~
-
-Splitting the single Web Curator Tool into multiple repositories means that the
-each component can be developed, built, versioned and released independently
-from the other components. This provides the advantage of decoupling the
-components. Decoupling is predicated on reliable interfaces connecting each
-component.
-
 Continuous integration through build and deploy pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -857,7 +684,7 @@ component upgrades are much easier to roll out by component (so one component
 can receive an upgrade/code change without requiring all components be changed).
 
 
-Quality assurance improvements
+Code quality assurance improvements
 ------------------------------
 
 In addition to providing a testable set of user journeys and an easy-to-use
@@ -904,92 +731,6 @@ API candidates exist:
 4.  Configuration API - For easier management of configuration so that
     run time values are contained in a single location instead of being spread
     across properties files, xml files and hard-coded in the codebase.
-
-
-Technical uplift
-----------------
-
-Upgrade the frameworks and technologies that underpin the Web Curator Tool.
-This technical shift is aimed at ensuring that the technologies used are
-supported and effective.
-
-Uplift components
-~~~~~~~~~~~~~~~~~
-
-+-------------------+-------------------------------+--------------------------+
-| Technology        | Reasoning                     | Alternatives             |
-+===================+===============================+==========================+
-| Java 11 (OpenJDK) | Java 11 is the latest         | Possibly Java 8. But     |
-|                   | version. Containerization     | long-term support ends   |
-|                   | helps limit exposure of       | in 2023.                 |
-|                   | co-located applications.      |                          |
-+-------------------+-------------------------------+--------------------------+
-| Spring 5.x        | Latest version.               | None.                    |
-+-------------------+-------------------------------+--------------------------+
-| Spring boot       | Simplify deployment. Light-   | Deploy as war.           |
-|                   | weight and more compatible    |                          |
-|                   | with microservice approach.   |                          |
-+-------------------+-------------------------------+--------------------------+
-| REST (API)        | More universally supported    |                          |
-|                   | and compatible with micro-    |                          |
-|                   | service approach.             |                          |
-+-------------------+-------------------------------+--------------------------+
-| jQuery 3.3.1      | Use the latest version of     | Keep using jQuery 1.7.2  |
-|                   | jQuery, with its security     | which dates from 2012.   |
-|                   | fixes, speed improvements and |                          |
-|                   | modern browser support.       |                          |
-+-------------------+-------------------------------+--------------------------+
-| Quartz 2.3.0      | Latest version.               | Spring scheduler, which  |
-|                   |                               | is a bit simpler.        |
-+-------------------+-------------------------------+--------------------------+
-| GUI framework     | Major upgrade. Decoupled from | None. Struts 1.2.7 is    |
-|                   | back-end services via REST API| long-unsupported,        |
-|                   | (REST API allows for custom   | difficult to use and     |
-|                   | clients). No specific         | maintain.                |
-|                   | technology has been proposed. |                          |
-+-------------------+-------------------------------+--------------------------+
-| JPA (Hibernate)   | Standard way of interfacing   | Straight JDBC or MyBatis,|
-|                   | with database. This would     | which allows for writing |
-|                   | include an upgrade to latest  | SQL instead of a generic |
-|                   | Hibernate (currently 5.3.x).  | wrapper like Hibernate.  |
-+-------------------+-------------------------------+--------------------------+
-| Microservices     | Decouple application          | Keep as monolith.        |
-|                   | into focused components.      |                          |
-+-------------------+-------------------------------+--------------------------+
-| Gradle builds     | A more flexible build tool    | Keep using maven.        |
-|                   | that makes build and deploy   |                          |
-|                   | pipelines easier to write.    |                          |
-+-------------------+-------------------------------+--------------------------+
-
-Additional uplift notes
-~~~~~~~~~~~~~~~~~~~~~~~
-
--   Java 11 - OpenJDK has moved from version 8 to 11, so it makes sense to
-    make the same leap. If the Web Curator Tool is a monolith, this could
-    cause issues because it means that all co-located applications (as in, those
-    applications running on the same machine) would need to upgrade as well.
-    However, running the Web Curator Tool components in containers means that
-    the container itself would have the Java version required.
-
--   Spring boot - Spring boot applications are deployed as Java jars. This can
-    simplify application deployment.
-
--   REST (API) - In order to maintain a working Web Curator Tool throughout
-    the upgrade process, the REST API would be incorporated into the existing
-    codebase as upgraded component by component.
-
--   GUI framework - Exposing all Web Curator Tool functionality through REST API
-    services allows for different GUI frameworks to run against the same API.
-    Some research is necessary to determine a suitable technology, one that
-    is well supported, easy to work with and having a large user base.
-
--   JPA (Hibernate) - Hibernate tends to obscure the underlying SQL. It may be
-    more effective to write all SQL queries in ANSI SQL so they run across all
-    database flavours without change. Using straight JDBC or MyBatis could make
-    development and maintenance much easier to understand, allowing less
-    experienced (and not Hibernate savvy) developers participate. There doesn't
-    seem to be an inherent requirement for using SQL, so consider whether NoSQL
-    might work better.
 
 
 .. |diagramFeaturesGoingIntoMasterBranch| image:: ../_static/developer-guide/diagram-features-going-into-master-branch.png
