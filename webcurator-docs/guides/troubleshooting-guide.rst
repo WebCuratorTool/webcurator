@@ -91,12 +91,12 @@ System Administrators
 =====================
 
 If you experiencing any issues where WCT doesn't appear to be functioning correctly, a good place to start is checking
-the application logs. These should be located within the `logs` folder of your Tomcat instance. The three application
-logs that the WCT components produce are:
+the application logs. These should be located within the `logs` folder of your application directory. The three
+application logs that the WCT components produce are:
 
--   `wct-core.log`
+-   `wct-webapp.log`
 -   `wct-das.log`
--   `wct-agent.log`
+-   `wct-agent-h3.log`
 
 Identify any warnings or errors that relate to actions you are performing within WCT, ie. if you are having problems
 harvesting a Target, look for the Target ID number within the logs (a Target ID can be found within the WCT UI).
