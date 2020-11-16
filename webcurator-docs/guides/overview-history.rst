@@ -115,7 +115,7 @@ institutional history will be able to be preserved into the future for researche
 New Zealanders. They will be able to look back on our digital documents in the same way that the New Zealanders of today
 look back on the printed words left to us by previous generations.
 
-The software was developed as a collaborative project between the National Library of New Zealand and the British
+The software was originally developed as a collaborative project between the National Library of New Zealand and the British
 Library, conducted under the auspices of the International Internet Preservation Consortium. The Web Curator Tool has
 been built with support and contributions from professionals at the National Library of New Zealand, the British
 Library, Sytec Resources Ltd., `Oakleigh Consulting <http://www.oakleigh.co.uk>`_, the National Library of Australia,
@@ -151,6 +151,15 @@ Release history
 ===============
 
 See :doc:`Release Notes <release-notes>` for release notes on specific versions.
+
+March 2020 - 2.0.2 GA
+------------------------
+
+Dec 2018 - 2.0.0 GA
+------------------------
+
+July 2017 - 1.6.3 GA
+------------------------
 
 15 March 2016 - 1.6.2 GA
 ------------------------
