@@ -1,23 +1,22 @@
 /**
  * nz.govt.natlib.ndha.wctdpsdepositor - Software License
- *
+ * <p>
  * Copyright 2007/2009 National Library of New Zealand.
  * All rights reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0 
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * or the file "LICENSE.txt" included with the software.
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
- *
  */
 
 package nz.govt.natlib.ndha.wctdpsdepositor;
@@ -25,6 +24,7 @@ package nz.govt.natlib.ndha.wctdpsdepositor;
 import com.exlibris.dps.sdk.deposit.DepositWebServices;
 import com.exlibris.dps.sdk.pds.PdsClient;
 import com.google.inject.Inject;
+import nz.govt.natlib.ndha.common.FileUtils;
 import nz.govt.natlib.ndha.wctdpsdepositor.dpsdeposit.DepositWebServicesFactory;
 import nz.govt.natlib.ndha.wctdpsdepositor.dpsdeposit.dspresult.DepositResultConverter;
 import nz.govt.natlib.ndha.wctdpsdepositor.extractor.ArchiveFile;
@@ -37,11 +37,17 @@ import nz.govt.natlib.ndha.wctdpsdepositor.mets.DnxMapper;
 import nz.govt.natlib.ndha.wctdpsdepositor.mets.MetsDocument;
 import nz.govt.natlib.ndha.wctdpsdepositor.pds.PdsClientFactory;
 import nz.govt.natlib.ndha.wctdpsdepositor.preprocessor.PreDepositProcessor;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.archive.dps.DpsDepositFacade;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,9 +78,9 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
 
 
     public DepositResult deposit(Map<String, String> parameters, List<File> fileList) throws WctDepositParameterValidationException {
-    	DepositResult depositResultAdapter = null;
-    	try {
-    		String targetInstanceOID = parameters.get(DpsDepositFacade.TARGET_INSTANCE_ID);
+        DepositResult depositResultAdapter = null;
+        try {
+            String targetInstanceOID = parameters.get(DpsDepositFacade.TARGET_INSTANCE_ID);
             String finalSIP = parameters.get(DpsDepositFacade.WCT_METS_XML_DOCUMENT);
             String ilsReference = parameters.get(DpsDepositFacade.ILS_REFERENCE);
             String accessRestriction = parameters.get(DpsDepositFacade.ACCESS_RESTRICTION);
@@ -82,6 +88,18 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
             FileArchiveBuilder archiveBuilder = populateFileArchiveBuilderFrom(fileList);
             XPathWctMetsExtractor wctDataExtractor = new XPathWctMetsExtractor();
             String metsFileName = "METS-" + targetInstanceOID + ".xml";
+            log.debug("finalSIP:\n" + finalSIP);
+            try {
+                String defaultCharset = Charset.defaultCharset().name();
+                log.info("Charset.defaultCharset()" + defaultCharset);
+                File metFileDefault = File.createTempFile("METS-" + targetInstanceOID + "-", "-default.xml");
+                IOUtils.write(finalSIP.getBytes(), new FileOutputStream(metFileDefault));
+                File metFileUTF8 = File.createTempFile("METS-" + targetInstanceOID + "-", "-utf8.xml");
+                IOUtils.write(finalSIP.getBytes(StandardCharsets.UTF_8), new FileOutputStream(metFileUTF8));
+            } catch (IOException e) {
+                log.error(e);
+            }
+
             wctDataExtractor.parseFile(finalSIP.getBytes(), metsFileName, archiveBuilder);
             setHarvestType(wctDataExtractor, parameters.get(HARVEST_TYPE));
             setAdditionalDublinCoreElements(wctDataExtractor, parameters);
@@ -96,9 +114,9 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
             WctDepositParameter depositParameter = populateDepositParameterFromMap(parameters);
 
             depositResultAdapter = deposit(wctDataExtractor, depositParameter);
-    	} finally {
-    	}
-		return depositResultAdapter;
+        } finally {
+        }
+        return depositResultAdapter;
     }
 
     public String loginToPDS(Map<String, String> parameters) throws RuntimeException {
@@ -137,7 +155,7 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
 
     private void initPdsClient(String pdsUrl) {
         if (pdsClient == null) {
-            synchronized(DpsDepositFacadeImpl.class) {
+            synchronized (DpsDepositFacadeImpl.class) {
                 pdsClient = pdsClientFactory.createInstance();
                 pdsClient.init(pdsUrl, false);
             }
@@ -207,16 +225,15 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
         String customDepositFormURL = parameters.get(DpsDepositFacade.CUSTOM_DEPOSIT_FORM_URL);
         List<CustomDepositField> customDepositFormFieldMapping = customDepositFormMapping.getFormMapping(customDepositFormURL);
 
-        for(CustomDepositField field : customDepositFormFieldMapping){
+        for (CustomDepositField field : customDepositFormFieldMapping) {
             // Check whether field is dc or dcterms
-            if(field.getDcFieldType().equals("dc")){
+            if (field.getDcFieldType().equals("dc")) {
                 wctDataExtractor.setAdditionalDCElement(field.getDcFieldLabel(), parameters.get(field.getFieldReference()));
-            }
-            else if(field.getDcFieldType().equals("dcterms")){
+            } else if (field.getDcFieldType().equals("dcterms")) {
                 wctDataExtractor.setAdditionalDCTermElement(field.getDcFieldLabel(), parameters.get(field.getFieldReference()));
             }
         }
-        if(!customDepositFormFieldMapping.isEmpty()){
+        if (!customDepositFormFieldMapping.isEmpty()) {
             wctDataExtractor.setDcFieldsAdditional(customDepositFormFieldMapping);
         }
     }
