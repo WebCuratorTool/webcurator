@@ -67,7 +67,7 @@ public class ArcIndexProcessor implements PreDepositProcessor {
         List<File> tempCdxFileList = new ArrayList<File>();
 
         try {
-            List<File> arcFileToWorkWithList=new ArrayList<>();
+            List<File> arcFileToWorkWithList = new ArrayList<>();
 
             for (ArchiveFile arcFile : arcFiles) {
                 File arcFileToWorkWith;
@@ -108,7 +108,11 @@ public class ArcIndexProcessor implements PreDepositProcessor {
                     isFirstArc = false;
                     unitedCDXFile = new File(arcFileToWorkWith.getParent(), "united.cdx");
                     if (unitedCDXFile.exists()) {
-                        unitedCDXFile.delete();
+                        boolean resultOfDeleteUnitedCDX = unitedCDXFile.delete();
+                        if (!resultOfDeleteUnitedCDX) {
+                            log.error("File can not be deleted: " + unitedCDXFile.getAbsolutePath());
+                            throw new RuntimeException("File can not be deleted: " + unitedCDXFile.getAbsolutePath());
+                        }
                     }
                     unitedCDXWriter = openFileWriter(unitedCDXFile);
                 }
