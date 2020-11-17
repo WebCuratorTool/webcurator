@@ -96,6 +96,9 @@ public class ArcIndexProcessorTest {
         assertThat(lineCount, is(equalTo(22)));
 
         mockContext.assertIsSatisfied();
+
+        br.close();
+        cdxFile.deleteOnExit();
     }
 
     @Test
@@ -147,5 +150,7 @@ public class ArcIndexProcessorTest {
 
         mockContext.assertIsSatisfied();
 
+        br.close();
+        cdxFile.deleteOnExit();
     }
 }

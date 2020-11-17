@@ -45,7 +45,7 @@ import org.archive.io.warc.WARCReaderFactory;
 public class ArcIndexProcessor implements PreDepositProcessor {
     private static final Log log = LogFactory.getLog(ArcIndexProcessor.class);
 
-    private static final boolean APPEND_TO_FILE = true;
+    private static final boolean APPEND_TO_FILE = false;
     private static final String CDX_MIME_TYPE = "text/plain";
 
     public File process(WctDataExtractor data) {
@@ -63,8 +63,8 @@ public class ArcIndexProcessor implements PreDepositProcessor {
 
         FileWriter unitedCDXWriter = null;
         File unitedCDXFile = null;
-        List<File> tempArcFileList = new ArrayList<File>();
-        List<File> tempCdxFileList = new ArrayList<File>();
+        List<File> tempArcFileList = new ArrayList<>();
+        List<File> tempCdxFileList = new ArrayList<>();
 
         try {
             List<File> arcFileToWorkWithList = new ArrayList<>();
@@ -107,17 +107,10 @@ public class ArcIndexProcessor implements PreDepositProcessor {
                 if (isFirstArc) {
                     isFirstArc = false;
                     unitedCDXFile = new File(arcFileToWorkWith.getParent(), "united.cdx");
-                    if (unitedCDXFile.exists()) {
-                        boolean resultOfDeleteUnitedCDX = unitedCDXFile.delete();
-                        if (!resultOfDeleteUnitedCDX) {
-                            log.error("File can not be deleted: " + unitedCDXFile.getAbsolutePath());
-                            throw new RuntimeException("File can not be deleted: " + unitedCDXFile.getAbsolutePath());
-                        }
-                    }
                     unitedCDXWriter = openFileWriter(unitedCDXFile);
                 }
                 File cdxFile = createCdxFrom(tempCdxFileList, arcFileToWorkWith);
-                BufferedReader cdxReader = readCDXFile(arcFileToWorkWith);
+                BufferedReader cdxReader =new BufferedReader(new FileReader(cdxFile));
                 appendCdxToWriter(unitedCDXWriter, cdxReader);
                 cdxReader.close();
             }
