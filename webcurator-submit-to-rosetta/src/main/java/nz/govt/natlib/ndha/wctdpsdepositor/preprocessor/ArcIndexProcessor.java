@@ -59,7 +59,7 @@ public class ArcIndexProcessor implements PreDepositProcessor {
         List<ArchiveFile> arcFiles = data.getArchiveFiles();
 
         boolean isFirstArc = true;
-        boolean copyArcFiles = (tempDirectory == null) ? false : true;
+        boolean copyArcFiles = (tempDirectory != null);
 
         FileWriter unitedCDXWriter = null;
         File unitedCDXFile = null;
@@ -67,6 +67,8 @@ public class ArcIndexProcessor implements PreDepositProcessor {
         List<File> tempCdxFileList = new ArrayList<File>();
 
         try {
+            List<File> arcFileToWorkWithList=new ArrayList<>();
+
             for (ArchiveFile arcFile : arcFiles) {
                 File arcFileToWorkWith;
 
@@ -76,6 +78,10 @@ public class ArcIndexProcessor implements PreDepositProcessor {
                 } else {
                     arcFileToWorkWith = new File(((FileSystemArchiveFile) arcFile).generateFilePath());
                 }
+                arcFileToWorkWithList.add(arcFileToWorkWith);
+            }
+
+            for (File arcFileToWorkWith : arcFileToWorkWithList) {
                 try {
                     /*
                      * Sometimes, there may be other files in the arc file list with extensions such as
