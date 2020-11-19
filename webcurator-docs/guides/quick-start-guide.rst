@@ -91,22 +91,24 @@ running the application.
    /usr/local/wct/harvest-agent-h1.jar
 
 
-*Note that, by default, WCT assumes the existence of a directory* **/usr/local/wct** *, where it stores all
-its files. Make sure that this directory exists.*
+By default WCT assumes the existence of a directory **/usr/local/wct**, where it stores all
+its files. If you want to follow this default, make sure that this directory exists and is
+writable for the user that will run the application.
 
-After the war files have been copied, we first need to check whether the database connection settings are appropriate
-for our situation. These settings can be found in the file **webcurator-webapp.war/WEB-INF/classes/application.properties**
-under the *Database settings* heading. If you have a typical MySQL setup, you shouldn't have to change anything here.
+To use an alternative location, create a file **application.properties** inside the directory 
+where you've copied the war files, with the following content:
 
-Next, we'll make sure the WCT store component uses the correct directory for storage, by setting the variable
-``arcDigitalAssetStoreService.baseDir`` in **webcurator-store.war/WEB-INF/classes/application.properties** to the
-appropriate value. Make sure the device on which this directory is located has enough space to store your
-harvests. By default, it uses **/usr/local/wct/store**.
+::
 
-Finally, we need to make sure the temporary directory used by the H3 Harvest Agent is suitable for our
-situation by setting the variable ``harvestAgent.baseHarvestDirectory`` in
-**harvest-agent-h3.jar/BOOT-INF/classes/application.properties** to the appropriate value. The default is
-**/usr/local/wct/harvest-agent**.
+
+   arcDigitalAssetStoreService.baseDir=/tmp/wct-files/store
+   harvestAgent.baseHarvestDirectory=/tmp/wct-files/harvest-agent
+
+
+where the parent directory (in this case **/tmp/wct-files**) must exist and be writable for the application.
+The value of **arcDigitalAssetStoreService.baseDir** is the directory where the store component will store
+the harvest data (logs, warc files) and **harvestAgent.baseHarvestDirectory** is the temporary
+storage location for the harvest agent.
 
 *Note, the* ``harvestAgent.baseHarvestDirectory`` *path* **cannot** *match the Heritrix 3 jobs directory. This
 will cause a conflict within the H3 Harvest Agent.*
@@ -121,8 +123,8 @@ http://localhost:8080/wct, using the user 'bootstrap' and password 'password'.
    user@host:/usr/local/wct$ java -jar harvest-agent-h3.jar
 
 
-*Note, a* ``logs`` *folder be created automatically in the directory you choose to run each WCT
-component in, e.g.* ``/usr/local/wct/logs``.
+*Note, a* ``logs`` *folder will be created automatically in the directory you run the WCT
+components in, e.g.* ``/usr/local/wct/logs``.
 
 You can now create users and roles and configure the system. Refer to the User Manual for more information.
 
@@ -136,7 +138,7 @@ covered here:
 
 * WCT can also authenticate users via LDAP (see the :doc:`System Administrator Guide <system-administrator-guide>`)
 * By default all communication between the components and between the browser and WCT is unencrypted. To
-  enable SSL/TLS, please follow the instructions for your version of Tomcat
+  enable SSL/TLS, see the :doc:`System Administrator Guide <system-administrator-guide>`
 * You can use OpenWayback to view harvests from within WCT, see :doc:`Wayback Integration Guide <wayback-integration-guide>`
 
 
