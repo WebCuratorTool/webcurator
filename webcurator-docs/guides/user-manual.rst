@@ -1929,8 +1929,9 @@ listed at left, with three possible actions on the right:
 
 -  **Review in Access Tool** - Open a view of the harvested Seed URL in a
    new window of your web browser. If this option is enabled it uses an
-   external Access Tool [1]_ to generate the page. This is the preferred
-   browse tool.
+   external Access Tool to generate the page. To use the IIPC's OpenWayback
+   access tool for this purpose, see the :doc:`Wayback Integration Guide
+   <wayback-integration-guide>`.
 
 -  **Live Site** - Open the original web page in a new window
 
@@ -3510,7 +3511,7 @@ individual issues.
 The National Library of New Zealand introduced this functionality when
 they discovered serials that were previously issued as PDFs were being
 issued online solely in HTML format. HTML serials functionality is
-closely tied in with using the Rosetta preservation system however, [2]_
+closely tied in with using the Rosetta preservation system however, [1]_
 so if you want to use this option and you're not using Rosetta, you will
 need to investigate alternative delivery options that allow you to view
 serials by issue date rather than harvest date.
@@ -3616,12 +3617,6 @@ Detailed workflow example
 Figure 28: Detailed workflow
 
 .. [1]
-   The use of the IIPC's redevelopment of the Java Wayback Machine - OpenWayback -
-   as an access tool is described as in the Web Curator Wiki
-   https://github.com/WebCuratorTool/webcurator/wiki/ and is available to download from
-   the OpenWayback project on Github https://github.com/iipc/openwayback.
-
-.. [2]
    For information about the Rosetta preservation system visit:
    https://www.exlibrisgroup.com/products/rosetta-digital-asset-management-and-preservation/
 
