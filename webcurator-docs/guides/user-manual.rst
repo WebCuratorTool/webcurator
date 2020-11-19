@@ -3618,7 +3618,7 @@ Figure 28: Detailed workflow
 .. [1]
    The use of the IIPC's redevelopment of the Java Wayback Machine - OpenWayback -
    as an access tool is described as in the Web Curator Wiki
-   https://github.com/DIA-NZ/webcurator/wiki/ and is available to download from
+   https://github.com/WebCuratorTool/webcurator/wiki/ and is available to download from
    the OpenWayback project on Github https://github.com/iipc/openwayback.
 
 .. [2]
