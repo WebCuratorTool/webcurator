@@ -31,7 +31,7 @@ major Web Curator Tool modules.
 
 System administrators will find an Administrators Guide and other
 technical documentation on the Web Curator Tool website
-(http://dia-nz.github.io/webcurator/).
+(https://www.webcuratortool.org/).
 
 Where to find more information
 ------------------------------
@@ -39,7 +39,7 @@ Where to find more information
 The primary source for information on the Web Curator Tool is the
 website:
 
-http://dia-nz.github.io/webcurator/
+https://www.webcuratortool.org/
 
 The Github project pageThe  includes links to download the tool, its
 corner that leads to the Github project page. Here you can navigate to
