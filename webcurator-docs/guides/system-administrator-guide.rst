@@ -285,8 +285,8 @@ Tool:
 Each of these three components must be deployed for the Web Curator
 Tool to be fully functional and more than one harvest agent can be
 deployed if necessary. Each Harvest Agent is capable of carrying out
-harvest actions. The more harvest agents deployed the more harvesting
-that can be concurrently. The harvest agents and digital asset store can
+harvest actions. The more harvest agents are deployed the more harvesting
+can be done concurrently. The harvest agents and digital asset store can
 reside on any machine within the network, as they use REST over HTTP
 to communicate with each other.
 
@@ -397,9 +397,9 @@ Configure the Database Connection
       schema.maxIdle=2
       schema.maxActive=4
 
-   *If the default WCT database scripts have been used to setup the database then the* **name**, **user**,
-   *and* **password** *properties should* **not** *need to be changed. Verify the* **url** *and* **dialect**
-   *properties match the location and version of your database.*
+   *If the default WCT database scripts have been used to setup the database then the* **name** and **user**,
+   *properties should* **not** *need to be changed. You are of course* **strongly encouraged** *to change the default*
+   **password**. *Verify the* **url** *and* **dialect** *properties match the location and version of your database.*
 
    Update this properties file inside webcurator-webapp.war with any changes.
 
@@ -485,7 +485,7 @@ Configure LDAP Authentication (Encrypted using TLS or SSL)
      see Appendix A: Creating a truststore and importing a certificate.*
 
 Configure the Digital Asset Store (DAS)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  Inside webcurator-store.war, open the **application.properties** file for editing::
 
@@ -639,17 +639,6 @@ The URL to access WCT will be similar to the one displayed below:
 
 Where 'localhost' can be replaced with your server, and 8080 with the configured Webapp port.
 
-Heritrix v1 Harvest Agent use only
-   The other common trap is not defining the default bandwidth for the
-   system. On start-up of WCT the system bandwidth is set to 0 KB's for
-   every day of the week. Before Harvests can be initiated you must specify
-   a base bandwidth for each of the days you plan to harvest on.
-
-   In order to setup the bandwidth you must logon as a user that has the
-   'Manage Web Harvester System' privilege set (usually an WCT
-   Administrator). The Bandwidth screen can be found under the 'Management
-   -> Harvester Configuration -> Bandwidth' section of the site.
-
 
 Troubleshooting setup
 ---------------------
@@ -767,6 +756,22 @@ See the following table to troubleshoot Web Curator Tool setup.
 |                                   | a "/") otherwise the                         |
 |                                   | heritrix.home folder needs to be             |
 |                                   | specified as well.                           |
++-----------------------------------+----------------------------------------------+
+|  **Heritrix 1.x harvests fail**   | The other common trap is not defining the    |
+|  **silently**                     | default bandwidth for the system. On start-up|
+|                                   | of WCT the system bandwidth is set to 0 KB's |
+|                                   | for every day of the week. Before Harvests   |
+|                                   | can be initiated you must specify a base     |
+|                                   | bandwidth for each of the days you plan to   |
+|                                   | harvest on.                                  |
+|                                   |                                              |
+|                                   | In order to setup the bandwidth you must     |
+|                                   | logon as a user that has the 'Manage Web     |
+|                                   | Harvester System' privilege set (usually     |
+|                                   | an WCT Administrator). The Bandwidth screen  |
+|                                   | can be found under the 'Management ->        |
+|                                   | Harvester Configuration -> Bandwidth' section|
+|                                   | of the site.                                 |
 +-----------------------------------+----------------------------------------------+
 
 
