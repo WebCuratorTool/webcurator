@@ -1128,25 +1128,6 @@ via the **application.properties** file.
 
       "sar -u"
 
-Web Curator Tool - SOAP Service Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**The /WEB-INF/server-config.wsdd**
-
-All three components have a server-config.wsdd file. This file is used
-by Apache Axis to configure the SOAP services used within the Web
-Curator Tool.
-
-The only attribute that should be modified in the Axis configuration is
-the location of the temporary directory that Axis should use for
-attachments. Make sure that this directory exists and is accessible to
-the Apache Tomcat server.
-
-::
-
-    <parameter name="attachments.Directory" value="/tmp/attach"/>
-
-//TODO - needs to be re-implemented in v3
 
 Setting up Heritrix 3
 =============================
