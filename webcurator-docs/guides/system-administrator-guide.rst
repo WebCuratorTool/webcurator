@@ -373,7 +373,7 @@ To change the profile loaded with a WCT component at runtime, either
 
       java -jar webcurator-webapp.war --spring.profiles.active=local+mysql
 
-*Note: If you do not wish to edit the binaries, you can also override any application.properties file inside the 
+*Note: If you do not wish to edit the binaries, you can actually override any application.properties file inside the 
 binaries, by creating a file of the same name (e.g. 'application.properties', 'application-local+mysql.properties')
 inside the directory where you run the java command. You only need to add the variables that you wish to override.
 Spring Boot will pick up the other variables from the namesake file inside the binary. This goes for all three
@@ -826,9 +826,9 @@ The following are common configuration options for the Webapp adjusted via the *
    The **harvestCoordinator** is responsible for the coordination of
    harvest activity across all of the Harvest Agents. This is where the
    minimum bandwidth (in KB/s) and maximum bandwidth percentages are
-   defined for all agents. Also defined in the Co-ordinator is the number
-   of days before the Digital Asset Store is purged as well as the number
-   of days before data remaining after aborted harvests is purged ::
+   defined for all Heritrix 1 agents. Also defined in the Co-ordinator is 
+   the number of days before the Digital Asset Store is purged as well as the 
+   number of days before data remaining after aborted harvests is purged ::
 
       harvestCoordinator.minimumBandwidth=10
       harvestCoordinator.maxBandwidthPercent=80
