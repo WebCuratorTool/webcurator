@@ -308,7 +308,8 @@ To deploy WCT:
 
    These commands can be run in the foreground for testing, but it is
    recommended to run them in the background, using a tool like Unix's
-   *nohup* command.
+   *nohup* command. Note that you will likely need to configure WCT
+   to suit your environment, see `Configuring WCT properties`_.
 
 -  To stop any WCT component, simply terminate the running process, or if running
    in the foreground, simply use *Ctrl+c*.
@@ -371,6 +372,13 @@ To change the profile loaded with a WCT component at runtime, either
    the WCT binary or outside it, in the same directory::
 
       java -jar webcurator-webapp.war --spring.profiles.active=local+mysql
+
+*Note: If you do not wish to edit the binaries, you can also override any application.properties file inside the 
+binaries, by creating a file of the same name (e.g. 'application.properties', 'application-local+mysql.properties')
+inside the directory where you run the java command. You only need to add the variables that you wish to override.
+Spring Boot will pick up the other variables from the namesake file inside the binary. This goes for all three
+components.*
+
 
 Configure the Database Connection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
