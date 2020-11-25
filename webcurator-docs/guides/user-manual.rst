@@ -3248,8 +3248,12 @@ instance that is currently running.
 
 Figure 43. Shows the number of jobs running on a particular harvester
 
-Bandwidth limits
+Bandwidth limits (Heritrix 1 Agents only)
 ----------------
+
+This section only applies to Heritrix 1 Harvest Agents. Bandwidth limiting
+for Heritrix 3 is not yet supported. If you only use Heritrix 3 Agents,
+you can ignore this section.
 
 Bandwidth limits must be created before any harvesting can be
 undertaken. The default setting is '0'. Bandwidth will be allocated to a
