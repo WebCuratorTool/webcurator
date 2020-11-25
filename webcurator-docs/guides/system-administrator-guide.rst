@@ -98,7 +98,7 @@ The following prerequisites are optional:
 
 -  Apache Maven 3+ (required to build from source).
 
--  Gradle 4.4+ (required to build from source).
+-  Gradle 5.6 (required to build from source; other versions *may* also work).
 
 -  Git (can be used to clone the project source from Github)
 
@@ -330,9 +330,9 @@ Configuring WCT properties
 Inside each component binary, there is an **application.properties** file which contains configuration
 properties for WCT::
 
-   - webcurator-webapp.war\WEB-INF\classes\application.properties
-   - webcurator-store.war\WEB-INF\classes\application.properties
-   - harvest-agent-h3.jar\BOOT-INF\classes\application.properties
+   - webcurator-webapp.war/WEB-INF/classes/application.properties
+   - webcurator-store.war/WEB-INF/classes/application.properties
+   - harvest-agent-h3.jar/BOOT-INF/classes/application.properties
 
 
 Modify the properties in **application.properties**, and restart the corresponding WCT component for them
@@ -801,7 +801,7 @@ The following are common configuration options for the Webapp adjusted via the *
    mail server for sending email notifications ::
 
       mail.protocol=SMTP
-      mailServer.smtp.host=yourhost@yourdomain.com
+      mailServer.smtp.host=yourhost.yourdomain.com
       mail.smtp.port=25
 
 -  In Tray Manager
@@ -893,8 +893,8 @@ The following are common configuration options for the Webapp adjusted via the *
       qualityReviewToolController.archive.alternative.name=Another Wayback
 
    The **harvestResourceUrlMapper** is responsible for writing the access
-   tool URLs in with the review tool using a custom url and replacing
-   elements of that url with the correct items in the harvest resource.
+   tool URLs using a custom url and replacing elements of that url with the 
+   correct items in the harvest resource.
 
    The urlMap property of the **harvestResourceUrlMapper** can have any of
    the following substituted value from the harvest resource ::
@@ -1289,11 +1289,13 @@ Heritrix 3 profile used by WCT can be edited. **This is only recommened for adva
 
 The default profile is located in the project source::
 
-    harvest-agent-h3/build/defaultH3Profile.cxml
+    webcurator-webapp/src/main/resources/defaultH3Profile.cxml
 
-//TODO - where is the default profile located now?
+*The Webapp component must be re-built to include any changes to the default profile.*
 
-*The H3 Harvest Agent must be re-built to include any changes to the default profile.*
+If you don't want to do a rebuild, you can edit the file in the webapp binary, which can be found here::
+
+    webcurator-webapp.war/WEB-INF/classes/defaultH3Profile.cxml
 
 Care must be taken if editing the default profile xml. The WCT Heritrix 3 profile editor
 relies on a select group of xml elements being present and correctly formatted. The following
@@ -1370,18 +1372,10 @@ Proxy Access
 ~~~~~~~~~~~~~
 
 Configuring Heritrix 3 for proxy access also requires editing of the default
-Heritrix 3 profile.
+Heritrix 3 profile. Please refer to the preceding section for the details and caveats
+of editing the default profile.
 
-The default profile is located in the project source::
-
-    harvest-agent-h3/build/defaultH3Profile.cxml
-
-*The H3 Harvest Agent must be re-built to include any changes to the default profile.*
-
-Care must be taken if editing the default profile xml. The WCT Heritrix 3 profile editor
-relies on a select group of xml elements being present and correctly formatted.
-
-The following properties in the ``fetchHTTP`` bean can configured for web proxy access::
+To configure web proxy access the following properties in the ``fetchHTTP`` bean can configured::
 
     <bean id="fetchHttp" class="org.archive.modules.fetcher.FetchHTTP">
         <!-- <property name="httpProxyHost" value="" /> -->
@@ -1455,25 +1449,16 @@ The Heritrix 3 application log is located in it's base directory. ::
 
 Additional notes
 ~~~~~~~~~~~~~~~~
-//TODO - Does this still apply?
 
-This Harvest Agent implementation handles the creation and cleanup up of jobs
-within the Heritrix 3.x instance. You should only see job directories within
-Heritrix while a harvest is running or waiting to be completed. Once the harvest
-is complete and WCT has transferred the assets, logs and reports to the Store
-then the Heritrix job is torn down and directory deleted. The only occasions
+The Harvest Agent implementation for Heritrix 3 handles the creation and cleanup 
+up of jobs within the Heritrix 3.x instance. You should only see job directories 
+within Heritrix while a harvest is running or waiting to be completed. Once the 
+harvest is complete and WCT has transferred the assets, logs and reports to the 
+Store then the Heritrix job is torn down and directory deleted. The only occasions
 where a Heritrix job directory will not be cleaned up is if a job fails to
 build/start or an error has occurred during the harvest. This allows you to
 investigate the Heritrix job log to determine the cause.
 
-Troubleshooting
-------------------------
-
-TODO
-~~~~
--   When things don't work - what to check.
--   Heritrix 3 won't crawl.
--   This information might be better presented in a table.
 
 Interacting with Heritrix 3 directly
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1609,7 +1594,7 @@ To create a truststore and import a certificate:
     /var/wctcore/ssl/wct.ts
 
 
-Appendix B: Example application profile overrides
+Appendix B: Example application.properties overrides
 =================================================
 
 ::
