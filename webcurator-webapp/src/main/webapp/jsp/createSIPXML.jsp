@@ -143,8 +143,8 @@
 							 --%><c:forEach var="tnote" items="${targetAnnotations}"><%-- 
 							 --%><wct:Annotation>
 									<wct:Date><tags:wct-date date="${tnote.date}"/></wct:Date>
-									<wct:User>${tnote.user.username}</wct:User>
-									<wct:Note>${tnote.note}</wct:Note>
+									<wct:User><c:out value="${tnote.user.username}"/></wct:User>
+									<wct:Note><c:out value="${tnote.note}"/></wct:Note>
 								</wct:Annotation>
 								</c:forEach><%-- 
 						 --%></wct:Annotations><%-- 
