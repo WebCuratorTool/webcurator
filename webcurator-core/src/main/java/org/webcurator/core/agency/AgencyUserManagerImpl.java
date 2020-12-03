@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.exceptions.NoPrivilegeException;
+import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.AuthUtil;
@@ -29,32 +30,37 @@ import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Flag;
 import org.webcurator.domain.model.core.IndicatorCriteria;
+import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.core.RejReason;
+import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.domain.model.dto.UserDTO;
 
 import java.util.*;
 
 /**
  * Implementation of the AgencyUserManager interface.
- * @see AgencyUserManager
+ *
  * @author bprice
+ * @see AgencyUserManager
  */
-public class AgencyUserManagerImpl implements AgencyUserManager{
-	private static Log log = LogFactory.getLog(AgencyUserManagerImpl.class);
+public class AgencyUserManagerImpl implements AgencyUserManager {
+    private static Log log = LogFactory.getLog(AgencyUserManagerImpl.class);
 
     private Auditor auditor = null;
-    
+
     private AuthorityManager authorityManager = null;
-    
+
     private UserRoleDAO userRoleDAO = null;
-    
+
     private RejReasonDAO rejReasonDAO = null;
-    
+
     private IndicatorCriteriaDAO indicatorCriteriaDAO = null;
-    
+
     private FlagDAO flagDAO = null;
 
-    /** The ProfileManager to allow creating a default profile. */
+    /**
+     * The ProfileManager to allow creating a default profile.
+     */
     private ProfileManager profileManager = null;
 
     public List getAgencies() {
@@ -104,7 +110,7 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
     public List getAgenciesForLoggedInUser() {
         User loggedInUser = AuthUtil.getRemoteUserObject();
         Agency usersAgency = loggedInUser.getAgency();
-        
+
         if (authorityManager.hasPrivilege(Privilege.MANAGE_AGENCIES, Privilege.SCOPE_ALL)) {
             return userRoleDAO.getAgencies();
         } else {
@@ -114,28 +120,28 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
             return singleAgency;
         }
     }
-    
+
     public List getAgenciesForTemplatePriv() {
-         User loggedInUser = AuthUtil.getRemoteUserObject();
-         Agency usersAgency = loggedInUser.getAgency();
-         
-         if (authorityManager.hasPrivilege(Privilege.PERMISSION_REQUEST_TEMPLATE, Privilege.SCOPE_ALL)) {
-             return userRoleDAO.getAgencies();
-         } else {
-             Long agencyOid = usersAgency.getOid();
-             List<Agency> singleAgency = new ArrayList<Agency>();
-             singleAgency.add(userRoleDAO.getAgencyByOid(agencyOid));
-             return singleAgency;
-         }
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
+
+        if (authorityManager.hasPrivilege(Privilege.PERMISSION_REQUEST_TEMPLATE, Privilege.SCOPE_ALL)) {
+            return userRoleDAO.getAgencies();
+        } else {
+            Long agencyOid = usersAgency.getOid();
+            List<Agency> singleAgency = new ArrayList<Agency>();
+            singleAgency.add(userRoleDAO.getAgencyByOid(agencyOid));
+            return singleAgency;
+        }
     }
-    
+
 
     public void updateAgency(Agency agency, boolean update) {
         userRoleDAO.saveOrUpdate(agency);
-        if (update == true) {
-            auditor.audit(Agency.class.getName(),agency.getOid(),Auditor.ACTION_UPDATE_AGENCY,"The Agency named '"+agency.getName()+"' has been updated");
+        if (update) {
+            auditor.audit(Agency.class.getName(), agency.getOid(), Auditor.ACTION_UPDATE_AGENCY, "The Agency named '" + agency.getName() + "' has been updated");
         } else {
-            auditor.audit(Agency.class.getName(),Auditor.ACTION_NEW_AGENCY,"A new Agency has been created with a name of '"+agency.getName()+"'");
+            auditor.audit(Agency.class.getName(), Auditor.ACTION_NEW_AGENCY, "A new Agency has been created with a name of '" + agency.getName() + "'");
             profileManager.createDefaultProfile(agency);
         }
     }
@@ -143,7 +149,7 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
     public List getUserDTOsForLoggedInUser() {
         User loggedInUser = AuthUtil.getRemoteUserObject();
         Agency usersAgency = loggedInUser.getAgency();
-        
+
         if (authorityManager.hasPrivilege(Privilege.MANAGE_USERS, Privilege.SCOPE_ALL)) {
             return userRoleDAO.getUserDTOs();
         } else {
@@ -158,7 +164,7 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
     public User getUserByUserName(String username) {
         return userRoleDAO.getUserByName(username);
     }
-    
+
     public void modifyUserStatus(User user) {
         boolean currentStatus = user.isActive();
         boolean newStatus = !currentStatus;
@@ -172,11 +178,11 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
         }
         userRoleDAO.saveOrUpdate(user);
         if (newStatus == true) {
-            auditor.audit(User.class.getName(),user.getOid(),Auditor.ACTION_ACTIVATE_USER,"User "+user.getUsername()+" was enabled");
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_ACTIVATE_USER, "User " + user.getUsername() + " was enabled");
         } else {
-            auditor.audit(User.class.getName(),user.getOid(),Auditor.ACTION_DEACTIVATE_USER,"User "+user.getUsername()+" was deactivated");
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_DEACTIVATE_USER, "User " + user.getUsername() + " was deactivated");
         }
-        
+
     }
 
     public void deleteUser(User user) {
@@ -184,14 +190,14 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
         String username = user.getUsername();
         user.removeAllRoles();
         userRoleDAO.delete(user);
-        auditor.audit(User.class.getName(),userOid, Auditor.ACTION_DELETE_USER,"User "+username+" has been deleted");
- 
+        auditor.audit(User.class.getName(), userOid, Auditor.ACTION_DELETE_USER, "User " + username + " has been deleted");
+
     }
 
     public List getRolesForLoggedInUser() {
         User loggedInUser = AuthUtil.getRemoteUserObject();
         Agency usersAgency = loggedInUser.getAgency();
-        
+
         if (authorityManager.hasPrivilege(Privilege.MANAGE_ROLES, Privilege.SCOPE_ALL)) {
             return userRoleDAO.getRoles();
         } else {
@@ -206,17 +212,17 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
     public void updateRole(Role role, boolean update) {
         userRoleDAO.saveOrUpdate(role);
         if (update == true) {
-            auditor.audit(Role.class.getName(), role.getOid(),Auditor.ACTION_UPDATE_ROLE,"The role '"+role.getName()+"' has been updated under the '"+role.getAgency().getName()+"' Agency.");
+            auditor.audit(Role.class.getName(), role.getOid(), Auditor.ACTION_UPDATE_ROLE, "The role '" + role.getName() + "' has been updated under the '" + role.getAgency().getName() + "' Agency.");
         } else {
-            auditor.audit(Role.class.getName(), role.getOid(),Auditor.ACTION_NEW_ROLE,"A New role has been created with a role name of '"+role.getName()+"' under the '"+role.getAgency().getName()+"' Agency.");
-        } 
+            auditor.audit(Role.class.getName(), role.getOid(), Auditor.ACTION_NEW_ROLE, "A New role has been created with a role name of '" + role.getName() + "' under the '" + role.getAgency().getName() + "' Agency.");
+        }
     }
 
     public void deleteRole(Role role) {
         Long roleOid = role.getOid();
         String roleName = role.getName();
         userRoleDAO.delete(role);
-        auditor.audit(Role.class.getName(), roleOid ,Auditor.ACTION_DELETE_ROLE,"The role name of '"+roleName+"' has been deleted.");
+        auditor.audit(Role.class.getName(), roleOid, Auditor.ACTION_DELETE_ROLE, "The role name of '" + roleName + "' has been deleted.");
     }
 
     public List getAssociatedRolesForUser(Long oid) {
@@ -225,8 +231,8 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
 
     public void updateUserRoles(User user) {
         userRoleDAO.saveOrUpdate(user);
-        auditor.audit(User.class.getName(), user.getOid(),Auditor.ACTION_ASSOCIATE_ROLES,"User "+user.getUsername()+" roles have been modified to include the following roles "+user.displayRoles());
-        
+        auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_ASSOCIATE_ROLES, "User " + user.getUsername() + " roles have been modified to include the following roles " + user.displayRoles());
+
     }
 
     public List getRolesForUser(User user) {
@@ -238,7 +244,7 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
     public List getRejReasonsForLoggedInUser() {
         User loggedInUser = AuthUtil.getRemoteUserObject();
         Agency usersAgency = loggedInUser.getAgency();
-        
+
         if (authorityManager.hasPrivilege(Privilege.MANAGE_REASONS, Privilege.SCOPE_ALL)) {
             return rejReasonDAO.getRejReasons();
         } else {
@@ -247,256 +253,252 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
     }
 
     @SuppressWarnings("unchecked")
-	public List getValidRejReasonsForTargets(Long agencyOid) {
-    	
-    	List reasons = rejReasonDAO.getRejReasons(agencyOid);
-    	List<RejReason> targetReasons = new ArrayList<RejReason>();
-    	
-    	RejReason rr = null;
-    	Iterator<RejReason> it = reasons.iterator();
-    	while (it.hasNext()) {
-			rr = it.next();							
-			if (rr.isAvailableForTargets()) {
-		    	targetReasons.add(rr);
-			}
-		} 
-    	return targetReasons;
+    public List getValidRejReasonsForTargets(Long agencyOid) {
+
+        List reasons = rejReasonDAO.getRejReasons(agencyOid);
+        List<RejReason> targetReasons = new ArrayList<RejReason>();
+
+        RejReason rr = null;
+        Iterator<RejReason> it = reasons.iterator();
+        while (it.hasNext()) {
+            rr = it.next();
+            if (rr.isAvailableForTargets()) {
+                targetReasons.add(rr);
+            }
+        }
+        return targetReasons;
     }
-    
+
     @SuppressWarnings("unchecked")
-	public List getValidRejReasonsForTIs(Long agencyOid) {
-    	
-    	List reasons = rejReasonDAO.getRejReasons(agencyOid);
-    	List<RejReason> targetInstanceReasons = new ArrayList<RejReason>();
-    	
-    	RejReason rr = null;
-    	Iterator<RejReason> it = reasons.iterator();
-    	while (it.hasNext()) {
-			rr = it.next();							
-			if (rr.isAvailableForTIs()) {
-				targetInstanceReasons.add(rr);
-			}
-		} 
-    	return targetInstanceReasons;
+    public List getValidRejReasonsForTIs(Long agencyOid) {
+
+        List reasons = rejReasonDAO.getRejReasons(agencyOid);
+        List<RejReason> targetInstanceReasons = new ArrayList<RejReason>();
+
+        RejReason rr = null;
+        Iterator<RejReason> it = reasons.iterator();
+        while (it.hasNext()) {
+            rr = it.next();
+            if (rr.isAvailableForTIs()) {
+                targetInstanceReasons.add(rr);
+            }
+        }
+        return targetInstanceReasons;
     }
 
     public void deleteRejReason(RejReason reason) {
         Long reasonOid = reason.getOid();
         String name = reason.getName();
         rejReasonDAO.delete(reason);
-        auditor.audit(RejReason.class.getName(), reasonOid ,Auditor.ACTION_DELETE_REASON,"The rejection: '"+name+"' has been deleted.");
+        auditor.audit(RejReason.class.getName(), reasonOid, Auditor.ACTION_DELETE_REASON, "The rejection: '" + name + "' has been deleted.");
     }
 
     public RejReason getRejReasonByOid(Long oid) {
         return rejReasonDAO.getRejReasonByOid(oid);
     }
- 
+
     public void updateRejReason(RejReason reason, boolean update) {
         rejReasonDAO.saveOrUpdate(reason);
         if (update == true) {
-            auditor.audit(RejReason.class.getName(),reason.getOid(),Auditor.ACTION_UPDATE_REASON,"The rejection reason: '"+reason.getName()+"' has been updated");
+            auditor.audit(RejReason.class.getName(), reason.getOid(), Auditor.ACTION_UPDATE_REASON, "The rejection reason: '" + reason.getName() + "' has been updated");
         } else {
-            auditor.audit(RejReason.class.getName(),Auditor.ACTION_NEW_REASON,"A new rejection reason has been created with a name of '"+reason.getName()+"'");
+            auditor.audit(RejReason.class.getName(), Auditor.ACTION_NEW_REASON, "A new rejection reason has been created with a name of '" + reason.getName() + "'");
         }
     }
-    
+
     public void updateUser(User user, boolean update) {
         userRoleDAO.saveOrUpdate(user);
         if (update == true) {
-            auditor.audit(User.class.getName(),user.getOid(),Auditor.ACTION_UPDATE_USER,"The User named '"+user.getUsername()+"' has been updated");
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_UPDATE_USER, "The User named '" + user.getUsername() + "' has been updated");
         } else {
-            auditor.audit(User.class.getName(),user.getOid(),Auditor.ACTION_NEW_USER,"New WCT User created with username of "+user.getUsername());
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_NEW_USER, "New WCT User created with username of " + user.getUsername());
         }
     }
-    
+
     public boolean canGiveTo(UserOwnable subject, User newOwner) {
-    	
-    	if(authorityManager.hasPrivilege(subject, Privilege.TAKE_OWNERSHIP)) {
-    		User loggedInUser = AuthUtil.getRemoteUserObject();
-    		int scope = authorityManager.getPrivilegeScopeNE(Privilege.GIVE_OWNERSHIP);
-    		
-    		switch(scope) {
-    		case Privilege.SCOPE_AGENCY:
-    			return newOwner.getAgency().equals(loggedInUser.getAgency());
-    		case Privilege.SCOPE_ALL:
-    			return true;
-    		case Privilege.SCOPE_OWNER:
-    			return newOwner.equals(loggedInUser);
-    		default:
-    			return false;
-    		}
-    	}
-    	
-    	// Can't take the object, so cannot give it away.
-    	else {
-    		return false;
-    	}
-    	
-    }
-    
-    
-    @SuppressWarnings("unchecked")
-	public List<UserDTO> getPossibleOwners(UserOwnable subject) {
-    	List<UserDTO> results = null; 
-    	User remoteUser = AuthUtil.getRemoteUserObject();
-    	
-    	if(authorityManager.hasPrivilege(subject, Privilege.TAKE_OWNERSHIP)) {
-    		log.debug("Allowed to take ownership from: " + subject.getOwningUser().getUsername());
-    		int scope = authorityManager.getPrivilegeScopeNE(Privilege.GIVE_OWNERSHIP);
-    		
-			switch(scope) {
-			case Privilege.SCOPE_NONE:
-				log.debug("Not allowed to give ownership");
-				results = new LinkedList<UserDTO>();
-				results.add(new UserDTO(subject.getOwningUser()));
-				break;
-			
-			case Privilege.SCOPE_OWNER:
-				log.debug("Can only give ownership to myself");
-				results = new LinkedList<UserDTO>();
-				results.add(new UserDTO(remoteUser));
-				
-				// The current owner may not be the same as the logged in user.
-				if(!subject.getOwningUser().equals(remoteUser)) {
-					results.add(new UserDTO(subject.getOwningUser()));
-					Collections.sort(results);
-				}
-				
-				break;
-				
-			case Privilege.SCOPE_AGENCY:
-				log.debug("Can give ownership to agency members");
-				results = userRoleDAO.getUserDTOs(remoteUser.getAgency().getOid());
-				
-				// The current owner could be in a different agency.
-				if(!subject.getOwningUser().getAgency().equals(remoteUser.getAgency())) {
-					results.add(new UserDTO(subject.getOwningUser()));
-					Collections.sort(results);
-				}				
-				
-				break;
-				
-			case Privilege.SCOPE_ALL:
-				log.debug("Can give ownership to anyone");
-				results = new LinkedList<UserDTO>();
-				results = userRoleDAO.getUserDTOs();
-				break;
-			}
-    		
-    	}
-    	else {
-        	// The current owner should always be in the list
-    		log.debug("Cannot take ownership of this object");
-    		results = new LinkedList<UserDTO>();
-        	results.add(new UserDTO(subject.getOwningUser()));
-    	}
 
-    	return results;
-    	
-    }
-    
-    
-    @SuppressWarnings("unchecked")
-	public List<UserDTO> getAllowedOwners(User owner) {
-		int scope = Privilege.SCOPE_NONE;
-		if (owner.equals(AuthUtil.getRemoteUserObject())) {			
-			if (authorityManager.hasPrivilege(Privilege.GIVE_OWNERSHIP, Privilege.SCOPE_NONE)) {				
-				try {
-					scope = authorityManager.getPrivilegeScope(Privilege.GIVE_OWNERSHIP);				
-				} 
-				catch (NoPrivilegeException e) {
-					if (log.isErrorEnabled()) {
-						log.error("Failed to get the privilege scope " + e.getMessage(), e);
-					}
-				}
-			}			
-		}
-		else {			
-			if (authorityManager.hasPrivilege(Privilege.TAKE_OWNERSHIP, Privilege.SCOPE_NONE)) {				
-				try {
-					scope = authorityManager.getPrivilegeScope(Privilege.TAKE_OWNERSHIP);
-				} 
-				catch (NoPrivilegeException e) {
-					if (log.isErrorEnabled()) {
-						log.error("Failed to get the privilege scope " + e.getMessage(), e);
-					}
-				}
-			}
-		}
-		
-		List<UserDTO> owners = new ArrayList<UserDTO>();
-		if (scope == Privilege.SCOPE_AGENCY) {						
-			owners = getUserDTOs(AuthUtil.getRemoteUserObject().getAgency().getOid());
-		}
-		
-		if (scope == Privilege.SCOPE_ALL) {			
-			owners = getUserDTOs();
-		}
-		
-		UserDTO currentOwner = new UserDTO(owner);		
-		if (owners.isEmpty() || !owners.contains(currentOwner)) {
-			owners.add(currentOwner);
-		}    	
-		
-		return owners;
-    }
-    
+        if (authorityManager.hasPrivilege(subject, Privilege.TAKE_OWNERSHIP)) {
+            User loggedInUser = AuthUtil.getRemoteUserObject();
+            int scope = authorityManager.getPrivilegeScopeNE(Privilege.GIVE_OWNERSHIP);
 
-	/**
-	 * @param profileManager The profileManager to set.
-	 */
-	public void setProfileManager(ProfileManager profileManager) {
-		this.profileManager = profileManager;
-	}
-    
+            switch (scope) {
+                case Privilege.SCOPE_AGENCY:
+                    return newOwner.getAgency().equals(loggedInUser.getAgency());
+                case Privilege.SCOPE_ALL:
+                    return true;
+                case Privilege.SCOPE_OWNER:
+                    return newOwner.equals(loggedInUser);
+                default:
+                    return false;
+            }
+        }
+
+        // Can't take the object, so cannot give it away.
+        else {
+            return false;
+        }
+
+    }
+
+
     @SuppressWarnings("unchecked")
-	public Map getUsersWithAllPrivilege(List privileges) {
+    public List<UserDTO> getPossibleOwners(UserOwnable subject) {
+        List<UserDTO> results = null;
+        User remoteUser = AuthUtil.getRemoteUserObject();
+
+        if (authorityManager.hasPrivilege(subject, Privilege.TAKE_OWNERSHIP)) {
+            log.debug("Allowed to take ownership from: " + subject.getOwningUser().getUsername());
+            int scope = authorityManager.getPrivilegeScopeNE(Privilege.GIVE_OWNERSHIP);
+
+            switch (scope) {
+                case Privilege.SCOPE_NONE:
+                    log.debug("Not allowed to give ownership");
+                    results = new LinkedList<UserDTO>();
+                    results.add(new UserDTO(subject.getOwningUser()));
+                    break;
+
+                case Privilege.SCOPE_OWNER:
+                    log.debug("Can only give ownership to myself");
+                    results = new LinkedList<UserDTO>();
+                    results.add(new UserDTO(remoteUser));
+
+                    // The current owner may not be the same as the logged in user.
+                    if (!subject.getOwningUser().equals(remoteUser)) {
+                        results.add(new UserDTO(subject.getOwningUser()));
+                        Collections.sort(results);
+                    }
+
+                    break;
+
+                case Privilege.SCOPE_AGENCY:
+                    log.debug("Can give ownership to agency members");
+                    results = userRoleDAO.getUserDTOs(remoteUser.getAgency().getOid());
+
+                    // The current owner could be in a different agency.
+                    if (!subject.getOwningUser().getAgency().equals(remoteUser.getAgency())) {
+                        results.add(new UserDTO(subject.getOwningUser()));
+                        Collections.sort(results);
+                    }
+
+                    break;
+
+                case Privilege.SCOPE_ALL:
+                    log.debug("Can give ownership to anyone");
+                    results = new LinkedList<UserDTO>();
+                    results = userRoleDAO.getUserDTOs();
+                    break;
+            }
+
+        } else {
+            // The current owner should always be in the list
+            log.debug("Cannot take ownership of this object");
+            results = new LinkedList<UserDTO>();
+            results.add(new UserDTO(subject.getOwningUser()));
+        }
+
+        return results;
+
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<UserDTO> getAllowedOwners(User owner) {
+        int scope = Privilege.SCOPE_NONE;
+        if (owner.equals(AuthUtil.getRemoteUserObject())) {
+            if (authorityManager.hasPrivilege(Privilege.GIVE_OWNERSHIP, Privilege.SCOPE_NONE)) {
+                try {
+                    scope = authorityManager.getPrivilegeScope(Privilege.GIVE_OWNERSHIP);
+                } catch (NoPrivilegeException e) {
+                    if (log.isErrorEnabled()) {
+                        log.error("Failed to get the privilege scope " + e.getMessage(), e);
+                    }
+                }
+            }
+        } else {
+            if (authorityManager.hasPrivilege(Privilege.TAKE_OWNERSHIP, Privilege.SCOPE_NONE)) {
+                try {
+                    scope = authorityManager.getPrivilegeScope(Privilege.TAKE_OWNERSHIP);
+                } catch (NoPrivilegeException e) {
+                    if (log.isErrorEnabled()) {
+                        log.error("Failed to get the privilege scope " + e.getMessage(), e);
+                    }
+                }
+            }
+        }
+
+        List<UserDTO> owners = new ArrayList<UserDTO>();
+        if (scope == Privilege.SCOPE_AGENCY) {
+            owners = getUserDTOs(AuthUtil.getRemoteUserObject().getAgency().getOid());
+        }
+
+        if (scope == Privilege.SCOPE_ALL) {
+            owners = getUserDTOs();
+        }
+
+        UserDTO currentOwner = new UserDTO(owner);
+        if (owners.isEmpty() || !owners.contains(currentOwner)) {
+            owners.add(currentOwner);
+        }
+
+        return owners;
+    }
+
+
+    /**
+     * @param profileManager The profileManager to set.
+     */
+    public void setProfileManager(ProfileManager profileManager) {
+        this.profileManager = profileManager;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map getUsersWithAllPrivilege(List privileges) {
         Iterator it = privileges.iterator();
         int numOfPrivs = privileges.size();
-        Map userSets[] =  new Map[numOfPrivs];
-        int i=0;
+        Map userSets[] = new Map[numOfPrivs];
+        int i = 0;
         Map allUsersMap = new HashMap();
         Map userMap = new HashMap();
         while (it.hasNext()) {
             String checkPrivilege = (String) it.next();
             List users = userRoleDAO.getUserDTOsByPrivilege(checkPrivilege);
-            
-            log.debug("loading userDTOs with Privilege "+checkPrivilege);
-            
-            putUsersIntoMap(users,userMap);
+
+            log.debug("loading userDTOs with Privilege " + checkPrivilege);
+
+            putUsersIntoMap(users, userMap);
             log.debug("putting UserMap into the userSets array");
             userSets[i++] = userMap;
-            
+
         }
         Set keys = userSets[0].keySet();
         Iterator itKeys = keys.iterator();
         while (itKeys.hasNext()) {
             Long aUserOid = (Long) it.next();
-            log.debug("Found a User Oid key to check with oid="+aUserOid);
+            log.debug("Found a User Oid key to check with oid=" + aUserOid);
             boolean hasAll = true;
-            for (int j=1; j < numOfPrivs; j++) {
+            for (int j = 1; j < numOfPrivs; j++) {
                 hasAll = hasAll && userSets[j].containsKey(aUserOid);
-                log.debug("The User with user oid="+aUserOid+" has all privileges="+hasAll);
+                log.debug("The User with user oid=" + aUserOid + " has all privileges=" + hasAll);
             }
             if (hasAll == true) {
                 //User has All the specified Privileges so store that user
                 log.debug("Storing the User as they have all privileges.");
-                allUsersMap.put(aUserOid,userSets[0].get(aUserOid));
+                allUsersMap.put(aUserOid, userSets[0].get(aUserOid));
             }
         }
         return allUsersMap;
-        
+
     }
-    
+
     @SuppressWarnings("unchecked")
-	private void putUsersIntoMap(List users, Map allUsersMap) {
+    private void putUsersIntoMap(List users, Map allUsersMap) {
         Iterator it = users.iterator();
         while (it.hasNext()) {
             UserDTO aUser = (UserDTO) it.next();
             Long userOid = aUser.getOid();
-            
+
             if (!allUsersMap.containsKey(userOid)) {
-                allUsersMap.put(userOid,aUser);
+                allUsersMap.put(userOid, aUser);
             }
         }
     }
@@ -507,51 +509,51 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
         while (it.hasNext()) {
             String checkPrivilege = (String) it.next();
             List users = userRoleDAO.getUserDTOsByPrivilege(checkPrivilege);
-            
-            log.debug("loading userDTOs with Privilege "+checkPrivilege);
-            putUsersIntoMap(users,allUsersMap);
+
+            log.debug("loading userDTOs with Privilege " + checkPrivilege);
+            putUsersIntoMap(users, allUsersMap);
         }
-        
+
         return allUsersMap;
     }
-    
+
     public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
-    	return userRoleDAO.getUserDTOsByTargetPrivilege(permissionOid);
+        return userRoleDAO.getUserDTOsByTargetPrivilege(permissionOid);
     }
 
     public void setIndicatorCriteriaDAO(IndicatorCriteriaDAO indicatorCriteriaDAO) {
         this.indicatorCriteriaDAO = indicatorCriteriaDAO;
     }
-    
-	@Override
-	public List getIndicatorCriteriaForLoggedInUser() {
-       	User loggedInUser = AuthUtil.getRemoteUserObject();
+
+    @Override
+    public List getIndicatorCriteriaForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
         Agency usersAgency = loggedInUser.getAgency();
-        
+
         if (authorityManager.hasPrivilege(Privilege.MANAGE_INDICATORS, Privilege.SCOPE_ALL)) {
             return indicatorCriteriaDAO.getIndicatorCriterias();
         } else {
             return indicatorCriteriaDAO.getIndicatorCriteriasByAgencyOid(usersAgency.getOid());
         }
-	}
+    }
 
     public void deleteIndicatorCriteria(IndicatorCriteria indicatorCriteria) {
         Long indicatorCriteriaOid = indicatorCriteria.getOid();
         String name = indicatorCriteria.getName();
         indicatorCriteriaDAO.delete(indicatorCriteria);
-        auditor.audit(RejReason.class.getName(), indicatorCriteriaOid ,Auditor.ACTION_DELETE_INDICATOR_CRITERIA,"The Indicator Criteria: '"+name+"' has been deleted.");
+        auditor.audit(RejReason.class.getName(), indicatorCriteriaOid, Auditor.ACTION_DELETE_INDICATOR_CRITERIA, "The Indicator Criteria: '" + name + "' has been deleted.");
     }
 
     public IndicatorCriteria getIndicatorCriteriaByOid(Long oid) {
         return indicatorCriteriaDAO.getIndicatorCriteriaByOid(oid);
     }
- 
+
     public void updateIndicatorCriteria(IndicatorCriteria indicatorCriteria, boolean update) {
-    	indicatorCriteriaDAO.saveOrUpdate(indicatorCriteria);
+        indicatorCriteriaDAO.saveOrUpdate(indicatorCriteria);
         if (update == true) {
-            auditor.audit(IndicatorCriteria.class.getName(),indicatorCriteria.getOid(),Auditor.ACTION_UPDATE_INDICATOR_CRITERIA,"The Indicator Criteria: '"+indicatorCriteria.getName()+"' has been updated");
+            auditor.audit(IndicatorCriteria.class.getName(), indicatorCriteria.getOid(), Auditor.ACTION_UPDATE_INDICATOR_CRITERIA, "The Indicator Criteria: '" + indicatorCriteria.getName() + "' has been updated");
         } else {
-            auditor.audit(IndicatorCriteria.class.getName(),Auditor.ACTION_NEW_INDICATOR_CRITERIA,"A new Indicator Criteria has been created with a name of '"+indicatorCriteria.getName()+"'");
+            auditor.audit(IndicatorCriteria.class.getName(), Auditor.ACTION_NEW_INDICATOR_CRITERIA, "A new Indicator Criteria has been created with a name of '" + indicatorCriteria.getName() + "'");
         }
     }
 
@@ -559,38 +561,38 @@ public class AgencyUserManagerImpl implements AgencyUserManager{
     public void setFlagDAO(FlagDAO flagDAO) {
         this.flagDAO = flagDAO;
     }
-    
-	@Override
-	public List getFlagForLoggedInUser() {
-       	User loggedInUser = AuthUtil.getRemoteUserObject();
+
+    @Override
+    public List getFlagForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
         Agency usersAgency = loggedInUser.getAgency();
-        
+
         if (authorityManager.hasPrivilege(Privilege.MANAGE_FLAGS, Privilege.SCOPE_ALL)) {
             return flagDAO.getFlags();
         } else {
             return flagDAO.getFlagsByAgencyOid(usersAgency.getOid());
         }
-	}
+    }
 
     public void deleteFlag(Flag Flag) {
         Long FlagOid = Flag.getOid();
         String name = Flag.getName();
         flagDAO.delete(Flag);
-        auditor.audit(RejReason.class.getName(), FlagOid ,Auditor.ACTION_DELETE_FLAG,"The Flag: '"+name+"' has been deleted.");
+        auditor.audit(RejReason.class.getName(), FlagOid, Auditor.ACTION_DELETE_FLAG, "The Flag: '" + name + "' has been deleted.");
     }
 
     public Flag getFlagByOid(Long oid) {
         return flagDAO.getFlagByOid(oid);
     }
- 
+
     public void updateFlag(Flag Flag, boolean update) {
-    	flagDAO.saveOrUpdate(Flag);
+        flagDAO.saveOrUpdate(Flag);
         if (update == true) {
-            auditor.audit(Flag.class.getName(),Flag.getOid(),Auditor.ACTION_UPDATE_FLAG,"The Flag: '"+Flag.getName()+"' has been updated");
+            auditor.audit(Flag.class.getName(), Flag.getOid(), Auditor.ACTION_UPDATE_FLAG, "The Flag: '" + Flag.getName() + "' has been updated");
         } else {
-            auditor.audit(Flag.class.getName(),Auditor.ACTION_NEW_FLAG,"A new Flag has been created with a name of '"+Flag.getName()+"'");
+            auditor.audit(Flag.class.getName(), Auditor.ACTION_NEW_FLAG, "A new Flag has been created with a name of '" + Flag.getName() + "'");
         }
     }
 
-    
+
 }

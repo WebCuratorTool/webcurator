@@ -27,6 +27,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -44,46 +46,52 @@ import org.webcurator.ui.intray.command.InTrayCommand;
 
 /**
  * The controller for managing the intray views.
+ *
  * @author bprice
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping(path = {"/curator/intray", "/curator/intray/", "/curator/intray/intray.html"})
 public class InTrayController {
-	/** the logger. */
+    /**
+     * the logger.
+     */
     private Log log = LogFactory.getLog(InTrayController.class);
-    /** the manager for manager tasks and notifications. */
+    /**
+     * the manager for manager tasks and notifications.
+     */
     @Autowired
     private InTrayManager inTrayManager;
 
-    @RequestMapping(path="/curator/intray/intray.html", method = RequestMethod.POST)
+    @PostMapping
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aRes) throws Exception {
 //        InTrayCommand intrayCmd = (InTrayCommand) aCmd;
-        InTrayCommand intrayCmd=new InTrayCommand();
-        ServletRequestDataBinder binder=new ServletRequestDataBinder(intrayCmd);
+        InTrayCommand intrayCmd = new InTrayCommand();
+        ServletRequestDataBinder binder = new ServletRequestDataBinder(intrayCmd);
         binder.bind(aReq);
-        BindingResult bindingResult=binder.getBindingResult();
+        BindingResult bindingResult = binder.getBindingResult();
 
         ModelAndView mav = null;
 
-		// get value of page size cookie
-		String currentPageSize = CookieUtils.getPageSize(aReq);
+        // get value of page size cookie
+        String currentPageSize = CookieUtils.getPageSize(aReq);
 
-		int taskPage = intrayCmd.getTaskPage();
-		int notificationPage = intrayCmd.getNotificationPage();
-		Boolean showTasks = intrayCmd.getShowTasks();
-		if(intrayCmd.getSelectedPageSize()!=null) {
-			if ( !intrayCmd.getSelectedPageSize().equals(currentPageSize) ) {
-				// user has selected a new page size, so reset to first page..
-				currentPageSize = intrayCmd.getSelectedPageSize();
-				CookieUtils.setPageSize(aRes, currentPageSize);
-				taskPage = 0;
-				notificationPage = 0;
-			}
-		}
+        int taskPage = intrayCmd.getTaskPage();
+        int notificationPage = intrayCmd.getNotificationPage();
+        Boolean showTasks = intrayCmd.getShowTasks();
+        if (intrayCmd.getSelectedPageSize() != null) {
+            if (!intrayCmd.getSelectedPageSize().equals(currentPageSize)) {
+                // user has selected a new page size, so reset to first page..
+                currentPageSize = intrayCmd.getSelectedPageSize();
+                CookieUtils.setPageSize(aRes, currentPageSize);
+                taskPage = 0;
+                notificationPage = 0;
+            }
+        }
 
-		if (intrayCmd.getAction() != null) {
-			int pageSize = Integer.parseInt(currentPageSize);
+        if (intrayCmd.getAction() != null) {
+            int pageSize = Integer.parseInt(currentPageSize);
             if (InTrayCommand.ACTION_DELETE_NOTIFICATION.equals(intrayCmd.getAction())) {
                 mav = deleteNotification(intrayCmd, pageSize, showTasks);
             } else if (InTrayCommand.ACTION_VIEW_NOTIFICATION.equals(intrayCmd.getAction())) {
@@ -99,9 +107,9 @@ public class InTrayController {
             } else if (InTrayCommand.ACTION_NEXT.equals(intrayCmd.getAction()) || InTrayCommand.ACTION_PREVIOUS.equals(intrayCmd.getAction())) {
                 mav = defaultView(taskPage, notificationPage, pageSize, showTasks);
             } else if (InTrayCommand.ACTION_DELETE_ALL_NOTIFICATIONS.equals(intrayCmd.getAction())) {
-            	mav = deleteAllNotifications(intrayCmd, pageSize, showTasks);
+                mav = deleteAllNotifications(intrayCmd, pageSize, showTasks);
             } else if (InTrayCommand.ACTION_DELETE_ALL_TASKS.equals(intrayCmd.getAction())) {
-            	mav = deleteAllTasks(intrayCmd, pageSize, showTasks);
+                mav = deleteAllTasks(intrayCmd, pageSize, showTasks);
             }
         } else {
             //invalid action command so redirect to the view intray screen
@@ -111,13 +119,13 @@ public class InTrayController {
         return mav;
     }
 
-    @RequestMapping(path="/curator/intray/intray.html", method =RequestMethod.GET)
+    @GetMapping
     protected ModelAndView showForm(HttpServletRequest aReq) throws Exception {
 
-    	// get value of page size cookie
-		String currentPageSize = CookieUtils.getPageSize(aReq);
+        // get value of page size cookie
+        String currentPageSize = CookieUtils.getPageSize(aReq);
 
-		return defaultView(0, 0, Integer.parseInt(currentPageSize), null);
+        return defaultView(0, 0, Integer.parseInt(currentPageSize), null);
     }
 
     public void setInTrayManager(InTrayManager inTrayManager) {
@@ -132,7 +140,7 @@ public class InTrayController {
             log.warn("A form was posted to the InTrayController without a valid notifyOid attribute, redirecting to the showForm flow.");
         }
 
-		return defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
+        return defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
     }
 
     private ModelAndView viewNotification(InTrayCommand intrayCmd, int pageSize, Boolean showTasks) {
@@ -154,18 +162,17 @@ public class InTrayController {
         Long taskOid = intrayCmd.getTaskOid();
         if (taskOid != null) {
             try {
-				inTrayManager.deleteTask(taskOid);
-			}
-            catch (NotOwnerRuntimeException e) {
-            	bindingResult.reject("task.error.delete.not.owner");
-			}
+                inTrayManager.deleteTask(taskOid);
+            } catch (NotOwnerRuntimeException e) {
+                bindingResult.reject("task.error.delete.not.owner");
+            }
         } else {
             log.warn("A form was posted to the InTrayController without a valid taskOid attribute, redirecting to the showForm flow.");
         }
 
         ModelAndView mav = defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
         if (bindingResult.hasErrors()) {
-        	mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
         }
 
         return mav;
@@ -182,7 +189,7 @@ public class InTrayController {
             return mav;
         } else {
             log.warn("A form was posted to the InTrayController without a valid taskOid attribute, redirecting to the showForm flow.");
-            return defaultView(0,0,pageSize, showTasks);
+            return defaultView(0, 0, pageSize, showTasks);
         }
     }
 
@@ -219,13 +226,13 @@ public class InTrayController {
         mav.addObject(InTrayCommand.MDL_NOTIFICATIONS, notifications);
 
         //Set value to agency default only if the value hasn't been set yet
-		if(showTasks==null) {
-	        Agency agency = loggedInUser.getAgency();
-			showTasks = agency.getShowTasks();
-		}
+        if (showTasks == null) {
+            Agency agency = loggedInUser.getAgency();
+            showTasks = agency.getShowTasks();
+        }
 
-		Pagination tasks = inTrayManager.getTasks(loggedInUser, taskPage, pageSize);
-       	mav.addObject(InTrayCommand.MDL_TASKS, tasks);
+        Pagination tasks = inTrayManager.getTasks(loggedInUser, taskPage, pageSize);
+        mav.addObject(InTrayCommand.MDL_TASKS, tasks);
 
         mav.addObject(InTrayCommand.MDL_SHOW_TASKS, showTasks);
 
@@ -236,14 +243,14 @@ public class InTrayController {
     }
 
     private ModelAndView deleteAllNotifications(InTrayCommand intrayCmd, int pageSize, Boolean showTasks) {
-    	inTrayManager.deleteAllNotifications(AuthUtil.getRemoteUserObject().getOid());
-    	ModelAndView mav = defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
-    	return mav;
+        inTrayManager.deleteAllNotifications(AuthUtil.getRemoteUserObject().getOid());
+        ModelAndView mav = defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
+        return mav;
     }
 
     private ModelAndView deleteAllTasks(InTrayCommand intrayCmd, int pageSize, Boolean showTasks) {
-    	inTrayManager.deleteAllTasks();
-    	ModelAndView mav = defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
-    	return mav;
+        inTrayManager.deleteAllTasks();
+        ModelAndView mav = defaultView(intrayCmd.getTaskPage(), intrayCmd.getNotificationPage(), pageSize, showTasks);
+        return mav;
     }
 }

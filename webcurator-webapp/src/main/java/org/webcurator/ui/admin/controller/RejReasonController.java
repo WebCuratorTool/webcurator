@@ -46,7 +46,6 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.RejReason;
 import org.webcurator.ui.admin.command.RejReasonCommand;
 import org.webcurator.common.ui.Constants;
-import org.webcurator.ui.admin.validator.CreateRejReasonValidator;
 
 /**
  * Manages the Rejection Reason Administration view and the actions associated with a Rejection Reason
@@ -67,8 +66,6 @@ public class RejReasonController {
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
-    @Autowired
-    private CreateRejReasonValidator createRejReasonValidator;
     /** Default Constructor. */
     public RejReasonController() {
         log = LogFactory.getLog(RejReasonController.class);
@@ -90,7 +87,6 @@ public class RejReasonController {
     @RequestMapping(method = RequestMethod.POST, path = "/curator/admin/rejreason.html")
     protected ModelAndView processFormSubmission(HttpServletRequest aReq, @ModelAttribute RejReasonCommand rejReasonCommand, BindingResult bindingResult)
             throws Exception {
-        createRejReasonValidator.validate(rejReasonCommand, bindingResult);
         ModelAndView mav = new ModelAndView();
 
         if (rejReasonCommand != null) {

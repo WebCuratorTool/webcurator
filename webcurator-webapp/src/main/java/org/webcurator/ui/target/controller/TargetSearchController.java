@@ -51,195 +51,190 @@ import org.webcurator.ui.target.command.TargetSearchCommand;
 
 /**
  * The controller for searching for Targets.
+ *
  * @author bbeaumont
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@RequestMapping("/curator/target/search.html")
+@RequestMapping(path = {"/curator/target", "/curator/target/", "/curator/target/search.html"})
 public class TargetSearchController {
     @Autowired
-	private TargetDAO targetDao;
+    private TargetDAO targetDao;
     @Autowired
-	private TargetManager targetManager;
+    private TargetManager targetManager;
     @Autowired
-	private AgencyUserManager agencyUserManager;
+    private AgencyUserManager agencyUserManager;
 
-	@GetMapping
-	protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    @GetMapping
+    protected ModelAndView showForm(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-		// fetch command object (if any) from session..
-		TargetSearchCommand command = (TargetSearchCommand) request.getSession().getAttribute("targetSearchCommand");
-		if(command == null) {
-			command = getDefaultCommand();
-		}
+        // fetch command object (if any) from session..
+        TargetSearchCommand command = (TargetSearchCommand) request.getSession().getAttribute("targetSearchCommand");
+        if (command == null) {
+            command = getDefaultCommand();
+        }
 
-		// get value of page size cookie
-		String currentPageSize = CookieUtils.getPageSize(request);
-		// and set page size preference..
-		command.setSelectedPageSize(currentPageSize);
+        // get value of page size cookie
+        String currentPageSize = CookieUtils.getPageSize(request);
+        // and set page size preference..
+        command.setSelectedPageSize(currentPageSize);
 
-		return prepareSearchView(request, response, command);
-	}
+        return prepareSearchView(request, response, command);
+    }
 
-	public TargetSearchCommand getDefaultCommand() {
-		TargetSearchCommand command = new TargetSearchCommand();
-		Agency usersAgency = AuthUtil.getRemoteUserObject().getAgency();
-		command.setPageNumber(0);
-		command.setAgency(usersAgency.getName());
-		command.setOwner(AuthUtil.getRemoteUserObject().getUsername());
-		command.setSearchOid(null);
-		command.setSortorder(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC);
+    public TargetSearchCommand getDefaultCommand() {
+        TargetSearchCommand command = new TargetSearchCommand();
+        Agency usersAgency = AuthUtil.getRemoteUserObject().getAgency();
+        command.setPageNumber(0);
+        command.setAgency(usersAgency.getName());
+        command.setOwner(AuthUtil.getRemoteUserObject().getUsername());
+        command.setSearchOid(null);
+        command.setSortorder(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC);
 
-		return command;
-	}
+        return command;
+    }
 
-	/**
-	 * @return The search view.
-	 */
-	@SuppressWarnings("unchecked")
-	public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response) {
+    /**
+     * @return The search view.
+     */
+    @SuppressWarnings("unchecked")
+    public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response) {
 
-		// fetch command object (if any) from session..
-		TargetSearchCommand command = (TargetSearchCommand) request.getSession().getAttribute("targetSearchCommand");
-		if(command == null) {
-			command = getDefaultCommand();
-		}
-		command.setSelectedPageSize(CookieUtils.getPageSize(request));
+        // fetch command object (if any) from session..
+        TargetSearchCommand command = (TargetSearchCommand) request.getSession().getAttribute("targetSearchCommand");
+        if (command == null) {
+            command = getDefaultCommand();
+        }
+        command.setSelectedPageSize(CookieUtils.getPageSize(request));
 
-		return prepareSearchView(request, response, command);
-	}
+        return prepareSearchView(request, response, command);
+    }
 
-	@SuppressWarnings("unchecked")
-	public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response,
-			                              TargetSearchCommand command) {
+    @SuppressWarnings("unchecked")
+    public ModelAndView prepareSearchView(HttpServletRequest request, HttpServletResponse response,
+                                          TargetSearchCommand command) {
 
-		List<Agency> agencies = agencyUserManager.getAgencies();
+        List<Agency> agencies = agencyUserManager.getAgencies();
 
-		// We need to find the OID of the agency.
-		Agency currentAgency = null;
-		for(Agency a: agencies) {
-			if(a.getName().equals(command.getAgency())) {
-				currentAgency = a;
-				break;
-			}
-		}
+        // We need to find the OID of the agency.
+        Agency currentAgency = null;
+        for (Agency a : agencies) {
+            if (a.getName().equals(command.getAgency())) {
+                currentAgency = a;
+                break;
+            }
+        }
 
-		List owners = null;
+        List owners = null;
         if (currentAgency != null) {
-        	owners = agencyUserManager.getUserDTOs(currentAgency.getOid());
+            owners = agencyUserManager.getUserDTOs(currentAgency.getOid());
+        } else {
+            owners = agencyUserManager.getUserDTOs();
         }
-        else {
-        	owners = agencyUserManager.getUserDTOs();
+
+        // get value of page size cookie
+        String currentPageSize = CookieUtils.getPageSize(request);
+
+        Pagination results = null;
+        if (command.getSelectedPageSize() != null && command.getSelectedPageSize().equals(currentPageSize)) {
+            // user has left the page size unchanged..
+            results = targetDao.search(command.getPageNumber(), Integer.parseInt(command.getSelectedPageSize()), command.getSearchOid(), command.getName(), command.getStates(), command.getSeed(), command.getOwner(), command.getAgency(), command.getMemberOf(), command.getNondisplayonly(), command.getSortorder(), command.getDescription());
+        } else {
+            String pageSize = command.getSelectedPageSize();
+            if (pageSize == null) {
+                pageSize = currentPageSize;
+            } else {
+                CookieUtils.setPageSize(response, command.getSelectedPageSize());
+            }
+            // user has selected a new page size, so reset to first page..
+            results = targetDao.search(0, Integer.parseInt(pageSize), command.getSearchOid(), command.getName(), command.getStates(), command.getSeed(), command.getOwner(), command.getAgency(), command.getMemberOf(), command.getNondisplayonly(), command.getSortorder(), command.getDescription());
         }
 
-		// get value of page size cookie
-		String currentPageSize = CookieUtils.getPageSize(request);
+        // we need to populate annotations to determine if targets are alertable.
+        for (Iterator<Target> i = ((List<Target>) results.getList()).iterator(); i.hasNext(); ) {
+            Target t = i.next();
+            t.setAnnotations(targetManager.getAnnotations(t));
+        }
 
-		Pagination results = null;
-		if (command.getSelectedPageSize() != null && command.getSelectedPageSize().equals(currentPageSize)) {
-			// user has left the page size unchanged..
-			results = targetDao.search(command.getPageNumber(), Integer.parseInt(command.getSelectedPageSize()), command.getSearchOid(), command.getName(), command.getStates(), command.getSeed(), command.getOwner(), command.getAgency(), command.getMemberOf(), command.getNondisplayonly(), command.getSortorder(), command.getDescription());
-		}
-		else {
-			String pageSize = command.getSelectedPageSize();
-			if(pageSize==null) {
-				pageSize = currentPageSize;
-			} else {
-				CookieUtils.setPageSize(response, command.getSelectedPageSize());
-			}
-			// user has selected a new page size, so reset to first page..
-			results = targetDao.search(0, Integer.parseInt(pageSize), command.getSearchOid(), command.getName(), command.getStates(), command.getSeed(), command.getOwner(), command.getAgency(), command.getMemberOf(), command.getNondisplayonly(), command.getSortorder(), command.getDescription());
-		}
-
-		// we need to populate annotations to determine if targets are alertable.
-		for (Iterator<Target> i = ((List<Target>) results.getList()).iterator( ); i.hasNext(); ) {
-			Target t = i.next();
-			t.setAnnotations(targetManager.getAnnotations(t));
-		}
-
-		request.getSession().setAttribute("targetSearchCommand", command);
+        request.getSession().setAttribute("targetSearchCommand", command);
 
         ModelAndView mav = new ModelAndView("target-search");
-		mav.addObject("agencies", agencies);
-		mav.addObject("owners", owners);
-		mav.addObject(Constants.GBL_CMD_DATA, command);
-		mav.addObject("page", results);
+        mav.addObject("agencies", agencies);
+        mav.addObject("owners", owners);
+        mav.addObject(Constants.GBL_CMD_DATA, command);
+        mav.addObject("page", results);
 
-		return mav;
-	}
+        return mav;
+    }
 
-	@PostMapping
-	protected ModelAndView processFormSubmission(HttpServletRequest request,
-			HttpServletResponse response, TargetSearchCommand command) throws Exception {
+    @PostMapping
+    protected ModelAndView processFormSubmission(HttpServletRequest request,
+                                                 HttpServletResponse response, TargetSearchCommand command) throws Exception {
 
-		if(TargetSearchCommand.ACTION_SEARCH.equals(command.getActionCmd())) {
-			return prepareSearchView(request, response, command);
-		}
-		else if(TargetSearchCommand.ACTION_RESET.equals(command.getActionCmd())) {
-			command.setAgency("");
-			command.setName("");
-			command.setOwner("");
-			command.setPageNumber(0);
-			command.setSeed("");
-			command.setStates(new HashSet<Integer>());
-			command.setMemberOf("");
-			command.setSearchOid(null);
-			command.setSortorder(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC);
-			command.setDescription("");
+        if (TargetSearchCommand.ACTION_SEARCH.equals(command.getActionCmd())) {
+            return prepareSearchView(request, response, command);
+        } else if (TargetSearchCommand.ACTION_RESET.equals(command.getActionCmd())) {
+            command.setAgency("");
+            command.setName("");
+            command.setOwner("");
+            command.setPageNumber(0);
+            command.setSeed("");
+            command.setStates(new HashSet<Integer>());
+            command.setMemberOf("");
+            command.setSearchOid(null);
+            command.setSortorder(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC);
+            command.setDescription("");
 
-			return prepareSearchView(request, response, command);
-		}
-		else if(TargetSearchCommand.ACTION_DELETE.equals(command.getActionCmd())){
-			// TODO Load target, check privileges, and delete the target.
-			// Then return to the search view.
-			Target aTarget = targetManager.load(command.getSelectedTargetOid());
-			targetManager.deleteTarget(aTarget);
-			return prepareSearchView(request, response, command);
-		}
-		else {
-			return null;
-		}
-	}
+            return prepareSearchView(request, response, command);
+        } else if (TargetSearchCommand.ACTION_DELETE.equals(command.getActionCmd())) {
+            // TODO Load target, check privileges, and delete the target.
+            // Then return to the search view.
+            Target aTarget = targetManager.load(command.getSelectedTargetOid());
+            targetManager.deleteTarget(aTarget);
+            return prepareSearchView(request, response, command);
+        } else {
+            return null;
+        }
+    }
 
 
+    /* (non-Javadoc)
+     * @see org.springframework.web.servlet.mvc.BaseCommandController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)
+     */
+    @InitBinder
+    protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+        binder.registerCustomEditor(Set.class, "states", new CustomIntegerCollectionEditor(Set.class, true));
+        binder.registerCustomEditor(Long.class, "selectedTargetOid", new CustomNumberEditor(Long.class, true));
+        binder.registerCustomEditor(Long.class, "searchOid", new CustomNumberEditor(Long.class, true));
+    }
 
-	/* (non-Javadoc)
-	 * @see org.springframework.web.servlet.mvc.BaseCommandController#initBinder(javax.servlet.http.HttpServletRequest, org.springframework.web.bind.ServletRequestDataBinder)
-	 */
-	@InitBinder
-	protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-		binder.registerCustomEditor(Set.class, "states", new CustomIntegerCollectionEditor(Set.class,true));
-		binder.registerCustomEditor(Long.class, "selectedTargetOid", new CustomNumberEditor(Long.class,true));
-		binder.registerCustomEditor(Long.class, "searchOid", new CustomNumberEditor(Long.class,true));
-	}
+    /**
+     * @return Returns the targetDao.
+     */
+    public TargetDAO getTargetDao() {
+        return targetDao;
+    }
 
-	/**
-	 * @return Returns the targetDao.
-	 */
-	public TargetDAO getTargetDao() {
-		return targetDao;
-	}
+    /**
+     * @param targetDao The targetDao to set.
+     */
+    public void setTargetDao(TargetDAO targetDao) {
+        this.targetDao = targetDao;
+    }
 
-	/**
-	 * @param targetDao The targetDao to set.
-	 */
-	public void setTargetDao(TargetDAO targetDao) {
-		this.targetDao = targetDao;
-	}
+    /**
+     * @param agencyUserManager The agencyUserManager to set.
+     */
+    public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
+        this.agencyUserManager = agencyUserManager;
+    }
 
-	/**
-	 * @param agencyUserManager The agencyUserManager to set.
-	 */
-	public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
-		this.agencyUserManager = agencyUserManager;
-	}
-
-	/**
-	 * @param targetManager The targetManager to set.
-	 */
-	public void setTargetManager(TargetManager targetManager) {
-		this.targetManager = targetManager;
-	}
+    /**
+     * @param targetManager The targetManager to set.
+     */
+    public void setTargetManager(TargetManager targetManager) {
+        this.targetManager = targetManager;
+    }
 
 }

@@ -65,7 +65,13 @@ public interface Auditor {
      * the system.
      */
     public static final String ACTION_DELETE_USER = "DELETE_USER";
-    
+
+    /**
+     * Audit action used to identify that an Agency has been deleted from
+     * the system.
+     */
+    public static final String ACTION_DELETE_AGENCY = "DELETE_USER";
+
     /**
      * Audit action used to identify the modification of a Users Roles within the
      * WCT system.

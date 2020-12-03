@@ -33,7 +33,7 @@ function setAction(index, actionCmd)
 	<tr>
 	    <td class="tableRowLite"><c:out value="${agency.name}"/></td>
 	    <td class="tableRowLite"><c:out value="${agency.address}"/></td>
-		    <td class="tableRowLite">
+		<td class="tableRowLite">
 		    <form action="<%= Constants.CNTRL_AGENCY %>" method="POST">
 			<input type="hidden" name="<%= AgencyCommand.PARAM_OID%>" value="${agency.oid}">
 			<input id="rowAction<c:out value="${count}"/>" type="hidden" name="<%= AgencyCommand.PARAM_ACTION%>"/>
@@ -44,7 +44,7 @@ function setAction(index, actionCmd)
 				<input type="image" title="edit" src="images/action-icon-edit.gif" alt="click here to EDIT this item" width="18" height="18" border="0" onclick="javascript:setAction(<c:out value="${count}"/>, '<%= AgencyCommand.ACTION_EDIT%>');"/>
 			</authority:hasPrivilege>
 			</form>
-			</td>
+		</td>
 	</tr>
 	<c:set var="count" scope="page" value="${count+1}" />
 	</c:forEach>

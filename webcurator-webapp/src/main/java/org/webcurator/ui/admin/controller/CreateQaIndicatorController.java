@@ -41,6 +41,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
+import org.webcurator.common.util.Utils;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.Agency;
@@ -54,6 +55,7 @@ import org.webcurator.ui.admin.validator.CreateQaIndicatorValidator;
 
 /**
  * Manages the creation flow for a QA Indicator within WCT
+ *
  * @author oakleigh_sk
  */
 @Controller
@@ -61,30 +63,40 @@ import org.webcurator.ui.admin.validator.CreateQaIndicatorValidator;
 @Lazy(false)
 @RequestMapping("/curator/admin/create-qaindicator.html")
 public class CreateQaIndicatorController {
-	/** the logger. */
+    /**
+     * the logger.
+     */
     private Log log = null;
-    /** the agency user manager. */
+    /**
+     * the agency user manager.
+     */
     @Autowired
     private AgencyUserManager agencyUserManager;
-    /** the authority manager. */
+    /**
+     * the authority manager.
+     */
     @Autowired
     private AuthorityManager authorityManager;
-    /** the message source. */
+    /**
+     * the message source.
+     */
     @Autowired
     private MessageSource messageSource;
 
     @Autowired
     private CreateQaIndicatorValidator createQaIndicatorValidator;
 
-    /** Default Constructor. */
+    /**
+     * Default Constructor.
+     */
     public CreateQaIndicatorController() {
-    	super();
+        super();
         log = LogFactory.getLog(CreateQaIndicatorController.class);
     }
 
     @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-    	// enable null values for long and float fields
+        // enable null values for long and float fields
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
         NumberFormat floatFormat = new DecimalFormat("############.##");
         binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
@@ -102,129 +114,128 @@ public class CreateQaIndicatorController {
             throws Exception {
         createQaIndicatorValidator.validate(indicatorCmd, bindingResult);
         ModelAndView mav = null;
-        if (indicatorCmd != null) {
-            if (bindingResult.hasErrors()) {
-                mav = new ModelAndView();
-                List agencies = agencyUserManager.getAgenciesForLoggedInUser();
-                mav.addObject(CreateQaIndicatorCommand.MDL_AGENCIES, agencies);
-                mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
-
-                String mode = indicatorCmd.getMode();
-                if (CreateQaIndicatorCommand.ACTION_EDIT.equals(mode)) {
-                    mav.addObject(CreateQaIndicatorCommand.ACTION_EDIT, mode);
-                }
-                mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
-                mav.addObject(Constants.GBL_ERRORS, bindingResult);
-                mav.setViewName("newIndicator");
-
-            } else if (CreateQaIndicatorCommand.ACTION_NEW.equals(indicatorCmd.getAction())) {
-                mav = new ModelAndView();
-                List agencies = agencyUserManager.getAgenciesForLoggedInUser();
-                mav.addObject(CreateQaIndicatorCommand.MDL_AGENCIES, agencies);
-                mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
-                mav.setViewName("newIndicator");
-
-            } else if (CreateQaIndicatorCommand.ACTION_VIEW.equals(indicatorCmd.getAction()) ||
-            		CreateQaIndicatorCommand.ACTION_EDIT.equals(indicatorCmd.getAction())) {
-                //View/Edit an existing indicator
-                mav = new ModelAndView();
-                Long indicatorOid = indicatorCmd.getOid();
-                IndicatorCriteria indicator = agencyUserManager.getIndicatorCriteriaByOid(indicatorOid);
-                CreateQaIndicatorCommand editCmd = new CreateQaIndicatorCommand();
-                editCmd.setOid(indicatorOid);
-                editCmd.setAgencyOid(indicator.getAgency().getOid());
-                editCmd.setName(indicator.getName());
-                editCmd.setDescription(indicator.getDescription());
-                editCmd.setUpperLimit(indicator.getUpperLimit());
-                editCmd.setLowerLimit(indicator.getLowerLimit());
-                editCmd.setUpperLimitPercentage(indicator.getUpperLimitPercentage());
-                editCmd.setLowerLimitPercentage(indicator.getLowerLimitPercentage());
-                editCmd.setUnit(indicator.getUnit());
-                editCmd.setShowDelta(indicator.getShowDelta());
-                editCmd.setEnableReport(indicator.getEnableReport());
-                editCmd.setMode(indicatorCmd.getAction());
-
-                List agencies = agencyUserManager.getAgenciesForLoggedInUser();
-                mav.addObject(CreateQaIndicatorCommand.MDL_AGENCIES, agencies);
-                mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
-                mav.addObject(Constants.GBL_CMD_DATA, editCmd);
-                mav.setViewName("newIndicator");
-
-            } else if (CreateQaIndicatorCommand.ACTION_SAVE.equals(indicatorCmd.getAction())) {
-
-
-                    try {
-                        IndicatorCriteria indicator = new IndicatorCriteria();
-                        boolean update = (indicatorCmd.getOid() != null);
-                        if (update == true) {
-                            // Update an existing indicator object by loading it in first
-                        	indicator = agencyUserManager.getIndicatorCriteriaByOid(indicatorCmd.getOid());
-                        } else {
-                        	// Save the newly created indicator object
-
-                            //load Agency
-                            Long agencyOid = indicatorCmd.getAgencyOid();
-                            Agency agency = agencyUserManager.getAgencyByOid(agencyOid);
-                            indicator.setAgency(agency);
-                        }
-
-                        indicator.setName(indicatorCmd.getName());
-                        indicator.setDescription(indicatorCmd.getDescription());
-                        indicator.setUpperLimit(indicatorCmd.getUpperLimit());
-                        indicator.setLowerLimit(indicatorCmd.getLowerLimit());
-                        indicator.setUpperLimitPercentage(indicatorCmd.getUpperLimitPercentage());
-                        indicator.setLowerLimitPercentage(indicatorCmd.getLowerLimitPercentage());
-
-                        indicator.setUnit(indicatorCmd.getUnit());
-                        Boolean showDelta = indicatorCmd.getShowDelta();
-                        if (showDelta == null) showDelta = false;
-                        indicator.setShowDelta(showDelta);
-                        Boolean enableReport = indicatorCmd.getEnableReport();
-                        if (enableReport == null) enableReport = false;
-                        indicator.setEnableReport(enableReport);
-
-                        agencyUserManager.updateIndicatorCriteria(indicator, update);
-
-                        List indicators = agencyUserManager.getIndicatorCriteriaForLoggedInUser();
-                        List agencies = null;
-                        if (authorityManager.hasPrivilege(Privilege.MANAGE_INDICATORS, Privilege.SCOPE_ALL)) {
-                        	agencies = agencyUserManager.getAgencies();
-                        } else {
-                            User loggedInUser = AuthUtil.getRemoteUserObject();
-                            Agency usersAgency = loggedInUser.getAgency();
-                            agencies = new ArrayList<Agency>();
-                            agencies.add(usersAgency);
-                        }
-
-                        mav = new ModelAndView();
-                        String message;
-                        if (update == true) {
-                            message = messageSource.getMessage("indicator.updated", new Object[] { indicatorCmd.getName() }, Locale.getDefault());
-                        } else {
-                            message = messageSource.getMessage("indicator.created", new Object[] { indicatorCmd.getName() }, Locale.getDefault());
-                        }
-                        String agencyFilter = (String)aReq.getSession().getAttribute(QaIndicatorCommand.MDL_AGENCYFILTER);
-                        if(agencyFilter == null)
-                        {
-                        	agencyFilter = AuthUtil.getRemoteUserObject().getAgency().getName();
-                        }
-                        mav.addObject(QaIndicatorCommand.MDL_AGENCYFILTER, agencyFilter);
-                        mav.addObject(QaIndicatorCommand.MDL_LOGGED_IN_USER, AuthUtil.getRemoteUserObject());
-                        mav.addObject(QaIndicatorCommand.MDL_QA_INDICATORS, indicators);
-                        mav.addObject(QaIndicatorCommand.MDL_AGENCIES, agencies);
-                        mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
-
-                        mav.addObject(Constants.GBL_MESSAGES, message );
-
-                        mav.setViewName("viewIndicators");
-                    }
-                    catch (DataAccessException e) {
-                    	e.printStackTrace();
-                    }
-
-            }
-        } else {
+        if (indicatorCmd == null) {
             log.warn("No Action provided for CreateQaIndicatorController.");
+            return mav;
+        }
+        if (bindingResult.hasErrors()) {
+            mav = new ModelAndView();
+            List agencies = agencyUserManager.getAgenciesForLoggedInUser();
+            mav.addObject(CreateQaIndicatorCommand.MDL_AGENCIES, agencies);
+            mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
+
+            String mode = indicatorCmd.getMode();
+            if (CreateQaIndicatorCommand.ACTION_EDIT.equals(mode)) {
+                mav.addObject(CreateQaIndicatorCommand.ACTION_EDIT, mode);
+            }
+            mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.setViewName("newIndicator");
+
+        } else if (CreateQaIndicatorCommand.ACTION_NEW.equals(indicatorCmd.getAction())) {
+            mav = new ModelAndView();
+            List agencies = agencyUserManager.getAgenciesForLoggedInUser();
+            mav.addObject(CreateQaIndicatorCommand.MDL_AGENCIES, agencies);
+            mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
+            mav.setViewName("newIndicator");
+
+        } else if (CreateQaIndicatorCommand.ACTION_VIEW.equals(indicatorCmd.getAction()) ||
+                CreateQaIndicatorCommand.ACTION_EDIT.equals(indicatorCmd.getAction())) {
+            //View/Edit an existing indicator
+            mav = new ModelAndView();
+            Long indicatorOid = indicatorCmd.getOid();
+            IndicatorCriteria indicator = agencyUserManager.getIndicatorCriteriaByOid(indicatorOid);
+            CreateQaIndicatorCommand editCmd = new CreateQaIndicatorCommand();
+            editCmd.setOid(indicatorOid);
+            editCmd.setAgencyOid(indicator.getAgency().getOid());
+            editCmd.setName(indicator.getName());
+            editCmd.setDescription(indicator.getDescription());
+            editCmd.setUpperLimit(indicator.getUpperLimit());
+            editCmd.setLowerLimit(indicator.getLowerLimit());
+            editCmd.setUpperLimitPercentage(indicator.getUpperLimitPercentage());
+            editCmd.setLowerLimitPercentage(indicator.getLowerLimitPercentage());
+            editCmd.setUnit(indicator.getUnit());
+            editCmd.setShowDelta(indicator.getShowDelta());
+            editCmd.setEnableReport(indicator.getEnableReport());
+            editCmd.setMode(indicatorCmd.getAction());
+
+            List agencies = agencyUserManager.getAgenciesForLoggedInUser();
+            mav.addObject(CreateQaIndicatorCommand.MDL_AGENCIES, agencies);
+            mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
+            mav.addObject(Constants.GBL_CMD_DATA, editCmd);
+            mav.setViewName("newIndicator");
+
+        } else if (CreateQaIndicatorCommand.ACTION_SAVE.equals(indicatorCmd.getAction())) {
+            try {
+                IndicatorCriteria indicator = new IndicatorCriteria();
+                boolean update = (indicatorCmd.getOid() != null);
+                if (update == true) {
+                    // Update an existing indicator object by loading it in first
+                    indicator = agencyUserManager.getIndicatorCriteriaByOid(indicatorCmd.getOid());
+                } else {
+                    // Save the newly created indicator object
+
+                    //load Agency
+                    Long agencyOid = indicatorCmd.getAgencyOid();
+                    Agency agency = agencyUserManager.getAgencyByOid(agencyOid);
+                    indicator.setAgency(agency);
+                }
+
+                indicator.setName(indicatorCmd.getName());
+                indicator.setDescription(indicatorCmd.getDescription());
+                indicator.setUpperLimit(indicatorCmd.getUpperLimit());
+                indicator.setLowerLimit(indicatorCmd.getLowerLimit());
+                indicator.setUpperLimitPercentage(indicatorCmd.getUpperLimitPercentage());
+                indicator.setLowerLimitPercentage(indicatorCmd.getLowerLimitPercentage());
+                if (Utils.isEmpty(indicatorCmd.getUnit())) {
+                    indicator.setUnit("");
+                } else {
+                    indicator.setUnit(indicatorCmd.getUnit());
+                }
+                Boolean showDelta = indicatorCmd.getShowDelta();
+                if (showDelta == null) showDelta = false;
+                indicator.setShowDelta(showDelta);
+                Boolean enableReport = indicatorCmd.getEnableReport();
+                if (enableReport == null) enableReport = false;
+                indicator.setEnableReport(enableReport);
+
+                agencyUserManager.updateIndicatorCriteria(indicator, update);
+
+                List indicators = agencyUserManager.getIndicatorCriteriaForLoggedInUser();
+                List agencies = null;
+                if (authorityManager.hasPrivilege(Privilege.MANAGE_INDICATORS, Privilege.SCOPE_ALL)) {
+                    agencies = agencyUserManager.getAgencies();
+                } else {
+                    User loggedInUser = AuthUtil.getRemoteUserObject();
+                    Agency usersAgency = loggedInUser.getAgency();
+                    agencies = new ArrayList<Agency>();
+                    agencies.add(usersAgency);
+                }
+
+                mav = new ModelAndView();
+                String message;
+                if (update == true) {
+                    message = messageSource.getMessage("indicator.updated", new Object[]{indicatorCmd.getName()}, Locale.getDefault());
+                } else {
+                    message = messageSource.getMessage("indicator.created", new Object[]{indicatorCmd.getName()}, Locale.getDefault());
+                }
+                String agencyFilter = (String) aReq.getSession().getAttribute(QaIndicatorCommand.MDL_AGENCYFILTER);
+                if (agencyFilter == null) {
+                    agencyFilter = AuthUtil.getRemoteUserObject().getAgency().getName();
+                }
+                mav.addObject(QaIndicatorCommand.MDL_AGENCYFILTER, agencyFilter);
+                mav.addObject(QaIndicatorCommand.MDL_LOGGED_IN_USER, AuthUtil.getRemoteUserObject());
+                mav.addObject(QaIndicatorCommand.MDL_QA_INDICATORS, indicators);
+                mav.addObject(QaIndicatorCommand.MDL_AGENCIES, agencies);
+                mav.addObject(CreateQaIndicatorCommand.MDL_UNITS, IndicatorCriteria.UNITS);
+
+                mav.addObject(Constants.GBL_MESSAGES, message);
+
+                mav.setViewName("viewIndicators");
+            } catch (DataAccessException e) {
+                e.printStackTrace();
+            }
+
         }
 
         return mav;
@@ -245,10 +256,11 @@ public class CreateQaIndicatorController {
     }
 
     /**
-	 * Spring setter method for the Authority Manager.
-	 * @param authorityManager The authorityManager to set.
-	 */
-	public void setAuthorityManager(AuthorityManager authorityManager) {
-		this.authorityManager = authorityManager;
-	}
+     * Spring setter method for the Authority Manager.
+     *
+     * @param authorityManager The authorityManager to set.
+     */
+    public void setAuthorityManager(AuthorityManager authorityManager) {
+        this.authorityManager = authorityManager;
+    }
 }

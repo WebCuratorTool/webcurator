@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
@@ -28,25 +29,29 @@ import org.webcurator.common.ui.Constants;
 
 /**
  * Controller to render the management "menu" tab.
+ *
  * @author bprice
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@RequestMapping(path = {"/curator/admin", "/curator/admin/", "/curator/admin/management.html"})
 public class ManagementController {
 
-	/** enables the Management page (QA version) when true **/
+    /**
+     * enables the Management page (QA version) when true
+     **/
     @Value("${queueController.enableQaModule}")
-	private boolean enableQaModule;
+    private boolean enableQaModule;
 
-    @RequestMapping(method = RequestMethod.GET, path = "/curator/admin/management.html")
+    @GetMapping
     protected ModelAndView showForm() throws Exception {
         ModelAndView mav = new ModelAndView();
 
         if (!enableQaModule) {
-        	mav.setViewName(Constants.VIEW_MANAGEMENT);
+            mav.setViewName(Constants.VIEW_MANAGEMENT);
         } else {
-        	mav.setViewName(Constants.VIEW_QA_MANAGEMENT);
+            mav.setViewName(Constants.VIEW_QA_MANAGEMENT);
         }
         return mav;
     }
@@ -56,12 +61,13 @@ public class ManagementController {
         return null;
     }
 
-	/**
-	 * Enable/disable the new QA Module (disabled by default)
-	 * @param enableQaModule Enables the QA module.
-	 */
-	public void setEnableQaModule(Boolean enableQaModule) {
-		this.enableQaModule = enableQaModule;
-	}
+    /**
+     * Enable/disable the new QA Module (disabled by default)
+     *
+     * @param enableQaModule Enables the QA module.
+     */
+    public void setEnableQaModule(Boolean enableQaModule) {
+        this.enableQaModule = enableQaModule;
+    }
 
 }

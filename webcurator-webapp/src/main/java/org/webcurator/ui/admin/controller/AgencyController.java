@@ -1,18 +1,3 @@
-/*
- *  Copyright 2006 The National Library of New Zealand
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
 package org.webcurator.ui.admin.controller;
 
 import java.text.NumberFormat;
@@ -39,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
+import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.ui.admin.command.AgencyCommand;
 import org.webcurator.common.ui.Constants;
@@ -46,24 +32,33 @@ import org.webcurator.ui.admin.validator.AgencyValidator;
 
 /**
  * Manages the Agency Administration view and the actions associated with a Agency
+ *
  * @author bprice
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
 public class AgencyController {
-	/** the logger. */
+    /**
+     * the logger.
+     */
     private Log log = null;
-    /** the user manager. */
+    /**
+     * the user manager.
+     */
     @Autowired
     private AgencyUserManager agencyUserManager;
-    /** the message source. */
+    /**
+     * the message source.
+     */
     @Autowired
     private MessageSource messageSource;
-    /** Default Constructor. */
+    /**
+     * Default Constructor.
+     */
 
     @Autowired
-	private WCTTreeSet dublinCoreTypesList;
+    private WCTTreeSet dublinCoreTypesList;
 
     @Autowired
     private AgencyValidator agencyValidator;
@@ -91,7 +86,7 @@ public class AgencyController {
         ModelAndView mav = null;
         if (agencyCommand != null) {
             if (bindingResult.hasErrors()) {
-                mav = new ModelAndView();
+//                mav = new ModelAndView();
                 mav = populateAgencyList();
                 mav.addObject(Constants.GBL_CMD_DATA, bindingResult.getTarget());
                 mav.addObject(Constants.GBL_ERRORS, bindingResult);
@@ -122,15 +117,20 @@ public class AgencyController {
                 agency.setShowTasks(agencyCommand.getShowTasks());
                 agency.setDefaultDescriptionType(agencyCommand.getDescriptionType());
 
-                agencyUserManager.updateAgency(agency, update);
+                try {
+                    agencyUserManager.updateAgency(agency, update);
+                } catch (WCTRuntimeException e) {
+                    bindingResult.reject("Error", "Duplicated ");
+                }
+
                 mav = populateAgencyList();
                 if (update == true) {
-                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.updated", new Object[] { agencyCommand.getName() }, Locale.getDefault()));
+                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.updated", new Object[]{agencyCommand.getName()}, Locale.getDefault()));
                 } else {
-                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.created", new Object[] { agencyCommand.getName() }, Locale.getDefault()));
+                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("agency.created", new Object[]{agencyCommand.getName()}, Locale.getDefault()));
                 }
             } else if (AgencyCommand.ACTION_VIEW.equals(agencyCommand.getActionCommand()) ||
-            		AgencyCommand.ACTION_EDIT.equals(agencyCommand.getActionCommand())) {
+                    AgencyCommand.ACTION_EDIT.equals(agencyCommand.getActionCommand())) {
 
                 Agency agency = agencyUserManager.getAgencyByOid(agencyCommand.getOid());
                 AgencyCommand populatedCmd = new AgencyCommand();
@@ -150,13 +150,15 @@ public class AgencyController {
                 mav = populateAgencyList();
                 mav.addObject(Constants.GBL_CMD_DATA, populatedCmd);
                 mav.setViewName("newAgency");
+            } else {
+                mav = populateAgencyList();
             }
         } else {
             log.warn("No Action provided for AgencyController.");
             mav = populateAgencyList();
         }
 
-		mav.addObject("descriptionTypes", dublinCoreTypesList);
+        mav.addObject("descriptionTypes", dublinCoreTypesList);
         return mav;
     }
 
@@ -186,10 +188,9 @@ public class AgencyController {
         this.messageSource = messageSource;
     }
 
-	public void setDublinCoreTypesList(WCTTreeSet dublinCoreTypesList) {
-		this.dublinCoreTypesList = dublinCoreTypesList;
-	}
+    public void setDublinCoreTypesList(WCTTreeSet dublinCoreTypesList) {
+        this.dublinCoreTypesList = dublinCoreTypesList;
+    }
 
 
 }
-
