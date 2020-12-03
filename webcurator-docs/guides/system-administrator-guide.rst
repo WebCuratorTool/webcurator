@@ -379,6 +379,35 @@ inside the directory where you run the java command. You only need to add the va
 Spring Boot will pick up the other variables from the namesake file inside the binary. This goes for all three
 components.*
 
+Configure TLS/SSL access
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since you will be sending credentials over potentially untrusted networks when you login, it is wise to configure 
+the Webapp to use TLS/SSL. To do so you need to create a keystore containing the certificate for your server, 
+using a tool such Java's *keytool*. (The process of acquiring and importing a CA-signed certificate is outside 
+of the scope of this document.) Then add the following properties to the relevant application properties file::
+
+   # The format used for the keystore. It could be set to JKS in case it is a JKS file
+   server.ssl.key-store-type=PKCS12
+   # The path to the keystore containing the certificate
+   server.ssl.key-store=wct.p12
+   # The password used to generate the certificate
+   server.ssl.key-store-password=password
+   # The alias mapped to the certificate
+   server.ssl.key-alias=wct
+   
+   # forces ssl
+   server.ssl.enabled=true
+   
+   server.port=8043
+
+Note that *key-store* is a filepath relative to the working directory of the *java* command used to run the application. 
+The *key-alias* should match the alias you used when adding the certificate to the keystore (with keytool's *-alias* 
+argument). You should also update the *harvestCoordinatorNotifier.baseUrl* and the *webapp.baseUrl* properties in the 
+application.properties of the Harvest Agents and the Store (respectively) to reflect the changed *server.port* and 
+the 'https' URL scheme of Webapp.
+
+TODO: This will not work for self-signed certificates. Additional configuration of Harvest Agents and Store is required.
 
 Configure the Database Connection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
