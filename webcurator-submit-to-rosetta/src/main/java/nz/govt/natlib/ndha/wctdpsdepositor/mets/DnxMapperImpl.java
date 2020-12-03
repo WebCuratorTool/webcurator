@@ -314,7 +314,9 @@ public class DnxMapperImpl implements DnxMapper {
                 if(field.getDcFieldType().equals("dc")){
                     // If the field has already been set above, then remove so it can be updated with value below
                     if(ieDc.getDcValue(field.getDcFieldLabel()) != null){
-                        ieDc.removeElemet(DublinCore.dcNamespace.getXPathNameStep(), field.getDcFieldLabel());
+                        log.debug("DC field already exists in METs, attempting to remove: " + field.getDcFieldLabel());
+                        String fieldXPathKey = "dc:" + field.getDcFieldLabel();
+                        ieDc.removeElemet(fieldXPathKey);
                     }
                     addAdditionalDcElement(dc, field.getDcFieldLabel(), ieDc, field.isMandatory());
                 }

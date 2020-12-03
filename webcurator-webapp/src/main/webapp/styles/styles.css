@@ -12,7 +12,7 @@ body {
 	/* Change this color if you want  give various environments a uniquely colored 
 		indicator border */
 body, #pageBody, #homeContentLeft, #homeContentRight {
-	border: solid green;
+	/*border: solid green;*/
 }
 
 /* Removes padding from the form */

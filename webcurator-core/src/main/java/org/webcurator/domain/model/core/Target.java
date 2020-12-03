@@ -71,11 +71,11 @@ public class Target extends AbstractTarget implements Optimizable {
 	@Column(name = "T_SELECTION_TYPE")
 	private String selectionType;
 	/** A selection note */
-	@Size(max=255)
+	@Size(max=1000)
 	@Column(name = "T_SELECTION_NOTE")
 	private String selectionNote;
 	/** An evaluation note */
-	@Size(max=255)
+	@Size(max=1000)
 	@Column(name = "T_EVALUATION_NOTE")
 	private String evaluationNote;
 	/** The type of harvest */
