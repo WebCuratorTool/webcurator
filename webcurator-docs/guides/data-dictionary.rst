@@ -14,7 +14,7 @@ Introduction
 This guide, designed for a Web Curator Tool developer and contributor, explains
 and documents the database for the Web Curator Tool. The source for both code
 and documentation for the Web Curator Tool can be found at:
-http://dia-nz.github.io/webcurator/
+https://www.webcuratortool.org/
 
 For information on how to install and setup the Web Curator Tool, see the Web
 Curator Tool System Administrator Guide. For information about developing

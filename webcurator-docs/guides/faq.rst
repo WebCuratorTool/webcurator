@@ -45,13 +45,19 @@ Q: How do I change where my harvests are being stored?
 ------------------------------------------------------
 
 A: Your harvest collection is stored by the WCT-Store module. The location of this store can by set via the
-`wct-das.properties` file, located in `/<path to tomcat>/webapps/wct-store/WEB-INF/classes/`. Each harvest is stored in
-a folder with the Target Instance number. Please note warc/arc files are only transferred here after the harvest has
-been completed.
-::
+`application.properties` file, located in `webcurator-store.war/BOOT-INF/classes/application.properties`.
+Each harvest is stored in a folder with the Target Instance number. Please note warc/arc files are only
+transferred here after the harvest has been completed. ::
 
     # the base directory for the arc store
     arcDigitalAssetStoreService.baseDir=C:/wct/store
+
+Q: Why isn't WCT using Heritrix 3.x?
+------------------------------------
+
+A: Check that the WCT H3 Harvest Agent can reach the H3 instance. Compare the connection details in
+   `harvest-agent-h3.jar\BOOT-INF\classes\application.properties` with how the H3 instance is being
+   started and where.
 
 Q: Why can't I find my harvests in Wayback?
 -------------------------------------------
@@ -66,6 +72,5 @@ several steps you can check to make sure the indexing process has worked.
 -   If the index had been completed successfully you should see an entry for your harvest warc/arc in the
     `/<wayback dir>/file-db/db.log` file.
 -   If you have moved your Wayback common location, check that the required configuration files have been updated
-    correctly. Listed in the `Wayback configuration<https://github.com/DIA-NZ/webcurator/wiki/Wayback-Integration>`_
-    page.
+    correctly. See :doc:`Wayback Integration Guide <wayback-integration-guide>`.
 -   Try restarting your Tomcat server.

@@ -31,7 +31,7 @@ major Web Curator Tool modules.
 
 System administrators will find an Administrators Guide and other
 technical documentation on the Web Curator Tool website
-(http://dia-nz.github.io/webcurator/).
+(https://www.webcuratortool.org/).
 
 Where to find more information
 ------------------------------
@@ -39,7 +39,7 @@ Where to find more information
 The primary source for information on the Web Curator Tool is the
 website:
 
-http://dia-nz.github.io/webcurator/
+https://www.webcuratortool.org/
 
 The Github project pageThe  includes links to download the tool, its
 corner that leads to the Github project page. Here you can navigate to
@@ -1929,8 +1929,9 @@ listed at left, with three possible actions on the right:
 
 -  **Review in Access Tool** - Open a view of the harvested Seed URL in a
    new window of your web browser. If this option is enabled it uses an
-   external Access Tool [1]_ to generate the page. This is the preferred
-   browse tool.
+   external Access Tool to generate the page. To use the IIPC's OpenWayback
+   access tool for this purpose, see the :doc:`Wayback Integration Guide
+   <wayback-integration-guide>`.
 
 -  **Live Site** - Open the original web page in a new window
 
@@ -3247,8 +3248,12 @@ instance that is currently running.
 
 Figure 43. Shows the number of jobs running on a particular harvester
 
-Bandwidth limits
+Bandwidth limits (Heritrix 1 Agents only)
 ----------------
+
+This section only applies to Heritrix 1 Harvest Agents. Bandwidth limiting
+for Heritrix 3 is not yet supported. If you only use Heritrix 3 Agents,
+you can ignore this section.
 
 Bandwidth limits must be created before any harvesting can be
 undertaken. The default setting is '0'. Bandwidth will be allocated to a
@@ -3510,7 +3515,7 @@ individual issues.
 The National Library of New Zealand introduced this functionality when
 they discovered serials that were previously issued as PDFs were being
 issued online solely in HTML format. HTML serials functionality is
-closely tied in with using the Rosetta preservation system however, [2]_
+closely tied in with using the Rosetta preservation system however, [1]_
 so if you want to use this option and you're not using Rosetta, you will
 need to investigate alternative delivery options that allow you to view
 serials by issue date rather than harvest date.
@@ -3616,12 +3621,6 @@ Detailed workflow example
 Figure 28: Detailed workflow
 
 .. [1]
-   The use of the IIPC's redevelopment of the Java Wayback Machine - OpenWayback -
-   as an access tool is described as in the Web Curator Wiki
-   https://github.com/DIA-NZ/webcurator/wiki/ and is available to download from
-   the OpenWayback project on Github https://github.com/iipc/openwayback.
-
-.. [2]
    For information about the Rosetta preservation system visit:
    https://www.exlibrisgroup.com/products/rosetta-digital-asset-management-and-preservation/
 

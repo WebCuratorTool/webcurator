@@ -20,7 +20,9 @@ Contents of this document
 Following this introduction, the Web Curator Tool Release Notes includes the
 following sections:
 
--   **Changes since 2.0.2** - Changes since the last official release *2.0.2*.
+-   **Changes since 3.0.0** - Changes since the last official release *3.0.0*.
+
+-   **3.0.0** - Release 3.0.0.
 
 -   **2.0.2** - Release 2.0.2.
 
@@ -43,11 +45,75 @@ following sections:
 -   **Previous versions** - Versions prior to release 1.5.
 
 
-Changes since 2.0.2
+Changes since 3.0.0
 ===================
 
-This is a placeholder for changes since the official *2.0.1* release. Please
+This is a placeholder for changes since the official *3.0.0* release. Please
 add notes here for changes and fixes as they are released into the master branch.
+
+3.0.0
+=====
+
+Released November 2020, v3.0.0 includes a major technical uplift of WCT. This version addresses technical debt and
+uplifting of several core frameworks, libraries and dependencies used by WCT. Other significant changes include
+the migration to Spring Boot, and the restructure of some WCT components.
+
+Technical Uplift
+----------------
+
+- Spring 1.2.7 -> Spring 5.1.x
+- Acegi Security -> Spring Security
+- Hibernate 3.1.3 -> Hibernate 5.x.x with JPA
+- Quart scheduler 1.5.2 -> Quartz scheduler 2.3.1
+- Struts 1.2.8 / Tiles 1 -> Spring MVC 5.1.x / Tiles 3
+- Apache Tomcat 8.5/9 -> Spring Boot 2.1
+- Maven 3.5 -> Gradle 5.x
+
+Spring
+~~~~~~
+
+  Major changes include upgrading to the latest Spring framework version, migrating to Spring Security, and from Struts
+  to Spring MVC. All the web application controller classes were upgraded in some capacity to align with modern
+  Spring coding conventions.
+
+
+Spring Boot
+~~~~~~~~~~~
+
+  Migration to Spring Boot. WCT components are now run individually with their own embedded Tomcat server.
+  *Note, this has implications for networking and firewall rules, as WCT is no longer running behind one Apache*
+  *Tomcat instance, and one port.*
+
+  WCT configration has shifted to an `application.properties` file within each component. Local Spring profiles
+  can also be utilized for overriding default configurations and providing more flexibilty for environment
+  specific setups.
+
+Gradle
+~~~~~~
+
+  WCT build technology has been switched to Gradle.
+  *Note, Maven is still reqiuired for installing legacy dependencies.*
+
+OpenJDK Compliant
+~~~~~~~~~~~~~~~~~
+
+  The WCT codebase has been tested and refined to be OpenJDK 8.x compliant. *Note, while WCT has been tested*
+  *successfully with Java 11, it is not yet officially supported.*
+
+Codebase Structure
+~~~~~~~~~~~~~~~~~~
+
+  The WCT codebase has been refactored to separate the web application and the shared core logic into
+  different modules. Previously, WCT-Core was the web application, and also included as a dependency
+  within the other modules (WCT-Store, Harvest Agents) due to it's common WCT data models and interfaces. This
+  has now been separated into `webcurator-webapp` and `webcurator-core`.
+
+Github Repository
+~~~~~~~~~~~~~~~~~
+
+  The WCT repository has now been moved to it's own dedicated `WebCuratorTool <https://github.com/WebCuratorTool>`_
+  Github Organisation. This is to align better with the current collaborative development between the National
+  Library of the Netherlands and the National Library of New Zealand.
 
 
 2.0.2

@@ -17,20 +17,13 @@ Contents of this document
 
 Following this introduction, the Rosetta DPS Configuration Guide includes the following sections:
 
--   **Wayback Vs OpenWayback** - Covers the Wayback options.
+-   **Configuration steps** - Covers the backend configuration options.
 
--   **Installation** - Covers installing Wayback.
-
--   **Configuration** - Covers configuring Wayback.
-
--   **Wayback as a Review Tool in WCT** - Covers configuring Wayback for use as a review tool in the Web Curator Tool.
-
--   **Testing** - Covers testing the Wayback installation.
+-   **User Interface adjustment** - Covers adjusting fields/values in the UI.
 
 -   **More information** - Provides some links for more information.
 
-*All configuration for this integration is inside `wct-das.properties`. (This file is located in
-`/<path to tomcat>/webapps/wct-store/WEB-INF/classes/`.*
+*All configuration for this integration is inside `application.properties`. (This file is located in `webcurator-store.war/WEB-INF/classes/`.*
 
 
 Configuration steps
@@ -116,32 +109,37 @@ interface.
 
 |screenshot_TargetType|
 
--   Configuration for this list of types is inside `wct-core-lists.xml`. (This file is located in
-    `/<path to tomcat>/webapps/wct/WEB-INF/classes/`).
+-  Configuration for this list of types must be modified within the Webapp source code, located inside
+   `ListsConfig.java`. (This file is located in `webcurator-webapp/src/main/java/org/webcurator/webapp/beans/config/`).
+   The Webapp must then be re-compiled from source.
 
--   The value should match the `targetDCType` set in `wct-das.properties`.
+-   The value should match the `targetDCType` set in `webcurator-store.war/WEB-INF/classes/application.properties`.
     ::
 
-        <bean id="dublinCoreTypesList" class="org.webcurator.core.common.WCTTreeSet" abstract="false" singleton="true" lazy-init="default" autowire="default"  dependency-check="default">
-            <constructor-arg index="0" type="java.util.List">
-              <list>
-                <value></value>
-                <value>Collection</value>
-                <value>Image</value>
-                <value>Interactive Resource</value>
-                <value>Moving Image</value>
-                <value>Software</value>
-                <value>Sound</value>
-                <value>Text</value>
-                <value>eSerial</value>
-                <value>eMonograph</value>
-              </list>
-            </constructor-arg>
-            <constructor-arg index="1" type="int">
-              <value>50</value>
-            </constructor-arg>
-        </bean>
+        @Bean
+        @Scope(BeanDefinition.SCOPE_SINGLETON)
+        @Lazy(false)
+        public WCTTreeSet dublinCoreTypesList() {
+            List<String> initialList = new ArrayList<>();
+            initialList.add("");
+            initialList.add("Collection");
+            initialList.add("Dataset");
+            initialList.add("Event");
+            initialList.add("Image");
+            initialList.add("Interactive Resource");
+            initialList.add("Moving Image");
+            initialList.add("Physical Object");
+            initialList.add("Service");
+            initialList.add("Software");
+            initialList.add("Sound");
+            initialList.add("Still Image");
+            initialList.add("Text");
+            initialList.add("eSerial");
 
+            WCTTreeSet bean = new WCTTreeSet(initialList, 50);
+
+            return bean;
+        }
 
 More information
 ================

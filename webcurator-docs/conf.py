@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'wct'
-copyright = '2006-2019, Web Curator Tool project contributors'
+copyright = '2006-2020, Web Curator Tool project contributors'
 author = 'Ben O\'Brien'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '2.0.0'
+release = '3.0.0'
 
 
 # -- General configuration ---------------------------------------------------
