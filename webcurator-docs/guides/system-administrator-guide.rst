@@ -471,16 +471,16 @@ Configure LDAP Authentication (Encrypted using TLS or SSL)
 
         ldap.url=ldaps://yourldaphost.domain.com:389
 
-   - If using TLS or SSL then you must configure Tomcat to allow secure
-     communication with your Directory by adding the following to your
-     $TOMCAT_HOME/bin/catalina.sh script::
+   - If using TLS or SSL then you must configure the application to allow secure
+     communication with your Directory by adding the following properties to the
+     application.profile of the Webapp::
 
-        JAVA_OPTS= -Djavax.net.ssl.trustStore=/var/wctcore/ssl/wct.ts
-        -Djavax.net.ssl.trustStorePassword=password
+        server.ssl.trust-store=/var/wctcore/ssl/wct.ts
+        server.ssl.trust-store-password=password
+        server.ssl.client-auth=need
 
-//TODO - update this for Spring boot
 
-     This points tomcat to a Truststore that contains the public key for you
+     This points Spring Boot to a Truststore that contains the public key for you
      directory. If your directory utilises a correctly signed certificate,
      you may not need this, as the default truststore provided by Java
      contains all the major root certificates. However if you directory uses
