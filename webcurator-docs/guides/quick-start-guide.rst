@@ -77,7 +77,7 @@ installation.*
 Deploying and configuring the WCT components
 --------------------------------------------
 
-To deploy the WCT components, copy the files inside the **/tmp/wct/war/** folder to an appropriate directory for
+To deploy the WCT components, copy the files inside the **/tmp/wct/lib/** folder to an appropriate directory for
 running the application.
 
 ::
