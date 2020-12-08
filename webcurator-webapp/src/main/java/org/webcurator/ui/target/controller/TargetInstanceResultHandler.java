@@ -53,17 +53,20 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 
 /**
  * The handler for the target instance results/harvests tab.
+ *
  * @author nwaight
  */
 public class TargetInstanceResultHandler extends TabHandler {
     private TargetInstanceManager targetInstanceManager;
     private HarvestCoordinator harvestCoordinator;
-    /** the digital asset store containing the harvests. */
+    /**
+     * the digital asset store containing the harvests.
+     */
     private DigitalAssetStore digitalAssetStore = null;
 
     private DigitalAssetStoreClient digitalAssetStoreClient = null;
 
-	private InTrayManagerImpl inTrayManager = null;
+    private InTrayManagerImpl inTrayManager = null;
 
     private AgencyUserManager agencyUserManager;
 
@@ -74,14 +77,14 @@ public class TargetInstanceResultHandler extends TabHandler {
     }
 
     public void processTab(TabbedController tc, Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
+                           HttpServletRequest req, HttpServletResponse res, Object comm,
                            BindingResult bindingResult) {
         // process the submit of the tab called on change tab or save
     }
 
     public TabbedModelAndView preProcessNextTab(TabbedController tc,
-            Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindingResult bindingResult) {
+                                                Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
+                                                Object comm, BindingResult bindingResult) {
         // build mav stuff b4 displaying the tab
 
         Boolean editMode = false;
@@ -89,52 +92,50 @@ public class TargetInstanceResultHandler extends TabHandler {
 
         TargetInstance ti = null;
         if (comm instanceof TargetInstanceCommand) {
-        	cmd = (TargetInstanceCommand) comm;
-        	if ((Boolean)(req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE))) {
-        		editMode = true;
-        	}
+            cmd = (TargetInstanceCommand) comm;
+            if ((Boolean) (req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE))) {
+                editMode = true;
+            }
         }
 
         if (req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI) == null) {
-    		ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId(), true);
-    		req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-    		req.getSession().setAttribute(TargetInstanceCommand.SESSION_MODE, editMode);
-    	}
-    	else {
-    		ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-    		editMode = (Boolean) req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE);
-    	}
+            ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId(), true);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_MODE, editMode);
+        } else {
+            ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+            editMode = (Boolean) req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE);
+        }
 
-        TabbedModelAndView tmav =  buildResultsModel(tc, ti, editMode, bindingResult);
+        TabbedModelAndView tmav = buildResultsModel(tc, ti, editMode, bindingResult);
         buildCustomDepositFormDetails(req, bindingResult, ti, tmav);
 
         // we also need to load the coloured flags since these are needed by the GENERAL tab
-		List<Flag> flags = agencyUserManager.getFlagForLoggedInUser();
-		tmav.addObject(FlagCommand.MDL_FLAGS, flags);
+        List<Flag> flags = agencyUserManager.getFlagForLoggedInUser();
+        tmav.addObject(FlagCommand.MDL_FLAGS, flags);
 
         return tmav;
 
     }
 
     public TabbedModelAndView buildResultsModel(TabbedController tc, TargetInstance ti, boolean editMode, BindingResult bindingResult) {
-    	TabbedModelAndView tmav = tc.new TabbedModelAndView();
+        TabbedModelAndView tmav = tc.new TabbedModelAndView();
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(ti.getOid());
-		User user = org.webcurator.core.util.AuthUtil.getRemoteUserObject();
-		Agency agency = user.getAgency();
+        User user = org.webcurator.core.util.AuthUtil.getRemoteUserObject();
+        Agency agency = user.getAgency();
         List<RejReason> rejectionReasons = agencyUserManager.getValidRejReasonsForTIs(agency.getOid());
         tmav.addObject("editMode", editMode);
         tmav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
         tmav.addObject("results", results);
         tmav.addObject("reasons", rejectionReasons);
-        if(bindingResult.hasErrors())
-        {
-        	tmav.addObject(Constants.GBL_ERRORS, bindingResult);
+        if (bindingResult.hasErrors()) {
+            tmav.addObject(Constants.GBL_ERRORS, bindingResult);
         }
         return tmav;
     }
 
     public ModelAndView processOther(TabbedController tc, Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
+                                     HttpServletRequest req, HttpServletResponse res, Object comm,
                                      BindingResult bindingResult) {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
@@ -145,148 +146,145 @@ public class TargetInstanceResultHandler extends TabHandler {
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
 
             return mav;
-        }
-        else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ENDORSE)) {
-        	// set the ti state and the hr states
-        	TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-        	ti.setState(TargetInstance.STATE_ENDORSED);
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ENDORSE)) {
+            // set the ti state and the hr states
+            TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+            ti.setState(TargetInstance.STATE_ENDORSED);
 
-        	for (HarvestResult hr : ti.getHarvestResults()) {
-				if (hr.getOid().equals(cmd.getHarvestResultId())) {
-					hr.setState(HarvestResult.STATE_ENDORSED);
-				}
-				else {
-					if(hr.getState() != HarvestResult.STATE_REJECTED)
-					{
-						hr.setState(HarvestResult.STATE_REJECTED);
-		        		harvestCoordinator.removeIndexes(hr);
-					}
-				}
+            for (HarvestResult hr : ti.getHarvestResults()) {
+                if (hr.getOid().equals(cmd.getHarvestResultId())) {
+                    hr.setState(HarvestResult.STATE_ENDORSED);
+                } else {
+                    if (hr.getState() != HarvestResult.STATE_REJECTED) {
+                        hr.setState(HarvestResult.STATE_REJECTED);
+                        harvestCoordinator.removeIndexes(hr);
+                    }
+                }
 
-				targetInstanceManager.save((ArcHarvestResult) hr);
-			}
+                targetInstanceManager.save((ArcHarvestResult) hr);
+            }
 
-        	targetInstanceManager.save(ti);
+            targetInstanceManager.save(ti);
 
-        	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-        	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
-        	tmav.getTabStatus().setCurrentTab(currentTab);
-        	buildCustomDepositFormDetails(req, bindingResult, ti, tmav);
+            //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
+            buildCustomDepositFormDetails(req, bindingResult, ti, tmav);
 
-        	return tmav;
-        }
-        else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_UNENDORSE)) {
-        	// set the ti state and the hr states
-        	TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-        	ti.setState(TargetInstance.STATE_HARVESTED);
+            return tmav;
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_UNENDORSE)) {
+            // set the ti state and the hr states
+            TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+            ti.setState(TargetInstance.STATE_HARVESTED);
 
-        	for (HarvestResult hr : ti.getHarvestResults()) {
-				hr.setState(0);
+            for (HarvestResult hr : ti.getHarvestResults()) {
+                hr.setState(0);
 
-				targetInstanceManager.save((ArcHarvestResult) hr);
-			}
+                targetInstanceManager.save((ArcHarvestResult) hr);
+            }
 
-        	targetInstanceManager.save(ti);
+            targetInstanceManager.save(ti);
 
-        	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
-        	tmav.getTabStatus().setCurrentTab(currentTab);
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
 
-        	return tmav;
-        }
-        else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_REJECT)) {
-        	//	set the ti state and the hr states
-        	TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-        	for (HarvestResult hr : ti.getHarvestResults()) {
-				if (hr.getOid().equals(cmd.getHarvestResultId())) {
-					if(hr.getState() != HarvestResult.STATE_REJECTED)
-					{
-						Long rejReasonId = cmd.getRejReasonId();
-						if(rejReasonId==null) {
-			                String[] codes = {"result.rejection.missing"};
-			                Object[] args = new Object[0];
-			                if (bindingResult == null) {
-			                    bindingResult = new BindException(cmd, "command");
-			                }
-			                bindingResult.addError(new ObjectError("command",codes,args,"Unable to reject harvest, no rejection reasons have been created."));
-			             	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            return tmav;
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_REJECT)) {
+            //	set the ti state and the hr states
+            TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+        	
+            //To reload  the TI to avoid the issue of "Row was updated or deleted by another transaction".
+            ti = targetInstanceManager.getTargetInstance(ti.getOid());
 
-			            	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
-			            	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
-			            	tmav.getTabStatus().setCurrentTab(currentTab);
-			            	return tmav;
-						}
-						hr.setState(HarvestResult.STATE_REJECTED);
-						RejReason rejReason = agencyUserManager.getRejReasonByOid(rejReasonId);
-						hr.setRejReason(rejReason);
-		        		harvestCoordinator.removeIndexes(hr);
-					}
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
 
-					targetInstanceManager.save((ArcHarvestResult) hr);
-				}
-			}
+            for (HarvestResult hr : ti.getHarvestResults()) {
+                if (hr.getOid().equals(cmd.getHarvestResultId())) {
+                    if (hr.getState() != HarvestResult.STATE_REJECTED) {
+                        Long rejReasonId = cmd.getRejReasonId();
+                        if (rejReasonId == null) {
+                            String[] codes = {"result.rejection.missing"};
+                            Object[] args = new Object[0];
+                            if (bindingResult == null) {
+                                bindingResult = new BindException(cmd, "command");
+                            }
+                            bindingResult.addError(new ObjectError("command", codes, args, "Unable to reject harvest, no rejection reasons have been created."));
+                            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-        	boolean allRejected = true;
-        	for (HarvestResult hr : ti.getHarvestResults()) {
-				if ((HarvestResult.STATE_REJECTED != hr.getState()) &&
-						(HarvestResult.STATE_ABORTED != hr.getState())) {
-					allRejected = false;
-					break;
-				}
-			}
+                            //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+                            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+                            tmav.getTabStatus().setCurrentTab(currentTab);
+                            return tmav;
+                        }
+                        hr.setState(HarvestResult.STATE_REJECTED);
+                        RejReason rejReason = agencyUserManager.getRejReasonByOid(rejReasonId);
+                        hr.setRejReason(rejReason);
+                        harvestCoordinator.removeIndexes(hr);
+                    }
 
-        	if (allRejected) {
-        		ti.setState(TargetInstance.STATE_REJECTED);
-        		ti.setArchivedTime(new Date());
-        	}
+                    targetInstanceManager.save((ArcHarvestResult) hr);
+                }
+            }
 
-    		targetInstanceManager.save(ti);
-         	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            boolean allRejected = true;
+            for (HarvestResult hr : ti.getHarvestResults()) {
+                if ((HarvestResult.STATE_REJECTED != hr.getState()) &&
+                        (HarvestResult.STATE_ABORTED != hr.getState())) {
+                    allRejected = false;
+                    break;
+                }
+            }
 
-        	//TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
-        	tmav.getTabStatus().setCurrentTab(currentTab);
+            if (allRejected) {
+                ti.setState(TargetInstance.STATE_REJECTED);
+                ti.setArchivedTime(new Date());
+            }
 
-        	return tmav;
-        }
-        else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_REINDEX)) {
-        	Boolean reIndexSuccessful = null;
-        	TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+            targetInstanceManager.save(ti);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
 
-        	//Make sure any new HarvestResults are loaded
-    		ti = targetInstanceManager.getTargetInstance(ti.getOid());
+            //TabbedModelAndView tmav = preProcessNextTab(tc, currentTab, req, res, comm, bindingResult);
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
 
-        	for (HarvestResult hr : ti.getHarvestResults()) {
-				if (hr.getOid().equals(cmd.getHarvestResultId()) &&
-						hr.getState() == HarvestResult.STATE_INDEXING) {
-					reIndexSuccessful = harvestCoordinator.reIndexHarvestResult(hr);
-		        	break;
-				}
-			}
+            return tmav;
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_REINDEX)) {
+            Boolean reIndexSuccessful = null;
+            TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
 
-        	if(reIndexSuccessful != null && reIndexSuccessful == false)
-        	{
+            //Make sure any new HarvestResults are loaded
+            ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            for (HarvestResult hr : ti.getHarvestResults()) {
+                if (hr.getOid().equals(cmd.getHarvestResultId()) &&
+                        hr.getState() == HarvestResult.STATE_INDEXING) {
+                    reIndexSuccessful = harvestCoordinator.reIndexHarvestResult(hr);
+                    break;
+                }
+            }
+
+            if (reIndexSuccessful != null && reIndexSuccessful == false) {
                 String[] codes = {"result.reindex.fail"};
                 Object[] args = new Object[0];
                 if (bindingResult == null) {
                     bindingResult = new BindException(cmd, "command");
                 }
-                bindingResult.addError(new ObjectError("command",codes,args,"Reindex did not occur as HarvestResult is still indexing"));
-        	}
+                bindingResult.addError(new ObjectError("command", codes, args, "Reindex did not occur as HarvestResult is still indexing"));
+            }
 
-         	req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-        	TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
-        	tmav.getTabStatus().setCurrentTab(currentTab);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            TabbedModelAndView tmav = buildResultsModel(tc, ti, true, bindingResult);
+            tmav.getTabStatus().setCurrentTab(currentTab);
 
-        	return tmav;
-        }
-        else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ARCHIVE)) {
-        	throw new WCTRuntimeException("Archive command processing is not implemented yet.");
-        }
-        else {
+            return tmav;
+        } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ARCHIVE)) {
+            throw new WCTRuntimeException("Archive command processing is not implemented yet.");
+        } else {
             throw new WCTRuntimeException("Unknown command " + cmd.getCmd() + " recieved.");
         }
     }
@@ -305,81 +303,81 @@ public class TargetInstanceResultHandler extends TabHandler {
         this.targetInstanceManager = targetInstanceManager;
     }
 
-	/**
-	 * @param digitalAssetStore the digitalAssetStore to set
-	 */
-	public void setDigitalAssetStore(DigitalAssetStore digitalAssetStore) {
-		this.digitalAssetStore = digitalAssetStore;
-	}
+    /**
+     * @param digitalAssetStore the digitalAssetStore to set
+     */
+    public void setDigitalAssetStore(DigitalAssetStore digitalAssetStore) {
+        this.digitalAssetStore = digitalAssetStore;
+    }
 
-	/**
-	 * @param agencyUserManager the agencyUserManager to set
-	 */
-	public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
-		this.agencyUserManager = agencyUserManager;
-	}
+    /**
+     * @param agencyUserManager the agencyUserManager to set
+     */
+    public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
+        this.agencyUserManager = agencyUserManager;
+    }
 
-	protected void buildCustomDepositFormDetails(HttpServletRequest req, BindingResult bindingResult, TargetInstance ti, TabbedModelAndView tmav) {
-		boolean customDepositFormRequired = false;
-		if (TargetInstance.STATE_ENDORSED.equals(ti.getState())) {
-			try {
-				User user = org.webcurator.core.util.AuthUtil.getRemoteUserObject();
-				Agency agency = user.getAgency();
-				CustomDepositFormCriteriaDTO criteria = new CustomDepositFormCriteriaDTO();
-				criteria.setUserId(user.getUsername());
-				DublinCore dc = ti.getTarget().getDublinCoreMetaData();
-				if (dc != null)
-					criteria.setTargetType(ti.getTarget().getDublinCoreMetaData().getType());
-				if (agency != null)
-					criteria.setAgencyId(String.valueOf(agency.getOid()));
-				criteria.setAgencyName(agency.getName());
-				CustomDepositFormResultDTO response = digitalAssetStore.getCustomDepositFormDetails(criteria);
-				if (response != null && response.isCustomDepositFormRequired()) {
-					String customDepositFormHTMLContent = response.getHTMLForCustomDepositForm();
-					String customDepositFormURL = response.getUrlForCustomDepositForm();
+    protected void buildCustomDepositFormDetails(HttpServletRequest req, BindingResult bindingResult, TargetInstance ti, TabbedModelAndView tmav) {
+        boolean customDepositFormRequired = false;
+        if (TargetInstance.STATE_ENDORSED.equals(ti.getState())) {
+            try {
+                User user = org.webcurator.core.util.AuthUtil.getRemoteUserObject();
+                Agency agency = user.getAgency();
+                CustomDepositFormCriteriaDTO criteria = new CustomDepositFormCriteriaDTO();
+                criteria.setUserId(user.getUsername());
+                DublinCore dc = ti.getTarget().getDublinCoreMetaData();
+                if (dc != null)
+                    criteria.setTargetType(ti.getTarget().getDublinCoreMetaData().getType());
+                if (agency != null)
+                    criteria.setAgencyId(String.valueOf(agency.getOid()));
+                criteria.setAgencyName(agency.getName());
+                CustomDepositFormResultDTO response = digitalAssetStore.getCustomDepositFormDetails(criteria);
+                if (response != null && response.isCustomDepositFormRequired()) {
+                    String customDepositFormHTMLContent = response.getHTMLForCustomDepositForm();
+                    String customDepositFormURL = response.getUrlForCustomDepositForm();
 
-					// Will be needed to access the Rosetta interface
-					DigitalAssetStoreClient dasClient = getDASClient();
-					InTrayManagerImpl inTrayManager = getInTrayManager();
+                    // Will be needed to access the Rosetta interface
+                    DigitalAssetStoreClient dasClient = getDASClient();
+                    InTrayManagerImpl inTrayManager = getInTrayManager();
 
 
-					req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
-					req.getSession().setAttribute("dasHost", dasClient.getHost());
-					req.getSession().setAttribute("coreBaseUrl", inTrayManager.getWctBaseUrl());
+                    req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
+                    req.getSession().setAttribute("dasHost", dasClient.getHost());
+                    req.getSession().setAttribute("coreBaseUrl", inTrayManager.getWctBaseUrl());
 
-					if (customDepositFormURL != null) {
-						customDepositFormRequired = true;
-						req.getSession().setAttribute("customDepositFormURL", customDepositFormURL);
-						String producerId = response.getProducerId();
-						if (producerId != null) {
-							req.getSession().setAttribute("customDepositFormProducerId", producerId);
-						}
-					}
-					if (customDepositFormHTMLContent != null) {
-						customDepositFormRequired = true;
-						req.getSession().setAttribute("customDepositFormHTMLContent", customDepositFormHTMLContent);
-					}
-				}
-			} catch (Exception e) {
-				throw new WCTRuntimeException("Exception when trying to determine the custom deposit form details: " + e.getMessage(), e);
-			}
-		}
-		tmav.addObject("customDepositFormRequired", customDepositFormRequired);
-	}
+                    if (customDepositFormURL != null) {
+                        customDepositFormRequired = true;
+                        req.getSession().setAttribute("customDepositFormURL", customDepositFormURL);
+                        String producerId = response.getProducerId();
+                        if (producerId != null) {
+                            req.getSession().setAttribute("customDepositFormProducerId", producerId);
+                        }
+                    }
+                    if (customDepositFormHTMLContent != null) {
+                        customDepositFormRequired = true;
+                        req.getSession().setAttribute("customDepositFormHTMLContent", customDepositFormHTMLContent);
+                    }
+                }
+            } catch (Exception e) {
+                throw new WCTRuntimeException("Exception when trying to determine the custom deposit form details: " + e.getMessage(), e);
+            }
+        }
+        tmav.addObject("customDepositFormRequired", customDepositFormRequired);
+    }
 
-	private DigitalAssetStoreClient getDASClient(){
-		if(digitalAssetStoreClient == null){
-			ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
-			digitalAssetStoreClient = ctx.getBean(DigitalAssetStoreClient.class);
-		}
-		return digitalAssetStoreClient;
-	}
+    private DigitalAssetStoreClient getDASClient() {
+        if (digitalAssetStoreClient == null) {
+            ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+            digitalAssetStoreClient = ctx.getBean(DigitalAssetStoreClient.class);
+        }
+        return digitalAssetStoreClient;
+    }
 
-	private InTrayManagerImpl getInTrayManager(){
-		if(inTrayManager == null){
-			ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
-			inTrayManager = ctx.getBean(InTrayManagerImpl.class);
-		}
-		return inTrayManager;
-	}
+    private InTrayManagerImpl getInTrayManager() {
+        if (inTrayManager == null) {
+            ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
+            inTrayManager = ctx.getBean(InTrayManagerImpl.class);
+        }
+        return inTrayManager;
+    }
 }
