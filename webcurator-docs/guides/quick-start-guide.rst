@@ -77,18 +77,18 @@ installation.*
 Deploying and configuring the WCT components
 --------------------------------------------
 
-To deploy the WCT components, copy the files inside the **/tmp/wct/war/** folder to an appropriate directory for
+To deploy the WCT components, copy the files inside the **/tmp/wct/lib/** folder to an appropriate directory for
 running the application.
 
 ::
 
-   user@host:/tmp/wct$ cd war
-   user@host:/tmp/wct/war$ cp * /usr/local/wct
+   user@host:/tmp/wct$ cd lib
+   user@host:/tmp/wct/lib$ cp * /usr/local/wct
 
-   /usr/local/wct/webcurator-webapp.war
-   /usr/local/wct/webcurator-store.war
-   /usr/local/wct/harvest-agent-h3.jar
-   /usr/local/wct/harvest-agent-h1.jar
+   /usr/local/wct/webcurator-webapp-3.0.0.war
+   /usr/local/wct/webcurator-store-3.0.0.war
+   /usr/local/wct/webcurator-harvest-agent-h3-3.0.0.jar
+   /usr/local/wct/webcurator-harvest-agent-h1-3.0.0.jar
 
 
 By default WCT assumes the existence of a directory **/usr/local/wct**, where it stores all
@@ -118,9 +118,9 @@ http://localhost:8080/wct, using the user 'bootstrap' and password 'password'.
 
 ::
 
-   user@host:/usr/local/wct$ java -jar webcurator-webapp.war
-   user@host:/usr/local/wct$ java -jar webcurator-store.war
-   user@host:/usr/local/wct$ java -jar harvest-agent-h3.jar
+   user@host:/usr/local/wct$ java -jar webcurator-webapp-3.0.0.war
+   user@host:/usr/local/wct$ java -jar webcurator-store-3.0.0.war
+   user@host:/usr/local/wct$ java -jar webcurator-harvest-agent-h3-3.0.0.jar
 
 
 *Note, a* ``logs`` *folder will be created automatically in the directory you run the WCT
