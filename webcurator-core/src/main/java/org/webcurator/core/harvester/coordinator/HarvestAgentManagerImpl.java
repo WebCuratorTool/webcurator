@@ -18,7 +18,6 @@ import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
 public class HarvestAgentManagerImpl implements HarvestAgentManager {
-
 	static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<Long>());
 
 	HashMap<String, HarvestAgentStatusDTO> harvestAgents = new HashMap<String, HarvestAgentStatusDTO>();;
@@ -138,7 +137,6 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 	private void doHeartbeatRunning(HarvestAgentStatusDTO aStatus, TargetInstance ti, HarvesterStatus harvesterStatus) {
 		String state = ti.getState();
 		if (state.equals(TargetInstance.STATE_PAUSED) || state.equals(TargetInstance.STATE_QUEUED)) {
-
 			if (state.equals(TargetInstance.STATE_QUEUED)) {
 				log.info("HarvestCoordinator: Target Instance state changed from Queued to Running for target instance {}", ti
 						.getOid().toString());

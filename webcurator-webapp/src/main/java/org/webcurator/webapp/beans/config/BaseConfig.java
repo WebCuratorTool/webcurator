@@ -942,7 +942,9 @@ public class BaseConfig {
         bean.setErrorThreshold(bandwidthCheckerErrorThreshold);
         bean.setNotificationSubject("Core");
         bean.setCheckType("Bandwidth");
-        bean.setHarvestCoordinator(harvestCoordinator);
+//        bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setHarvestBandwidthManager(harvestBandwidthManager());
         bean.setNotifier(checkNotifier());
 
         return bean;

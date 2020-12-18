@@ -17,11 +17,9 @@ package org.webcurator.core.harvester.coordinator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
 import org.webcurator.core.check.CheckNotifier;
-import org.webcurator.domain.HarvestCoordinatorDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -39,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author nwaight
  */
-public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordinatorDAO, CheckNotifier, IndexerService {
+public interface HarvestCoordinator extends HarvestAgentListener, CheckNotifier, IndexerService {
     /**
      * Process any TargetInstances that are ready to be processed.
      */
@@ -70,20 +68,6 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * send the new bandwidth settings to the running harvests
      */
     void checkForBandwidthTransition();
-
-    /**
-     * Return the current maximum bandwidth setting.
-     *
-     * @return the current maximum bandwidth
-     */
-    long getCurrentGlobalMaxBandwidth();
-
-    /**
-     * Return a list of harvest agents with their last reported status.
-     *
-     * @return a list of harvest agent status's
-     */
-    HashMap<String, HarvestAgentStatusDTO> getHarvestAgents();
 
     /**
      * Send recover harvest information to Harvest Agent
@@ -153,20 +137,6 @@ public interface HarvestCoordinator extends HarvestAgentListener, HarvestCoordin
      * @return Returns true if the Queue is paused.
      */
     public boolean isQueuePaused();
-
-    /**
-     * @return Returns the maxBandwidthPercent.
-     */
-    int getMaxBandwidthPercent();
-
-    /**
-     * Check to see if adding this target instance to be harvested will mean that
-     * the the minimum bandwidth will not be availabile to this or other running jobs
-     *
-     * @param aTargetInstance the target instance to check
-     * @return true if the minimum bandwidth will be available
-     */
-    boolean isMiniumBandwidthAvailable(TargetInstance aTargetInstance);
 
     /**
      * Send the latest profile to the Harvest Agent for a specified target instance

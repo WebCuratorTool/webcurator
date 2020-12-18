@@ -32,6 +32,8 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.InTrayManagerImpl;
@@ -59,6 +61,8 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 public class TargetInstanceResultHandler extends TabHandler {
     private TargetInstanceManager targetInstanceManager;
     private HarvestCoordinator harvestCoordinator;
+    private HarvestAgentManager harvestAgentManager;
+
     /**
      * the digital asset store containing the harvests.
      */
@@ -140,7 +144,7 @@ public class TargetInstanceResultHandler extends TabHandler {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             ModelAndView mav = new ModelAndView();
-            HashMap agents = harvestCoordinator.getHarvestAgents();
+            HashMap agents = harvestAgentManager.getHarvestAgents();
             mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, agents);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
@@ -149,8 +153,14 @@ public class TargetInstanceResultHandler extends TabHandler {
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ENDORSE)) {
             // set the ti state and the hr states
             TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-            ti.setState(TargetInstance.STATE_ENDORSED);
 
+            //To reload  the TI to avoid the issue of "Row was updated or deleted by another transaction".
+            ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
+
+            ti.setState(TargetInstance.STATE_ENDORSED);
             for (HarvestResult hr : ti.getHarvestResults()) {
                 if (hr.getOid().equals(cmd.getHarvestResultId())) {
                     hr.setState(HarvestResult.STATE_ENDORSED);
@@ -177,8 +187,14 @@ public class TargetInstanceResultHandler extends TabHandler {
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_UNENDORSE)) {
             // set the ti state and the hr states
             TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-            ti.setState(TargetInstance.STATE_HARVESTED);
 
+            //To reload  the TI to avoid the issue of "Row was updated or deleted by another transaction".
+            ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
+
+            ti.setState(TargetInstance.STATE_HARVESTED);
             for (HarvestResult hr : ti.getHarvestResults()) {
                 hr.setState(0);
 
@@ -259,6 +275,9 @@ public class TargetInstanceResultHandler extends TabHandler {
 
             //Make sure any new HarvestResults are loaded
             ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
 
             for (HarvestResult hr : ti.getHarvestResults()) {
                 if (hr.getOid().equals(cmd.getHarvestResultId()) &&
@@ -379,5 +398,9 @@ public class TargetInstanceResultHandler extends TabHandler {
             inTrayManager = ctx.getBean(InTrayManagerImpl.class);
         }
         return inTrayManager;
+    }
+
+    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
+        this.harvestAgentManager = harvestAgentManager;
     }
 }

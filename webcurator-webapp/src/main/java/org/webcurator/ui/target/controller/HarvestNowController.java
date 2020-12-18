@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -61,6 +62,10 @@ public class HarvestNowController {
     /** The harvest coordinator for looking at the harvesters. */
     @Autowired
     private HarvestCoordinator harvestCoordinator;
+
+    @Autowired
+    private HarvestAgentManager harvestAgentManager;
+
     /** the message source. */
     @Autowired
     private MessageSource messageSource;
@@ -97,7 +102,7 @@ public class HarvestNowController {
             return new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE);
     	}
 
-    	HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();
+    	HashMap<String, HarvestAgentStatusDTO> agents = harvestAgentManager.getHarvestAgents();
         TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
         String instanceAgency = ti.getOwner().getAgency().getName();
 
@@ -127,7 +132,7 @@ public class HarvestNowController {
 
         ModelAndView mav = new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE);
         // Get the TargetInstance and the HarvestAgentStatusDTO
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) harvestCoordinator.getHarvestAgents().get(cmd.getAgent());
+        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get(cmd.getAgent());
 
         //Is the queue paused?
         if(harvestCoordinator.isQueuePaused())
@@ -187,4 +192,8 @@ public class HarvestNowController {
 	public void setMessageSource(MessageSource messageSource) {
 		this.messageSource = messageSource;
 	}
+
+    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
+        this.harvestAgentManager = harvestAgentManager;
+    }
 }

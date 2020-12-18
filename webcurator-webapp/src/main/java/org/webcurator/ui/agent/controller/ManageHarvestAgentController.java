@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.ui.agent.command.ManageHarvestAgentCommand;
@@ -45,6 +46,9 @@ public class ManageHarvestAgentController {
     /** The class the coordinates the harvest agents and holds their states. */
     @Autowired
     private HarvestCoordinator harvestCoordinator;
+    @Autowired
+    private HarvestAgentManager harvestAgentManager;
+
     /** the logger. */
     private Log log;
 
@@ -134,7 +138,7 @@ public class ManageHarvestAgentController {
     private ModelAndView processAgentDetails(ManageHarvestAgentCommand aCmd) {
         ModelAndView mav = new ModelAndView();
 
-        HashMap agents = harvestCoordinator.getHarvestAgents();
+        HashMap agents = harvestAgentManager.getHarvestAgents();
         HarvestAgentStatusDTO status = (HarvestAgentStatusDTO) agents.get(aCmd.getAgentName());
 
         mav.addObject(ManageHarvestAgentCommand.MDL_HARVEST_AGENT, status);
@@ -214,7 +218,7 @@ public class ManageHarvestAgentController {
 
 	private ModelAndView getDefaultModelAndView() {
 		ModelAndView mav = new ModelAndView();
-        mav.addObject(ManageHarvestAgentCommand.MDL_HARVEST_AGENTS, harvestCoordinator.getHarvestAgents());
+        mav.addObject(ManageHarvestAgentCommand.MDL_HARVEST_AGENTS, harvestAgentManager.getHarvestAgents());
         mav.setViewName(Constants.VIEW_MNG_AGENTS);
 		return mav;
 	}
@@ -224,7 +228,4 @@ public class ManageHarvestAgentController {
         command.setOptimizationEnabled(harvestCoordinator.isHarvestOptimizationEnabled());
         command.setOptimizationLookaheadHours(harvestCoordinator.getHarvestOptimizationLookAheadHours());
 	}
-
-
-
 }

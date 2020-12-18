@@ -77,6 +77,7 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 		testInstance.setHarvestCoordinator(hc);
 		testInstance.setTargetInstanceManager(tim);
 		testInstance.setMessageSource(new MockMessageSource());
+		testInstance.setHarvestAgentManager(harvestAgentManager);
 	}
 
 	@Test

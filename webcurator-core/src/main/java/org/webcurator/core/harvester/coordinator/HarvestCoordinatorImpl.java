@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -160,7 +159,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         List<TargetInstance> results = targetInstanceDao.findTargetInstances(criteria);
         List<String> activeJobs = new ArrayList<String>();
         for (TargetInstance ti : results) {
-//			log.info("RecoverHarvests: sending data back for TI: " + ti.getJobName());
+            log.debug("RecoverHarvests: sending data back for TI: " + ti.getOid());
             activeJobs.add(ti.getJobName());
         }
         harvestAgentManager.recoverHarvests(aStatus.getBaseUrl(), aStatus.getService(), activeJobs);
@@ -179,17 +178,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         // The result is for the original harvest, but the TI already has one or
         // more results
         if (aResult.getHarvestNumber() == 1 && !ti.getHarvestResults().isEmpty()) {
-            // This is a repeat message probably due to a timeout. Leaving this
-            // to run
-            // would generate a second 'Original Harvest' which will
-            // subsequently fail in indexing
-            // due to a duplicate file name constraint in the arc_harvest_file
-            // table
-            log.warn("Duplicate 'Harvest Complete' message received for job: " + ti.getOid() + ". Message ignored.");
+            // This is a repeat message probably due to a timeout. Leaving this to run would generate a second 'Original Harvest' which will
+            // subsequently fail in indexing due to a duplicate file name constraint in the arc_harvest_file table
+            log.warn("Duplicate 'Harvest Complete' message received for job: {}. Message ignored.", ti.getOid());
             return;
         }
 
-        log.info("'Harvest Complete' message received for job: " + ti.getOid() + ".");
+        log.info("'Harvest Complete' message received for job: {}.", ti.getOid());
 
         HarvestResult arcHarvestResult = new ArcHarvestResult(aResult, ti);
         arcHarvestResult.setState(ArcHarvestResult.STATE_INDEXING);
@@ -199,7 +194,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         targetInstanceDao.save(arcHarvestResult);
         targetInstanceDao.save(ti);
-        harvestBandwidthManager.sendBandWidthRestrictions();
+
+        //Ignore bandwidth restriction for H3 Agents
+        if (ti.isAppliedBandwidthRestriction()) {
+            harvestBandwidthManager.sendBandWidthRestrictions();
+        }
 
         // IF the associated target record for this TI has no active TIs remaining (scheduled, queued, running,
         // paused, stopping) AND the target's schedule is not active (i.e we're past
@@ -232,8 +231,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             log.error("Could not send initiateIndexing message to the DAS", ex);
         }
 
-        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_COMPLETE,
-                ti);
+        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_COMPLETE, ti);
         inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
 
         log.info("'Harvest Complete' message processed for job: " + ti.getOid() + ".");
@@ -243,7 +241,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         //to the fact that the second indexing is likely to finish after the first, but this may not always be
         //the case.
         runAutoPrune(ti);
-
     }
 
     /**
@@ -277,6 +274,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      */
     public Boolean reIndexHarvestResult(HarvestResult origArcHarvestResult) {
         TargetInstance ti = origArcHarvestResult.getTargetInstance();
+
+        log.info("ReIndex Harvest Result, hrOID: {}, tiOID: {}", origArcHarvestResult.getOid(), ti.getOid());
 
         // Assume we are already indexing
         Boolean reIndex = false;
@@ -338,6 +337,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      * String, String)
      */
     public void notification(Long aTargetInstanceOid, int notificationCategory, String aMessageType) {
+        log.info("Received notification: {}, {}, {}", aTargetInstanceOid, notificationCategory, aMessageType);
         TargetInstance ti = targetInstanceDao.load(aTargetInstanceOid);
         inTrayManager.generateNotification(ti.getOwner().getOid(), notificationCategory, aMessageType, ti);
     }
@@ -346,6 +346,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      *
      */
     public void notification(String aSubject, int notificationCategory, String aMessage) {
+        log.info("Received notification: {}, {}, {}", aSubject, notificationCategory, aMessage);
         List<String> privs = new ArrayList<String>();
         privs.add(Privilege.MANAGE_WEB_HARVESTER);
         inTrayManager.generateNotification(privs, notificationCategory, aSubject, aMessage);
@@ -363,10 +364,10 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
         }
 
-        if (!harvestAgentManager.lock(aTargetInstance.getOid())){
-            log.error("Target Instance is locked: {}", aTargetInstance.getOid());
+        if (!harvestAgentManager.lock(aTargetInstance.getOid())) {
+            log.error("Target Instance is failed to get locked: {}", aTargetInstance.getOid());
             return;
-        }else{
+        } else {
             log.debug("Target Instance is locked: {}", aTargetInstance.getOid());
         }
 
@@ -382,7 +383,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
             // Run the actual harvest.
             _harvest(aTargetInstance, aHarvestAgent);
-        }finally {
+        } finally {
             harvestAgentManager.unLock(aTargetInstance.getOid());
         }
     }
@@ -401,21 +402,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         }
 
         // Note that seed history should eventually supplant original seeds.
-        // Original seeds
-        // has been implemented as a Hibernate collection of String and thus the
+        // Original seeds has been implemented as a Hibernate collection of String and thus the
         // target_instance_orig_seeds table has no id column, preventing further
-        // expansion
-        // of the collection. The seed history needs to include the primary
-        // column. The
-        // originalSeeds are used by the quality review (prune) tool to generate
-        // the to level
-        // tree view. The original seeds has been left in for this purpose to
-        // support legacy
-        // target instances created prior to this release. Future releases may
-        // see the removal
-        // of this functionality in favour of the SeedHistory; meanwhile this
-        // can be turned off
-        // via the targetInstanceManager bean in wct_core.xml
+        // expansion of the collection. The seed history needs to include the primary
+        // column. The originalSeeds are used by the quality review (prune) tool to generate
+        // the to level tree view. The original seeds has been left in for this purpose to
+        // support legacy target instances created prior to this release. Future releases may
+        // see the removal of this functionality in favour of the SeedHistory; meanwhile this
+        // can be turned off via the targetInstanceManager bean in wct_core.xml
         aTargetInstance.setOriginalSeeds(originalSeeds);
         if (targetInstanceManager.getStoreSeedHistory()) {
             aTargetInstance.setSeedHistory(seedHistory);
@@ -443,8 +437,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
         }
 
-        if (!aTargetInstance.getState().equals(TargetInstance.STATE_QUEUED) && !aTargetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)){
-            log.error("Target instance {} at state {} could not be initialed.",aTargetInstance.getOid(), aTargetInstance.getState());
+        if (!aTargetInstance.getState().equals(TargetInstance.STATE_QUEUED) && !aTargetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)) {
+            log.error("Target instance {} at state {} could not be initialed.", aTargetInstance.getOid(), aTargetInstance.getState());
             return;
         }
 
@@ -479,8 +473,10 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + aTargetInstance.getOid().toString());
 
-        // Run the bandwidth calculations.
-        harvestBandwidthManager.sendBandWidthRestrictions();
+        // Run the bandwidth calculations, and ignore bandwidth restriction for H3 Agents
+        if (aTargetInstance.isAppliedBandwidthRestriction()) {
+            harvestBandwidthManager.sendBandWidthRestrictions();
+        }
     }
 
     /**
@@ -496,7 +492,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      * @return
      */
     private String getHarvestProfileString(TargetInstance aTargetInstance) {
-
         Profile profile = aTargetInstance.getTarget().getProfile();
         ProfileOverrides overrides = aTargetInstance.getProfileOverrides();
 
@@ -534,86 +529,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         return profile.getProfile();
     }
 
-    public long getCurrentGlobalMaxBandwidth() {
-        return harvestBandwidthManager.getCurrentGlobalMaxBandwidth();
-    }
-
-    /**
-     * Checks if harvest optimization is permitted within the current bandwidth
-     * restriction. Note that this is different to the
-     * "isHarvestOptimizationEnabled" check.
-     *
-     * @return
-     */
-    boolean isHarvestOptimizationAllowed() {
-        return harvestBandwidthManager.isHarvestOptimizationAllowed();
-    }
-
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#getBandwidthRestrictions()
-     * .
-     */
-    public HashMap<String, List<BandwidthRestriction>> getBandwidthRestrictions() {
-        return harvestBandwidthManager.getBandwidthRestrictions();
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#getBandwidthRestriction(Long)
-     * .
-     */
-    public BandwidthRestriction getBandwidthRestriction(Long aOid) {
-        return harvestBandwidthManager.getBandwidthRestriction(aOid);
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#getBandwidthRestriction(String,
-     * Date).
-     */
-    public BandwidthRestriction getBandwidthRestriction(String aDay, Date aTime) {
-        return harvestBandwidthManager.getBandwidthRestriction(aDay, aTime);
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#saveOrUpdate(BandwidthRestriction)
-     * .
-     */
-    public void saveOrUpdate(BandwidthRestriction bandwidthRestriction) {
-        harvestBandwidthManager.saveOrUpdate(bandwidthRestriction);
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#delete(BandwidthRestriction)
-     */
-    public void delete(BandwidthRestriction bandwidthRestriction) {
-        harvestBandwidthManager.delete(bandwidthRestriction);
-    }
-
-    /**
-     * @param aMinimumBandwidth The minimumBandwidth to set.
-     */
-    public void setMinimumBandwidth(int aMinimumBandwidth) {
-        harvestBandwidthManager.setMinimumBandwidth(aMinimumBandwidth);
-    }
-
     /**
      * @param targetInstanceDao The targetInstanceDao to set.
      */
     public void setTargetInstanceDao(TargetInstanceDAO targetInstanceDao) {
         this.targetInstanceDao = targetInstanceDao;
-    }
-
-    /**
-     * @return Returns the maxBandwidthPercent.
-     */
-    public int getMaxBandwidthPercent() {
-        return harvestBandwidthManager.getMaxBandwidthPercent();
-    }
-
-    /**
-     * @param maxBandwidthPercent The maxBandwidthPercent to set.
-     */
-    public void setMaxBandwidthPercent(int maxBandwidthPercent) {
-        harvestBandwidthManager.setMaxBandwidthPercent(maxBandwidthPercent);
     }
 
     /**
@@ -642,9 +562,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      */
     public void resume(TargetInstance aTargetInstance) {
         harvestAgentManager.resume(aTargetInstance);
-        // When profile overrides need updating we should also reset the
-        // bandwidth restrictions
-        harvestBandwidthManager.sendBandWidthRestrictions();
+        // When profile overrides need updating we should also reset the bandwidth restrictions
+        //Ignore bandwidth restriction for H3 Agents
+        if (aTargetInstance.isAppliedBandwidthRestriction()) {
+            harvestBandwidthManager.sendBandWidthRestrictions();
+        }
     }
 
     /**
@@ -655,7 +577,11 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
             throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
         }
         harvestAgentManager.abort(aTargetInstance);
-        harvestBandwidthManager.sendBandWidthRestrictions();
+
+        //Ignore bandwidth restriction for H3 Agents
+        if (aTargetInstance.isAppliedBandwidthRestriction()) {
+            harvestBandwidthManager.sendBandWidthRestrictions();
+        }
     }
 
     /**
@@ -729,7 +655,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     void queueOptimisableInstances() {
-        if (harvestOptimizationEnabled && isHarvestOptimizationAllowed()) {
+        if (harvestOptimizationEnabled && harvestBandwidthManager.isHarvestOptimizationAllowed()) {
             int optimizedJobCount = 0;
             int optimizationUnavailableCount = 0;
             List<QueuedTargetInstanceDTO> upcomingJobs = targetInstanceDao.getUpcomingJobs(harvestOptimizationLookAheadHours
@@ -750,10 +676,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     private boolean loadAndStartOptimizable(QueuedTargetInstanceDTO qti) {
-        if (!harvestAgentManager.lock(qti.getOid())){
-           return false;
+        log.info("Load and start optimizable: {}.", qti.getOid());
+
+        if (!harvestAgentManager.lock(qti.getOid())) {
+            log.info("Failed to get a lock: {}.", qti.getOid());
+            return false;
         }
         try {
+            log.info("Locked Target Instance: ", qti.getOid());
             TargetInstance targetInstance = loadTargetInstance(qti.getOid());
             AbstractTarget abstractTarget = targetInstance.getTarget();
             if (abstractTarget.getObjectType() == AbstractTarget.TYPE_TARGET) {
@@ -763,8 +693,9 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                     return harvesterWasAvailableForOptimize;
                 }
             }
-        }finally {
+        } finally {
             harvestAgentManager.unLock(qti.getOid());
+            log.info("Unlocked Target Instance: .", qti.getOid());
         }
 
         return false;
@@ -804,11 +735,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
         // lock the ti
         Long tiOid = aTargetInstance.getOid();
-        if (!harvestAgentManager.lock(tiOid))
+        if (!harvestAgentManager.lock(tiOid)) {
+            log.warn("Skipping lock for ti " + tiOid);
             return;
+        }
+
         try {
             log.info("Obtained lock for ti " + tiOid);
-
             if (TargetInstance.STATE_SCHEDULED.equals(aTargetInstance.getState())) {
                 ti = loadTargetInstance(tiOid);
                 approved = isTargetApproved(ti);
@@ -863,8 +796,8 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
                     ti.setState(TargetInstance.STATE_QUEUED);
                     targetInstanceDao.save(ti);
-                    inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC,
-                            MessageType.TARGET_INSTANCE_QUEUED, ti);
+
+                    inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.TARGET_INSTANCE_QUEUED, ti);
                 }
             }
         }
@@ -898,15 +831,13 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     /**
-     * Check that the target that the instance belongs to is approved and if not
-     * don't harvest.
+     * Check that the target that the instance belongs to is approved and if not don't harvest.
      *
      * @param aTargetInstance the target instance whos target should be checked.
      * @return flag to indicat approval
      */
     private boolean isTargetApproved(TargetInstance aTargetInstance) {
-        // Check permissions if none defer the target instance and send and
-        // notification
+        // Check permissions if none defer the target instance and send and notification
         if (!targetManager.isTargetHarvestable(aTargetInstance)) {
             // Defer the schedule 24 hours and notifiy the owner.
             Calendar cal = Calendar.getInstance();
@@ -923,15 +854,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
             return false;
         }
-
         return true;
-    }
-
-    /**
-     * @see HarvestCoordinator#isMiniumBandwidthAvailable(TargetInstance) .
-     */
-    public boolean isMiniumBandwidthAvailable(TargetInstance aTargetInstance) {
-        return harvestBandwidthManager.isMiniumBandwidthAvailable(aTargetInstance);
     }
 
     /**
@@ -1049,7 +972,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
      * @see HarvestCoordinator#purgeAbortedTargetInstances().
      */
     public void purgeAbortedTargetInstances() {
-
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, daysBeforeAbortedTargetInstancePurge * -1);
 
@@ -1075,9 +997,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                     targetInstanceManager.purgeTargetInstance(ti);
                 }
             } catch (Exception e) {
-                log.error(
-                        MessageFormat.format("Failed to set the purged flag on all of the eligible aborted TIs: {0}",
-                                e.getMessage()), e);
+                log.error(MessageFormat.format("Failed to set the purged flag on all of the eligible aborted TIs: {0}", e.getMessage()), e);
             }
 
         }
@@ -1123,12 +1043,14 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     public void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO ahf) {
+        log.info("Add to Harvest Result, {}", harvestResultOid);
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
         ArcHarvestFile f = new ArcHarvestFile(ahf, (ArcHarvestResult) ahr);
         targetInstanceDao.save(f);
     }
 
     public void addHarvestResources(Long harvestResultOid, Collection<ArcHarvestResourceDTO> dtos) {
+        log.info("Add to Harvest Resource, {}", harvestResultOid);
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
         Collection<ArcHarvestResource> resources = new ArrayList<ArcHarvestResource>(dtos.size());
         for (HarvestResourceDTO dto : dtos) {
@@ -1138,7 +1060,12 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     public Long createHarvestResult(HarvestResultDTO harvestResultDTO) {
+
+
         TargetInstance ti = targetInstanceDao.load(harvestResultDTO.getTargetInstanceOid());
+
+        log.info("Create Harvest Result, tiOID: {}, hrOID: {}", ti.getOid(), harvestResultDTO.getOid());
+
         HarvestResult result = new ArcHarvestResult(harvestResultDTO, ti);
         ti.getHarvestResults().add(result);
         result.setState(ArcHarvestResult.STATE_INDEXING);
@@ -1149,12 +1076,12 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
     public void finaliseIndex(Long harvestResultOid) {
         HarvestResult ahr = targetInstanceDao.getHarvestResult(harvestResultOid, false);
+        log.info("Finalise Index, tiOID: {}, hrOID: {}", ahr.getTargetInstance().getOid(), ahr.getOid());
         ahr.setState(0);
         harvestQaManager.triggerAutoQA((ArcHarvestResult) ahr);
         targetInstanceDao.save(ahr);
         // run the QA recommendation service to derive the Quality Indicators
         harvestQaManager.initialiseQaRecommentationService(harvestResultOid);
-
     }
 
     @Override
@@ -1194,6 +1121,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     }
 
     public void removeIndexes(TargetInstance ti) {
+        log.info("Remove indexes for ti: {}", ti.getOid());
         List<HarvestResult> results = ti.getHarvestResults();
         if (results != null) {
             Iterator<HarvestResult> it = results.iterator();
@@ -1201,8 +1129,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
                 HarvestResult hr = it.next();
                 if (hr.getState() != ArcHarvestResult.STATE_REJECTED) {
                     // Rejected HRs have already had their indexes removed
-                    // The endorsing process should mean there is only one none
-                    // rejected HR
+                    // The endorsing process should mean there is only one none rejected HR
                     removeIndexes(hr);
                 }
             }
@@ -1212,18 +1139,15 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
     public void removeIndexes(HarvestResult hr) {
         DigitalAssetStore das = digitalAssetStoreFactory.getDAS();
         try {
-            log.info("Attempting to remove indexes for TargetInstance " + hr.getTargetInstance().getOid() + " HarvestNumber "
-                    + hr.getHarvestNumber());
-            das.initiateRemoveIndexes(new HarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr.getCreationDate(),
-                    hr.getHarvestNumber(), hr.getProvenanceNote()));
+            log.info("Attempting to remove indexes for TargetInstance " + hr.getTargetInstance().getOid() + " HarvestNumber " + hr.getHarvestNumber());
+            das.initiateRemoveIndexes(new HarvestResultDTO(hr.getOid(), hr.getTargetInstance().getOid(), hr.getCreationDate(), hr.getHarvestNumber(), hr.getProvenanceNote()));
         } catch (DigitalAssetStoreException e) {
-            log.error(MessageFormat.format(
-                    "Could not send initiateRemoveIndexes message to the DAS for TargetInstance {0} HarvestNumber {1}: {2}", hr
-                            .getTargetInstance().getOid(), hr.getHarvestNumber(), e.getMessage()), e);
+            log.error(MessageFormat.format("Could not send initiateRemoveIndexes message to the DAS for TargetInstance {0} HarvestNumber {1}: {2}", hr.getTargetInstance().getOid(), hr.getHarvestNumber(), e.getMessage()), e);
         }
     }
 
     public void completeArchiving(Long targetInstanceOid, String archiveIID) {
+        log.info("Completed Archive, ti: {}, archiveId: {}.", targetInstanceOid, archiveIID);
         // Update the state.
         TargetInstance ti = targetInstanceDao.load(targetInstanceOid);
 
@@ -1250,12 +1174,12 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         removeIndexes(ti);
 
         // Send a message.
-        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC,
-                MessageType.NOTIFICATION_ARCHIVE_SUCCESS, ti);
-
+        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, MessageType.NOTIFICATION_ARCHIVE_SUCCESS, ti);
     }
 
     public void failedArchiving(Long targetInstanceOid, String message) {
+        log.info("Failed Archive, ti: {}, message: {}.", targetInstanceOid, message);
+
         // Update the state.
         TargetInstance ti = targetInstanceDao.load(targetInstanceOid);
         ti.setState(TargetInstance.STATE_ENDORSED);
@@ -1264,10 +1188,7 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
         log.error("Failed to archive - trying to send message");
 
         // Send a message.
-        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, "subject.archived.failed",
-                new Object[]{ti.getTarget().getName(), ti.getResourceName()}, "message.archived.failed", new Object[]{
-                        ti.getTarget().getName(), ti.getResourceName(), message}, ti, true);
-
+        inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC, "subject.archived.failed", new Object[]{ti.getTarget().getName(), ti.getResourceName()}, "message.archived.failed", new Object[]{ti.getTarget().getName(), ti.getResourceName(), message}, ti, true);
     }
 
     /**
@@ -1312,11 +1233,6 @@ public class HarvestCoordinatorImpl implements HarvestCoordinator {
 
     public void setNumHarvestersExcludedFromOptimisation(int numHarvestersExcludedFromOptimisation) {
         this.numHarvestersExcludedFromOptimisation = numHarvestersExcludedFromOptimisation;
-    }
-
-    @Override
-    public HashMap<String, HarvestAgentStatusDTO> getHarvestAgents() {
-        return harvestAgentManager.getHarvestAgents();
     }
 
     @Override

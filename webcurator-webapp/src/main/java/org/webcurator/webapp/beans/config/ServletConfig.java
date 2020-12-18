@@ -443,7 +443,7 @@ public class ServletConfig {
     public TargetInstanceGeneralHandler targetInstanceGeneralHandler() {
         TargetInstanceGeneralHandler bean = new TargetInstanceGeneralHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setHarvestAgentManager(baseConfig.harvestAgentManager());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
         bean.setAutoQAUrl("${harvestCoordinator.autoQAUrl}");
@@ -470,6 +470,7 @@ public class ServletConfig {
         TargetInstanceStateHandler bean = new TargetInstanceStateHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
         bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setHarvestAgentManager(baseConfig.harvestAgentManager());
 
         return bean;
     }
@@ -488,7 +489,7 @@ public class ServletConfig {
         bean.setHarvestCoordinator(harvestCoordinator);
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-
+        bean.setHarvestAgentManager(baseConfig.harvestAgentManager());
         return bean;
     }
 

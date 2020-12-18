@@ -27,6 +27,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.HarvesterStatus;
@@ -49,6 +50,7 @@ public class TargetInstanceStateHandler extends TabHandler {
 
     private TargetInstanceManager targetInstanceManager;
     private HarvestCoordinator harvestCoordinator;
+    private HarvestAgentManager harvestAgentManager;
 
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -87,7 +89,7 @@ public class TargetInstanceStateHandler extends TabHandler {
     		editMode = (Boolean) req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE);
     	}
 
-        HashMap agents = harvestCoordinator.getHarvestAgents();
+        HashMap agents = harvestAgentManager.getHarvestAgents();
 
         HarvesterStatusDTO harvester = null;
         HarvestAgentStatusDTO agent = null;
@@ -119,7 +121,7 @@ public class TargetInstanceStateHandler extends TabHandler {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             ModelAndView mav = new ModelAndView();
-            HashMap agents = harvestCoordinator.getHarvestAgents();
+            HashMap agents = harvestAgentManager.getHarvestAgents();
             mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, agents);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
@@ -143,5 +145,9 @@ public class TargetInstanceStateHandler extends TabHandler {
      */
     public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
         this.targetInstanceManager = targetInstanceManager;
+    }
+
+    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
+        this.harvestAgentManager = harvestAgentManager;
     }
 }
