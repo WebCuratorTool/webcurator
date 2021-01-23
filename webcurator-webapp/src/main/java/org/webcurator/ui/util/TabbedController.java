@@ -18,7 +18,10 @@ package org.webcurator.ui.util;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -27,6 +30,10 @@ import org.springframework.web.util.WebUtils;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
+import org.webcurator.webapp.beans.config.WctSecurityConfig;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * The <code>TabbedController</code> extends Spring's BaseCommandController to
@@ -72,6 +79,8 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
  * @author bbeaumont
  */
 public abstract class TabbedController {
+    private static final Logger log = LoggerFactory.getLogger(TabbedController.class);
+
     /**
      * The default command class for the entry into this tabbed controller
      */
@@ -84,6 +93,9 @@ public abstract class TabbedController {
      * The tab configuration - set of tabs in the tabset
      */
     private TabConfig tabConfig;
+
+    @Autowired
+    private WctSecurityConfig wctSecurityConfig;
 
     /**
      * Get the tab configuration.
@@ -362,51 +374,59 @@ public abstract class TabbedController {
      */
     protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
-        // If the submission method is a POST.
-        if ("POST".equals(request.getMethod())) {
-            // Is there a tab currently selected? If there is, then get the
-            // command object for that tab, populate and validate the command,
-            // and call the processFormSubmission method to work out what
-            // to do next.
-            if (WebUtils.hasSubmitParameter(request, "_tab_current_page")) {
-                Object command = getCommand(request);
-                // Old Spring way of binding the request
+        try {
+            // If the submission method is a POST.
+            if ("POST".equals(request.getMethod())) {
+                // Is there a tab currently selected? If there is, then get the
+                // command object for that tab, populate and validate the command,
+                // and call the processFormSubmission method to work out what
+                // to do next.
+                if (WebUtils.hasSubmitParameter(request, "_tab_current_page")) {
+                    Object command = getCommand(request);
+                    // Old Spring way of binding the request
 //				ServletRequestDataBinder binder = bindAndValidate(request,command);
 
-                // New Spring way of binding the request (Frank/Ben)
-                BindingResult bindingResult = bindAndValidate(request, command);
+                    // New Spring way of binding the request (Frank/Ben)
+                    BindingResult bindingResult = bindAndValidate(request, command);
 
-                // create a TargetDefaultCommand and bind the editor context if we need to go directly to a tab
-                if (WebUtils.hasSubmitParameter(request, "tabForceChangeTo") && request.getParameter("tabForceChangeTo").equals("true")) {
-                    Object newCommand = BeanUtils.instantiateClass(defaultCommandClass);
-                    if (newCommand instanceof TargetDefaultCommand && request.getParameter("targetOid") != null) {
-                        Long targetOid = Long.parseLong(request.getParameter("targetOid"));
-                        ((TargetDefaultCommand) newCommand).setTargetOid(targetOid);
-                        showForm(request, response, newCommand, bindingResult);
+                    // create a TargetDefaultCommand and bind the editor context if we need to go directly to a tab
+                    if (WebUtils.hasSubmitParameter(request, "tabForceChangeTo") && request.getParameter("tabForceChangeTo").equals("true")) {
+                        Object newCommand = BeanUtils.instantiateClass(defaultCommandClass);
+                        if (newCommand instanceof TargetDefaultCommand && request.getParameter("targetOid") != null) {
+                            Long targetOid = Long.parseLong(request.getParameter("targetOid"));
+                            ((TargetDefaultCommand) newCommand).setTargetOid(targetOid);
+                            showForm(request, response, newCommand, bindingResult);
+                        }
                     }
+
+                    return processFormSubmission(request, response, command, bindingResult);
                 }
 
-                return processFormSubmission(request, response, command, bindingResult);
-            }
-
-            // No tab is currently selected, so we need to instantated, bind,
-            // and validate the default command. In general this will load
-            // an object from the database into the tabset.
-            else {
-                Object newCommand = BeanUtils.instantiateClass(defaultCommandClass);
-                BindingResult bindingResult = bindAndValidate(request, newCommand);
-                return processInitial(request, response, newCommand, bindingResult);
-            }
-        } else {
-            // Even for a form, we may need a command object.
-            if (defaultCommandClass != null) {
-                Object newCommand = BeanUtils.instantiateClass(defaultCommandClass);
-                BindingResult bindingResult = bindAndValidate(request, newCommand);
-                return showForm(request, response, newCommand, bindingResult);
+                // No tab is currently selected, so we need to instantated, bind,
+                // and validate the default command. In general this will load
+                // an object from the database into the tabset.
+                else {
+                    Object newCommand = BeanUtils.instantiateClass(defaultCommandClass);
+                    BindingResult bindingResult = bindAndValidate(request, newCommand);
+                    return processInitial(request, response, newCommand, bindingResult);
+                }
             } else {
-                return showForm(request, response, null, null);
-            }
+                // Even for a form, we may need a command object.
+                if (defaultCommandClass != null) {
+                    Object newCommand = BeanUtils.instantiateClass(defaultCommandClass);
+                    BindingResult bindingResult = bindAndValidate(request, newCommand);
+                    return showForm(request, response, newCommand, bindingResult);
+                } else {
+                    return showForm(request, response, null, null);
+                }
 
+            }
+        } catch (Exception e) {
+            String msg = wctSecurityConfig.getCurrentSessionMessage(request, response);
+            log.error("Failed to get bound attributes from session, {}", msg, e);
+//            response.addHeader("DEBUG_MSG", Base64.getEncoder().encodeToString(msg.getBytes(StandardCharsets.UTF_8)));
+            return new ModelAndView("redirect:/" + Constants.CNTRL_HOME);
+//            throw e;
         }
     }
 

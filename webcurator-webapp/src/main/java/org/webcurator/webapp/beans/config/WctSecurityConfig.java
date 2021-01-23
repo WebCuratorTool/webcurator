@@ -1,74 +1,47 @@
 package org.webcurator.webapp.beans.config;
 
+import org.apache.catalina.session.StandardSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.*;
-import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
-import org.springframework.security.access.SecurityMetadataSource;
-import org.springframework.security.access.event.LoggerListener;
-import org.springframework.security.access.vote.AffirmativeBased;
-import org.springframework.security.access.vote.RoleVoter;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.authentication.BindAuthenticator;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
-import org.springframework.security.web.access.channel.ChannelDecisionManagerImpl;
-import org.springframework.security.web.access.channel.ChannelProcessingFilter;
-import org.springframework.security.web.access.channel.InsecureChannelProcessor;
-import org.springframework.security.web.access.channel.SecureChannelProcessor;
-import org.springframework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.*;
-import org.springframework.security.web.context.SecurityContextPersistenceFilter;
-import org.springframework.security.web.firewall.DefaultHttpFirewall;
-import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.firewall.StrictHttpFirewall;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.webcurator.auth.TransitionalPasswordEncoder;
 import org.webcurator.auth.WCTAuthenticationFailureHandler;
-import org.webcurator.auth.WCTAuthenticationProcessingFilter;
 import org.webcurator.auth.WCTAuthenticationSuccessHandler;
 import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
 import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
-import org.webcurator.core.util.Auditor;
-import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
+import javax.servlet.http.*;
+import java.lang.reflect.Field;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * Contains configuration that used to be found in {@code wct-core-security.xml}. This
  * is part of the change to move to using annotations for Spring instead of
  * XML files.
- *
  */
 @Configuration
 @EnableWebSecurity
 public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(WctSecurityConfig.class);
+
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
 
@@ -114,7 +87,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 //    }
 
     @Bean
-    public AuthenticationSuccessHandler wctAuthenticationSuccessHandler(){
+    public AuthenticationSuccessHandler wctAuthenticationSuccessHandler() {
         WCTAuthenticationSuccessHandler wctAuthenticationSuccessHandler = new WCTAuthenticationSuccessHandler("/curator/home.html", false);
         wctAuthenticationSuccessHandler.setAuthDAO(baseConfig.userRoleDAO());
         wctAuthenticationSuccessHandler.setAuditor(baseConfig.audit());
@@ -123,7 +96,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationFailureHandler wctAuthenticationFailureHandler(){
+    public AuthenticationFailureHandler wctAuthenticationFailureHandler() {
         WCTAuthenticationFailureHandler wctAuthenticationFailureHandler = new WCTAuthenticationFailureHandler("/logon.jsp?failed=true");
         wctAuthenticationFailureHandler.setAuditor(baseConfig.audit());
         wctAuthenticationFailureHandler.setUseForward(true);
@@ -146,12 +119,12 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/curator/**").hasRole("LOGIN")
 //                .antMatchers("/curator/**").permitAll()
-                .antMatchers( "/jsp/**").hasRole("LOGIN")
-                .antMatchers( "/replay/**").hasRole("LOGIN")
-                .antMatchers( "/help/**").hasRole("LOGIN")
-                .antMatchers( "/styles/**").permitAll()
-                .antMatchers( "/images/**").permitAll()
-                .antMatchers( "/scripts/**").permitAll()
+                .antMatchers("/jsp/**").hasRole("LOGIN")
+                .antMatchers("/replay/**").hasRole("LOGIN")
+                .antMatchers("/help/**").hasRole("LOGIN")
+                .antMatchers("/styles/**").permitAll()
+                .antMatchers("/images/**").permitAll()
+                .antMatchers("/scripts/**").permitAll()
                 .antMatchers("/harvest-coordinator/**").permitAll()
                 .antMatchers("**/digital-asset-store/**").permitAll()
                 .anyRequest().authenticated()
@@ -166,19 +139,21 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().logout()
                 .invalidateHttpSession(true)
                 .logoutSuccessUrl("/logon.jsp");
+
+//                .and().sessionManagement().maximumSessions(1).maxSessionsPreventsLogin(true)
     }
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         // Set optional LDAP/AD configuration
-        if(ldapEnable.toLowerCase().equals("true")){
+        if (ldapEnable.toLowerCase().equals("true")) {
             auth.ldapAuthentication()
-                .userSearchBase(ldapUsrSearchBase)
-                .userSearchFilter(ldapUsrSearchFilter)
-                .groupSearchBase(ldapGroupSearchBase)
-                .groupSearchFilter(ldapGroupSearchFilter)
-                .ldapAuthoritiesPopulator(authoritiesPopulator())
-                .contextSource()
+                    .userSearchBase(ldapUsrSearchBase)
+                    .userSearchFilter(ldapUsrSearchFilter)
+                    .groupSearchBase(ldapGroupSearchBase)
+                    .groupSearchFilter(ldapGroupSearchFilter)
+                    .ldapAuthoritiesPopulator(authoritiesPopulator())
+                    .contextSource()
                     .url(ldapUrl)
                     .managerDn(ldapContextSourceManagerDn)
                     .managerPassword(ldapContextSourceManagerPassword)
@@ -187,6 +162,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 
         auth.authenticationProvider(authenticationProvider());
     }
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider bean = new DaoAuthenticationProvider();
@@ -539,4 +515,157 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 //
 //        return bean;
 //    }
+
+    @Bean
+    public HttpSessionListener httpSessionListener() {
+        return new HttpSessionListener() {
+            @Override
+            public void sessionCreated(HttpSessionEvent hse) {
+                synchronized (baseConfig) {
+                    log.info("Created session: {}", hse.getSession().getId());
+                    sessions.put(hse.getSession().getId(), hse.getSession());
+                }
+            }
+
+            @Override
+            public void sessionDestroyed(HttpSessionEvent hse) {
+                synchronized (baseConfig) {
+                    sessions.remove(hse.getSession().getId());
+                    log.info("Removed session: {}", hse.getSession().getId());
+                }
+            }
+        };
+    }
+
+    private static final Map<String, HttpSession> sessions = new HashMap<>();
+
+
+    public String getCurrentSessionMessage(HttpServletRequest req, HttpServletResponse rsp) {
+        StringBuilder buf = new StringBuilder();
+
+        try {
+            buf.append(req.getRequestURI()).append(" ").append(rsp.getStatus()).append("\r\n");
+
+            Enumeration<String> reqHeaderNames = req.getHeaderNames();
+            buf.append("[RequestHeader]\r\n");
+            while (reqHeaderNames.hasMoreElements()) {
+                String key = reqHeaderNames.nextElement();
+                buf.append(key).append("=").append(req.getHeader(key)).append("\r\n");
+            }
+
+            if (rsp.getHeaderNames().size() > 0) {
+                buf.append("[ResponseHeader]").append("\r\n");
+
+                rsp.getHeaderNames().forEach(key -> {
+                    if (key.equals("DEBUG_MSG")) {
+                        String encodedMsg = rsp.getHeader(key);
+                        String msg = new String(Base64.getDecoder().decode(encodedMsg));
+                        buf.append("^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^").append("\r\n");
+                        buf.append(key).append("=").append(msg).append("\r\n");
+                        buf.append("^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^ ^_^").append("\r\n");
+                    } else {
+                        buf.append(key).append("=").append(rsp.getHeader(key)).append("\r\n");
+                    }
+                });
+            }
+
+
+            StandardSession ssCur = null;
+            try {
+                ssCur = getPrivateSessionField(req.getSession());
+            } catch (Exception e) {
+//                log.error("Failed to get current session", e);
+            }
+
+            if (ssCur != null) {
+                buf.append(String.format("[Current Session], isValid=%b", ssCur.isValid())).append("\r\n");
+                buf.append("\tDetails: ").append(getSessionDetails(ssCur)).append("\r\n");
+                buf.append("\tAuth: ").append(getAuthDetails(ssCur)).append("\r\n");
+            }
+
+            sessions.forEach((key, session) -> {
+                StandardSession ss = getPrivateSessionField(session);
+                if (ss != null) {
+                    buf.append(String.format("[Existing Session], key=%s, isValid=%b", key, ss.isValid())).append("\r\n");
+                    buf.append("\tDetails: ").append(getSessionDetails(ss)).append("\r\n");
+                    buf.append("\tAuth: ").append(getAuthDetails(ss)).append("\r\n");
+                }
+            });
+        } catch (Exception e) {
+            log.error("Failed to generate message", e);
+        }
+
+        return buf.toString();
+    }
+
+    private String getSessionDetails(StandardSession ss) {
+        if (ss == null) {
+            return "null";
+        }
+
+        if (ss.isValid()) {
+            return String.format("SessionId: %s, CreationTime: %s, LatestAccessTime: %s, Time Used: %d,  SessionTimeout: %d, MaxInactiveInterval: %d, isNew: %b",
+                    ss.getId(),
+                    getReadableDatetime(ss.getCreationTime()),
+                    getReadableDatetime(ss.getLastAccessedTime()),
+                    System.currentTimeMillis() - ss.getLastAccessedTime(),
+                    ss.getServletContext().getSessionTimeout(),
+                    ss.getMaxInactiveInterval(),
+                    ss.isNew());
+        } else {
+            return String.format("SessionId: %s", ss.getId());
+        }
+    }
+
+    private StandardSession getPrivateSessionField(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+
+        Field f = null;
+        try {
+            f = session.getClass().getDeclaredField("session");
+        } catch (NoSuchFieldException e) {
+            return null;
+        }
+        f.setAccessible(true);
+        StandardSession ss = null;
+        try {
+            ss = (StandardSession) f.get(session);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+        return ss;
+    }
+
+    private String getAuthDetails(StandardSession ss) {
+        if (ss == null) {
+            return "null";
+        }
+
+        if (!ss.isValid()) {
+            return "invalid";
+        }
+        SecurityContext auth = (SecurityContext) ss.getAttribute("SPRING_SECURITY_CONTEXT");
+        if (auth == null) {
+            return "null";
+        }
+        UsernamePasswordAuthenticationToken userAuth = (UsernamePasswordAuthenticationToken) auth.getAuthentication();
+        if (userAuth == null) {
+            return "null";
+        }
+
+        User user = (User) userAuth.getDetails();
+        if (user == null) {
+            return "null";
+        }
+
+        return String.format("Username: %s, Fullname: %s", user.getUsername(), user.getFullName());
+    }
+
+    private String getReadableDatetime(long milliseonds) {
+        ZoneId zoneId = OffsetDateTime.now().getOffset().normalized();
+        LocalDateTime ldt = LocalDateTime.ofInstant(Instant.ofEpochMilli(milliseonds), zoneId);
+        return ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    }
 }
