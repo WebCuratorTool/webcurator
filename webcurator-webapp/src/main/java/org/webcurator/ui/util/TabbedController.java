@@ -422,9 +422,7 @@ public abstract class TabbedController {
         } catch (Exception e) {
             String msg = wctSecurityConfig.getCurrentSessionMessage(request, response);
             log.error("Failed to get bound attributes from session, {}", msg, e);
-//            response.addHeader("DEBUG_MSG", Base64.getEncoder().encodeToString(msg.getBytes(StandardCharsets.UTF_8)));
             return new ModelAndView("redirect:/" + Constants.CNTRL_HOME);
-//            throw e;
         }
     }
 
