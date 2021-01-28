@@ -50,11 +50,11 @@ dependencies {
     implementation 'commons-dbcp:commons-dbcp:1.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'mysql:mysql-connector-java:5.1.6'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     implementation 'com.h2database:h2:1.4.199'
     implementation 'mysql:mysql-connector-java:5.1.6'
+//    implementation 'mysql:mysql-connector-java:8.0.21'
     implementation 'com.oracle:ojdbc6:11.2.0.3'
     implementation 'org.postgresql:postgresql:42.2.11'
 
@@ -70,6 +70,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'
     implementation 'org.apache.directory.server:apacheds-server-jndi:1.5.5'
+    implementation 'org.archive.heritrix:heritrix-engine:3.4.0-SNAPSHOT'
 
     providedCompile 'org.apache.taglibs:taglibs-standard-impl:1.2.5'
     providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'

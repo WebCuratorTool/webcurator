@@ -28,12 +28,10 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 import org.webcurator.common.ui.Constants;
+import org.webcurator.ui.common.validation.AbstractBaseValidator;
 import org.webcurator.ui.target.command.TargetDefaultCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.webapp.beans.config.WctSecurityConfig;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 /**
  * The <code>TabbedController</code> extends Spring's BaseCommandController to
@@ -79,7 +77,7 @@ import java.util.Base64;
  * @author bbeaumont
  */
 public abstract class TabbedController {
-    private static final Logger log = LoggerFactory.getLogger(TabbedController.class);
+    protected static final Logger log = LoggerFactory.getLogger(TabbedController.class);
 
     /**
      * The default command class for the entry into this tabbed controller
@@ -446,7 +444,11 @@ public abstract class TabbedController {
             String currentPage = req.getParameter("_tab_current_page");
             Tab currentTab = tabConfig.getTabByID(currentPage);
             if (currentTab.getValidator() != null && !WebUtils.hasSubmitParameter(req, "_tab_cancel")) {
-                currentTab.getValidator().validate(command, bindingResult);
+                Validator validator = currentTab.getValidator();
+                if (validator instanceof AbstractBaseValidator) {
+                    ((AbstractBaseValidator) validator).setReq(req);
+                }
+                validator.validate(command, bindingResult);
             }
         } else {
             if (defaultValidator != null && !WebUtils.hasSubmitParameter(req, "_tab_cancel")) {
