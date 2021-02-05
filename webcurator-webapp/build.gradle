@@ -103,16 +103,12 @@ tasks.withType(JavaCompile) {
 
 build.dependsOn war, sourcesJar
 
-def updateVersion() {
-    def configFile = new File(sourceSets.main.output.resourcesDir, 'application.properties')
-    println configFile
-    if (configFile.exists()) {
-        println "updating project.version to '${version}' in ${configFile}"
-        String configContent = configFile.getText('UTF-8')
-        configContent = configContent.replaceAll(/project\.version=.*/, "project.version=${version}")
-        configFile.write(configContent, 'UTF-8')
+
+// update the version number in application.properties
+processResources {
+    filesMatching('application.properties'){
+        filter {
+            it.replaceAll("^project\\.version.*", "project.version=${version}")
+        }
     }
-}
-gradle.buildFinished {
-    updateVersion()
 }
