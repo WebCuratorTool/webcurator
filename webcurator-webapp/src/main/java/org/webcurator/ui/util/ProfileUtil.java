@@ -1,15 +1,15 @@
 package org.webcurator.ui.util;
 
-import org.apache.commons.io.IOUtils;
+//import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.archive.spring.PathSharingContext;
+//import org.archive.spring.PathSharingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
-import org.springframework.validation.ObjectError;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
+//import org.springframework.validation.ObjectError;
+//
+//import java.nio.file.Files;
+//import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,34 +43,35 @@ public class ProfileUtil {
         return rejectInvalidURLs(errors, fieldName, list, errMsg);
     }
 
+    @Deprecated
     public static boolean rejectInvalidProfile(Errors errors, String profileXml) {
-        Path fXml = null;
-        PathSharingContext ac = null;
-        try {
-            fXml = Files.createTempFile("profile", ".xml");
-            IOUtils.write(profileXml.getBytes(), Files.newOutputStream(fXml));
-            ac = new PathSharingContext(new String[]{fXml.toUri().toString()}, false, null);
-            ac.refresh();
-            ac.validate();
-        } catch (Exception e) {
-            log.error("Invalid profile, {}", profileXml, e);
-            errors.reject("Profile", e.getMessage());
-
-            if (ac != null && ac.getAllErrors() != null && ac.getAllErrors().size() > 0) {
-                ac.getAllErrors().forEach((key, errorList) -> {
-                    errorList.getAllErrors().stream().map(ObjectError::toString).forEach(errors::reject);
-                });
-            }
-            return false;
-        } finally {
-            if (ac != null) {
-                ac.clearResourceCaches();
-            }
-
-            if (fXml != null && fXml.toFile().exists()) {
-                fXml.toFile().delete();
-            }
-        }
+//        Path fXml = null;
+//        PathSharingContext ac = null;
+//        try {
+//            fXml = Files.createTempFile("profile", ".xml");
+//            IOUtils.write(profileXml.getBytes(), Files.newOutputStream(fXml));
+//            ac = new PathSharingContext(new String[]{fXml.toUri().toString()}, false, null);
+//            ac.refresh();
+//            ac.validate();
+//        } catch (Exception e) {
+//            log.error("Invalid profile, {}", profileXml, e);
+//            errors.reject("Profile", e.getMessage());
+//
+//            if (ac != null && ac.getAllErrors() != null && ac.getAllErrors().size() > 0) {
+//                ac.getAllErrors().forEach((key, errorList) -> {
+//                    errorList.getAllErrors().stream().map(ObjectError::toString).forEach(errors::reject);
+//                });
+//            }
+//            return false;
+//        } finally {
+//            if (ac != null) {
+//                ac.clearResourceCaches();
+//            }
+//
+//            if (fXml != null && fXml.toFile().exists()) {
+//                fXml.toFile().delete();
+//            }
+//        }
         return true;
     }
 }
