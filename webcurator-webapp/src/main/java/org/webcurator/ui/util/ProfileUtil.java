@@ -1,6 +1,7 @@
 package org.webcurator.ui.util;
 
 //import org.apache.commons.io.IOUtils;
+
 import org.apache.commons.lang.StringUtils;
 //import org.archive.spring.PathSharingContext;
 import org.slf4j.Logger;
@@ -27,7 +28,8 @@ public class ProfileUtil {
                 continue;
             }
 
-            if (StringUtils.trimToEmpty(item).length() <= 4 || !item.startsWith(".*") || !item.endsWith(".*")) {
+            String trimmedItem = StringUtils.trimToEmpty(item);
+            if (trimmedItem.startsWith("*") || (trimmedItem.endsWith("*") && !trimmedItem.endsWith(".*"))) {
                 errors.rejectValue(fieldName, "Error", errMsg);
                 return false;
             }
