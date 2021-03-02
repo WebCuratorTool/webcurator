@@ -54,8 +54,8 @@ public class Heritrix3ProfileValidator extends AbstractBaseValidator {
             ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userAgent", "required", getObjectArrayForLabel("userAgent"), "User Agent Prefix is a required field");
         }
 
-        boolean isValidBlockUrls = ProfileUtil.rejectInvalidURLs(errors, "blockUrls", command.getBlockUrls(), "Block Urls: the * at the start and end of the url must be transferred to .*");
-        boolean isValidIncludeUrls = ProfileUtil.rejectInvalidURLs(errors, "includeUrls", command.getIncludeUrls(), "Include Urls: the * at the start and end of the url must be transferred to .*");
+        boolean isValidBlockUrls = ProfileUtil.rejectInvalidURLs(errors, "blockUrls", command.getBlockUrls(), "Block Urls: each star(*) in the url pattern must start with a dot(.)");
+        boolean isValidIncludeUrls = ProfileUtil.rejectInvalidURLs(errors, "includeUrls", command.getIncludeUrls(), "Include Urls: each star(*) in the url pattern must start with a dot(.)");
 
         if ((req != null) && isValidBlockUrls && isValidIncludeUrls) {
             Profile sessionObj = (Profile) req.getSession().getAttribute("profile");

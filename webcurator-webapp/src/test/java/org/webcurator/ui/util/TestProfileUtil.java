@@ -15,7 +15,8 @@ public class TestProfileUtil {
             String[] urlsInvalid = {
                     "*abc.nz*",
                     "*abc.nz",
-                    "abc.nz*"
+                    "abc.nz*",
+                    "http://rnz.*org*nz",
             };
 
             for (String item : urlsInvalid) {
@@ -31,7 +32,8 @@ public class TestProfileUtil {
                     ".*abc.nz.*",
                     ".*abc.nz",
                     "http://abc.nz.*",
-                    "http://rnz.org.nz"
+                    "http://rnz.*org..*nz",
+                    "https:\\/\\/www\\.rnz\\.org\\/img\\/8934502245\\.jpg",
             };
             for (String item : urlsValid) {
                 List<String> list = new ArrayList<>();

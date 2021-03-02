@@ -18,6 +18,13 @@ import java.util.stream.Collectors;
 public class ProfileUtil {
     private static final Logger log = LoggerFactory.getLogger(ProfileUtil.class);
 
+    private static boolean isValidUrlPattern(String urlPattern) {
+        String trimmedUrlPattern = StringUtils.trimToEmpty(urlPattern);
+        int countStar = StringUtils.countMatches(trimmedUrlPattern, "*");
+        int countDotStar = StringUtils.countMatches(trimmedUrlPattern, ".*");
+        return countDotStar == countStar;
+    }
+
     public static boolean rejectInvalidURLs(Errors errors, String fieldName, List<String> urls, String errMsg) {
         if (urls == null) {
             errors.rejectValue(fieldName, "Error", errMsg);
@@ -28,8 +35,7 @@ public class ProfileUtil {
                 continue;
             }
 
-            String trimmedItem = StringUtils.trimToEmpty(item);
-            if (trimmedItem.startsWith("*") || (trimmedItem.endsWith("*") && !trimmedItem.endsWith(".*"))) {
+            if (!isValidUrlPattern(item)) {
                 errors.rejectValue(fieldName, "Error", errMsg);
                 return false;
             }
