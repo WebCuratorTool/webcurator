@@ -189,6 +189,13 @@ public class AgentConfig {
     @Value("${checkProcessorTrigger.repeatInterval}")
     private long checkProcessorTriggerRepeatInterval;
 
+    // The commands used for generating screenshots
+    @Value("${screenshotCommand.fullpage}")
+    private String screenshotCommandFullpage;
+
+    @Value("${screenshotCommand.screen}")
+    private String screenshotCommandScreen;
+
     @PostConstruct
     public void postConstruct() {
         // Avoid circular bean dependencies
@@ -205,6 +212,8 @@ public class AgentConfig {
         bean.setBaseHarvestDirectory(harvestAgentBaseHarvestDirectory);
         bean.setBaseUrl(harvestAgentBaseUrl);
         bean.setMaxHarvests(harvestAgentMaxHarvests);
+        bean.setScreenshotCommandFullpage(screenshotCommandFullpage);
+        bean.setScreenshotCommandScreen(screenshotCommandScreen);
 //        bean.setService(harvestAgentService);
 //        bean.setLogReaderService(harvestAgentLogReaderService);
         bean.setName(harvestAgentName);

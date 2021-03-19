@@ -37,6 +37,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import java.awt.image.BufferedImage;
+import java.awt.Image;
+
+import javax.imageio.ImageIO;
+
 /**
  * This is an Implementation of the HarvestAgent interface that uses Heritrix as the
  * engine to perform the harvesting of the web sites.
@@ -100,6 +105,14 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      * the interface to the WCT harvest coordinator.
      */
     private HarvestAgentListener harvestCoordinatorNotifier = null;
+    /**
+     * the fullpage screenshot command.
+     */
+    private String screenshotCommandFullpage = null;
+    /**
+     * the screen screenshot command.
+     */
+    private String screenshotCommandScreen = null;
 
     /**
      * the logger.
@@ -146,6 +159,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             harvester = getHarvester(aJob);
             harvester.start(profile, aJob);
             harvester.setAlertThreshold(alertThreshold);
+            createScreenshots(profile, aSeeds, aJob, "live");
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("Failed to initiate harvest for " + aJob + " : " + e.getMessage(), e);
@@ -309,6 +323,121 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             }
         }
         return l;
+    }
+
+    private void createScreenshots(File profile, String seed, String job, String liveOrHarvested){
+        // file naming convention: ti_id_order_seed_id_source_tool.png
+        // source can be harvested or live
+        Runtime runtime = Runtime.getRuntime();
+        String profileString = profile.toString();
+        String outputPath = profileString.substring(0, profileString.lastIndexOf("/") + 1);
+        String toolUsed = screenshotCommandFullpage.split("\\s+")[0];
+
+        // Get the name of the tool used to get the screenshot
+        if (toolUsed.contains("/")) toolUsed = toolUsed.substring(toolUsed.lastIndexOf("/") + 1);
+
+        // Start with default filenames then change the values
+        String fullpageFilename =  "ti_id_order_seed_id_source_tool_fullpage.png"
+                .replace("ti_id", job)
+                .replace("source", liveOrHarvested)
+                .replace("tool", toolUsed);
+        // order id
+        // seed id
+        String screenFilename = "ti_id_order_seed_id_source_tool_screen.png"
+                .replace("ti_id", job)
+                .replace("source", liveOrHarvested)
+                . replace("tool", toolUsed);
+
+        String commandFullpage = screenshotCommandFullpage
+                .replace("%url%", seed.replaceAll("\\s+",""))
+                .replace("%image.png%", outputPath + fullpageFilename);
+        String commandScreen = screenshotCommandScreen
+                .replace("%url%", seed.replaceAll("\\s+",""))
+                .replace("%image.png%", outputPath + screenFilename);
+
+        log.info("Generating screenshots for job " + job + "...");
+
+        try {
+            // Generate fullpage screenshots
+            runtime.exec(commandFullpage);
+            Thread.sleep(5000);
+
+            // The wayback banner may be problematic when getting full page screenshots due to its use of an iframe
+            // For this reason, check against the live image fullscreen dimensions
+            // Allow some space for the wayback banner
+            File liveImageFile = new File(outputPath + File.separator + fullpageFilename.replace("harvested", "live"));
+            if (liveOrHarvested.equals("harvested") && liveImageFile.exists()) {
+                BufferedImage liveImage = ImageIO.read(liveImageFile);
+                int liveImageWidth = liveImage.getWidth();
+                int liveImageHeight = liveImage.getHeight();
+                liveImage.flush();
+
+                BufferedImage harvestedImage = ImageIO.read(new File(outputPath + File.separator + fullpageFilename));
+                if (harvestedImage.getWidth() < liveImageWidth || harvestedImage.getHeight() < liveImageHeight) {
+                    String windowSize = " --window-size=" + String.valueOf(liveImageWidth) + "," + String.valueOf(liveImageHeight + 150);
+                    log.info("Harvested full page screenshot is smaller than live full page screenshot.  " +
+                            "Getting a new screenshot using live image dimensions.");
+                    if (commandFullpage.contains("width") || commandFullpage.contains("height")) {
+                        String[] arguments = commandFullpage.split(" ");
+                        for (int i = 0; i < arguments.length; i++) {
+                            if (arguments[i].contains("width")) {
+                                arguments[i] = arguments[i].substring(0, arguments[i].indexOf("width") + 6) + String.valueOf(liveImageWidth);
+                            }
+                            if (arguments[i].contains("height")) {
+                                arguments[i] = arguments[i].substring(0, arguments[i].indexOf("height") + 7) + String.valueOf(liveImageHeight + 150);
+                            }
+                        }
+                        commandFullpage = String.join(" ", arguments);
+                    } else if (!commandFullpage.contains(" --window-size=")) {
+                        commandFullpage = commandFullpage.trim() + windowSize;
+                    } else if (commandFullpage.contains(" --window-size=")) {
+                        String[] arguments = commandFullpage.split(" ");
+                        for (int i = 0; i < arguments.length; i++) {
+                            if (arguments[i].contains("--window-size=")) {
+                                String[] args = arguments[i].split(",");
+                                args[0] = args[0].substring(0,"--window-size=".length()) + String.valueOf(liveImageWidth);
+                                args[1] = String.valueOf(liveImageHeight + 150);
+                                arguments[i] = String.join(",", args);
+                            }
+                        }
+                        commandFullpage = String.join(" ", arguments);
+                    }
+                    // THink about break if command hasn't changed
+                    File toDelete = new File(outputPath + File.separator + fullpageFilename);
+                    if (toDelete.delete()) {
+                        runtime.exec(commandFullpage);
+                        Thread.sleep(5000);
+                    } else {
+                        log.info("Unable to replace fullpage harvested image.");
+                    }
+                }
+                harvestedImage.flush();
+            } else if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
+                log.info("Live image file does not exist, do not create screenshot for harvest.");
+                return;
+            }
+
+            // Generate the screen sized screenshot
+            runtime.exec(commandScreen);
+            Thread.sleep(5000);
+
+            // Generate thumbnail from screen sized screenshot
+            BufferedImage sourceImage = ImageIO.read(new File(outputPath + File.separator + screenFilename));
+			BufferedImage bufferedImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+			Image scaledImage = sourceImage.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+			bufferedImage.createGraphics().drawImage(scaledImage, 0, 0, null);
+			BufferedImage thumbnailImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+			thumbnailImage = bufferedImage.getSubimage(0, 0, 100, 100);
+			ImageIO.write(thumbnailImage, "png", new File(outputPath + File.separator + screenFilename.replace("screen", "thumbnail")));
+            sourceImage.flush();
+            bufferedImage.flush();
+            thumbnailImage.flush();
+
+            log.info("Screenshots generated.");
+
+        } catch (Exception e) {
+            log.error("Failed to generate screenshots: " + e.getMessage(), e);
+        }
     }
 
     private File[] toFileArray(List<File> files) {
@@ -720,6 +849,20 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      */
     public void setBaseHarvestDirectory(String aBaseHarvestDirectory) {
         this.baseHarvestDirectory = aBaseHarvestDirectory;
+    }
+
+    /**
+     * @param aScreenshotFullpageCommand The screenshotFullpageCommand to set.
+     */
+    public void setScreenshotCommandFullpage(String aScreenshotCommandFullpage) {
+        this.screenshotCommandFullpage = aScreenshotCommandFullpage;
+    }
+
+    /**
+     * @param aScreenshotFullpageCommand The screenshotFullpageCommand to set.
+     */
+    public void setScreenshotCommandScreen(String aScreenshotCommandScreen) {
+        this.screenshotCommandScreen = aScreenshotCommandScreen;
     }
 
     /**
