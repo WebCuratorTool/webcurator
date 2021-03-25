@@ -57,7 +57,7 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 		genHandler.setAgencyUserManager(getAgencyUserManager());
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(getTargetInstanceManager());
-		genHandler.setHarvestCoordinator(new MockHarvestCoordinator());
+		genHandler.setHarvestAgentManager(new MockHarvestAgentManager());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);

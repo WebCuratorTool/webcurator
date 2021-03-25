@@ -55,7 +55,7 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
-		genHandler.setHarvestCoordinator(new HarvestCoordinatorImpl());
+		genHandler.setHarvestAgentManager(new HarvestAgentManagerImpl());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);

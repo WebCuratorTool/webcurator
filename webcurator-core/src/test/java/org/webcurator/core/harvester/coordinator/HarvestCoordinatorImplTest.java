@@ -291,7 +291,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         aStatus.setMaxHarvests(2);
         testInstance.heartbeat(aStatus);
 
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) testInstance.getHarvestAgents().get("Test Agent");
+        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get("Test Agent");
 
         testInstance.harvest(ti, has);
 
@@ -312,7 +312,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         aStatus.setMaxHarvests(2);
         testInstance.heartbeat(aStatus);
 
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) testInstance.getHarvestAgents().get("Test Agent");
+        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get("Test Agent");
 
         mockTargetInstanceManager.setStoreSeedHistory(true);
 
@@ -337,7 +337,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         aStatus.setMaxHarvests(2);
         testInstance.heartbeat(aStatus);
 
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) testInstance.getHarvestAgents().get("Test Agent");
+        HarvestAgentStatusDTO has =  harvestAgentManager.getHarvestAgents().get("Test Agent");
 
         mockTargetInstanceManager.setStoreSeedHistory(false);
 
@@ -364,7 +364,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         aStatus.setMaxHarvests(2);
         testInstance.heartbeat(aStatus);
 
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) testInstance.getHarvestAgents().get("Test Agent");
+        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get("Test Agent");
 
         testInstance.harvest(ti, has);
 
@@ -386,7 +386,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         aStatus.setMemoryWarning(true);
         testInstance.heartbeat(aStatus);
 
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) testInstance.getHarvestAgents().get("Test Agent");
+        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get("Test Agent");
 
         testInstance.harvest(ti, has);
 
@@ -407,7 +407,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         aStatus.setMaxHarvests(2);
         testInstance.heartbeat(aStatus);
 
-        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) testInstance.getHarvestAgents().get("Test Agent");
+        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get("Test Agent");
 
         testInstance.harvest(ti, has);
 
@@ -587,31 +587,31 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
 
     @Test
     public void testCheckBandwidthTransition() {
-        testInstance.checkForBandwidthTransition();
+        mockHarvestBandwidthManager.checkForBandwidthTransition();
         verify(mockHarvestBandwidthManager).checkForBandwidthTransition();
     }
 
     @Test
     public void testCurrentGlobalMaxBandwidth() {
-        testInstance.getCurrentGlobalMaxBandwidth();
+        mockHarvestBandwidthManager.getCurrentGlobalMaxBandwidth();
         verify(mockHarvestBandwidthManager).getCurrentGlobalMaxBandwidth();
     }
 
     @Test
     public void testHarvestOptimizationAllowed() {
-        testInstance.isHarvestOptimizationAllowed();
+        mockHarvestBandwidthManager.isHarvestOptimizationAllowed();
         verify(mockHarvestBandwidthManager).isHarvestOptimizationAllowed();
     }
 
     @Test
     public void testSetMinimumBandwidth() {
-        testInstance.setMinimumBandwidth(123);
+        mockHarvestBandwidthManager.setMinimumBandwidth(123);
         verify(mockHarvestBandwidthManager).setMinimumBandwidth(123);
     }
 
     @Test
     public void testSetMaxBandwidthPercent() {
-        testInstance.setMaxBandwidthPercent(21);
+        mockHarvestBandwidthManager.setMaxBandwidthPercent(21);
         verify(mockHarvestBandwidthManager).setMaxBandwidthPercent(21);
     }
 
@@ -620,6 +620,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstance mockTargetInstance = mock(TargetInstance.class);
+        when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
         testInstance.resume(mockTargetInstance);
         verify(mockHarvestAgentManager).resume(mockTargetInstance);
         verify(mockHarvestBandwidthManager).sendBandWidthRestrictions();
@@ -655,6 +656,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstance mockTargetInstance = mock(TargetInstance.class);
+        when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
         testInstance.abort(mockTargetInstance);
         verify(mockHarvestAgentManager).abort(mockTargetInstance);
         verify(mockHarvestBandwidthManager).sendBandWidthRestrictions();
@@ -664,23 +666,23 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
     public void testGetBandwidthRestrictions() {
         HarvestBandwidthManager mockHarvestBandwidthManager = mock(HarvestBandwidthManager.class);
         testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
-        testInstance.getBandwidthRestrictions();
+        mockHarvestBandwidthManager.getBandwidthRestrictions();
         verify(mockHarvestBandwidthManager).getBandwidthRestrictions();
     }
 
     @Test
     public void testGetBandwidthRestriction() {
         HarvestBandwidthManager mockHarvestBandwidthManager = mock(HarvestBandwidthManager.class);
-        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
-        testInstance.getBandwidthRestriction(123L);
+//        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
+        mockHarvestBandwidthManager.getBandwidthRestriction(123L);
         verify(mockHarvestBandwidthManager).getBandwidthRestriction(anyLong());
     }
 
     @Test
     public void testGetBandwidthRestrictionForDay() {
         HarvestBandwidthManager mockHarvestBandwidthManager = mock(HarvestBandwidthManager.class);
-        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
-        testInstance.getBandwidthRestriction("test", new Date());
+//        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
+        mockHarvestBandwidthManager.getBandwidthRestriction("test", new Date());
         verify(mockHarvestBandwidthManager).getBandwidthRestriction(anyString(), any(Date.class));
     }
 
@@ -688,8 +690,8 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
     public void testSaveOrUpdate() {
         BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
         HarvestBandwidthManager mockHarvestBandwidthManager = mock(HarvestBandwidthManager.class);
-        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
-        testInstance.saveOrUpdate(mockBandwidthRestriction);
+//        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
+        mockHarvestBandwidthManager.saveOrUpdate(mockBandwidthRestriction);
         verify(mockHarvestBandwidthManager).saveOrUpdate(mockBandwidthRestriction);
     }
 
@@ -697,8 +699,8 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
     public void testDelete() {
         BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
         HarvestBandwidthManager mockHarvestBandwidthManager = mock(HarvestBandwidthManager.class);
-        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
-        testInstance.delete(mockBandwidthRestriction);
+//        testInstance.setHarvestBandwidthManager(mockHarvestBandwidthManager);
+        mockHarvestBandwidthManager.delete(mockBandwidthRestriction);
         verify(mockHarvestBandwidthManager).delete(mockBandwidthRestriction);
     }
 
@@ -799,7 +801,7 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
     @Test
     public void testMiniumBandwidthAvailable() {
         TargetInstance mockTargetInstance = mock(TargetInstance.class);
-        testInstance.isMiniumBandwidthAvailable(mockTargetInstance);
+        mockHarvestBandwidthManager.isMiniumBandwidthAvailable(mockTargetInstance);
         verify(mockHarvestBandwidthManager).isMiniumBandwidthAvailable(mockTargetInstance);
     }
 
@@ -902,5 +904,38 @@ public class HarvestCoordinatorImplTest extends BaseWCTTest<HarvestCoordinatorIm
         verify(mockHarvestLogManager).getHopPath(mockTargetInstance, fileName, match);
     }
 
+    @Test
+    public void testComprehensiveHarvest(){
+        long tiOid=5000L;
+        TargetInstance ti = tiDao.load(tiOid);
+        ti.setState(TargetInstance.STATE_SCHEDULED);
 
+        HashMap<String, HarvesterStatusDTO> aHarvesterStatus = new HashMap<String, HarvesterStatusDTO>();
+
+        aHarvesterStatus.put("Target-5002", getStatusDTO("Running"));
+        HarvestAgentStatusDTO aStatus = new HarvestAgentStatusDTO();
+        aStatus.setName("Test Agent");
+        aStatus.setHarvesterStatus(aHarvesterStatus);
+        aStatus.setMaxHarvests(2);
+        aStatus.setHarvesterType(HarvesterType.HERITRIX1.name());
+        testInstance.heartbeat(aStatus);
+
+        QueuedTargetInstanceDTO dto = new QueuedTargetInstanceDTO(ti.getOid(), ti.getScheduledTime(), ti.getPriority(),
+                ti.getState(), ti.getBandwidthPercent(), ti.getOwningUser().getAgency().getName());
+
+        when(mockHarvestBandwidthManager.isMiniumBandwidthAvailable(any(QueuedTargetInstanceDTO.class))).thenReturn(true);
+//        when(tiDao.getQueue()).thenReturn(theQueue);
+
+        testInstance.setHarvestOptimizationEnabled(true);
+
+        testInstance.processSchedule();
+
+        ti = tiDao.load(tiOid);
+        assertTrue(ti.getState().equals(TargetInstance.STATE_RUNNING));
+
+        ti.setState(TargetInstance.STATE_SCHEDULED);
+        testInstance.harvest(ti, aStatus);
+        ti = tiDao.load(tiOid);
+        assertTrue(ti.getState().equals(TargetInstance.STATE_RUNNING));
+    }
 }

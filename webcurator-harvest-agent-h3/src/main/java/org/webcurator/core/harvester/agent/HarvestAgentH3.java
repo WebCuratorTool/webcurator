@@ -125,6 +125,16 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             log.debug("Initiating harvest for " + aJob + " " + params.get("seeds"));
         }
 
+        if (harvesters.containsKey(aJob)){
+            harvester = harvesters.get(aJob);
+            if (harvester !=null && harvester.getStatus() !=null) {
+                log.error("Failed to initiate harvest for " + aJob + " due to harvester is existing, harvester.status: " + harvester.getStatus().getStatus());
+            }else{
+                log.error("Failed to initiate harvest for " + aJob + " due to harvester is existing");
+            }
+            return;
+        }
+
         try {
             super.initiateHarvest(aJob, params);
             //TODO - what to do with profile and seeds files when harvests aborted? Where are these files actually created?

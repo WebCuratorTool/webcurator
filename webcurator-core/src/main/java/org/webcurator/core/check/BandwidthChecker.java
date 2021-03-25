@@ -19,99 +19,113 @@ import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 /**
  * A Checker for the current bandwidth usage.
- * 
+ *
  * @author nwaight
  */
 public class BandwidthChecker extends AbstractChecker {
-	/** The warning bandwidth threshold. */
-	private long warnThreshold;
-	/** The error bandwidth threshold. */
-	private long errorThreshold;
-	/** The bandwidth is above the warning threshold. */
-	private boolean aboveWarnThreshold = false;
-	/** The bandwidth is above the error threshold. */
-	private boolean aboveErrorThreshold = false;
-	/** The harvest coordinator to use. */
-	private HarvestCoordinator harvestCoordinator;
-	/** the logger. */
-	private static Logger log = LoggerFactory.getLogger(MemoryChecker.class);
+    /**
+     * The warning bandwidth threshold.
+     */
+    private long warnThreshold;
+    /**
+     * The error bandwidth threshold.
+     */
+    private long errorThreshold;
+    /**
+     * The bandwidth is above the warning threshold.
+     */
+    private boolean aboveWarnThreshold = false;
+    /**
+     * The bandwidth is above the error threshold.
+     */
+    private boolean aboveErrorThreshold = false;
+    /** The harvest coordinator to use. */
+//	private HarvestCoordinator harvestCoordinator;
+    /**
+     * The harvest coordinator to use.
+     */
+    private HarvestAgentManager harvestAgentManager;
+    private HarvestBandwidthManager harvestBandwidthManager;
+    /**
+     * the logger.
+     */
+    private static Logger log = LoggerFactory.getLogger(MemoryChecker.class);
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.check.AbstractChecker#check()
-	 */
-	@Override
-	public void check() {
-		long maxBandwidth = harvestCoordinator.getCurrentGlobalMaxBandwidth();
-		long usedBandwidth = calculateTotalBandwidthUsed();
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.webcurator.core.check.AbstractChecker#check()
+     */
+    @Override
+    public void check() {
+        long maxBandwidth = harvestBandwidthManager.getCurrentGlobalMaxBandwidth();
+        long usedBandwidth = calculateTotalBandwidthUsed();
 
-		double percentage = (usedBandwidth / maxBandwidth) * 100;
-		log.debug(percentage + "% of the max bandwidth is being used. " + usedBandwidth + " of " + maxBandwidth);
+        double percentage = (usedBandwidth / maxBandwidth) * 100;
+        log.debug(percentage + "% of the max bandwidth is being used. " + usedBandwidth + " of " + maxBandwidth);
 
-		if (percentage >= warnThreshold && !aboveWarnThreshold) {
-			aboveWarnThreshold = true;
-			log.warn("The used bandwidth is above the warning threshold " + warnThreshold + "% and is " + percentage + "%");
-			notify(LEVEL_WARNING, "The used bandwidth is above the warning threshold " + warnThreshold + "% and is " + percentage
-					+ "%");
-		} else if (percentage >= errorThreshold && !aboveErrorThreshold) {
-			aboveErrorThreshold = true;
-			log.error("The used bandwidth is above the error threshold " + errorThreshold + "% and is " + percentage + "%");
-			notify(LEVEL_ERROR, "The used bandwidth is above the error threshold " + errorThreshold + "% and is " + percentage
-					+ "%");
-		} else if (percentage < warnThreshold && aboveWarnThreshold) {
-			aboveWarnThreshold = false;
-			log.info("The used bandwidth has recovered below the warning threshold {}% and is {}%", warnThreshold, percentage);
-		} else if (percentage < errorThreshold && aboveErrorThreshold) {
-			aboveErrorThreshold = false;
-			log.info("The used bandwidth has recovered below the error threshold {}% and is {}%",errorThreshold, percentage);
-		}
-	}
+        if (percentage >= warnThreshold && !aboveWarnThreshold) {
+            aboveWarnThreshold = true;
+            log.warn("The used bandwidth is above the warning threshold " + warnThreshold + "% and is " + percentage + "%");
+            notify(LEVEL_WARNING, "The used bandwidth is above the warning threshold " + warnThreshold + "% and is " + percentage
+                    + "%");
+        } else if (percentage >= errorThreshold && !aboveErrorThreshold) {
+            aboveErrorThreshold = true;
+            log.error("The used bandwidth is above the error threshold " + errorThreshold + "% and is " + percentage + "%");
+            notify(LEVEL_ERROR, "The used bandwidth is above the error threshold " + errorThreshold + "% and is " + percentage
+                    + "%");
+        } else if (percentage < warnThreshold && aboveWarnThreshold) {
+            aboveWarnThreshold = false;
+            log.info("The used bandwidth has recovered below the warning threshold {}% and is {}%", warnThreshold, percentage);
+        } else if (percentage < errorThreshold && aboveErrorThreshold) {
+            aboveErrorThreshold = false;
+            log.info("The used bandwidth has recovered below the error threshold {}% and is {}%", errorThreshold, percentage);
+        }
+    }
 
-	/**
-	 * @return the amount of bandwidth being used based on the current agents status's
-	 */
-	private long calculateTotalBandwidthUsed() {
-		HashMap<String, HarvestAgentStatusDTO> agents = harvestCoordinator.getHarvestAgents();
-		if (agents == null || agents.isEmpty()) {
-			return 0;
-		}
+    /**
+     * @return the amount of bandwidth being used based on the current agents status's
+     */
+    private long calculateTotalBandwidthUsed() {
+        HashMap<String, HarvestAgentStatusDTO> agents = harvestAgentManager.getHarvestAgents();
+        if (agents == null || agents.isEmpty()) {
+            return 0;
+        }
 
-		double tot = 0;
-		for (HarvestAgentStatusDTO agent : agents.values()) {
-			tot += agent.getCurrentKBs();
-		}
+        double tot = 0;
+        for (HarvestAgentStatusDTO agent : agents.values()) {
+            tot += agent.getCurrentKBs();
+        }
 
-		Double total = new Double(tot);
-		return total.longValue();
-	}
+        Double total = new Double(tot);
+        return total.longValue();
+    }
 
-	/**
-	 * @param errorThreshold
-	 *            the errorThreshold to set
-	 */
-	public void setErrorThreshold(long errorThreshold) {
-		this.errorThreshold = errorThreshold;
-	}
+    /**
+     * @param errorThreshold the errorThreshold to set
+     */
+    public void setErrorThreshold(long errorThreshold) {
+        this.errorThreshold = errorThreshold;
+    }
 
-	/**
-	 * @param warnThreshold
-	 *            the warnThreshold to set
-	 */
-	public void setWarnThreshold(long warnThreshold) {
-		this.warnThreshold = warnThreshold;
-	}
+    /**
+     * @param warnThreshold the warnThreshold to set
+     */
+    public void setWarnThreshold(long warnThreshold) {
+        this.warnThreshold = warnThreshold;
+    }
 
-	/**
-	 * @param harvestCoordinator
-	 *            the harvestCoordinator to set
-	 */
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
-	}
+    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
+        this.harvestAgentManager = harvestAgentManager;
+    }
+
+    public void setHarvestBandwidthManager(HarvestBandwidthManager harvestBandwidthManager) {
+        this.harvestBandwidthManager = harvestBandwidthManager;
+    }
 }

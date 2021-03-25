@@ -56,7 +56,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
 		//genHandler.setHarvestCoordinator(new MockHarvestCoordinator());
-		genHandler.setHarvestCoordinator(new HarvestCoordinatorImpl());
+		genHandler.setHarvestAgentManager(new HarvestAgentManagerImpl());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);

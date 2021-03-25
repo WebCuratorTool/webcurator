@@ -1,23 +1,22 @@
 /**
  * nz.govt.natlib.ndha.wctdpsdepositor - Software License
- *
+ * <p>
  * Copyright 2007/2009 National Library of New Zealand.
  * All rights reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0 
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * or the file "LICENSE.txt" included with the software.
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
- *
  */
 
 package nz.govt.natlib.ndha.wctdpsdepositor.preprocessor;
@@ -46,7 +45,7 @@ import org.archive.io.warc.WARCReaderFactory;
 public class ArcIndexProcessor implements PreDepositProcessor {
     private static final Log log = LogFactory.getLog(ArcIndexProcessor.class);
 
-    private static final boolean APPEND_TO_FILE = true;
+    private static final boolean APPEND_TO_FILE = false;
     private static final String CDX_MIME_TYPE = "text/plain";
 
     public File process(WctDataExtractor data) {
@@ -60,14 +59,16 @@ public class ArcIndexProcessor implements PreDepositProcessor {
         List<ArchiveFile> arcFiles = data.getArchiveFiles();
 
         boolean isFirstArc = true;
-        boolean copyArcFiles = (tempDirectory == null) ? false : true;
+        boolean copyArcFiles = (tempDirectory != null);
 
-        FileWriter cdxOfFirstArcWriter = null;
-        File cdxOfFirstArcFile = null;
-        List<File> tempArcFileList = new ArrayList<File>();
-        List<File> tempCdxFileList = new ArrayList<File>();
+        FileWriter unitedCDXWriter = null;
+        File unitedCDXFile = null;
+        List<File> tempArcFileList = new ArrayList<>();
+        List<File> tempCdxFileList = new ArrayList<>();
 
         try {
+            List<File> arcFileToWorkWithList = new ArrayList<>();
+
             for (ArchiveFile arcFile : arcFiles) {
                 File arcFileToWorkWith;
 
@@ -75,56 +76,56 @@ public class ArcIndexProcessor implements PreDepositProcessor {
                     arcFileToWorkWith = arcFile.copyStreamToDirectory(tempDirectory);
                     tempArcFileList.add(arcFileToWorkWith);
                 } else {
-                    arcFileToWorkWith = new File(((FileSystemArchiveFile)arcFile).generateFilePath());
+                    arcFileToWorkWith = new File(((FileSystemArchiveFile) arcFile).generateFilePath());
                 }
+                arcFileToWorkWithList.add(arcFileToWorkWith);
+            }
+
+            for (File arcFileToWorkWith : arcFileToWorkWithList) {
                 try {
                     /*
                      * Sometimes, there may be other files in the arc file list with extensions such as
                      * ".arc.invalid" pr ".cdx" etc. So just to make sure we don't try to compute CDX
                      * from these files, do a check.
                      */
-                     String path = arcFileToWorkWith.getPath();
-                     if(path.startsWith("C:"))
-                    	 path = path.replace("C:","");
-                     String lcPath = path.toLowerCase();
-					if(lcPath.endsWith(".arc") || lcPath.endsWith(".arc.gz")) {
-						ARCReaderFactory.get(path);
-					} else if(lcPath.endsWith(".warc") || lcPath.endsWith(".warc.gz")) {
-						WARCReaderFactory.get(path);
-					} else {
-						continue;
-					}
+                    String path = arcFileToWorkWith.getPath();
+                    if (path.startsWith("C:"))
+                        path = path.replace("C:", "");
+                    String lcPath = path.toLowerCase();
+                    if (lcPath.endsWith(".arc") || lcPath.endsWith(".arc.gz")) {
+                        ARCReaderFactory.get(path);
+                    } else if (lcPath.endsWith(".warc") || lcPath.endsWith(".warc.gz")) {
+                        WARCReaderFactory.get(path);
+                    } else {
+                        continue;
+                    }
                 } catch (Exception ex) {
-                    log.warn("The format of arc file " + arcFileToWorkWith.getAbsolutePath() 
+                    log.warn("The format of arc file " + arcFileToWorkWith.getAbsolutePath()
                             + " may not be a supported one. Continuing with next arc file. Exception:", ex);
                     continue;
                 }
                 if (isFirstArc) {
                     isFirstArc = false;
-                    cdxOfFirstArcFile = createCdxFrom(arcFileToWorkWith);
-                    cdxOfFirstArcWriter = openFileWriter(cdxOfFirstArcFile);
-                } else {
-                    File cdxFile = createCdxFrom(arcFileToWorkWith);
-                    tempCdxFileList.add(cdxFile);
-                    BufferedReader cdxReader = readCDXFile(arcFileToWorkWith);
-                    appendCdxToWriter(cdxOfFirstArcWriter, cdxReader);
-                    cdxReader.close();
+                    unitedCDXFile = new File(arcFileToWorkWith.getParent(), "united.cdx");
+                    unitedCDXWriter = openFileWriter(unitedCDXFile);
                 }
+                File cdxFile = createCdxFrom(tempCdxFileList, arcFileToWorkWith);
+                BufferedReader cdxReader =new BufferedReader(new FileReader(cdxFile));
+                appendCdxToWriter(unitedCDXWriter, cdxReader);
+                cdxReader.close();
             }
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
             log.error("Exception occurred while calculating CDX indexies of ARC files.", ioe);
             throw new RuntimeException(ioe);
-        }
-        finally {
-            closeStream(cdxOfFirstArcWriter);
+        } finally {
+            closeStream(unitedCDXWriter);
             cleanUpTemporaryFiles(tempCdxFileList);
             if (copyArcFiles)
                 cleanUpTemporaryFiles(tempArcFileList);
         }
 
-        addCdxToWctData(data, cdxOfFirstArcFile);
-        return cdxOfFirstArcFile;
+        addCdxToWctData(data, unitedCDXFile);
+        return unitedCDXFile;
     }
 
     private void deleteFile(File file) {
@@ -143,7 +144,7 @@ public class ArcIndexProcessor implements PreDepositProcessor {
     }
 
     private void cleanUpTemporaryFiles(List<File> tempFileList) {
-        for (File file: tempFileList) {
+        for (File file : tempFileList) {
             deleteFile(file);
         }
     }
@@ -180,23 +181,30 @@ public class ArcIndexProcessor implements PreDepositProcessor {
         return new BufferedReader(new FileReader(cdxFile));
     }
 
-    private File createCdxFrom(File arcFile) throws IOException {
+    private File createCdxFrom(List<File> tempCdxFileList, File arcFile) throws IOException {
         try {
             String arcFilePath = arcFile.getPath();
-            if(arcFilePath.startsWith("C:"))
-            	arcFilePath = arcFilePath.replace("C:", "");
-            String lcPath = arcFilePath.toLowerCase();
-			if(lcPath.endsWith(".arc") || lcPath.endsWith(".arc.gz")) {
-            ARCReader.createCDXIndexFile(arcFilePath);
-			} else if(lcPath.endsWith(".warc") || lcPath.endsWith(".warc.gz")) {
-				WARCReader.createCDXIndexFile(arcFilePath);
-			}
+            if (arcFilePath.startsWith("C:"))
+                arcFilePath = arcFilePath.replace("C:", "");
 
             String cdxFileName = determineCdxNameFrom(arcFilePath);
-
             File cdxFile = new File(cdxFileName);
+            if (cdxFile.exists()) {
+                log.info("Found existing CDX file: " + cdxFile.getAbsolutePath());
+                return cdxFile;
+            }
+
+            String lcPath = arcFilePath.toLowerCase();
+            if (lcPath.endsWith(".arc") || lcPath.endsWith(".arc.gz")) {
+                ARCReader.createCDXIndexFile(arcFilePath);
+            } else if (lcPath.endsWith(".warc") || lcPath.endsWith(".warc.gz")) {
+                WARCReader.createCDXIndexFile(arcFilePath);
+            }
+
             if (!cdxFile.exists())
                 throw new RuntimeException("The temporary CDX file: " + cdxFile.getName() + " created from the arc file: " + arcFile.getName() + " was not found");
+
+            tempCdxFileList.add(cdxFile);
 
             return cdxFile;
         } catch (ParseException pe) {

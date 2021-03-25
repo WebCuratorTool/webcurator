@@ -21,6 +21,8 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.Validator;
 import org.webcurator.common.ui.Constants;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Abstract base class to be extended by all WCT Validators.
  * This base class provides some useful methods for building object arrays
@@ -29,6 +31,7 @@ import org.webcurator.common.ui.Constants;
  */
 public abstract class AbstractBaseValidator implements Validator {
 
+
 	/** Regular Expression used to validate an email address. */
 	public static final String EMAIL_REGEX = "^[a-zA-Z0-9]+([_\\.-][a-zA-Z0-9]+)*@([a-zA-Z0-9]+([\\.-][a-zA-Z0-9]+)*)+\\.[a-zA-Z]{2,}$";
 
@@ -36,6 +39,9 @@ public abstract class AbstractBaseValidator implements Validator {
 	public AbstractBaseValidator() {
 		super();
 	}
+
+	/** The request handler for getting session context*/
+	protected HttpServletRequest req;
 
 	/**
 	 * Retrurn the Object array containing the specified label.
@@ -83,5 +89,13 @@ public abstract class AbstractBaseValidator implements Validator {
 	 */
 	public boolean validateEmail(String email) {
 		return Pattern.matches(EMAIL_REGEX, email);
+	}
+
+	public HttpServletRequest getReq() {
+		return req;
+	}
+
+	public void setReq(HttpServletRequest req) {
+		this.req = req;
 	}
 }

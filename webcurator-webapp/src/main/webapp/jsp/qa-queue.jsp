@@ -111,8 +111,8 @@ function showTooltip(region, targetOid, targetInstanceOid, requestType) {
 //requestType:			request for target annotations or target instance annotations
 function buildTooltip(region, targetOid, targetInstanceOid, tooltip, requestType) {
 	var request = $.ajax({
-		url: "<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/target/annotation-ajax.html",   
-		type: "POST",   
+		url: "curator/target/annotation-ajax.html",
+		type: "POST",
 		data: {targetOid : targetOid, targetInstanceOid: targetInstanceOid, <%=Constants.AJAX_REQUEST_TYPE%>: requestType},
 		dataType: "html"
 	});

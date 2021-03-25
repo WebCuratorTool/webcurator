@@ -45,6 +45,8 @@ public class ArcIndexProcessorTest {
 
     private static final String TEST_ARC_1 = "TestArc1.arc";
     private static final String TEST_ARC_2 = "TestArc2.arc";
+    private static final String TEST_ARC_CDX = "TestArc1.cdx";
+
     private static final String DIRECTORY = "src/test/resources";
     private static final String tempDirectory = "src/test/resources/temp";
 
@@ -54,11 +56,66 @@ public class ArcIndexProcessorTest {
         final WctDataExtractor dataExtractor = mockContext.mock(WctDataExtractor.class);
 
         final List<ArchiveFile> arcFiles = new ArrayList<ArchiveFile>();
+
+        ArchiveFile archiveCDXFile = new FileSystemArchiveFile("application/octet-stream", "", TEST_ARC_CDX, DIRECTORY);
+        arcFiles.add(archiveCDXFile);
+
         ArchiveFile archive1File = new FileSystemArchiveFile("application/octet-stream", "", TEST_ARC_1, DIRECTORY);
         arcFiles.add(archive1File);
 
         ArchiveFile archive2File = new FileSystemArchiveFile("application/octet-stream", "", TEST_ARC_2, DIRECTORY);
         arcFiles.add(archive2File);
+
+        mockContext.checking(new Expectations() {
+            {
+                allowing(dataExtractor).getArchiveFiles();
+                will(returnValue(arcFiles));
+
+                one(dataExtractor).setArcIndexFile(with(any(ArchiveFile.class)));
+
+            }
+        });
+
+        ArcIndexProcessor processor = new ArcIndexProcessor();
+
+        File cdxFile = processor.process(tempDirectory, dataExtractor);
+
+        BufferedReader br = new BufferedReader(new FileReader(cdxFile));
+        String line = null;
+
+        int lineCount = 0;
+//        br.readLine(); // skip first line
+        while ((line = br.readLine()) != null) {
+            lineCount++;
+            if (lineCount < 12)
+                assertThat(line, containsString("TestArc1"));
+            else
+                assertThat(line, containsString("TestArc2"));
+        }
+
+        assertThat(lineCount, is(equalTo(22)));
+
+        mockContext.assertIsSatisfied();
+
+        br.close();
+        cdxFile.deleteOnExit();
+    }
+
+    @Test
+    public void test_cdx_index_created_for_arc_file_with_different_sequence() throws IOException {
+        Mockery mockContext = new Mockery();
+        final WctDataExtractor dataExtractor = mockContext.mock(WctDataExtractor.class);
+
+        final List<ArchiveFile> arcFiles = new ArrayList<ArchiveFile>();
+
+        ArchiveFile archive1File = new FileSystemArchiveFile("application/octet-stream", "", TEST_ARC_1, DIRECTORY);
+        arcFiles.add(archive1File);
+
+        ArchiveFile archive2File = new FileSystemArchiveFile("application/octet-stream", "", TEST_ARC_2, DIRECTORY);
+        arcFiles.add(archive2File);
+
+        ArchiveFile archiveCDXFile = new FileSystemArchiveFile("application/octet-stream", "", TEST_ARC_CDX, DIRECTORY);
+        arcFiles.add(archiveCDXFile);
 
         mockContext.checking(new Expectations() {
             {
@@ -79,7 +136,7 @@ public class ArcIndexProcessorTest {
         String line = null;
 
         int lineCount = 0;
-        br.readLine(); // skip first line
+//        br.readLine(); // skip first line
         while ((line = br.readLine()) != null) {
             lineCount++;
             if (lineCount < 12)
@@ -93,6 +150,7 @@ public class ArcIndexProcessorTest {
 
         mockContext.assertIsSatisfied();
 
+        br.close();
+        cdxFile.deleteOnExit();
     }
-
 }

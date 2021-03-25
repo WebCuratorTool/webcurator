@@ -99,7 +99,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		HarvestAgentManager mockHarvestAgentManager = Mockito.mock(HarvestAgentManager.class);
 		hc.setHarvestAgentManager(mockHarvestAgentManager);
 
-		testInstance.setHarvestCoordinator(hc);
+		testInstance.setHarvestAgentManager(mockHarvestAgentManager);
 	}
 
 	@Test

@@ -15,6 +15,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.webcurator.core.common.Environment;
+import org.webcurator.core.harvester.coordinator.HarvestAgentListener;
 import org.webcurator.core.util.ApplicationContextFactory;
 
 import java.util.ArrayList;
@@ -55,6 +56,11 @@ public class HarvestAgentH3Test {
         when(mockHeritrix3WrapperConfiguration.getKeyStorePassword()).thenReturn("");
         when(mockHeritrix3WrapperConfiguration.getUserName()).thenReturn("admin");
         when(mockHeritrix3WrapperConfiguration.getPassword()).thenReturn("admin");
+
+        HarvestAgentListener harvestCoordinatorNotifier = mock(HarvestAgentListener.class);
+        hah3.setHarvestCoordinatorNotifier(harvestCoordinatorNotifier);
+
+        hah3.setBaseHarvestDirectory("/usr/local/wct/store");
     }
 
     @Test
@@ -82,17 +88,33 @@ public class HarvestAgentH3Test {
         // Test Harvest Agent H3 recoverHarvests()
         hah3Spy.recoverHarvests(coreJobs);
 
-        for(String job : coreJobs){
+        for (String job : coreJobs) {
             Harvester recoveredJob = hah3Spy.getHarvester(job);
-            if(h3Jobs.containsKey(job)){
+            if (h3Jobs.containsKey(job)) {
                 assertNotNull(recoveredJob);
                 assertEquals(recoveredJob.getName(), job);
-            }
-            else{
+            } else {
                 assertNull(recoveredJob);
             }
         }
     }
 
+    @Test
+    public void testInitialHarvest() {
+        String job = "5000";
+        Map<String, String> params = new HashMap<>();
+        params.put("profile", "");
+        params.put("seeds", "");
+
+        hah3.initiateHarvest(job, params);
+        assert hah3.harvesters.size() == 1;
+        Harvester harvester1 = hah3.harvesters.get(job);
+
+        hah3.initiateHarvest(job, params);
+        assert hah3.harvesters.size() == 1;
+        Harvester harvester2 = hah3.harvesters.get(job);
+
+        assertEquals(harvester1, harvester2);
+    }
 
 }
