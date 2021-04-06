@@ -77,7 +77,7 @@ function checkUrls(domainName, contentType, statusCode){
     "statusCodes": aryStatusCode
   }
 
-  var sourceUrl="/curator/networkmap/search/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+  var sourceUrl=webContextPath+"/curator/networkmap/search/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
   fetch(sourceUrl, {
     method: 'POST',
     headers: {

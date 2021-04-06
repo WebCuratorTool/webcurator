@@ -3,8 +3,8 @@ function rendLogActionColumn(row){
   var cellContent='';
 //  cellContent+='<a href="/curator/target/'+row.data.viewer+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">View</a> |';
 //  cellContent+='<a href="/curator/target/'+row.data.retriever+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">Download</a>';
-  cellContent+='<a href="/curator/target/patch-log-viewer.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">View</a> |';
-  cellContent+='<a href="/curator/target/patch-log-retriever.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">Download</a>';
+  cellContent+='<a href="'+webContextPath+'/curator/target/patch-log-viewer.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">View</a> |';
+  cellContent+='<a href="'+webContextPath+'/curator/target/patch-log-retriever.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">Download</a>';
   return cellContent;
 }
 

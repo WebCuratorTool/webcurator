@@ -9,7 +9,7 @@ class ImportModifyHarvestProcessor{
 	// }
 
 	uploadFile(cmd, content){
-		var url="../../curator/tools/upload-file-stream?fileName="+cmd.srcName+"&replaceFlag=true";
+		var url=webContextPath+"/curator/tools/upload-file-stream?fileName="+cmd.srcName+"&replaceFlag=true";
 		var that=this;
 		fetch(url, { 
 			method: 'POST',
@@ -185,7 +185,7 @@ class ImportModifyHarvestProcessor{
 
 
 			var that=this;
-			fetch("/curator/tools/check-files", { 
+			fetch(webContextPath+"/curator/tools/check-files", { 
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
 				body: JSON.stringify(dataset)

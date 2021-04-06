@@ -81,7 +81,7 @@ class HierarchyTree{
 		this.container=container;
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
-		this.sourceUrlRootUrls="/curator/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+		this.sourceUrlRootUrls=webContextPath+"/curator/networkmap/get/hierarchy/urls?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
 		this.options={
 			extensions: ["table", "wide"],
 			checkbox: true,
@@ -212,8 +212,8 @@ class PopupModifyHarvest{
 		this.gridPrune=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-prune', gridOptionsPrune, contextMenuItemsPrune);
 		this.gridImport=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-import', gridOptionsImport, contextMenuItemsImport);
 		this.processorImport=new ImportModifyHarvestProcessor(jobId, harvestResultNumber);
-		this.uriSeedUrl="/curator/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
-		this.uriInvalidUrl="/curator/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		this.uriSeedUrl=webContextPath+"/curator/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+		this.uriInvalidUrl=webContextPath+"/curator/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 	}
 
 	setRowStyle(){
@@ -495,7 +495,7 @@ class PopupModifyHarvest{
 	    var reader = new FileReader();
 
 	    reader.addEventListener("loadend", function () {
-	      fetch("../../curator/tools/modify-import", { 
+	      fetch(webContextPath+"/curator/tools/modify-import", { 
 	        method: 'POST',
 	        headers: {'Content-Type': 'application/json'},
 	        body: reader.result });

@@ -327,7 +327,7 @@ class HierarchyTree{
 			var treeNode=selNodes[i];
 			var nodeData=this._getDataFromNode(treeNode);
 			if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
-				|| (this.container==='#hierachy-tree-harvest-struct' && treeNode.folder!=null)) {
+			|| (this.container==='#hierachy-tree-harvest-struct' && (!treeNode.folder || treeNode.folder===false))) {
 				selData.push(nodeData);
 			}
 			// selData.push(selNodes[i].data);
@@ -349,7 +349,7 @@ class HierarchyTree{
 		var nodeData=this._getDataFromNode(treeNode);
 
 		if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
-			|| (this.container==='#hierachy-tree-harvest-struct' && treeNode.folder!=null)) {
+			|| (this.container==='#hierachy-tree-harvest-struct' && treeNode.folder!==null)) {
 			dataset.push(nodeData);
 		}
 
@@ -748,7 +748,7 @@ class PopupModifyHarvest{
 		// 	if (node.viewType && node.viewType===2 && ) {}
 		// 	data[i]
 		// }
-		var url="/curator/export/data?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
+		var url=webContextPath+"/curator/export/data?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
 		fetch(url, { 
 		    method: 'POST',
 		    redirect: 'follow',

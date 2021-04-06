@@ -556,7 +556,7 @@ to get the desired effect
 
         $('.template-download').on('click', function(e){
           var name=$(this).attr('template');
-          downloadRemote('/spa/tools/'+name, name);
+          downloadRemote(webContextPath+'/spa/tools/'+name, name);
         });
 
         $('.btn-side-group-type').on('click', function(e){
@@ -631,7 +631,7 @@ to get the desired effect
 
     //Checking and show progress
     function refreshprogress(){
-      var reqUrl="/curator/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+      var reqUrl=webContextPath+"/curator/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
       fetch(reqUrl, { 
         method: 'GET',
         redirect: 'follow',

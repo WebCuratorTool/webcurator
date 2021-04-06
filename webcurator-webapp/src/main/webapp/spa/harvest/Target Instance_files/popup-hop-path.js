@@ -24,7 +24,7 @@ class HopPath{
   }
 
   draw(nodeId){
-    var sourceUrl="/curator/networkmap/get/hop/path?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + nodeId;
+    var sourceUrl=webContextPath+"/curator/networkmap/get/hop/path?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + nodeId;
     fetch(sourceUrl)
         .then((response) => {
             return response.json();

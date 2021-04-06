@@ -1,3 +1,5 @@
+const webContextPath='/wct';
+
 function getUrlVars() {
     var vars = {};
     var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -8,7 +10,7 @@ function getUrlVars() {
 
 var gUrl=null, gReq=null, gCallback=null;
 function fetchHttp(url, req, callback){
-  var ROOT_URL='/curator';
+  var ROOT_URL=webContextPath+'/curator';
   var reqUrl=ROOT_URL + url;
   var reqBodyPayload="{}";
   if(req !== null){
@@ -542,7 +544,7 @@ function updateDerivedHarvestResults(derivedHarvestResult){
 }
 
 function popupDerivedSummaryWindow(derivedHarvestId, derivedHarvestNumber){
-  var reqUrl='/spa/tools/patching-view-hr.html?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+derivedHarvestNumber;
+  var reqUrl=webContextPath+'/spa/tools/patching-view-hr.html?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+derivedHarvestNumber;
   $('#body-derived-summary').html('<iframe src="'+reqUrl+'" style="width: 100vw; height: 1000px;"></iframe>');
   $('#popup-window-derived-summary').show();
 }

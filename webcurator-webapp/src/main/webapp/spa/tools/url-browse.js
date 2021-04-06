@@ -4,7 +4,7 @@ function browseUrl(data, _browse_type){
 	_browse_type=_browse_type.toUpperCase();
 	var url;
 	if (_browse_type==='LOCAL') {
-		url='/curator/tools/browse/' + harvestResultId + '/?url='+btoa(data.url);
+		url=webContextPath+'/curator/tools/browse/' + harvestResultId + '/?url='+btoa(data.url);
 	} else if(_browse_type==='LIVESITE'){
 		url=data.url;
 	}else{
@@ -14,7 +14,7 @@ function browseUrl(data, _browse_type){
 }
 
 function downloadUrl(data){
-	var url='/curator/tools/download/'+harvestResultId+'/?url='+btoa(data.url);
+	var url=webContextPath+'/curator/tools/download/'+harvestResultId+'/?url='+btoa(data.url);
 	downloadRemote(url, data.url);
 }
 
