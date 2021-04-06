@@ -196,6 +196,9 @@ public class AgentConfig {
     @Value("${screenshotCommand.screen}")
     private String screenshotCommandScreen;
 
+    @Value("${screenshotCommand.windowsize}")
+    private String screenshotCommandWindowsize;
+
     @PostConstruct
     public void postConstruct() {
         // Avoid circular bean dependencies
@@ -214,6 +217,7 @@ public class AgentConfig {
         bean.setMaxHarvests(harvestAgentMaxHarvests);
         bean.setScreenshotCommandFullpage(screenshotCommandFullpage);
         bean.setScreenshotCommandScreen(screenshotCommandScreen);
+        bean.setScreenshotCommandWindowsize(screenshotCommandWindowsize);
 //        bean.setService(harvestAgentService);
 //        bean.setLogReaderService(harvestAgentLogReaderService);
         bean.setName(harvestAgentName);

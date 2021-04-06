@@ -7,6 +7,7 @@ plugins {
 
 repositories {
     mavenLocal()
+    jcenter()
     maven {
         url = 'http://builds.archive.org:8080/maven2'
     }
@@ -31,6 +32,16 @@ dependencies {
     compile 'org.netarchivesuite:heritrix3-wrapper:1.0.3'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.9.5'
+// https://mvnrepository.com/artifact/org.seleniumhq.webdriver/webdriver-selenium
+    implementation group: 'org.seleniumhq.webdriver', name: 'webdriver-selenium', version: '0.9.7376'
+// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-api
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '3.141.59'
+// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-chrome-driver
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-chrome-driver', version: '3.141.59'
+// https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-support
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '3.141.59'
+// https://mvnrepository.com/artifact/ru.yandex.qatools.ashot/ashot
+    implementation group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
 }
 
 group = 'org.webcurator'

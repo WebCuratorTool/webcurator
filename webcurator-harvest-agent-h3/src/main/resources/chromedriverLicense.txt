@@ -1,0 +1,2 @@
+To view the Chromedriver license, please go to
+https://chromium.googlesource.com/chromium/src/+/afb2b4d227b36874c5a165565afbdc6d36daddd5/chrome/test/chromedriver/third_party/googlecode/LICENSE
