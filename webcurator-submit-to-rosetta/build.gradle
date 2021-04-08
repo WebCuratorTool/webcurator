@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
-    compile 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
+    compile 'org.webcurator:webcurator-core:3.0.+'
     compile 'dom4j:dom4j:1.6.1'
     compile 'com.google.code.guice:guice:1.0'
     compile 'org.apache.xmlbeans:xmlbeans:2.3.0'
@@ -37,7 +37,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.0.1'
+version = '3.0.2'
 description = 'Web Curator Tool Submit-to-Rosetta'
 sourceCompatibility = '1.8'
 

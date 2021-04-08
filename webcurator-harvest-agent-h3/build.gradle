@@ -27,14 +27,14 @@ dependencies {
     compile 'org.quartz-scheduler:quartz:2.3.1'
 	compile 'com.sun.xml.bind:jaxb-impl:2.3.2'
 	compile 'com.sun.xml.bind:jaxb-core:2.3.0'
-    compile 'org.webcurator:webcurator-core:3.0.0-SNAPSHOT'
+    compile 'org.webcurator:webcurator-core:3.0.+'
     compile 'org.netarchivesuite:heritrix3-wrapper:1.0.3'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.9.5'
 }
 
 group = 'org.webcurator'
-version = '3.0.1'
+version = '3.0.2'
 description = 'Harvest Agent - Heritrix 3.x'
 sourceCompatibility = '1.8'
 
