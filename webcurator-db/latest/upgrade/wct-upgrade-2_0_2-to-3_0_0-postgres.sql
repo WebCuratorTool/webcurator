@@ -1,5 +1,8 @@
 alter table db_wct.harvest_result alter hr_index set default 0;
 alter table db_wct.id_generator alter ig_value type bigint;
+alter table DB_WCT.ARC_HARVEST_RESOURCE drop constraint FK6D84FEB12FF8F14B;
+alter table DB_WCT.ARC_HARVEST_RESOURCE add constraint FK6D84FEB12FF8F14B foreign key (AHRC_HARVEST_RESOURCE_OID)
+                                                        references DB_WCT.HARVEST_RESOURCE on delete cascade;
 
 update db_wct.id_generator set ig_value=(COALESCE((select max(rol_oid) from db_wct.wctrole), 0)) where ig_type='Role';
 update db_wct.id_generator set ig_value=(COALESCE((select max(agc_oid) from db_wct.agency), 0)) where ig_type='Agency';
