@@ -123,15 +123,15 @@ setting up the WCT database and schema.*
 2. Run the following SQL scripts under the DB_WCT user or SYSTEM
    account::
 
-    db/latest/setup/wct-schema-oracle.sql
+    db/latest/sql/wct-schema-oracle.sql
 
-    db/latest/setup/wct-schema-grants.sql
+    db/latest/sql/wct-schema-grants.sql
 
-    db/latest/setup/wct-indexes-oracle.sql
+    db/latest/sql/wct-indexes-oracle.sql
 
-    db/latest/setup/wct-bootstrap-oracle.sql
+    db/latest/sql/wct-bootstrap-oracle.sql
 
-    db/latest/setup/wct-qa-data-oracle.sql
+    db/latest/sql/wct-qa-data-oracle.sql
 
 *The wct-qa-data-oracle.sql script will generate QA indicator
 template data for the new QA module for each agency, and should be run*
@@ -164,15 +164,15 @@ prior to setting up the WCT database and schema.*
 2. Run the following SQL scripts under the DB_WCT user or SYSTEM
    account::
 
-    db/latest/setup/wct-schema-postgresql.sql
+    db/latest/sql/wct-schema-postgresql.sql
 
-    db/latest/setup/wct-schema-grants-postgresql.sql
+    db/latest/sql/wct-schema-grants-postgresql.sql
 
-    db/latest/setup/wct-indexes-postgresql.sql
+    db/latest/sql/wct-indexes-postgresql.sql
 
-    db/latest/setup/wct-bootstrap-postgresql.sql
+    db/latest/sql/wct-bootstrap-postgresql.sql
 
-    db/latest/setup/wct-qa-data-postgres.sql
+    db/latest/sql/wct-qa-data-postgres.sql
 
 *The wct-qa-data-postgres.sql script will generate QA indicator
 template data for the new QA module for each agency, and should be run*
@@ -205,15 +205,15 @@ to setting up the WCT database and schema.
 2. Run the following SQL scripts under the DB_WCT user or SYSTEM
    account::
 
-    db/latest/setup/wct-schema-mysql.sql
+    db/latest/sql/wct-schema-mysql.sql
 
-    db/latest/setup/wct-schema-grants-mysql.sql
+    db/latest/sql/wct-schema-grants-mysql.sql
 
-    db/latest/setup/wct-indexes-mysql.sql
+    db/latest/sql/wct-indexes-mysql.sql
 
-    db/latest/setup/wct-bootstrap-mysql.sql
+    db/latest/sql/wct-bootstrap-mysql.sql
 
-    db/latest/setup/wct-qa-data-mysql.sql
+    db/latest/sql/wct-qa-data-mysql.sql
 
 
 *The wct-qa-data-mysql.sql script will generate QA indicator template
