@@ -164,10 +164,11 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
         File f = new File(dto.getFilePath());
         if (dto.getFileUploadMode().equalsIgnoreCase(FILE_UPLOAD_MODE_STREAM)) {
             String link = String.format("%s%s?filePath=%s", dto.getHarvestBaseUrl(), HarvestCoordinatorPaths.DOWNLOAD, dto.getFilePath());
+            URLConnection conn = null;
 
             try {
                 URL url = URI.create(link).toURL();
-                URLConnection conn = url.openConnection();
+                conn = url.openConnection();
                 conn.setRequestProperty("Content-Type", "application/octet-stream");
                 conn.setDoInput(true);
                 conn.setDoOutput(true);
@@ -177,6 +178,8 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
             } catch (IOException e) {
                 log.error("Download file from harvest agent failed", e);
                 throw new DigitalAssetStoreException(e);
+            } finally {
+                if (conn != null) ((HttpURLConnection) conn).disconnect();
             }
         } else {
             save(dto.getTargetInstanceName(), dto.getDirectory(), f.toPath());
