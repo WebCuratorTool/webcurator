@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.net.URI;
 import java.net.URL;
@@ -172,6 +173,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                 conn.setDoOutput(true);
 
                 arcDigitalAssetStoreService.save(dto.getTargetInstanceName(), dto.getDirectory(), f.getName(), conn.getInputStream());
+                conn.getInputStream().close();
             } catch (IOException e) {
                 log.error("Download file from harvest agent failed", e);
                 throw new DigitalAssetStoreException(e);
