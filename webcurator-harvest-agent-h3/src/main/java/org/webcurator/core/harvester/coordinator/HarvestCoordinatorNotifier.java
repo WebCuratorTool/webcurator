@@ -93,6 +93,8 @@ public class HarvestCoordinatorNotifier extends AbstractRestClient implements Ha
             log.error("Recovery Request failed.");
 
             throw new HttpClientErrorException(ex.getStatusCode());
+        } catch (Exception ex) {
+            log.error("Recovery Request failed.");
         }
     }
 
