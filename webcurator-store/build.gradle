@@ -36,12 +36,23 @@ dependencies {
         exclude group: 'org.archive', module: 'heritrix'
     }
     compile 'net.sf.ehcache:ehcache:2.10.6'
-//    compile 'wsdl4j:wsdl4j:1.6.1'
+    //    compile 'wsdl4j:wsdl4j:1.6.1'
     compile 'org.webcurator:webcurator-submit-to-rosetta:3.1.+'
     compile 'joda-time:joda-time:2.10.5'
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:3.2.4'
     testCompile 'org.powermock:powermock-module-junit4:1.5.1'
+    // Screenshot dependencies
+    // https://mvnrepository.com/artifact/org.seleniumhq.webdriver/webdriver-selenium
+    implementation group: 'org.seleniumhq.webdriver', name: 'webdriver-selenium', version: '0.9.7376'
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-api
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-api', version: '3.141.59'
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-chrome-driver
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-chrome-driver', version: '3.141.59'
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-support
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-support', version: '3.141.59'
+    // https://mvnrepository.com/artifact/ru.yandex.qatools.ashot/ashot
+    implementation group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
 }
 
 group = 'org.webcurator'

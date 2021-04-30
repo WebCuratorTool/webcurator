@@ -276,12 +276,55 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
             log.info("'Harvest Complete' message processed for job: " + ti.getOid() + ".");
 
+
+            // Wait some time for indexing to complete
+            boolean indexing = true;
+            try {
+                for (int i = 0; i <= 10; i++) {
+                    Thread.sleep(30000);
+                    if (!digitalAssetStoreFactory.getDAS().checkIndexing(harvestResult.getOid())) {
+                        indexing = false;
+                        break;
+                    }
+                }
+
+                // Do not generate the screenshot if it has not finished indexing
+                if (!indexing) {
+                    // Generate harvest screenshots
+                    log.info("Generating harvest screenshots for harvest " + String.valueOf(aResult.getHarvestNumber()));
+                    for (Seed seed : tiTarget.getSeeds()) {
+                        Map<String, String> identifiers = new HashMap<>();
+                        identifiers.put("seed", seed.getSeed());
+                        identifiers.put("tiOid", String.valueOf(aResult.getTargetInstanceOid()));
+                        identifiers.put("liveOrHarvested", "harvested");
+                        identifiers.put("seedOid", String.valueOf(seed.getOid()));
+                        identifiers.put("harvestNumber", String.valueOf(harvestResult.getHarvestNumber()));
+
+                        // TO DELETE
+                        log.info("Passing arguments for screenshots");
+                        log.info(identifiers.toString());
+//                        log.info(identifiers.keySet());
+
+                        digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
+
+                    }
+                } else {
+                    log.info("Timed out waiting for harvest " + String.valueOf(harvestResult.getHarvestNumber()) +
+                            " to ingest.  Harvest screenshots not generated.");
+                }
+            } catch (DigitalAssetStoreException ex) {
+                log.error("Unable to generate screenshots for harvest " + String.valueOf(harvestResult.getHarvestNumber()), ex);
+            } catch (InterruptedException ex) {
+                log.error("Timed out waiting for indexing to complete...", ex);
+            }
+
             //TODO WARNING - the auto prune process initiates it's own indexing, but it potentially does this
             //while the indexing initiated above is STILL RUNNING.  The fact that it works is likely attributable
             //to the fact that the second indexing is likely to finish after the first, but this may not always be
             //the case.
             runAutoPrune(ti);
         }
+
     }
 
     /**
@@ -427,6 +470,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         if (!isTargetApproved(aTargetInstance) || aHarvestAgent.getMemoryWarning()) {
             return;
         }
+
+        // Potentially send a message to DAS to generate live screenshots from here
 
         // Create the seeds file contents.
         StringBuffer seeds = new StringBuffer();

@@ -74,4 +74,12 @@ public interface DigitalAssetStoreService {
      */
     CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria)
             throws DigitalAssetStoreException;
+
+    /**
+     * Create screenshots for live and harvested seeds
+     *
+     * @param identifiers
+     * @throws DigitalAssetStoreException
+     */
+    void createScreenshots(Map identifiers) throws DigitalAssetStoreException;
 }

@@ -180,4 +180,10 @@ public interface DigitalAssetStore {
      * @throws DigitalAssetStoreException thrown if there is an error
      */
     void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException;
+     /** Create live or screenshots for each seed in the harvest
+     *
+     * @param identifiers: targets
+     * @throws DigitalAssetStoreException thrown if there is an error
+     */
+    void createScreenshots(Map identifiers) throws DigitalAssetStoreException;
 }

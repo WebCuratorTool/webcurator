@@ -282,6 +282,15 @@ public class DasConfig {
 
     @Value(("${visualization.dbVersion}"))
     private String visualizationDbVersion;
+    // The commands used for generating screenshots
+    @Value("${screenshotCommand.fullpage}")
+    private String screenshotCommandFullpage;
+
+    @Value("${screenshotCommand.screen}")
+    private String screenshotCommandScreen;
+
+    @Value("${screenshotCommand.windowsize}")
+    private String screenshotCommandWindowsize;
 
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
@@ -333,6 +342,20 @@ public class DasConfig {
         return new VisualizationProcessorManager(visualizationManager(),
                 wctCoordinatorClient(),
                 maxConcurrencyModThreads);
+    }
+    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
+    public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
+        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl, new RestTemplateBuilder());
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setIndexer(indexer());
+        bean.setDasFileMover(createDasFileMover());
+        bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
+        bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
+        bean.setFileArchive(createFileArchive());
+        bean.setScreenshotCommandFullpage(screenshotCommandFullpage);
+        bean.setScreenshotCommandScreen(screenshotCommandScreen);
+        bean.setScreenshotCommandWindowsize(screenshotCommandWindowsize);
+        return bean;
     }
 
     @Bean

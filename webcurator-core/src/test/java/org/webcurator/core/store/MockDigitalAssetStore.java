@@ -120,4 +120,16 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
     public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
         return;
     }
+
+    /**
+     * Create live or screenshots for each seed in the harvest
+     *
+     * @param identifiers
+     * @throws DigitalAssetStoreException
+     */
+    public void createScreenshots(Map identifiers) throws DigitalAssetStoreException {
+    }
+
+    ;
+
 }

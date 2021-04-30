@@ -22,6 +22,8 @@ import static org.webcurator.core.archive.Constants.ROOT_FILE;
 
 import it.unipi.di.util.ExternalSort;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -29,6 +31,7 @@ import java.net.URLConnection;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
@@ -41,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -71,6 +75,8 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
+
+import javax.imageio.ImageIO;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -125,6 +131,19 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     @Autowired
     private VisualizationProcessorManager visualizationProcessorManager;
+    /**
+     * the fullpage screenshot command.
+     */
+    private String screenshotCommandFullpage = null;
+    /**
+     * the screen screenshot command.
+     */
+    private String screenshotCommandScreen = null;
+    /**
+     * the windowsize screenshot command.
+     */
+    private String screenshotCommandWindowsize = null;
+
 
     @Autowired
     private BDBNetworkMapPool pool;
@@ -134,6 +153,14 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
+
+    public ArcDigitalAssetStoreService() {
+        super();
+    }
+
+    public ArcDigitalAssetStoreService(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
+    }
 
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -1198,5 +1225,206 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         public void setHarvestNumber(int harvestNumber) {
             this.harvestNumber = harvestNumber;
         }
+    }
+
+    private void waitForScreenshot(File file, String filename) {
+        try {
+            for (int i = 0; i < 5; i++) {
+                if (file.exists()) return;
+                log.info(filename + " has not been created yet.  Waiting...");
+                Thread.sleep(10000);
+            }
+            log.info("Timed out waiting for file creation.");
+        } catch (Exception e) {
+        }
+    }
+
+    // The wayback banner may be problematic when getting full page screenshots, check against the live image dimensions
+    // Allow some space for the wayback banner
+    private void checkFullpageScreenshotSize(String command, String outputPath, String filename, File liveImageFile) {
+        try {
+            BufferedImage liveImage = ImageIO.read(liveImageFile);
+            int liveImageWidth = liveImage.getWidth();
+            int liveImageHeight = liveImage.getHeight();
+            liveImage.flush();
+
+            // Only proceed if harvested fullpage image is smaller than live fullpage image
+            BufferedImage harvestedImage = ImageIO.read(new File(outputPath + File.separator + filename));
+            if (harvestedImage.getWidth() >= liveImageWidth && harvestedImage.getHeight() >= liveImageHeight) {
+                harvestedImage.flush();
+                return;
+            }
+
+            log.info("Harvested full page screenshot is smaller than live full page screenshot.  " +
+                    "Getting a new screenshot using live image dimensions.");
+            String windowsizeCommand = command.replace("%width%", String.valueOf(liveImageWidth))
+                    .replace("%height%", String.valueOf(liveImageHeight + 150));
+
+            // Delete the old harvested fullpage image and replace it with one with new dimensions
+            File toDelete = new File(outputPath + File.separator + filename);
+            if (toDelete.delete()) {
+                runCommand(windowsizeCommand);
+                waitForScreenshot(toDelete, filename);
+                log.info("Fullpage screenshot of harvest replaced.");
+            } else {
+
+                log.info("Unable to replace harvest fullpage screenshot.");
+            }
+            harvestedImage.flush();
+        } catch (Exception e) {
+            log.error("Failed to resize fullpage harvest screenshot: " + e.getMessage(), e);
+        }
+    }
+
+    private void runCommand(String command) {
+        try {
+            String harvestAgentH3SourceDir = "webcurator-harvest-agent-h3";
+            ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
+            if (command.contains("SeleniumScreenshotCapture")) {
+                String processDir = System.getProperty("user.dir");
+                if (processDir.contains(harvestAgentH3SourceDir)) {
+                    processDir = processDir.substring(0, processDir.indexOf(harvestAgentH3SourceDir));
+                }
+                processDir = processDir + File.separator + harvestAgentH3SourceDir + File.separator
+                        + "build" + File.separator + "classes" + File.separator + "java" + File.separator + "main";
+                processBuilder.directory(new File(processDir).getAbsoluteFile());
+            }
+            Process process = processBuilder.start();
+        } catch (Exception e) {
+            log.error("Unable to process command " + command, e);
+        }
+    }
+
+    private void generateThumbnailOrScreenSizeScreenshot(String inputFilename, String outputPathString,
+                                                         String inputSize, String outputSize, int width, int height) {
+        log.info("Generating " + outputSize + " screenshot...");
+        try {
+            BufferedImage sourceImage = ImageIO.read(new File(outputPathString + File.separator + inputFilename));
+            BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            Image scaledImage = sourceImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            bufferedImage.createGraphics().drawImage(scaledImage, 0, 0, null);
+            BufferedImage thumbnailImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            thumbnailImage = bufferedImage.getSubimage(0, 0, width, height);
+            ImageIO.write(thumbnailImage, "png", new File(outputPathString + File.separator
+                    + inputFilename.replace(inputSize, outputSize)));
+            sourceImage.flush();
+            bufferedImage.flush();
+            thumbnailImage.flush();
+        } catch (Exception e) {
+            log.error("Unable to generate " + outputSize + " thumbnail.");
+        }
+    }
+
+    public Boolean createScreenshots(Map identifiers) {
+        // file naming convention: ti_harvest_seedId_source_tool.png
+        String seedUrl = String.valueOf(identifiers.get("seed"));
+        String targetInstanceOid = String.valueOf(identifiers.get("tiOid"));
+        String liveOrHarvested = String.valueOf(identifiers.get("liveOrHarvested"));
+        String seedId = String.valueOf(identifiers.get("seedOid"));
+        String harvestNumber = String.valueOf(identifiers.get("harvestNumber"));
+
+        // TO DELETE
+        log.info("Keys and values: " + identifiers.toString());
+
+        // source can be harvested or live
+        String outputPathString = baseDir.toString() + File.separator + targetInstanceOid + File.separator + harvestNumber;
+        String toolUsed = screenshotCommandFullpage.split("\\s+")[0];
+
+        // If using a java class, use the class name
+        if (toolUsed.equals("java")) {
+            toolUsed = screenshotCommandFullpage.split("\\s+")[1];
+            toolUsed = toolUsed.substring(toolUsed.lastIndexOf(".") + 1);
+        }
+
+        // Get the name of the tool used to get the screenshot
+        if (toolUsed.contains(File.separator)) toolUsed = toolUsed.substring(toolUsed.lastIndexOf(File.separator) + 1);
+
+        String fullpageFilename = targetInstanceOid + "_harvestNum_seedID_" + liveOrHarvested + "_" + toolUsed.toLowerCase() + "_fullpage.png";
+
+        if (seedId != null) fullpageFilename.replace("seedID", seedId);
+        if (harvestNumber != null) fullpageFilename.replace("harvestNum", harvestNumber);
+
+        String screenFilename = fullpageFilename.replace("fullpage", "screen");
+        String imagePlaceholder = "%image.png%";
+        String urlPlaceholder = "%url%";
+
+        String commandFullpage = screenshotCommandFullpage
+                .replace(urlPlaceholder, seedUrl.replaceAll("\\s+", ""))
+                .replace(imagePlaceholder, outputPathString + fullpageFilename);
+        String commandScreen = screenshotCommandScreen
+                .replace(urlPlaceholder, seedUrl.replaceAll("\\s+", ""))
+                .replace(imagePlaceholder, outputPathString + screenFilename);
+
+        log.info("Generating screenshots for job " + targetInstanceOid + " using " + toolUsed + "...");
+
+        try {
+            log.info("Fulllpage screenshot command: " + commandFullpage);
+            // Generate fullpage screenshots only if live or not using the default SeleniumScreenshotCapture executable for harvested screenshot
+            // The size of harvested screenshots will be compared next
+            if (liveOrHarvested.equals("live") || !commandFullpage.contains("SeleniumScreenshotCapture")) {
+                runCommand(commandFullpage);
+                waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+            }
+
+            File liveImageFile = new File(outputPathString + File.separator + fullpageFilename.replace("harvested", "live"));
+            if (liveOrHarvested.equals("harvested") && liveImageFile.exists()) {
+                String commandWaybackFullpage = screenshotCommandWindowsize
+                        .replace(urlPlaceholder, seedUrl.replaceAll("\\s+", ""))
+                        .replace(imagePlaceholder, outputPathString + fullpageFilename);
+                if (commandWaybackFullpage.contains("SeleniumScreenshotCapture")) {
+                    commandWaybackFullpage = commandWaybackFullpage.substring(0, commandWaybackFullpage.indexOf("width=")) + "--wayback";
+                    runCommand(commandWaybackFullpage);
+                    waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+                    // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
+                } else {
+                    checkFullpageScreenshotSize(screenshotCommandWindowsize, outputPathString, fullpageFilename, liveImageFile);
+                }
+            } else if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
+                log.info("Live image file does not exist, nothing to compare against.");
+            }
+
+            // Generate the screen sized screenshot
+            log.info("Screen sized screenshot command: " + commandFullpage);
+            if (liveOrHarvested.equals("harvested") && commandScreen.contains("SeleniumScreenshotCapture")) {
+                commandScreen = commandScreen.trim() + " --wayback";
+            }
+            runCommand(commandScreen);
+            waitForScreenshot(new File(outputPathString + screenFilename), screenFilename);
+
+            // Generate thumbnail from fullpage screenshot if not using the default screenshot tool
+            log.info("Thumbnail screenshot command: " + commandFullpage);
+            if (!commandScreen.contains("SeleniumScreenshotCapture")) {
+                generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString, "screen",
+                        "thumbnail", 100, 100);
+            }
+
+            log.info("Screenshots generated.");
+
+        } catch (Exception e) {
+            log.error("Failed to generate screenshots: " + e.getMessage(), e);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param aScreenshotFullpageCommand The screenshotFullpageCommand to set.
+     */
+    public void setScreenshotCommandFullpage(String aScreenshotCommandFullpage) {
+        this.screenshotCommandFullpage = aScreenshotCommandFullpage;
+    }
+
+    /**
+     * @param aScreenshotScreenCommand The screenshotScreenCommand to set.
+     */
+    public void setScreenshotCommandScreen(String aScreenshotCommandScreen) {
+        this.screenshotCommandScreen = aScreenshotCommandScreen;
+    }
+
+    /**
+     * @param aScreenshotWindowsizeCommand The screenshotWindowsizeCommand to set.
+     */
+    public void setScreenshotCommandWindowsize(String aScreenshotCommandWindowsize) {
+        this.screenshotCommandWindowsize = aScreenshotCommandWindowsize;
     }
 }
