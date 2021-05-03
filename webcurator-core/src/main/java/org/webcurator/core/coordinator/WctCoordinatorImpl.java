@@ -19,6 +19,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -297,19 +298,16 @@ public class WctCoordinatorImpl implements WctCoordinator {
                     // TO DELETE
                     log.info("Harvest time: " + harvestResult.getCreationDate().toString());
 
-                    for (Seed seed : tiTarget.getSeeds()) {
-                        // Use wayback harvest url for the seed
-                        String seedUrl = seed.getSeed();
 
+                    for (Seed seed : tiTarget.getSeeds()) {
                         Map<String, String> identifiers = new HashMap<>();
-                        identifiers.put("seed", seedUrl);
+                        identifiers.put("seed", seed.getSeed());
                         identifiers.put("tiOid", String.valueOf(aResult.getTargetInstanceOid()));
                         identifiers.put("liveOrHarvested", "harvested");
                         identifiers.put("seedOid", String.valueOf(seed.getOid()));
                         identifiers.put("harvestNumber", String.valueOf(harvestResult.getHarvestNumber()));
-
+                        identifiers.put("timestamp", new SimpleDateFormat("yyyyMMdd").format(harvestResult.getCreationDate()));
                         digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
-
                     }
                 } else {
                     log.info("Timed out waiting for harvest " + String.valueOf(harvestResult.getHarvestNumber()) +
@@ -497,18 +495,24 @@ public class WctCoordinatorImpl implements WctCoordinator {
         // Save the updated information: to avoid asynchronous problem, update the satate before start harvesting
         targetInstanceManager.save(aTargetInstance);
 
-        // Generate live screenshots
-        for (String seed : originalSeeds) {
-            try {
-                Map identifiers = new HashMap();
-                identifiers.put("seed", seed);
-                identifiers.put("tiOid", targetInstanceId);
-                identifiers.put("liveOrHarvested", "live");
 
-                digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
-            } catch (DigitalAssetStoreException e) {
-                log.error("Unable to generate live screenshots for harvest");
-            }
+        // Generate live screenshots using a new thread
+        for (String seed : originalSeeds) {
+            Map identifiers = new HashMap();
+            identifiers.put("seed", seed);
+            identifiers.put("tiOid", targetInstanceId);
+            identifiers.put("liveOrHarvested", "live");
+
+            Thread screenshotThread = new Thread() {
+                public void run() {
+                    try {
+                        digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
+                    } catch (DigitalAssetStoreException e) {
+                        log.error("Error occurred while generating screenshots.");
+                    }
+                }
+            };
+            screenshotThread.start();
         }
 
         // Initiate harvest on the remote harvest agent
@@ -546,7 +550,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
     }
 
-    private void patchHarvestCrawling(TargetInstance ti, HarvestResult hr, QueuedTargetInstanceDTO queuedTargetInstanceDTO) {
+    private void patchHarvestCrawling(TargetInstance ti, HarvestResult hr, QueuedTargetInstanceDTO
+            queuedTargetInstanceDTO) {
         boolean approved = true;
 
         // lock the ti
@@ -1091,7 +1096,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
     /**
      * @see HarvestCoordinator#getLogLinesByRegex(TargetInstance, String, int, String, boolean)
      */
-    public List<String> getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex,
+    public List<String> getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String
+            aRegex,
                                            boolean prependLineNumbers) {
         return harvestLogManager.getLogLinesByRegex(aTargetInstance, aFileName, aNoOfLines, aRegex, prependLineNumbers);
     }
@@ -1463,7 +1469,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return cmd;
     }
 
-    public ModifyResult modificationDownloadFile(long job, int harvestResultNumber, ModifyRowFullData metadata, HttpServletResponse resp) {
+    public ModifyResult modificationDownloadFile(long job, int harvestResultNumber, ModifyRowFullData
+            metadata, HttpServletResponse resp) {
         ModifyResult result = new ModifyResult();
 
         //Ignore elements which are not 'file'
@@ -1737,7 +1744,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return result;
     }
 
-    private HarvestResultDTO savePruneAndImportCommandApply(ModifyApplyCommand cmd, boolean isNeedHarvest) throws IOException, WCTRuntimeException {
+    private HarvestResultDTO savePruneAndImportCommandApply(ModifyApplyCommand cmd, boolean isNeedHarvest) throws
+            IOException, WCTRuntimeException {
         TargetInstance ti = targetInstanceDao.load(cmd.getTargetInstanceId());
         HarvestResult res = targetInstanceDao.getHarvestResult(cmd.getHarvestResultId()); //Query the old Harvest Result
         if (ti == null || res == null) {
@@ -1798,7 +1806,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     @Override
-    public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String
+            fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         File f = new File(visualizationDirectoryManager.getUploadDir(targetInstanceId), fileName);
 
         StringBuilder headers = new StringBuilder();

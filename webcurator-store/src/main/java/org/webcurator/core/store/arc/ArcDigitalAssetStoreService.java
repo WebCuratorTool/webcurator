@@ -153,6 +153,10 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
+    /**
+     * the base url for the wayback viewer
+     */
+    private String harvestWaybackViewerBaseUrl;
 
     public ArcDigitalAssetStoreService() {
         super();
@@ -1361,8 +1365,9 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
         String fullpageFilename = targetInstanceOid + "_harvestNum_seedID_" + liveOrHarvested + "_" + toolUsed.toLowerCase() + "_fullpage.png";
 
-        // Check if live screenshots exist in null directory
+        // Need to move the live screenshots and use the wayback indexed url instead of the seed url
         if (liveOrHarvested.equals("harvested")) {
+            // Check if live screenshots exist in null directory
             for (String size : new String[]{"fullpage","screen","thumbnail"}){
                 renameLiveFile(nullDirectoryString, outputPathString, seedId, harvestNumber, fullpageFilename.replace("fullpage", size));
             }
@@ -1372,6 +1377,28 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 if (!liveDirectory.delete()) {
                     log.info("Unable to delete null directory.");
                 }
+            }
+
+            // Get timestamp from warc file and use in harvest seed url
+            File harvestDirectory = new File(outputPathString);
+            String tsArg = String.valueOf(identifiers.get("timestamp"));
+
+            for (String fileString : harvestDirectory.list()) {
+                if (identifiers.get("timestamp") == null || identifiers.get("timestamp").equals("null")) {
+                    log.info("No valid timestamp to use");
+                    break;
+                }
+
+                if (!fileString.endsWith(".warc")) continue;
+                if (!fileString.contains(tsArg)) continue;
+
+                int tsIndex = fileString.indexOf(tsArg);
+                String timestamp = fileString.substring(tsIndex, tsIndex + 14);
+
+                seedUrl = harvestWaybackViewerBaseUrl + timestamp + "/" + seedUrl;
+
+                log.info("Using harvest url " + seedUrl + " to generate screenshots.");
+                break;
             }
         }
 
@@ -1462,5 +1489,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      */
     public void setScreenshotCommandWindowsize(String aScreenshotCommandWindowsize) {
         this.screenshotCommandWindowsize = aScreenshotCommandWindowsize;
+    }
+
+    /**
+     * @param aHarvestWaybackViewerBaseUrl
+     */
+    public void setHarvestWaybackViewerBaseUrl(String aHarvestWaybackViewerBaseUrl) {
+        this.harvestWaybackViewerBaseUrl = aHarvestWaybackViewerBaseUrl;
     }
 }

@@ -292,6 +292,9 @@ public class DasConfig {
     @Value("${screenshotCommand.windowsize}")
     private String screenshotCommandWindowsize;
 
+    @Value("${harvestWaybackViewer.baseUrl}")
+    private String harvestWaybackViewerBaseUrl;
+
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
@@ -355,6 +358,7 @@ public class DasConfig {
         bean.setScreenshotCommandFullpage(screenshotCommandFullpage);
         bean.setScreenshotCommandScreen(screenshotCommandScreen);
         bean.setScreenshotCommandWindowsize(screenshotCommandWindowsize);
+        bean.setHarvestWaybackViewerBaseUrl(harvestWaybackViewerBaseUrl);
         return bean;
     }
 
