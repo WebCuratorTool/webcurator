@@ -1245,7 +1245,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     // The wayback banner may be problematic when getting full page screenshots, check against the live image dimensions
     // Allow some space for the wayback banner
-    private void checkFullpageScreenshotSize(String command, String outputPath, String filename, File liveImageFile) {
+    private void checkFullpageScreenshotSize(String outputPath, String filename, File liveImageFile, String url) {
         try {
             BufferedImage liveImage = ImageIO.read(liveImageFile);
             int liveImageWidth = liveImage.getWidth();
@@ -1259,10 +1259,15 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 return;
             }
 
+            String windowsizeCommand = screenshotCommandWindowsize
+                    .replace("%width%", String.valueOf(liveImageWidth))
+                    .replace("%height%", String.valueOf(liveImageHeight + 150))
+                    .replace("%url%", url)
+                    .replace("%image.png%", outputPath + File.separator + filename);
+
+
             log.info("Harvested full page screenshot is smaller than live full page screenshot.  " +
-                    "Getting a new screenshot using live image dimensions.");
-            String windowsizeCommand = command.replace("%width%", String.valueOf(liveImageWidth))
-                    .replace("%height%", String.valueOf(liveImageHeight + 150));
+                    "Getting a new screenshot using live image dimensions, command " + windowsizeCommand);
 
             // Delete the old harvested fullpage image and replace it with one with new dimensions
             File toDelete = new File(outputPath + File.separator + filename);
@@ -1423,7 +1428,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         log.info("Generating screenshots for job " + targetInstanceOid + " using " + toolUsed + "...");
 
         try {
-            log.info("Fulllpage screenshot command: " + commandFullpage);
             // Generate fullpage screenshots only if live or not using the default SeleniumScreenshotCapture executable for harvested screenshot
             // The size of harvested screenshots will be compared next
             if (liveOrHarvested.equals("live") || !commandFullpage.contains("SeleniumScreenshotCapture")) {
@@ -1442,14 +1446,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                     waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
                     // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
                 } else {
-                    checkFullpageScreenshotSize(screenshotCommandWindowsize, outputPathString, fullpageFilename, liveImageFile);
+                    checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl);
                 }
             } else if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
                 log.info("Live image file does not exist, nothing to compare against.");
             }
 
             // Generate the screen sized screenshot
-            log.info("Screen sized screenshot command: " + commandFullpage);
             if (liveOrHarvested.equals("harvested") && commandScreen.contains("SeleniumScreenshotCapture")) {
                 commandScreen = commandScreen.trim() + " --wayback";
             }
@@ -1457,7 +1460,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             waitForScreenshot(new File(outputPathString + screenFilename), screenFilename);
 
             // Generate thumbnail from fullpage screenshot if not using the default screenshot tool
-            log.info("Thumbnail screenshot command: " + commandFullpage);
             if (!commandScreen.contains("SeleniumScreenshotCapture")) {
                 generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString, "screen",
                         "thumbnail", 100, 100);
