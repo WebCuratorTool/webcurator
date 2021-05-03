@@ -105,18 +105,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      * the interface to the WCT harvest coordinator.
      */
     private HarvestAgentListener harvestCoordinatorNotifier = null;
-    /**
-     * the fullpage screenshot command.
-     */
-    private String screenshotCommandFullpage = null;
-    /**
-     * the screen screenshot command.
-     */
-    private String screenshotCommandScreen = null;
-    /**
-     * the windowsize screenshot command.
-     */
-    private String screenshotCommandWindowsize = null;
 
     /**
      * the logger.
@@ -164,10 +152,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             harvester.start(profile, aJob);
             harvester.setAlertThreshold(alertThreshold);
 
-            int counter = 1;
-            for (String seed : aSeeds.split("\\r?\\n")){
-                createScreenshots(harvester.getHarvestDigitalAssetsDirs().get(0), seed, aJob, "live", counter, null);
-            }
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("Failed to initiate harvest for " + aJob + " : " + e.getMessage(), e);
@@ -333,160 +317,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         return l;
     }
 
-    private void waitForScreenshot(File file, String filename) {
-        try {
-            for (int i = 0; i < 5; i++) {
-                if (file.exists()) return;
-                log.info(filename + " has not been created yet.  Waiting...");
-                Thread.sleep(10000);
-            }
-            log.info("Timed out waiting for file creation.");
-        } catch (Exception e) {
-        }
-    }
-
-    // The wayback banner may be problematic when getting full page screenshots, check against the live image dimensions
-    // Allow some space for the wayback banner
-    private void checkFullpageScreenshotSize(String command, String outputPath, String filename, File liveImageFile) {
-        try {
-            BufferedImage liveImage = ImageIO.read(liveImageFile);
-            int liveImageWidth = liveImage.getWidth();
-            int liveImageHeight = liveImage.getHeight();
-            liveImage.flush();
-
-            // Only proceed if harvested fullpage image is smaller than live fullpage image
-            BufferedImage harvestedImage = ImageIO.read(new File(outputPath + File.separator + filename));
-            if (harvestedImage.getWidth() >= liveImageWidth && harvestedImage.getHeight()>= liveImageHeight) {
-                harvestedImage.flush();
-                return;
-            }
-
-            log.info("Harvested full page screenshot is smaller than live full page screenshot.  " +
-                    "Getting a new screenshot using live image dimensions.");
-            String windowsizeCommand = command.replace("%width%", String.valueOf(liveImageWidth))
-                    .replace("%height%", String.valueOf(liveImageHeight + 150));
-
-            // Delete the old harvested fullpage image and replace it with one with new dimensions
-            File toDelete = new File(outputPath + File.separator + filename);
-            if (toDelete.delete()) {
-                runCommand(windowsizeCommand);
-                waitForScreenshot(toDelete, filename);
-                log.info("Fullpage screenshot of harvest replaced.");
-            } else {
-
-                log.info("Unable to replace harvest fullpage screenshot.");
-            }
-            harvestedImage.flush();
-        } catch (Exception e) {
-            log.error("Failed to resize fullpage harvest screenshot: " + e.getMessage(), e);
-        }
-    }
-
-    private void runCommand(String command) {
-        try {
-            String harvestAgentH3SourceDir = "webcurator-harvest-agent-h3";
-            ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
-            if (command.contains("SeleniumScreenshotCapture")) {
-                String processDir = System.getProperty("user.dir");
-                if (processDir.contains(harvestAgentH3SourceDir)) {
-                    processDir = processDir.substring(0, processDir.indexOf(harvestAgentH3SourceDir));
-                }
-                processDir = processDir + File.separator + harvestAgentH3SourceDir + File.separator
-                        + "build" + File.separator + "classes" + File.separator + "java" + File.separator + "main";
-                processBuilder.directory(new File( processDir).getAbsoluteFile());
-            }
-            Process process = processBuilder.start();
-        } catch (Exception e) {
-            log.error("Unable to process command " + command, e);
-        }
-    }
-
-    private void createScreenshots(File outputPath, String seedUrl, String job, String liveOrHarvested, Integer seedId, Integer harvestNumber){
-        // file naming convention: ti_harvest_seedId_source_tool.png
-        // source can be harvested or live
-        String outputPathString = outputPath.toString() + File.separator;
-        String toolUsed = screenshotCommandFullpage.split("\\s+")[0];
-
-        // If using a java class, use the class name
-        if (toolUsed.equals("java")) {
-            toolUsed = screenshotCommandFullpage.split("\\s+")[1];
-            toolUsed = toolUsed.substring(toolUsed.lastIndexOf(".")+1);
-        }
-
-        // Get the name of the tool used to get the screenshot
-        if (toolUsed.contains(File.separator)) toolUsed = toolUsed.substring(toolUsed.lastIndexOf(File.separator) + 1);
-
-        String fullpageFilename =  job + "_harvestNum_seedID_" + liveOrHarvested + "_" + toolUsed.toLowerCase() + "_fullpage.png";
-
-        if (seedId != null) fullpageFilename.replace("seedID", String.valueOf(seedId));
-        if (harvestNumber != null) fullpageFilename.replace("harvestNum", String.valueOf(harvestNumber));
-
-        String screenFilename = fullpageFilename.replace("fullpage", "screen");
-        String imagePlaceholder = "%image.png%";
-        String urlPlaceholder = "%url%";
-
-        String commandFullpage = screenshotCommandFullpage
-                .replace(urlPlaceholder, seedUrl.replaceAll("\\s+",""))
-                .replace(imagePlaceholder, outputPathString + fullpageFilename);
-        String commandScreen = screenshotCommandScreen
-                .replace(urlPlaceholder, seedUrl.replaceAll("\\s+",""))
-                .replace(imagePlaceholder, outputPathString + screenFilename);
-
-        log.info("Generating screenshots for job " + job + " using " + toolUsed + "...");
-
-        try {
-            // Generate fullpage screenshots only if live or not using the default SeleniumScreenshotCapture executable for harvested screenshot
-            // The size of harvested screenshots will be compared next
-            if (liveOrHarvested.equals("live") || !commandFullpage.contains("SeleniumScreenshotCapture")) {
-                runCommand(commandFullpage);
-                waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
-            }
-
-            File liveImageFile = new File(outputPathString + File.separator + fullpageFilename.replace("harvested", "live"));
-            if (liveOrHarvested.equals("harvested") && liveImageFile.exists()) {
-                String commandWaybackFullpage = screenshotCommandWindowsize
-                        .replace(urlPlaceholder, seedUrl.replaceAll("\\s+", ""))
-                        .replace(imagePlaceholder, outputPathString + fullpageFilename);
-                if (commandWaybackFullpage.contains("SeleniumScreenshotCapture")) {
-                    commandWaybackFullpage = commandWaybackFullpage.substring(0, commandWaybackFullpage.indexOf("width=")) + "--wayback";
-                    runCommand(commandWaybackFullpage);
-                    waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
-                // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
-                } else {
-                    checkFullpageScreenshotSize(screenshotCommandWindowsize, outputPathString, fullpageFilename, liveImageFile);
-                }
-            } else if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
-                log.info("Live image file does not exist, nothing to compare against.");
-            }
-
-            // Generate the screen sized screenshot
-            if (liveOrHarvested.equals("harvested") && commandScreen.contains("SeleniumScreenshotCapture")) {
-                commandScreen = commandScreen.trim() + " --wayback";
-            }
-            runCommand(commandScreen);
-            waitForScreenshot(new File(outputPathString + screenFilename), screenFilename);
-
-            // Generate thumbnail from fullpage screenshot if not using the default screenshot tool
-            if (!commandScreen.contains("SeleniumScreenshotCapture")) {
-                BufferedImage sourceImage = ImageIO.read(new File(outputPathString + File.separator + screenFilename));
-                BufferedImage bufferedImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
-                Image scaledImage = sourceImage.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
-                bufferedImage.createGraphics().drawImage(scaledImage, 0, 0, null);
-                BufferedImage thumbnailImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
-                thumbnailImage = bufferedImage.getSubimage(0, 0, 100, 100);
-                ImageIO.write(thumbnailImage, "png", new File(outputPathString + File.separator + screenFilename.replace("screen", "thumbnail")));
-                sourceImage.flush();
-                bufferedImage.flush();
-                thumbnailImage.flush();
-            }
-
-            log.info("Screenshots generated.");
-
-        } catch (Exception e) {
-            log.error("Failed to generate screenshots: " + e.getMessage(), e);
-        }
-    }
-
     private File[] toFileArray(List<File> files) {
         File[] fileArray = new File[files.size()];
         int i = 0;
@@ -543,42 +373,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         if (aFailureStep == NO_FAILURES) {
             checkHarvesterFinishedWithDigitalAssets(das);
         }
-
-        // Rename live screenshot files to include harvest number and seed ID now that have access to HarvestResultDTO
-        Integer harvestNumber = ahr.getHarvestNumber();
-        String toolUsed = screenshotCommandFullpage.split(" ")[0];
-        if (toolUsed.contains(File.separator)) toolUsed = toolUsed.substring(toolUsed.lastIndexOf(File.separator) + 1);
-
-        // Get seed IDs
-        //Set<Seed> seeds;
-
-        //    for (Seed seed : seeds) {
-        //        Long seedId = seed.getOid();
-                String filename = "";
-                for (String size : new String[]{"screen", "fullpage", "thumbnail"}) {
-                    filename = das.get(0).toString() + File.separator + aJob + "_harvestNum_seedID_live_" + toolUsed + "_" + size + ".png";
-                    File original = new File(filename);
-
-                    if (original.exists()) {
-                        File renamed = new File(filename.replace("harvestNum", String.valueOf(harvestNumber)));
-        //                        .replace("seedID", String.valueOf(seedId)));
-
-                        if (renamed.exists()) continue;
-                        if (!original.renameTo(renamed)) {
-                            log.info("Unable to add harvest  number to live image " + size + " filename.");
-                        }
-                        filename = renamed.toString();
-                    } else {
-                        log.info("Live " + size + " screenshot doesn't exist.");
-                        // Should I generate one here????
-                    }
-                }
-
-            // Generate harvest screenshots
-            log.info("Generating harvest screenshots for harvest number " + String.valueOf(harvestNumber) + "...");
-//                createScreenshots(new File(filename.replace("live", "harvested")),
-//                        seed.getUrlEncodedSeed(), aJob, "harvested", seedId, harvestNumber);
-        //    }
 
         // Send the ARC files to the DAS.
         if (aFailureStep <= FAILED_ON_SEND_ARCS) {
@@ -931,27 +725,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      */
     public void setBaseHarvestDirectory(String aBaseHarvestDirectory) {
         this.baseHarvestDirectory = aBaseHarvestDirectory;
-    }
-
-    /**
-     * @param aScreenshotFullpageCommand The screenshotFullpageCommand to set.
-     */
-    public void setScreenshotCommandFullpage(String aScreenshotCommandFullpage) {
-        this.screenshotCommandFullpage = aScreenshotCommandFullpage;
-    }
-
-    /**
-     * @param aScreenshotFullpageCommand The screenshotFullpageCommand to set.
-     */
-    public void setScreenshotCommandScreen(String aScreenshotCommandScreen) {
-        this.screenshotCommandScreen = aScreenshotCommandScreen;
-    }
-
-    /**
-     * @param aScreenshotFullpageCommand The screenshotFullpageCommand to set.
-     */
-    public void setScreenshotCommandWindowsize(String aScreenshotCommandWindowsize) {
-        this.screenshotCommandWindowsize = aScreenshotCommandWindowsize;
     }
 
     /**

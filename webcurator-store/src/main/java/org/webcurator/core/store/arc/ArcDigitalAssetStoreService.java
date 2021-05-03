@@ -1315,20 +1315,40 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
-    public Boolean createScreenshots(Map identifiers) {
+
+    private void renameLiveFile(String liveDirectory, String outputDirectory, String seed, String harvestNumber, String filename) {
+        File fullpageLiveFilePath = new File(liveDirectory + filename.replace("harvested", "live"));
+        if (!fullpageLiveFilePath.exists()) return;
+        if (harvestNumber == null) return;
+        if (seed == null) return;
+        String newFilename = outputDirectory + filename.replace("seedID", seed).replace("harvestNum", harvestNumber);
+        newFilename = newFilename.replace("harvested", "live");
+        if (!fullpageLiveFilePath.renameTo(new File(newFilename))) {
+            log.error("Unable to rename live file to include harvest number and seed.  File: " + filename);
+        }
+    }
+
+    public void createScreenshots(Map identifiers){
+        if (identifiers == null || identifiers.keySet().size() < 1) {
+            log.info("No arguments available for the screenshot.");
+            return;
+        }
+
         // file naming convention: ti_harvest_seedId_source_tool.png
         String seedUrl = String.valueOf(identifiers.get("seed"));
         String targetInstanceOid = String.valueOf(identifiers.get("tiOid"));
         String liveOrHarvested = String.valueOf(identifiers.get("liveOrHarvested"));
         String seedId = String.valueOf(identifiers.get("seedOid"));
         String harvestNumber = String.valueOf(identifiers.get("harvestNumber"));
-
-        // TO DELETE
-        log.info("Keys and values: " + identifiers.toString());
-
-        // source can be harvested or live
-        String outputPathString = baseDir.toString() + File.separator + targetInstanceOid + File.separator + harvestNumber;
+        String outputPathString = baseDir.toString() + File.separator + targetInstanceOid + File.separator + harvestNumber + File.separator;
+        String nullDirectoryString = baseDir.toString() + File.separator + targetInstanceOid + File.separator + "null" + File.separator;
         String toolUsed = screenshotCommandFullpage.split("\\s+")[0];
+
+        // Make sure output path exists
+        File destinationDir = new File(outputPathString);
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs();
+        }
 
         // If using a java class, use the class name
         if (toolUsed.equals("java")) {
@@ -1341,8 +1361,26 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
         String fullpageFilename = targetInstanceOid + "_harvestNum_seedID_" + liveOrHarvested + "_" + toolUsed.toLowerCase() + "_fullpage.png";
 
-        if (seedId != null) fullpageFilename.replace("seedID", seedId);
-        if (harvestNumber != null) fullpageFilename.replace("harvestNum", harvestNumber);
+        // Check if live screenshots exist in null directory
+        if (liveOrHarvested.equals("harvested")) {
+            for (String size : new String[]{"fullpage","screen","thumbnail"}){
+                renameLiveFile(nullDirectoryString, outputPathString, seedId, harvestNumber, fullpageFilename.replace("fullpage", size));
+            }
+            // Delete the null directory if it's empty after all files have been renamed and moved
+            File liveDirectory = new File(nullDirectoryString);
+            if (liveDirectory.isDirectory() && liveDirectory.list().length == 0) {
+                if (!liveDirectory.delete()) {
+                    log.info("Unable to delete null directory.");
+                }
+            }
+        }
+
+        if (identifiers.get("seedOid") != null && !seedId.equals("null")) {
+            fullpageFilename = fullpageFilename.replace("seedID", seedId);
+        }
+        if (identifiers.get("harvestNumber") != null && !harvestNumber.equals("null")) {
+            fullpageFilename = fullpageFilename.replace("harvestNum", harvestNumber);
+        }
 
         String screenFilename = fullpageFilename.replace("fullpage", "screen");
         String imagePlaceholder = "%image.png%";
@@ -1402,9 +1440,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
         } catch (Exception e) {
             log.error("Failed to generate screenshots: " + e.getMessage(), e);
-            return false;
         }
-        return true;
     }
 
     /**

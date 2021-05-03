@@ -157,13 +157,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     }
 
     @PostMapping(path = DigitalAssetStorePaths.CREATE_SCREENSHOT)
-    public void createScreenshots(Map identifiers) throws DigitalAssetStoreException {
-
-        // TO DELETE
-        // Need to see what's getting passed in via Identifiers
-        log.info("Keys: " + identifiers.keySet().toString());
-        log.info("values: " + identifiers.toString());
-
+    public void createScreenshots(@RequestBody Map identifiers) throws DigitalAssetStoreException {
         log.debug("Create screenshot, target-instance-oid: {}, harvest-number: {}", identifiers.get("tiOid"), identifiers.get("harvestNumber"));
         arcDigitalAssetStoreService.createScreenshots(identifiers);
     }

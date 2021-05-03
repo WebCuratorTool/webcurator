@@ -288,22 +288,25 @@ public class WctCoordinatorImpl implements WctCoordinator {
                     }
                 }
 
+
                 // Do not generate the screenshot if it has not finished indexing
                 if (!indexing) {
                     // Generate harvest screenshots
                     log.info("Generating harvest screenshots for harvest " + String.valueOf(aResult.getHarvestNumber()));
+
+                    // TO DELETE
+                    log.info("Harvest time: " + harvestResult.getCreationDate().toString());
+
                     for (Seed seed : tiTarget.getSeeds()) {
+                        // Use wayback harvest url for the seed
+                        String seedUrl = seed.getSeed();
+
                         Map<String, String> identifiers = new HashMap<>();
-                        identifiers.put("seed", seed.getSeed());
+                        identifiers.put("seed", seedUrl);
                         identifiers.put("tiOid", String.valueOf(aResult.getTargetInstanceOid()));
                         identifiers.put("liveOrHarvested", "harvested");
                         identifiers.put("seedOid", String.valueOf(seed.getOid()));
                         identifiers.put("harvestNumber", String.valueOf(harvestResult.getHarvestNumber()));
-
-                        // TO DELETE
-                        log.info("Passing arguments for screenshots");
-                        log.info(identifiers.toString());
-//                        log.info(identifiers.keySet());
 
                         digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
 
@@ -493,6 +496,20 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         // Save the updated information: to avoid asynchronous problem, update the satate before start harvesting
         targetInstanceManager.save(aTargetInstance);
+
+        // Generate live screenshots
+        for (String seed : originalSeeds) {
+            try {
+                Map identifiers = new HashMap();
+                identifiers.put("seed", seed);
+                identifiers.put("tiOid", targetInstanceId);
+                identifiers.put("liveOrHarvested", "live");
+
+                digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
+            } catch (DigitalAssetStoreException e) {
+                log.error("Unable to generate live screenshots for harvest");
+            }
+        }
 
         // Initiate harvest on the remote harvest agent
         harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
