@@ -20,7 +20,13 @@ Contents of this document
 Following this introduction, the Web Curator Tool Release Notes includes the
 following sections:
 
--   **Changes since 3.0.0** - Changes since the last official release *3.0.0*.
+-   **Changes since 3.0.3** - Changes since the last official release *3.0.3*.
+
+-   **3.0.3** - Release 3.0.3.
+
+-   **3.0.2** - Release 3.0.2.
+
+-   **3.0.1** - Release 3.0.1.
 
 -   **3.0.0** - Release 3.0.0.
 
@@ -45,11 +51,34 @@ following sections:
 -   **Previous versions** - Versions prior to release 1.5.
 
 
-Changes since 3.0.0
+Changes since 3.0.3
 ===================
 
 This is a placeholder for changes since the official *3.0.0* release. Please
 add notes here for changes and fixes as they are released into the master branch.
+
+3.0.3
+=====
+
+Released May 2021, v3.0.3 includes the following bug fixes and changes:
+
+- Documentation typos fixed.
+- H3 Harvest Agent heartbeats fail when started before Webapp
+- 'Too many files open' error when Store is transferring files
+
+3.0.2
+=====
+
+Released April 2021, v3.0.2 includes the following bug fixes:
+
+- Duplicate crawl running on multiple harvest agents
+- Occasional failing to archive using Submit-to-Rosetta plugin
+- Escape special characters in Target Annotation field
+- Old bandwidth restrictions skipped for H3
+- Better handling of heartbeat failed issues
+- Extra profile validation for blocked and included URL regexs
+- Hard coding of version number to login page
+- Fix for slow deletion of harvest resources in MySQL/MariaDB
 
 3.0.0
 =====
