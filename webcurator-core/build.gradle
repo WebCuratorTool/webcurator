@@ -50,7 +50,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.0.3-SNAPSHOT'
+version = '3.0.3'
 description = 'Web Curator Tool Core'
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'

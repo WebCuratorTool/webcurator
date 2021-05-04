@@ -33,7 +33,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.0.3-SNAPSHOT'
+version = '3.0.3'
 description = 'Harvest Agent - Heritrix 1.x'
 sourceCompatibility = '1.8'
 

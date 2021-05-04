@@ -37,7 +37,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.0.3-SNAPSHOT'
+version = '3.0.3'
 description = 'Web Curator Tool Submit-to-Rosetta'
 sourceCompatibility = '1.8'
 
