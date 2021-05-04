@@ -27,13 +27,13 @@ dependencies {
     compile 'com.sleepycat:je:3.3.74'
     // artifact has been removed from public repos because of licensing issue, and we don't seem to need it
     //compile 'com.sun.jmx:jmxri:1.2.1'
-    compile 'org.webcurator:webcurator-core:3.0.+'
+    compile 'org.webcurator:webcurator-core:3.1.+'
     compile 'javax.persistence:javax.persistence-api:2.2'
     testCompile 'junit:junit:4.12'
 }
 
 group = 'org.webcurator'
-version = '3.0.3'
+version = '3.1.0-SNAPSHOT'
 description = 'Harvest Agent - Heritrix 1.x'
 sourceCompatibility = '1.8'
 

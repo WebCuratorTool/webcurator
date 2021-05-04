@@ -25,7 +25,7 @@ repositories {
 }
 
 group = 'org.webcurator'
-version = '3.0.3'
+version = '3.1.0-SNAPSHOT'
 description = 'Web Curator Tool WebApp'
 
 apply plugin: 'eclipse'
@@ -68,7 +68,7 @@ dependencies {
     implementation 'org.webcurator:webcurator-core:3.0.+'
 
     // NOTE: This is a workaround so that gradle brings in the tests jar.
-    testImplementation group: 'org.webcurator', name: 'webcurator-core', version: '3.0.+', classifier: 'tests', {
+    testImplementation group: 'org.webcurator', name: 'webcurator-core', version: '3.1.+', classifier: 'tests', {
         // Use Spring boot logging.
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'

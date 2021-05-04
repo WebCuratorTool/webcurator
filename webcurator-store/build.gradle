@@ -29,16 +29,16 @@ dependencies {
     compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
     compile 'it.unimi.dsi:mg4j:2.0.1'
     compile 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
-    compile 'org.webcurator:webcurator-core:3.0.+'
+    compile 'org.webcurator:webcurator-core:3.1.+'
     compile 'net.sf.ehcache:ehcache:2.10.6'
     compile 'wsdl4j:wsdl4j:1.6.1'
-    compile 'org.webcurator:webcurator-submit-to-rosetta:3.0.+'
+    compile 'org.webcurator:webcurator-submit-to-rosetta:3.1.+'
     compile 'joda-time:joda-time:2.10.5'
     testCompile 'junit:junit:4.12'
 }
 
 group = 'org.webcurator'
-version = '3.0.3'
+version = '3.1.0-SNAPSHOT'
 description = 'Web Curator Tool Digital Asset Store'
 sourceCompatibility = '1.8'
 
