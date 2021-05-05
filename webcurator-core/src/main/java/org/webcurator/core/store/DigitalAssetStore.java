@@ -21,18 +21,19 @@ import java.util.Map;
 
 import org.apache.commons.httpclient.Header;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 /**
  * The <code>DigitalAssetStore</code> interface is used by the WCT Core and
  * WCT Harvest Agent to interact with the digital asset store component.
  *
- * @author bbeaumont
  */
 public interface DigitalAssetStore {
+
     String FILE_UPLOAD_MODE_COPY = "copy";
     String FILE_UPLOAD_MODE_STREAM = "stream";
 
@@ -41,15 +42,15 @@ public interface DigitalAssetStore {
      * returned as a SOAP attachment and written to disk for use. This is ideal
      * for streaming large resources.
      *
-     * @param targetInstanceName  The OID of the target instance that the
+     * @param targetInstanceId    The OID of the target instance that the
      *                            resource belongs to.
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
-     * @param resource            The resource to retrieve.
-     * @throws DigitalAssetStoreException if there are any errors.
+     * @param resourceUrl         The resource to retrieve.
      * @return The resource, as a file.
+     * @throws DigitalAssetStoreException if there are any errors.
      */
-    Path getResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException;
+    Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
     /**
      * Retrieves a resource transferring it as a byte array, rather than as
@@ -57,28 +58,28 @@ public interface DigitalAssetStore {
      * streaming is not required. It has additional memory requirements, but
      * has no file I/O.
      *
-     * @param targetInstanceName  The OID of the target instance that the
+     * @param targetInstanceId    The OID of the target instance that the
      *                            resource belongs to.
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
-     * @param resource            The resource to retrieve.
-     * @throws DigitalAssetStoreException if there are any errors.
+     * @param resourceUrl         The resource to retrieve.
      * @return The resource, as a file.
+     * @throws DigitalAssetStoreException if there are any errors.
      */
-    byte[] getSmallResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException;
+    byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
     /**
      * Retrieve the HTTP headers for a given resource.
      *
-     * @param targetInstanceName  The OID of the target instance that the
+     * @param targetInstanceId    The OID of the target instance that the
      *                            resource belongs to.
      * @param harvestResultNumber The index of the harvest result, within the
      *                            target instance, that contains the resource.
-     * @param resource            The resource for which to retrieve the headers.
-     * @throws DigitalAssetStoreException if there are any errors.
+     * @param resourceUrl         The resource for which to retrieve the headers.
      * @return An array of HTTP Headers.
+     * @throws DigitalAssetStoreException if there are any errors.
      */
-    List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException;
+    List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException;
 
     /**
      * Save an array of files to the digital asset store. The files are
@@ -88,28 +89,10 @@ public interface DigitalAssetStore {
      * @param targetInstanceName The OID of the target instance to save the files to.
      * @param directory          The subdirectory under the target instance
      *                           directory to which to save the files.
-     * @param path              A path of file to send to the asset store.
+     * @param path              The files to send to the asset store.
      * @throws DigitalAssetStoreException if there are any errors.
      */
     void save(String targetInstanceName, String directory, Path path) throws DigitalAssetStoreException;
-
-    /**
-     * Create a new Harvest Result by pruning resources out of an existing
-     * harvest result.
-     *
-     * @param targetInstanceName          The OID of the target instance to which the
-     *                                    harvest results belong.
-     * @param originalHarvestResultNumber The original harvest result number to prune.
-     * @param newHarvestResultNumber      The number for the new harvest result.
-     * @param urisToDelete                A List of resource URIs that should be pruned.
-     * @param harvestResourcesToImport    A List of HarvestResource that should be imported.
-     * @throws DigitalAssetStoreException if any errors occur.
-     * @return The HarvestResultDTO of the pruned harvest
-     * result.
-     */
-    HarvestResultDTO copyAndPrune(String targetInstanceName, int originalHarvestResultNumber, int newHarvestResultNumber,
-                                  List<String> urisToDelete, List<HarvestResourceDTO> harvestResourcesToImport)
-            throws DigitalAssetStoreException;
 
     /**
      * Initiate the indexing of a Harvest Result.
@@ -178,4 +161,23 @@ public interface DigitalAssetStore {
      */
     CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria)
             throws DigitalAssetStoreException;
+
+    /**
+     * To modify ( prune and import) the harvest
+     *
+     * @param cmd The prune and import metadata list
+     * @return the command is accepted or not
+     */
+    ModifyResult initialPruneAndImport(ModifyApplyCommand cmd);
+
+    /**
+     * To clear the patching Harvest Result, Index, and the Mod Harvest Files
+     *
+     * @param stage:            the stage of the request: crawling, modifying or indexing
+     * @param command:          the action of the command
+     * @param targetInstanceId: the ID of target instance
+     * @param harvestNumber:    the number of harvest result
+     * @throws DigitalAssetStoreException thrown if there is an error
+     */
+    void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException;
 }

@@ -27,8 +27,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.HarvesterStatus;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -49,8 +48,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 public class TargetInstanceStateHandler extends TabHandler {
 
     private TargetInstanceManager targetInstanceManager;
-    private HarvestCoordinator harvestCoordinator;
-    private HarvestAgentManager harvestAgentManager;
+    private WctCoordinator wctCoordinator;
 
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -59,37 +57,37 @@ public class TargetInstanceStateHandler extends TabHandler {
     }
 
     public void processTab(TabbedController tc, Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindingResult bindingResult) {
+                           HttpServletRequest req, HttpServletResponse res, Object comm,
+                           BindingResult bindingResult) {
         // process the submit of the tab called on change tab or save
     }
 
     public TabbedModelAndView preProcessNextTab(TabbedController tc,
-            Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindingResult bindingResult) {
+                                                Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
+                                                Object comm, BindingResult bindingResult) {
         // build mav stuff b4 displaying the tab
         TabbedModelAndView tmav = tc.new TabbedModelAndView();
         Boolean editMode = false;
         TargetInstanceCommand cmd = null;
         TargetInstance ti = null;
         if (comm instanceof TargetInstanceCommand) {
-        	cmd = (TargetInstanceCommand) comm;
-        	if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_EDIT)) {
-        		editMode = true;
-        	}
+            cmd = (TargetInstanceCommand) comm;
+            if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_EDIT)) {
+                editMode = true;
+            }
         }
 
         if (req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI) == null) {
-    		ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId(), true);
-    		req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-    		req.getSession().setAttribute(TargetInstanceCommand.SESSION_MODE, editMode);
-    	}
-    	else {
-    		ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-    		editMode = (Boolean) req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE);
-    	}
+            ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId(), true);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+            req.getSession().setAttribute(TargetInstanceCommand.SESSION_MODE, editMode);
+        }
+        else {
+            ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+            editMode = (Boolean) req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE);
+        }
 
-        HashMap agents = harvestAgentManager.getHarvestAgents();
+        HashMap agents = wctCoordinator.getHarvestAgents();
 
         HarvesterStatusDTO harvester = null;
         HarvestAgentStatusDTO agent = null;
@@ -102,10 +100,10 @@ public class TargetInstanceStateHandler extends TabHandler {
         }
 
         if (harvester == null) {
-        	HarvesterStatus status = ti.getStatus();
-        	if (status != null) {
-        		harvester = status.getAsDTO();
-        	}
+            HarvesterStatus status = ti.getStatus();
+            if (status != null) {
+                harvester = status.getAsDTO();
+            }
         }
 
         // tmav.addObject(Constants.GBL_CMD_DATA, cmd);
@@ -116,12 +114,12 @@ public class TargetInstanceStateHandler extends TabHandler {
     }
 
     public ModelAndView processOther(TabbedController tc, Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
-            BindingResult bindingResult) {
+                                     HttpServletRequest req, HttpServletResponse res, Object comm,
+                                     BindingResult bindingResult) {
         TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
         if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
             ModelAndView mav = new ModelAndView();
-            HashMap agents = harvestAgentManager.getHarvestAgents();
+            HashMap agents = wctCoordinator.getHarvestAgents();
             mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, agents);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
@@ -134,10 +132,10 @@ public class TargetInstanceStateHandler extends TabHandler {
     }
 
     /**
-     * @param harvestCoordinator The harvestCoordinator to set.
+     * @param wctCoordinator The wctCoordinator to set.
      */
-    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-        this.harvestCoordinator = harvestCoordinator;
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 
     /**
@@ -145,9 +143,5 @@ public class TargetInstanceStateHandler extends TabHandler {
      */
     public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
         this.targetInstanceManager = targetInstanceManager;
-    }
-
-    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
-        this.harvestAgentManager = harvestAgentManager;
     }
 }

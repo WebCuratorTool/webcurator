@@ -1000,3 +1000,26 @@ input[readonly="readonly"] {
 	font-weight:bold;
 }
 
+.content-window-full-screen{
+    position: fixed;
+    top:0;
+    left:0;
+    z-index:200;
+    width: 100vw;
+    height: 100vh;
+    border:none;
+    padding: 0;
+    margin: 0;
+}
+
+.content-window-normal-screen{
+    position: relative;
+    top:0;
+    left:0;
+    z-index:1;
+    width: 89vw;
+    height: 70vh;
+    border:none;
+    padding: 0;
+    margin: 0;
+}

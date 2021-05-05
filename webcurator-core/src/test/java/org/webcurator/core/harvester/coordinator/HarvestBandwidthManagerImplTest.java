@@ -3,7 +3,6 @@ package org.webcurator.core.harvester.coordinator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -15,14 +14,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.config.TestBaseConfig;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.HarvestCoordinatorDAO;
@@ -36,17 +32,33 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 //@RunWith(MockitoJUnitRunner.class)
-@Import(TestBaseConfig.class)
-@RunWith(SpringRunner.class)
+//@Import(TestBaseConfig.class)
+//@RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 public class HarvestBandwidthManagerImplTest {
-	@Mock private Auditor mockAuditor;
-	@Mock private HarvestAgentManager mockHarvestAgentManager;
-	@Mock private HarvestCoordinatorDAO mockHarvestCoordinatorDao;
-	@Mock private TargetInstanceDAO mockTargetInstanceDao;
-	@Mock private BandwidthCalculator mockBandwidthCalculator;
-//	private BandwidthCalculator mockBandwidthCalculator = mock(BandwidthCalculatorImpl.class);
-	@InjectMocks private HarvestBandwidthManagerImpl underTest;
+	private Auditor mockAuditor;
+	private HarvestAgentManager mockHarvestAgentManager;
+	private HarvestCoordinatorDAO mockHarvestCoordinatorDao;
+	private TargetInstanceDAO mockTargetInstanceDao;
+	private BandwidthCalculator mockBandwidthCalculator;
+	//	private BandwidthCalculator mockBandwidthCalculator = mock(BandwidthCalculatorImpl.class);
+//	@InjectMocks private HarvestBandwidthManagerImpl testInstance;
+	private final HarvestBandwidthManagerImpl testInstance = new HarvestBandwidthManagerImpl();
+
+	@Before
+	public void initTest() {
+		mockAuditor = mock(Auditor.class);
+		mockHarvestAgentManager = mock(HarvestAgentManager.class);
+		mockHarvestCoordinatorDao = mock(HarvestCoordinatorDAO.class);
+		mockTargetInstanceDao = mock(TargetInstanceDAO.class);
+		mockBandwidthCalculator = mock(BandwidthCalculator.class);
+
+		testInstance.setAuditor(mockAuditor);
+		testInstance.setBandwidthCalculator(mockBandwidthCalculator);
+		testInstance.setHarvestAgentManager(mockHarvestAgentManager);
+		testInstance.setHarvestCoordinatorDao(mockHarvestCoordinatorDao);
+		testInstance.setTargetInstanceDao(mockTargetInstanceDao);
+	}
 
 	@Test
 	public void testSendBandWidthRestrictions() throws Exception {
@@ -60,9 +72,9 @@ public class HarvestBandwidthManagerImplTest {
 		when(mockTargetInstanceDao.findTargetInstances(any(TargetInstanceCriteria.class))).thenReturn(running);
 		HashMap<Long, TargetInstance> map = Maps.newHashMap();
 		map.put(1L, mockTargetInstance);
-		when(mockBandwidthCalculator.calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent)).thenReturn(map );
-		underTest.setMaxBandwidthPercent(maxBandwidthPercent);
-		underTest.sendBandWidthRestrictions();
+		when(mockBandwidthCalculator.calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent)).thenReturn(map);
+		testInstance.setMaxBandwidthPercent(maxBandwidthPercent);
+		testInstance.sendBandWidthRestrictions();
 		verify(mockTargetInstanceDao).findTargetInstances(any(TargetInstanceCriteria.class));
 		verify(mockBandwidthCalculator).calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent);
 		verify(mockHarvestAgentManager).restrictBandwidthFor(mockTargetInstance);
@@ -81,9 +93,9 @@ public class HarvestBandwidthManagerImplTest {
 		HashMap<Long, TargetInstance> map = Maps.newHashMap();
 		long tiOid = 1L;
 		map.put(tiOid, mockTargetInstance);
-		when(mockBandwidthCalculator.calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent)).thenReturn(map );
-		underTest.setMaxBandwidthPercent(maxBandwidthPercent);
-		HashMap<Long, TargetInstance> result = underTest.calculateBandwidthAllocation(mockTargetInstance);
+		when(mockBandwidthCalculator.calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent)).thenReturn(map);
+		testInstance.setMaxBandwidthPercent(maxBandwidthPercent);
+		HashMap<Long, TargetInstance> result = testInstance.calculateBandwidthAllocation(mockTargetInstance);
 		verify(mockTargetInstanceDao).findTargetInstances(any(TargetInstanceCriteria.class));
 		verify(mockBandwidthCalculator).calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent);
 		assertEquals(1, result.size());
@@ -104,9 +116,9 @@ public class HarvestBandwidthManagerImplTest {
 		HashMap<Long, TargetInstance> map = Maps.newHashMap();
 		long tiOid = 1L;
 		map.put(tiOid, mockTargetInstance);
-		when(mockBandwidthCalculator.calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent)).thenReturn(map );
-		underTest.setMaxBandwidthPercent(maxBandwidthPercent);
-		HashMap<Long, TargetInstance> result = underTest.calculateBandwidthAllocation();
+		when(mockBandwidthCalculator.calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent)).thenReturn(map);
+		testInstance.setMaxBandwidthPercent(maxBandwidthPercent);
+		HashMap<Long, TargetInstance> result = testInstance.calculateBandwidthAllocation();
 		verify(mockTargetInstanceDao).findTargetInstances(any(TargetInstanceCriteria.class));
 		verify(mockBandwidthCalculator).calculateBandwidthAllocation(running, maxBandwidth, maxBandwidthPercent);
 		assertEquals(1, result.size());
@@ -120,7 +132,7 @@ public class HarvestBandwidthManagerImplTest {
 		long maxBandwidth = 23L;
 		when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		underTest.getCurrentGlobalMaxBandwidth();
+		testInstance.getCurrentGlobalMaxBandwidth();
 		verify(mockHarvestCoordinatorDao).getBandwidthRestriction(anyString(), any(Date.class));
 	}
 
@@ -130,16 +142,13 @@ public class HarvestBandwidthManagerImplTest {
 		//long maxBandwidth = 23L;
 		//when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth); -- never called
 
-		underTest.setMinimumBandwidth(24);
-
-		TargetInstance targetInstance =mock(TargetInstance.class);
-		when(targetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
-
+		testInstance.setMinimumBandwidth(24);
 		QueuedTargetInstanceDTO mockQueuedTargetInstanceDTO = mock(QueuedTargetInstanceDTO.class);
+		TargetInstance targetInstance = mock(TargetInstance.class);
 		when(mockTargetInstanceDao.load(mockQueuedTargetInstanceDTO.getOid())).thenReturn(targetInstance);
 		when(mockTargetInstanceDao.populate(targetInstance)).thenReturn(targetInstance);
 
-		boolean result = underTest.isMiniumBandwidthAvailable(mockQueuedTargetInstanceDTO);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockQueuedTargetInstanceDTO);
 		assertTrue(result); //There is no limitation when bandwidth configuration isn't set.
 	}
 
@@ -148,13 +157,12 @@ public class HarvestBandwidthManagerImplTest {
 		//BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class); -- never called
 		//long maxBandwidth = 23L;
 		//when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth); -- never called
-		underTest.setMinimumBandwidth(24);
-		
+		testInstance.setMinimumBandwidth(24);
+
 		TargetInstance mockTargetInstance = mock(TargetInstance.class);
-		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
 		when(mockTargetInstanceDao.load(mockTargetInstance.getOid())).thenReturn(mockTargetInstance);
 		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
-		boolean result = underTest.isMiniumBandwidthAvailable(mockTargetInstance);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockTargetInstance);
 		assertTrue(result); //There is no limitation when bandwidth configuration isn't set.
 	}
 
@@ -165,52 +173,48 @@ public class HarvestBandwidthManagerImplTest {
 		long maxBandwidth = 23L;
 		when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		underTest.setMinimumBandwidth(1);
+		testInstance.setMinimumBandwidth(1);
 
 		TargetInstance mockTargetInstance = mock(TargetInstance.class);
-		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
-
 		when(mockTargetInstance.getState()).thenReturn(TargetInstance.STATE_QUEUED);
 		long tiOid = 123L;
 		when(mockTargetInstance.getOid()).thenReturn(tiOid);
 		when(mockTargetInstanceDao.load(tiOid)).thenReturn(mockTargetInstance);
 		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
-		boolean result = underTest.isMiniumBandwidthAvailable(mockTargetInstance);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockTargetInstance);
 		assertTrue(result);
 	}
 
 	@Test
-	public void testIsMiniumBandwidthAvailableTargetInstanceAllocationTooLow() throws Exception {
+	public void testIsMinimumBandwidthAvailableTargetInstanceAllocationTooLow() throws Exception {
 		BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
 		long maxBandwidth = 23L;
 		when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		underTest.setMinimumBandwidth(10);
-		
-		TargetInstance mockTargetInstance = mock(TargetInstance.class);
-		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
+		testInstance.setMinimumBandwidth(10);
 
+		TargetInstance mockTargetInstance = mock(TargetInstance.class);
 		when(mockTargetInstance.getAllocatedBandwidth()).thenReturn(9L);
 		when(mockTargetInstance.getBandwidthPercent()).thenReturn(null);
 		when(mockTargetInstance.getState()).thenReturn(TargetInstance.STATE_QUEUED);
 		long tiOid = 123L;
 		when(mockTargetInstance.getOid()).thenReturn(tiOid);
+		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
 		when(mockTargetInstanceDao.load(tiOid)).thenReturn(mockTargetInstance);
 		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
-		boolean result = underTest.isMiniumBandwidthAvailable(mockTargetInstance);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockTargetInstance);
 		assertFalse(result);
 	}
 
 	@Test
-	public void testIsMiniumBandwidthAvailableTargetInstanceAllocationEnough() throws Exception {
+	public void testIsMinimumBandwidthAvailableTargetInstanceAllocationEnough() throws Exception {
 		BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
 		long maxBandwidth = 23L;
 		when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		underTest.setMinimumBandwidth(10);
-		
+		testInstance.setMinimumBandwidth(10);
+
 		TargetInstance mockTargetInstance = mock(TargetInstance.class);
-		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(false);
 		when(mockTargetInstance.getAllocatedBandwidth()).thenReturn(20L);
 		when(mockTargetInstance.getBandwidthPercent()).thenReturn(null);
 		when(mockTargetInstance.getState()).thenReturn(TargetInstance.STATE_QUEUED);
@@ -218,7 +222,7 @@ public class HarvestBandwidthManagerImplTest {
 		when(mockTargetInstance.getOid()).thenReturn(tiOid);
 		when(mockTargetInstanceDao.load(tiOid)).thenReturn(mockTargetInstance);
 		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
-		boolean result = underTest.isMiniumBandwidthAvailable(mockTargetInstance);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockTargetInstance);
 		assertTrue(result);
 	}
 
@@ -228,20 +232,19 @@ public class HarvestBandwidthManagerImplTest {
 		long maxBandwidth = 23L;
 		when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		underTest.setMinimumBandwidth(10);
-		
+		testInstance.setMinimumBandwidth(10);
+
 		QueuedTargetInstanceDTO mockQueuedTargetInstance = mock(QueuedTargetInstanceDTO.class);
 		long tiOid = 123L;
 		when(mockQueuedTargetInstance.getOid()).thenReturn(tiOid);
 		TargetInstance mockTargetInstance = mock(TargetInstance.class);
-		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
 		when(mockTargetInstance.getAllocatedBandwidth()).thenReturn(20L);
 		when(mockTargetInstance.getBandwidthPercent()).thenReturn(null);
 		when(mockTargetInstance.getState()).thenReturn(TargetInstance.STATE_QUEUED);
 		when(mockTargetInstance.getOid()).thenReturn(tiOid);
 		when(mockTargetInstanceDao.load(tiOid)).thenReturn(mockTargetInstance);
 		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
-		boolean result = underTest.isMiniumBandwidthAvailable(mockQueuedTargetInstance);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockQueuedTargetInstance);
 		assertTrue(result);
 	}
 
@@ -251,15 +254,12 @@ public class HarvestBandwidthManagerImplTest {
 		long maxBandwidth = 23L;
 		when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		underTest.setMinimumBandwidth(10);
+		testInstance.setMinimumBandwidth(10);
 
 		TargetInstance mockRunningTi = mock(TargetInstance.class);
 		when(mockTargetInstanceDao.findTargetInstances(any(TargetInstanceCriteria.class))).thenReturn(Lists.newArrayList(mockRunningTi));
-		when(mockRunningTi.isAppliedBandwidthRestriction()).thenReturn(false);
 
 		TargetInstance mockTargetInstance = mock(TargetInstance.class);
-		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(false);
-
 		//when(mockTargetInstance.getAllocatedBandwidth()).thenReturn(null); -- never called
 		when(mockTargetInstance.getBandwidthPercent()).thenReturn(10);
 		when(mockTargetInstance.getState()).thenReturn(TargetInstance.STATE_QUEUED);
@@ -267,46 +267,46 @@ public class HarvestBandwidthManagerImplTest {
 		when(mockTargetInstance.getOid()).thenReturn(tiOid);
 		when(mockTargetInstanceDao.load(tiOid)).thenReturn(mockTargetInstance);
 		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
-		boolean result = underTest.isMiniumBandwidthAvailable(mockTargetInstance);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockTargetInstance);
 		assertTrue(result);
 	}
 
 	@Test
-	public void testIsMiniumBandwidthAvailableTargetInstancePercentAllocationTooLow() throws Exception {
+	public void testIsMinimumBandwidthAvailableTargetInstancePercentAllocationTooLow() throws Exception {
 		BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
 		long maxBandwidth = 23L;
 		when(mockBandwidthRestriction.getBandwidth()).thenReturn(maxBandwidth);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		underTest.setMinimumBandwidth(10);
+		testInstance.setMinimumBandwidth(10);
 		int maxBandwidthPercent = 20;
-		underTest.setMaxBandwidthPercent(maxBandwidthPercent);
+		testInstance.setMaxBandwidthPercent(maxBandwidthPercent);
 
 		TargetInstance mockRunningTi = mock(TargetInstance.class);
 		when(mockRunningTi.getAllocatedBandwidth()).thenReturn(9L);
 		when(mockRunningTi.getBandwidthPercent()).thenReturn(null);
 		ArrayList<TargetInstance> runningList = Lists.newArrayList(mockRunningTi);
 		when(mockTargetInstanceDao.findTargetInstances(any(TargetInstanceCriteria.class))).thenReturn(runningList);
-		
+
 		HashMap<Long, TargetInstance> runningMap = Maps.newHashMap();
 		runningMap.put(1L, mockRunningTi);
 		when(mockBandwidthCalculator.calculateBandwidthAllocation(runningList, maxBandwidth, maxBandwidthPercent)).thenReturn(runningMap);
-		
+
 		TargetInstance mockTargetInstance = mock(TargetInstance.class);
-		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
 		//when(mockTargetInstance.getAllocatedBandwidth()).thenReturn(null); -- never called
 		when(mockTargetInstance.getBandwidthPercent()).thenReturn(10);
 		when(mockTargetInstance.getState()).thenReturn(TargetInstance.STATE_QUEUED);
 		long tiOid = 123L;
 		when(mockTargetInstance.getOid()).thenReturn(tiOid);
+		when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
 		when(mockTargetInstanceDao.load(tiOid)).thenReturn(mockTargetInstance);
 		when(mockTargetInstanceDao.populate(mockTargetInstance)).thenReturn(mockTargetInstance);
-		boolean result = underTest.isMiniumBandwidthAvailable(mockTargetInstance);
+		boolean result = testInstance.isMiniumBandwidthAvailable(mockTargetInstance);
 		assertFalse(result);
 	}
 
 	@Test
 	public void testIsHarvestOptimizationAllowedNotFound() throws Exception {
-		boolean result = underTest.isHarvestOptimizationAllowed();
+		boolean result = testInstance.isHarvestOptimizationAllowed();
 		verify(mockHarvestCoordinatorDao).getBandwidthRestriction(anyString(), any(Date.class));
 		assertFalse(result);
 	}
@@ -316,12 +316,12 @@ public class HarvestBandwidthManagerImplTest {
 		BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
 		when(mockBandwidthRestriction.isAllowOptimize()).thenReturn(true);
 		when(mockHarvestCoordinatorDao.getBandwidthRestriction(anyString(), any(Date.class))).thenReturn(mockBandwidthRestriction);
-		boolean result = underTest.isHarvestOptimizationAllowed();
+		boolean result = testInstance.isHarvestOptimizationAllowed();
 		verify(mockHarvestCoordinatorDao).getBandwidthRestriction(anyString(), any(Date.class));
 		assertTrue(result);
 
 		when(mockBandwidthRestriction.isAllowOptimize()).thenReturn(false);
-		result = underTest.isHarvestOptimizationAllowed();
+		result = testInstance.isHarvestOptimizationAllowed();
 		assertFalse(result);
 
 	}
@@ -329,7 +329,7 @@ public class HarvestBandwidthManagerImplTest {
 	@Test
 	public void testGetBandwidthRestrictionLong() throws Exception {
 		long oid = 123L;
-		underTest.getBandwidthRestriction(oid);
+		testInstance.getBandwidthRestriction(oid);
 		verify(mockHarvestCoordinatorDao).getBandwidthRestriction(oid);
 	}
 
@@ -337,26 +337,27 @@ public class HarvestBandwidthManagerImplTest {
 	public void testSaveOrUpdateNew() throws Exception {
 		BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
 		when(mockBandwidthRestriction.getOid()).thenReturn(null);
-		underTest.saveOrUpdate(mockBandwidthRestriction);
+		testInstance.saveOrUpdate(mockBandwidthRestriction);
 		verify(mockHarvestCoordinatorDao).saveOrUpdate(mockBandwidthRestriction);
-		verify(mockAuditor).audit(anyString(), eq((Long)null), eq(Auditor.ACTION_NEW_BANDWIDTH_RESTRICTION), anyString());
-		
+		verify(mockAuditor).audit(anyString(), eq((Long) null), eq(Auditor.ACTION_NEW_BANDWIDTH_RESTRICTION), anyString());
+
 	}
+
 	@Test
 	public void testSaveOrUpdateNotNew() throws Exception {
 		BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
 		long oid = 123L;
 		when(mockBandwidthRestriction.getOid()).thenReturn(oid);
-		underTest.saveOrUpdate(mockBandwidthRestriction);
+		testInstance.saveOrUpdate(mockBandwidthRestriction);
 		verify(mockHarvestCoordinatorDao).saveOrUpdate(mockBandwidthRestriction);
 		verify(mockAuditor).audit(anyString(), eq(oid), eq(Auditor.ACTION_CHANGE_BANDWIDTH_RESTRICTION), anyString());
-		
+
 	}
 
 	@Test
 	public void testDelete() throws Exception {
 		BandwidthRestriction mockBandwidthRestriction = mock(BandwidthRestriction.class);
-		underTest.delete(mockBandwidthRestriction);
+		testInstance.delete(mockBandwidthRestriction);
 		verify(mockHarvestCoordinatorDao).delete(mockBandwidthRestriction);
 	}
 
@@ -364,24 +365,24 @@ public class HarvestBandwidthManagerImplTest {
 	public void testGetBandwidthRestrictionStringDate() throws Exception {
 		Date time = new Date();
 		String day = "Monday";
-		underTest.getBandwidthRestriction(day, time);
+		testInstance.getBandwidthRestriction(day, time);
 		verify(mockHarvestCoordinatorDao).getBandwidthRestriction(day, time);
 	}
 
 	@Test
 	public void testGetBandwidthRestrictions() throws Exception {
-		underTest.getBandwidthRestrictions();
+		testInstance.getBandwidthRestrictions();
 		verify(mockHarvestCoordinatorDao).getBandwidthRestrictions();
 	}
 
-	@Test(expected=WCTRuntimeException.class)
+	@Test(expected = WCTRuntimeException.class)
 	public void testMinimumBandwidthNullQueued() {
-		underTest.isMiniumBandwidthAvailable((QueuedTargetInstanceDTO)null);
+		testInstance.isMiniumBandwidthAvailable((QueuedTargetInstanceDTO) null);
 	}
 
-	@Test(expected=WCTRuntimeException.class)
+	@Test(expected = WCTRuntimeException.class)
 	public void testMinimumBandwidthNullTi() {
-		underTest.isMiniumBandwidthAvailable((TargetInstance)null);
+		testInstance.isMiniumBandwidthAvailable((TargetInstance) null);
 	}
 
 }

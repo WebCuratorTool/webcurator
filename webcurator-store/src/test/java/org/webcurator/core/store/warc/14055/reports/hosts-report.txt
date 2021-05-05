@@ -1,0 +1,9 @@
+[#urls] [#bytes] [host] [#robots] [#remaining] [#novel-urls] [#novel-bytes] [#dup-by-hash-urls] [#dup-by-hash-bytes] [#not-modified-urls] [#not-modified-bytes]
+621 8921735 www.kiwisaver.govt.nz 0 0 621 8921735 0 0 0 0 
+7 491 dns: 0 0 7 491 0 0 0 0 
+3 1781 find.ird.govt.nz 0 0 3 1781 0 0 0 0 
+3 224477 fpdownload.macromedia.com 0 0 3 224477 0 0 0 0 
+3 360 kiwisaver.govt.nz 0 0 3 360 0 0 0 0 
+3 48316 www.google-analytics.com 0 0 3 48316 0 0 0 0 
+2 1630 download.macromedia.com 0 0 2 1630 0 0 0 0 
+2 2303 www.ird.govt.nz 0 0 2 2303 0 0 0 0 

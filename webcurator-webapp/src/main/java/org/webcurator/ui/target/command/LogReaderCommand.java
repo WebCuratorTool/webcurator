@@ -15,6 +15,9 @@
  */
 package org.webcurator.ui.target.command;
 
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
+import org.webcurator.domain.model.core.HarvestResult;
+
 import java.util.regex.*;
 
 /**
@@ -70,7 +73,10 @@ public class LogReaderCommand {
 	private boolean showLineNumbers = false;
 	/** regex type field. */
 	private String filterType = VALUE_TAIL;
-
+	/** log stage type */
+	private String prefix= HarvestResult.PATCH_STAGE_TYPE_CRAWLING;
+	/** harvest result number */
+	private int harvestResultNumber;
 	/**
 	 * @return the logFileName
 	 */
@@ -175,6 +181,22 @@ public class LogReaderCommand {
 	 */
 	public void setShowLineNumbers(boolean showLineNumbers) {
 		this.showLineNumbers = showLineNumbers;
+	}
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+	public int getHarvestResultNumber() {
+		return harvestResultNumber;
+	}
+
+	public void setHarvestResultNumber(int harvestResultNumber) {
+		this.harvestResultNumber = harvestResultNumber;
 	}
 
 	/**

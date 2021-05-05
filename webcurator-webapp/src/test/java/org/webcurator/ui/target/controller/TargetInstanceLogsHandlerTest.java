@@ -15,6 +15,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.util.DateUtils;
+import org.webcurator.core.coordinator.MockWctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
@@ -24,14 +26,13 @@ import org.webcurator.core.scheduler.*;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
-import org.webcurator.core.harvester.coordinator.*;
 
 public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLogsHandler> {
 
 	public TargetInstanceLogsHandlerTest()
 	{
 		super(TargetInstanceLogsHandler.class,
-                "/org/webcurator/ui/target/controller/TargetInstanceLogsHandlerTest.xml");
+				"/org/webcurator/ui/target/controller/TargetInstanceLogsHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -56,7 +57,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
 		//genHandler.setHarvestCoordinator(new MockHarvestCoordinator());
-		genHandler.setHarvestAgentManager(new HarvestAgentManagerImpl());
+		genHandler.setWctCoordinator(new WctCoordinatorImpl());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -100,7 +101,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		// processTab currently returns with no processing done.
 		assertTrue(bindingResult.getAllErrors().size()==0);
@@ -113,7 +114,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		TargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
 		testInstance.setTargetInstanceManager(targetInstanceManager);
 		TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5001L);
-		testInstance.setHarvestCoordinator(new MockHarvestCoordinator());
+		testInstance.setWctCoordinator(new MockWctCoordinator());
 
 		aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, targetInstance);
 		aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_MODE, true);
@@ -132,7 +133,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetInstanceCommand.class);
 
 		Tab currentTab = tabs.get(1);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 		assertNotNull(mav.getModel().get(TargetInstanceCommand.MDL_LOG_LIST));
@@ -179,7 +180,7 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		try {
 			ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		}
@@ -209,5 +210,4 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		TargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
 		testInstance.setTargetInstanceManager(targetInstanceManager);
 	}
-
 }

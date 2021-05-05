@@ -23,7 +23,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.ArcHarvestResult;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 
@@ -127,7 +127,7 @@ public interface TargetInstanceManager {
      * Save the specified HarvestResult.
      * @param aArcHarvestResult the HarvestResult to save
      */
-    void save(ArcHarvestResult aArcHarvestResult);
+    void save(HarvestResult aArcHarvestResult);
     
     /**
      * Save the specified <code>Indicator</code>.
@@ -195,15 +195,15 @@ public interface TargetInstanceManager {
      * @return A list of the HarvestResults.
      */
     List<HarvestResult> getHarvestResults(Long targetInstanceOid);
-    
-	/**
-	 * Return the Harvest Resource DTO specified from the persistent data store.
-	 * @param harvestResultOid the id of the harvest result the resource belongs to
-	 * @param resource the name of the resource
-	 * @return the HarvestResourceDTO
-	 */
-	HarvestResourceDTO getHarvestResourceDTO(final long harvestResultOid, final String resource);
-    
+
+    /**
+     * Retrieve the list of HarvestResults associated with the Target Instance.
+     * @param targetInstanceOid The OID of the Target Instance
+     * @param harvestResultNumber The Number of the Harvest Result
+     * @return A list of the HarvestResults.
+     */
+    HarvestResult getHarvestResult(Long targetInstanceOid, Integer harvestResultNumber);
+
     /**
      * Set the purged flag and delete any harvest resources.
      * @param aTargetInstance The Target Instance

@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.util.DateUtils;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
@@ -24,14 +25,13 @@ import org.webcurator.core.scheduler.*;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
-import org.webcurator.core.harvester.coordinator.*;
 
 public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstanceDisplayHandler> {
 
 	public TargetInstanceDisplayHandlerTest()
 	{
 		super(TargetInstanceDisplayHandler.class,
-                "/org/webcurator/ui/target/controller/TargetInstanceDisplayHandlerTest.xml");
+				"/org/webcurator/ui/target/controller/TargetInstanceDisplayHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -55,7 +55,7 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
-		genHandler.setHarvestAgentManager(new HarvestAgentManagerImpl());
+		genHandler.setWctCoordinator(new WctCoordinatorImpl());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -102,7 +102,7 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
 		aCmd.setDisplay(newDisplay);
 		aCmd.setDisplayNote(newNote);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetInstance.getDisplay() == newDisplay);
 		assertTrue(targetInstance.getDisplayNote().equals(newNote));
@@ -143,7 +143,7 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetInstanceCommand.class);
 
 		Tab currentTab = tabs.get(1);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(((TargetInstanceCommand)mav.getModel().get("command")).getDisplay() == targetInstance.getDisplay());
 		assertTrue(((TargetInstanceCommand)mav.getModel().get("command")).getDisplayNote().equals(targetInstance.getDisplayNote()));
@@ -173,7 +173,7 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 	}
@@ -199,5 +199,4 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 		TargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
 		testInstance.setTargetInstanceManager(targetInstanceManager);
 	}
-
 }

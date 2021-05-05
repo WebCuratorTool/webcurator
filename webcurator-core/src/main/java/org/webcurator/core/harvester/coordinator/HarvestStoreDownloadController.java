@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +17,7 @@ import java.nio.file.Files;
 public class HarvestStoreDownloadController {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @RequestMapping(path = HarvestCoordinatorPaths.DOWNLOAD, method = {RequestMethod.POST, RequestMethod.GET}, produces = "application/octet-stream")
+    @RequestMapping(path = WctCoordinatorPaths.DOWNLOAD, method = {RequestMethod.POST, RequestMethod.GET}, produces = "application/octet-stream")
     public void externalDownload(@RequestParam("filePath") String filePath,
                                  HttpServletRequest req,
                                  HttpServletResponse rsp) throws DigitalAssetStoreException, IOException {

@@ -7,10 +7,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.core.coordinator.MockWctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.test.*;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
-import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.scheduler.*;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.LogReaderValidator;
@@ -20,19 +21,19 @@ import java.util.List;
 public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 
 	private TargetInstanceManager tim = null;
-	private HarvestCoordinator hc = null;
+	private WctCoordinator hc = null;
 
 	public LogReaderControllerTest()
 	{
 		super(LogReaderController.class,
-                "/org/webcurator/ui/target/controller/LogReaderControllerTest.xml");
+				"/org/webcurator/ui/target/controller/LogReaderControllerTest.xml");
 	}
 
 	public void setUp() throws Exception
 	{
 		super.setUp();
 		tim = new MockTargetInstanceManager(testFile);
-		hc = new MockHarvestCoordinator();
+		hc = new MockWctCoordinator();
 	}
 
 	private int countReturnedLines(List<String> result)
@@ -56,7 +57,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -91,7 +92,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -102,7 +103,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilterType(LogReaderCommand.VALUE_TAIL);
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
@@ -126,7 +127,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -138,7 +139,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilter("5000");
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
@@ -161,7 +162,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -173,7 +174,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilter("2008-06-18T06:25:29");
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
@@ -197,7 +198,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -209,7 +210,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilter("2008-06-18");
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
@@ -232,7 +233,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -244,12 +245,12 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilter("18/06/2008 06:25:29");
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
-            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 4);
 			assertEquals(result.get(0).substring(0,6), "5298. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
@@ -267,7 +268,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -279,12 +280,12 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilter("18/06/2008");
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
-            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 700);
 			assertEquals(result.get(0).substring(0,3), "1. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
@@ -302,7 +303,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -314,12 +315,12 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilter("20080618062529");
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
-            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 4);
 			assertEquals(result.get(0).substring(0,6), "5298. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
@@ -337,7 +338,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -348,12 +349,12 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilterType(LogReaderCommand.VALUE_TIMESTAMP);
 			aCmd.setFilter("bad format");
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
-            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 0);
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
 			assertNotNull((String)mav.getModel().get(Constants.MESSAGE_TEXT));
@@ -372,7 +373,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -384,12 +385,12 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilterType(LogReaderCommand.VALUE_REGEX_MATCH);
 			aCmd.setShowLineNumbers(false);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
-            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 1);
 			assertFalse("1. ".equals(result.get(0).substring(0,3)));
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
@@ -407,7 +408,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -419,7 +420,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilterType(LogReaderCommand.VALUE_REGEX_MATCH);
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
@@ -442,7 +443,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -454,12 +455,12 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilterType(LogReaderCommand.VALUE_REGEX_CONTAIN);
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
-            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 22);
 			assertEquals(result.get(0).substring(0,6), "5280. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
@@ -477,7 +478,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 		{
 			BindingResult bindingResult;
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 			ReflectionTestUtils.setField(testInstance, "logReaderValidator", new LogReaderValidator());
 
 			LogReaderCommand aCmd = new LogReaderCommand();
@@ -489,12 +490,12 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			aCmd.setFilterType(LogReaderCommand.VALUE_REGEX_INDENT);
 			aCmd.setShowLineNumbers(true);
 
-            bindingResult = new BindException(aCmd, "LogReaderCommand");
+			bindingResult = new BindException(aCmd, "LogReaderCommand");
 
 			ModelAndView mav = testInstance.handle(aCmd, bindingResult);
 			assertTrue(mav != null);
 			assertNotNull(mav.getModel().get(LogReaderCommand.MDL_LINES));
-            List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
+			List<String> result = (List<String>) mav.getModel().get(LogReaderCommand.MDL_LINES);
 			assertTrue(countReturnedLines(result) == 24);
 			assertEquals(result.get(0).substring(0,4), "21. ");
 			assertTrue(Constants.VIEW_LOG_READER.equals(mav.getViewName()));
@@ -510,7 +511,7 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 	public final void testSetHarvestCoordinator() {
 		try
 		{
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(hc);
 		}
 		catch(Exception e)
 		{
@@ -529,5 +530,4 @@ public class LogReaderControllerTest extends BaseWCTTest<LogReaderController>{
 			fail(e.getMessage());
 		}
 	}
-
 }

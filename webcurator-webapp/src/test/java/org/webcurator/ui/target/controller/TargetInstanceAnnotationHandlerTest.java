@@ -24,8 +24,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.AuthUtil;
@@ -45,7 +44,7 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 	public TargetInstanceAnnotationHandlerTest()
 	{
 		super(TargetInstanceAnnotationHandler.class,
-                "/org/webcurator/ui/target/controller/TargetInstanceAnnotationHandlerTest.xml");
+				"/org/webcurator/ui/target/controller/TargetInstanceAnnotationHandlerTest.xml");
 
 	}
 
@@ -110,7 +109,7 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
-		genHandler.setHarvestAgentManager(new HarvestAgentManagerImpl());
+		genHandler.setWctCoordinator(new WctCoordinatorImpl());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -157,7 +156,7 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 
 			Tab currentTab = tabs.get(1);
 			aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
-            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+			BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
 			ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 			assertNotNull(mav);
@@ -197,7 +196,7 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 			Tab currentTab = tabs.get(1);
 			aCmd.setCmd(TargetInstanceCommand.ACTION_ADD_NOTE);
 			aCmd.setNote("A note");
-            BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+			BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
 			int numAnnotations = targetInstance.getAnnotations().size();
 
@@ -281,7 +280,7 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 		Tab currentTab = tabs.get(1);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_ADD_NOTE);
 		aCmd.setNote("A note");
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 
 		List<Annotation> resultAnnotations = targetInstance.getAnnotations();
 		int numAnnotations = resultAnnotations.size();
@@ -291,6 +290,4 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 		Annotation resultAnnotation = resultAnnotations.get(resultAnnotations.size()-1);
 		assertEquals("A note", resultAnnotation.getNote());
 	}
-
-
 }

@@ -86,10 +86,6 @@ abstract public class AbstractRestClient {
         this.baseUrl = baseUrl;
     }
 
-    public RestTemplateBuilder getRestTemplateBuilder() {
-        return restTemplateBuilder;
-    }
-
     public void setRestTemplateBuilder(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplateBuilder = restTemplateBuilder;
     }
@@ -123,5 +119,9 @@ abstract public class AbstractRestClient {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    public RestTemplateBuilder getRestTemplateBuilder() {
+        return restTemplateBuilder;
     }
 }

@@ -18,7 +18,7 @@ import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.common.EnvironmentImpl;
-import org.webcurator.core.harvester.coordinator.MockHarvestCoordinator;
+import org.webcurator.core.coordinator.MockWctCoordinator;
 import org.webcurator.core.profiles.MockProfileManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -64,7 +64,7 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 		queueController.setEnvironment(new EnvironmentImpl());
 		queueController.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		queueController.setTargetInstanceManager(manager);
-		queueController.setHarvestCoordinator(new MockHarvestCoordinator());
+		queueController.setWctCoordinator(new MockWctCoordinator());
 		//MockTargetDAO targetDao = new MockTargetDAO(testFile);
 		//searchController.setTargetDao(targetDao);
 		testInstance.setQueueController(queueController);

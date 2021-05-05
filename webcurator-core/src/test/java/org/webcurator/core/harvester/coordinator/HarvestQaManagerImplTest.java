@@ -7,7 +7,6 @@ import org.springframework.web.client.RestTemplate;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -33,16 +32,10 @@ public class HarvestQaManagerImplTest extends BaseWCTTest<HarvestQaManagerImpl> 
         TargetInstanceDAO targetInstanceDAO = mock(TargetInstanceDAO.class);
         TargetInstanceManager targetInstanceManager = mock(TargetInstanceManager.class);
 
-        QualityReviewFacade qualityReviewFacade = new QualityReviewFacade();
-        qualityReviewFacade.setTargetInstanceDao(targetInstanceDAO);
-        qualityReviewFacade.setAuditor(mock(Auditor.class));
-
         RestTemplateBuilder restTemplateBuilder = mock(RestTemplateBuilder.class);
         when(restTemplateBuilder.build()).thenReturn(mock(RestTemplate.class));
         DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
         dasClient.setFileUploadMode("stream");
-
-        qualityReviewFacade.setDigialAssetStore(dasClient);
 
 
         testInstance = new HarvestQaManagerImpl();

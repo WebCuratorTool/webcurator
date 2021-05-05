@@ -14,7 +14,7 @@ repositories {
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
-    
+
     maven {
         url = 'http://download.oracle.com/maven/'
     }
@@ -22,11 +22,11 @@ repositories {
 
 dependencies {
     // This artifact no longer exists in public repos and we don't seem to need it
-    //compile 'com.sun.jmx:jmxri:1.2.1'
+    //implementation 'com.sun.jmx:jmxri:1.2.1'
     compile 'log4j:log4j:1.2.17'
     compile 'org.quartz-scheduler:quartz:2.3.1'
-	compile 'com.sun.xml.bind:jaxb-impl:2.3.2'
-	compile 'com.sun.xml.bind:jaxb-core:2.3.0'
+    compile 'com.sun.xml.bind:jaxb-impl:2.3.2'
+    compile 'com.sun.xml.bind:jaxb-core:2.3.0'
     compile 'org.webcurator:webcurator-core:3.1.+'
     compile 'org.netarchivesuite:heritrix3-wrapper:1.0.3'
     testCompile 'junit:junit:4.12'
@@ -45,6 +45,14 @@ task sourcesJar(type: Jar) {
 
 // just an alias
 task install(dependsOn: ['bootJar', 'publishToMavenLocal'])
+
+jar {
+    enabled = true
+}
+
+bootJar {
+    classifier = 'application'
+}
 
 publishing {
     publications {

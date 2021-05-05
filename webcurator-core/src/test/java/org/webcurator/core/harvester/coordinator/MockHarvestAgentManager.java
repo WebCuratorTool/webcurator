@@ -290,6 +290,11 @@ public class MockHarvestAgentManager implements HarvestAgentManager {
 	}
 
 	@Override
+	public LogReader getLogReader(String aJobName) {
+		return null;
+	}
+
+	@Override
 	public void pauseAgent(String agentName) {
 		HarvestAgentStatusDTO agent = harvestAgents.get(agentName);
 		if (agent != null) {
@@ -346,12 +351,17 @@ public class MockHarvestAgentManager implements HarvestAgentManager {
 	@Override
 	public void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, TargetInstance aTargetInstance, String profile,
 			String seedsString) {
+		this.initiateHarvest(aHarvestAgent, aTargetInstance.getJobName(), profile, seedsString);
+	}
+
+	@Override
+	public void initiateHarvest(HarvestAgentStatusDTO aHarvestAgent, String jobName, String profile, String seedsString) {
 		HarvestAgent agent = harvestAgentFactory.getHarvestAgent(aHarvestAgent);
 
 		Map<String, String> params=new HashMap<String, String>();
 		params.put("profile", profile);
 		params.put("seeds", seedsString);
-		agent.initiateHarvest(aTargetInstance.getJobName(), params);
+		agent.initiateHarvest(jobName, params);
 	}
 
 	@Override
@@ -442,6 +452,26 @@ public class MockHarvestAgentManager implements HarvestAgentManager {
 			}
 		}
 		return selectedAgent;
+	}
+
+	@Override
+	public void pausePatching(String jobName) {
+
+	}
+
+	@Override
+	public void resumePatching(String jobName) {
+
+	}
+
+	@Override
+	public void abortPatching(String jobName) {
+
+	}
+
+	@Override
+	public void stopPatching(String jobName) {
+
 	}
 
 	private boolean harvesterCanHarvestNow(HarvestAgentStatusDTO agent) {

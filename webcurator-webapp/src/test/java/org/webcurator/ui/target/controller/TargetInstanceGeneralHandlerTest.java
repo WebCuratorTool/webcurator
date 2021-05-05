@@ -19,6 +19,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.*;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.scheduler.*;
 import org.webcurator.domain.MockTargetInstanceDAO;
@@ -41,7 +42,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 	public TargetInstanceGeneralHandlerTest()
 	{
 		super(TargetInstanceGeneralHandler.class,
-                "/org/webcurator/ui/target/controller/TargetInstanceGeneralHandlerTest.xml");
+				"/org/webcurator/ui/target/controller/TargetInstanceGeneralHandlerTest.xml");
 	}
 
 	public void setUp() throws Exception
@@ -90,7 +91,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 
 	@Test
 	public final void testSetHarvestCoordinator() {
-		HarvestCoordinatorImpl hc = new HarvestCoordinatorImpl();
+		WctCoordinatorImpl hc = new WctCoordinatorImpl();
 		hc.setTargetInstanceManager(getTargetInstanceManager());
 		hc.setTargetInstanceDao(new MockTargetInstanceDAO(testFile));
 		HarvestBandwidthManager mockHarvestBandwidthManager = Mockito.mock(HarvestBandwidthManager.class);
@@ -99,7 +100,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		HarvestAgentManager mockHarvestAgentManager = Mockito.mock(HarvestAgentManager.class);
 		hc.setHarvestAgentManager(mockHarvestAgentManager);
 
-		testInstance.setHarvestAgentManager(mockHarvestAgentManager);
+		testInstance.setWctCoordinator(hc);
 	}
 
 	@Test
@@ -162,7 +163,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		Tab currentTab = tabs.get(0);
 		aCmd.setCmd(TargetInstanceCommand.ACTION_EDIT);
 		aCmd.setFlagged(true);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		testInstance.processTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(targetInstance.getFlagged());
 
@@ -202,7 +203,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		tc.setDefaultCommandClass(org.webcurator.ui.target.command.TargetInstanceCommand.class);
 
 		Tab currentTab = tabs.get(0);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		ModelAndView mav = testInstance.preProcessNextTab(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(((TargetInstanceCommand)mav.getModel().get("command")).getFlagged() == targetInstance.getFlagged());
 	}
@@ -236,7 +237,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		Tab currentTab = tabs.get(0);
 
 		aCmd.setCmd(TargetInstanceCommand.ACTION_HARVEST);
-        BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+		BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
 		ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
 		assertTrue(mav != null);
 

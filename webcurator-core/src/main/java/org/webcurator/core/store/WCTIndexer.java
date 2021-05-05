@@ -1,17 +1,11 @@
 package org.webcurator.core.store;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,19 +14,21 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
+import org.webcurator.domain.model.core.*;
 
 // TODO Note that the spring boot application needs @EnableRetry for the @Retryable to work.
 public class WCTIndexer extends IndexerBase {
-    private static Log log = LogFactory.getLog(WCTIndexer.class);
+    private final static Logger log = LoggerFactory.getLogger(WCTIndexer.class);
 
     private HarvestResultDTO result;
     private File directory;
     private boolean doCreate = false;
+    private BDBNetworkMapPool pool;
 
     public WCTIndexer(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
         super(baseUrl, restTemplateBuilder);
@@ -60,13 +56,12 @@ public class WCTIndexer extends IndexerBase {
 
             RestTemplate restTemplate = restTemplateBuilder.build();
 
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.CREATE_HARVEST_RESULT));
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.CREATE_HARVEST_RESULT));
 
             harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Long.class);
             log.info("Initialised index for job " + getResult().getTargetInstanceOid());
         } catch (JsonProcessingException e) {
-            log.error("Parsing json failed.");
-            log.error(e);
+            log.error("Parsing json failed: {}", e.getMessage());
         }
         return harvestResultOid;
     }
@@ -89,101 +84,28 @@ public class WCTIndexer extends IndexerBase {
     public void indexFiles(Long harvestResultOid) {
         // Step 2. Save the Index for each file.
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
-        File[] fileList = directory.listFiles(new ARCFilter());
-        if (fileList == null) {
-            log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
-        } else {
-            for (File f : fileList) {
-                ArcHarvestFileDTO ahf = new ArcHarvestFileDTO();
-                ahf.setName(f.getName());
-                ahf.setBaseDir(directory.getAbsolutePath());
-
-                try {
-                    ahf.setCompressed(ahf.checkIsCompressed());
-
-                    log.info("Indexing " + ahf.getName());
-                    Map<String, HarvestResourceDTO> resources = ahf.index();
-                    Collection<HarvestResourceDTO> dtos = resources.values();
-
-                    addToHarvestResult(harvestResultOid, ahf);
-
-                    log.info("Sending Resources for " + ahf.getName());
-                    addHarvestResources(harvestResultOid, dtos);
-
-                    //Release memory used by Collections///////////////
-                    dtos.clear();
-                    resources.clear();
-                    if (ahf.getHarvestResult() != null) {
-                        ahf.getHarvestResult().getArcFiles().clear();
-                        ahf.getHarvestResult().getResources().clear();
-                    }
-                    //////////////////////////////////////////////////////
-
-                    log.info("Completed indexing of " + ahf.getName());
-                } catch (IOException ex) {
-                    log.error("Could not index file " + ahf.getName() + ". Ignoring and continuing with other files. " + ex.getClass().getCanonicalName() + ": " + ex.getMessage());
-                } catch (ParseException ex) {
-                    log.error("Could not index file " + ahf.getName() + ". Ignoring and continuing with other files. " + ex.getClass().getCanonicalName() + ": " + ex.getMessage());
-                }
+        IndexProcessor indexer = null;
+        try {
+            indexer = new IndexProcessorWarc(pool, getResult().getTargetInstanceOid(), getResult().getHarvestNumber());
+        } catch (DigitalAssetStoreException e) {
+            log.error("Failed to create directory: {}", directory);
+            return;
+        } finally {
+            if (indexer != null) {
+                indexer.clear();
             }
         }
+
+        try {
+            indexer.processInternal();
+        } catch (Exception e) {
+            log.error("Failed to index files: {}", directory);
+            return;
+        } finally {
+            indexer.clear();
+        }
+
         log.info("Completed indexing for job " + getResult().getTargetInstanceOid());
-    }
-
-    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-    protected void addToHarvestResult(Long harvestResultOid, ArcHarvestFileDTO arcHarvestFileDTO) {
-        try {
-            // Submit to the server.
-            log.info("Sending Arc Harvest File " + arcHarvestFileDTO.getName());
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            String jsonStr = objectMapper.writeValueAsString(arcHarvestFileDTO);
-            log.debug(jsonStr);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
-
-            RestTemplate restTemplate = restTemplateBuilder.build();
-
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESULT));
-
-            Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, String.class);
-        } catch (JsonProcessingException e) {
-            log.error("Parsing json failed.");
-            log.error(e);
-        }
-    }
-
-    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
-    protected void addHarvestResources(Long harvestResultOid, Collection<HarvestResourceDTO> harvestResourceDTOs) {
-        try {
-            Collection<ArcHarvestResourceDTO> arcHarvestResourceDTOs = new ArrayList<ArcHarvestResourceDTO>();
-            harvestResourceDTOs.forEach(dto -> {
-                arcHarvestResourceDTOs.add((ArcHarvestResourceDTO) dto);
-            });
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            String jsonStr = objectMapper.writeValueAsString(arcHarvestResourceDTOs);
-            log.debug(jsonStr);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<String> request = new HttpEntity<String>(jsonStr.toString(), headers);
-
-            RestTemplate restTemplate = restTemplateBuilder.build();
-
-            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.ADD_HARVEST_RESOURCES));
-
-            Map<String, Long> pathVariables = ImmutableMap.of("harvest-result-oid", harvestResultOid);
-            restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), request, String.class);
-        } catch (JsonProcessingException e) {
-            log.error("Parsing json failed.");
-            log.error(e);
-        }
     }
 
     @Override
@@ -217,5 +139,8 @@ public class WCTIndexer extends IndexerBase {
         return true;
     }
 
+    public void setBDBNetworkMapPool(BDBNetworkMapPool pool) {
+        this.pool = pool;
+    }
 }
 

@@ -20,64 +20,57 @@ import static org.webcurator.core.archive.Constants.LOG_FILE;
 import static org.webcurator.core.archive.Constants.REPORT_FILE;
 import static org.webcurator.core.archive.Constants.ROOT_FILE;
 
-import com.google.common.collect.ImmutableMap;
 import it.unipi.di.util.ExternalSort;
 
 import java.io.*;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.archive.format.warc.WARCConstants;
 import org.archive.io.*;
-import org.archive.io.arc.ARCReader;
 import org.archive.io.arc.ARCRecord;
-import org.archive.io.arc.ARCRecordMetaData;
-import org.archive.io.arc.ARCWriter;
-import org.archive.io.arc.WriterPoolSettingsData;
-import org.archive.io.warc.WARCReader;
-import org.archive.io.warc.WARCRecord;
-import org.archive.io.warc.WARCRecordInfo;
-import org.archive.io.warc.WARCWriter;
-import org.archive.io.warc.WARCWriterPoolSettings;
-import org.archive.io.warc.WARCWriterPoolSettingsData;
-import org.archive.uid.UUIDGenerator;
-import org.archive.util.anvl.ANVLRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.webcurator.common.util.SafeSimpleDateFormat;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorPaths;
+import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
-import org.webcurator.domain.model.core.ArcHarvestFileDTO;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResultDTO;
-import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
-import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
-import org.webcurator.domain.model.core.LogFilePropertiesDTO;
+import org.webcurator.core.util.WebServiceEndPoint;
+import org.webcurator.core.visualization.VisualizationAbstractProcessor;
+import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
+import org.webcurator.core.visualization.VisualizationProcessorManager;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
+import org.webcurator.core.visualization.modification.processor.ModifyProcessorWarc;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
+import org.webcurator.domain.model.core.*;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -86,15 +79,22 @@ import org.webcurator.domain.model.core.LogFilePropertiesDTO;
  * @author bbeaumont
  */
 @SuppressWarnings("all")
+@Component("arcDigitalAssetStoreService")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class ArcDigitalAssetStoreService extends AbstractRestClient implements DigitalAssetStore, LogProvider {
     /**
      * The logger.
      */
-    private static Log log = LogFactory.getLog(ArcDigitalAssetStoreService.class);
+    private static Logger log = LoggerFactory.getLogger(ArcDigitalAssetStoreService.class);
+
+    @Autowired
+    private VisualizationDirectoryManager directoryManager;
+
     /**
      * the base directory for the digital asset stores harvest files.
      */
-    private File baseDir = null;
+    @Value("${arcDigitalAssetStoreService.baseDir}")
+    private String baseDir = null;
     /**
      * Constant for the size of a buffer.
      */
@@ -103,11 +103,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     /**
      * Arc files meta data date format.
      */
-    private static final SimpleDateFormat sdf = SafeSimpleDateFormat.getInstance("yyyyMMddHHmmss");
-    private static final SimpleDateFormat writerDF = SafeSimpleDateFormat.getInstance("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+    private static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     /**
      * The Indexer
      */
+    @Autowired
     private Indexer indexer = null;
     /**
      * The DAS File Mover
@@ -119,16 +120,19 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     @Autowired
     private Archive arcDasArchive;
 
+    @Autowired
+    private NetworkMapClient networkMapClient;
+
+    @Autowired
+    private VisualizationProcessorManager visualizationProcessorManager;
+
+    @Autowired
+    private BDBNetworkMapPool pool;
+
+    private WctCoordinatorClient wctCoordinatorClient;
+
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
-
-    public ArcDigitalAssetStoreService() {
-        super();
-    }
-
-    public ArcDigitalAssetStoreService(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-        super(baseUrl, restTemplateBuilder);
-    }
 
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -231,18 +235,18 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * @see DigitalAssetStore#getResource(String, int, HarvestResourceDTO).
      */
     @SuppressWarnings("finally")
-    public Path getResource(String targetInstanceName, int harvestResultNumber,
-                            HarvestResourceDTO resourcex) throws DigitalAssetStoreException {
+    public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
+            throws DigitalAssetStoreException {
+        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+
         FileOutputStream fos = null;
         ArchiveReader reader = null;
         ArchiveRecord record = null;
         File source = null;
         File dest = null;
-        ArcHarvestResourceDTO resource = null;
         try {
-            resource = (ArcHarvestResourceDTO) resourcex;
-            source = new File(this.baseDir, "/" + targetInstanceName + "/"
-                    + harvestResultNumber + "/" + resource.getArcFileName());
+            source = new File(this.baseDir, "/" + targetInstanceId + "/"
+                    + harvestResultNumber + "/" + resourceNode.getFileName());
 
             try {
                 reader = ArchiveReaderFactory.get(source);
@@ -251,9 +255,9 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                     log.warn("Failed to get resource : " + ex.getMessage());
                 }
                 source = new File(fileArchive.getArchiveRepository() + "/"
-                        + targetInstanceName + "/"
+                        + targetInstanceId + "/"
                         + fileArchive.getArchiveArcDirectory() + "/"
-                        + resource.getArcFileName());
+                        + resourceNode.getFileName());
                 if (log.isWarnEnabled()) {
                     log.info("trying filestore " + source.getAbsolutePath());
                 }
@@ -265,7 +269,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 }
             }
 
-            record = reader.get(resource.getResourceOffset());
+            record = reader.get(resourceNode.getOffset());
 
             dest = File.createTempFile("wct", "tmp");
             if (log.isDebugEnabled()) {
@@ -334,16 +338,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     /**
      * @see DigitalAssetStore#getSmallResource(String, int, HarvestResourceDTO).
      */
-    public byte[] getSmallResource(String targetInstanceName,
-                                   int harvestResultNumber, HarvestResourceDTO resourcex)
+    public byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
+        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+
         ArchiveRecord record = null;
         ArchiveReader reader = null;
         File source = null;
         try {
-            ArcHarvestResourceDTO resource = (ArcHarvestResourceDTO) resourcex;
-            source = new File(this.baseDir, "/" + targetInstanceName + "/"
-                    + harvestResultNumber + "/" + resource.getArcFileName());
+            source = new File(this.baseDir, "/" + targetInstanceId + "/"
+                    + harvestResultNumber + "/" + resourceNode.getFileName());
             try {
                 reader = ArchiveReaderFactory.get(source);
 
@@ -354,15 +358,15 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                             + source.getAbsolutePath() + " from local store");
                 }
                 source = new File(fileArchive.getArchiveRepository() + "/"
-                        + targetInstanceName + "/"
+                        + targetInstanceId + "/"
                         + fileArchive.getArchiveArcDirectory() + "/"
-                        + resource.getArcFileName());
+                        + resourceNode.getFileName());
                 if (log.isWarnEnabled()) {
                     log.info("trying filestore " + source.getAbsolutePath());
                 }
                 reader = ArchiveReaderFactory.get(source);
             }
-            record = reader.get(resource.getResourceOffset());
+            record = reader.get(resourceNode.getOffset());
 
             if (record instanceof ARCRecord) {
                 ((ARCRecord) record).skipHttpHeader();
@@ -416,63 +420,62 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     /**
      * @see DigitalAssetStore#getHeaders(String, int, HarvestResourceDTO).
      */
-    public List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resourcex)
+    public List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        if (log.isDebugEnabled()) {
-            log.debug("Start of getHeaders()");
-            log.debug("Casting the DTO to HarvestResult");
-        }
+        log.debug("Start of getHeaders()");
+        log.debug("Casting the DTO to HarvestResult");
 
-        List<Header> headers;
+
+        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+
+        List<Header> headers = new ArrayList<>();
         ArchiveRecord record = null;
         ArchiveReader reader = null;
-        ArcHarvestResourceDTO resource = (ArcHarvestResourceDTO) resourcex;
 
-        if (log.isDebugEnabled()) {
-            log.debug("Determining the filename");
-        }
-        File source = new File(this.baseDir, "/" + targetInstanceName + "/"
-                + harvestResultNumber + "/" + resource.getArcFileName());
+        log.debug("Determining the filename");
+
+        File source = new File(this.baseDir, "/" + targetInstanceId + "/"
+                + harvestResultNumber + "/" + resourceNode.getFileName());
 
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("Create the Archive File Reader");
-            }
+            log.debug("Create the Archive File Reader");
+
             try {
                 reader = ArchiveReaderFactory.get(source);
             } catch (IOException e) {
-                if (log.isWarnEnabled()) {
-                    log.warn("Could not read headers for ArchiveRecord from "
-                            + source.getAbsolutePath() + " from local store");
-                }
+                log.warn("Could not read headers for ArchiveRecord from " + source.getAbsolutePath() + " from local store");
+
                 source = new File(fileArchive.getArchiveRepository() + "/"
-                        + targetInstanceName + "/"
+                        + targetInstanceId + "/"
                         + fileArchive.getArchiveArcDirectory() + "/"
-                        + resource.getArcFileName());
-                if (log.isWarnEnabled()) {
-                    log.info("trying filestore " + source.getAbsolutePath());
-                }
+                        + resourceNode.getFileName());
+                log.info("trying filestore " + source.getAbsolutePath());
+
                 reader = ArchiveReaderFactory.get(source);
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug("Skipping to the appropriate record at offset: "
-                        + resource.getResourceOffset());
-            }
-            record = reader.get(resource.getResourceOffset());
+            log.debug("Skipping to the appropriate record at offset: " + resourceNode.getOffset());
+
+            record = reader.get(resourceNode.getOffset());
 
             if (record instanceof ARCRecord) {
                 log.debug("Reading the headers");
                 ((ARCRecord) record).skipHttpHeader();
                 Header[] headersArray = ((ARCRecord) record).getHttpHeaders();
-                headers = Arrays.asList(headersArray);
+                headers.addAll(Arrays.asList(headersArray));
             } else {
                 log.debug("Reading the headers");
                 skipStatusLine(record);
                 Header[] headersArray = HttpParser.parseHeaders(record,
                         WARCConstants.DEFAULT_ENCODING);
-                headers = Arrays.asList(headersArray);
+                headers.addAll(Arrays.asList(headersArray));
             }
+
+            Header httpResponseStatusCode = new Header("HTTP-RESPONSE-STATUS-CODE", Integer.toString(resourceNode.getStatusCode()));
+            headers.add(httpResponseStatusCode);
+
+            Header httpResponseContentLength = new Header("HTTP-RESPONSE-CONTENT_LENGTH", Long.toString(resourceNode.getContentLength()));
+            headers.add(httpResponseContentLength);
 
             return headers;
         } catch (IOException ex) {
@@ -504,365 +507,25 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return null;
     }
 
-    /**
-     * @see DigitalAssetStore#copyAndPrune(String, int, int, List, List)
-     */
-    public HarvestResultDTO copyAndPrune(String targetInstanceName,
-                                         int orgHarvestResultNum, int newHarvestResultNum,
-                                         List<String> urisToDelete, List<HarvestResourceDTO> hrsToImport)
-            throws DigitalAssetStoreException {
-        try {
-            // Calculate the source and destination directories.
-            File sourceDir = new File(baseDir, targetInstanceName + "/" + orgHarvestResultNum);
-            File destDir = new File(baseDir, targetInstanceName + "/" + newHarvestResultNum);
+    private NetworkMapNodeDTO queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
+        NetworkMapUrl url = new NetworkMapUrl();
+        url.setUrlName(resourceUrl);
+        NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, url);
 
-            // Ensure the destination directory exists.
-            destDir.mkdirs();
-
-            // Get all the files from the source dir.
-            File[] arcFiles = sourceDir.listFiles();
-
-            List<File> dirs = new LinkedList<File>();
-            dirs.add(destDir);
-
-            boolean compressed = false;
-            AtomicInteger aint = new AtomicInteger();
-
-            String impArcType = null;
-            String strippedImpArcFilename = null;
-            List<String> impArcHeader = new ArrayList<String>();
-
-            // Copy them into the destination directory.
-            for (int i = 0; i < arcFiles.length; i++) {
-
-                // If this is a CDX file, ignore it, another will be created for
-                // the new file
-                if (arcFiles[i].getName().toUpperCase().endsWith("CDX")) {
-                    continue;
-                }
-
-                // Get the reader for this ARC File
-                ArchiveReader reader = ArchiveReaderFactory.get(arcFiles[i]);
-
-                // Use the original filename
-                strippedImpArcFilename = reader.getStrippedFileName();
-
-                compressed = reader.isCompressed();
-
-                Iterator<ArchiveRecord> archiveRecordsIt = reader.iterator();
-
-                if (reader instanceof ARCReader) {
-                    if (impArcType == null) {
-                        impArcType = "ARC";
-                    }
-
-                    // Read the Meta Data
-                    ARCRecord headerRec = (ARCRecord) archiveRecordsIt.next();
-                    byte[] buff = new byte[1024];
-                    StringBuffer metaData = new StringBuffer();
-                    int bytesRead = 0;
-                    while ((bytesRead = headerRec.read(buff)) != -1) {
-                        metaData.append(new String(buff, 0, bytesRead));
-                    }
-                    List<String> l = new ArrayList<String>();
-                    l.add(metaData.toString());
-
-                    if (impArcHeader.isEmpty()) {
-                        impArcHeader.add(metaData.toString());
-                    }
-
-                    // Create an ARC Writer
-                    WriterPoolSettings settings = new WriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNum, "${prefix}", ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l);
-                    ARCWriter writer = new ARCWriter(aint, settings);
-
-                    // Iterate through all the records, skipping deleted or
-                    // imported URLs.
-                    while (archiveRecordsIt.hasNext()) {
-                        ARCRecord record = (ARCRecord) archiveRecordsIt.next();
-                        ARCRecordMetaData meta = record.getMetaData();
-                        Date dt;
-                        try {
-                            dt = sdf.parse(meta.getDate());
-                        } catch (ParseException ex) {
-                            dt = new Date();
-                            if (log.isWarnEnabled()) {
-                                log.warn("Couldn't parse date from ARCRecord: "
-                                        + record.getMetaData().getUrl(), ex);
-                                log.warn("Setting to the current date.");
-                            }
-                        }
-
-                        if (!urisToDelete.contains(meta.getUrl())) {
-                            // this record is not in the delete list so we should
-                            // copy it forward to the arc file, but is there a match
-                            // in the import list?
-                            // If the record's Url is in the imports list, then the user
-                            // is opting to replace the content for the specified Url so
-                            // we won't copy this record forward into the target arc
-                            // file, rather we'll add all imported Urls and their associated
-                            // content into an additional newly created arc file at the end.
-                            if (!listContainsURL(hrsToImport, meta.getUrl())) {
-                                writer.write(meta.getUrl(), meta.getMimetype(), meta.getIp(), dt.getTime(), (int) meta.getLength(), record);
-                            }
-                        }
-                    }
-
-                    writer.close();
-                } else if (reader instanceof WARCReader) {
-                    if (impArcType == null) {
-                        impArcType = "WARC";
-                    }
-
-                    /*
-                     * Post 1.6.1 code.
-                     *
-                     * Problem:
-                     * The correct number of bytes/characters are being read from the header record, and saved in the
-                     * buffer array. But the input stream appears (for some unknown reason) to read or mark one character further
-                     * than the length that was read into the array.
-                     *
-                     * For example, with content-length: 398, the stream should be stopping at the <|> below. So the next character read
-                     * would be a carriage return "\r". This is what the WarcReader (line 65 - gotoEOR()) is expecting in order to move
-                     * the marker to the start of the next record.
-                     *
-                     * http-header-from: youremail@yourdomain.com\r\n
-                     * \r\n<|>
-                     * \r\n
-                     * \r\n
-                     * WARC/0.18\r\n
-                     *
-                     * Instead the stream is reading up until the marker in the following example, and throwing a runtime error.
-                     *
-                     * http-header-from: youremail@yourdomain.com\r\n
-                     * \r\n
-                     * \r<|>\n
-                     * \r\n
-                     * WARC/0.18\r\n
-                     *
-                     *
-                     * Workaround/Fix:
-                     * Create a duplicate ArchiveReader (headerRecordIt) for just the warc header metadata, that is then closed after
-                     * the metadata is read. The archiveRecordsIt ArchiveReader is still used to read the rest of the records. However
-                     * the first record (which we read with the other ArchiveReader) still has an issue with the iterator hasNext()
-                     * call. So it is skipped before entering the loop that copies each record.
-                     *
-                     *
-                     */
-
-                    // Get a another reader for the warc header metadata
-                    ArchiveReader headerReader = ArchiveReaderFactory.get(arcFiles[i]);
-                    Iterator<ArchiveRecord> headerRecordIt = headerReader.iterator();
-
-                    // Read the Meta Data
-                    WARCRecord headerRec = (WARCRecord) headerRecordIt.next();
-                    byte[] buff = new byte[1024];
-                    StringBuffer metaData = new StringBuffer();
-                    int bytesRead = 0;
-
-
-                    while ((bytesRead = headerRec.read(buff)) != -1) {
-                        metaData.append(new String(buff, 0, bytesRead));
-                    }
-
-
-                    List<String> l = new ArrayList<String>();
-                    l.add(metaData.toString());
-
-                    if (impArcHeader.isEmpty()) {
-                        impArcHeader.add(metaData.toString());
-                    }
-
-                    headerRec.close();
-                    headerReader.close();
-
-
-                    // Bypass warc header metadata as it has been read above from a different ArchiveReader
-                    archiveRecordsIt.next();
-
-                    // Create a WARC Writer
-                    WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-" + newHarvestResultNum, "${prefix}",
-                            ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, l, new UUIDGenerator());
-                    WARCWriter writer = new WARCWriter(aint, settings);
-
-                    // Iterate through all the records, skipping deleted or
-                    // imported URLs.
-                    while (archiveRecordsIt.hasNext()) {
-                        WARCRecord record = (WARCRecord) archiveRecordsIt.next();
-                        ArchiveRecordHeader header = record.getHeader();
-                        String WARCType = (String) header.getHeaderValue(WARCConstants.HEADER_KEY_TYPE);
-                        String strRecordId = (String) header.getHeaderValue(WARCConstants.HEADER_KEY_ID);
-                        URI recordId = new URI(strRecordId.substring(strRecordId.indexOf("<") + 1, strRecordId.lastIndexOf(">") - 1));
-                        long contentLength = header.getLength() - header.getContentBegin();
-
-
-                        if (!WARCType.equals(WARCConstants.WARCRecordType.warcinfo)
-                                && (urisToDelete.contains(header.getUrl()) || listContainsURL(hrsToImport, header.getUrl()))) {
-                            continue;
-                        }
-
-                        ANVLRecord namedFields = new ANVLRecord();
-                        Iterator hdrFieldsIt = header.getHeaderFieldKeys().iterator();
-                        while (hdrFieldsIt.hasNext()) {
-                            String key = (String) hdrFieldsIt.next();
-                            String value = header.getHeaderValue(key).toString();
-                            if (key.equals(WARCConstants.ABSOLUTE_OFFSET_KEY)) {
-                                value = new Long(writer.getPosition()).toString();
-                            }
-                            // we exclude all but three fields to avoid
-                            // duplication / erroneous data
-                            if (key.equals("WARC-IP-Address")
-                                    || key.equals("WARC-Payload-Digest")
-                                    || key.equals("WARC-Concurrent-To"))
-                                namedFields.addLabelValue(key, value);
-                        }
-
-
-                        WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-                        switch (WARCConstants.WARCRecordType.valueOf(WARCType)) {
-                            case warcinfo:
-                                warcRecordInfo.setType(WARCConstants.WARCRecordType.warcinfo);
-                                break;
-                            case response:
-                                warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
-                                warcRecordInfo.setUrl(header.getUrl());
-                                break;
-                            case metadata:
-                                warcRecordInfo.setType(WARCConstants.WARCRecordType.metadata);
-                                warcRecordInfo.setUrl(header.getUrl());
-                                break;
-                            case request:
-                                warcRecordInfo.setType(WARCConstants.WARCRecordType.request);
-                                warcRecordInfo.setUrl(header.getUrl());
-                                break;
-                            case resource:
-                                warcRecordInfo.setType(WARCConstants.WARCRecordType.resource);
-                                warcRecordInfo.setUrl(header.getUrl());
-                                break;
-                            case revisit:
-                                warcRecordInfo.setType(WARCConstants.WARCRecordType.revisit);
-                                warcRecordInfo.setUrl(header.getUrl());
-                                break;
-                            default:
-                                if (log.isWarnEnabled()) {
-                                    log.warn("Ignoring unrecognised type for WARCRecord: "
-                                            + WARCType);
-                                }
-                        }
-                        warcRecordInfo.setCreate14DigitDate(header.getDate());
-                        warcRecordInfo.setMimetype(header.getMimetype());
-                        warcRecordInfo.setRecordId(recordId);
-                        warcRecordInfo.setExtraHeaders(namedFields);
-                        warcRecordInfo.setContentStream(record);
-                        warcRecordInfo.setContentLength(contentLength);
-
-                        writer.writeRecord(warcRecordInfo);
-
-                    }
-
-                    writer.close();
-                }
-
-                reader.close();
-            }
-
-            // add any imported content to a new arc or warc file as
-            // appropriate..
-            if (!hrsToImport.isEmpty()) {
-                if (impArcType.equals("ARC")) {
-                    // Create an ARC Writer
-                    // Somewhat arbitrarily use the last filename from the list of original filenames
-                    // Compress the file if the (last) original file was compressed
-                    WriterPoolSettings settings = new WriterPoolSettingsData(strippedImpArcFilename + "-new", "${prefix}",
-                            ARCReader.DEFAULT_MAX_ARC_FILE_SIZE, compressed, dirs, impArcHeader);
-                    ARCWriter arcWriter = new ARCWriter(aint, settings);
-                    for (Iterator<HarvestResourceDTO> it = hrsToImport.iterator(); it.hasNext(); ) {
-                        HarvestResourceDTO hr = it.next();
-                        if (hr.getLength() > 0L) {
-                            File fin = new File(this.baseDir, "/uploadedFiles/" + hr.getTempFileName());
-                            Date dtNow = new Date();
-                            arcWriter.write(hr.getName(), hr.getContentType(), "0.0.0.0", dtNow.getTime(), hr.getLength(), new java.io.FileInputStream(fin));
-                        }
-                    }
-                    arcWriter.close();
-
-                } else {
-                    // Create a WARC Writer
-                    // Somewhat arbitrarily use the last filename from the list of original filenames
-                    // Compress the file if the (last) original file was compressed
-                    WARCWriterPoolSettings settings = new WARCWriterPoolSettingsData(strippedImpArcFilename + "-new", "${prefix}",
-                            WARCReader.DEFAULT_MAX_WARC_FILE_SIZE, compressed, dirs, impArcHeader, new UUIDGenerator());
-                    WARCWriter warcWriter = new WARCWriter(aint, settings);
-                    for (Iterator<HarvestResourceDTO> it = hrsToImport.iterator(); it.hasNext(); ) {
-                        HarvestResourceDTO hr = it.next();
-                        if (hr.getLength() > 0L) {
-                            File fin = new File(this.baseDir, "/uploadedFiles/" + hr.getTempFileName());
-                            if (!fin.exists()) {
-                                fin = getDownloadFileURL(hr.getTempFileName(), fin);
-                            }
-                            Date dtNow = new Date();
-                            URI recordId = new URI("urn:uuid:" + hr.getTempFileName());
-                            ANVLRecord namedFields = new ANVLRecord();
-                            namedFields.addLabelValue(WARCConstants.HEADER_KEY_IP, "0.0.0.0");
-                            WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
-                            warcRecordInfo.setUrl(hr.getName());
-                            warcRecordInfo.setCreate14DigitDate(writerDF.format(dtNow));
-                            warcRecordInfo.setMimetype(hr.getContentType());
-                            warcRecordInfo.setRecordId(recordId);
-                            warcRecordInfo.setExtraHeaders(namedFields);
-                            warcRecordInfo.setContentStream(new java.io.FileInputStream(fin));
-                            warcRecordInfo.setContentLength(hr.getLength());
-                            warcRecordInfo.setType(WARCConstants.WARCRecordType.response);
-
-                            warcWriter.writeRecord(warcRecordInfo);
-
-                            fin.delete();
-                        }
-                    }
-                    warcWriter.close();
-                }
-            }
-
-            log.info("copyAndPrune - Now time to reindex.");
-            // Now re-index the files.
-            HarvestResultDTO ahr = new HarvestResultDTO();
-            File[] fileList = destDir.listFiles();
-            Set<ArcHarvestFileDTO> fileset = new HashSet<ArcHarvestFileDTO>();
-            for (File f : fileList) {
-                ArcHarvestFileDTO ahf = new ArcHarvestFileDTO();
-                ahf.setCompressed(compressed);
-                ahf.setName(f.getName());
-                fileset.add(ahf);
-            }
-
-            ahr.setArcFiles(fileset);
-            ahr.setCreationDate(new Date());
-            ahr.setHarvestNumber(newHarvestResultNum);
-
-            ahr.index(destDir);
-
-            log.info("copyAndPrune - Now returning the ArcHarvestResult: " + ahr.getOid());
-            return ahr;
-
-        } catch (URISyntaxException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Prune and Copy Failed : " + e.getMessage(), e);
-            }
-            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
-        } catch (IOException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Prune and Copy Failed : " + e.getMessage(), e);
-            }
-            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
-        } catch (ParseException e) {
-            if (log.isErrorEnabled()) {
-                log.error("Prune and Copy Failed : " + e.getMessage(), e);
-            }
-            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            e.printStackTrace();
-            throw new DigitalAssetStoreException("Prune and Copy Failed : " + e.getMessage(), e);
+        String err = String.format("Could not find NetworkMapNode with targetInstanceId=%d, harvestResultNumber=%d, resourceUrl=%s", targetInstanceId, harvestResultNumber, resourceUrl);
+        if (result == null || result.getRspCode() != 0) {
+            log.warn(err);
+            throw new DigitalAssetStoreException(err);
         }
+
+        String json = (String) result.getPayload();
+        NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+        if (node == null) {
+            log.warn(err);
+            throw new DigitalAssetStoreException(err);
+        }
+
+        return node;
     }
 
     /**
@@ -888,29 +551,39 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      */
     public File getLogFile(String aJob, String aFileName) {
         File file = null;
+        if (aJob.indexOf('@') < 0) {
+            File targetDir = new File(baseDir, aJob);
+            File logsDir = new File(targetDir, Constants.DIR_LOGS);
+            file = new File(logsDir, aFileName);
+            if (!file.exists() && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
+                // we need to create sorted crawl.log from crawl.log.
+                createSortedCrawlLogFile(logsDir);
+                file = new File(logsDir, aFileName);
+            }
+            if (!file.exists()) {
+                logsDir = new File(targetDir, Constants.DIR_REPORTS);
+                file = new File(logsDir, aFileName);
+            }
+            if (!file.exists()) {
+                logsDir = new File(targetDir, Constants.DIR_CONTENT);
+                file = new File(logsDir, aFileName);
+            }
+        } else { //For patching logs
+            File targetDir = parseAttachedLogDir(aJob);
+            if (targetDir != null && targetDir.exists()) {
+                file = new File(targetDir, aFileName);
+            }
 
-        File targetDir = new File(baseDir, aJob);
-        File logsDir = new File(targetDir, Constants.DIR_LOGS);
-
-        file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
-
-        if (!file.exists() && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
-            // we need to create sorted crawl.log from crawl.log.
-            createSortedCrawlLogFile(logsDir);
-            file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
+            if (file == null || !file.exists()) {
+                targetDir = parseAttachedReportDir(aJob);
+                if (targetDir != null && targetDir.exists()) {
+                    file = new File(targetDir, aFileName);
+                }
+            }
         }
-        if (!file.exists()) {
-            logsDir = new File(targetDir, Constants.DIR_REPORTS);
-            file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
-        }
-        if (!file.exists()) {
-            logsDir = new File(targetDir, Constants.DIR_CONTENT);
-            file = new File(logsDir.getAbsolutePath() + File.separator + aFileName);
-        }
-        if (!file.exists()) {
+        if (file == null || !file.exists()) {
             file = null;
         }
-
         return file;
     }
 
@@ -923,8 +596,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         // single space in each record..
         try {
 
-            BufferedReader inputStream = new BufferedReader(new FileReader(logsDir.getAbsolutePath() + File.separator + Constants.CRAWL_LOG_FILE));
-            PrintWriter outputStream = new PrintWriter(new FileWriter(logsDir.getAbsolutePath() + File.separator + Constants.STRIPPED_CRAWL_LOG_FILE));
+            BufferedReader inputStream = new BufferedReader(new FileReader(
+                    logsDir.getAbsolutePath() + File.separator
+                            + Constants.CRAWL_LOG_FILE));
+            PrintWriter outputStream = new PrintWriter(new FileWriter(
+                    logsDir.getAbsolutePath() + File.separator
+                            + Constants.STRIPPED_CRAWL_LOG_FILE));
 
             String inLine = null;
 
@@ -943,12 +620,14 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         // file...
         ExternalSort sort = new ExternalSort();
         try {
-            sort.setInFile(logsDir.getAbsolutePath() + File.separator + Constants.STRIPPED_CRAWL_LOG_FILE);
+            sort.setInFile(logsDir.getAbsolutePath() + File.separator
+                    + Constants.STRIPPED_CRAWL_LOG_FILE);
         } catch (FileNotFoundException e1) {
             return;
         }
         try {
-            sort.setOutFile(logsDir.getAbsolutePath() + File.separator + Constants.SORTED_CRAWL_LOG_FILE);
+            sort.setOutFile(logsDir.getAbsolutePath() + File.separator
+                    + Constants.SORTED_CRAWL_LOG_FILE);
         } catch (FileNotFoundException e1) {
             return;
         }
@@ -969,24 +648,21 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      */
     public List<String> getLogFileNames(String aJob) {
         List<String> logFiles = new ArrayList<String>();
+        File logsDir = null;
+        if (aJob.indexOf('@') < 0) {
+            File targetDir = new File(baseDir, aJob);
 
-        File targetDir = new File(baseDir, aJob);
-        File logsDir = new File(targetDir, Constants.DIR_LOGS);
-        File[] fileList = null;
+            logsDir = new File(targetDir, Constants.DIR_LOGS);
+            this.appendLogFileNames(logFiles, logsDir);
 
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                logFiles.add(f.getName());
-            }
-        }
+            logsDir = new File(targetDir, Constants.DIR_REPORTS);
+            this.appendLogFileNames(logFiles, logsDir);
+        } else {
+            logsDir = parseAttachedLogDir(aJob);
+            this.appendLogFileNames(logFiles, logsDir);
 
-        logsDir = new File(targetDir, Constants.DIR_REPORTS);
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                logFiles.add(f.getName());
-            }
+            logsDir = parseAttachedReportDir(aJob);
+            this.appendLogFileNames(logFiles, logsDir);
         }
 
         return logFiles;
@@ -996,51 +672,76 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * @see org.webcurator.core.reader.LogProvider#getLogFileAttributes(java.lang.String)
      */
     public List<LogFilePropertiesDTO> getLogFileAttributes(String aJob) {
-
         List<LogFilePropertiesDTO> logFiles = new ArrayList<LogFilePropertiesDTO>();
+        File logsDir = null;
+        if (aJob.indexOf('@') < 0) {
+            File targetDir = new File(baseDir, aJob);
 
-        File targetDir = new File(baseDir, aJob);
-        File logsDir = new File(targetDir, Constants.DIR_LOGS);
-        File[] fileList = null;
+            logsDir = new File(targetDir, Constants.DIR_LOGS);
+            this.appendLogFiles(logFiles, logsDir);
 
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                LogFilePropertiesDTO lf = new LogFilePropertiesDTO();
-                lf.setName(f.getName());
-                lf.setPath(f.getAbsolutePath());
-                lf.setLengthString(HarvesterStatusUtil.formatData(f.length()));
-                lf.setLastModifiedDate(new Date(f.lastModified()));
-                logFiles.add(lf);
+            logsDir = new File(targetDir, Constants.DIR_REPORTS);
+            this.appendLogFiles(logFiles, logsDir);
+        } else {
+            logsDir = parseAttachedLogDir(aJob);
+            this.appendLogFiles(logFiles, logsDir);
+
+            logsDir = parseAttachedReportDir(aJob);
+            this.appendLogFiles(logFiles, logsDir);
+        }
+
+        return logFiles;
+    }
+
+
+    public File parseAttachedLogDir(String aJob) {
+        String[] prefixItems = aJob.split("@");
+        String prefix = prefixItems[0];
+        String[] jobItems = prefixItems[1].split("_");
+        String sTargetInstanceId = jobItems[1];
+        String sHarvestNumberId = jobItems[2];
+
+        String logsDir = directoryManager.getPatchLogDir(prefix, Long.parseLong(sTargetInstanceId), Integer.parseInt(sHarvestNumberId));
+        return new File(logsDir);
+    }
+
+    public File parseAttachedReportDir(String aJob) {
+        String[] prefixItems = aJob.split("@");
+        String prefix = prefixItems[0];
+        String[] jobItems = prefixItems[1].split("_");
+        String sTargetInstanceId = jobItems[1];
+        String sHarvestNumberId = jobItems[2];
+
+        String logsDir = directoryManager.getPatchReportDir(prefix, Long.parseLong(sTargetInstanceId), Integer.parseInt(sHarvestNumberId));
+        return new File(logsDir);
+    }
+
+    private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
+        if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
+            log.info("Invalid input parameter");
+            return;
+        }
+        File[] fileList = logsDir.listFiles();
+        for (File f : fileList) {
+            if (!f.isFile()) {
+                continue;
             }
+            logFiles.add(new LogFilePropertiesDTO(f, pageImagePrefix, aqaReportPrefix));
         }
+    }
 
-        logsDir = new File(targetDir, Constants.DIR_REPORTS);
-        if (logsDir.exists()) {
-            fileList = logsDir.listFiles();
-            for (File f : fileList) {
-                LogFilePropertiesDTO lf = new LogFilePropertiesDTO();
-                lf.setName(f.getName());
-                lf.setPath(f.getAbsolutePath());
-                lf.setLengthString(HarvesterStatusUtil.formatData(f.length()));
-                lf.setLastModifiedDate(new Date(f.lastModified()));
-
-                // Special case for AQA reports and images
-                if (f.getName().startsWith(pageImagePrefix)) {
-                    lf.setViewer("content-viewer.html");
-                } else if (f.getName().startsWith(aqaReportPrefix)) {
-                    lf.setViewer("aqa-viewer.html");
-                }
-
-                logFiles.add(lf);
+    private void appendLogFileNames(List<String> logFiles, File logsDir) {
+        if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
+            log.warn("Invalid input parameter");
+            return;
+        }
+        File[] fileList = logsDir.listFiles();
+        for (File f : fileList) {
+            if (!f.isFile()) {
+                continue;
             }
+            logFiles.add(f.getName());
         }
-
-        List<LogFilePropertiesDTO> result = new ArrayList<>();
-        for (LogFilePropertiesDTO r : logFiles) {
-            result.add(r);
-        }
-        return result;
     }
 
     /**
@@ -1055,12 +756,15 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                log.debug("About to purge dir " + toPurge.toString());
-
+                if (log.isDebugEnabled()) {
+                    log.debug("About to purge dir " + toPurge.toString());
+                }
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {
-                    log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
+                    if (log.isWarnEnabled()) {
+                        log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
+                    }
                 }
             }
         } catch (Exception e) {
@@ -1081,15 +785,20 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                log.debug("About to purge dir " + toPurge.toString());
+                if (log.isDebugEnabled()) {
+                    log.debug("About to purge dir " + toPurge.toString());
+                }
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {
-                    log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
+                    if (log.isWarnEnabled()) {
+                        log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
+                    }
                 }
             }
         } catch (Exception e) {
-            throw new DigitalAssetStoreException("Failed to complete purge : " + e.getMessage(), e);
+            throw new DigitalAssetStoreException("Failed to complete purge : "
+                    + e.getMessage(), e);
         }
     }
 
@@ -1106,16 +815,19 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                                       int harvestResultNumber) throws DigitalAssetStoreException {
         ArrayList<File> arcFiles = new ArrayList<File>();
         try {
-            File sourceDir = new File(this.baseDir, "/" + targetInstanceName + "/" + harvestResultNumber);
+            File sourceDir = new File(this.baseDir, "/" + targetInstanceName
+                    + "/" + harvestResultNumber);
             for (File file : sourceDir.listFiles()) {
                 arcFiles.add(file);
             }
             return arcFiles;
         } catch (RuntimeException ex) {
             if (log.isErrorEnabled()) {
-                log.error("Failed to get archive files : " + ex.getMessage(), ex);
+                log.error("Failed to get archive files : " + ex.getMessage(),
+                        ex);
             }
-            throw new DigitalAssetStoreException("Failed to get archive files : " + ex.getMessage(), ex);
+            throw new DigitalAssetStoreException(
+                    "Failed to get archive files : " + ex.getMessage(), ex);
         }
     }
 
@@ -1197,6 +909,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
         public void run() {
             try {
+
                 String targetID = targetInstanceOid + "";
                 ArrayList<ArchiveFile> fileList = new ArrayList<ArchiveFile>();
                 // Get log files
@@ -1216,14 +929,15 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                     fileList.add(new ArchiveFile(f, ARC_FILE));
                 }
 
-                String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid, SIP, xAttributes, fileList);
+                String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid,
+                        SIP, xAttributes, fileList);
 
-                completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
+                wctCoordinatorClient.completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
             } catch (Throwable t) {
                 log.error("Could not archive " + targetInstanceOid, t);
 
                 try {
-                    failedArchiving(Long.parseLong(targetInstanceOid), t.getMessage());
+                    wctCoordinatorClient.failedArchiving(Long.parseLong(targetInstanceOid), t.getMessage());
                 } catch (Exception ex) {
                     log.error("Got error trying to send \"failedArchiving\" to server", ex);
                 }
@@ -1231,45 +945,28 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
-    private void completeArchiving(Long targetInstanceOid, String archiveIID) {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.COMPLETE_ARCHIVING)).queryParam("archive-id", archiveIID);
-
-        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), null, String.class);
-    }
-
-    private void failedArchiving(Long targetInstanceOid, String message) {
-        RestTemplate restTemplate = restTemplateBuilder.build();
-
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.FAILED_ARCHIVING)).queryParam("message", message);
-
-        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-oid", targetInstanceOid);
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(), null, String.class);
-    }
-
-    public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
+    public CustomDepositFormResultDTO getCustomDepositFormDetails(
+            CustomDepositFormCriteriaDTO criteria)
+            throws DigitalAssetStoreException {
         return arcDasArchive.getCustomDepositFormDetails(criteria);
     }
-
 
     /**
      * @param baseDir the base directory for the digital asset stores harvest files.
      */
     public void setBaseDir(String baseDir) {
-        this.baseDir = new File(baseDir);
+        this.baseDir = baseDir;
     }
 
     public void initiateIndexing(HarvestResultDTO harvestResult)
             throws DigitalAssetStoreException {
-        // Determine the source directory.
-        File sourceDir = new File(this.baseDir, "/"
-                + harvestResult.getTargetInstanceOid() + "/"
-                + harvestResult.getHarvestNumber());
-
-        // Kick of the indexer.
-        indexer.runIndex(harvestResult, sourceDir);
+        VisualizationAbstractProcessor processor = new IndexProcessorWarc(pool, harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
+        try {
+            visualizationProcessorManager.startTask(processor);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            throw new DigitalAssetStoreException(e);
+        }
     }
 
     public void initiateRemoveIndexes(HarvestResultDTO harvestResult)
@@ -1285,7 +982,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     public Boolean checkIndexing(Long harvestResultOid)
             throws DigitalAssetStoreException {
-
         return indexer.checkIndexing(harvestResultOid);
     }
 
@@ -1296,13 +992,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         this.indexer = indexer;
     }
 
+    public void setWctCoordinatorClient(WctCoordinatorClient wctCoordinatorClient) {
+        this.wctCoordinatorClient = wctCoordinatorClient;
+    }
+
     /**
      * @param fileMover the fileMover to set
      */
     public void setDasFileMover(DasFileMover fileMover) {
         this.dasFileMover = fileMover;
     }
-
 
     // Moves the ArchiveRecord stream past the HTTP status line;
     // checks if it starts with HTTP and ends with CRLF
@@ -1358,8 +1057,73 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         this.fileArchive = fileArchive;
     }
 
+    public NetworkMapClient getNetworkMapClient() {
+        return networkMapClient;
+    }
+
+    public void setNetworkMapClient(NetworkMapClient networkMapClient) {
+        this.networkMapClient = networkMapClient;
+    }
+
+    public VisualizationProcessorManager getVisualizationProcessorManager() {
+        return visualizationProcessorManager;
+    }
+
+    public void setVisualizationProcessorManager(VisualizationProcessorManager visualizationProcessorManager) {
+        this.visualizationProcessorManager = visualizationProcessorManager;
+    }
+
+    public BDBNetworkMapPool getPool() {
+        return pool;
+    }
+
+    public void setPool(BDBNetworkMapPool pool) {
+        this.pool = pool;
+    }
+
+    @Override
+    public ModifyResult initialPruneAndImport(ModifyApplyCommand cmd) {
+        ModifyResult result = new ModifyResult();
+        VisualizationAbstractProcessor processor = new ModifyProcessorWarc(cmd);
+        try {
+            visualizationProcessorManager.startTask(processor);
+        } catch (IOException e) {
+            result.setRespCode(VisualizationConstants.RESP_CODE_ERROR_SYSTEM_ERROR);
+            result.setRespMsg(e.getMessage());
+            log.error(e.getLocalizedMessage());
+            return result;
+        }
+
+        result.setRespCode(VisualizationConstants.RESP_CODE_SUCCESS);
+        result.setRespMsg("Modification task is accepted");
+        return result;
+    }
+
+    @Override
+    public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+        log.info("stage: {}, command: {}, targetInstanceId: {}, harvestResultNumber:{} ", stage, command, targetInstanceId, harvestNumber);
+        if (command.equalsIgnoreCase("pause")) {
+            visualizationProcessorManager.pauseTask(stage, targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("resume")) {
+            visualizationProcessorManager.resumeTask(stage, targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("terminate")) {
+            visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
+        } else if (command.equalsIgnoreCase("delete")) {
+            visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
+
+            ModifyApplyCommand cmd = new ModifyApplyCommand();
+            cmd.setTargetInstanceId(targetInstanceId);
+            cmd.setNewHarvestResultNumber(harvestNumber);
+            VisualizationAbstractProcessor processorModifier = new ModifyProcessorWarc(cmd);
+            processorModifier.deleteTask();
+
+            VisualizationAbstractProcessor processorIndexer = new IndexProcessorWarc(pool, targetInstanceId, harvestNumber);
+            processorIndexer.deleteTask();
+        }
+    }
+
     public File getDownloadFileURL(String fileName, File downloadedFile) throws IOException {
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE))
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.MODIFICATION_DOWNLOAD_IMPORTED_FILE))
                 .queryParam("fileName", fileName);
         URI uri = uriComponentsBuilder.build().toUri();
 

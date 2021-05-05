@@ -19,6 +19,7 @@ import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
@@ -45,8 +46,10 @@ public class BandwidthChecker extends AbstractChecker {
      * The bandwidth is above the error threshold.
      */
     private boolean aboveErrorThreshold = false;
-    /** The harvest coordinator to use. */
-//	private HarvestCoordinator harvestCoordinator;
+    /**
+     * The harvest coordinator to use.
+     */
+    private WctCoordinator wctCoordinator;
     /**
      * The harvest coordinator to use.
      */
@@ -55,7 +58,7 @@ public class BandwidthChecker extends AbstractChecker {
     /**
      * the logger.
      */
-    private static Logger log = LoggerFactory.getLogger(MemoryChecker.class);
+    private static final Logger log = LoggerFactory.getLogger(MemoryChecker.class);
 
     /*
      * (non-Javadoc)
@@ -127,5 +130,12 @@ public class BandwidthChecker extends AbstractChecker {
 
     public void setHarvestBandwidthManager(HarvestBandwidthManager harvestBandwidthManager) {
         this.harvestBandwidthManager = harvestBandwidthManager;
+    }
+
+    /**
+     * @param wctCoordinator the wctCoordinator to set
+     */
+    public void setHarvestCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 }

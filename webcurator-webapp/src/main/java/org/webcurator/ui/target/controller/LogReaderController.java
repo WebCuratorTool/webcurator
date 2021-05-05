@@ -26,8 +26,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
@@ -35,23 +38,40 @@ import org.webcurator.ui.target.validator.LogReaderValidator;
 
 /**
  * The controller for handling the log viewer commands.
+ *
  * @author nwaight
  */
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
+@SuppressWarnings("all")
 public class LogReaderController {
-    @Autowired
-	HarvestCoordinator harvestCoordinator;
-    @Autowired
+	@Autowired
+	WctCoordinator wctCoordinator;
+	@Autowired
 	TargetInstanceManager targetInstanceManager;
 
 	private Map<String, String> filterTypes = null;
 	private Map<String, String> filterNames = null;
 
 	@Autowired
-    @Qualifier("logReaderValidator")
+	@Qualifier("logReaderValidator")
 	private LogReaderValidator logReaderValidator;
+
+	@Autowired
+	private HarvestLogManager harvestLogManager;
+
+	@Autowired
+	@Qualifier(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
+	private PatchingHarvestLogManager patchingHarvestLogManager;
+
+	@Autowired
+	@Qualifier(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
+	private PatchingHarvestLogManager patchingHarvestLogManagerModification;
+
+	@Autowired
+	@Qualifier(HarvestResult.PATCH_STAGE_TYPE_INDEXING)
+	private PatchingHarvestLogManager patchingHarvestLogManagerIndex;
 
 	public LogReaderController() {
 		//Add values in reverse order of display
@@ -77,151 +97,257 @@ public class LogReaderController {
 
 	@RequestMapping(path = "/curator/target/log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
 	protected ModelAndView handle(@ModelAttribute("logReaderCommand") LogReaderCommand cmd,
-                                  BindingResult bindingResult) throws Exception {
+								  BindingResult bindingResult) throws Exception {
 		logReaderValidator.validate(cmd, bindingResult);
+
+//        if (cmd.getPrefix() != null && cmd.getPrefix().length() > 0) {
+//            return handlePatchingLogReader(cmd, bindingResult);
+//        }
+
+		TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
+
 		String messageText = "";
 		int firstLine = 0;
 		List<String> lines = Arrays.asList("", "");
 
-		if(bindingResult.hasErrors())
-		{
+		if (bindingResult.hasErrors()) {
 			Iterator it = bindingResult.getAllErrors().iterator();
-			while(it.hasNext())
-			{
-				org.springframework.validation.ObjectError err = (org.springframework.validation.ObjectError)it.next();
-				if(messageText.length()>0) messageText += "; ";
+			while (it.hasNext()) {
+				org.springframework.validation.ObjectError err = (org.springframework.validation.ObjectError) it.next();
+				if (messageText.length() > 0) messageText += "; ";
 				messageText += err.getDefaultMessage();
 			}
-		}
-		else if(cmd.getTargetInstanceOid() != null)
-		{
-			TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
-
+		} else if (cmd.getTargetInstanceOid() != null) {
 			cmd.setTargetName(ti.getTarget().getName());
 
 			//Count the log lines first time in
 			if ((cmd.getNumLines() == null || cmd.getNumLines().intValue() == -1)) {
-				cmd.setNumLines(harvestCoordinator.countLogLines(ti, cmd.getLogFileName()));
+				cmd.setNumLines(wctCoordinator.countLogLines(ti, cmd.getLogFileName()));
 			}
 			if (cmd.getNoOfLines() == null || cmd.getNoOfLinesInt() == 0) {
 				cmd.setNoOfLines(700);
 			}
 
-			try
-			{
+			try {
 				if (LogReaderCommand.VALUE_TIMESTAMP.equals(cmd.getFilterType())) {
 					// do timestamp filtering
-					if(cmd.getLongTimestamp() != -1)
-					{
-						firstLine = harvestCoordinator.getFirstLogLineAfterTimeStamp(ti, cmd.getLogFileName(), cmd.getLongTimestamp());
-						if(firstLine > -1)
-						{
-							lines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
-						}
-						else
-						{
+					if (cmd.getLongTimestamp() != -1) {
+						firstLine = wctCoordinator.getFirstLogLineAfterTimeStamp(ti, cmd.getLogFileName(), cmd.getLongTimestamp());
+						if (firstLine > -1) {
+							lines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+						} else {
 							// do empty tail
 							firstLine = -2;
-							lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
+							lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
 						}
-					}
-					else
-					{
+					} else {
 						firstLine = -2;
-						messageText = cmd.getFilter()+ " is not a valid date/time format";
+						messageText = cmd.getFilter() + " is not a valid date/time format";
 					}
-				}
-				else if(LogReaderCommand.VALUE_REGEX_CONTAIN.equals(cmd.getFilterType()))
-				{
-					firstLine = harvestCoordinator.getFirstLogLineContaining(ti, cmd.getLogFileName(), cmd.getFilter());
-					if(firstLine > -1)
-					{
-						lines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
-					}
-					else
-					{
+				} else if (LogReaderCommand.VALUE_REGEX_CONTAIN.equals(cmd.getFilterType())) {
+					firstLine = wctCoordinator.getFirstLogLineContaining(ti, cmd.getLogFileName(), cmd.getFilter());
+					if (firstLine > -1) {
+						lines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+					} else {
 						// do empty tail
 						firstLine = -2;
-						lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
+						lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
 					}
-				}
-				else if(LogReaderCommand.VALUE_REGEX_INDENT.equals(cmd.getFilterType()))
-				{
+				} else if (LogReaderCommand.VALUE_REGEX_INDENT.equals(cmd.getFilterType())) {
 					firstLine = -2;
 					//Try to trap indent regex's
-					if(cmd.getFilter().startsWith("^[ ") ||
-							cmd.getFilter().startsWith("^[\\t"))
-					{
-						messageText = cmd.getFilter()+ " will only return indented lines. Please choose a Regular Expression that can return non indented lines.";
-					}
-					else
-					{
+					if (cmd.getFilter().startsWith("^[ ") ||
+							cmd.getFilter().startsWith("^[\\t")) {
+						messageText = cmd.getFilter() + " will only return indented lines. Please choose a Regular Expression that can return non indented lines.";
+					} else {
 						//Fix up the regex
 						String regex = cmd.getFilter();
-						if(!cmd.getFilter().startsWith("^"))
-						{
-							regex = "^[^ \\t].*"+cmd.getFilter();
+						if (!cmd.getFilter().startsWith("^")) {
+							regex = "^[^ \\t].*" + cmd.getFilter();
 						}
 
-						lines = harvestCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), regex, true);
-						if(lines != null && lines.size() == 2)
-						{
+						lines = wctCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), regex, true);
+						if (lines != null && lines.size() == 2) {
 							StringBuilder sb = new StringBuilder();
 							String[] subLines = lines.get(0).split("\n");
-							for(int i = 0; i < subLines.length; i++)
-							{
+							for (int i = 0; i < subLines.length; i++) {
 								sb.append(getFollowingIndentedLines(ti, cmd, subLines[i], cmd.getShowLineNumbers()));
 							}
 
 							lines.set(0, sb.toString());
-						}
-						else
-						{
+						} else {
 							// do empty tail
 							firstLine = -2;
-							lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
+							lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), 0);
 						}
 					}
-				}
-				else if(LogReaderCommand.VALUE_REGEX_MATCH.equals(cmd.getFilterType()))
-				{
+				} else if (LogReaderCommand.VALUE_REGEX_MATCH.equals(cmd.getFilterType())) {
 					// do regex filtering
 					firstLine = -2;
-					lines = harvestCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), cmd.getFilter(), cmd.getShowLineNumbers());
-				}
-				else if(LogReaderCommand.VALUE_FROM_LINE.equals(cmd.getFilterType())) {
+					lines = wctCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt(), cmd.getFilter(), cmd.getShowLineNumbers());
+				} else if (LogReaderCommand.VALUE_FROM_LINE.equals(cmd.getFilterType())) {
 					//do get
-					firstLine =cmd.getFilter()==null || cmd.getFilter().length()==0? 0: new Integer(cmd.getFilter()).intValue();
-					lines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
-				}
-				else if(LogReaderCommand.VALUE_HEAD.equals(cmd.getFilterType()))
-				{
+					firstLine = cmd.getFilter() == null || cmd.getFilter().length() == 0 ? 0 : new Integer(cmd.getFilter()).intValue();
+					lines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+				} else if (LogReaderCommand.VALUE_HEAD.equals(cmd.getFilterType())) {
 					//do head
 					firstLine = 1;
-					lines = harvestCoordinator.headLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
-				}
-				else
-				{
+					lines = wctCoordinator.headLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+				} else {
 					// do tail
 					firstLine = -1;
-					lines = harvestCoordinator.tailLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+					lines = wctCoordinator.tailLog(ti, cmd.getLogFileName(), cmd.getNoOfLinesInt());
 				}
-			}
-			catch(org.webcurator.core.exceptions.WCTRuntimeException e)
-			{
-				if(e.getCause().getMessage().startsWith("java.util.regex.PatternSyntaxException"))
-				{
+			} catch (org.webcurator.core.exceptions.WCTRuntimeException e) {
+				if (e.getCause().getMessage().startsWith("java.util.regex.PatternSyntaxException")) {
 					firstLine = -2;
-					lines.set(0, e.getCause().getMessage().substring(e.getCause().getMessage().indexOf(":")+2));
-				}
-				else
-				{
+					lines.set(0, e.getCause().getMessage().substring(e.getCause().getMessage().indexOf(":") + 2));
+				} else {
 					throw e;
 				}
 			}
+		} else {
+			messageText = "Context has been lost. Please close the Log Viewer and re-open.";
+			cmd = new LogReaderCommand();
 		}
-		else
-		{
+
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName(Constants.VIEW_LOG_READER);
+		mav.addObject(Constants.GBL_CMD_DATA, cmd);
+		mav.addObject(LogReaderCommand.MDL_FILTER_NAMES, this.filterNames);
+		mav.addObject(LogReaderCommand.MDL_FILTER_TYPES, this.filterTypes);
+		mav.addObject(LogReaderCommand.MDL_LINES, parseLines(lines, cmd.getShowLineNumbers(), firstLine, cmd.getNumLines()));
+		mav.addObject(Constants.MESSAGE_TEXT, messageText);
+
+		return mav;
+	}
+
+	@RequestMapping(path = "/curator/target/patch-log-viewer.html", method = {RequestMethod.POST, RequestMethod.GET})
+	protected ModelAndView handlePatchingLogReader(@ModelAttribute("logReaderCommand") LogReaderCommand cmd,
+												   BindingResult bindingResult) throws Exception {
+		logReaderValidator.validate(cmd, bindingResult);
+		String messageText = "";
+		int firstLine = 0;
+		List<String> lines = Arrays.asList("", "");
+
+		if (bindingResult.hasErrors()) {
+			Iterator it = bindingResult.getAllErrors().iterator();
+			while (it.hasNext()) {
+				org.springframework.validation.ObjectError err = (org.springframework.validation.ObjectError) it.next();
+				if (messageText.length() > 0) messageText += "; ";
+				messageText += err.getDefaultMessage();
+			}
+		} else if (cmd.getTargetInstanceOid() != null) {
+			int state = HarvestResult.STATE_UNASSESSED;
+			if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+				state = HarvestResult.STATE_INDEXING;
+			} else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+				state = HarvestResult.STATE_MODIFYING;
+			} else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)) {
+				state = HarvestResult.STATE_CRAWLING;
+			}
+
+			TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
+			cmd.setTargetName(ti.getTarget().getName());
+
+			HarvestResult hr = ti.getHarvestResult(cmd.getHarvestResultNumber());
+
+			PatchingHarvestLogManager logReader = null;
+			if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
+				logReader = patchingHarvestLogManagerIndex;
+			} else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
+				logReader = patchingHarvestLogManagerModification;
+			} else {
+				logReader = patchingHarvestLogManager;
+			}
+
+			//Count the log lines first time in
+			if ((cmd.getNumLines() == null || cmd.getNumLines().intValue() == -1)) {
+				cmd.setNumLines(logReader.countLogLines(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName()));
+			}
+			if (cmd.getNoOfLines() == null || cmd.getNoOfLinesInt() == 0) {
+				cmd.setNoOfLines(700);
+			}
+
+			try {
+				if (LogReaderCommand.VALUE_TIMESTAMP.equals(cmd.getFilterType())) {
+					// do timestamp filtering
+					if (cmd.getLongTimestamp() != -1) {
+						firstLine = logReader.getFirstLogLineAfterTimeStamp(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getLongTimestamp());
+						if (firstLine > -1) {
+							lines = logReader.getLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+						} else {
+							// do empty tail
+							firstLine = -2;
+							lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), 0);
+						}
+					} else {
+						firstLine = -2;
+						messageText = cmd.getFilter() + " is not a valid date/time format";
+					}
+				} else if (LogReaderCommand.VALUE_REGEX_CONTAIN.equals(cmd.getFilterType())) {
+					firstLine = logReader.getFirstLogLineContaining(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getFilter());
+					if (firstLine > -1) {
+						lines = logReader.getLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+					} else {
+						// do empty tail
+						firstLine = -2;
+						lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), 0);
+					}
+				} else if (LogReaderCommand.VALUE_REGEX_INDENT.equals(cmd.getFilterType())) {
+					firstLine = -2;
+					//Try to trap indent regex's
+					if (cmd.getFilter().startsWith("^[ ") ||
+							cmd.getFilter().startsWith("^[\\t")) {
+						messageText = cmd.getFilter() + " will only return indented lines. Please choose a Regular Expression that can return non indented lines.";
+					} else {
+						//Fix up the regex
+						String regex = cmd.getFilter();
+						if (!cmd.getFilter().startsWith("^")) {
+							regex = "^[^ \\t].*" + cmd.getFilter();
+						}
+
+						lines = logReader.getLogLinesByRegex(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt(), regex, true);
+						if (lines != null && lines.size() == 2) {
+							StringBuilder sb = new StringBuilder();
+							String[] subLines = lines.get(0).split("\n");
+							for (int i = 0; i < subLines.length; i++) {
+								sb.append(getFollowingIndentedLines(ti, cmd, subLines[i], cmd.getShowLineNumbers()));
+							}
+
+							lines.set(0, sb.toString());
+						} else {
+							// do empty tail
+							firstLine = -2;
+							lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), 0);
+						}
+					}
+				} else if (LogReaderCommand.VALUE_REGEX_MATCH.equals(cmd.getFilterType())) {
+					// do regex filtering
+					firstLine = -2;
+					lines = logReader.getLogLinesByRegex(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt(), cmd.getFilter(), cmd.getShowLineNumbers());
+				} else if (LogReaderCommand.VALUE_FROM_LINE.equals(cmd.getFilterType())) {
+					//do get
+					firstLine = cmd.getFilter() == null || cmd.getFilter().length() == 0 ? 0 : new Integer(cmd.getFilter()).intValue();
+					lines = logReader.getLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), firstLine, cmd.getNoOfLinesInt());
+				} else if (LogReaderCommand.VALUE_HEAD.equals(cmd.getFilterType())) {
+					//do head
+					firstLine = 1;
+					lines = logReader.headLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+				} else {
+					// do tail
+					firstLine = -1;
+					lines = logReader.tailLog(ti.getOid(), hr.getHarvestNumber(), state, cmd.getLogFileName(), cmd.getNoOfLinesInt());
+				}
+			} catch (org.webcurator.core.exceptions.WCTRuntimeException e) {
+				if (e.getCause().getMessage().startsWith("java.util.regex.PatternSyntaxException")) {
+					firstLine = -2;
+					lines.set(0, e.getCause().getMessage().substring(e.getCause().getMessage().indexOf(":") + 2));
+				} else {
+					throw e;
+				}
+			}
+		} else {
 			messageText = "Context has been lost. Please close the Log Viewer and re-open.";
 			cmd = new LogReaderCommand();
 		}
@@ -238,10 +364,10 @@ public class LogReaderController {
 	}
 
 	/**
-	 * @param harvestCoordinator the harvestCoordinator to set
+	 * @param wctCoordinator the wctCoordinator to set
 	 */
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setWctCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 
 	/**
@@ -251,25 +377,19 @@ public class LogReaderController {
 		this.targetInstanceManager = targetInstanceManager;
 	}
 
-	private List<String> parseLines(List<String> inLines, boolean showLineNumbers, int firstLine, int countLines)
-	{
+	private List<String> parseLines(List<String> inLines, boolean showLineNumbers, int firstLine, int countLines) {
 		List<String> outLines = new ArrayList<>(inLines.size());
 		int lineNumber = firstLine;
-		for (int i = 0; i < inLines.size(); i++)
-		{
-			if(i == 0 && showLineNumbers && lineNumber > -2)
-			{
+		for (int i = 0; i < inLines.size(); i++) {
+			if (i == 0 && showLineNumbers && lineNumber > -2) {
 				String[] subLines = inLines.get(i).split("\n");
-				if(lineNumber == -1)
-				{
+				if (lineNumber == -1) {
 					//this is a tail
-					lineNumber = 1+(countLines-subLines.length);
+					lineNumber = 1 + (countLines - subLines.length);
 				}
 
 				outLines.add(addNumbers(inLines, lineNumber, showLineNumbers));
-			}
-			else
-			{
+			} else {
 				outLines.add(inLines.get(i));
 			}
 		}
@@ -277,51 +397,40 @@ public class LogReaderController {
 		return outLines;
 	}
 
-	private String getFollowingIndentedLines(TargetInstance ti, LogReaderCommand cmd, String numberedLine, boolean showLineNumbers)
-	{
+	private String getFollowingIndentedLines(TargetInstance ti, LogReaderCommand cmd, String numberedLine, boolean showLineNumbers) {
 		int index = numberedLine.indexOf(".");
-		if(index == -1)
-		{
+		if (index == -1) {
 			return "";
 		}
 		Integer firstLine = new Integer(numberedLine.substring(0, index));
-		Integer lastLine = firstLine+1;
+		Integer lastLine = firstLine + 1;
 
 		String[] nonIndents = fetchNonIndentedLines(ti, cmd);
 		//find the first non indented line after firstLine
-		for(int i = 0; i < nonIndents.length; i++)
-		{
-			try
-			{
+		for (int i = 0; i < nonIndents.length; i++) {
+			try {
 				String line = nonIndents[i];
 				lastLine = new Integer(line.substring(0, line.indexOf(".")));
-				if(lastLine > firstLine)
-				{
+				if (lastLine > firstLine) {
 					break;
 				}
-			}
-			catch(Exception e)
-			{
-				lastLine = firstLine+1;
+			} catch (Exception e) {
+				lastLine = firstLine + 1;
 				break;
 			}
 		}
 
-		List<String> requiredLines = harvestCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, lastLine-firstLine);
+		List<String> requiredLines = wctCoordinator.getLog(ti, cmd.getLogFileName(), firstLine, lastLine - firstLine);
 
 		return addNumbers(requiredLines, firstLine, showLineNumbers);
 	}
 
-	private String addNumbers(List<String> result, Integer firstLine, boolean showLineNumbers)
-	{
+	private String addNumbers(List<String> result, Integer firstLine, boolean showLineNumbers) {
 		StringBuilder sb = new StringBuilder();
-		if(result != null && result.size() == 2)
-		{
+		if (result != null && result.size() == 2) {
 			String[] lineArray = result.get(0).split("\n");
-			for(int i = 0; i < lineArray.length; i++)
-			{
-				if(i == lineArray.length-1 && lineArray[i].length()==0)
-				{
+			for (int i = 0; i < lineArray.length; i++) {
+				if (i == lineArray.length - 1 && lineArray[i].length() == 0) {
 					continue;
 				}
 
@@ -332,10 +441,8 @@ public class LogReaderController {
 		return sb.toString();
 	}
 
-	private void addLine(StringBuilder sb, Integer number, String body, boolean showLineNumbers)
-	{
-		if(showLineNumbers)
-		{
+	private void addLine(StringBuilder sb, Integer number, String body, boolean showLineNumbers) {
+		if (showLineNumbers) {
 			sb.append(number);
 			sb.append(". ");
 		}
@@ -344,18 +451,15 @@ public class LogReaderController {
 		sb.append("\n");
 	}
 
-	private String[] fetchNonIndentedLines(TargetInstance ti, LogReaderCommand cmd)
-	{
+	private String[] fetchNonIndentedLines(TargetInstance ti, LogReaderCommand cmd) {
 		String[] nonIndentedLines = {""};
 		//Get all non indented lines with line numbers
-		List<String> nonIndents = harvestCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNumLines().intValue(), "^[^ \\t].*", true);
-		if(nonIndents != null &&
-			nonIndents.get(0).length() > 0)
-		{
+		List<String> nonIndents = wctCoordinator.getLogLinesByRegex(ti, cmd.getLogFileName(), cmd.getNumLines().intValue(), "^[^ \\t].*", true);
+		if (nonIndents != null &&
+				nonIndents.get(0).length() > 0) {
 			nonIndentedLines = nonIndents.get(0).split("\n");
 		}
 
 		return nonIndentedLines;
 	}
-
 }

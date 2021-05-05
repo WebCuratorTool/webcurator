@@ -38,7 +38,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.ArcHarvestResult;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Notification;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Target;
@@ -396,7 +396,7 @@ public class InTrayManagerImpl implements InTrayManager{
         } else if (MessageType.NOTIFICATION_ARCHIVE_SUCCESS.equals(messageType)) { 
         	return messageSource.getMessage("subject.archived.success", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName() }, Locale.getDefault());
         } else if (MessageType.NOTIFICATION_AQA_COMPLETE.equals(messageType)) { 
-        	return messageSource.getMessage("subject.aqa.complete", new Object[] { ((ArcHarvestResult) wctResource).getTargetInstance().getTarget().getName(), ((ArcHarvestResult) wctResource).getTargetInstance().getResourceName() }, Locale.getDefault());
+        	return messageSource.getMessage("subject.aqa.complete", new Object[] { ((HarvestResult) wctResource).getTargetInstance().getTarget().getName(), ((HarvestResult) wctResource).getTargetInstance().getResourceName() }, Locale.getDefault());
         } else {
             throw new WCTRuntimeException("MessageType "+messageType+" is invalid.");           
         }
@@ -439,7 +439,7 @@ public class InTrayManagerImpl implements InTrayManager{
         } else if (MessageType.NOTIFICATION_ARCHIVE_SUCCESS.equals(messageType)) { 
         	return messageSource.getMessage("message.archived.success", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName(), ((TargetInstance) wctResource).getArchiveIdentifier(), url }, Locale.getDefault());
         } else if (MessageType.NOTIFICATION_AQA_COMPLETE.equals(messageType)) { 
-        	return messageSource.getMessage("message.aqa.complete", new Object[] { ((ArcHarvestResult) wctResource).getTargetInstance().getTarget().getName(), wctResource.getResourceName(), generateURLBlankTarget(messageType, wctResource) }, Locale.getDefault());
+        	return messageSource.getMessage("message.aqa.complete", new Object[] { ((HarvestResult) wctResource).getTargetInstance().getTarget().getName(), wctResource.getResourceName(), generateURLBlankTarget(messageType, wctResource) }, Locale.getDefault());
         } else {
             throw new WCTRuntimeException("MessageType "+messageType+" is invalid.");           
         }
@@ -515,9 +515,9 @@ public class InTrayManagerImpl implements InTrayManager{
         	}
         }
         
-    	if(wctResource instanceof ArcHarvestResult)
+    	if(wctResource instanceof HarvestResult)
     	{
-    		ArcHarvestResult result = (ArcHarvestResult)wctResource;
+    		HarvestResult result = (HarvestResult)wctResource;
 			return wctBaseUrl + Constants.CNTRL_AQA+"?"+CommandConstants.LOG_READER_COMMAND_PARAM_OID+"="+result.getTargetInstance().getOid()+"&"+CommandConstants.LOG_READER_COMMAND_PARAM_LOGFILE+"=aqa-report("+result.getHarvestNumber()+").xml";
     	}
         

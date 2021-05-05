@@ -18,68 +18,63 @@ package org.webcurator.core.util;
 /**
  * A class to encapsulate a web service end point. This is used to reduce
  * duplication in the Spring configuration files.
- *
  * @author beaumontb
+ *
  */
 public class WebServiceEndPoint {
-    /* the scheme of the restful api*/
-    private String scheme = "http";
-    /* the host of the restful api */
-    private String host = null;
-    /* The port number of the restful api*/
-    private int port = 0;
+	/** the schema of the web service */
+	private String schema="http";
+	/** the host of the web service */
+	private String host = null;
+	/** The port number */
+	private int port = 0;
 
-    /**
-     * No-arg constructor to allow Spring method-based injection.
-     */
-    public WebServiceEndPoint() {
-    }
+	/**
+	 * No-arg constructor to allow Spring method-based injection.
+	 */
+	public WebServiceEndPoint() {}
 
-    /**
-     * Complete constructor for the WebServiceEndPoint.
-     *
-     * @param host The WS host.
-     * @param port The WS port.
-     */
-    public WebServiceEndPoint(String scheme, String host, int port) {
-        this.scheme = scheme;
-        this.host = host;
-        this.port = port;
-    }
+	/**
+	 * Complete constructor for the WebServiceEndPoint.
+	 * @param host    The WS host.
+	 * @param port    The WS port.
+	 */
+	public WebServiceEndPoint(String schema, String host, int port) {
+		this.schema=schema;
+		this.host = host;
+		this.port = port;
+	}
 
-    public String getScheme() {
-        return scheme;
-    }
+	public String getSchema() {
+		return schema;
+	}
 
-    public void setScheme(String scheme) {
-        this.scheme = scheme;
-    }
+	public void setSchema(String schema) {
+		this.schema = schema;
+	}
 
-    /**
-     * @return the host
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * @param host the host to set
-     */
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    /**
-     * @return the port
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port to set
-     */
-    public void setPort(int port) {
-        this.port = port;
-    }
+	/**
+	 * @return the host
+	 */
+	public String getHost() {
+		return host;
+	}
+	/**
+	 * @param host the host to set
+	 */
+	public void setHost(String host) {
+		this.host = host;
+	}
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+	/**
+	 * @param port the port to set
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
 }

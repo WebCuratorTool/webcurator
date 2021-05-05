@@ -34,7 +34,7 @@ import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.NoPrivilegeException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.Privilege;
@@ -58,18 +58,18 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
  */
 public class TargetInstanceGeneralHandler extends TabHandler {
 
-    private TargetInstanceManager targetInstanceManager;
-    private HarvestAgentManager harvestAgentManager;
-    private AgencyUserManager agencyUserManager;
-    private AuthorityManager authorityManager;
-    /** displays multi-coloured flagging if enabled **/
-    private boolean enableQaModule = false;
-    /** Automatic QA Url */
-    private String autoQAUrl = "";
+	private TargetInstanceManager targetInstanceManager;
+	private WctCoordinator wctCoordinator;
+	private AgencyUserManager agencyUserManager;
+	private AuthorityManager authorityManager;
+	/** displays multi-coloured flagging if enabled **/
+	private boolean enableQaModule = false;
+	/** Automatic QA Url */
+	private String autoQAUrl = "";
 
-    private static Log log = LogFactory.getLog(TargetInstanceGeneralHandler.class);
+	private static Log log = LogFactory.getLog(TargetInstanceGeneralHandler.class);
 
-    /**
+	/**
 	 * @param authorityManager the authorityManager to set
 	 */
 	public void setAuthorityManager(AuthorityManager authorityManager) {
@@ -77,67 +77,67 @@ public class TargetInstanceGeneralHandler extends TabHandler {
 	}
 
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-        NumberFormat nf = NumberFormat.getInstance(request.getLocale());
-        binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
-        binder.registerCustomEditor(java.lang.Integer.class, new CustomNumberEditor(java.lang.Integer.class, nf, true));
-        binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
-    }
+		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
+		binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
+		binder.registerCustomEditor(java.lang.Integer.class, new CustomNumberEditor(java.lang.Integer.class, nf, true));
+		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
+	}
 
-    public void processTab(TabbedController tc, Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
-                           BindingResult bindingResult) {
+	public void processTab(TabbedController tc, Tab currentTab,
+						   HttpServletRequest req, HttpServletResponse res, Object comm,
+						   BindingResult bindingResult) {
 
-    	// process the submit of the tab called on change tab or save
-    	TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
-    	if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_EDIT)) {
-    		TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
-    		if (ti == null) {
-    			ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId(), true);
-    		}
-    		ti.setBandwidthPercent(cmd.getBandwidthPercent());
-    		ti.setPriority(cmd.getPriority());
+		// process the submit of the tab called on change tab or save
+		TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
+		if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_EDIT)) {
+			TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+			if (ti == null) {
+				ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId(), true);
+			}
+			ti.setBandwidthPercent(cmd.getBandwidthPercent());
+			ti.setPriority(cmd.getPriority());
 
-    		User owner = agencyUserManager.getUserByUserName(cmd.getOwner());
-    		ti.setOwner(owner);
+			User owner = agencyUserManager.getUserByUserName(cmd.getOwner());
+			ti.setOwner(owner);
 
-    		ti.setScheduledTime(cmd.getScheduledTime());
+			ti.setScheduledTime(cmd.getScheduledTime());
 
-    		ti.setFlagged(cmd.getFlagged());
+			ti.setFlagged(cmd.getFlagged());
 
-    		if (enableQaModule) {
-    			if (cmd.getFlagOid() != null) {
-    				Flag flag = agencyUserManager.getFlagByOid(cmd.getFlagOid());
-    				ti.setFlag(flag);
-    			} else {
-    				ti.setFlag(null);
-    			}
-    		}
+			if (enableQaModule) {
+				if (cmd.getFlagOid() != null) {
+					Flag flag = agencyUserManager.getFlagByOid(cmd.getFlagOid());
+					ti.setFlag(flag);
+				} else {
+					ti.setFlag(null);
+				}
+			}
 
-    		ti.setUseAQA(cmd.isUseAQA());
+			ti.setUseAQA(cmd.isUseAQA());
 
-    		req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-    	}
-    }
+			req.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+		}
+	}
 
-    @SuppressWarnings("unchecked")
-    public TabbedModelAndView preProcessNextTab(TabbedController tc,
-            Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
-            Object comm, BindingResult bindingResult) {
+	@SuppressWarnings("unchecked")
+	public TabbedModelAndView preProcessNextTab(TabbedController tc,
+												Tab nextTabID, HttpServletRequest req, HttpServletResponse res,
+												Object comm, BindingResult bindingResult) {
 
-    	// build mav stuff before displaying the tab
-        TabbedModelAndView tmav = tc.new TabbedModelAndView();
+		// build mav stuff before displaying the tab
+		TabbedModelAndView tmav = tc.new TabbedModelAndView();
 
-        Boolean editMode = false;
-        TargetInstanceCommand cmd = null;
-        TargetInstance ti = null;
+		Boolean editMode = false;
+		TargetInstanceCommand cmd = null;
+		TargetInstance ti = null;
 
-        if (comm instanceof TargetInstanceCommand) {
-        	cmd = (TargetInstanceCommand) comm;
-        	//if (TargetInstanceCommand.ACTION_EDIT.equals(cmd.getCmd())) {
-        	if ((Boolean)(req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE))) {
-        		editMode = true;
-        	}
-        }
+		if (comm instanceof TargetInstanceCommand) {
+			cmd = (TargetInstanceCommand) comm;
+			//if (TargetInstanceCommand.ACTION_EDIT.equals(cmd.getCmd())) {
+			if ((Boolean)(req.getSession().getAttribute(TargetInstanceCommand.SESSION_MODE))) {
+				editMode = true;
+			}
+		}
 
 		ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
 		if (ti == null) {
@@ -152,8 +152,8 @@ public class TargetInstanceGeneralHandler extends TabHandler {
 		if (editMode) {
 			populatedCommand.setCmd(TargetInstanceCommand.ACTION_EDIT);
 		}
-      String fromHistoryTIOid = (String) req.getSession().getAttribute(TargetInstanceCommand.SESSION_HH_TI_OID);
-      String fromHistoryResultId = (String) req.getSession().getAttribute(TargetInstanceCommand.SESSION_HH_HR_OID);
+		String fromHistoryTIOid = (String) req.getSession().getAttribute(TargetInstanceCommand.SESSION_HH_TI_OID);
+		String fromHistoryResultId = (String) req.getSession().getAttribute(TargetInstanceCommand.SESSION_HH_HR_OID);
 		if (fromHistoryTIOid != null) {
 			populatedCommand.setHistoryTIOid(fromHistoryTIOid);
 		}
@@ -204,10 +204,10 @@ public class TargetInstanceGeneralHandler extends TabHandler {
 			owners.add(owner);
 		}
 
-        tmav.addObject(TargetInstanceCommand.MDL_OWNERS, owners);
-        tmav.addObject(TargetInstanceCommand.MDL_PRIORITIES, ti.getPriorities());
+		tmav.addObject(TargetInstanceCommand.MDL_OWNERS, owners);
+		tmav.addObject(TargetInstanceCommand.MDL_PRIORITIES, ti.getPriorities());
 
-        if(autoQAUrl != null && autoQAUrl.length() > 0) {
+		if(autoQAUrl != null && autoQAUrl.length() > 0) {
 			tmav.addObject("showAQAOption", 1);
 		} else {
 			tmav.addObject("showAQAOption", 0);
@@ -236,54 +236,57 @@ public class TargetInstanceGeneralHandler extends TabHandler {
 			tmav.addObject(Constants.ENABLE_QA_MODULE, false);
 		}
 
-        return tmav;
-    }
+		return tmav;
+	}
 
-    public ModelAndView processOther(TabbedController tc, Tab currentTab,
-            HttpServletRequest req, HttpServletResponse res, Object comm,
-                                     BindingResult bindingResult) {
-        TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
-        if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
-            HashMap<String, HarvestAgentStatusDTO> agents = harvestAgentManager.getHarvestAgents();
-            TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
-            String instanceAgency = ti.getOwner().getAgency().getName();
+	public ModelAndView processOther(TabbedController tc, Tab currentTab,
+									 HttpServletRequest req, HttpServletResponse res, Object comm,
+									 BindingResult bindingResult) {
+		TargetInstanceCommand cmd = (TargetInstanceCommand) comm;
+		if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
+			HashMap<String, HarvestAgentStatusDTO> agents = wctCoordinator.getHarvestAgents();
+			TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
+			String instanceAgency = ti.getOwner().getAgency().getName();
 
-            String key = "";
-            HarvestAgentStatusDTO agent = null;
-            HashMap<String, HarvestAgentStatusDTO> allowedAgents = new HashMap<String, HarvestAgentStatusDTO>();
-            Iterator<String> it = agents.keySet().iterator();
-            while (it.hasNext()) {
+			String key = "";
+			HarvestAgentStatusDTO agent = null;
+			HashMap<String, HarvestAgentStatusDTO> allowedAgents = new HashMap<String, HarvestAgentStatusDTO>();
+			Iterator<String> it = agents.keySet().iterator();
+			while (it.hasNext()) {
 				key = (String) it.next();
 				agent = agents.get(key);
 				if (agent.getAllowedAgencies().contains(instanceAgency)
-					|| agent.getAllowedAgencies().isEmpty()) {
+						|| agent.getAllowedAgencies().isEmpty()) {
 					allowedAgents.put(key, agent);
 				}
 			}
 
-            ModelAndView mav = new ModelAndView();
-            mav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
-            mav.addObject(Constants.GBL_CMD_DATA, cmd);
-            mav.addObject(TargetInstanceCommand.MDL_AGENTS, allowedAgents);
-            mav.setViewName(Constants.VIEW_HARVEST_NOW);
+			ModelAndView mav = new ModelAndView();
+			mav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
+			mav.addObject(Constants.GBL_CMD_DATA, cmd);
+			mav.addObject(TargetInstanceCommand.MDL_AGENTS, allowedAgents);
+			mav.setViewName(Constants.VIEW_HARVEST_NOW);
 
-            return mav;
-        }
-        else {
-            throw new WCTRuntimeException("Unknown command " + cmd.getCmd() + " recieved.");
-        }
-    }
-
-	public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
-		this.harvestAgentManager = harvestAgentManager;
+			return mav;
+		}
+		else {
+			throw new WCTRuntimeException("Unknown command " + cmd.getCmd() + " recieved.");
+		}
 	}
 
 	/**
-     * @param targetInstanceManager The targetInstanceManager to set.
-     */
-    public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
-        this.targetInstanceManager = targetInstanceManager;
-    }
+	 * @param wctCoordinator The wctCoordinator to set.
+	 */
+	public void setWctCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
+	}
+
+	/**
+	 * @param targetInstanceManager The targetInstanceManager to set.
+	 */
+	public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
+		this.targetInstanceManager = targetInstanceManager;
+	}
 
 	/**
 	 * @param agencyUserManager the agencyUserManager to set

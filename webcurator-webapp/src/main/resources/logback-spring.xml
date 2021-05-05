@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!--To fix LOG_PATH not initialed issue due to SpringBoot loaded earlier than logback-->
+    <springProperty name="LOG_PATH" source="logging.path" defaultValue="logs/" />
     <!-- Note that values enclosed by ${...} are NOT substituted in by Spring Boot. Instead, they refer to
          system variables. See https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-logging.html
          for details on how to configure Spring Boot application.properties to map to system properties that
@@ -28,7 +30,7 @@
             <fileNamePattern>${LOG_PATH}/wct-webapp-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>10MB</maxFileSize>
+                <maxFileSize>100MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
     </appender>

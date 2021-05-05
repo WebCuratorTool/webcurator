@@ -2,11 +2,6 @@ package org.webcurator.ui.tools.controller;
 
 import java.text.SimpleDateFormat;
 
-//import org.apache.commons.logging.Log;
-//import org.apache.commons.logging.LogFactory;
-import org.webcurator.domain.model.core.ArcHarvestResource;
-import org.webcurator.domain.model.core.ArcHarvestResourceDTO;
-import org.webcurator.domain.model.core.HarvestResource;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
 import java.util.regex.*;
@@ -56,11 +51,11 @@ public class HarvestResourceUrlMapper {
 		.replaceAll("\\{\\$HarvestResult\\.ProvenanceNote\\}", (result.getProvenanceNote() == null)?"":result.getProvenanceNote())
 		.replaceAll("\\{\\$HarvestResult\\.State\\}", String.valueOf(result.getState()));
 
-		if(hRsr instanceof ArcHarvestResourceDTO)
+		if(hRsr instanceof HarvestResourceDTO)
 		{
 			String fileDateRegex = "[12][0-9][0-9][0-9][01][0-9][0-3][0-9][0-5][0-9][0-5][0-9][0-5][0-9]";
 			Pattern pattern = Pattern.compile(fileDateRegex);
-			String arcFileName = ((ArcHarvestResourceDTO)hRsr).getArcFileName();
+			String arcFileName = ((HarvestResourceDTO)hRsr).getArcFileName();
 			if(arcFileName != null)
 			{
 				Matcher matcher = pattern.matcher(arcFileName);

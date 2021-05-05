@@ -15,7 +15,8 @@
     <td class="annotationsLiteRow">Id:</td>
     <td class="annotationsLiteRow" colspan="3">
     	<c:out value="${instance.oid}"/>
-    	<input type="hidden" name="<%=TargetInstanceCommand.PARAM_OID%>" value="<c:out value="${command.targetInstanceId}"/>"/>	
+    	<input type="hidden" name="<%=TargetInstanceCommand.PARAM_OID%>" value="<c:out value="${command.targetInstanceId}"/>"/>
+    	<input type="hidden" name="<%=TargetInstanceCommand.PARAM_HR_ID%>" value="<c:out value="${command.harvestResultId}"/>"/>
 		<input type="hidden" name="<%=TargetInstanceCommand.PARAM_CMD%>" value="<%=TargetInstanceCommand.ACTION_HARVEST%>"/>				
 		<input type="hidden" name="<%=TargetInstanceCommand.PARAM_AGENT%>" value=""/>
     </td>
@@ -73,7 +74,7 @@
   </tr>
   <tr>
 	<td class="annotationsLiteRow" colspan="4" align="right">
-	<input type="image" src="images/generic-btn-done.gif" onclick="javascript:document.harvestNow.<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_ABORT%>';" />
+	  <input type="image" src="images/generic-btn-done.gif" onclick="javascript:document.harvestNow.<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_ABORT%>';" />
 	</td>
   </tr>
 </table>

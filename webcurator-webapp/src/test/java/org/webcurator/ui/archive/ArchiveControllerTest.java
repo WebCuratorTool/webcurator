@@ -10,7 +10,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
-import org.webcurator.domain.model.core.ArcHarvestResult;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.core.archive.*;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
@@ -47,7 +46,7 @@ public class ArchiveControllerTest extends BaseWCTTest<ArchiveController>{
 			MockHttpServletResponse response = new MockHttpServletResponse();
 
 			List<HarvestResult> harvestResults = new ArrayList<HarvestResult>();
-			HarvestResult hr = new ArcHarvestResult();
+			HarvestResult hr = new HarvestResult();
 			hr.setHarvestNumber(1);
 			harvestResults.add(hr);
 
@@ -111,7 +110,7 @@ public class ArchiveControllerTest extends BaseWCTTest<ArchiveController>{
 			MockHttpServletResponse response = new MockHttpServletResponse();
 
 			List<HarvestResult> harvestResults = new ArrayList<HarvestResult>();
-			HarvestResult hr = new ArcHarvestResult();
+			HarvestResult hr = new HarvestResult();
 			hr.setHarvestNumber(1);
 			harvestResults.add(hr);
 

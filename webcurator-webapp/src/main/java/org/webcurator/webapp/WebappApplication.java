@@ -13,8 +13,16 @@ import org.springframework.context.annotation.ComponentScan;
 import java.util.Arrays;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"org.webcurator.webapp", "org.webcurator.ui", "org.webcurator.core.harvester.coordinator",
-        "org.webcurator.core.rest", "org.webcurator.core.reader", "org.webcurator.core.harvester.agent.HarvestAgentClient"}//,
+@ComponentScan(basePackages = {"org.webcurator.webapp",
+        "org.webcurator.ui",
+        "org.webcurator.core.coordinator",
+        "org.webcurator.core.harvester.coordinator",
+        "org.webcurator.core.store.coordinator",
+        "org.webcurator.core.rest",
+        "org.webcurator.core.reader",
+        "org.webcurator.core.harvester.agent.HarvestAgentClient",
+        "org.webcurator.core.visualization.networkmap.service",
+        "org.webcurator.domain.VisualizationImportedFileDAOImpl"}//,
         // Put any exclusions here.
         //excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ClassToExclude.class)
 )

@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
@@ -35,6 +37,7 @@ import org.webcurator.ui.tools.command.HarvestHistoryCommand;
 
 /**
  * Controller for the HarvestHistory QR tool.
+ *
  * @author beaumontb
  */
 //@Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -42,31 +45,33 @@ import org.webcurator.ui.tools.command.HarvestHistoryCommand;
 @Controller
 public class HarvestHistoryController {
     @Autowired
-	private TargetInstanceManager targetInstanceManager;
+    private TargetInstanceManager targetInstanceManager;
+    @Autowired
+    private TargetInstanceDAO targetInstanceDAO;
 
+    public HarvestHistoryController() {
+    }
 
-	public HarvestHistoryController() {
-	}
+    @RequestMapping(path = "/curator/tools/harvest-history.html", method = {RequestMethod.POST, RequestMethod.GET})
+    protected ModelAndView handle(HttpServletRequest request, HarvestHistoryCommand cmd) throws Exception {
+        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
+        HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
 
-	@RequestMapping(path = "/curator/tools/harvest-history.html", method = {RequestMethod.POST, RequestMethod.GET})
-	protected ModelAndView handle(HttpServletRequest request, HarvestHistoryCommand cmd ) throws Exception {
-//		HarvestHistoryCommand cmd = (HarvestHistoryCommand) command;
-		TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceOid());
-		List<HarvestHistoryDTO> history = targetInstanceManager.getHarvestHistory(ti.getTarget().getOid());
+        List<HarvestHistoryDTO> history = targetInstanceManager.getHarvestHistory(ti.getTarget().getOid());
 
-		//Set the session target instance because it is overwritten by the TargetInstanceController
-		//upon viewing any history item.  The URL query string parameters are ignored.
-		request.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-		ModelAndView mav = new ModelAndView("harvest-history");
-		mav.addObject("history", history);
-		mav.addObject("ti_oid", cmd.getTargetInstanceOid());
-		mav.addObject("harvestResultId", cmd.getHarvestResultId());
+        //Set the session target instance because it is overwritten by the TargetInstanceController
+        //upon viewing any history item.  The URL query string parameters are ignored.
+        request.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+        ModelAndView mav = new ModelAndView("harvest-history");
+        mav.addObject("history", history);
+        mav.addObject("ti_oid", cmd.getTargetInstanceOid());
+        mav.addObject("harvestResultId", cmd.getHarvestResultId());
+        mav.addObject("harvestNumber", hr.getHarvestNumber());
+        return mav;
+    }
 
-		return mav;
-	}
-
-	public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
-		this.targetInstanceManager = targetInstanceManager;
-	}
+    public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
+        this.targetInstanceManager = targetInstanceManager;
+    }
 
 }

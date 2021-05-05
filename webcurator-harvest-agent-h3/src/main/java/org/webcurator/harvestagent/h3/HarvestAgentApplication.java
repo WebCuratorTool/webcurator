@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListenerService;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
 
 import java.util.Arrays;
 
@@ -16,7 +15,7 @@ import java.util.Arrays;
 @ComponentScan(basePackages = { "org.webcurator.harvestagent.h3", "org.webcurator.core.harvester", "org.webcurator.core.rest", "org.webcurator.core.reader" },
         // HarvestAgentListenerService should be running on webcurator-webapp.
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-                classes = { HarvestAgentListenerService.class, HarvestCoordinatorImpl.class })
+                classes = { HarvestAgentListenerService.class})
 )
 public class HarvestAgentApplication {
     public static void main(String[] args) {

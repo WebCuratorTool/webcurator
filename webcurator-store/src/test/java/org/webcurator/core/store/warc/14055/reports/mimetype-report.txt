@@ -1,0 +1,16 @@
+[#urls] [#bytes] [mime-types]
+428 6154553 text/html
+57 831515 image/png
+56 106038 image/gif
+41 7380 unknown
+28 987993 image/jpeg
+7 137794 application/x-javascript
+7 76102 text/css
+7 491 text/dns
+4 2584 text/plain
+3 475807 application/pdf
+2 149755 application/vnd.ms-excel
+1 226 application/json
+1 223575 application/vnd.ms-cab-compressed
+1 1484 image/x-icon
+1 45796 text/javascript

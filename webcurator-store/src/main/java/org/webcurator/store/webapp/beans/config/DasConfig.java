@@ -15,17 +15,31 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
+import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
+import org.webcurator.core.visualization.VisualizationProcessorManager;
+import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
 import org.webcurator.core.store.arc.*;
 import org.webcurator.core.util.ApplicationContextFactory;
+//import org.webcurator.core.util.WebServiceEndPoint;
 
 import javax.annotation.PostConstruct;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -40,6 +54,9 @@ public class DasConfig {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
 
     @Value("${webapp.baseUrl}")
     private String wctCoreWsEndpointBaseUrl;
@@ -256,26 +273,84 @@ public class DasConfig {
     @Value("${server.port}")
     private String wctStorePort;
 
+    @Value("${qualify.processor.max}")
+    private int maxConcurrencyModThreads;
+
+    @Value("${qualify.heartbeat.interval}")
+    private long heartbeatInterval;
+
+    @Value("${qualify.jobscan.interval}")
+    private long jobScanInterval;
+
+    @Value(("${visualization.dbVersion}"))
+    private String visualizationDbVersion;
+
     @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
+    private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
     @PostConstruct
     public void init() {
         ApplicationContextFactory.setApplicationContext(applicationContext);
+
+        arcDigitalAssetStoreService.setDasFileMover(createDasFileMover());
+        arcDigitalAssetStoreService.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
+        arcDigitalAssetStoreService.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
+        arcDigitalAssetStoreService.setFileArchive(createFileArchive());
+
+        NetworkMapNode.setTopDomainParse(networkMapDomainSuffix());
+    }
+
+    private NetworkMapDomainSuffix networkMapDomainSuffix() {
+        //https://publicsuffix.org/list/public_suffix_list.dat
+
+        NetworkMapDomainSuffix suffixParser = new NetworkMapDomainSuffix();
+        Resource resource = new ClassPathResource("public_suffix_list.dat");
+
+        Path tempDataFilePath = null;
+        try {
+            tempDataFilePath = Files.createTempFile("public-suffix-list", ".dat");
+            tempDataFilePath.toFile().delete();
+            Files.copy(resource.getInputStream(), tempDataFilePath);
+            suffixParser.init(tempDataFilePath.toFile());
+        } catch (Exception e) {
+            LOGGER.error("Load domain suffix file failed.", e);
+        } finally {
+            if (tempDataFilePath != null && tempDataFilePath.toFile().exists()) {
+                tempDataFilePath.toFile().delete();
+            }
+        }
+
+        return suffixParser;
     }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
-    public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
-        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl, new RestTemplateBuilder());
-        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-        bean.setIndexer(indexer());
-        bean.setDasFileMover(createDasFileMover());
-        bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
-        bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
-        bean.setFileArchive(createFileArchive());
+    public VisualizationDirectoryManager visualizationManager() {
+        return new VisualizationDirectoryManager(arcDigitalAssetStoreServiceBaseDir, Constants.DIR_LOGS, Constants.DIR_REPORTS);
+    }
 
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public VisualizationProcessorManager visualizationProcessorQueue() {
+        return new VisualizationProcessorManager(visualizationManager(),
+                wctCoordinatorClient(),
+                maxConcurrencyModThreads);
+    }
+
+//    @Bean
+//    public WebServiceEndPoint wctCoreWsEndpoint() {
+//        WebServiceEndPoint bean = new WebServiceEndPoint();
+//        bean.setSchema(wctCoreWsEndpointScheme);
+//        bean.setHost(wctCoreWsEndpointHost);
+//        bean.setPort(wctCoreWsEndpointPort);
+//
+//        return bean;
+//    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public WctCoordinatorClient wctCoordinatorClient() {
+        WctCoordinatorClient bean = new WctCoordinatorClient(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         return bean;
     }
 
@@ -354,7 +429,7 @@ public class DasConfig {
         ListFactoryBean bean = new ListFactoryBean();
 
         List<RunnableIndex> sourceList = new ArrayList<>();
-        sourceList.add(wctIndexer());
+//        sourceList.add(wctIndexer());
         sourceList.add(waybackIndexer());
         sourceList.add(crawlLogIndexer());
         sourceList.add(cdxIndexer());
@@ -364,11 +439,14 @@ public class DasConfig {
         return bean;
     }
 
-    @Bean
-    public WCTIndexer wctIndexer() {
-        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        return bean;
-    }
+//    @Bean
+//    public WCTIndexer wctIndexer() {
+//        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
+//        bean.setWsEndPoint(wctCoreWsEndpoint());
+//        bean.setVisualizationDirectoryManager(visualizationManager);
+//        bean.setBDBNetworkMapPool(bdbDatabasePool());
+//        return bean;
+//    }
 
     @Bean
     public WaybackIndexer waybackIndexer() {
@@ -425,7 +503,7 @@ public class DasConfig {
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public LogReaderImpl logReader() {
         LogReaderImpl bean = new LogReaderImpl();
-        bean.setLogProvider(arcDigitalAssetStoreService());
+        bean.setLogProvider(arcDigitalAssetStoreService);
 
         return bean;
     }
@@ -545,6 +623,19 @@ public class DasConfig {
         bean.setCustomDepositFormFieldMaps(customDepositFormFieldMaps);
 
         return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public BDBNetworkMapPool bdbDatabasePool() {
+        BDBNetworkMapPool pool = new BDBNetworkMapPool(arcDigitalAssetStoreServiceBaseDir, visualizationDbVersion);
+        return pool;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public NetworkMapClient networkMapLocalClient() {
+        return new NetworkMapClientLocal(bdbDatabasePool(), visualizationProcessorQueue());
     }
 
     public CustomDepositField depositFieldDctermsBibliographicCitation() {

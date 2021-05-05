@@ -1,0 +1,351 @@
+html,body,canvas{
+	margin: 0; padding 0; height: 100%; overflow: hidden;
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Old versions of Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	-o-user-select: none; /* Non-prefixed version, currently
+	user-select: none; /* Non-prefixed version, currently  supported by Chrome, Opera and Firefox */
+}
+
+.none-margin-padding{
+	margin: 0;
+	padding: 0;
+}
+
+.content{
+	display: none;
+}
+
+.active{
+	display: block;
+}
+
+.hidden{
+	display: none;
+}
+
+.text-link{
+	color: #ABB2B9;
+}
+
+.bg-black{
+	background: black;
+}
+.btn-side-label span{
+	color: white;
+	/*font-weight: bold;*/
+	font-size: 18px;
+}
+.nav-divider{
+	display: inline-block;
+	width: 10px;
+}
+
+.overlay i{
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+	text-align: center;
+	font-size: 80px;
+	margin: auto;
+	/*padding: 50%;*/
+	margin-top: calc(40vh - 80px);
+	z-index: 9999;
+
+    -webkit-animation-name: spin;
+    -webkit-animation-duration: 1200ms;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -moz-animation-name: spin;
+    -moz-animation-duration: 1200ms;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+    -ms-animation-name: spin;
+    -ms-animation-duration: 1200ms;
+    -ms-animation-iteration-count: infinite;
+    -ms-animation-timing-function: linear;
+    
+    animation-name: spin;
+    animation-duration: 1200ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+@-ms-keyframes spin {
+    from { -ms-transform: rotate(0deg); }
+    to { -ms-transform: rotate(180deg); }
+}
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(180deg); }
+}
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(180deg); }
+}
+@keyframes spin {
+    from {transform:rotate(0deg); }
+    to {transform:rotate(180deg); }
+}
+
+progress {
+  text-align: center;
+  height: 0.7em;
+  width: 100%;
+  -webkit-appearance: none;
+  border: none;
+  
+  /* Set the progressbar to relative */
+  position:relative;
+}
+progress:before {
+  content: attr(data-label);
+  font-size: 0.5em;
+  vertical-align: 0;
+  
+  /*Position text over the progress bar */
+  position:absolute;
+  left:0;
+  right:0;
+}
+progress::-webkit-progress-bar {
+  background-color: #c9c9c9;
+}
+progress::-webkit-progress-value {
+  background-color: #7cc4ff;
+}
+progress::-moz-progress-bar {
+  background-color: #7cc4ff;
+}
+
+.grid-row-normal div{
+	text-decoration: none;
+	font-style: normal;
+	/*font-weight: normal;*/
+}
+.grid-row-delete div{
+  	text-decoration: line-through;
+  	/*color: gray;*/
+	/*font-style: italic;*/
+	/*font-weight: normal;*/
+}
+.grid-row-recrawl div{
+	/*text-decoration: line-through;*/
+	/*font-style: italic;*/
+	/*font-weight: normal;*/
+	color: red;
+}
+.grid-row-file div{
+	/*text-decoration: line-through;*/
+	/*font-style: italic;*/
+	/*font-weight: normal;*/
+	color: red;
+}
+
+.grid-row-new div{
+	font-weight: bold;
+}
+
+.grid-cell-centered{
+	text-align: center;
+	color: #6610f2;
+	font-weight: normal;
+}
+
+.tree-row-delete{
+  	text-decoration: line-through;
+}
+.tree-row-delete span{
+  	text-decoration: line-through;
+}
+.tree-row-file{
+	color: red;
+}
+.tree-row-file span{
+	color: red;
+}
+.tree-row-recrawl{
+	color: red;
+}
+.tree-row-recrawl span{
+	color: red;
+}
+
+.tab-content{
+	height: calc(100vh - 170px);
+}
+
+.grid-modify-harvest{
+	width: 100%;
+	height: 100%;
+}
+
+
+#popup-window-loading
+{
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 9001;
+}
+
+#popup-window-progress
+{
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 9002;
+	background: white;
+}
+
+.popup-window{
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 2001;
+	/*padding: 8vh 10vw 0vh 10vw;*/
+	background: rgba(0,0,0,0.2);
+}
+
+#popup-window-hop-path .popup-content{
+	display: block;
+	width: 70vw; 
+	height: 90vh;
+	margin: 5vh 15vw 5vh 15vw;
+	border: 5px solid #007bff;
+	border-radius: 10px;
+	background: #F1E4E1;
+}
+
+#popup-window-single-recrawl .popup-content{
+	width: 50vw; 
+	/*height: 40vh;*/
+	margin: 20vh 25vw 20vh 25vw;
+	border: 5px solid #007bff;
+	border-radius: 10px;
+	background: #F1E4E1;
+}
+
+#popup-window-single-import .popup-content{
+	width: 50vw; 
+	/*height: 40vh;*/
+	margin: 20vh 25vw 20vh 25vw;
+	border: 5px solid #007bff;
+	border-radius: 10px;
+	background: #F1E4E1;
+}
+
+#popup-window-bulk-import .popup-content{
+	width: 70vw; 
+	/*height: 70vh;*/
+	margin: 100px 15%;
+	border: 5px solid #007bff;
+	border-radius: 10px;
+	background: #F1E4E1;
+}
+
+#popup-window-bulk-prune .popup-content{
+	width: 50vw; 
+	/*height: 40vh;*/
+	margin: 20vh 25vw 20vh 25vw;
+	border: 5px solid #007bff;
+	border-radius: 10px;
+	background: #F1E4E1;
+}
+
+#popup-window-query-input .popup-content{
+	width: 50vw; 
+	/*height: 60vh;*/
+	margin: 20vh 25vw 20vh 25vw;
+	border: 5px solid #007bff;
+	border-radius: 10px;
+	background: #F1E4E1;
+}
+
+.fixed-size {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	position: relative;
+}
+
+#networkmap-side-container .ag-theme-balham{
+	width: 100%;
+	height: 100%;
+}
+
+#urls-grid-container{
+	width: 100%;
+    height: 100%;
+}
+
+.main-tab{
+	padding: 0;
+	margin: 0;
+	width: 100vw;
+	height: 100vh;
+}
+.main-tab .card-body{
+	padding: 0;
+	margin: 0;
+}
+
+#domain-tree{
+	width: 100%;
+    height: 100%;
+}
+
+div#tree {
+	width: 90%;
+	padding: 10px;
+	margin: 10px 0;
+	border: 1px solid 1px solid rgba(0,0,0,.12);
+	box-shadow: 0 2px 2px 0 rgba(0,0,0,.14),0 3px 1px -2px rgba(0,0,0,.2),0 1px 5px 0 rgba(0,0,0,.12);
+}
+
+.import-result{
+	background: #eeeeee;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+
+
+#popup-modify-harvest-apply-btn-group{
+
+}
+
+.content-window-full-screen{
+    position: fixed;
+    top:0;
+    left:0;
+    z-index:200;
+    width: 100vw;
+    height: 100vh;
+    border:none;
+    padding: 0;
+    margin: 0;
+}
+
+.sm-icon{
+	font-size: 0.8em;
+	color: gray;
+}
+
+#popup-window-derived-summary{
+	height: 100vh;
+}
+
+#btn-group-modification button{
+	width: 150px;
+}

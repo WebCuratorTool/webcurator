@@ -36,7 +36,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.XMLConverter;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -54,7 +54,7 @@ import org.xml.sax.SAXException;
 @Lazy(false)
 public class AQAReaderController {
     @Autowired
-	HarvestCoordinator harvestCoordinator;
+	WctCoordinator wctCoordinator;
     @Autowired
 	TargetInstanceManager targetInstanceManager;
 
@@ -117,7 +117,7 @@ public class AQAReaderController {
 
 			command.setTargetName(ti.getTarget().getName());
 
-			File f = harvestCoordinator.getLogfile(ti, command.getLogFileName());
+			File f = wctCoordinator.getLogfile(ti, command.getLogFileName());
 			Document aqaResult = readXMLDocument(f);
 			NodeList missingElementsNodes = aqaResult.getElementsByTagName("missingElements");
 			if(missingElementsNodes.getLength() > 0)
@@ -168,10 +168,10 @@ public class AQAReaderController {
 	}
 
 	/**
-	 * @param harvestCoordinator the harvestCoordinator to set
+	 * @param wctCoordinator the wctCoordinator to set
 	 */
-	public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-		this.harvestCoordinator = harvestCoordinator;
+	public void setWctCoordinator(WctCoordinator wctCoordinator) {
+		this.wctCoordinator = wctCoordinator;
 	}
 
 	/**

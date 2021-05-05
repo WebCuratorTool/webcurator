@@ -36,9 +36,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
-import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.common.ui.Constants;
@@ -48,6 +48,7 @@ import org.webcurator.ui.target.validator.HarvestNowValidator;
 /**
  * This controller is responsible for allocating a TargetInstance to a
  * Harvest Agent immediatly.
+ *
  * @author nwaight
  */
 // TODO Is this mapping even used?
@@ -56,20 +57,24 @@ import org.webcurator.ui.target.validator.HarvestNowValidator;
 @Lazy(false)
 @RequestMapping("/curator/target/harvest-now.html")
 public class HarvestNowController {
-    /** The manager to use to access the target instance. */
+    /**
+     * The manager to use to access the target instance.
+     */
     @Autowired
-    private TargetInstanceManager targetInstanceManager;
-    /** The harvest coordinator for looking at the harvesters. */
+    private TargetInstanceDAO targetInstanceDAO;
+    /**
+     * The harvest coordinator for looking at the harvesters.
+     */
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
-
-    @Autowired
-    private HarvestAgentManager harvestAgentManager;
-
-    /** the message source. */
+    private WctCoordinator wctCoordinator;
+    /**
+     * the message source.
+     */
     @Autowired
     private MessageSource messageSource;
-    /** the logger. */
+    /**
+     * the logger.
+     */
     private Log log;
 
     @Autowired
@@ -97,13 +102,23 @@ public class HarvestNowController {
                                                  BindingResult bindingResult, HttpServletRequest aReq)
             throws Exception {
         harvestNowValidator.validate(cmd, bindingResult);
-    	if (!cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
-            aReq.getSession().removeAttribute(TargetInstanceCommand.SESSION_TI);
-            return new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE);
-    	}
 
-    	HashMap<String, HarvestAgentStatusDTO> agents = harvestAgentManager.getHarvestAgents();
-        TargetInstance ti = targetInstanceManager.getTargetInstance(cmd.getTargetInstanceId());
+        String targetUrl = "";
+        if (cmd.getHarvestResultId() == null || cmd.getHarvestResultId() <= 0) {
+            targetUrl = Constants.CNTRL_TI_QUEUE;
+        } else {
+            targetUrl = String.format("curator/target/target-instance.html?targetInstanceId=%d&cmd=edit&init_tab=RESULTS", cmd.getTargetInstanceId());
+        }
+
+        if (!cmd.getCmd().equals(TargetInstanceCommand.ACTION_HARVEST)) {
+            if (cmd.getHarvestResultId() <= 0) {
+                aReq.getSession().removeAttribute(TargetInstanceCommand.SESSION_TI);
+            }
+            return new ModelAndView("redirect:/" + targetUrl);
+        }
+
+        HashMap<String, HarvestAgentStatusDTO> agents = wctCoordinator.getHarvestAgents();
+        TargetInstance ti = targetInstanceDAO.load(cmd.getTargetInstanceId());
         String instanceAgency = ti.getOwner().getAgency().getName();
 
         String key = "";
@@ -111,89 +126,78 @@ public class HarvestNowController {
         HashMap<String, HarvestAgentStatusDTO> allowedAgents = new HashMap<String, HarvestAgentStatusDTO>();
         Iterator<String> it = agents.keySet().iterator();
         while (it.hasNext()) {
-			key = (String) it.next();
-			agent = agents.get(key);
-			if (agent.getAllowedAgencies().contains(instanceAgency)
-				|| agent.getAllowedAgencies().isEmpty()) {
-				allowedAgents.put(key, agent);
-			}
-		}
+            key = (String) it.next();
+            agent = agents.get(key);
+            if (agent.getAllowedAgencies().contains(instanceAgency)
+                    || agent.getAllowedAgencies().isEmpty()) {
+                allowedAgents.put(key, agent);
+            }
+        }
 
         if (bindingResult.hasErrors()) {
-        	ModelAndView mav = new ModelAndView();
+            ModelAndView mav = new ModelAndView();
             mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, allowedAgents);
-        	mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
             mav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
 
             return mav;
         }
 
-        ModelAndView mav = new ModelAndView("redirect:/" + Constants.CNTRL_TI_QUEUE);
+        ModelAndView mav = new ModelAndView("redirect:/" + targetUrl);
         // Get the TargetInstance and the HarvestAgentStatusDTO
-        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get(cmd.getAgent());
+        HarvestAgentStatusDTO has = (HarvestAgentStatusDTO) wctCoordinator.getHarvestAgents().get(cmd.getAgent());
 
         //Is the queue paused?
-        if(harvestCoordinator.isQueuePaused())
-        {
-			// Display a global message and return to queue
-			mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.queue.paused", new Object[] { ti.getOid() }, Locale.getDefault()));
-        }
-        else if(!has.isAcceptTasks()) {
-			// Display a global message and return to queue
-			mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.agent.paused", new Object[] { ti.getOid(), has.getName() }, Locale.getDefault()));
+        if (wctCoordinator.isQueuePaused()) {
+            // Display a global message and return to queue
+            mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.queue.paused", new Object[]{ti.getOid()}, Locale.getDefault()));
+        } else if (!has.isAcceptTasks()) {
+            // Display a global message and return to queue
+            mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.agent.paused", new Object[]{ti.getOid(), has.getName()}, Locale.getDefault()));
             mav.addObject(Constants.GBL_CMD_DATA, cmd);
             mav.addObject(TargetInstanceCommand.MDL_AGENTS, allowedAgents);
-        	mav.addObject(Constants.GBL_ERRORS, bindingResult);
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
             mav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);
             mav.setViewName(Constants.VIEW_HARVEST_NOW);
 
-        }
-        else if(has.getMemoryWarning())
-        {
-			// Display a global message and return to queue
-			mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.agent.notaccept", new Object[] { ti.getOid(), has.getName() }, Locale.getDefault()));
-        }
-        else
-        {
-	        try {
-				harvestCoordinator.harvest(ti, has);
-			}
-	        catch (HibernateOptimisticLockingFailureException e) {
-				ti = targetInstanceManager.getTargetInstance(ti.getOid());
-				if (ti.getState().equals(TargetInstance.STATE_RUNNING)
-					|| ti.getState().equals(TargetInstance.STATE_STOPPING)) {
-					// Display a global message and return to queue
-					mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.run.by.other", new Object[] { ti.getOid() }, Locale.getDefault()));
-				}
-			}
+        } else if (has.getMemoryWarning()) {
+            // Display a global message and return to queue
+            mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.agent.notaccept", new Object[]{ti.getOid(), has.getName()}, Locale.getDefault()));
+        } else {
+            try {
+                if (cmd.getHarvestResultId()==null || cmd.getHarvestResultId() <= 0) {
+                    wctCoordinator.harvest(ti, has);
+                } else {
+                    HarvestResult hr = targetInstanceDAO.getHarvestResult(cmd.getHarvestResultId());
+                    wctCoordinator.patchHarvest(ti, hr, has);
+                }
+            } catch (HibernateOptimisticLockingFailureException e) {
+                ti = targetInstanceDAO.load(ti.getOid());
+                if (ti.getState().equals(TargetInstance.STATE_RUNNING)
+                        || ti.getState().equals(TargetInstance.STATE_STOPPING)) {
+                    // Display a global message and return to queue
+                    mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage("target.instance.run.by.other", new Object[]{ti.getOid()}, Locale.getDefault()));
+                }
+            }
         }
         return mav;
     }
 
-    /**
-     * @param harvestCoordinator The harvestCoordinator to set.
-     */
-    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-        this.harvestCoordinator = harvestCoordinator;
+    public void setTargetInstanceDAO(TargetInstanceDAO targetInstanceDAO) {
+        this.targetInstanceDAO = targetInstanceDAO;
     }
 
-    /**
-     * @param targetInstanceManager The targetInstanceManager to set.
-     */
-    public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
-        this.targetInstanceManager = targetInstanceManager;
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 
-	/**
-	 * @param messageSource the messageSource to set
-	 */
-	public void setMessageSource(MessageSource messageSource) {
-		this.messageSource = messageSource;
-	}
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
-    public void setHarvestAgentManager(HarvestAgentManager harvestAgentManager) {
-        this.harvestAgentManager = harvestAgentManager;
+    public void setHarvestNowValidator(HarvestNowValidator harvestNowValidator) {
+        this.harvestNowValidator = harvestNowValidator;
     }
 }

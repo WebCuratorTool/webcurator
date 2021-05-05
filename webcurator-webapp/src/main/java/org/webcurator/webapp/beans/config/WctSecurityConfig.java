@@ -21,6 +21,7 @@ import org.webcurator.auth.WCTAuthenticationFailureHandler;
 import org.webcurator.auth.WCTAuthenticationSuccessHandler;
 import org.webcurator.auth.dbms.WCTDAOAuthenticationProvider;
 import org.webcurator.auth.ldap.WCTAuthoritiesPopulator;
+import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.domain.model.auth.User;
 
 import javax.servlet.http.*;
@@ -113,8 +114,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
+        http.csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/curator/**").hasRole("LOGIN")
@@ -125,8 +125,10 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/styles/**").permitAll()
                 .antMatchers("/images/**").permitAll()
                 .antMatchers("/scripts/**").permitAll()
-                .antMatchers("/harvest-coordinator/**").permitAll()
+                .antMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
                 .antMatchers("**/digital-asset-store/**").permitAll()
+                .antMatchers("/spa/**").permitAll()
+//                .antMatchers("/visualization/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
                 .loginPage("/logon.jsp")
@@ -139,6 +141,8 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().logout()
                 .invalidateHttpSession(true)
                 .logoutSuccessUrl("/logon.jsp");
+
+        http.headers().frameOptions().sameOrigin();
 
 //                .and().sessionManagement().maximumSessions(1).maxSessionsPreventsLogin(true)
     }
@@ -538,7 +542,6 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     private static final Map<String, HttpSession> sessions = new HashMap<>();
-
 
     public String getCurrentSessionMessage(HttpServletRequest req, HttpServletResponse rsp) {
         StringBuilder buf = new StringBuilder();

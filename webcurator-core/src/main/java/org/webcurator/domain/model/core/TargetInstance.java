@@ -28,9 +28,9 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.Type;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.notification.UserInTrayResource;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
@@ -142,6 +142,16 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     public static final String STATE_ARCHIVING = "Archiving";
     /**
+     * Scheduled – The Target Instance is patching: scheduled, harvesting, modifying.
+     */
+    public static final String STATE_PATCHING = "Patching";
+//    /** Queued – The Target Instances scheduled time has past but there is no capacity process the Modification. */
+//    public static final String STATE_MOD_QUEUED = "ModQueued";
+//    /** Modifying - We have started the modifying, but not completed */
+//    public static final String STATE_MOD_RUNNING = "ModRunning";
+
+
+    /**
      * value for a low priority target instance.
      */
 
@@ -184,7 +194,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     /**
      * list of harvest results.
      */
-    @OneToMany() // default fetch type is LAZY
+    @OneToMany(cascade = CascadeType.ALL) // default fetch type is LAZY
     @JoinColumn(name = "HR_TARGET_INSTANCE_ID")
     @OrderColumn(name = "HR_INDEX")
     private List<HarvestResult> harvestResults = new LinkedList<HarvestResult>();
@@ -415,12 +425,24 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     private Date sortOrderDate;
 
     /**
-     * The job name used by the harvester for this target instance
+     * The job name used by the harvester for this target instance:
+     * 1. For a normal harvest, using Oid of target instance as the job name.
+     * 2. For a patching harvest, append "mod" prefix and HarvestResult number as the job name
      *
      * @return the job name
      */
     public String getJobName() {
-        return oid.toString();
+        if (!state.equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
+            return oid.toString();
+        } else {
+            List<HarvestResult> patchingHarvestResults = getPatchingHarvestResults();
+            if (patchingHarvestResults != null && patchingHarvestResults.size() > 0) {
+                HarvestResult hr = patchingHarvestResults.get(0);
+                return PatchUtil.getPatchJobName(oid, hr.getHarvestNumber());
+            } else {
+                return oid.toString();
+            }
+        }
     }
 
     /**
@@ -450,6 +472,16 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      */
     public List<HarvestResult> getHarvestResults() {
         return harvestResults;
+    }
+
+    public List<HarvestResult> getDerivedHarvestResults(int harvestResultNumber) {
+        List<HarvestResult> list = new ArrayList<>();
+        for (HarvestResult hr : harvestResults) {
+            if (hr.getDerivedFrom() != null && hr.getDerivedFrom() == harvestResultNumber) {
+                list.add(hr);
+            }
+        }
+        return list;
     }
 
     /**
@@ -487,9 +519,8 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
      * @return the ArcHarvestResult, or null if not found
      */
     public HarvestResult getHarvestResult(int harvestNumber) {
-        if (harvestResults == null) return null;
-
         List<HarvestResult> results = getHarvestResults(); //Trigger hibernate fetch if necessary
+        if (results == null) return null;
         for (HarvestResult result : results) {
             if (harvestNumber == result.getHarvestNumber()) {
                 return result;
@@ -712,6 +743,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         stateOrder.put(STATE_RUNNING, 1);
         stateOrder.put(STATE_STOPPING, 10);
         stateOrder.put(STATE_SCHEDULED, 40);
+        stateOrder.put(STATE_PATCHING, 100);
+//        stateOrder.put(STATE_MOD_QUEUED,101);
+//        stateOrder.put(STATE_MOD_RUNNING,102);
 
         return stateOrder;
     }
@@ -1305,13 +1339,30 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         this.allowOptimize = allowOptimize;
     }
 
+    public List<HarvestResult> getPatchingHarvestResults() {
+        List<HarvestResult> list = new ArrayList<>();
+        if (harvestResults == null || !state.equals(TargetInstance.STATE_PATCHING)) {
+            return list;
+        }
+
+        for (HarvestResult hr : harvestResults) {
+            if (hr.getState() == HarvestResult.STATE_CRAWLING
+                    || hr.getState() == HarvestResult.STATE_MODIFYING
+                    || hr.getState() == HarvestResult.STATE_INDEXING) {
+                list.add(hr);
+            }
+        }
+
+        return list;
+    }
+
     @Transient
     public boolean isAppliedBandwidthRestriction() {
         Profile profile = this.getProfile();
         if (profile == null) {
             return true;
         }
-	    
+
         String harvestType = profile.getHarvesterType();
         if (harvestType == null || harvestType.isEmpty()) {
             return true;

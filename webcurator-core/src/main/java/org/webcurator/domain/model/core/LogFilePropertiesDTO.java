@@ -15,35 +15,64 @@
  */
 package org.webcurator.domain.model.core;
 
+import org.webcurator.core.harvester.agent.HarvesterStatusUtil;
+
+import java.io.File;
 import java.util.Date;
 
 /**
- * The Object for transferring Log File Properties between the Asset store and the 
+ * The Object for transferring Log File Properties between the Asset store and the
  * other web curator components
+ *
  * @author oakleigh_sk
  */
 public class LogFilePropertiesDTO {
 
-    /** The name of the file. */
+    /**
+     * The name of the file.
+     */
     private String name = "";
 
-    /** The absolute path of the file. */
+    /**
+     * The absolute path of the file.
+     */
     private String path = "";
 
-    /** The formatted byte length of the file. */
+    /**
+     * The formatted byte length of the file.
+     */
     private String lengthString = "";
 
-    /** The date the file was last modified. */
+    /**
+     * The date the file was last modified.
+     */
     private Date lastModifiedDate = null;
-    
+
     private String viewer = "log-viewer.html";
     private String retriever = "log-retriever.html";
 
-	/**
-	 * Default constructor.
-	 */
-	public LogFilePropertiesDTO() {
-	}
+    /**
+     * Default constructor.
+     */
+    public LogFilePropertiesDTO() {
+    }
+
+    public LogFilePropertiesDTO(File f) {
+        this.setName(f.getName());
+        this.setPath(f.getAbsolutePath());
+        this.setLengthString(HarvesterStatusUtil.formatData(f.length()));
+        this.setLastModifiedDate(new Date(f.lastModified()));
+    }
+
+    public LogFilePropertiesDTO(File f, String pageImagePrefix, String aqaReportPrefix) {
+        this(f);
+        // Special case for AQA reports and images
+        if (f.getName().startsWith(pageImagePrefix)) {
+            this.setViewer("content-viewer.html");
+        } else if (f.getName().startsWith(aqaReportPrefix)) {
+            this.setViewer("aqa-viewer.html");
+        }
+    }
 
     /**
      * @return Returns the name.
@@ -58,7 +87,7 @@ public class LogFilePropertiesDTO {
     public void setName(String name) {
         this.name = name;
     }
-	
+
     /**
      * @return Returns the path.
      */
@@ -81,40 +110,40 @@ public class LogFilePropertiesDTO {
     }
 
     /**
-     * @param length The length to set.
+     * @param lengthString The length to set.
      */
     public void setLengthString(String lengthString) {
         this.lengthString = lengthString;
     }
 
     /**
-     * @return Returns the lastModifiedDate. 
+     * @return Returns the lastModifiedDate.
      */
     public Date getLastModifiedDate() {
         return this.lastModifiedDate;
     }
 
     /**
-     * @param path The path to set.
+     * @param lastModifiedDate The date to set.
      */
     public void setLastModifiedDate(Date lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
     }
 
-	public void setViewer(String viewer) {
-		this.viewer = viewer;
-	}
+    public void setViewer(String viewer) {
+        this.viewer = viewer;
+    }
 
-	public String getViewer() {
-		return viewer;
-	}
+    public String getViewer() {
+        return viewer;
+    }
 
-	public void setRetriever(String retriever) {
-		this.retriever = retriever;
-	}
+    public void setRetriever(String retriever) {
+        this.retriever = retriever;
+    }
 
-	public String getRetriever() {
-		return retriever;
-	}
-    
+    public String getRetriever() {
+        return retriever;
+    }
+
 }

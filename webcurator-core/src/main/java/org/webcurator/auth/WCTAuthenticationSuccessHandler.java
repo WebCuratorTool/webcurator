@@ -21,6 +21,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.stereotype.Component;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.core.report.LogonDurationDAO;
@@ -88,8 +91,13 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
                 response.sendRedirect(Constants.CNTRL_RESET_PWD);
                 auditor.audit(User.class.getName(),wctUser.getOid(),Auditor.ACTION_FORCE_PWD_CHANGE,"User has been forced to change password");
             } else {
-                // continue to redirect destination
-                super.onAuthenticationSuccess(request, response, auth);
+                String mode=request.getHeader("Request-Mode");
+                if(mode!=null && mode.equalsIgnoreCase("embed")){
+                    response.addHeader("Auth-Result", "pass");
+                }else{
+                    // continue to redirect destination
+                    super.onAuthenticationSuccess(request, response, auth);
+                }
             }
 
         }  else {
@@ -99,7 +107,7 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
 
         }
     }
-    
+
     /**
      * Spring setter.
      * @param authDAO set the authentication dao bean.
@@ -107,9 +115,9 @@ public class WCTAuthenticationSuccessHandler extends SavedRequestAwareAuthentica
     public void setAuthDAO(UserRoleDAO authDAO) {
         this.authDAO = authDAO;
     }
-    
-    /** 
-     * Spring setter 
+
+    /**
+     * Spring setter
      * @param auditor set the auditor bean
      */
     public void setAuditor(Auditor auditor) {

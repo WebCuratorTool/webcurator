@@ -28,7 +28,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.WebUtils;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
@@ -47,7 +47,7 @@ import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
 public class TargetInstanceLogsHandler extends TabHandler {
 
     private TargetInstanceManager targetInstanceManager;
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinator wctCoordinator;
 
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         NumberFormat nf = NumberFormat.getInstance(request.getLocale());
@@ -103,7 +103,7 @@ public class TargetInstanceLogsHandler extends TabHandler {
 			populatedCommand.setCmd(TargetInstanceCommand.ACTION_EDIT);
 		}
 
-		List<LogFilePropertiesDTO> logs = new ArrayList<>(harvestCoordinator.listLogFileAttributes(ti));
+		List<LogFilePropertiesDTO> logs = new ArrayList<>(wctCoordinator.listLogFileAttributes(ti));
 
 		tmav.addObject(TargetInstanceCommand.MDL_LOG_LIST, logs);
 		tmav.addObject(Constants.GBL_CMD_DATA, populatedCommand);
@@ -122,10 +122,10 @@ public class TargetInstanceLogsHandler extends TabHandler {
     }
 
     /**
-     * @param harvestCoordinator The harvestCoordinator to set.
+     * @param wctCoordinator The wctCoordinator to set.
      */
-    public void setHarvestCoordinator(HarvestCoordinator harvestCoordinator) {
-        this.harvestCoordinator = harvestCoordinator;
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
     }
 
     /**

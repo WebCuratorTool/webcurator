@@ -16,14 +16,10 @@ drop table if exists DB_WCT.TASK;
 drop table if exists DB_WCT.AGENCY;
 drop table if exists DB_WCT.ABSTRACT_TARGET;
 drop table if exists DB_WCT.ANNOTATIONS;
-drop table if exists DB_WCT.ARC_HARVEST_FILE;
-drop table if exists DB_WCT.ARC_HARVEST_RESOURCE;
-drop table if exists DB_WCT.ARC_HARVEST_RESULT;
 drop table if exists DB_WCT.AUTHORISING_AGENT;
 drop table if exists DB_WCT.BANDWIDTH_RESTRICTIONS;
 drop table if exists DB_WCT.DUBLIN_CORE;
 drop table if exists DB_WCT.GROUP_MEMBER;
-drop table if exists DB_WCT.HARVEST_RESOURCE;
 drop table if exists DB_WCT.HARVEST_RESULT;
 drop table if exists DB_WCT.HARVEST_STATUS;
 drop table if exists DB_WCT.HR_MODIFICATION_NOTE;
@@ -60,21 +56,18 @@ drop table if exists DB_WCT.INDICATOR_REPORT_LINE;
 drop table if exists DB_WCT.INDICATOR;
 drop table if exists DB_WCT.PO_H3_BLOCK_URL;
 drop table if exists DB_WCT.PO_H3_INCLUDE_URL;
+drop table if exists DB_WCT.VISUALIZATION_IMPORTED_FILE;
 
 set foreign_key_checks=1;
 
 create table DB_WCT.ABSTRACT_TARGET (AT_OID bigint not null, AT_DESC text, AT_NAME varchar(191), AT_OWNER_ID bigint, AT_PROF_OVERRIDE_OID bigint, AT_STATE integer, T_PROFILE_ID bigint, AT_OBJECT_TYPE integer, AT_CREATION_DATE TIMESTAMP NULL, AT_REFERENCE varchar(255), AT_PROFILE_NOTE varchar(255), AT_DUBLIN_CORE_OID bigint, AT_ACCESS_ZONE integer default 0 not null, AT_DISPLAY_TARGET bit default 1 not null, AT_DISPLAY_NOTE text, AT_DISPLAY_CHG_REASON text, AT_RR_OID bigint, AT_CRAWLS bigint, AT_REFERENCE_CRAWL_OID bigint, AT_AUTO_PRUNE boolean not null default false, AT_AUTO_DENOTE_REFERENCE_CRAWL boolean not null default false, AT_REQUEST_TO_ARCHIVISTS varchar(4000), primary key (AT_OID));
 create table DB_WCT.AGENCY (AGC_OID bigint not null, AGC_NAME varchar(80) not null unique, AGC_ADDRESS varchar(255) not null, AGC_LOGO_URL varchar(255), AGC_URL varchar(255), AGC_EMAIL varchar(80), AGC_FAX varchar(20), AGC_PHONE varchar(20), AGC_SHOW_TASKS boolean not null default true, AGC_DEFAULT_DESC_TYPE varchar(50) default "", primary key (AGC_OID));
 create table DB_WCT.ANNOTATIONS (AN_OID bigint not null, AN_DATE datetime not null, AN_NOTE text not null, AN_USER_OID bigint not null, AN_OBJ_OID bigint not null, AN_OBJ_TYPE text not null, AN_ALERTABLE bit not null default 0, primary key (AN_OID));
-create table DB_WCT.ARC_HARVEST_FILE (AHF_OID bigint not null, AHF_COMPRESSED bit not null, AHF_NAME varchar(100) not null unique, AHF_ARC_HARVEST_RESULT_ID bigint, primary key (AHF_OID));
-create table DB_WCT.ARC_HARVEST_RESOURCE (AHRC_HARVEST_RESOURCE_OID bigint not null, AHRC_RESOURCE_LENGTH bigint not null, AHRC_RESOURCE_OFFSET bigint not null, AHRC_ARC_FILE_NAME varchar(100) not null, AHRC_COMPRESSED_YN bit not null, primary key (AHRC_HARVEST_RESOURCE_OID));
-create table DB_WCT.ARC_HARVEST_RESULT (AHRS_HARVEST_RESULT_OID bigint not null, primary key (AHRS_HARVEST_RESULT_OID));
 create table DB_WCT.AUTHORISING_AGENT (AA_OID bigint not null, AA_NAME varchar(191) unique, AA_ADRESS text, AA_CONTACT varchar(255), AA_EMAIL varchar(255), AA_PHONE_NUMBER varchar(32), AA_DESC text, primary key (AA_OID));
 create table DB_WCT.BANDWIDTH_RESTRICTIONS (BR_OID bigint not null, BR_BANDWIDTH bigint not null, BR_DAY varchar(9) not null, BR_END_TIME datetime not null, BR_START_TIME datetime not null, BR_OPTIMIZATION_ALLOWED boolean not null default false, primary key (BR_OID));
 create table DB_WCT.DUBLIN_CORE (DC_OID bigint not null, DC_CONTRIBUTOR varchar(255), DC_COVERAGE varchar(255), DC_CREATOR varchar(255), DC_DESCRIPTION text, DC_FORMAT varchar(255), DC_IDENTIFIER varchar(255), DC_IDENTIFIER_ISBN varchar(13), DC_IDENTIFIER_ISSN varchar(9), DC_LANGUAGE varchar(255), DC_PUBLISHER varchar(255), DC_RELATION varchar(255), DC_SOURCE varchar(255), DC_SUBJECT text, DC_TITLE varchar(255), DC_TYPE varchar(50), primary key (DC_OID));
 create table DB_WCT.GROUP_MEMBER (AT_OID bigint not null, GM_CHILD_ID bigint, GM_PARENT_ID bigint, primary key (AT_OID));
-create table DB_WCT.HARVEST_RESOURCE (HRC_OID bigint not null, HRC_LENGTH bigint, HRC_NAME text not null, HRC_HARVEST_RESULT_OID bigint, HRC_STATUS_CODE integer not null, primary key (HRC_OID));
-create table DB_WCT.HARVEST_RESULT (HR_OID bigint not null, HR_HARVEST_NO integer, HR_TARGET_INSTANCE_ID bigint, HR_PROVENANCE_NOTE text not null, HR_CREATED_DATE datetime, HR_CREATED_BY_ID bigint, HR_STATE integer, HR_DERIVED_FROM integer, HR_INDEX integer default 0, HR_RR_OID bigint, primary key (HR_OID));
+create table DB_WCT.HARVEST_RESULT (HR_OID bigint not null, HR_HARVEST_NO integer, HR_TARGET_INSTANCE_ID bigint, HR_PROVENANCE_NOTE text not null, HR_CREATED_DATE datetime, HR_CREATED_BY_ID bigint, HR_STATE integer, HR_DERIVED_FROM integer, HR_INDEX integer, HR_RR_OID bigint, primary key (HR_OID));
 create table DB_WCT.HARVEST_STATUS (HS_OID bigint not null, HS_AVG_KB double precision, HS_AVG_URI double precision, HS_DATA_AMOUNT bigint, HS_ELAPSED_TIME bigint, HS_JOB_NAME text, HS_STATUS varchar(255), HS_URLS_DOWN bigint, HS_URLS_FAILED bigint, HS_ALERTS integer, HS_APP_VERSION varchar(255), HS_HRTX_VERSION varchar(255), primary key (HS_OID));
 create table DB_WCT.HR_MODIFICATION_NOTE (HMN_HR_OID bigint not null, HMN_NOTE text, HMN_INDEX integer not null, primary key (HMN_HR_OID, HMN_INDEX));
 create table DB_WCT.NOTIFICATION (NOT_OID bigint not null, NOT_MESSAGE text, NOT_USR_OID bigint not null, NOT_SENDER varchar(80) not null, NOT_SENT_DATE timestamp, NOT_SUBJECT varchar(255) not null, primary key (NOT_OID));
@@ -128,15 +121,11 @@ alter table DB_WCT.ABSTRACT_TARGET add index FKB6DD784E3A83A603 (T_PROFILE_ID), 
 alter table DB_WCT.ABSTRACT_TARGET add constraint CHK_ACCESS_ZONE check (AT_ACCESS_ZONE in (0,1,2));
 alter table DB_WCT.ABSTRACT_TARGET add index FK_AT_RR_OID (AT_RR_OID), add constraint FK_AT_RR_OID foreign key (AT_RR_OID) references DB_WCT.REJECTION_REASON (RR_OID);
 alter table DB_WCT.ANNOTATIONS add index FK_NOTE_USER_OID (AN_USER_OID), add constraint FK_NOTE_USER_OID foreign key (AN_USER_OID) references DB_WCT.WCTUSER (USR_OID);
-alter table DB_WCT.ARC_HARVEST_FILE add index FK_AHR_ARC_HARVEST_RESULT_ID (AHF_ARC_HARVEST_RESULT_ID), add constraint FK_AHR_ARC_HARVEST_RESULT_ID foreign key (AHF_ARC_HARVEST_RESULT_ID) references DB_WCT.ARC_HARVEST_RESULT (AHRS_HARVEST_RESULT_OID);
-alter table DB_WCT.ARC_HARVEST_RESOURCE add index FK6D84FEB12FF8F14B (AHRC_HARVEST_RESOURCE_OID), add constraint FK6D84FEB12FF8F14B foreign key (AHRC_HARVEST_RESOURCE_OID) references DB_WCT.HARVEST_RESOURCE (HRC_OID) on delete cascade;
-alter table DB_WCT.ARC_HARVEST_RESULT add index FKE39C5380C88A38D9 (AHRS_HARVEST_RESULT_OID), add constraint FKE39C5380C88A38D9 foreign key (AHRS_HARVEST_RESULT_OID) references DB_WCT.HARVEST_RESULT (HR_OID);
 alter table DB_WCT.BANDWIDTH_RESTRICTIONS add constraint CHK_DAY check (br_day IN ('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'));
 alter table DB_WCT.BANDWIDTH_RESTRICTIONS add constraint CHK_END_TIME check (br_end_time >= STR_TO_DATE('1972-11-09 00:00:00', '%Y-%m-%d %H:%i:%s') AND br_end_time <= STR_TO_DATE('1972-11-09 23:59:59', '%Y-%m-%d %H:%i:%s'));
 alter table DB_WCT.BANDWIDTH_RESTRICTIONS add constraint CHK_START_TIME check (br_start_time >= STR_TO_DATE('1972-11-09 00:00:00', '%Y-%m-%d %H:%i:%s') AND br_start_time <= STR_TO_DATE('1972-11-09 23:59:59', '%Y-%m-%d %H:%i:%s'));
 alter table DB_WCT.GROUP_MEMBER add index FK_GM_PARENT_ID (GM_PARENT_ID), add constraint FK_GM_PARENT_ID foreign key (GM_PARENT_ID) references DB_WCT.TARGET_GROUP (TG_AT_OID);
 alter table DB_WCT.GROUP_MEMBER add index FK_GM_CHILD_ID (GM_CHILD_ID), add constraint FK_GM_CHILD_ID foreign key (GM_CHILD_ID) references DB_WCT.ABSTRACT_TARGET (AT_OID);
-alter table DB_WCT.HARVEST_RESOURCE add index FK5BA2B04431A1C148 (HRC_HARVEST_RESULT_OID), add constraint FK5BA2B04431A1C148 foreign key (HRC_HARVEST_RESULT_OID) references DB_WCT.HARVEST_RESULT (HR_OID);
 alter table DB_WCT.HARVEST_RESULT add index FK_HR_CREATED_BY_ID (HR_CREATED_BY_ID), add constraint FK_HR_CREATED_BY_ID foreign key (HR_CREATED_BY_ID) references DB_WCT.WCTUSER (USR_OID);
 alter table DB_WCT.HARVEST_RESULT add index FK_HRC_TARGET_INSTANCE_ID (HR_TARGET_INSTANCE_ID), add constraint FK_HRC_TARGET_INSTANCE_ID foreign key (HR_TARGET_INSTANCE_ID) references DB_WCT.TARGET_INSTANCE (TI_OID);
 alter table DB_WCT.HARVEST_RESULT add index FK_HR_RR_OID (HR_RR_OID), ADD CONSTRAINT FK_HR_RR_OID foreign key (HR_RR_OID) REFERENCES DB_WCT.REJECTION_REASON (RR_OID);
@@ -226,3 +215,9 @@ create view DB_WCT.ABSTRACT_TARGET_GROUPTYPE_VIEW as
 insert into DB_WCT.HEATMAP_CONFIG (HM_OID, HM_NAME, HM_DISPLAY_NAME, HM_COLOR, HM_THRESHOLD_LOWEST) values (1, "low","Low","8FBC8F",1);
 insert into DB_WCT.HEATMAP_CONFIG (HM_OID, HM_NAME, HM_DISPLAY_NAME, HM_COLOR, HM_THRESHOLD_LOWEST) values (2, "medium","Medium","F0E68C",7);
 insert into DB_WCT.HEATMAP_CONFIG (HM_OID, HM_NAME, HM_DISPLAY_NAME, HM_COLOR, HM_THRESHOLD_LOWEST) values (3, "high","High","FF6347",12);
+
+--For visualization
+create table DB_WCT.VISUALIZATION_IMPORTED_FILE (VIF_OID bigint, VIF_FILE_NAME varchar(1024) not null, VIF_CONTENT_LENGTH bigint, VIF_CONTENT_TYPE varchar(256), VIF_LAST_MODIFIED_DATE bigint, VIF_UPLOADED_DATE varchar(8), VIF_UPLOADED_TIME varchar(6), primary key (VIF_OID));
+alter table DB_WCT.VISUALIZATION_IMPORTED_FILE add unique index IDX_VIF_FILE_NAME (VIF_FILE_NAME);
+alter table DB_WCT.VISUALIZATION_IMPORTED_FILE add index IDX_VIF_UPLOADED_DATE (VIF_UPLOADED_DATE);
+

@@ -1,29 +1,24 @@
 package org.webcurator.core.store;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Bytes;
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.io.IOUtils;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.harvester.store.HarvestStoreCopyAndPruneDTO;
-import reactor.core.publisher.Mono;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 
@@ -65,71 +60,38 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
     }
 
-    public Path getResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonStr = this.encode2json(resource);
-
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
+    @Override
+    public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.RESOURCE))
-                .queryParam("harvest-result-number", harvestResultNumber);
+                .queryParam("harvest-result-number", harvestResultNumber)
+                .queryParam("resource-url", URLEncoder.encode(resourceUrl));
+        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-id", targetInstanceId);
         try {
-            URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
-            HttpURLConnection urlConnection = (HttpURLConnection)uri.toURL().openConnection();
-            urlConnection.setRequestMethod("POST");
-            urlConnection.setDoInput(true);
-            urlConnection.setDoOutput(true);
-
-            urlConnection.setRequestProperty("Content-Type","application/json");
-            urlConnection.setRequestProperty("Content-Length",Integer.toString(jsonStr.length()));
-            urlConnection.getOutputStream().write(jsonStr.getBytes());
-
+            URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
+            URLConnection connection = url.openConnection();
             File file = File.createTempFile("wctd", "tmp");
-            IOUtils.copy(urlConnection.getInputStream(), Files.newOutputStream(file.toPath()));
-
+            Files.copy(connection.getInputStream(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return file.toPath();
-        } catch (IOException e) {
-            String err = "Failed to get resource for " + targetInstanceName + " " + harvestResultNumber + ": " + e.getMessage();
-            log.error(err, e);
-            throw new DigitalAssetStoreException(err, e);
+        } catch (IOException ex) {
+            throw new DigitalAssetStoreException("Failed to get resource for " + targetInstanceId + " " + harvestResultNumber + ": " + ex.getMessage(), ex);
         }
     }
 
-    public List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource)
+    @Override
+    public List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        HttpEntity<String> request = this.createHttpRequestEntity(resource);
-
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.HEADERS))
                 .queryParam("harvest-result-number", harvestResultNumber)
-                .queryParam("resource", resource);
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
+                .queryParam("resource-url", URLEncoder.encode(resourceUrl));
+        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-id", targetInstanceId);
         URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
         RestTemplate restTemplate = restTemplateBuilder.build();
-        ResponseEntity<List<Header>> listResponse = restTemplate.exchange(uri, HttpMethod.POST, request,
+        ResponseEntity<List<Header>> listResponse = restTemplate.exchange(uri, HttpMethod.POST, null,
                 new ParameterizedTypeReference<List<Header>>() {
                 });
         return listResponse.getBody();
-    }
-
-    public HarvestResultDTO copyAndPrune(String targetInstanceName, int originalHarvestResultNumber, int newHarvestResultNumber,
-                                         List<String> urisToDelete, List<HarvestResourceDTO> harvestResourcesToImport) throws DigitalAssetStoreException {
-        HarvestStoreCopyAndPruneDTO dto = new HarvestStoreCopyAndPruneDTO();
-        dto.setUrisToDelete(urisToDelete);
-        dto.setHarvestResourcesToImport(harvestResourcesToImport);
-
-        HttpEntity<String> request = this.createHttpRequestEntity(dto);
-
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.COPY_AND_PRUNE))
-                .queryParam("original-harvest-result-number", originalHarvestResultNumber)
-                .queryParam("new-harvest-result-number", newHarvestResultNumber);
-        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
-        URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
-
-        RestTemplate restTemplate = restTemplateBuilder.build();
-        HarvestResultDTO harvestResultDTO = restTemplate.postForObject(uri, request, HarvestResultDTO.class);
-        return harvestResultDTO;
     }
 
     /**
@@ -174,18 +136,18 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
                 request, Boolean.class);
     }
 
-    public byte[] getSmallResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource) throws DigitalAssetStoreException {
-        HttpEntity<String> request = this.createHttpRequestEntity(resource);
-
+    @Override
+    public byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.SMALL_RESOURCE))
-                .queryParam("harvest-result-number", harvestResultNumber);
-        Map<String, String> pathVariables = ImmutableMap.of("target-instance-name", targetInstanceName);
+                .queryParam("harvest-result-number", harvestResultNumber)
+                .queryParam("resource-url", URLEncoder.encode(resourceUrl));
+        Map<String, Long> pathVariables = ImmutableMap.of("target-instance-id", targetInstanceId);
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         RestTemplate restTemplate = restTemplateBuilder.build();
         ResponseEntity<List<Byte>> listResponse = restTemplate.exchange(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                HttpMethod.POST, request, new ParameterizedTypeReference<List<Byte>>() {
+                HttpMethod.POST, null, new ParameterizedTypeReference<List<Byte>>() {
                 });
 
         return Bytes.toArray(listResponse.getBody());
@@ -260,6 +222,33 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         }
         String urlPrefix = baseUrl;
         response.setUrlForCustomDepositForm(urlPrefix + customDepositFormURL);
+    }
+
+    @Override
+    public ModifyResult initialPruneAndImport(ModifyApplyCommand cmd) {
+        ModifyResult result = new ModifyResult();
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(org.webcurator.core.visualization.VisualizationConstants.PATH_APPLY_PRUNE_IMPORT));
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        HttpEntity<String> request = createHttpRequestEntity(cmd);
+        RestTemplate restTemplate = getRestTemplateBuilder().build();
+        result = restTemplate.postForObject(uri, request, ModifyResult.class);
+
+        return result;
+    }
+
+    @Override
+    public void operateHarvestResultModification(String stage, String command, long targetInstanceId, int harvestNumber) throws DigitalAssetStoreException {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.OPERATE_HARVEST_RESULT_MODIFICATION))
+                .queryParam("stage", stage)
+                .queryParam("command", command)
+                .queryParam("targetInstanceId", targetInstanceId)
+                .queryParam("harvestNumber", harvestNumber);
+
+        // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
+        RestTemplate restTemplate = restTemplateBuilder.build();
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), null, Void.class);
     }
 
     public String getFileUploadMode() {

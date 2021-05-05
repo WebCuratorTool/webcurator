@@ -1,33 +1,41 @@
 package org.webcurator.core.store.arc;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
-import com.google.common.io.Files;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.util.WebServiceEndPoint;
+import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
+import org.webcurator.core.visualization.VisualizationProcessorManager;
+import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
+import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.test.BaseWCTStoreTest;
 import org.webcurator.core.store.MockIndexer;
-import org.webcurator.core.archive.MockArchive;
-import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.domain.model.core.*;
 import org.apache.commons.httpclient.Header;
 
 public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigitalAssetStoreService> {
 
-    private static String baseDir = "src/test/java/org/webcurator/core/store/arc/archiveFiles";
-    private static String TestCARC = "IAH-20080610152724-00000-test.arc.gz";
-    private static String TestCWARC = "IAH-20080610152754-00000-test.warc.gz";
+    private static String baseDir = "src/test/java/org/webcurator/core/store/warc/";
+    //	private static String TestCARC = "IAH-20080610152724-00000-test.arc.gz";
+//    private static String TestCWARC = "IAH-20080610152754-00000-test.warc.gz";
 
-    private static long targetInstanceOid = 12345;
-    private static int harvestResultNumber = 1;
+    private static final long targetInstanceOid = 14055;
+    private static final int harvestResultNumber = 1;
+    private static final String dbVersion = "4.0.0";
 
     private class ARCFilter implements FilenameFilter {
         public boolean accept(File dir, String name) {
@@ -50,148 +58,111 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
             resultDir.mkdirs();
 
             // copy the test files into them
-            copy(baseDir + "/" + TestCARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
-            copy(baseDir + "/" + TestCWARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
+            // copy(baseDir + "/" + TestCARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
+            // copy(baseDir + "/" + TestCWARC, baseDir + "/" + targetInstanceOid + "/" + harvestResultNumber);
         }
+
+        VisualizationProcessorManager processorManager = mock(VisualizationProcessorManager.class);
+        VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, "logs", "reports");
+        WctCoordinatorClient wctClient = mock(WctCoordinatorClient.class);
+        Set<SeedHistoryDTO> seedHistoryDTOS = new LinkedHashSet<>();
+        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO();
+        seedHistoryDTO.setSeed("https://www.kiwisaver.govt.nz/");
+        seedHistoryDTO.setPrimary(true);
+        seedHistoryDTO.setTargetInstanceOid(targetInstanceOid);
+        seedHistoryDTO.setOid(0);
+        seedHistoryDTOS.add(seedHistoryDTO);
+        when(wctClient.getSeedUrls(targetInstanceOid, harvestResultNumber)).thenReturn(seedHistoryDTOS);
+
+        NetworkMapDomainSuffix aTopDomainParser = new NetworkMapDomainSuffix();
+        NetworkMapNode.setTopDomainParse(aTopDomainParser);
+
+        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir, dbVersion);
+
+        NetworkMapClient networkMapClient = new NetworkMapClientLocal(dbPool, null);
+
+        IndexProcessor indexProcessor = new IndexProcessorWarc(dbPool, targetInstanceOid, harvestResultNumber);
+        indexProcessor.init(processorManager, directoryManager, wctClient, networkMapClient);
+        indexProcessor.processInternal();
     }
 
     public void setUp() throws Exception {
         super.setUp();
-        testInstance.setBaseUrl("http://localhost:8080");
-        testInstance.setRestTemplateBuilder(new RestTemplateBuilder());
+        BDBNetworkMapPool bdbNetworkMapPool = new BDBNetworkMapPool(baseDir, dbVersion);
+        VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, "logs", "report");
+        WctCoordinatorClient wctCoordinatorClient = new WctCoordinatorClient("http://localhost:8080/", new RestTemplateBuilder());
+        NetworkMapClient networkMapClient = new NetworkMapClientLocal(bdbNetworkMapPool, null);
+        VisualizationProcessorManager processorManager = new VisualizationProcessorManager(directoryManager, wctCoordinatorClient, 1);
         testInstance.setBaseDir(baseDir);
 //		testInstance.setArchive(new MockArchive());
         testInstance.setDasFileMover(new MockDasFileMover());
         testInstance.setIndexer(new MockIndexer());
+        testInstance.setNetworkMapClient(networkMapClient);
     }
 
+    @Ignore
     @Test
     public final void testARCGetResource() throws Exception {
         long length = 7109;
         long offset = 6865980;
-        String name = "http://webcurator.sourceforge.net/contact.shtml";
-        HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
-                TestCARC, 200, true);
+        String name = "https://www.kiwisaver.govt.nz/";
 
-        Path res = testInstance.getResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
-        assertTrue(res != null);
-        assertTrue(res.toFile().length() == length);
+        Path res = testInstance.getResource(targetInstanceOid, harvestResultNumber, name);
+        assertNotNull(res);
+        assertEquals(res.toFile().length(), length);
     }
 
     @Test
     public final void testWARCGetResource() throws Exception {
-        long reslength = 7109;
-        long length = 7250;
-        long offset = 1723422;
-        String name = "http://webcurator.sourceforge.net/contact.shtml";
-        HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
-                TestCWARC, 200, true);
+        long resLength = 18295;
+        String name = "https://www.kiwisaver.govt.nz/";
 
-        Path res = testInstance.getResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
-        assertTrue(res != null);
-        assertTrue(res.toFile().length() == reslength);
+        Path res = testInstance.getResource(targetInstanceOid, harvestResultNumber, name);
+        assertNotNull(res);
+        assertEquals(res.toFile().length(), resLength);
     }
 
+    @Ignore
     @Test
     public final void testARCGetSmallResource() throws Exception {
         long length = 7109;
         long offset = 6865980;
-        String name = "http://webcurator.sourceforge.net/contact.shtml";
-        HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
-                TestCARC, 200, true);
+        String name = "https://www.kiwisaver.govt.nz/";
 
-        byte[] res = testInstance.getSmallResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
-        assertTrue(res != null);
-        assertTrue(res.length == length);
+        byte[] res = testInstance.getSmallResource(targetInstanceOid, harvestResultNumber, name);
+        assertNotNull(res);
+        assertEquals(res.length, length);
     }
 
     @Test
     public final void testWARCGetSmallResource() throws Exception {
-        long reslength = 7109;
-        long length = 7250;
-        long offset = 1723422;
-        String name = "http://webcurator.sourceforge.net/contact.shtml";
-        HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
-                TestCWARC, 200, true);
+        long resLength = 18295;
+        String name = "https://www.kiwisaver.govt.nz/";
 
-        byte[] res = testInstance.getSmallResource(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
-        assertTrue(res != null);
-        assertTrue(res.length == reslength);
+        byte[] res = testInstance.getSmallResource(targetInstanceOid, harvestResultNumber, name);
+        assertNotNull(res);
+        assertEquals(res.length, resLength);
     }
 
+    @Ignore
     @Test
     public final void testARCGetHeaders() throws Exception {
         long length = 7109;
         long offset = 6865980;
-        String name = "http://webcurator.sourceforge.net/contact.shtml";
-        HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
-                TestCARC, 200, true);
+        String name = "https://www.kiwisaver.govt.nz/";
 
-        List<Header> headers = testInstance.getHeaders(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
-        assertTrue(headers != null);
-        assertTrue(headers.size() == 4);
+        List<Header> headers = testInstance.getHeaders(targetInstanceOid, harvestResultNumber, name);
+        assertNotNull(headers);
+        assertEquals(4, headers.size());
     }
 
     @Test
     public final void testWARCGetHeaders() throws Exception {
-        long length = 7250;
-        long offset = 1723422;
-        String name = "http://webcurator.sourceforge.net/contact.shtml";
-        HarvestResourceDTO dto = new ArcHarvestResourceDTO(targetInstanceOid, harvestResultNumber, 54321, name, length, offset, 0,
-                TestCWARC, 200, true);
+        String name = "https://www.kiwisaver.govt.nz/";
 
-        List<Header> headers = testInstance.getHeaders(new Long(targetInstanceOid).toString(), harvestResultNumber, dto);
-        assertTrue(headers != null);
-        assertTrue(headers.size() == 4);
-    }
-
-    /**
-     * TODO This test needs to be expanded to actually test more than something-in, something-out
-     *
-     * @throws Exception
-     */
-    @Ignore  //Ignored because it is unreliable and also tests essentially no logic.
-    @Test
-    public final void testCopyAndPrune() throws Exception {
-        String targetInstanceName = new Long(targetInstanceOid).toString();
-        String uri = "http://webcurator.sourceforge.net/contact.shtml";
-
-        File destDir = new File(baseDir, targetInstanceName + "/" + (harvestResultNumber + 1));
-        delDir(destDir);
-
-        List<String> urisToDelete = new ArrayList<String>();
-        List<HarvestResourceDTO> hrsToImport = new ArrayList<HarvestResourceDTO>();
-        urisToDelete.add(uri);
-
-        HarvestResultDTO dto = testInstance.copyAndPrune(targetInstanceName, harvestResultNumber, harvestResultNumber + 1,
-                urisToDelete, hrsToImport);
-        assertNotNull(dto);
-
-        // Ensure the destination directory exists.
-        assertTrue(destDir.exists());
-
-        // Get all the ARC/WARC files from the dest dir.
-        File[] arcFiles = destDir.listFiles(new ARCFilter());
-        assertEquals(1, arcFiles.length);
-
-        delDir(destDir);
-    }
-
-    @Ignore //Ignore because it rely on the service of Store Component
-    @Test
-    public void testCopyAndPruneFromClient(){
-        RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
-        DigitalAssetStoreClient dasClient = new DigitalAssetStoreClient("http://localhost:8082", restTemplateBuilder);
-        dasClient.setFileUploadMode("stream");
-
-        try {
-            dasClient.copyAndPrune("5050",1,2,new ArrayList<String>(),new ArrayList<HarvestResourceDTO>());
-        } catch (DigitalAssetStoreException e) {
-            e.printStackTrace();
-            assert false;
-        }
-
-        assert true;
+        List<Header> headers = testInstance.getHeaders(targetInstanceOid, harvestResultNumber, name);
+        assertNotNull(headers);
+        assertEquals(13, headers.size());
     }
 
     private static void copy(String fromFileName, String toFileName) throws IOException {

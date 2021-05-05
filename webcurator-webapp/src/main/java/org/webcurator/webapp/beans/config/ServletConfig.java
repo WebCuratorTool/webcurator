@@ -13,7 +13,7 @@ import org.springframework.web.servlet.view.UrlBasedViewResolver;
 import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
 import org.springframework.web.servlet.view.tiles3.TilesView;
 import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.ui.common.validation.ProfilesBasicCredentialsValidator;
 import org.webcurator.ui.common.validation.ProfilesFormCredentialsValidator;
 import org.webcurator.ui.groups.command.GeneralCommand;
@@ -112,7 +112,7 @@ public class ServletConfig {
     private ImportedHeritrix3ProfileValidator importedHeritrix3ProfileValidator;
 
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinator wctCoordinator;
 
     @Autowired
     private Heritrix3ProfileHandler heritrix3ProfileHandler;
@@ -443,10 +443,10 @@ public class ServletConfig {
     public TargetInstanceGeneralHandler targetInstanceGeneralHandler() {
         TargetInstanceGeneralHandler bean = new TargetInstanceGeneralHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestAgentManager(baseConfig.harvestAgentManager());
+        bean.setWctCoordinator(wctCoordinator);
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
         bean.setAuthorityManager(baseConfig.authorityManager());
-        bean.setAutoQAUrl("${harvestCoordinator.autoQAUrl}");
+        bean.setAutoQAUrl("${wctCoordinator.autoQAUrl}");
         bean.setEnableQaModule(queueControllerEnableQaModule);
 
         return bean;
@@ -469,8 +469,8 @@ public class ServletConfig {
     public TargetInstanceStateHandler targetInstanceStateHandler() {
         TargetInstanceStateHandler bean = new TargetInstanceStateHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(harvestCoordinator);
-        bean.setHarvestAgentManager(baseConfig.harvestAgentManager());
+        bean.setWctCoordinator(wctCoordinator);
+//        bean.setHarvestAgentManager(baseConfig.harvestAgentManager());
 
         return bean;
     }
@@ -478,7 +478,7 @@ public class ServletConfig {
     public TargetInstanceLogsHandler targetInstanceLogsHandler() {
         TargetInstanceLogsHandler bean = new TargetInstanceLogsHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setWctCoordinator(wctCoordinator);
 
         return bean;
     }
@@ -486,10 +486,10 @@ public class ServletConfig {
     public TargetInstanceResultHandler targetInstanceResultHandler() {
         TargetInstanceResultHandler bean = new TargetInstanceResultHandler();
         bean.setTargetInstanceManager(baseConfig.targetInstanceManager());
-        bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setWctCoordinator(wctCoordinator);
         bean.setDigitalAssetStore(baseConfig.digitalAssetStore());
         bean.setAgencyUserManager(baseConfig.agencyUserManager());
-        bean.setHarvestAgentManager(baseConfig.harvestAgentManager());
+        bean.setTargetInstanceDAO(baseConfig.targetInstanceDao());
         return bean;
     }
 
@@ -1058,5 +1058,4 @@ public class ServletConfig {
 
         return bean;
     }
-
 }

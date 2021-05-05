@@ -4,8 +4,10 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
+
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,8 @@ import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.common.TreeToolControllerAttribute;
+import org.webcurator.core.coordinator.HarvestResultManager;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
@@ -60,13 +64,16 @@ import org.webcurator.core.sites.SiteManagerImpl;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
-import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.LockManager;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClientRemote;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SchedulePattern;
 import org.webcurator.ui.tools.controller.*;
 
@@ -89,7 +96,7 @@ public class BaseConfig {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private  RestTemplateBuilder restTemplateBuilder;
+    private RestTemplateBuilder restTemplateBuilder;
 
     @Autowired
     private ResourceLoader resourceLoader;
@@ -295,11 +302,23 @@ public class BaseConfig {
     @Value("${crawlPoliteness.aggressive.maxPerHostBandwidthUsageKbSec}")
     private long crawlPolitenessAggressiveMaxPerHostBandwidth;
 
+    @Value("${core.base.dir}")
+    private String baseDir;
+
     @Autowired
     private ListsConfig listsConfig;
 
     @Autowired
-    private HarvestCoordinator harvestCoordinator;
+    private WctCoordinator wctCoordinator;
+
+    @Autowired
+    private HarvestResultManager harvestResultManager;
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public VisualizationDirectoryManager visualizationManager() {
+        return new VisualizationDirectoryManager(baseDir, "", "");
+    }
 
     @Bean
     public ResourceBundleMessageSource messageSource() {
@@ -338,11 +357,11 @@ public class BaseConfig {
         hibernateProperties.setProperty("hibernate.dialect", hibernateDialect);
         hibernateProperties.setProperty("hibernate.show_sql", hibernateShowSql);
         // Include setting of default schema, unless the database type is mysql
-        if(!hibernateDialect.toLowerCase().contains("mysql")){
+        if (!hibernateDialect.toLowerCase().contains("mysql")) {
             hibernateProperties.setProperty("hibernate.default_schema", hibernateDefaultSchema);
         }
         hibernateProperties.setProperty("hibernate.transaction.factory_class", "org.hibernate.transaction.JDBCTransactionFactory");
-        hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans","true");
+        hibernateProperties.setProperty("hibernate.enable_lazy_load_no_trans", "true");
 
         bean.setHibernateProperties(hibernateProperties);
 
@@ -363,7 +382,7 @@ public class BaseConfig {
     @Bean
     @Autowired
     public HibernateTransactionManager transactionManager() {
-        HibernateTransactionManager hibernateTransactionManager=new HibernateTransactionManager(sessionFactory().getObject());
+        HibernateTransactionManager hibernateTransactionManager = new HibernateTransactionManager(sessionFactory().getObject());
 //        hibernateTransactionManager.setTransactionSynchronization(AbstractPlatformTransactionManager.SYNCHRONIZATION_ALWAYS);
         return hibernateTransactionManager;
     }
@@ -384,8 +403,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public LogReader logReader(){
-        LogReader bean=new LogReaderImpl();
+    public LogReader logReader() {
+        LogReader bean = new LogReaderImpl();
         return bean;
     }
 
@@ -405,6 +424,13 @@ public class BaseConfig {
         bean.setDAS(digitalAssetStore());
         bean.setLogReader(new LogReaderClient(digitalAssetStoreBaseUrl, restTemplateBuilder));
         return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false)
+    public NetworkMapClient networkMapClientReomote() {
+        return new NetworkMapClientRemote(digitalAssetStoreBaseUrl, restTemplateBuilder);
     }
 
     @Bean
@@ -442,19 +468,7 @@ public class BaseConfig {
         bean.setGlobals(globalsMap);
 
         bean.setRulesFileName("rules.drl");
-        bean.setQualityReviewFacade(qualityReviewFacade());
-        //bean.setHarvestCoordinator(harvestCoordinator());
         bean.setTargetInstanceManager(targetInstanceManager());
-
-        return bean;
-    }
-
-    @Bean
-    public QualityReviewFacade qualityReviewFacade() {
-        QualityReviewFacade bean = new QualityReviewFacade();
-        bean.setDigialAssetStore(digitalAssetStore());
-        bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setAuditor(audit());
 
         return bean;
     }
@@ -542,8 +556,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public PermissionDAO permissionDAO(){
-        PermissionDAOImpl bean=new PermissionDAOImpl();
+    public PermissionDAO permissionDAO() {
+        PermissionDAOImpl bean = new PermissionDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
         return bean;
     }
@@ -608,7 +622,8 @@ public class BaseConfig {
         bean.setHarvestAgentFactory(harvestAgentFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
-
+        bean.setWctCoordinator(wctCoordinator);
+        bean.setHarvestResultManager(harvestResultManager);
         return bean;
     }
 
@@ -618,6 +633,33 @@ public class BaseConfig {
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
 
+        return bean;
+    }
+
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerNormal() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_CRAWLING);
+        return bean;
+    }
+
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerModification() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_MODIFYING);
+        return bean;
+    }
+
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_INDEXING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerIndex() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(harvestAgentManager());
+        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
         return bean;
     }
 
@@ -640,8 +682,6 @@ public class BaseConfig {
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setAutoQAUrl(autoQAUrl);
-        //bean.setQaRecommendationService(qaRecommendationService());
-        bean.setQualityReviewFacade(qualityReviewFacade());
         bean.setEnableQaModule(enableQaModule);
         bean.setAutoPrunedNote(autoPrunedNote);
 
@@ -683,7 +723,7 @@ public class BaseConfig {
 
         PermMappingSiteListener permMappingSiteListener = new PermMappingSiteListener();
         permMappingSiteListener.setStrategy(permissionMappingStrategy());
-        List<SiteManagerListener> permMappingSiteListenerList= new ArrayList<>(
+        List<SiteManagerListener> permMappingSiteListenerList = new ArrayList<>(
                 Arrays.asList(permMappingSiteListener)
         );
         bean.setListeners(permMappingSiteListenerList);
@@ -810,7 +850,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public JobDetail processScheduleJob() {
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("harvestCoordinator", harvestCoordinator);
+        jobDataMap.put("wctCoordinator", wctCoordinator);
 
         JobDetail bean = JobBuilder.newJob(ScheduleJob.class)
                 .withIdentity("ProcessSchedule", "ProcessScheduleGroup")
@@ -840,7 +880,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean checkBandwidthTransitionsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator);
+        bean.setTargetObject(wctCoordinator);
         bean.setTargetMethod("checkForBandwidthTransition");
 
         return bean;
@@ -943,6 +983,7 @@ public class BaseConfig {
         bean.setNotificationSubject("Core");
         bean.setCheckType("Bandwidth");
 //        bean.setHarvestCoordinator(harvestCoordinator);
+        bean.setHarvestCoordinator(wctCoordinator);
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setHarvestBandwidthManager(harvestBandwidthManager());
         bean.setNotifier(checkNotifier());
@@ -1003,7 +1044,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeDigitalAssetsJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator);
+        bean.setTargetObject(wctCoordinator);
         bean.setTargetMethod("purgeDigitalAssets");
 
         return bean;
@@ -1028,7 +1069,7 @@ public class BaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public MethodInvokingJobDetailFactoryBean purgeAbortedTargetInstancesJob() {
         MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(harvestCoordinator);
+        bean.setTargetObject(wctCoordinator);
         bean.setTargetMethod("purgeAbortedTargetInstances");
 
         return bean;
@@ -1154,17 +1195,16 @@ public class BaseConfig {
         return bean;
     }
 
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
-    public TreeToolControllerAttribute treeToolControllerAttribute() {
-        TreeToolControllerAttribute bean = new TreeToolControllerAttribute();
-        bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
-        bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
-        bean.setAutoQAUrl(harvestCoordinatorAutoQAUrl);
-        return bean;
-    }
-
+//    @Bean
+//    @Scope(BeanDefinition.SCOPE_SINGLETON)
+//    @Lazy(false)
+//    public TreeToolControllerAttribute treeToolControllerAttribute() {
+//        TreeToolControllerAttribute bean = new TreeToolControllerAttribute();
+//        bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
+//        bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
+//        bean.setAutoQAUrl(harvestCoordinatorAutoQAUrl);
+//        return bean;
+//    }
 
     //TODO: uncheck
 //    @Bean

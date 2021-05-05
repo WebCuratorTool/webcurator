@@ -11,8 +11,16 @@
 <input type="hidden" name="<%=TargetInstanceCommand.PARAM_HR_ID%>" value=""/>
 <input type="hidden" name="<%=TargetInstanceCommand.PARAM_REJREASON_ID%>" value=""/>
 
-<script>
+<div id='html-select-tag' style='display: none;'>
+    <a href="#" onclick="rejectHarvest();">Reject for Reason:</a>&nbsp;
+    <select name="<%=TargetInstanceCommand.PARAM_REASON%>">
+        <c:forEach items="${reasons}" var="o">
+            <option value="<c:out value="${o.oid}"/>"><c:out value="${o.name}"/></option>
+        </c:forEach>
+    </select>&nbsp;
+</div>
 
+<script>
   function clickReIndex(hrOid) {
     if( confirm('<spring:message code="ui.label.targetinstance.results.confirmReIndex" javaScriptEscape="true"/>')) {
   	  document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_REINDEX%>'; 
@@ -49,6 +57,13 @@
     }
     return false;
   }
+
+
+    function clickViewPatching(hrOid){
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_CMD%>.value='<%=TargetInstanceCommand.ACTION_VIEW_PATCHING%>';
+        document.forms['tabForm'].<%=TargetInstanceCommand.PARAM_HR_ID%>.value=hrOid;
+        document.forms['tabForm'].submit();
+    }
 
   //When viewing this target instance from the "Harvest history" screen, clicking on "review" will 
   //cause the "Return to Harvest History Page" to forget which target instance was originally being
@@ -93,25 +108,36 @@
 				    <td class="annotationsLiteRow"><c:out value="${hr.provenanceNote}"/></td>
 				    <td class="annotationsLiteRow">
 				    <c:choose>
-						<c:when test="${hr.state == 1}">
-							Endorsed
-						</c:when>
-						<c:when test="${hr.state == 2}">
-							Rejected
-						</c:when>
-						<c:when test="${hr.state == 3}">
-						    Indexing
-						</c:when>
-						<c:when test="${hr.state == 4}">
-						    Aborted
-						</c:when>
+				        <c:when test="${hr.state == 0}">
+                            <!--Nothing-->
+                        </c:when>
+                        <c:when test="${hr.state == 1}">
+                            Endorsed
+                        </c:when>
+                        <c:when test="${hr.state == 2}">
+                            Rejected
+                        </c:when>
+                        <c:when test="${hr.state == 3}">
+                            Indexing
+                        </c:when>
+                        <c:when test="${hr.state == 4}">
+                            Aborted
+                        </c:when>
+                        <c:when test="${hr.state == 5}">
+                            Crawling
+                        </c:when>
+                        <c:when test="${hr.state == 6}">
+                            Modifying
+                        </c:when>
+                        <c:otherwise>
+                            Unknown
+                        </c:otherwise>
 				    </c:choose>  
 				    </td>
 				    <td class="annotationsLiteRow">
 				    <c:if test="${editMode && hr.state != 4}">
 				    	<c:choose>
-				    	
-				    		<c:when test="${hr.state eq 3}"> <!-- Indexing -->
+				    		<c:when test="${instance.state ne 'Patching' && hr.state eq 3}"> <!-- Indexing -->
 				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
 					    		<a href="#" onclick="javascript: return clickReIndex(<c:out value="${hr.oid}"/>);">Restart Indexing</a>
 					    		<c:choose>
@@ -128,9 +154,9 @@
 					    	&nbsp;
 				    		</c:when>
 				    		
-				    		<c:when test="${instance.state eq 'Harvested' && hr.state != 3}">    		
-				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">    		
-					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=<c:out value="${hr.targetInstance.oid}"/>&harvestResultId=<c:out value="${hr.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return checkForHistory()">Review</a>
+				    		<c:when test="${(instance.state eq 'Harvested' || instance.state eq 'Patching') && hr.state != 3 && hr.state != 5 && hr.state != 6}">
+				    		<authority:hasPrivilege privilege="<%=Privilege.ENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
+					    	<a href="curator/target/quality-review-toc.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">Review</a>
 					    	&nbsp;|&nbsp;
 					    	<a href="#" onclick="javascript: return clickEndorse(<c:out value="${hr.oid}"/>);">Endorse</a>
 					    	&nbsp;|&nbsp;
@@ -151,32 +177,32 @@
 					    	&nbsp;
 				    		</c:when>
 				    		
-				    		<c:when test="${(instance.state eq 'Endorsed' || instance.state eq 'Rejected') && hr.state != 3}">    		   		    		
-					    	<authority:hasPrivilege privilege="<%=Privilege.ARCHIVE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
-					    	<c:if test="${hr.state == 1}">
-					    	<c:choose>
-					    	<c:when test="${customDepositFormRequired}">
-					    	<a href="curator/target/deposit-form-envelope.html?targetInstanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestResultNumber=<c:out value="${hr.harvestNumber}"/>">Next</a>
-					    	</c:when>
-					    	<c:otherwise>
-				    		<a href="curator/archive/submit.html?instanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return confirm('<spring:message code="ui.label.targetinstance.results.confirmSubmit" javaScriptEscape="true"/>');">Submit to Archive</a>
-				    		</c:otherwise>
-				    		</c:choose>
-				    		</c:if>
-					    	</authority:hasPrivilege>    		
-					    	<authority:hasPrivilege privilege="<%=Privilege.UNENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
-					    	<c:if test="${hr.state == 1}">
-					    	&nbsp;|&nbsp;
-					    	<a href="#" onclick="javascript: return clickUnEndorse(<c:out value="${hr.oid}"/>);">UnEndorse</a>
-				    		</c:if>
-					    	<c:if test="${hr.state eq 2}">
-					    	Rejection&nbsp;Reason:&nbsp;<c:out value="${hr.rejReason.name}"/>    		
-					    	</c:if>
-					    	</authority:hasPrivilege>    		
+				    		<c:when test="${(instance.state eq 'Endorsed' || instance.state eq 'Rejected') && hr.state != 3 && hr.state != 5 && hr.state != 6}">
+                                <authority:hasPrivilege privilege="<%=Privilege.ARCHIVE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
+                                <c:if test="${hr.state == 1}">
+                                <c:choose>
+                                <c:when test="${customDepositFormRequired}">
+                                <a href="curator/target/deposit-form-envelope.html?targetInstanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestResultNumber=<c:out value="${hr.harvestNumber}"/>">Next</a>
+                                </c:when>
+                                <c:otherwise>
+                                <a href="curator/archive/submit.html?instanceID=<c:out value="${hr.targetInstance.oid}"/>&harvestNumber=<c:out value="${hr.harvestNumber}"/>" onclick="return confirm('<spring:message code="ui.label.targetinstance.results.confirmSubmit" javaScriptEscape="true"/>');">Submit to Archive</a>
+                                </c:otherwise>
+                                </c:choose>
+                                </c:if>
+                                </authority:hasPrivilege>
+                                <authority:hasPrivilege privilege="<%=Privilege.UNENDORSE_HARVEST%>" scope="<%=Privilege.SCOPE_OWNER%>">
+                                <c:if test="${hr.state == 1}">
+                                &nbsp;|&nbsp;
+                                <a href="#" onclick="javascript: return clickUnEndorse(<c:out value="${hr.oid}"/>);">UnEndorse</a>
+                                </c:if>
+                                <c:if test="${hr.state eq 2}">
+                                Rejection&nbsp;Reason:&nbsp;<c:out value="${hr.rejReason.name}"/>
+                                </c:if>
+                                </authority:hasPrivilege>
 				    		</c:when>
-				    		<c:otherwise>
-				    		&nbsp;
-				    		</c:otherwise>
+                            <c:otherwise>
+
+                            </c:otherwise>
 				    	</c:choose>
 				    </c:if>
 				    <c:if test="${!editMode}">
@@ -184,8 +210,14 @@
 					    		<c:if test="${hr.state eq 2}">
 					    		Rejection&nbsp;Reason:&nbsp;<c:out value="${hr.rejReason.name}"/>    		
 					    		</c:if>
-					    		
 				    </c:if>
+				    <c:if test="${hr.harvestNumber ne 1}">
+                        <!--a href="#" onclick="javascript: return clickViewPatching(${hr.oid});">View Patching Progress</a-->
+                        <c:if test="${hr.state!=3 && hr.state!=5 && hr.state!=6}">
+                                &nbsp;|&nbsp;
+                        </c:if>
+                        <a href="curator/target/harvest-result-summary.html?targetInstanceOid=${hr.targetInstance.oid}&harvestResultId=${hr.oid}&harvestNumber=${hr.harvestNumber}" onclick="return checkForHistory()">Summary</a>
+                    </c:if>
 				    </td>
 				  </tr>
 			  </c:forEach>
@@ -193,3 +225,15 @@
 		</c:choose>
 	</table>
 </div>
+
+<script src="spa/dist/jquery/jquery-3.4.1.min.js"></script>
+<script src="spa/dist/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="spa/dist/adminlte/js/adminlte.js"></script>
+<script src="spa/dist/jquery/menu/jquery.contextMenu.js"></script>
+<script src="spa/dist/jquery/menu/jquery.ui.position.js"></script>
+<script src="spa/dist/ag-grid/ag-grid-community.js"></script>
+<script src="spa/tools/visualization.js"></script>
+
+<script>
+
+</script>

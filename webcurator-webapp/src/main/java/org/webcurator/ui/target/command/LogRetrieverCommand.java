@@ -15,6 +15,8 @@
  */
 package org.webcurator.ui.target.command;
 
+import org.webcurator.domain.model.core.HarvestResult;
+
 /**
  * Command class for retrieving log files from the server.
  * @author beaumontb
@@ -23,6 +25,10 @@ package org.webcurator.ui.target.command;
 public class LogRetrieverCommand {
 	private Long targetInstanceOid;
 	private String logFileName;
+	/** log stage type */
+	private String prefix= HarvestResult.PATCH_STAGE_TYPE_CRAWLING;
+	/** harvest result number */
+	private int harvestResultNumber;
 
 	/**
 	 * @return the logFileName
@@ -47,5 +53,21 @@ public class LogRetrieverCommand {
 	 */
 	public void setTargetInstanceOid(Long targetInstanceOid) {
 		this.targetInstanceOid = targetInstanceOid;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	public int getHarvestResultNumber() {
+		return harvestResultNumber;
+	}
+
+	public void setHarvestResultNumber(int harvestResultNumber) {
+		this.harvestResultNumber = harvestResultNumber;
 	}
 }

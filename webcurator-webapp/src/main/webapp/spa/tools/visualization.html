@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Target Instance</title>
+  <link rel="stylesheet" href="../dist/font/fontawesome-free.min.css">
+  <link rel="stylesheet" href="../dist/adminlte/css/adminlte.min.css">
+  <link rel="stylesheet" href="../dist/fancytree/skin-win8/ui.fancytree.min.css">
+  <link rel="stylesheet" href="../dist/jquery/menu/jquery.contextMenu.css">
+  <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
+  <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
+  <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css">
+  <link rel="stylesheet" href="../dist/toastr/toastr.min.css">
+
+  <link rel="stylesheet" href="visualization.css">
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to to the body tag
+to get the desired effect
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body unselectable="on" class="layout-navbar-fixed sidebar-collapse">
+<div class="card main-tab" id="main-tab-group">
+  <nav class="main-header navbar navbar-expand navbar-dark" id="btn-group-main-tabs">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <div class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn bg-secondary btn-main-tab active" name="networkmap">
+          <input type="radio" name="options" autocomplete="off" checked> <i class="fas fa-vector-square"></i>
+        </label>
+        <label class="btn bg-secondary btn-main-tab" name="tree-harvest-struct">
+          <input type="radio" name="options" autocomplete="off"> <i class="fas fa-bezier-curve"></i>
+        </label>
+        <label class="btn bg-secondary btn-main-tab" name="tree-url-names">
+          <input type="radio" name="options" autocomplete="off"> <i class="fa fa-folder-open"></i>
+        </label>
+        <label class="btn bg-secondary btn-main-tab" name="candidate-query">
+          <input type="radio" name="options" autocomplete="off"> <i class="far fa-list-alt"></i>
+        </label>
+      </div>
+    </ul>
+
+    <!-- SEARCH FORM -->
+    <form class="form-inline ml-3 hidden" style="margin-left: 10px;" id="menu-tool-bar">
+      <div class="input-group">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="networkmap" style="display: none;">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-harvest-struct" style="display: none;">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
+        <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
+        <div class="input-group-append">
+          <button type="button" class="btn btn-flat btn-outline-secondary" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
+          <button type="button" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+      <!-- Derived Harvest Results -->
+      <li class="nav-item dropdown" style="margin-right: 5px;">
+        <a class="nav-link bg-secondary" data-toggle="dropdown" href="#" onclick="updateDerivedHarvestResults();">
+          <i class="fas fa-project-diagram">&nbsp;Derived</i>
+          <!-- Derived -->
+          <span class="badge badge-warning navbar-badge hidden" id="derived-hr-badge">0</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" id="derived-hr-list">
+          <span class="dropdown-item dropdown-header">Derived Harvest Results</span>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-external-link-square-alt"></i> 1
+            <span class="float-right text-muted text-sm">Summary</span>
+          </a>
+        </div>
+      </li>
+
+      <!-- To be modified: Cart -->
+      <div class="btn-group">
+        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; To Be Modified</i></button>
+        <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
+          <span class="sr-only">Toggle Dropdown</span>
+          <div class="dropdown-menu" role="menu">
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showRecrawl();"><i class="fas fa-link text-info"></i> &nbsp; Repair by Crawl</a>
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Repair by File</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item template-download" href="#" template="bulk-modification-template.xlsx"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Modification Template</a>
+          </div>
+        </button>
+      </div>
+
+      <li class="nav-item">
+        <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
+      </li>
+      <li class="nav-item">
+        <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
+      </li>
+    </ul>
+  </nav> <!-- End of Header -->
+
+  <!-- Network Map -->
+  <div class="card-body card-main" id="networkmap" style="height: calc(100vh - 50px); width: 100vw;">
+    <!-- Networmap Canvas -->
+    <div id="network-map-canvas" style="position: absolute; height: calc(100% + 2px); width: calc(100% + 2px); margin-left: -1px; margin-top: -1px;"></div>
+
+    <div class="card" style="position: absolute; left: 1px; top: 60px; width: 400px; margin: 0; padding: 0;">
+      <div class="card-header" style="padding-top: 3px;">
+        <h3 class="card-title">Catagory</h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool btn-side-group-type text-primary" name="statuscode">Status</button>
+          <button type="button" class="btn btn-tool btn-side-group-type" name="contenttype">Type</button>
+          <button type="button" class="btn btn-tool text-primary" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
+        </div>
+      </div>
+      <div class="card-body" id="networkmap-side-container" style="margin: 0; padding: 0; height: calc(100vh - 100px);">
+         <!-- Side Card -->
+        <div style="height: 100%; width: 100%;">
+          <div class="networkmap-insight ag-theme-balham" id="networkmap-side-table-group-by-status-code"> </div>
+          <div class="networkmap-insight ag-theme-balham hidden" id="networkmap-side-table-group-by-content-type"> </div>
+        </div> <!-- end of side card -->
+      </div> <!-- end of card body -->
+    </div> <!-- end of card -->
+
+    <!-- Domain Name -->
+    <div style="position: absolute; left: 450px; top: 60px; margin: 0; padding: 0;">
+      <h3 class="text-muted">Current Domain: <span class="text-dark" id="networkmap-side-title">Root</span></h3>
+    </div>
+
+    <!-- Redraw and Collapse -->
+    <div style="position: absolute; right: 5px; top: 60px; margin: 0; padding: 0;">
+      <div class="btn-group">
+        <!-- <button type="button" class="btn btn-default" onclick="networkmap.reload();">Reload</button> -->
+        <button type="button" class="btn btn-default" onclick="networkmap.graph.redraw();">Redraw</button>
+        <button type="button" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse</button>
+      </div>
+    </div>
+  </div>    <!-- End of card body -->
+
+
+  <!-- TreeView: Harvest Struct -->
+  <div class="card-body card-main hidden" id="tree-harvest-struct" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
+    <table id="hierachy-tree-harvest-struct" class="hierachy-tree" style="width: 100%; outline: none;">
+      <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
+      <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
+    </table>
+  </div>
+    
+  <!-- TreeView: URL Names -->
+  <div class="card-body card-main hidden" id="tree-url-names" style="width: 100%; height:100%; overflow-x: hidden; overflow-y: scroll;">
+      <table id="hierachy-tree-url-names" class="hierachy-tree" style="width: 100%; outline: none;">
+        <colgroup><col width="50px"><col width="*"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"><col width="80px"></colgroup>
+        <thead><tr><th>Action</th><th>URL</th><th>Type</th><th>Status</th><th>Size</th><th>URLs</th><th>Success</th><th>Failed</th><th>TotSize</th></tr></thead>
+    </table>
+  </div>
+
+  <!-- Query Grid -->
+  <div class="card-body card-main hidden" id="candidate-query" style="width: 100%; height: 100%; overflow: hidden;">
+    <div id="grid-modify-candidate" class="ag-theme-balham" style="width: 100%; height: 100%;"> </div>
+  </div>
+  
+  <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
+</div>
+
+<!-- Popup window for modification-->
+<div class="popup-window hidden" id="popup-window-modification">
+  <div class="card" style="margin: 60px 10vw 0 10vw; border: solid; border-width: 0 5px 5px 5px; border-color: #343a40;">
+    <!-- End of card body -->
+    <nav class="main-header navbar navbar-expand navbar-dark" id="btn-group-modification">
+      <!-- Left navbar links -->
+      <ul class="navbar-nav">
+        <li class="nav-item flag-apply" style="margin-right: 20px;">
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.preApply();">Next</button>
+        </li>
+        <li class="nav-item flag-submit hidden" style="margin-right: 20px;">
+          <button type="button" class="btn btn-block btn-primary" onclick="javascript:$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide();">Previous</button>
+        </li>
+        <li class="nav-item"><h3 class="text-secondary">TO be pruned and to be imported URLs</h3></li>
+      </ul>
+
+      <!-- Right navbar links -->
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item flag-submit hidden" style="margin-right: 20px;">
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.confirmApply();">Apply</button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modification').hide();">Close</button>
+        </li>
+      </ul>
+    </nav> <!-- End of Header -->
+
+    <!-- Modification Cart -->
+    <div class="card-body none-margin-padding flag-apply" id="pop-tobe-modified" style="width: calc(80vw - 10px); height: 80vh;">
+          <div id="grid-modify-tobe-modified" class="ag-theme-balham" style="width: 100%; height: calc(80vh - 150px);"></div>
+          <div class="row" style="margin: 10px 5px 0 5px; height: 150px;">
+            <div class="col-8">
+              <div class="form-group">
+                <label for="provenance-note">Provenance Note</label>
+                <textarea id="provenance-note" class="form-control" rows="3"  placeholder="Provenance Note ..."></textarea>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="form-group" id="radio-group-replace-status">
+                <label for="radio-group-modified-date">Prune the existing URLs when repairing the URLs</label>
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="radioReplaceStatusAll" name="r-status" flag="1" checked>
+                  <label for="radioReplaceStatusAll" style="font-weight: normal;">Prune all existing urls</label>
+                </div>
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="radioReplaceStatusFailed" name="r-status" flag="2">
+                  <label for="radioReplaceStatusFailed" style="font-weight: normal;">Prune failed existing urls</label>
+                </div>
+                <div class="custom-control custom-radio">
+                  <input type="radio" id="radioReplaceStatusNone" name="r-status" flag="3">
+                  <label for="radioReplaceStatusNone" style="font-weight: normal;">Not prune existing urls</label>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+
+    <div class="card-body none-margin-padding flag-submit hidden" id="pop-tobe-modified-verify" style="width: calc(80vw - 10px); height: 80vh;">
+      <div id="grid-modify-tobe-modified-verified" class="ag-theme-balham" style="width: 100%; height: 100%;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Popup Hop Path-->
+<div class="popup-window" id="popup-window-hop-path">
+<div class="card card-primary popup-content">
+  <div class="card-header">
+    <h3 class="card-title">Hop Path</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" onclick="$('#popup-window-hop-path').hide();"><i class="fas fa-times"></i>
+      </button>
+    </div>
+    <!-- /.card-tools -->
+  </div>
+  <!-- /.card-header -->
+  <div class="card-body none-margin-padding" id="hoppath-canvas" style="background: white; height: calc(100% - 50px);">
+  </div>   <!-- /.card-body -->
+</div> <!-- /.card -->
+</div>
+
+<!-- Popup Single Patch Crawl-->
+<div class="popup-window" id="popup-window-single-recrawl">
+<div class="card card-primary popup-content">
+  <div class="card-header">
+    <h3 class="card-title">Single Patch Crawl</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" onclick="$('#popup-window-single-recrawl').hide();"><i class="fas fa-times"></i></button>
+    </div>
+    <!-- /.card-tools -->
+  </div>  <!-- /.card-header -->
+  
+  <div class="card-body">
+    <div class="form-group">
+      <label for="specifyTargetUrlInputForRecrawl">Specify Target URL</label>
+      <input type="input" class="form-control" id="specifyTargetUrlInputForRecrawl" placeholder="Specify Target URL">
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="row">
+      <div class="col-8">
+        <div class="custom-control custom-checkbox">
+          <input class="custom-control-input" type="checkbox" id="checkbox-prune-of-single-import" checked>
+          <label for="checkbox-prune-of-single-import" class="custom-control-label">Prune the existing content when exist</label>
+        </div>
+      </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleRecrawl();">OK</button>
+      </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-single-recrawl').hide();">Close</button>
+      </div>
+    </div>
+  </div>
+</div> <!-- /.card -->
+</div>
+
+<!-- Popup Single Import Input-->
+<div class="popup-window" id="popup-window-single-import" style="z-index: 9000;">
+<span class="hidden" id="single-import-index"></span>
+<div class="card card-primary popup-content">
+  <div class="card-header">
+    <h3 class="card-title">Single Import</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" onclick="$('#popup-window-single-import').hide();"><i class="fas fa-times"></i></button>
+    </div>
+    <!-- /.card-tools -->
+  </div>
+  <!-- /.card-header -->
+  
+  <div class="card-body">
+    <div class="form-group">
+      <label for="specifyTargetUrlInput">Specify Target URL</label>
+      <input type="input" class="form-control" id="specifyTargetUrlInput" placeholder="Specify Target URL">
+    </div>
+
+    <div class="form-group">
+      <label for="sourceFile">Import from disk file</label>
+      <div class="input-group">
+        <div class="custom-file">
+          <input type="file" class="custom-file-input" id="sourceFile" name="sourceFile">
+          <label class="custom-file-label" for="sourceFile" id="label-source-file">Choose file</label>
+        </div>
+      </div>
+    </div>
+      
+    <div class="form-group clearfix" id="radio-group-modified-date">
+      <label for="radio-group-modified-date">Modified Datetime</label>
+      <div class="custom-control custom-radio d-inline">
+        <input type="radio" id="radioModifiedDateModeTbc" name="r1" flag="TBC" checked>
+        <label for="radioModifiedDateModeTbc" style="font-weight: normal;">TBC</label>
+      </div>
+      <div class="custom-control custom-radio d-inline">
+        <input type="radio" id="radioModifiedDateModeFile" name="r1" flag="File">
+        <label for="radioModifiedDateModeFile" style="font-weight: normal;">File Modified Time</label>
+      </div>
+      <div class="custom-control custom-radio d-inline">
+        <input type="radio" id="radioModifiedDateModeCustom" name="r1" flag="CUSTOM">
+        <label for="radioModifiedDateModeCustom" style="font-weight: normal;">Custom</label>
+        <input type="datetime-local" id="datetime-local-customizard">
+      </div>  
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="row">
+      <div class="col-8">
+        <div class="custom-control custom-checkbox">
+          <input class="custom-control-input" type="checkbox" id="checkbox-prune-of-single-import" checked>
+          <label for="checkbox-prune-of-single-import" class="custom-control-label">Prune the existing content when exist</label>
+        </div>
+      </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.singleImport();">OK</button>
+      </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-single-import').hide();">Close</button>
+      </div>
+    </div>
+  </div>
+</div> <!-- /.card -->
+</div>
+
+<!-- Popup Bulk Import-->
+<div class="popup-window" id="popup-window-bulk-import">
+  <input type="file" class="hidden" id="bulkImportMetadataFile">
+  <div class="card card-primary popup-content">
+    <div class="card-header">
+      <h3 class="card-title">Bulk Import</h3>
+      <div class="card-tools"><button type="button" class="btn btn-tool" onclick="$('#popup-window-bulk-import').hide();"><i class="fas fa-times"></i></button></div>
+      <!-- /.card-tools -->
+    </div>  <!-- /.card-header -->
+
+    <div class="card-body none-margin-padding">
+        <div id="grid-bulk-import-prepare" class="ag-theme-balham" style="width: 100%; height: 65vh;"> </div>
+    </div>  <!-- /.card-body -->
+
+    <div class="card-footer">
+      <div class="row">
+        <div class="col-8"></div>
+        <div class="col-2"><button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.processorModify.bulkAddData2ToBeImportedGrid();"  id="btn-bulk-import-submit" step="0">OK</button></div>
+        <div class="col-2"><button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-bulk-import').hide();">Close</button></div>
+      </div>
+    </div>
+    <div class="overlay dark" style="display: none; z-index: 9999;"><i class="fas fa-circle-notch text-default"></i></div>
+  </div> <!-- /.card -->
+</div>
+
+
+<!-- Popup Query Input-->
+<div class="popup-window" id="popup-window-query-input">
+<div class="card card-primary popup-content">
+  <div class="card-header">
+    <h3 class="card-title">Query URLs</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+    </div>
+    <!-- /.card-tools -->
+  </div>
+  <!-- /.card-header -->
+  <div class="card-body">
+    <div class="form-group">
+      <label for="queryDomainName">Domain Name:</label>
+      <input type="input" class="form-control" id="queryDomainName" placeholder="Key words of Domain Name, multiple key words divided by ','">
+    </div>
+
+    <div class="form-group">
+      <label for="queryUrlName">URL Name:</label>
+      <input type="input" class="form-control" id="queryUrlName" placeholder="Key words of URL Name, multiple key words divided by ','">
+    </div>
+
+    <div class="form-group">
+      <label for="queryStatusCode">Status Code:</label>
+      <input type="input" class="form-control" id="queryStatusCode" placeholder="Key words of Status Code, multiple key words divided by ','">
+    </div>
+
+    <div class="form-group">
+      <label for="queryContentType">Content Type:</label>
+      <input type="input" class="form-control" id="queryContentType" placeholder="Key words of Content Type, multiple key words divided by ','">
+    </div>
+  </div>  <!-- /.card-body -->
+
+  <div class="card-footer">
+    <div class="row">
+      <div class="col-8">
+      </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.queryHarvest();">Query</button>
+          </div>
+      <div class="col-2">
+          <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-query-input').hide();">Close</button>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="card-footer" style="width: 100%; position: absolute; bottom: 0;">
+  </div> -->
+
+</div> <!-- /.card -->
+</div>
+
+
+<div class="popup-window" id="popup-window-derived-summary">
+<div class="card card-primary popup-content">
+  <div class="card-header">
+    <h3 class="card-title">Summary</h3>
+
+    <div class="card-tools">
+      <button type="button" class="btn btn-tool btn-full-screen" onclick="toggleScreenSize();"><i class="fas fa-expand"></i>
+      </button>
+
+      <button type="button" class="btn btn-tool" onclick="$('#popup-window-derived-summary').hide();"><i class="fas fa-times"></i>
+      </button>
+
+    </div>
+    <!-- /.card-tools -->
+  </div>
+  <!-- /.card-header -->
+  <div class="card-body none-margin-padding" id="body-derived-summary" style="background: white; height: calc(100vh - 55px); width: 100vw; overflow-y: auto; overflow-x: hidden;">
+  </div>   <!-- /.card-body -->
+</div> <!-- /.card -->
+</div>
+
+<div id="popup-window-index" class="card popup-window hidden">
+  <div class="card-body" style="width: 100vw; height: 100vh;">
+      <div id="progressIndexer" class="text-dark" style="width: 100%; margin-top: calc(40vh); text-align: center; font-size: 1.5em;">Indexing: <span id="progressIndexerValue">0</span>%</div>
+  </div>
+  <div class="overlay dark"><i class="fas fa-circle-notch"></i></div>
+</div>
+
+
+<script src="../dist/jquery/jquery-3.4.1.min.js"></script>
+<script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="../dist/plugins/bs-custom-file-input.min.js"></script>
+<script src="../dist/adminlte/js/adminlte.js"></script>
+<script src="../dist/vis/vis-network.js"></script>
+<script src="../dist/fancytree/jquery.fancytree-all-deps.js"></script>
+<script src="../dist/fancytree/modules/jquery.fancytree.table.js"></script>
+<script src="../dist/fancytree/modules/jquery.fancytree.wide.js"></script>
+<script src="../dist/fancytree/modules/jquery.fancytree.logger.js"></script>
+<script src="../dist/jquery/menu/jquery.contextMenu.js"></script>
+<script src="../dist/jquery/menu/jquery.ui.position.js"></script>
+<script src="../dist/ag-grid/ag-grid-community.js"></script>
+<script src="../dist/plugins/moment-with-locales.min.js"></script>
+<script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script>
+<script src="../dist/save-file/FileSaver.js"></script>
+<script src="../dist/toastr/toastr.js"></script>
+
+<script src="visualization.js"></script>
+<script src="networkmap-graph.js"></script>
+<script src="networkmap-grid.js"></script>
+<script src="networkmap-menumap.js"></script>
+<script src="networkmap.js"></script>
+<script src="popup-modify-harvest-processor.js"></script>
+<script src="popup-modify-harvest.js"></script>
+<script src="popup-hop-path.js"></script>
+<script src="url-browse.js"></script>
+
+<script>
+    var urlParameters=getUrlVars();
+    var jobId=parseInt(urlParameters["targetInstanceOid"]);
+    var harvestResultId=parseInt(urlParameters["harvestResultId"]);
+    var harvestResultNumber=parseInt(urlParameters["harvestNumber"]);
+
+    var visHopPath=new HopPath('hoppath-canvas', jobId, harvestResultNumber);
+    var networkmap=new NetworkMap();
+    var gPopupModifyHarvest=new PopupModifyHarvest(jobId, harvestResultId, harvestResultNumber);
+    
+    console.log(parent);
+    var gParentHarvestResultViewTab=parent;
+    var isToFullScreen=false;
+
+    function toggleScreenSize(){
+      console.log(isToFullScreen);
+      if(!gParentHarvestResultViewTab || !gParentHarvestResultViewTab.toggleContentWindowSize){
+        console.log('gParentHarvestResultViewTab is null');
+        return;
+      }
+      gParentHarvestResultViewTab.toggleContentWindowSize(isToFullScreen);
+
+      if(isToFullScreen){
+        $('.btn-full-screen').html('<i class="fas fa-compress"></i>');
+      }else{
+        $('.btn-full-screen').html('<i class="fas fa-expand"></i>');
+      }
+
+      isToFullScreen=!isToFullScreen;
+    }
+
+    function useTargetURL(){
+      var url=$("#specifyTargetUrlInput").val();
+      $('#importFromUrlInput').val(url);
+    }
+
+    function popupQueryWindow(){
+      if (currentMainTab === 'tree-url-names') {
+        $('#popup-window-query-input').show();
+      }else if (currentMainTab === 'candidate-query') {
+        $('#popup-window-query-input').show();
+      }
+    }
+
+    // Initial UI
+    var currentMainTab='networkmap';
+    function initUI(){
+        $('.btn-main-tab').on('click', function(e){
+          currentMainTab=$(this).attr('name');
+          $('#main-tab-group .card-main').hide();
+          $('#'+currentMainTab).show();
+
+          if (currentMainTab === 'networkmap' || currentMainTab==='tree-harvest-struct') {
+            $('#menu-tool-bar').fadeOut();
+          }else{
+            $('#menu-tool-bar').fadeIn();
+          }
+
+          //Show related input
+          $('#menu-tool-bar input').hide();
+          $('#menu-tool-bar input[name="'+currentMainTab+'"]').show();
+        });
+
+        $('#btn-group-tobe-modified label').on('click', function(e){
+          var name=$(this).attr('name');
+          $('.grid-modify-harvest').hide();
+          $('#grid-modify-'+name).show();
+        });
+
+        $('.template-download').on('click', function(e){
+          var name=$(this).attr('template');
+          downloadRemote('/spa/tools/'+name, name);
+        });
+
+        $('.btn-side-group-type').on('click', function(e){
+          var name=$(this).attr('name');
+          if(name==='statuscode'){
+            $('#networkmap-side-table-group-by-status-code').show();
+            $('#networkmap-side-table-group-by-content-type').hide();            
+          }else{
+            $('#networkmap-side-table-group-by-status-code').hide();
+            $('#networkmap-side-table-group-by-content-type').show();            
+          }
+
+          $('.btn-side-group-type').removeClass('text-primary');
+          $(this).addClass('text-primary');
+        });
+
+        $('#bulkImportMetadataFile').on('change', function(event){
+            var file=event.target.files[0];
+            $(this).val(null);
+            if(!file){
+              return  popupMessage("You must specify a metadata file name to import.");
+            }
+
+            gPopupModifyHarvest.processorModify.bulkUploadMetadataFile(file);
+        });
+
+
+        // Search input filter
+        $("#menu-tool-bar input[type='search']").on('keyup', function(e){
+          if (e.keyCode===13) {
+            gPopupModifyHarvest.filter($(this).val());
+          }
+        });
+
+        $("#popup-window-modify-harvest input[type='search']").on('input', function(e){
+          var val=$(this).val();
+          gPopupModifyHarvest.gridPrune.filter(val);
+          gPopupModifyHarvest.gridImport.filter(val);
+        });
+
+        bsCustomFileInput.init(); //For file input: to set filename to input text
+    }
+
+    // Initial Data
+    function initData(){
+      updateDerivedHarvestResults();
+      networkmap.init(jobId, harvestResultNumber);
+      gPopupModifyHarvest.initTreeWithSeedUrls();
+      gPopupModifyHarvest.initTreeWithSearchCommand(null);
+    }
+
+    var timerProgress;
+    function reindex(){
+      var reqUrl="/visualization/index/initial?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+      fetchHttp(reqUrl, null, function(response){
+        console.log(response.rspCode + ': ' + response.rspMsg);
+
+        if (response.rspCode!==0) {
+          return;
+        }
+
+        //show progress bar
+        // g_TurnOnOverlayLoading();
+        $('#popup-window-index').show();
+
+        //refresh progress
+        timerProgress=setInterval(function(){
+          refreshprogress();
+        }, 1200);
+      });
+    }
+
+    //Checking and show progress
+    function refreshprogress(){
+      var reqUrl="/curator/visualization/progress?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+      fetch(reqUrl, { 
+        method: 'GET',
+        redirect: 'follow',
+        headers: {'Content-Type': 'application/json'},
+      }).then((response) => {
+        console.log(response);
+        return response.json();
+      }).then((response) => {
+        console.log(response.rspCode + ': ' + response.rspMsg);
+
+        var progressPercentage=0;
+        if(response.rspCode===0){
+          var responseProgressBar=JSON.parse(response.payload);
+          progressPercentage=responseProgressBar.progressPercentage;
+
+          $('#progressIndexerValue').html(progressPercentage);
+        }
+        
+        if((response.rspCode===0 && progressPercentage >= 100) || response.rspCode!=0){
+          clearInterval(timerProgress);
+          $('#popup-window-index').hide();
+          // g_TurnOffOverlayLoading();
+          initGlobalSettings();
+        }
+      });
+    }
+
+    //Fetch global settings and trigger the loading of data
+    function initGlobalSettings(){
+      fetchHttp('/get/global-settings?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+harvestResultNumber,{}, function(rsp){
+        if (!rsp) {
+          alert('Failed to get global settings from server.');
+          return;
+        }
+
+        var currentVersion=rsp.currentVersion;
+        var globalVersion=rsp.globalVersion;
+        if (rsp.retrieveResult === "0") {
+          _browse_openwayback=rsp.openWayBack;
+          initData();
+        }else if(rsp.retrieveResult === "9" && confirm("Index file is missing or need to be updated. Would you reindex the harvest result?")) {        //If could not get the BDB version or the BDB does not exit, then prompt with users to confim redex.
+          reindex();
+        }
+      });
+    }
+
+    //Main initial function
+    $(function(){
+        console.log(parent);
+        
+        toggleScreenSize();
+
+        initUI();
+
+        initGlobalSettings();
+    });
+</script>
+</body>

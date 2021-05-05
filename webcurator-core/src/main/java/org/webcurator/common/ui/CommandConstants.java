@@ -43,4 +43,6 @@ public class CommandConstants {
     public static final String TARGET_INSTANCE_COMMAND_SORT_CRAWLS_DESC = "crawlsdesc";
     public static final String TARGET_INSTANCE_COMMAND_SORT_DATE_DESC_BY_TARGET_OID = "datedescbytargetoid";
 
+    public static final String HARVEST_RESULT_COMMAND_PARA_NUMBER = "harvestResultNumber";
+
 }

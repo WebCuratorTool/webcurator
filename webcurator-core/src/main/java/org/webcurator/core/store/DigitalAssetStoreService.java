@@ -1,20 +1,14 @@
 package org.webcurator.core.store;
 
-import org.apache.commons.httpclient.Header;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
 import org.webcurator.domain.model.core.CustomDepositFormResultDTO;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import javax.activation.DataHandler;
-import java.util.List;
 import java.util.Map;
 
 public interface DigitalAssetStoreService {
-    DataHandler getResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resource)
-            throws DigitalAssetStoreException;
-
     void save(String targetInstanceName, String[] filenames, DataHandler[] files) throws DigitalAssetStoreException;
 
     void save(String targetInstanceName, String filename, DataHandler file) throws DigitalAssetStoreException;
@@ -24,11 +18,6 @@ public interface DigitalAssetStoreService {
 
     void save(String targetInstanceName, String directory, String[] filenames, DataHandler[] files)
             throws DigitalAssetStoreException;
-
-    List<Header> getHeaders(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resourcex)
-            throws DigitalAssetStoreException;
-
-    HarvestResultDTO copyAndPrune(String targetInstanceName, int orgHarvestResultNum, int newHarvestResultNum, List<String> urisToDelete, List<HarvestResourceDTO> hrsToImport) throws DigitalAssetStoreException;
 
     /**
      * Purge all the data from the digital asset store for the target instances
@@ -45,9 +34,6 @@ public interface DigitalAssetStoreService {
      * @param targetInstanceNames the target instances to purge
      */
     void purgeAbortedTargetInstances(String[] targetInstanceNames) throws DigitalAssetStoreException;
-
-    byte[] getSmallResource(String targetInstanceName, int harvestResultNumber, HarvestResourceDTO resourcex)
-            throws DigitalAssetStoreException;
 
     void submitToArchive(String targetInstanceOid, String SIP, Map xAttributes, int harvestNumber)
             throws DigitalAssetStoreException;

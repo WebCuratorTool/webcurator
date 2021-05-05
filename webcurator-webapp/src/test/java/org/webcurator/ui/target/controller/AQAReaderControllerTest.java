@@ -8,8 +8,8 @@ import org.junit.Test;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
-import org.webcurator.core.harvester.coordinator.MockHarvestCoordinator;
+import org.webcurator.core.coordinator.MockWctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -20,7 +20,7 @@ import org.webcurator.ui.target.command.LogReaderCommand;
 public class AQAReaderControllerTest extends BaseWCTTest<AQAReaderController>{
 
 	private TargetInstanceManager tim = null;
-	private HarvestCoordinator hc = null;
+	private WctCoordinator wctCoordinator = null;
 
 	public AQAReaderControllerTest()
 	{
@@ -32,7 +32,7 @@ public class AQAReaderControllerTest extends BaseWCTTest<AQAReaderController>{
 	{
 		super.setUp();
 		tim = new MockTargetInstanceManager(testFile);
-		hc = new MockHarvestCoordinator();
+		wctCoordinator = new MockWctCoordinator();
 	}
 
 
@@ -41,7 +41,7 @@ public class AQAReaderControllerTest extends BaseWCTTest<AQAReaderController>{
 		try
 		{
 			testInstance.setTargetInstanceManager(tim);
-			testInstance.setHarvestCoordinator(hc);
+			testInstance.setWctCoordinator(wctCoordinator);
 
 			LogReaderCommand aCmd = new LogReaderCommand();
 			TargetInstance ti = tim.getTargetInstance(5000L);

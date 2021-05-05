@@ -24,6 +24,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.stereotype.Component;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.model.auth.User;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,7 +33,6 @@ import java.io.IOException;
 
 /**
  * The handler for failed authentication requests.
- *
  */
 @Component
 public class WCTAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler implements AuthenticationFailureHandler {
@@ -55,14 +55,21 @@ public class WCTAuthenticationFailureHandler extends SimpleUrlAuthenticationFail
         auditor.audit(User.class.getName(), Auditor.ACTION_LOGIN_FAILURE, "Failed Login for username: " + username);
 
         log.info("Login failure for " + username + ": " + exception.getMessage());
-
         // continue to redirect destination
         //TODO investigate why redirection to /logon.jsp?failed=true isn't completing
+
+        String mode = request.getHeader("Request-Mode");
+        if (mode != null && mode.equalsIgnoreCase("embed")) {
+            response.addHeader("Auth-Result", "failed");
+        }
+
+        // continue to redirect destination
         super.onAuthenticationFailure(request, response, exception);
     }
-    
-    /** 
-     * Spring setter 
+
+    /**
+     * Spring setter
+     *
      * @param auditor set the auditor bean
      */
     public void setAuditor(Auditor auditor) {

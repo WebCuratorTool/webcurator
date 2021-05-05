@@ -15,163 +15,272 @@
  */
 package org.webcurator.domain.model.core;
 
-import java.io.File;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.visualization.VisualizationProgressView;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
+
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * The Object for transfering Harvest Results between the web curator components.
- * @author bbeaumont 
+ *
+ * @author bbeaumont
  */
 public class HarvestResultDTO {
-	/** The unique ID of the HarvestResult */
-	protected Long oid;
-	/** the id of the target instance that this result belongs to. */
+    /**
+     * The unique ID of the HarvestResult
+     */
+    @JsonIgnore
+    protected Long oid;
+    /**
+     * the id of the target instance that this result belongs to.
+     */
     protected Long targetInstanceOid;
-    /** the date the result was created. */
+    /**
+     * the date the result was created.
+     */
+    @JsonIgnore
     protected Date creationDate;
-    /** the number of the harvest. */
+    /**
+     * the number of the harvest.
+     */
     protected int harvestNumber = 1;
-    /** The harvests provenance note. */
+    /**
+     * The harvests provenance note.
+     */
+    @JsonIgnore
     protected String provenanceNote;
-    /** the resources that belong to this result. */
-	protected Map<String,HarvestResourceDTO> resources = new HashMap<String,HarvestResourceDTO>();
-    /** Set of ARC files that belong to the harvest result. */
-    protected Set<ArcHarvestFileDTO> arcFiles;
 
-	public HarvestResultDTO() {
-	}
+    @JsonIgnore
+    protected String createdByFullName;
+
+    protected int derivedFrom;
+    protected int state = 0;
+    protected int status = 0;
+    protected int currentProgressPercentage = 0;
+
+    @JsonIgnore
+    protected VisualizationProgressView progressView;
+
+    public HarvestResultDTO() {
+    }
 
     /**
-    * Create a HarvestResultDTO from the HarvestResult, excluding the resources.
-     * @param hrOid The HarvestResult to base the DTO on.
+     * Create a HarvestResultDTO from the HarvestResult, excluding the resources.
+     *
+     * @param hrOid             The HarvestResult to base the DTO on.
      * @param targetInstanceOid targetInstanceOid
-     * @param creationDate creationDate
-     * @param harvestNumber harvestNumber
-     * @param provenanceNote provenanceNote
+     * @param creationDate      creationDate
+     * @param harvestNumber     harvestNumber
+     * @param provenanceNote    provenanceNote
      */
-	public HarvestResultDTO(Long hrOid, Long targetInstanceOid, Date creationDate, int harvestNumber, String provenanceNote) {
-		this.oid = hrOid;
-		this.targetInstanceOid = targetInstanceOid;
-		this.creationDate = creationDate;
-		this.harvestNumber = harvestNumber;
-		this.provenanceNote = provenanceNote;
-	}
+    public HarvestResultDTO(Long hrOid, Long targetInstanceOid, Date creationDate, int harvestNumber, String provenanceNote) {
+        this.oid = hrOid;
+        this.targetInstanceOid = targetInstanceOid;
+        this.creationDate = creationDate;
+        this.harvestNumber = harvestNumber;
+        this.provenanceNote = provenanceNote;
+    }
 
-	/**
-     * @return Returns the resources.
-     */
-    public Map<String, HarvestResourceDTO> getResources() {
-        return resources;
-    }
-    /**
-     * @param resources The resources to set.
-     */
-    public void setResources(Map<String, HarvestResourceDTO> resources) {
-        this.resources = resources;
-    }
-    
+
     /**
      * @return Returns the targetInstanceOid.
      */
     public Long getTargetInstanceOid() {
         return targetInstanceOid;
     }
+
     /**
      * @param targetInstanceOid The targetInstanceOid to set.
      */
     public void setTargetInstanceOid(Long targetInstanceOid) {
         this.targetInstanceOid = targetInstanceOid;
     }
+
     /**
      * @return Returns the creationDate.
      */
+    @JsonIgnore
     public Date getCreationDate() {
         return creationDate;
     }
+
     /**
      * @param creationDate The creationDate to set.
      */
+    @JsonIgnore
     public void setCreationDate(Date creationDate) {
         this.creationDate = creationDate;
     }
+
     /**
      * @return Returns the harvestNumber.
      */
     public int getHarvestNumber() {
         return harvestNumber;
     }
+
     /**
      * @param harvestNumber The harvestNumber to set.
      */
     public void setHarvestNumber(int harvestNumber) {
         this.harvestNumber = harvestNumber;
     }
+
     /**
      * @return Returns the provenanceNote.
      */
+    @JsonIgnore
     public String getProvenanceNote() {
         return provenanceNote;
     }
+
     /**
      * @param provenanceNote The provenanceNote to set.
      */
+    @JsonIgnore
     public void setProvenanceNote(String provenanceNote) {
         this.provenanceNote = provenanceNote;
     }
 
-	/**
-	 * @return the oid
-	 */
-	public Long getOid() {
-		return oid;
-	}
-
-	/**
-	 * @param oid the oid to set
-	 */
-	public void setOid(Long oid) {
-		this.oid = oid;
-	}
-
     /**
-     * @return the set of ARC file DTO's.
+     * @return the oid
      */
-    public Set<ArcHarvestFileDTO> getArcFiles() {
-        return arcFiles;
+    public Long getOid() {
+        return oid;
     }
 
     /**
-     * @param arcFiles the set of ARC file DTO's.
+     * @param oid the oid to set
      */
-    public void setArcFiles(Set<ArcHarvestFileDTO> arcFiles) {
-        this.arcFiles = arcFiles;
+    public void setOid(Long oid) {
+        this.oid = oid;
     }
 
-    /**
-     * Perform an index on all the ARC files in the specified base directory
-     * @param baseDir the directory containing the ARC files to index
-     * @throws IOException thrown if there is an error
-     * @throws ParseException thrown if there is an error
-     */
-    public void index(File baseDir) throws IOException, ParseException {
-        for(ArcHarvestFileDTO ahf: arcFiles) {
-            this.getResources().putAll(ahf.index(baseDir));
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    @JsonIgnore
+    public String getKey() {
+        return PatchUtil.getPatchJobName(this.targetInstanceOid, this.harvestNumber);
+    }
+
+    public int getCurrentProgressPercentage() {
+        return currentProgressPercentage;
+    }
+
+    public void setCurrentProgressPercentage(int currentProgressPercentage) {
+        this.currentProgressPercentage = currentProgressPercentage;
+    }
+
+    @JsonIgnore
+    public String getCreatedByFullName() {
+        return createdByFullName;
+    }
+
+    @JsonIgnore
+    public void setCreatedByFullName(String createdByFullName) {
+        this.createdByFullName = createdByFullName;
+    }
+
+    public int getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public void setDerivedFrom(int derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    @JsonIgnore
+    public int getCrawlingProgressPercentage(NetworkMapClient networkMapClient) {
+        if (state == HarvestResult.STATE_CRAWLING) {
+            return getProgressPercentage();
+        }
+        return 100;
+    }
+
+    @JsonIgnore
+    public int getModifyingProgressPercentage(NetworkMapClient networkMapClient) {
+        if (state == HarvestResult.STATE_CRAWLING) {
+            return 0; //Not started
+        } else if (state != HarvestResult.STATE_MODIFYING) {
+            return 100; //Finished
+        }
+
+        if (this.progressView == null) {
+            return getProgressPercentage();
+        } else {
+            return progressView.getProgressPercentage();
         }
     }
 
-    /**
-     * Perform an index on all the ARC files referred to by this result.
-     * @throws IOException thrown if there is an error
-     * @throws ParseException thrown if there is an error
-     */
-    public void index() throws IOException, ParseException {
-        for(ArcHarvestFileDTO ahf: arcFiles) {
-            this.getResources().putAll(ahf.index());
+    @JsonIgnore
+    public int getIndexingProgressPercentage(NetworkMapClient networkMapClient) {
+        if (state == HarvestResult.STATE_CRAWLING || state == HarvestResult.STATE_MODIFYING) {
+            return 0; //Not started
+        } else if (state != HarvestResult.STATE_INDEXING) {
+            return 100; //Finished
         }
+
+        if (this.progressView == null) {
+            return getProgressPercentage();
+        } else {
+            return progressView.getProgressPercentage();
+        }
+    }
+
+    @JsonIgnore
+    private int getProgressPercentage() {
+        if (status == HarvestResult.STATUS_SCHEDULED || status == HarvestResult.STATUS_TERMINATED) {
+            return 0;
+        } else if (status == HarvestResult.STATUS_FINISHED) {
+            return 100;
+        } else {
+            return 50;
+        }
+    }
+
+    @JsonIgnore
+    public static HarvestResultDTO getInstance(String json) {
+        if (json == null) {
+            return null;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            return objectMapper.readValue(json, HarvestResultDTO.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @JsonIgnore
+    public VisualizationProgressView getProgressView() {
+        return progressView;
+    }
+
+    @JsonIgnore
+    public void setProgressView(VisualizationProgressView progressView) {
+        this.progressView = progressView;
     }
 }

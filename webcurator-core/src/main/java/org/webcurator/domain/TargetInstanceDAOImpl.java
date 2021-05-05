@@ -49,7 +49,7 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  * @author nwaight
  */
 @SuppressWarnings("all")
-@Transactional
+
 public class TargetInstanceDAOImpl extends HibernateDaoSupport implements TargetInstanceDAO {
 
     private static SimpleDateFormat fullFormat = SafeSimpleDateFormat.getInstance("dd/MM/yyyy HH:mm:ss");
@@ -60,7 +60,9 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 
     private Auditor auditor;
 
+    @Transactional
     public void save(final Object aObj) {
+
         TargetInstanceDTO originalTI = null;
         if (aObj instanceof TargetInstance) {
             TargetInstance targetInstance = (TargetInstance) aObj;
@@ -70,7 +72,6 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 
             if (log.isDebugEnabled()) {
                 log.debug("About to save Target Instance: " + targetInstance.getOid());
-//				log.debug(ExceptionUtils.getFullStackTrace(new Throwable("About to save Target Instance: "+targetInstance.getOid())));
             }
         }
 
@@ -118,6 +119,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
     /**
      * @see TargetInstanceDAO#delete(Object).
      */
+    @Transactional
     public void delete(final Object aObject) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -139,8 +141,8 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
     /**
      * @see TargetInstanceDAO#deleteHarvestResources(Long targetInstanceId).
      */
+    @Transactional
     public void deleteHarvestResources(final Long targetInstanceId) {
-        log.info("Before Delete Harvest Resources: " + targetInstanceId);
         getHibernateTemplate().execute(new HibernateCallback() {
             public Object doInHibernate(Session aSession) {
 
@@ -149,30 +151,26 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                 while (it.hasNext()) {
                     final HarvestResult hr = it.next();
                     getHibernateTemplate().initialize(hr);
-                    //delete all the associated resources
-                    if (hr.getResources() != null) {
-                        deleteHarvestResultResources(hr.getOid());
-                    }
                 }
                 return null;
             }
         });
-        log.info("After Delete Harvest Resources: " + targetInstanceId);
     }
 
     /**
      * @see TargetInstanceDAO#deleteHarvestResultResources(Long harvestResultId).
      */
+    @Transactional
     public void deleteHarvestResultResources(final Long harvestResultId) {
-        log.info("Before Delete Harvest Result Resources: " + harvestResultId);
+        log.info("Deleting harvest result resources for result: " + harvestResultId);
         txTemplate.execute(
                 new TransactionCallback() {
                     public Object doInTransaction(TransactionStatus ts) {
                         try {
-                        	// Note: this DELETE cascades to ARC_HARVEST_RESOURCE as per the db schema
+                            // Note: this DELETE cascades to ARC_HARVEST_RESOURCE as per the db schema
                             log.debug("Before deleting harvest result resources");
                             currentSession().createNativeQuery("DELETE FROM {h-schema}HARVEST_RESOURCE WHERE HRC_HARVEST_RESULT_OID=?1")
-										.setParameter(1, harvestResultId).executeUpdate();
+                                    .setParameter(1, harvestResultId).executeUpdate();
                             log.debug("After deleting harvest result resources");
                         } catch (Exception ex) {
                             log.warn("Problem occured deleting HarvestResource records", ex);
@@ -183,12 +181,12 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     }
                 }
         );
-        log.info("After Delete Harvest Result Resources: " + harvestResultId);
     }
 
     /**
      * @see TargetInstanceDAO#deleteHarvestResultFiles(Long harvestResultId).
      */
+    @Transactional
     public void deleteHarvestResultFiles(final Long harvestResultId) {
         log.info("Deleting harvest result files for result: " + harvestResultId);
         txTemplate.execute(
@@ -208,9 +206,9 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                     }
                 }
         );
-        log.info("After deleting harvest result files for result: " + harvestResultId);
     }
 
+    @Transactional
     public void saveAll(final Collection coll) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -233,24 +231,21 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 
 
     public TargetInstance load(final long targetInstanceOid) {
-        log.info("Load Target Instance: " + targetInstanceOid);
         return (TargetInstance) getHibernateTemplate().load(TargetInstance.class, targetInstanceOid);
     }
 
 
-    public ArcHarvestResult getHarvestResult(final Long harvestResultOid) {
+    public HarvestResult getHarvestResult(final Long harvestResultOid) {
         return getHarvestResult(harvestResultOid, true);
     }
 
-    public ArcHarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
-        log.info("Get Harvest Result, harvestResultOid: " + harvestResultOid + ", loadFully=" + loadFully);
-        ArcHarvestResult hr = (ArcHarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
+    public HarvestResult getHarvestResult(final Long harvestResultOid, final boolean loadFully) {
+        HarvestResult hr = (HarvestResult) getHibernateTemplate().execute(new HibernateCallback() {
             public Object doInHibernate(Session aSession) {
-                ArcHarvestResult hr = aSession.load(ArcHarvestResult.class, harvestResultOid);
+                HarvestResult hr = aSession.load(HarvestResult.class, harvestResultOid);
 
                 // Force population of the resources and target instance
                 if (loadFully) {
-                    hr.getResources().values();
                     hr.getTargetInstance();
                 }
 
@@ -261,42 +256,9 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
         return hr;
     }
 
-    /**
-     * TODO This should be moved to an ArcHarvestResultDAO.
-     */
-    public HarvestResourceDTO getHarvestResourceDTO(final long harvestResultOid, final String resource) {
-        HarvestResourceDTO dto = (HarvestResourceDTO) getHibernateTemplate().execute(new HibernateCallback() {
-            public Object doInHibernate(Session aSession) {
-                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=?1 and ahr.name=?2");
-                q.setParameter(1, harvestResultOid);
-                q.setParameter(2, resource);
-                ArcHarvestResourceDTO dto = (ArcHarvestResourceDTO) q.uniqueResult();
-
-                return dto;
-            }
-        });
-
-
-        return dto;
-    }
-
-    public List<HarvestResourceDTO> getHarvestResourceDTOs(final long harvestResultOid) {
-        List<HarvestResourceDTO> resources = (List<HarvestResourceDTO>) getHibernateTemplate().execute(new HibernateCallback() {
-            public Object doInHibernate(Session aSession) {
-                Query q = aSession.createQuery("select new org.webcurator.domain.model.core.ArcHarvestResourceDTO(ahr.result.targetInstance.oid, ahr.result.harvestNumber, ahr.oid, ahr.name, ahr.length, ahr.resourceOffset, ahr.resourceLength, ahr.arcFileName, ahr.statusCode, ahr.compressed) from org.webcurator.domain.model.core.ArcHarvestResource ahr where ahr.result.oid=?1");
-                q.setParameter(1, harvestResultOid);
-                List<HarvestResourceDTO> resources = q.list();
-
-                return resources;
-            }
-        });
-
-        return resources;
-    }
-
     @SuppressWarnings("unchecked")
     public List<HarvestResult> getHarvestResults(final long targetInstanceId) {
-        return (List<HarvestResult>) getHibernateTemplate().find("select hr from ArcHarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
+        return (List<HarvestResult>) getHibernateTemplate().find("select hr from HarvestResult hr where hr.targetInstance.oid=?0 order by hr.harvestNumber", targetInstanceId);
     }
 
     public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {
@@ -473,7 +435,6 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
 
     @SuppressWarnings("unchecked")
     public List findTargetInstances(final TargetInstanceCriteria aCriteria) {
-        log.info("Find Target Instances: " + aCriteria.toString());
         return (List) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
@@ -571,6 +532,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
         Set<String> states = new HashSet<String>();
         states.add(TargetInstance.STATE_SCHEDULED);
         states.add(TargetInstance.STATE_QUEUED);
+        states.add(TargetInstance.STATE_PATCHING);
         criteria.setStates(states);
         criteria.setTo(new Date());
 
@@ -581,7 +543,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
                         StringBuffer q = new StringBuffer();
                         q.append("select new org.webcurator.domain.model.dto.QueuedTargetInstanceDTO(ti.oid, ti.scheduledTime, ti.priority, ti.state, ti.bandwidthPercent, ti.owner.agency.name) ");
                         q.append("from TargetInstance ti where ti.scheduledTime <= :ed ");
-                        q.append("and ti.state in ('Scheduled', 'Queued') ");
+                        q.append("and ti.state in ('Scheduled', 'Queued', 'ModScheduled', 'ModQueued') ");
                         q.append("order by ti.priority asc, ti.scheduledTime asc, ti.oid asc ");
 
                         Query query = session.createQuery(q.toString());
@@ -732,6 +694,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
     }
 
 
+    @Transactional
     public void deleteScheduledInstances(final Schedule aSchedule) {
         txTemplate.execute(
                 new TransactionCallback() {
@@ -753,7 +716,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
         );
     }
 
-
+    @Transactional
     public void deleteScheduledInstances(final AbstractTarget anAbstractTarget) {
         // Remove all the target instances from one of the schedules.
         txTemplate.execute(new UnscheduleTargetTransaction(anAbstractTarget));
@@ -898,6 +861,7 @@ public class TargetInstanceDAOImpl extends HibernateDaoSupport implements Target
      * @param targetOid   The target OID.
      * @param scheduleOid The schedule OID.
      */
+    @Transactional
     public void deleteScheduledInstances(final Long targetOid, final Long scheduleOid) {
         txTemplate.execute(
                 new TransactionCallback() {

@@ -39,11 +39,11 @@ import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.archive.MockSipBuilder;
 import org.webcurator.core.common.EnvironmentImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -52,17 +52,22 @@ import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.FlagDAO;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.TargetInstanceCriteria;
-import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.core.Flag;
+import org.webcurator.domain.model.core.HarvestResult;
+import org.webcurator.domain.model.core.Indicator;
+import org.webcurator.domain.model.core.RejReason;
+import org.webcurator.domain.model.core.Seed;
+import org.webcurator.domain.model.core.Target;
+import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.common.util.DateUtils;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+@SuppressWarnings("all")
 public class QueueControllerTest extends BaseWCTTest<QueueController> {
 
 	private MockHttpServletRequest mockRequest;
@@ -84,7 +89,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		// add the extra bits
 		DateUtils.get().setMessageSource(new MockMessageSource());
 
-		HarvestCoordinatorImpl hc = new HarvestCoordinatorImpl();
+		WctCoordinatorImpl hc = new WctCoordinatorImpl();
 		mockTargetInstanceManager = new MockTargetInstanceManager(testFile);
 		MockTargetInstanceDAO tidao = new MockTargetInstanceDAO(testFile);
 
@@ -101,7 +106,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		hc.setHarvestAgentManager(harvestAgentManager);
 		hc.setTargetInstanceDao(tidao);
 
-		testInstance.setHarvestCoordinator(hc);
+		testInstance.setWctCoordinator(hc);
 		testInstance.setTargetInstanceManager(new MockTargetInstanceManager(testFile));
 		MockAgencyUserManagerImpl mockUserAgencyManager = new MockAgencyUserManagerImpl(testFile);
 		FlagDAO mockFlagDao = mock(FlagDAO.class);
@@ -186,7 +191,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionFlagged() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_FILTER);
 		command.setFlagged(true);
-        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_FILTER);
+		BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_FILTER);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE);
 
@@ -199,7 +204,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionScheduled() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_DELETE);
 		command.setTargetInstanceId(5000L);
-        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
+		BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE);
 		assertEquals(TargetInstanceCommand.ACTION_FILTER, command.getCmd());
@@ -210,7 +215,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionQueuedWithoutHarvesterStatus() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_DELETE);
 		command.setTargetInstanceId(5001L);
-        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
+		BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE);
 		assertEquals(TargetInstanceCommand.ACTION_FILTER, command.getCmd());
@@ -221,7 +226,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionQueuedWithHarvesterStatus() throws Exception {
 		command.setCmd(TargetInstanceCommand.ACTION_DELETE);
 		command.setTargetInstanceId(5002L);
-        BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
+		BindingResult bindingResult = new BindException(command, TargetInstanceCommand.ACTION_DELETE);
 
 		TargetInstanceCommand command = processSubmitForm(Constants.VIEW_TARGET_INSTANCE_QUEUE, bindingResult);
 		assertEquals(TargetInstanceCommand.ACTION_FILTER, command.getCmd());
@@ -263,8 +268,8 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionPause() throws Exception {
 		final long tiOid = 5002L;
 
-		HarvestCoordinatorImpl mockHCI = mock(HarvestCoordinatorImpl.class);
-		testInstance.setHarvestCoordinator(mockHCI);
+		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_PAUSE);
 		command.setTargetInstanceId(tiOid);
@@ -277,8 +282,8 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionResume() throws Exception {
 		final long tiOid = 5002L;
 
-		HarvestCoordinatorImpl mockHCI = mock(HarvestCoordinatorImpl.class);
-		testInstance.setHarvestCoordinator(mockHCI);
+		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_RESUME);
 		command.setTargetInstanceId(tiOid);
@@ -291,8 +296,8 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionAbort() throws Exception {
 		final long tiOid = 5002L;
 
-		HarvestCoordinatorImpl mockHCI = mock(HarvestCoordinatorImpl.class);
-		testInstance.setHarvestCoordinator(mockHCI);
+		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_ABORT);
 		command.setTargetInstanceId(tiOid);
@@ -305,8 +310,8 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionStop() throws Exception {
 		final long tiOid = 5002L;
 
-		HarvestCoordinatorImpl mockHCI = mock(HarvestCoordinatorImpl.class);
-		testInstance.setHarvestCoordinator(mockHCI);
+		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_STOP);
 		command.setTargetInstanceId(tiOid);
@@ -551,94 +556,6 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	}
 
 	@Test
-	public void testAddQaInformationForTiAccessToolSingleResource() {
-		Long tOid = 123L;
-		HashMap<Long, Set<Indicator>> indicators = new HashMap<Long, Set<Indicator>>();
-		HashMap<Long, String> browseUrls = new HashMap<Long, String>();
-
-		Target target = mock(Target.class);
-		TargetInstance targetInstance = createTargetInstance(tOid, target);
-
-		String seedName = "test";
-		Seed seed1 = createMockSeed("abcdef", false);
-		Seed seed2 = createMockSeed(seedName, false);
-		Set<Seed> seedSet = Sets.newLinkedHashSet();
-		seedSet.add(seed1);
-		seedSet.add(seed2);
-		when(target.getSeeds()).thenReturn(seedSet);
-		ArcHarvestResult result1 = new ArcHarvestResult();
-		result1.setState(HarvestResult.STATE_ENDORSED);
-		result1.setTargetInstance(targetInstance);
-		result1.setOid(5235L);
-		HashMap<String, HarvestResource> resourceMap = Maps.newHashMap();
-		HarvestResource harvestResource = new HarvestResource();
-		harvestResource.setLength(1234);
-		harvestResource.setName("testResource");
-		harvestResource.setStatusCode(0);
-		harvestResource.setResult(result1);
-		resourceMap.put(seedName, harvestResource);
-		result1.setResources(resourceMap);
-		TargetInstanceManager mockTiManager = mock(TargetInstanceManager.class);
-		when(mockTiManager.getHarvestResults(tOid)).thenReturn(Arrays.asList(result1));
-		when(mockTiManager.getHarvestResourceDTO(result1.getOid(), seedName)).thenReturn(new HarvestResourceDTO());
-		testInstance.setTargetInstanceManager(mockTiManager);
-		testInstance.setThumbnailRenderer("ACCESSTOOL");
-		HarvestResourceUrlMapper mockMapper = mock(HarvestResourceUrlMapper.class);
-		when(mockMapper.generateUrl(eq(result1), any(HarvestResourceDTO.class))).thenReturn("testUrl");
-		testInstance.setHarvestResourceUrlMapper(mockMapper);
-		testInstance.addQaInformationForTi(indicators, browseUrls, targetInstance);
-
-		verify(mockTiManager).getHarvestResults(tOid);
-		verify(mockMapper).generateUrl(eq(result1), any(HarvestResourceDTO.class));
-		assertTrue(browseUrls.containsKey(tOid));
-		assertEquals(browseUrls.get(tOid), "testUrl");
-	}
-
-	@Test
-	public void testAddQaInformationForTiAccessToolMultipleResources() {
-		Long tOid = 123L;
-		HashMap<Long, Set<Indicator>> indicators = new HashMap<Long, Set<Indicator>>();
-		HashMap<Long, String> browseUrls = new HashMap<Long, String>();
-
-		Target target = mock(Target.class);
-		TargetInstance targetInstance = createTargetInstance(tOid, target);
-
-		String seedName = "test";
-		Seed seed1 = createMockSeed("abcdef", false);
-		Seed seed2 = createMockSeed(seedName, false);
-		Set<Seed> seedSet = Sets.newLinkedHashSet();
-		seedSet.add(seed1);
-		seedSet.add(seed2);
-		when(target.getSeeds()).thenReturn(seedSet);
-		ArcHarvestResult result1 = new ArcHarvestResult();
-		result1.setState(HarvestResult.STATE_ENDORSED);
-		result1.setTargetInstance(targetInstance);
-		result1.setOid(5235L);
-		HashMap<String, HarvestResource> resourceMap = Maps.newHashMap();
-		HarvestResource harvestResource = new HarvestResource();
-		harvestResource.setLength(1234);
-		harvestResource.setName("testResource");
-		harvestResource.setStatusCode(0);
-		harvestResource.setResult(result1);
-		resourceMap.put(seedName, harvestResource);
-		result1.setResources(resourceMap);
-		TargetInstanceManager mockTiManager = mock(TargetInstanceManager.class);
-		when(mockTiManager.getHarvestResults(tOid)).thenReturn(Arrays.asList(result1));
-		when(mockTiManager.getHarvestResourceDTO(result1.getOid(), seedName)).thenThrow(new RuntimeException());
-		testInstance.setTargetInstanceManager(mockTiManager);
-		testInstance.setThumbnailRenderer("ACCESSTOOL");
-		HarvestResourceUrlMapper mockMapper = mock(HarvestResourceUrlMapper.class);
-		when(mockMapper.generateUrl(eq(result1), any(HarvestResourceDTO.class))).thenReturn("testUrl");
-		testInstance.setHarvestResourceUrlMapper(mockMapper);
-		testInstance.addQaInformationForTi(indicators, browseUrls, targetInstance);
-
-		verify(mockTiManager).getHarvestResults(tOid);
-		verify(mockMapper).generateUrl(eq(result1), any(HarvestResourceDTO.class));
-		assertTrue(browseUrls.containsKey(tOid));
-		assertEquals(browseUrls.get(tOid), "testUrl");
-	}
-
-	@Test
 	public void testMultiDelete() throws Exception {
 		TargetInstance mockTI1 = mock(TargetInstance.class);
 		TargetInstance mockTI2 = mock(TargetInstance.class);
@@ -697,11 +614,11 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		when(mockTiManager.getTargetInstance(5000L)).thenReturn(mockTI1);
 		when(mockTiManager.getTargetInstance(234L)).thenReturn(mockTI2);
 
-		HarvestResult result1 = new ArcHarvestResult();
+		HarvestResult result1 = new HarvestResult();
 		result1.setState(HarvestResult.STATE_UNASSESSED);
 		result1.setOid(1L);
 		when(mockTiManager.getHarvestResults(5000L)).thenReturn(Arrays.asList(result1));
-		HarvestResult result2 = new ArcHarvestResult();
+		HarvestResult result2 = new HarvestResult();
 		result2.setState(HarvestResult.STATE_UNASSESSED);
 		result2.setOid(2L);
 		when(mockTiManager.getHarvestResults(234L)).thenReturn(Arrays.asList(result2));
@@ -723,17 +640,17 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		TargetInstanceManager mockTiManager = mock(TargetInstanceManager.class);
 		when(mockTiManager.getTargetInstance(5000L)).thenReturn(mockTI1);
 
-		ArcHarvestResult result1 = mock(ArcHarvestResult.class);
+		HarvestResult result1 = mock(HarvestResult.class);
 		when(result1.getState()).thenReturn(HarvestResult.STATE_ABORTED);
 		when(result1.getOid()).thenReturn(1L);
-		ArcHarvestResult result2 = mock(ArcHarvestResult.class);
+		HarvestResult result2 = mock(HarvestResult.class);
 		when(result2.getState()).thenReturn(HarvestResult.STATE_UNASSESSED);
 		when(result2.getOid()).thenReturn(2L);
 		when(mockTI1.getHarvestResults()).thenReturn(Arrays.asList(result1, result2));
 		when(mockTiManager.getHarvestResults(5000L)).thenReturn(Arrays.asList(result1, result2));
 
-		HarvestCoordinator mockHarvestCoordinator = mock(HarvestCoordinator.class);
-		testInstance.setHarvestCoordinator(mockHarvestCoordinator);
+		WctCoordinator mockWctCoordinator = mock(WctCoordinator.class);
+		testInstance.setWctCoordinator(mockWctCoordinator);
 
 		testInstance.setTargetInstanceManager(mockTiManager);
 		command.setCmd(TargetInstanceCommand.ACTION_MULTI_ENDORSE);
@@ -744,7 +661,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		verify(result1).setState(HarvestResult.STATE_REJECTED);
 		verify(result2).setState(HarvestResult.STATE_ENDORSED);
 		verify(mockTiManager).save(mockTI1);
-		verify(mockHarvestCoordinator).removeIndexes(result1);
+		verify(mockWctCoordinator).removeIndexes(result1);
 	}
 
 	@Test
@@ -757,19 +674,19 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		when(mockTiManager.getTargetInstance(5000L)).thenReturn(mockTI1);
 		when(mockTiManager.getTargetInstance(234L)).thenReturn(mockTI2);
 
-		ArcHarvestResult result1 = mock(ArcHarvestResult.class);
+		HarvestResult result1 = mock(HarvestResult.class);
 		when(result1.getState()).thenReturn(HarvestResult.STATE_ABORTED);
 		when(result1.getOid()).thenReturn(1L);
 		when(mockTI1.getHarvestResults()).thenReturn(Arrays.asList(result1));
 		when(mockTiManager.getHarvestResults(5000L)).thenReturn(Arrays.asList(result1));
-		ArcHarvestResult result2 = mock(ArcHarvestResult.class);
+		HarvestResult result2 = mock(HarvestResult.class);
 		when(result2.getState()).thenReturn(HarvestResult.STATE_REJECTED);
 		when(result2.getOid()).thenReturn(2L);
 		when(mockTI2.getHarvestResults()).thenReturn(Arrays.asList(result2));
 		when(mockTiManager.getHarvestResults(234L)).thenReturn(Arrays.asList(result2));
 
-		HarvestCoordinator mockHarvestCoordinator = mock(HarvestCoordinator.class);
-		testInstance.setHarvestCoordinator(mockHarvestCoordinator);
+		WctCoordinator mockWctCoordinator = mock(WctCoordinator.class);
+		testInstance.setWctCoordinator(mockWctCoordinator);
 		AgencyUserManager mockAgencyUserManager = mock(AgencyUserManager.class);
 		RejReason rejectionReason = new RejReason();
 		when(mockAgencyUserManager.getRejReasonByOid(any(Long.class))).thenReturn(rejectionReason);
@@ -783,9 +700,9 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		verify(mockTI1).setState(TargetInstance.STATE_REJECTED);
 		verify(mockTI2).setState(TargetInstance.STATE_REJECTED);
 		verify(mockTiManager).save(mockTI1);
-		verify(mockHarvestCoordinator).removeIndexes(result1);
+		verify(mockWctCoordinator).removeIndexes(result1);
 		// Already rejected
-		verify(mockHarvestCoordinator, times(0)).removeIndexes(result2);
+		verify(mockWctCoordinator, times(0)).removeIndexes(result2);
 		verify(mockTiManager).save(mockTI2);
 		verify(result1).setRejReason(rejectionReason);
 		verify(result2, times(0)).setRejReason(rejectionReason);
@@ -801,19 +718,19 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		when(mockTiManager.getTargetInstance(5000L)).thenReturn(mockTI1);
 		when(mockTiManager.getTargetInstance(234L)).thenReturn(mockTI2);
 
-		ArcHarvestResult result1 = mock(ArcHarvestResult.class);
+		HarvestResult result1 = mock(HarvestResult.class);
 		when(result1.getState()).thenReturn(HarvestResult.STATE_ABORTED);
 		when(result1.getOid()).thenReturn(1L);
 		when(mockTI1.getHarvestResults()).thenReturn(Arrays.asList(result1));
 		when(mockTiManager.getHarvestResults(5000L)).thenReturn(Arrays.asList(result1));
-		ArcHarvestResult result2 = mock(ArcHarvestResult.class);
+		HarvestResult result2 = mock(HarvestResult.class);
 		when(result2.getState()).thenReturn(HarvestResult.STATE_REJECTED);
 		when(result2.getOid()).thenReturn(2L);
 		when(mockTI2.getHarvestResults()).thenReturn(Arrays.asList(result2));
 		when(mockTiManager.getHarvestResults(234L)).thenReturn(Arrays.asList(result2));
 
-		HarvestCoordinator mockHarvestCoordinator = mock(HarvestCoordinator.class);
-		testInstance.setHarvestCoordinator(mockHarvestCoordinator);
+		WctCoordinator mockWctCoordinator = mock(WctCoordinator.class);
+		testInstance.setWctCoordinator(mockWctCoordinator);
 
 		testInstance.setTargetInstanceManager(mockTiManager);
 		command.setCmd(TargetInstanceCommand.ACTION_MULTI_REJECT);
@@ -822,8 +739,6 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		verify(mockTI1).setState(TargetInstance.STATE_REJECTED);
 		verify(mockTI2).setState(TargetInstance.STATE_REJECTED);
 		verify(mockTiManager).save(mockTI1);
-		verify(mockHarvestCoordinator, times(0)).removeIndexes(result1);
-		verify(mockHarvestCoordinator, times(0)).removeIndexes(result2);
 		verify(mockTiManager).save(mockTI2);
 		verify(result1, times(0)).setRejReason(any(RejReason.class));
 		verify(result2, times(0)).setRejReason(any(RejReason.class));
@@ -869,7 +784,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	}
 
 	private TargetInstanceManager setTargetInstanceManager(Long tOid, Long hrOid, int state) {
-		HarvestResult result1 = new ArcHarvestResult();
+		HarvestResult result1 = new HarvestResult();
 		result1.setState(state);
 		result1.setOid(hrOid);
 		TargetInstanceManager mockTiManager = mock(TargetInstanceManager.class);
@@ -877,5 +792,4 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		testInstance.setTargetInstanceManager(mockTiManager);
 		return mockTiManager;
 	}
-
 }

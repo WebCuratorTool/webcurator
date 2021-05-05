@@ -18,22 +18,23 @@ package org.webcurator.core.harvester.coordinator;
 /**
  * Callback interface for the DAS. The DAS calls this interface when it
  * has completed/failed to archive a harvest.
- * 
- * @author beaumontb
  *
+ * @author beaumontb
  */
 public interface DasCallback {
-	/**
-	 * Advises the Core that the harvest has been archived successfully.
-	 * @param targetInstanceOid The OID of the instance being archived.
-	 * @param archiveIID The IID returned by the archive system.
-	 */
-	public void completeArchiving(Long targetInstanceOid, String archiveIID);
+    /**
+     * Advises the Core that the harvest has been archived successfully.
+     *
+     * @param targetInstanceOid The OID of the instance being archived.
+     * @param archiveIID        The IID returned by the archive system.
+     */
+    public void completeArchiving(Long targetInstanceOid, String archiveIID);
 
-	/**
-	 * Advises the Core taht the harvest failed to be archived.
-	 * @param targetInstanceOid The OID of the instance being archived.
-	 * @param message The error message received from the archive.
-	 */
-	public void failedArchiving(Long targetInstanceOid, String message);
+    /**
+     * Advises the Core that the harvest failed to be archived.
+     *
+     * @param targetInstanceOid The OID of the instance being archived.
+     * @param message           The error message received from the archive.
+     */
+    public void failedArchiving(Long targetInstanceOid, String message);
 }

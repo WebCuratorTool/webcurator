@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.drools.compiler.compiler.DroolsParserException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.store.tools.QualityReviewFacade;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.domain.model.core.TargetInstance;
 
@@ -31,9 +30,7 @@ public interface QaRecommendationService {
 	public void applyRules(TargetInstance ti, TargetInstance referenceCrawl, List<IndicatorCriteria> criterias) throws DroolsParserException, IOException;
 	
 	public void buildKnowledgeSession();
-	
-	public void setQualityReviewFacade(QualityReviewFacade qaFacade);
-	
+
 	public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager);
 	
 	public void setAdvicePriority(Map<String, Integer> advicePriority);

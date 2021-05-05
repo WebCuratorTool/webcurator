@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <title>Patching Job View</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="../dist/font/fontawesome-free.min.css">
+    <!-- <link rel="stylesheet" href="../dist/bootstrap/4.4.1/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="../dist/adminlte/css/adminlte.css">
+    <link rel="stylesheet" href="../dist/ag-grid/ag-grid.css">
+    <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham.css">
+    <!-- <link rel="stylesheet" href="../dist/ag-grid/ag-theme-balham-dark.css"> -->
+    <link rel="stylesheet" href="visualization.css">
+
+    <style>
+        @media print {
+          body {
+            overflow: visible;
+          }
+        }
+
+        tr{
+            margin: 0;
+            padding: 0;
+        }
+        th{
+            margin: 0;
+            padding: 0;
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            /*color: #664d00;*/
+        }
+        td{
+            margin: 0;
+            padding: 0;
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+            /*color: #664d00;*/
+        }
+
+        #overall b{
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        #overall span{
+            font-family: arial, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .ag-grid-style{
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to to the body tag
+to get the desired effect
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body style="overflow-y: scroll;">
+<a id="link-to-harvest-now" style="display: none;"></a>
+<!-- <main class="bd-content" name="content" role="main"> -->
+    <div class="card card-outline">
+        <div class="card-header bg-light">
+            <h3 class="card-title"><b>Patching Harvest Result</b></h3>
+            <div class="card-tools hidden" id="btn-group-patch-actions">
+                <button type="button" class="btn btn-tool bg-primary" action="start">Start</button>
+                <button type="button" class="btn btn-tool bg-primary" action="pause">Pause</button>
+                <button type="button" class="btn btn-tool bg-primary" action="resume">Resume</button>
+                <button type="button" class="btn btn-tool bg-primary" action="terminate">Terminate</button>
+                <button type="button" class="btn btn-tool bg-primary" action="delete">Delete</button>
+            </div>
+        </div>
+
+        <div class="card-body" id="overall">
+            <div class="row">
+                <div class="col-md-3">
+                    <div><b>Target Instance Id: </b><span id="targetInstanceOid"></span></div>
+                    <div><b>Harvest Result Number: </b><span id="harvestResultNumber"></span></div>
+                    <div><b>Derived From: </b><span id="derivedHarvestNumber"></span></div>
+                </div>
+                <div class="col-md-3">
+                    <div><b>Created Owner: </b><span id="createdOwner"></span></div>
+                    <div><b>Created Date: </b><span id="createdDate"></span></div>
+                    <div><b>Harvest Result State: </b><span id="hrState"></span></div>
+                </div>
+                <div class="col-md-2">
+                    <div><b>Patching Crawler Progress (<span id="progressPatchingCrawlerValue"></span>%)</b></div>
+                    <div><b>Prune and Import Progress (<span id="progressPruneAndImportValue"></span>%)</b></div>
+                    <div><b>Indexer Progress (<span id="progressIndexerValue"></span>%)</b></div>
+                </div>
+                <div class="col-md-4">
+                    <progress value="100" max="100" data-label="100% Complete" id="progressPatchingCrawler"></progress>
+                    <progress value="100" max="100" data-label="100% Complete" id="progressPruneAndImport"></progress>
+                    <progress value="100" max="100" data-label="100% Complete" id="progressIndexer"></progress>
+                </div>
+            </div>
+
+      </div>
+      <!-- /.info-box-content -->
+    </div>
+
+    <div class="card card-outline">
+        <div class="card-header bg-light">
+            <h3 class="card-title"><b>Logs</b></h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>           
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-crawl-log" digest="none" title="Patch Crawling Logs" prefix="'normal'"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-modify-log" digest="none" title="Modifying Logs" prefix="modifying"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-index-log" digest="none" title="Indexing Logs" prefix="indexing"></div></div>
+            </div>
+      </div>
+      <!-- /.info-box-content -->
+    </div>
+
+    <div class="card card-outline">
+        <div class="card-header bg-light">
+            <h3 class="card-title"><b>Prune and Import Request URLs</b></h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>           
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-url-prune" digest="none" title="To Be Pruned URL"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-url-import" digest="none" title="To Be Imported By URL"></div></div>
+                <div class="col-md-4"><div class="ag-theme-balham ag-grid-style" id="table-body-file-import" digest="none" title="To Be Imported By File"></div></div>
+            </div>
+        </div>
+      <!-- /.info-box-content -->
+    </div>
+
+<!-- </main> -->
+
+<div id="popup-window-loading">
+    <div class="spin-overlay"><i class="fas fa-circle-notch text-default"></i></div>
+</div>
+
+<!-- Login Page -->
+<div class="popup-window" id="popup-window-login">
+    <iframe src="/logon.jsp" title="Login" style="width: 100vw; height: 100vh;"></iframe>
+</div>
+
+<script src="../dist/jquery/jquery-3.4.1.min.js"></script>
+<script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
+<!-- <script src="../dist/plugins/bs-custom-file-input.min.js"></script> -->
+<script src="../dist/adminlte/js/adminlte.js"></script>
+<script src="../dist/ag-grid/ag-grid-community.js"></script>
+<!-- <script src="../dist/plugins/moment-with-locales.min.js"></script> -->
+<!-- <script src="../dist/plugins/moment-timezone-with-data-2012-2022.min.js"></script> -->
+<script src="visualization.js"></script>
+<script src="patching-view-hr.js"></script>
+
+<script>
+    // $('#popup-window-loading').show();
+    var urlParameters=getUrlVars();
+    var jobId=parseInt(urlParameters["targetInstanceOid"]);
+    var harvestResultId=parseInt(urlParameters["harvestResultId"]);
+    var harvestResultNumber=parseInt(urlParameters["harvestNumber"]);
+    var hrState=0;
+    var hrStatus=0;
+
+    var mapGrids={};
+    function updateTable(tableId, tableOptions, datapair, emptyDataset){
+        var oldDigest=$(tableId).attr('digest');
+        if (oldDigest===datapair.digest) {
+            return;
+        }
+            
+
+        var dataset=datapair.data;
+        var grid=mapGrids[tableId];
+        if (!grid) {
+            grid=new agGrid.Grid(document.querySelector(tableId), tableOptions);
+            mapGrids[tableId]=grid;
+        }
+
+        if (!dataset || dataset.length==0) {
+            grid.gridOptions.api.setRowData(emptyDataset);
+        }else{
+            grid.gridOptions.api.setRowData(dataset);
+        }
+        // grid.gridOptions.api.setDomLayout('print');
+
+
+        $(tableId).attr('digest',datapair.digest);
+    }
+
+    function updateLogTable(tableId, tableOptions, datapair, prefix){
+        var emptyDataset=[{name: 'No log files are available.', flagShowMsg:true}];
+        for(var i=0;i<datapair.data.length;i++){
+            var node=datapair.data[i];
+            node['prefix']=prefix;
+        }
+        updateTable(tableId, tableOptions, datapair, emptyDataset);
+    }
+
+    function updateCommandTable(tableId, tableOptions, datapair){
+        var emptyDataset=[{url: 'No URLs are available.', flagShowMsg:true}];
+        updateTable(tableId, tableOptions, datapair, emptyDataset);
+    }
+
+    function renderContent(data){
+        //Action Button Status
+        hrState=data.hrState;
+        hrStatus=data.hrStatus;
+
+        if (hrState===3 || hrState===5 || hrState===6) {
+            $('#btn-group-patch-actions').show();
+        }else{
+            $('#btn-group-patch-actions').hide();
+        }
+
+        //Buttons
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===1){
+            $('#btn-group-patch-actions button[action="start"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="start"]').prop('disabled', true);
+        }
+
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===2) {
+            $('#btn-group-patch-actions button[action="pause"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="pause"]').prop('disabled', true);
+        }
+
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===3) {
+            $('#btn-group-patch-actions button[action="resume"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="resume"]').prop('disabled', true);
+        }
+
+        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus!==4) {
+            $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', true);
+        }
+
+        // Delete not started task or terminted
+        if ((hrState===3 || hrState===5 || hrState===6) && (hrStatus===1 || hrStatus===4)) {
+            $('#btn-group-patch-actions button[action="delete"]').prop('disabled', false);
+        }else{
+            $('#btn-group-patch-actions button[action="delete"]').prop('disabled', true);
+        }
+
+        //Show overall fields
+        $('#targetInstanceOid').html(data.targetInstanceOid);
+        $('#harvestResultNumber').html(data.harvestResultNumber);
+        $('#derivedHarvestNumber').html(data.derivedHarvestNumber);
+        $('#createdOwner').html(data.createdOwner);
+        $('#createdDate').html(data.createdDate);
+        $('#hrState').html(StateMap[data.hrState] + '&nbsp;' + StatusMap[data.hrStatus]);
+
+
+        //Progress
+        $('#progressPatchingCrawler').val(data.progress.percentageHarvest);
+        $('#progressPruneAndImport').val(data.progress.percentageModify);
+        $('#progressIndexer').val(data.progress.percentageIndex);
+        $('#progressPatchingCrawler').attr('data-label', data.progress.percentageHarvest+'% Complete');
+        $('#progressPruneAndImport').attr('data-label', data.progress.percentageModify+'% Complete');
+        $('#progressIndexer').attr('data-label', data.progress.percentageIndex+'% Complete');
+
+        $('#progressPatchingCrawlerValue').html(data.progress.percentageHarvest);
+        $('#progressPruneAndImportValue').html(data.progress.percentageModify);
+        $('#progressIndexerValue').html(data.progress.percentageIndex);
+
+
+        // Show logs
+        updateLogTable('#table-body-crawl-log', gridOptionsLogsCrawling, data.logsCrawling, 'crawling');
+        updateLogTable('#table-body-modify-log', gridOptionsLogsModifying, data.logsModifying, 'modifying');
+        updateLogTable('#table-body-index-log', gridOptionsLogsIndexing, data.logsIndexing, 'indexing');
+
+
+        //Show prune and import URLs
+        updateCommandTable('#table-body-url-prune', gridOptionsCommandPrune, data.listToBePruned);
+        updateCommandTable('#table-body-url-import', gridOptionsCommandImportByUrl, data.listToBeImportedByURL);
+        updateCommandTable('#table-body-file-import', gridOptionsCommandImportByFile, data.listToBeImportedByFile);
+    }
+
+    function fetchData(){
+        var reqUrl='/curator/target/patching-hr-view-data?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+harvestResultNumber;
+        fetch(reqUrl, { 
+            method: 'GET',
+            redirect: 'follow',
+            headers: {'Content-Type': 'application/json'}
+        }).then((response) => {
+            return response.json();
+        }).then((response) => {
+            if (response.respCode!=0) {
+                console.log(response.respMsg);
+            }else{
+                renderContent(response);
+            }
+        });
+    }
+
+    $(function(){
+        $('#btn-group-patch-actions button').on('click', function(){
+            var action=$(this).attr('action');
+            var reqUrl='/curator/modification/operate?stage=TBC&command='+action+'&targetInstanceId='+jobId+'&harvestNumber='+harvestResultNumber;
+            fetch(reqUrl, { 
+                method: 'GET',
+                redirect: 'follow',
+                headers: {'Content-Type': 'application/json'}
+            }).then((response) => {
+                return response.json();
+            }).then((response) => {
+                if (response.respCode!==0) {
+                    alert(response.respMsg);
+                }
+            });
+        });
+
+
+        fetchData();
+
+        setInterval(fetchData, 3000);
+    });
+</script>
+</body>

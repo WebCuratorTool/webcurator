@@ -15,9 +15,9 @@
  */
 package org.webcurator.core.harvester.agent;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.archive.util.FileUtils;
 import org.netarchivesuite.heritrix3wrapper.ScriptResult;
 import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.HarvesterType;
@@ -257,7 +257,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         removeHarvester(aJob);
 
         if (harvestDir != null) {
-            boolean deleted = FileUtils.deleteDir(harvestDir);
+            boolean deleted = FileUtils.deleteQuietly(harvestDir);
             if (deleted) {
                 log.info("Deleted harvest directory=" + harvestDir.getAbsolutePath());
             } else {
@@ -362,7 +362,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         }
 
         List das = getHarvester(aJob).getHarvestDigitalAssetsDirs();
-        HarvestResultDTO ahr = new HarvestResultDTO();
 
 
         // Make sure that the files are not longer in use.
@@ -433,9 +432,20 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         if (aFailureStep <= FAILED_ON_SEND_RESULT) {
             try {
                 log.info("Sending harvest result to WCT for job " + aJob);
-                ahr = new HarvestResultDTO();
+                long targetInstanceId = 0;
+                int harvestResultNumber = 1;
+                if (aJob.startsWith("mod")) {
+                    String[] items = aJob.split("_");
+                    targetInstanceId = Long.parseLong(items[1]);
+                    harvestResultNumber = Integer.parseInt(items[2]);
+                } else {
+                    targetInstanceId = Long.parseLong(aJob.substring(aJob.lastIndexOf("-") + 1));
+                }
+
+                HarvestResultDTO ahr = new HarvestResultDTO();
                 ahr.setCreationDate(new Date());
-                ahr.setTargetInstanceOid(new Long(aJob));
+                ahr.setTargetInstanceOid(targetInstanceId);
+                ahr.setHarvestNumber(harvestResultNumber);
                 ahr.setProvenanceNote(provenanceNote);
                 harvestCoordinatorNotifier.harvestComplete(ahr);
             } catch (Exception e) {
@@ -893,7 +903,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
                 if (log.isDebugEnabled()) {
                     log.debug("About to purge aborted target instance dir " + toPurge.toString());
                 }
-                FileUtils.deleteDir(toPurge);
+                FileUtils.deleteDirectory(toPurge);
             }
         } catch (Exception e) {
             if (log.isDebugEnabled()) {

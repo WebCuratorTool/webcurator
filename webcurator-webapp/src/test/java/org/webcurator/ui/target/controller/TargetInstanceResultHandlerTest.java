@@ -5,6 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +26,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.coordinator.MockWctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinatorImpl;
-import org.webcurator.core.harvester.coordinator.MockHarvestCoordinator;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -68,7 +70,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
         genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
         genHandler.setAuthorityManager(new AuthorityManagerImpl());
         genHandler.setTargetInstanceManager(targetInstanceManager);
-        genHandler.setHarvestAgentManager(new HarvestAgentManagerImpl());
+        genHandler.setWctCoordinator(new WctCoordinatorImpl());
         tabGeneral.setTabHandler(genHandler);
 
         tabs.add(tabGeneral);
@@ -88,10 +90,10 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 
 
     @Test
-    public final void testProcessOther() {
+    public final void testProcessOther() throws DigitalAssetStoreException {
         HttpServletRequest aReq = new MockHttpServletRequest();
         MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-        MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+        MockWctCoordinator coordinator = new MockWctCoordinator();
         coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
         MockDigitalAssetStore digitalAssetStore = new MockDigitalAssetStore() {
             public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
@@ -104,16 +106,19 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
         };
 
         testInstance.setTargetInstanceManager(targetInstanceManager);
-        testInstance.setHarvestCoordinator(coordinator);
+        testInstance.setWctCoordinator(coordinator);
         testInstance.setDigitalAssetStore(digitalAssetStore);
         testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 
-        DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http://wctstore.natlib.govt.nz:19090", new RestTemplateBuilder());
+        //DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http://wctstore.natlib.govt.nz:19090", new RestTemplateBuilder());
+        DigitalAssetStoreClient mockDasClient = mock(DigitalAssetStoreClient.class);
+        mockDasClient.setBaseUrl("http://wctstore.natlib.govt.nz:19090");
+        mockDasClient.setRestTemplateBuilder(new RestTemplateBuilder());
+
         InTrayManagerImpl mockInTrayManager = new InTrayManagerImpl();
         mockInTrayManager.setWctBaseUrl("http://${core.host}:${core.port}/");
-        ReflectionTestUtils.setField(testInstance, "digitalAssetStoreClient", mockDasClient);
+        ReflectionTestUtils.setField(testInstance, "digitalAssetStore", mockDasClient);
         ReflectionTestUtils.setField(testInstance, "inTrayManager", mockInTrayManager);
-
 
         TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
@@ -140,6 +145,13 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
         aCmd.setCmd(TargetInstanceCommand.ACTION_ENDORSE);
         aCmd.setHarvestResultId(result.getOid());
         BindingResult bindingResult = new BindException(aCmd, aCmd.getCmd());
+
+        CustomDepositFormResultDTO customDepositFormResultDTO = new CustomDepositFormResultDTO();
+        customDepositFormResultDTO.setCustomDepositFormRequired(true);
+        customDepositFormResultDTO.setUrlForCustomDepositForm("http://some.host.natlib.govt.nz/aURL");
+        customDepositFormResultDTO.setHTMLForCustomDepositForm("an html");
+        customDepositFormResultDTO.setProducerId("3003");
+        when(mockDasClient.getCustomDepositFormDetails(any())).thenReturn(customDepositFormResultDTO);
 
         ModelAndView mav = testInstance.processOther(tc, currentTab, aReq, aResp, aCmd, bindingResult);
         assertTrue(mav != null);
@@ -178,11 +190,11 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
     public final void testProcessOtherReject() {
         HttpServletRequest aReq = new MockHttpServletRequest();
         MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-        MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+        MockWctCoordinator coordinator = new MockWctCoordinator();
         coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
 
         testInstance.setTargetInstanceManager(targetInstanceManager);
-        testInstance.setHarvestCoordinator(coordinator);
+        testInstance.setWctCoordinator(coordinator);
         testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
         TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
@@ -232,11 +244,11 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
     public final void testProcessOtherRejectNoReasons() {
         HttpServletRequest aReq = new MockHttpServletRequest();
         MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-        MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+        MockWctCoordinator coordinator = new MockWctCoordinator();
         coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
 
         testInstance.setTargetInstanceManager(targetInstanceManager);
-        testInstance.setHarvestCoordinator(coordinator);
+        testInstance.setWctCoordinator(coordinator);
         testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
         TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
@@ -285,11 +297,11 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
     public final void testProcessOtherReindex() {
         HttpServletRequest aReq = new MockHttpServletRequest();
         MockTargetInstanceManager targetInstanceManager = new MockTargetInstanceManager(testFile);
-        MockHarvestCoordinator coordinator = new MockHarvestCoordinator();
+        MockWctCoordinator coordinator = new MockWctCoordinator();
         coordinator.setTargetInstanceDao(targetInstanceManager.getTargetInstanceDAO());
 
         testInstance.setTargetInstanceManager(targetInstanceManager);
-        testInstance.setHarvestCoordinator(coordinator);
+        testInstance.setWctCoordinator(coordinator);
         testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 
         TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
@@ -365,7 +377,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
     }
 
     @Test
-    public final void testBuildCustomDepositFormDetails_variousConditions() {
+    public final void testBuildCustomDepositFormDetails_variousConditions() throws DigitalAssetStoreException {
         MockTargetInstanceManager targetInstanceManager;
         MockHttpServletRequest aReq;
         targetInstanceManager = new MockTargetInstanceManager(testFile);
@@ -373,24 +385,35 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
         TabbedModelAndView mav;
         MockDigitalAssetStore digitalAssetStore;
 
-        DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http://wctstore.natlib.govt.nz:19090", new RestTemplateBuilder());
+//        DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http://wctstore.natlib.govt.nz:19090", new RestTemplateBuilder());
+        DigitalAssetStoreClient mockDasClient = mock(DigitalAssetStoreClient.class);
+
         InTrayManagerImpl mockInTrayManager = new InTrayManagerImpl();
         mockInTrayManager.setWctBaseUrl("http://${core.host}:${core.port}/");
-        ReflectionTestUtils.setField(testInstance, "digitalAssetStoreClient", mockDasClient);
+        ReflectionTestUtils.setField(testInstance, "digitalAssetStore", mockDasClient);
         ReflectionTestUtils.setField(testInstance, "inTrayManager", mockInTrayManager);
 
         // Harvest is in ENDORSED state and the DAS returns a valid response DTO
-        digitalAssetStore = new MockDigitalAssetStore() {
-            public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
-                CustomDepositFormResultDTO result = new CustomDepositFormResultDTO();
-                result.setCustomDepositFormRequired(true);
-                result.setHTMLForCustomDepositForm("an html");
-                result.setUrlForCustomDepositForm("http://some.host.natlib.govt.nz/aURL");
-                return result;
-            }
-        };
+//        digitalAssetStore = new MockDigitalAssetStore() {
+//            public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
+//                CustomDepositFormResultDTO result = new CustomDepositFormResultDTO();
+//                result.setCustomDepositFormRequired(true);
+//                result.setHTMLForCustomDepositForm("an html");
+//                result.setUrlForCustomDepositForm("http://some.host.natlib.govt.nz/aURL");
+//                return result;
+//            }
+//        };
+
+
+        CustomDepositFormResultDTO customDepositFormResultDTO = new CustomDepositFormResultDTO();
+        customDepositFormResultDTO.setCustomDepositFormRequired(true);
+        customDepositFormResultDTO.setUrlForCustomDepositForm("http://some.host.natlib.govt.nz/aURL");
+        customDepositFormResultDTO.setHTMLForCustomDepositForm("an html");
+        customDepositFormResultDTO.setProducerId("3003");
+        when(mockDasClient.getCustomDepositFormDetails(any())).thenReturn(customDepositFormResultDTO);
+
         targetInstance.setState(TargetInstance.STATE_ENDORSED);
-        testInstance.setDigitalAssetStore(digitalAssetStore);
+        testInstance.setDigitalAssetStore(mockDasClient);
         testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
         mav = mockTabbedModelAndView(targetInstanceManager);
         aReq = new MockHttpServletRequest();
