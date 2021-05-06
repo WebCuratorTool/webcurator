@@ -1360,9 +1360,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
 
         // If using a java class, use the class name
-        if (toolUsed.equals("java")) {
-            toolUsed = screenshotCommandFullpage.split("\\s+")[1];
-            toolUsed = toolUsed.substring(toolUsed.lastIndexOf(".") + 1);
+        if (screenshotCommandFullpage.contains("SeleniumScreenshotCapture")) {
+            toolUsed = "default";
         }
 
         // Get the name of the tool used to get the screenshot
@@ -1428,11 +1427,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         log.info("Generating screenshots for job " + targetInstanceOid + " using " + toolUsed + "...");
 
         try {
+            ScreenshotGenerator screenshotGenerator = new ScreenshotGenerator(log, screenshotCommandWindowsize, screenshotCommandScreen, screenshotCommandFullpage);
+
             // Generate fullpage screenshots only if live or not using the default SeleniumScreenshotCapture executable for harvested screenshot
             // The size of harvested screenshots will be compared next
             if (liveOrHarvested.equals("live") || !commandFullpage.contains("SeleniumScreenshotCapture")) {
-                runCommand(commandFullpage);
-                waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+                if (screenshotGenerator.runCommand(commandFullpage)) {
+                    screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+                } else {
+                    throw new Exception("Unable to run command " + commandFullpage);
+                }
             }
 
             File liveImageFile = new File(outputPathString + File.separator + fullpageFilename.replace("harvested", "live"));
@@ -1442,11 +1446,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                         .replace(imagePlaceholder, outputPathString + fullpageFilename);
                 if (commandWaybackFullpage.contains("SeleniumScreenshotCapture")) {
                     commandWaybackFullpage = commandWaybackFullpage.substring(0, commandWaybackFullpage.indexOf("width=")) + "--wayback";
-                    runCommand(commandWaybackFullpage);
-                    waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+                    if (screenshotGenerator.runCommand(commandWaybackFullpage)) {
+                        screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+                    }
                     // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
                 } else {
-                    checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl);
+                    screenshotGenerator.checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl);
                 }
             } else if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
                 log.info("Live image file does not exist, nothing to compare against.");
@@ -1456,16 +1461,27 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             if (liveOrHarvested.equals("harvested") && commandScreen.contains("SeleniumScreenshotCapture")) {
                 commandScreen = commandScreen.trim() + " --wayback";
             }
-            runCommand(commandScreen);
-            waitForScreenshot(new File(outputPathString + screenFilename), screenFilename);
-
+            if (screenshotGenerator.runCommand(commandScreen)) {
+                screenshotGenerator.waitForScreenshot(new File(outputPathString + screenFilename), screenFilename);
+            }
             // Generate thumbnail from fullpage screenshot if not using the default screenshot tool
             if (!commandScreen.contains("SeleniumScreenshotCapture")) {
-                generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString, "screen",
-                        "thumbnail", 100, 100);
+                screenshotGenerator.generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString, "screen",
+                        "thumbnail",100, 100);
             }
 
-            log.info("Screenshots generated.");
+            File dir = new File(outputPathString);
+            int imageCounter = 0;
+            for (File file : dir.listFiles()) {
+                if (file.toString().toLowerCase().endsWith(".png") && file.toString().contains(liveOrHarvested)) {
+                    imageCounter++;
+                }
+            }
+            if (imageCounter == 3) {
+                log.info("Screenshots generated.");
+            } else {
+                log.info("Screenshot files are missing.");
+            }
 
         } catch (Exception e) {
             log.error("Failed to generate screenshots: " + e.getMessage(), e);
