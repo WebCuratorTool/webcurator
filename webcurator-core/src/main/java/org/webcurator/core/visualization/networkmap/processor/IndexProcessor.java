@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
 public abstract class IndexProcessor extends VisualizationAbstractProcessor {
-    private static final Logger log = LoggerFactory.getLogger(IndexProcessor.class);
+    protected static final Logger log = LoggerFactory.getLogger(IndexProcessor.class);
     protected static final int MAX_URL_LENGTH = 1020;
 
     protected Map<String, NetworkMapNode> urls = new Hashtable<>();
@@ -273,7 +273,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 indexFile(reader, f.getName());
             } catch (Exception e) {
                 String err = "Failed to open archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
-                log.error(err);
+                log.error(err, e);
                 this.writeLog(err);
             } finally {
                 if (reader != null) {

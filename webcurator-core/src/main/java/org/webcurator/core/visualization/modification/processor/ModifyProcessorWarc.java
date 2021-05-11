@@ -269,13 +269,14 @@ public class ModifyProcessorWarc extends ModifyProcessor {
                 WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
                 warcRecordInfo.setUrl(fProps.getUrl());
                 warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
-                warcRecordInfo.setMimetype(fProps.getContentType());
+                warcRecordInfo.setMimetype(WARCRecord.HTTP_RESPONSE_MIMETYPE);
                 warcRecordInfo.setRecordId(recordId);
                 warcRecordInfo.setExtraHeaders(namedFields);
                 warcRecordInfo.setContentStream(fin);
                 warcRecordInfo.setContentLength(tempFile.length());
                 warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
                 warcWriter.writeRecord(warcRecordInfo);
+                fin.close();
 
                 this.writeLog(String.format("[INFO] Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
                 statisticItem.increaseCopiedRecords();

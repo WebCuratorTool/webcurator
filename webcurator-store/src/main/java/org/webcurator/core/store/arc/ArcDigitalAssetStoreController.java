@@ -50,11 +50,12 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                              HttpServletResponse rsp) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
         Path path = getResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
-        if (path==null){
+        if (path == null) {
             return;
         }
         try {
             Files.copy(path, rsp.getOutputStream());
+            Files.deleteIfExists(path);
         } catch (IOException e) {
             throw new DigitalAssetStoreException(e.getMessage());
         }

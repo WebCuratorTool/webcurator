@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,7 @@ import javax.servlet.http.HttpServletResponse;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class WctCoordinatorImpl implements WctCoordinator {
     private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
+    private static final Tika tika = new Tika();
 
     @Autowired
     private TargetInstanceManager targetInstanceManager;
@@ -1837,6 +1839,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return hrDTO;
     }
 
+    public String probeMimeType(File file) throws IOException {
+//        Files.probeContentType(file.toPath());
+        return tika.detect(file);
+    }
+
     @Override
     public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         File f = new File(visualizationDirectoryManager.getUploadDir(targetInstanceId), fileName);
@@ -1844,10 +1851,12 @@ public class WctCoordinatorImpl implements WctCoordinator {
         StringBuilder headers = new StringBuilder();
         headers.append("HTTP/1.1 200 OK\n");
         headers.append("Content-Type: ");
-        headers.append(Files.probeContentType(f.toPath())).append("\n");
+        headers.append(probeMimeType(f)).append("\n");
         headers.append("Content-Length: ");
         headers.append(f.length()).append("\n");
         headers.append("Connection: close\n");
+
+        log.debug("Store <-- Webapp fileName: {}, headers: {}", fileName, headers.toString());
 
         OutputStream outputStream = rsp.getOutputStream();
         outputStream.write(headers.toString().getBytes());

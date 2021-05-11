@@ -455,20 +455,23 @@ public class HarvestModificationHandler {
         if (hr == null) {        // If the resource is not found, go to an error page.
             log.error("Resource not found: {}", baseUrl);
             rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
         }
 
         TargetInstance ti = hr.getTargetInstance();
         if (ti == null) {        // If the resource is not found, go to an error page.
             log.error("Resource not found: {}", baseUrl);
             rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            return;
         }
 
         List<Header> headers = new ArrayList<>();
         try {        // catch any DigitalAssetStoreException and log assumptions
             headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), baseUrl);
         } catch (Exception e) {
-            log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
+            log.warn("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
             rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
 
         // Get the content type.
@@ -522,7 +525,7 @@ public class HarvestModificationHandler {
         IOUtils.read(Files.newInputStream(path), buf);
         path.toFile().delete();
 
-        StringBuilder content = new StringBuilder(new String(buf));
+        StringBuilder content = new StringBuilder(new String(buf, charset));
 
         Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern("BASE", "HREF");
         Matcher m = baseUrlGetter.matcher(content);
@@ -540,7 +543,7 @@ public class HarvestModificationHandler {
         }
         browseHelper.fix(content, simpleContentType, hrOid, baseUrl);
 
-        rsp.getOutputStream().write(content.toString().getBytes());
+        rsp.getOutputStream().write(content.toString().getBytes(charset));
     }
 
     private String getHeaderValue(List<Header> headers, String key) {

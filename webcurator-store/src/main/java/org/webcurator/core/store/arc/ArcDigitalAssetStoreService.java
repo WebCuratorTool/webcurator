@@ -423,8 +423,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     public List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
         log.debug("Start of getHeaders()");
-        log.debug("Casting the DTO to HarvestResult");
-
 
         NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
@@ -1022,7 +1020,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             char c1;
             while ((i = record.read()) != -1) {
                 c1 = (char) i;
-                if (c0 == '\r' && c1 == '\n') {
+//                if (c0 == '\r' && c1 == '\n') {
+                if (c1 == '\n') {
                     break;
                 }
                 c0 = c1;

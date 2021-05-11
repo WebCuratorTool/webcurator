@@ -556,6 +556,13 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
+    public void testFinaliseIndex() {
+        long tiId = 5000L;
+        int hrNum = 1;
+        testInstance.finaliseIndex(tiId, hrNum);
+    }
+
+    @Test
     public void testStop() {
         HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
@@ -1042,6 +1049,24 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
             assertEquals(newHarvestResult.getHarvestNumber(), cmd.getNewHarvestResultNumber());
             assertEquals(HarvestResult.STATE_MODIFYING, newHarvestResult.getState());
         }
+    }
+
+    @Test
+    public void testProbeMimeType() throws IOException {
+        File jpgFile = new File("src/test/resources/org/webcurator/core/coordinator/users.jpg");
+        String jpgMimeType = testInstance.probeMimeType(jpgFile);
+        assertNotNull(jpgMimeType);
+        assertTrue(jpgMimeType.equalsIgnoreCase("image/jpeg"));
+
+        File jpegFile = new File("src/test/resources/org/webcurator/core/coordinator/star.jpeg");
+        String jpegMimeType = testInstance.probeMimeType(jpegFile);
+        assertNotNull(jpegMimeType);
+        assertTrue(jpegMimeType.equalsIgnoreCase("image/jpeg"));
+
+        File pngFile = new File("src/test/resources/org/webcurator/core/coordinator/icon.png");
+        String pngMimeType = testInstance.probeMimeType(pngFile);
+        assertNotNull(pngMimeType);
+        assertTrue(pngMimeType.equalsIgnoreCase("image/png"));
     }
 
     @Test

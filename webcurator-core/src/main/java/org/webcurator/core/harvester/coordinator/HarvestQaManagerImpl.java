@@ -3,11 +3,9 @@ package org.webcurator.core.harvester.coordinator;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.NameValuePair;
@@ -114,31 +112,34 @@ public class HarvestQaManagerImpl implements HarvestQaManager {
 
     @Override
     public void runQaRecommentationService(TargetInstance ti) {
-        // fetch the reference crawl if it one exists
-        TargetInstance referenceCrawl = null;
-        Long referenceCrawlOid = ti.getTarget().getReferenceCrawlOid();
-        if (referenceCrawlOid != null) {
-            referenceCrawl = targetInstanceDao.load(referenceCrawlOid);
-        }
+        //TODO: To fix the QARecommendation based on the indexes in BDB
+        /**
+         // fetch the reference crawl if it one exists
+         TargetInstance referenceCrawl = null;
+         Long referenceCrawlOid = ti.getTarget().getReferenceCrawlOid();
+         if (referenceCrawlOid != null) {
+         referenceCrawl = targetInstanceDao.load(referenceCrawlOid);
+         }
 
-        try {
-            // initialise the knowledge session
-            qaRecommendationService.buildKnowledgeSession();
-            // fetch the indicator criterias for the ti's agency
-            List<IndicatorCriteria> criteria = targetInstanceManager.getIndicatorCriteriasByAgencyOid(ti.getOwner().getAgency()
-                    .getOid());
-            // process the indicators
-            qaRecommendationService.applyRules(ti, referenceCrawl, criteria);
-            // persist the results
-            targetInstanceManager.save(ti);
+         try {
+         // initialise the knowledge session
+         qaRecommendationService.buildKnowledgeSession();
+         // fetch the indicator criterias for the ti's agency
+         List<IndicatorCriteria> criteria = targetInstanceManager.getIndicatorCriteriasByAgencyOid(ti.getOwner().getAgency()
+         .getOid());
+         // process the indicators
+         qaRecommendationService.applyRules(ti, referenceCrawl, criteria);
+         // persist the results
+         targetInstanceManager.save(ti);
 
-        } catch (DroolsParserException e) {
-            log.error("Rules Engine encountered errors when processing indicators", e);
-        } catch (IOException e) {
-            log.error("Error encountered when processing rules file", e);
-        } catch (Exception e) {
-            log.error("Unexpected error encountered during Rules Engine processing of ti " + ti.getOid(), e);
-        }
+         } catch (DroolsParserException e) {
+         log.error("Rules Engine encountered errors when processing indicators", e);
+         } catch (IOException e) {
+         log.error("Error encountered when processing rules file", e);
+         } catch (Exception e) {
+         log.error("Unexpected error encountered during Rules Engine processing of ti " + ti.getOid(), e);
+         }
+         */
     }
 
     @Override

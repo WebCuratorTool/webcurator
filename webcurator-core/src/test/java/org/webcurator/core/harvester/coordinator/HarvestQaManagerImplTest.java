@@ -1,6 +1,7 @@
 package org.webcurator.core.harvester.coordinator;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
@@ -69,5 +70,19 @@ public class HarvestQaManagerImplTest extends BaseWCTTest<HarvestQaManagerImpl> 
             assert false;
         }
         assert true;
+    }
+
+    @Ignore
+    @Test
+    public void testRunQaRecommendationService() {
+        HarvestResult hr = mock(HarvestResult.class);
+        when(testInstance.getTargetInstanceDao().getHarvestResult(1L)).thenReturn(hr);
+
+        TargetInstance ti = mock(TargetInstance.class);
+        when(hr.getTargetInstance()).thenReturn(ti);
+        when(hr.getHarvestNumber()).thenReturn(2);
+        when(hr.getDerivedFrom()).thenReturn(1);
+
+        testInstance.runQaRecommentationService(ti);
     }
 }
