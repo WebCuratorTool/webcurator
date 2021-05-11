@@ -81,5 +81,5 @@ public interface DigitalAssetStoreService {
      * @param identifiers
      * @throws DigitalAssetStoreException
      */
-    void createScreenshots(Map identifiers) throws DigitalAssetStoreException;
+    Boolean createScreenshots(Map identifiers) throws DigitalAssetStoreException;
 }

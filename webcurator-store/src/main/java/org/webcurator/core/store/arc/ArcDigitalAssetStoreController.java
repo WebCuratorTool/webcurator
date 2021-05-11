@@ -156,10 +156,12 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
         return arcDigitalAssetStoreService.getCustomDepositFormDetails(criteria);
     }
 
+    @Override
     @PostMapping(path = DigitalAssetStorePaths.CREATE_SCREENSHOT)
-    public void createScreenshots(@RequestBody Map identifiers) throws DigitalAssetStoreException {
+    public Boolean createScreenshots(@RequestBody Map identifiers) throws DigitalAssetStoreException {
         log.debug("Create screenshot, target-instance-oid: {}, harvest-number: {}", identifiers.get("tiOid"), identifiers.get("harvestNumber"));
-        arcDigitalAssetStoreService.createScreenshots(identifiers);
+        Boolean screenshotsTaken = arcDigitalAssetStoreService.createScreenshots(identifiers);
+        return screenshotsTaken;
     }
 
     @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})

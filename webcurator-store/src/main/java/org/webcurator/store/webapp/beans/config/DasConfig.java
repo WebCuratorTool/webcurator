@@ -295,6 +295,12 @@ public class DasConfig {
     @Value("${harvestWaybackViewer.baseUrl}")
     private String harvestWaybackViewerBaseUrl;
 
+    @Value("${enableScreenshots}")
+    private boolean enableScreenshots;
+
+    @Value("${abortHarvestOnScreenshotFailure}")
+    private boolean abortHarvestOnScreenshotFailure;
+
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
@@ -359,6 +365,8 @@ public class DasConfig {
         bean.setScreenshotCommandScreen(screenshotCommandScreen);
         bean.setScreenshotCommandWindowsize(screenshotCommandWindowsize);
         bean.setHarvestWaybackViewerBaseUrl(harvestWaybackViewerBaseUrl);
+        bean.setAbortHarvestOnScreenshotFailure(abortHarvestOnScreenshotFailure);
+        bean.setEnableScreenshots(enableScreenshots);
         return bean;
     }
 

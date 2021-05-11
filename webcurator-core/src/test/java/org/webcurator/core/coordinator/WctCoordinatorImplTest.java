@@ -11,11 +11,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import com.anotherbigidea.util.Base64;
 import org.apache.commons.io.FileUtils;
@@ -212,7 +208,13 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
-    public final void testHarvestOrQueue() {
+    public final void testHarvestOrQueue() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDas.createScreenshots(any(Map.class))).thenReturn(true);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -274,7 +276,12 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
-    public final void testAgentPaused() {
+    public final void testAgentPaused() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDas.createScreenshots(any(Map.class))).thenReturn(true);
 
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
@@ -307,7 +314,13 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
-    public final void testHarvest() {
+    public final void testHarvest() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDasFactory.getDAS().createScreenshots(any(Map.class))).thenReturn(true);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -328,7 +341,41 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
-    public final void testHarvestStoreSeedHistory() {
+    public final void testHarvestScreenshotFail() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDasFactory.getDAS().createScreenshots(any(Map.class))).thenReturn(false);
+        // Screenshot functionality is in Store
+
+        TargetInstance ti = tiDao.load(5001L);
+        ti.setState(TargetInstance.STATE_SCHEDULED);
+
+        HashMap<String, HarvesterStatusDTO> aHarvesterStatus = new HashMap<String, HarvesterStatusDTO>();
+
+        aHarvesterStatus.put("Target-5002", getStatusDTO("Running"));
+        HarvestAgentStatusDTO aStatus = new HarvestAgentStatusDTO();
+        aStatus.setName("Test Agent");
+        aStatus.setHarvesterStatus(aHarvesterStatus);
+        aStatus.setMaxHarvests(2);
+        testInstance.heartbeat(aStatus);
+
+        HarvestAgentStatusDTO has = harvestAgentManager.getHarvestAgents().get("Test Agent");
+
+        testInstance.harvest(ti, has);
+
+        assertTrue(ti.getState().equals(TargetInstance.STATE_ABORTED));
+    }
+
+    @Test
+    public final void testHarvestStoreSeedHistory() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDasFactory.getDAS().createScreenshots(any(Map.class))).thenReturn(true);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -353,7 +400,13 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
-    public final void testHarvestDontStoreSeedHistory() {
+    public final void testHarvestDontStoreSeedHistory() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDas.createScreenshots(any(Map.class))).thenReturn(true);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -423,7 +476,13 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
-    public final void testHarvestProfilePrefix() {
+    public final void testHarvestProfilePrefix() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDas.createScreenshots(any(Map.class))).thenReturn(true);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -853,8 +912,14 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     }
 
     @Test
-    public void testComprehensiveHarvest() {
+    public void testComprehensiveHarvest() throws DigitalAssetStoreException {
         long tiOid = 5000L;
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+        when(mockDas.createScreenshots(any(Map.class))).thenReturn(true);
+
         TargetInstance ti = tiDao.load(tiOid);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 

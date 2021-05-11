@@ -496,23 +496,37 @@ public class WctCoordinatorImpl implements WctCoordinator {
         targetInstanceManager.save(aTargetInstance);
 
 
+        Boolean toAbort = false;
+        Boolean screenshotsTaken = null;
+
         // Generate live screenshots using a new thread
         for (String seed : originalSeeds) {
+            if (toAbort) break;
+
             Map identifiers = new HashMap();
             identifiers.put("seed", seed);
             identifiers.put("tiOid", targetInstanceId);
             identifiers.put("liveOrHarvested", "live");
 
-            Thread screenshotThread = new Thread() {
-                public void run() {
-                    try {
-                        digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
-                    } catch (DigitalAssetStoreException e) {
-                        log.error("Error occurred while generating screenshots.");
-                    }
+            // Abort harvest if the screenshots failed to generate
+            try {
+                screenshotsTaken = digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
+                if (screenshotsTaken != null) {
+                    toAbort = !screenshotsTaken;
                 }
-            };
-            screenshotThread.start();
+            } catch (DigitalAssetStoreException e) {
+                log.error("Error occurred while generating screenshots", e);
+                toAbort = true;
+            } catch (Exception e) {
+                log.error("Could not generate screenshots", e);
+                toAbort = true;
+            }
+        }
+
+        if (toAbort || screenshotsTaken == null) {
+            log.info("There was a problem generating the screenshots.");
+            harvestAgentManager.abort(aTargetInstance);
+            return;
         }
 
         // Initiate harvest on the remote harvest agent

@@ -64,53 +64,6 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
 
     }
 
-    public void save(String targetInstanceName, List<Path> paths)
-            throws DigitalAssetStoreException {
-        // TODO Auto-generated method stub
-
-    }
-
-    public void save(String targetInstanceName, Path path)
-            throws DigitalAssetStoreException {
-        // TODO Auto-generated method stub
-
-    }
-
-    public void save(String targetInstanceName, String directory, List<Path> paths)
-            throws DigitalAssetStoreException {
-        // TODO Auto-generated method stub
-
-    }
-
-    public void save(String targetInstanceName, String directory, Path path)
-            throws DigitalAssetStoreException {
-        // TODO Auto-generated method stub
-
-    }
-
-    public void submitToArchive(String targetInstanceOid, String sip,
-                                Map attributes, int harvestNumber)
-            throws DigitalAssetStoreException {
-        // TODO Auto-generated method stub
-
-    }
-
-    public Boolean checkIndexing(Long harvestResultOid) throws DigitalAssetStoreException {
-        return checkIndexing;
-    }
-
-    public void setCheckIndexingReturn(Boolean checkIndexing) {
-        this.checkIndexing = checkIndexing;
-    }
-
-    public List<HarvestResultDTO> getRemovedIndexes() {
-        return removedIndexes;
-    }
-
-    public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
-        return null;
-    }
-
     @Override
     public ModifyResult initialPruneAndImport(ModifyApplyCommand cmd) {
         return new ModifyResult();
@@ -121,15 +74,56 @@ public class MockDigitalAssetStore implements DigitalAssetStore {
         return;
     }
 
-    /**
-     * Create live or screenshots for each seed in the harvest
-     *
-     * @param identifiers
-     * @throws DigitalAssetStoreException
-     */
-    public void createScreenshots(Map identifiers) throws DigitalAssetStoreException {
-    }
+    public void save(String targetInstanceName, List<Path> paths)
+			throws DigitalAssetStoreException {
+		// TODO Auto-generated method stub
 
-    ;
+	}
+
+	public void save(String targetInstanceName, Path path)
+			throws DigitalAssetStoreException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void save(String targetInstanceName, String directory, List<Path> paths)
+			throws DigitalAssetStoreException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void save(String targetInstanceName, String directory, Path path)
+			throws DigitalAssetStoreException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void submitToArchive(String targetInstanceOid, String sip,
+			Map attributes, int harvestNumber)
+			throws DigitalAssetStoreException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Boolean checkIndexing(Long harvestResultOid) throws DigitalAssetStoreException {
+		return checkIndexing;
+	}
+	
+	public void setCheckIndexingReturn(Boolean checkIndexing)
+	{
+		this.checkIndexing = checkIndexing;
+	}
+	
+	public List<HarvestResultDTO> getRemovedIndexes() {
+		return removedIndexes;
+	}
+	
+	public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) throws DigitalAssetStoreException {
+		return null;
+	}
+
+	public Boolean createScreenshots(Map identifiers) throws DigitalAssetStoreException{
+		return null;
+	}
 
 }
