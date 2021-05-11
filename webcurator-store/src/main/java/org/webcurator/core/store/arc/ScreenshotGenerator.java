@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 final class ScreenshotGenerator {
     Logger log;
@@ -89,25 +90,51 @@ final class ScreenshotGenerator {
         log.info("Running command " + command);
         try {
             List<String> commandList = Arrays.asList(command.split(" "));
+            String fileLocation = "";
 
-/*            // Add java class path
+            // Get the location of the files
             for (String arg : commandList) {
                 if (arg.equals("-cp") || arg.equals("-classpath")) {
                     int index = commandList.indexOf(arg) + 1;
-                    commandList.set(index, commandList.get(index) + ":" + "\"" + System.getProperty("java.class.path") + "\"");
+                    String classpaths = commandList.get(index);
+                    fileLocation = classpaths.substring(classpaths.lastIndexOf(":") + 2, classpaths.length() - 1);
                 }
-            }*/
-
-            ProcessBuilder processBuilder = new ProcessBuilder(commandList);
-
-            // Command output gets printed to the same place as the application console output
-            Process process = processBuilder.inheritIO().start();
-            int processStatus = process.waitFor();
-
-            if (processStatus != 0) {
-                log.info("Process ended with a fail status: " + processStatus);
-                return false;
             }
+
+            String finalFileLocation = fileLocation;
+            final Boolean[] threadFailed = {null};
+            Thread processThread = new Thread("processThread") {
+                public void run() {
+                    ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+
+                    // Set directory for the process builder if the classpaths exist
+                    if (!finalFileLocation.equals("")) {
+                        log.info("Processing the command from " + finalFileLocation);
+                        processBuilder.directory(new File(finalFileLocation));
+                    }
+
+                    // Command output gets printed to the same place as the application console output
+                    try {
+                        Process process = processBuilder.inheritIO().start();
+                        int processStatus = process.waitFor();
+
+                        if (processStatus != 0) {
+                            throw new Exception("Process ended with a fail status: " + processStatus);
+                        } else {
+                            threadFailed[0] = false;
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to process the command in a new thread.");
+                        threadFailed[0] = true;
+                    }
+                }
+            };
+
+            processThread.start();
+            processThread.join();
+
+            if (threadFailed[0]) return false;
+
         } catch (Exception e) {
             log.error("Unable to process command " + command, e);
             return false;
