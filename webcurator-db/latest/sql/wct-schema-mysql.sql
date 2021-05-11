@@ -56,7 +56,6 @@ drop table if exists DB_WCT.INDICATOR_REPORT_LINE;
 drop table if exists DB_WCT.INDICATOR;
 drop table if exists DB_WCT.PO_H3_BLOCK_URL;
 drop table if exists DB_WCT.PO_H3_INCLUDE_URL;
-drop table if exists DB_WCT.VISUALIZATION_IMPORTED_FILE;
 
 set foreign_key_checks=1;
 
@@ -215,9 +214,3 @@ create view DB_WCT.ABSTRACT_TARGET_GROUPTYPE_VIEW as
 insert into DB_WCT.HEATMAP_CONFIG (HM_OID, HM_NAME, HM_DISPLAY_NAME, HM_COLOR, HM_THRESHOLD_LOWEST) values (1, "low","Low","8FBC8F",1);
 insert into DB_WCT.HEATMAP_CONFIG (HM_OID, HM_NAME, HM_DISPLAY_NAME, HM_COLOR, HM_THRESHOLD_LOWEST) values (2, "medium","Medium","F0E68C",7);
 insert into DB_WCT.HEATMAP_CONFIG (HM_OID, HM_NAME, HM_DISPLAY_NAME, HM_COLOR, HM_THRESHOLD_LOWEST) values (3, "high","High","FF6347",12);
-
---For visualization
-create table DB_WCT.VISUALIZATION_IMPORTED_FILE (VIF_OID bigint, VIF_FILE_NAME varchar(1024) not null, VIF_CONTENT_LENGTH bigint, VIF_CONTENT_TYPE varchar(256), VIF_LAST_MODIFIED_DATE bigint, VIF_UPLOADED_DATE varchar(8), VIF_UPLOADED_TIME varchar(6), primary key (VIF_OID));
-alter table DB_WCT.VISUALIZATION_IMPORTED_FILE add unique index IDX_VIF_FILE_NAME (VIF_FILE_NAME);
-alter table DB_WCT.VISUALIZATION_IMPORTED_FILE add index IDX_VIF_UPLOADED_DATE (VIF_UPLOADED_DATE);
-
