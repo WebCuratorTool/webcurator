@@ -16,16 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-/* LICENSE
- * This class uses ChromeDriver.
- * To view the ChromeDriver license, go to
- * https://chromium.googlesource.com/chromium/src/+/afb2b4d227b36874c5a165565afbdc6d36daddd5/chrome/test/chromedriver/third_party/googlecode/LICENSE
- */
 
-/*
- * You can make changes to this class and rebuild it using
- * javac -cp "libs/*" SeleniumScreenshotCapture.java
- */
 public class SeleniumScreenshotCapture {
 
 	private static void createThumbnail(File input, String output) {

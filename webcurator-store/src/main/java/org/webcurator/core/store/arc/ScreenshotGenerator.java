@@ -89,28 +89,12 @@ final class ScreenshotGenerator {
         log.info("Running command " + command);
         try {
             List<String> commandList = Arrays.asList(command.split(" "));
-            String fileLocation = "";
 
-            // Get the location of the files
-            for (String arg : commandList) {
-                if (arg.equals("-cp") || arg.equals("-classpath")) {
-                    int index = commandList.indexOf(arg) + 1;
-                    String classpaths = commandList.get(index);
-                    fileLocation = classpaths.substring(classpaths.lastIndexOf(":") + 2, classpaths.length() - 3);
-                }
-            }
-
-            String finalFileLocation = fileLocation;
             final Boolean[] threadFailed = {null};
             Thread processThread = new Thread("processThread") {
                 public void run() {
                     ProcessBuilder processBuilder = new ProcessBuilder(commandList);
-
-                    // Set directory for the process builder if the classpaths exist
-                    if (!finalFileLocation.equals("")) {
-                        log.info("Processing the command from " + finalFileLocation);
-                        processBuilder.directory(new File(finalFileLocation));
-                    }
+                    log.info("Processing file from " + System.getProperty("user.dir"));
 
                     // Command output gets printed to the same place as the application console output
                     try {
@@ -187,9 +171,10 @@ final class ScreenshotGenerator {
         }
     }
 
+    // Returns an empty string when it can't retrieve the timestamp for the url
     private String getWaybackUrl(String seed, String outputPathString, Map identifiers, String waybackBaseUrl) {
-        String result = seed;
-        // Get timestamp from warc file and use in harvest seed url
+        String result = "";
+        // Get timestamp from warc file and use with harvest seed url
         File harvestDirectory = new File(outputPathString);
         harvestDirectory = new File(harvestDirectory.getParent());
 
@@ -263,6 +248,11 @@ final class ScreenshotGenerator {
             deleteTmpDir(tmpDirectoryString);
 
             seedUrl = getWaybackUrl(seedUrl, outputPathString, identifiers, harvestWaybackViewerBaseUrl);
+
+            if (seedUrl.equals("")) {
+                log.error("Could not retrieve wayback url.");
+                return false;
+            }
         }
 
         // Populate the filenames and the placeholder values

@@ -1348,6 +1348,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
+    // Delete everything in _resources file then resources file then harvest file
     private void cleanUpTmpDir (File harvestTmpDir) {
         File tmpDir = harvestTmpDir.getParentFile();
         if (harvestTmpDir.exists()) {
@@ -1376,6 +1377,59 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
+    private boolean checkDirOnlyOneFile(File dir, String expectedDir) {
+        if (dir.list().length == 0) return true;
+
+        File[] dirFiles = dir.listFiles();
+
+        // Return false if the directory contains more than 1 file
+        if (dirFiles.length > 1) {
+            log.info("There are more files in " + dir.toString() + " than the " + expectedDir + " directory.");
+            return false;
+        }
+
+        // Return false if the child directory isn't the expected directory
+        if (!dirFiles[0].getName().equals(expectedDir)) {
+            log.info("There is an unexpected file in " + dir.toString());
+            return false;
+        }
+
+        return true;
+    }
+
+    private void cleanUpDirOnAbort(File harvestBaseDir) {
+        if (!harvestBaseDir.exists()) return;
+
+        // Harvest base dir should only contain tmpDir, do not delete otherwise
+        if (!checkDirOnlyOneFile(harvestBaseDir, "tmpDir")) return;
+
+        // tmpDir should only contain _resources, do not delete otherwise
+        File tmpDir = harvestBaseDir.listFiles()[0];
+        if (!checkDirOnlyOneFile(tmpDir, "_resources")) return;
+
+        File resourcesDir = tmpDir.listFiles()[0];
+        // Delete all files in _resources
+        for (File f : resourcesDir.listFiles()) {
+            if (!f.delete()) {
+                log.info("Unable to delete " + f.toString());
+                return;
+            }
+        }
+
+        // Delete _resources directory then tmpDir then harvest directory
+        if (!resourcesDir.delete()) {
+            log.info("Could not delete " + resourcesDir.toString());
+            return;
+        }
+        if (!tmpDir.delete()) {
+            log.info("Could not delete " + tmpDir.toString());
+            return;
+        }
+        if (!harvestBaseDir.delete()) {
+            log.info("Could not delete " + harvestBaseDir.toString());
+        }
+    }
+
     /**
      *
      * @param identifiers
@@ -1396,8 +1450,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
         // Delete temporary screenshot directory if the screenshot didn't succeed and the harvest has been aborted
         if (!screenshotsSucceeded) {
-            cleanUpTmpDir(new File(baseDir + File.separator + "tmpDir" +
-                    File.separator + "_resources" + File.separator));
+            cleanUpDirOnAbort(new File(baseDir + File.separator + identifiers.get("tiOid").toString()));
         }
 
         return screenshotsSucceeded;
