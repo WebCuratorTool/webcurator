@@ -1348,8 +1348,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
-
     private void cleanUpTmpDir (File harvestTmpDir) {
+        File tmpDir = harvestTmpDir.getParentFile();
         if (harvestTmpDir.exists()) {
 
             // Delete all files in all directories
@@ -1358,9 +1358,20 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                     log.info("Unable to delete file: " + file.getAbsolutePath());
                 }
             }
-
+            if (harvestTmpDir.list().length != 0) {
+                log.info("Not all files have been removed from " + harvestTmpDir.toString());
+                return;
+            }
             if (!harvestTmpDir.delete()) {
                 log.info("Unable to delete temporary screenshot directory.");
+                return;
+            }
+            if (tmpDir.list().length > 0) {
+                log.info("There are still files within " + tmpDir.toString());
+                return;
+            }
+            if (!tmpDir.delete()) {
+                log.info("Unable to delete " + tmpDir.getAbsolutePath());
             }
         }
     }
@@ -1385,7 +1396,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
         // Delete temporary screenshot directory if the screenshot didn't succeed and the harvest has been aborted
         if (!screenshotsSucceeded) {
-            cleanUpTmpDir(new File(baseDir + File.separator + "tmpDir"));
+            cleanUpTmpDir(new File(baseDir + File.separator + "tmpDir" +
+                    File.separator + "_resources" + File.separator));
         }
 
         return screenshotsSucceeded;

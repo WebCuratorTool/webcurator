@@ -96,7 +96,7 @@ final class ScreenshotGenerator {
                 if (arg.equals("-cp") || arg.equals("-classpath")) {
                     int index = commandList.indexOf(arg) + 1;
                     String classpaths = commandList.get(index);
-                    fileLocation = classpaths.substring(classpaths.lastIndexOf(":") + 2, classpaths.length() - 1);
+                    fileLocation = classpaths.substring(classpaths.lastIndexOf(":") + 2, classpaths.length() - 3);
                 }
             }
 
