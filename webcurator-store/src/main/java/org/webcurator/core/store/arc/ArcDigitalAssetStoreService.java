@@ -168,10 +168,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      */
     private boolean enableScreenshots;
 
-    /**
-     *
-     */
-    public boolean abortHarvest;
 
     public ArcDigitalAssetStoreService() {
         super();
@@ -1353,6 +1349,22 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     }
 
 
+    private void cleanUpTmpDir (File harvestTmpDir) {
+        if (harvestTmpDir.exists()) {
+
+            // Delete all files in all directories
+            for (File file : harvestTmpDir.listFiles()) {
+                if (!file.delete()) {
+                    log.info("Unable to delete file: " + file.getAbsolutePath());
+                }
+            }
+
+            if (!harvestTmpDir.delete()) {
+                log.info("Unable to delete temporary screenshot directory.");
+            }
+        }
+    }
+
     /**
      *
      * @param identifiers
@@ -1368,6 +1380,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
         Boolean screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir,
                 screenshotCommandFullpage, screenshotCommandWindowsize, screenshotCommandScreen, harvestWaybackViewerBaseUrl);
+
+        if (!abortHarvestOnScreenshotFailure) return true;
+
+        // Delete temporary screenshot directory if the screenshot didn't succeed and the harvest has been aborted
+        if (!screenshotsSucceeded) {
+            cleanUpTmpDir(new File(baseDir + File.separator + "tmpDir"));
+        }
 
         return screenshotsSucceeded;
     }

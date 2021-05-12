@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 final class ScreenshotGenerator {
     Logger log;
@@ -21,11 +20,11 @@ final class ScreenshotGenerator {
         this.fullpageSizeCommand = fullpageSizeCommand;
     }
 
-    public void waitForScreenshot(File file, String filename) {
+    public void waitForScreenshot(File file) {
         try {
             for (int i = 0; i < 5; i++) {
                 if (file.exists()) return;
-                log.info(filename + " has not been created yet.  Waiting...");
+                log.info(file.getName() + " has not been created yet.  Waiting...");
                 Thread.sleep(10000);
             }
             log.info("Timed out waiting for file creation.");
@@ -68,7 +67,7 @@ final class ScreenshotGenerator {
                     harvestedImage.flush();
                     return;
                 }
-                waitForScreenshot(toDelete, filename);
+                waitForScreenshot(toDelete);
                 if (toDelete.exists()) {
                     log.info("Fullpage screenshot of harvest replaced.");
                 } else {
@@ -174,6 +173,48 @@ final class ScreenshotGenerator {
         }
     }
 
+    private void deleteTmpDir(String tmpDirectoryString) {
+        // Delete the tmp directory if it's empty after all files have been renamed and moved
+        File liveDirectory = new File(tmpDirectoryString);
+        if (liveDirectory.isDirectory() && liveDirectory.list().length == 0) {
+            if (!liveDirectory.delete()) {
+                log.info("Unable to delete tmp directory" + tmpDirectoryString);
+            }
+            File parentDir = new File(liveDirectory.getParent());
+            if (!parentDir.delete()) {
+                log.info("Unable to delete tmp directory " + parentDir.getAbsolutePath());
+            }
+        }
+    }
+
+    private String getWaybackUrl(String seed, String outputPathString, Map identifiers, String waybackBaseUrl) {
+        String result = seed;
+        // Get timestamp from warc file and use in harvest seed url
+        File harvestDirectory = new File(outputPathString);
+        harvestDirectory = new File(harvestDirectory.getParent());
+
+        for (String fileString : harvestDirectory.list()) {
+            if (identifiers.get("timestamp") == null || identifiers.get("timestamp").equals("null")) {
+                log.info("No valid timestamp to use");
+                break;
+            }
+
+            String tsArg = String.valueOf(identifiers.get("timestamp"));
+
+            if (!fileString.endsWith(".warc")) continue;
+            if (!fileString.contains(tsArg)) continue;
+
+            int tsIndex = fileString.indexOf(tsArg);
+            String timestamp = fileString.substring(tsIndex, tsIndex + 14);
+
+            result = waybackBaseUrl + timestamp + "/" + result;
+
+            log.info("Using harvest url " + result + " to generate screenshots.");
+            break;
+        }
+        return result;
+    }
+
     public Boolean createScreenshots(Map identifiers, String baseDir, String screenshotCommandFullpage,
                                      String screenshotCommandWindowsize, String screenshotCommandScreen,
                                      String harvestWaybackViewerBaseUrl) {
@@ -188,8 +229,13 @@ final class ScreenshotGenerator {
         String liveOrHarvested = String.valueOf(identifiers.get("liveOrHarvested"));
         String seedId = String.valueOf(identifiers.get("seedOid"));
         String harvestNumber = String.valueOf(identifiers.get("harvestNumber"));
-        String outputPathString = baseDir.toString() + File.separator + targetInstanceOid + File.separator + harvestNumber + File.separator;
-        String nullDirectoryString = baseDir.toString() + File.separator + targetInstanceOid + File.separator + "null" + File.separator;
+
+        if (harvestNumber.equals("null")) harvestNumber = "tmpDir";
+
+        String outputPathString = baseDir + File.separator + targetInstanceOid + File.separator +
+                harvestNumber + File.separator + "_resources" + File.separator;
+        String tmpDirectoryString = baseDir + File.separator + targetInstanceOid + File.separator + "tmpDir" +
+                File.separator + "_resources" + File.separator;
         String toolUsed = screenshotCommandFullpage.split("\\s+")[0];
 
         // Make sure output path exists
@@ -210,41 +256,16 @@ final class ScreenshotGenerator {
 
         // Need to move the live screenshots and use the wayback indexed url instead of the seed url
         if (liveOrHarvested.equals("harvested")) {
-            // Check if live screenshots exist in null directory
-            for (String size : new String[]{"fullpage","screen","thumbnail"}){
-                renameLiveFile(nullDirectoryString, outputPathString, seedId, harvestNumber, fullpageFilename.replace("fullpage", size));
+            // Check if live screenshots exist in tmp directory
+            for (String size : new String[]{"fullpage","screen","fullpage-thumbnail","screen-thumbnail"}){
+                renameLiveFile(tmpDirectoryString, outputPathString, seedId, harvestNumber, fullpageFilename.replace("fullpage", size));
             }
-            // Delete the null directory if it's empty after all files have been renamed and moved
-            File liveDirectory = new File(nullDirectoryString);
-            if (liveDirectory.isDirectory() && liveDirectory.list().length == 0) {
-                if (!liveDirectory.delete()) {
-                    log.info("Unable to delete null directory.");
-                }
-            }
+            deleteTmpDir(tmpDirectoryString);
 
-            // Get timestamp from warc file and use in harvest seed url
-            File harvestDirectory = new File(outputPathString);
-            String tsArg = String.valueOf(identifiers.get("timestamp"));
-
-            for (String fileString : harvestDirectory.list()) {
-                if (identifiers.get("timestamp") == null || identifiers.get("timestamp").equals("null")) {
-                    log.info("No valid timestamp to use");
-                    break;
-                }
-
-                if (!fileString.endsWith(".warc")) continue;
-                if (!fileString.contains(tsArg)) continue;
-
-                int tsIndex = fileString.indexOf(tsArg);
-                String timestamp = fileString.substring(tsIndex, tsIndex + 14);
-
-                seedUrl = harvestWaybackViewerBaseUrl + timestamp + "/" + seedUrl;
-
-                log.info("Using harvest url " + seedUrl + " to generate screenshots.");
-                break;
-            }
+            seedUrl = getWaybackUrl(seedUrl, outputPathString, identifiers, harvestWaybackViewerBaseUrl);
         }
 
+        // Populate the filenames and the placeholder values
         if (identifiers.get("seedOid") != null && !seedId.equals("null")) {
             fullpageFilename = fullpageFilename.replace("seedID", seedId);
         }
@@ -272,7 +293,7 @@ final class ScreenshotGenerator {
             // The size of harvested screenshots will be compared next
             if (liveOrHarvested.equals("live") || !commandFullpage.contains("SeleniumScreenshotCapture")) {
                 if (screenshotGenerator.runCommand(commandFullpage)) {
-                    screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+                    screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename));
                 } else {
                     log.error("Unable to run command " + commandFullpage);
                     return false;
@@ -280,21 +301,24 @@ final class ScreenshotGenerator {
             }
 
             File liveImageFile = new File(outputPathString + File.separator + fullpageFilename.replace("harvested", "live"));
+            if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
+                log.info("Live image file does not exist, nothing to compare against.");
+            }
             if (liveOrHarvested.equals("harvested") && liveImageFile.exists()) {
+                // Generate wayback commands
                 String commandWaybackFullpage = screenshotCommandWindowsize
                         .replace(urlPlaceholder, seedUrl.replaceAll("\\s+", ""))
                         .replace(imagePlaceholder, outputPathString + fullpageFilename);
+
                 if (commandWaybackFullpage.contains("SeleniumScreenshotCapture")) {
                     commandWaybackFullpage = commandWaybackFullpage.substring(0, commandWaybackFullpage.indexOf("width=")) + "--wayback";
                     if (screenshotGenerator.runCommand(commandWaybackFullpage)) {
-                        screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename), fullpageFilename);
+                        screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename));
                     }
                     // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
                 } else {
                     screenshotGenerator.checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl);
                 }
-            } else if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
-                log.info("Live image file does not exist, nothing to compare against.");
             }
 
             // Generate the screen sized screenshot
@@ -302,14 +326,22 @@ final class ScreenshotGenerator {
                 commandScreen = commandScreen.trim() + " --wayback";
             }
             if (screenshotGenerator.runCommand(commandScreen)) {
-                screenshotGenerator.waitForScreenshot(new File(outputPathString + screenFilename), screenFilename);
-            }
-            // Generate thumbnail from fullpage screenshot if not using the default screenshot tool
-            if (!commandScreen.contains("SeleniumScreenshotCapture")) {
-                screenshotGenerator.generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString, "screen",
-                        "thumbnail",100, 100);
+                screenshotGenerator.waitForScreenshot(new File(outputPathString + screenFilename));
             }
 
+            // Generate thumbnails screenshots if not using the default screenshot tool
+            if (!commandScreen.contains("SeleniumScreenshotCapture")) {
+                screenshotGenerator.generateThumbnailOrScreenSizeScreenshot(fullpageFilename, outputPathString,
+                        "fullpage","fullpage-thumbnail",100, 100);
+                screenshotGenerator.waitForScreenshot(new File(outputPathString +
+                        fullpageFilename.replace("fullpage", "fullpage-thumbnail")));
+                screenshotGenerator.generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString,
+                        "screen", "screen-thumbnail", 100, 100);
+                screenshotGenerator.waitForScreenshot(new File(outputPathString +
+                        screenFilename.replace("screen", "screen-thumbnail")));
+            }
+
+            // Make sure all 4 live/harvest screenshots have been generated
             File dir = new File(outputPathString);
             int imageCounter = 0;
             for (File file : dir.listFiles()) {
@@ -317,7 +349,7 @@ final class ScreenshotGenerator {
                     imageCounter++;
                 }
             }
-            if (imageCounter == 3) {
+            if (imageCounter == 4) {
                 log.info("Screenshots generated.");
             } else {
                 log.info("Screenshot files are missing.");
