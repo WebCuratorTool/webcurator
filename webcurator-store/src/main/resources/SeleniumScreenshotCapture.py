@@ -9,6 +9,7 @@ def createThumbnail(input, output):
     sourceImage = Image.open(input)
     resized = sourceImage.resize((200, 150))
     resized.save(output)
+    sourceImage.close()
 
 # Main
 commandArgs = sys.argv
