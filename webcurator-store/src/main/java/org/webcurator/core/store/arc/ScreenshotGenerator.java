@@ -94,7 +94,7 @@ final class ScreenshotGenerator {
             Thread processThread = new Thread("processThread") {
                 public void run() {
                     ProcessBuilder processBuilder = new ProcessBuilder(commandList);
-                    log.info("Processing file from " + System.getProperty("user.dir"));
+                    log.info("Processing from " + System.getProperty("user.dir"));
 
                     // Command output gets printed to the same place as the application console output
                     try {
@@ -192,7 +192,7 @@ final class ScreenshotGenerator {
             int tsIndex = fileString.indexOf(tsArg);
             String timestamp = fileString.substring(tsIndex, tsIndex + 14);
 
-            result = waybackBaseUrl + timestamp + "/" + result;
+            result = waybackBaseUrl + timestamp + "/" + seed;
 
             log.info("Using harvest url " + result + " to generate screenshots.");
             break;
