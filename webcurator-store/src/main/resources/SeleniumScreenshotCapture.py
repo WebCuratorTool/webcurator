@@ -17,6 +17,7 @@ url = None
 filepath = None
 width = None
 height = None
+server = None
 isWayback = False
 
 # Assign argument values to variables
@@ -35,6 +36,8 @@ for arg in commandArgs:
         width = keyVals[1]
     elif keyVals[0] == "height":
         height = keyVals[1]
+    elif keyVals[0] == "selenium-server":
+        server = keyVals[1]
     else:
         print("Unrecognised argument, cannot generate screenshots.  Arg: " + arg)
         sys.exit(1)
@@ -42,7 +45,10 @@ for arg in commandArgs:
 # Set up the web driver
 chromeOptions = webdriver.ChromeOptions()
 chromeOptions.headless = True
-driver = webdriver.Chrome(options=chromeOptions)
+if server is not None:
+    driver = webdriver.Remote(command_executor=server, options=chromeOptions)
+else:
+    driver = webdriver.Chrome(options=chromeOptions)
 
 driver.get(url)
 
