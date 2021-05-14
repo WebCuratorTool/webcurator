@@ -131,6 +131,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     @Autowired
     private VisualizationProcessorManager visualizationProcessorManager;
+    private ScreenshotGenerator screenshotGenerator;
     /**
      * the fullpage screenshot command.
      */
@@ -1037,6 +1038,9 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     public void setDasFileMover(DasFileMover fileMover) {
         this.dasFileMover = fileMover;
     }
+    public void setScreenshotGenerator(ScreenshotGenerator screenshotGenerator) {
+        this.screenshotGenerator = screenshotGenerator;
+    }
 
     // Moves the ArchiveRecord stream past the HTTP status line;
     // checks if it starts with HTTP and ends with CRLF
@@ -1437,14 +1441,11 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * @throws DigitalAssetStoreException
      */
     public Boolean createScreenshots(Map identifiers) throws DigitalAssetStoreException {
-        ScreenshotGenerator screenshotGenerator = new ScreenshotGenerator(log, screenshotCommandWindowsize,
-                screenshotCommandScreen, screenshotCommandFullpage);
-
         // Can continue with the harvest without taking a screenshot
         if (!enableScreenshots) return true;
 
-        Boolean screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir,
-                screenshotCommandFullpage, screenshotCommandWindowsize, screenshotCommandScreen, harvestWaybackViewerBaseUrl);
+
+        Boolean screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir, harvestWaybackViewerBaseUrl);
 
         if (!abortHarvestOnScreenshotFailure) return true;
 

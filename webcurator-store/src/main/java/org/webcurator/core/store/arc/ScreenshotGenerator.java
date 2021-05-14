@@ -6,21 +6,36 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import org.slf4j.Logger;
 import java.util.Map;
 
-final class ScreenshotGenerator {
-    Logger log;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+
+public class ScreenshotGenerator {
+    private static Log log = LogFactory.getLog(ScreenshotGenerator.class);
     String windowSizeCommand, screenSizeCommand, fullpageSizeCommand;
 
-    public ScreenshotGenerator(Logger log, String windowSizeCommand, String screenSizeCommand, String fullpageSizeCommand) {
+    public String getFullpageSizeCommand() {
+        return fullpageSizeCommand;
+    }
+
+    public String getScreenSizeCommand() {
+        return screenSizeCommand;
+    }
+
+    public String getWindowSizeCommand() {
+        return windowSizeCommand;
+    }
+
+    public ScreenshotGenerator(String windowSizeCommand, String screenSizeCommand, String fullpageSizeCommand) {
         this.log = log;
         this.windowSizeCommand = windowSizeCommand;
         this.screenSizeCommand = screenSizeCommand;
         this.fullpageSizeCommand = fullpageSizeCommand;
     }
 
-    public void waitForScreenshot(File file) {
+    private void waitForScreenshot(File file) {
         try {
             for (int i = 0; i < 5; i++) {
                 if (file.exists()) return;
@@ -200,9 +215,7 @@ final class ScreenshotGenerator {
         return result;
     }
 
-    public Boolean createScreenshots(Map identifiers, String baseDir, String screenshotCommandFullpage,
-                                     String screenshotCommandWindowsize, String screenshotCommandScreen,
-                                     String harvestWaybackViewerBaseUrl) {
+    public Boolean createScreenshots(Map identifiers, String baseDir, String harvestWaybackViewerBaseUrl) {
         if (identifiers == null || identifiers.keySet().size() < 1) {
             log.info("No arguments available for the screenshot.");
             return false;
@@ -221,7 +234,7 @@ final class ScreenshotGenerator {
                 harvestNumber + File.separator + "_resources" + File.separator;
         String tmpDirectoryString = baseDir + File.separator + targetInstanceOid + File.separator + "tmpDir" +
                 File.separator + "_resources" + File.separator;
-        String toolUsed = screenshotCommandFullpage.split("\\s+")[0];
+        String toolUsed = getFullpageSizeCommand().split("\\s+")[0];
 
         // Make sure output path exists
         File destinationDir = new File(outputPathString);
@@ -229,9 +242,15 @@ final class ScreenshotGenerator {
             destinationDir.mkdirs();
         }
 
-        // If using a java class, use the class name
-        if (screenshotCommandFullpage.contains("SeleniumScreenshotCapture")) {
+        // If using a default tool, specify as defualt
+        if (getFullpageSizeCommand().contains("SeleniumScreenshotCapture")) {
             toolUsed = "default";
+            if (getFullpageSizeCommand().contains("python")) {
+                toolUsed = toolUsed + "-python";
+            }
+            if (getFullpageSizeCommand().contains("java")) {
+                toolUsed = toolUsed + "-java";
+            }
         }
 
         // Get the name of the tool used to get the screenshot
@@ -267,23 +286,21 @@ final class ScreenshotGenerator {
         String imagePlaceholder = "%image.png%";
         String urlPlaceholder = "%url%";
 
-        String commandFullpage = screenshotCommandFullpage
+        String commandFullpage = getFullpageSizeCommand()
                 .replace(urlPlaceholder, seedUrl.replaceAll("\\s+",""))
                 .replace(imagePlaceholder, outputPathString + fullpageFilename);
-        String commandScreen = screenshotCommandScreen
+        String commandScreen = getScreenSizeCommand()
                 .replace(urlPlaceholder, seedUrl.replaceAll("\\s+",""))
                 .replace(imagePlaceholder, outputPathString + screenFilename);
 
         log.info("Generating screenshots for job " + targetInstanceOid + " using " + toolUsed + "...");
 
         try {
-            ScreenshotGenerator screenshotGenerator = new ScreenshotGenerator(log, screenshotCommandWindowsize, screenshotCommandScreen, screenshotCommandFullpage);
-
             // Generate fullpage screenshots only if live or not using the default SeleniumScreenshotCapture executable for harvested screenshot
             // The size of harvested screenshots will be compared next
             if (liveOrHarvested.equals("live") || !commandFullpage.contains("SeleniumScreenshotCapture")) {
-                if (screenshotGenerator.runCommand(commandFullpage)) {
-                    screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename));
+                if (runCommand(commandFullpage)) {
+                    waitForScreenshot(new File(outputPathString + fullpageFilename));
                 } else {
                     log.error("Unable to run command " + commandFullpage);
                     return false;
@@ -296,18 +313,18 @@ final class ScreenshotGenerator {
             }
             if (liveOrHarvested.equals("harvested") && liveImageFile.exists()) {
                 // Generate wayback commands
-                String commandWaybackFullpage = screenshotCommandWindowsize
+                String commandWaybackFullpage = getWindowSizeCommand()
                         .replace(urlPlaceholder, seedUrl.replaceAll("\\s+", ""))
                         .replace(imagePlaceholder, outputPathString + fullpageFilename);
 
                 if (commandWaybackFullpage.contains("SeleniumScreenshotCapture")) {
                     commandWaybackFullpage = commandWaybackFullpage.substring(0, commandWaybackFullpage.indexOf("width=")) + "--wayback";
-                    if (screenshotGenerator.runCommand(commandWaybackFullpage)) {
-                        screenshotGenerator.waitForScreenshot(new File(outputPathString + fullpageFilename));
+                    if (runCommand(commandWaybackFullpage)) {
+                        waitForScreenshot(new File(outputPathString + fullpageFilename));
                     }
                     // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
                 } else {
-                    screenshotGenerator.checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl);
+                    checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl);
                 }
             }
 
@@ -315,19 +332,19 @@ final class ScreenshotGenerator {
             if (liveOrHarvested.equals("harvested") && commandScreen.contains("SeleniumScreenshotCapture")) {
                 commandScreen = commandScreen.trim() + " --wayback";
             }
-            if (screenshotGenerator.runCommand(commandScreen)) {
-                screenshotGenerator.waitForScreenshot(new File(outputPathString + screenFilename));
+            if (runCommand(commandScreen)) {
+                waitForScreenshot(new File(outputPathString + screenFilename));
             }
 
             // Generate thumbnails screenshots if not using the default screenshot tool
             if (!commandScreen.contains("SeleniumScreenshotCapture")) {
-                screenshotGenerator.generateThumbnailOrScreenSizeScreenshot(fullpageFilename, outputPathString,
+                generateThumbnailOrScreenSizeScreenshot(fullpageFilename, outputPathString,
                         "fullpage","fullpage-thumbnail",100, 100);
-                screenshotGenerator.waitForScreenshot(new File(outputPathString +
+                waitForScreenshot(new File(outputPathString +
                         fullpageFilename.replace("fullpage", "fullpage-thumbnail")));
-                screenshotGenerator.generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString,
+                generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString,
                         "screen", "screen-thumbnail", 100, 100);
-                screenshotGenerator.waitForScreenshot(new File(outputPathString +
+                waitForScreenshot(new File(outputPathString +
                         screenFilename.replace("screen", "screen-thumbnail")));
             }
 

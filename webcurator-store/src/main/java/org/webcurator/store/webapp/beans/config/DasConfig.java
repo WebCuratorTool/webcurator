@@ -361,6 +361,7 @@ public class DasConfig {
         bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         bean.setFileArchive(createFileArchive());
+        bean.setScreenshotGenerator(screenshotGenerator());
         bean.setScreenshotCommandFullpage(screenshotCommandFullpage);
         bean.setScreenshotCommandScreen(screenshotCommandScreen);
         bean.setScreenshotCommandWindowsize(screenshotCommandWindowsize);
@@ -495,6 +496,12 @@ public class DasConfig {
         bean.setEnabled(cdxIndexerEnabled);
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
 
+        return bean;
+    }
+
+    @Bean
+    public ScreenshotGenerator screenshotGenerator() {
+        ScreenshotGenerator bean = new ScreenshotGenerator(screenshotCommandWindowsize, screenshotCommandScreen, screenshotCommandFullpage);
         return bean;
     }
 
