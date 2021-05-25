@@ -53,6 +53,7 @@ import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -104,6 +105,10 @@ public class QueueController {
 	/** the configured height of the harvest preview thumb-nail **/
 	@Value("${queueController.thumbnailHeight}")
 	private String thumbnailHeight = "100px;";
+
+	/** the configured directory for uploaded files **/
+	@Value("${digitalAssetStoreServer.uploadedFilesDir}")
+	private String uploadedFilesDir = "";
 
 	@InitBinder
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
@@ -402,6 +407,54 @@ public class QueueController {
 //			} else {
 //				log.warn("Cannot find seed '{}' in harvest result ({}).", seed, lastDisplayableResult.getOid());
 //			}
+		}
+		if (thumbnailRendererName.equals("SCREENSHOTTOOL")) {
+			// Want to get the directory that store puts files into, then the toid, then the 1 (first harvest for this ti oid)
+			// Followed by _resources and the files for primary seed live_screen-thumbnail and harvested_screen-thumbnail
+			// File naming convention is ti_harvest_seedId_source_tool_size.png
+
+			// The files for each target instance are located within their own folders in the same directory
+			// as the uploaded files directory specified in application.properties
+			File liveFileDir = new File(uploadedFilesDir).getParentFile();
+			liveFileDir = new File(liveFileDir.toString() + File.separator + tiOid + File.separator
+					+ "1" + File.separator + "_resources");
+			if (!liveFileDir.exists()) {
+				log.info("Directory " + liveFileDir + " doesn't exist.");
+				return;
+			}
+
+			String liveFilename = null;
+			String harvestedFilename = null;
+
+			// Search for primary seed or use the first seed in the set
+			Set<Seed> seeds = ti.getTarget().getSeeds();
+			String primarySeedOid = String.valueOf(seeds.iterator().next().getOid());
+
+			for (Seed s : seeds) {
+				if (s.isPrimary()) {
+					primarySeedOid = String.valueOf(s.getOid());
+					break;
+				}
+			}
+
+			// Get the filename for the  primary seed  screen sized thumbnails only
+			for (String filename : liveFileDir.list()) {
+				if (!filename.contains("screen-thumbnail")) continue;
+				if (!filename.split("_")[2].equals(primarySeedOid)) continue;
+				if (filename.contains("live")) {
+					liveFilename = filename;
+				} else if (filename.contains("harvested")) {
+					harvestedFilename = filename;
+				}
+			}
+			if (liveFilename != null) {
+				log.info("Setting live thumbnail image url :" + liveFileDir + File.separator + liveFilename);
+				browseUrls.put(Long.valueOf(1), liveFileDir + File.separator + liveFilename);
+			}
+			if (harvestedFilename != null) {
+				log.info("Setting harvested thumbnail image url :" + liveFileDir + File.separator + harvestedFilename);
+				browseUrls.put(Long.valueOf(2), liveFileDir + File.separator + harvestedFilename);
+			}
 		}
 	}
 
@@ -877,6 +930,10 @@ public class QueueController {
 
 	public void setThumbnailRenderer(String thumbnailRenderer) {
 		this.thumbnailRenderer = thumbnailRenderer;
+	}
+
+	public void setUploadedFilesDir(String uploadedFilesDir) {
+		this.uploadedFilesDir = uploadedFilesDir;
 	}
 
 	public void setHarvestResourceUrlMapper(HarvestResourceUrlMapper harvestResourceUrlMapper) {
