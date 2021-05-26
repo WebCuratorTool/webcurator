@@ -54,6 +54,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -424,7 +426,6 @@ public class QueueController {
 			}
 
 			String liveFilename = null;
-			String harvestedFilename = null;
 
 			// Search for primary seed or use the first seed in the set
 			Set<Seed> seeds = ti.getTarget().getSeeds();
@@ -443,17 +444,12 @@ public class QueueController {
 				if (!filename.split("_")[2].equals(primarySeedOid)) continue;
 				if (filename.contains("live")) {
 					liveFilename = filename;
-				} else if (filename.contains("harvested")) {
-					harvestedFilename = filename;
+					break;
 				}
 			}
 			if (liveFilename != null) {
 				log.info("Setting live thumbnail image url :" + liveFileDir + File.separator + liveFilename);
-				browseUrls.put(Long.valueOf(1), liveFileDir + File.separator + liveFilename);
-			}
-			if (harvestedFilename != null) {
-				log.info("Setting harvested thumbnail image url :" + liveFileDir + File.separator + harvestedFilename);
-				browseUrls.put(Long.valueOf(2), liveFileDir + File.separator + harvestedFilename);
+				browseUrls.put(tiOid, liveFileDir + File.separator + liveFilename);
 			}
 		}
 	}

@@ -800,6 +800,19 @@ function clickEndorse(hrOid) {
 			<c:if test="${thumbnailRenderer eq 'accessTool'}">
 				<iframe id="frame" name="frame" src="" data-url="<c:out value='${browseUrls[instance.oid]}'/>" ></iframe>
 			</c:if>
+			<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+				<c:choose>
+					<c:when test="${not empty browseUrls[instance.oid]}">
+						<c:set var = "liveFile" value= "${browseUrls[instance.oid]}" />
+						<c:set var = "harvestFile" value= "${fn:replace(liveFile, 'live', 'harvested')}" />
+						<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;"/>
+						<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;"/>
+					</c:when>
+					<c:otherwise>
+						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
+					</c:otherwise>
+				</c:choose>
+			</c:if>
 		</div>
 		</c:when>
 		<c:otherwise><div width="100%" align="center">--</div></c:otherwise>

@@ -15,6 +15,9 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<spring:eval expression="@environment.getProperty('queueController.thumbnailRenderer')" var="thumbnailRenderer" />
+
 <script src="scripts/jquery-1.7.2.min.js" type="text/javascript"></script>
 
 <script src="scripts/codemirror/lib/codemirror.js"></script>
@@ -485,6 +488,27 @@ function getSelectedProfile(profilesList) {
 				</tr>
 				<tr><td colspan="2"><table class="panel_dotted_row"><tr><td></td></tr></table></td></tr>
 			</table>
+
+			<!-- screenshots panel -->
+			<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+    			<table class="panel" border="0" width="100%" cellspacing="0px">
+				<tr><td colspan="3"><table class="panel_header_row"><tr><td><div class="panel_header_title">Screenshots</div></td></tr></table></td></tr>
+				<tr><td colspan="3"><table class="panel_dotted_row">
+					<tr> 
+						<td style="width: 20%; text-align: center;">Live</td>
+						<td style="width: 20%; text-align: center;">Harvested</td>
+						<td style="width: 60%; text-align: center;">Seed</td>
+					</tr>
+				</table></td></tr>
+                <c:forEach var="seed" items="${seeds}">
+                    <tr style="height: 100px;">
+                    <td style="width: 20%; text-align: center;"></td>
+                    <td style="width: 20%; text-align: center;"></td>
+                    <td style="width: 60%; text-align: left;">${seed}</td>
+                    </tr>
+                </c:forEach>
+                </table>
+            </c:if>
 			
 			<!-- key indicators panel -->
 			<table class="panel" border="0" width="100%" cellspacing="0px">
