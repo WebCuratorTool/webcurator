@@ -805,8 +805,8 @@ function clickEndorse(hrOid) {
 					<c:when test="${not empty browseUrls[instance.oid]}">
 						<c:set var = "liveFile" value= "${browseUrls[instance.oid]}" />
 						<c:set var = "harvestFile" value= "${fn:replace(liveFile, 'live', 'harvested')}" />
-						<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;"/>
-						<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;"/>
+							<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('thumbnailModal').style.display='block';"/>
+							<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('thumbnailModal').style.display='block';"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
@@ -814,6 +814,20 @@ function clickEndorse(hrOid) {
 				</c:choose>
 			</c:if>
 		</div>
+		<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+			<div id="thumbnailModal" style="display: none; position: fixed; overflow: auto; left: 50px; right:50px; bottom:50px; top: 100px; border: solid 1px black; background-color: white">
+				<span id="close" style="position: fixed; right: 53px; font-weight: bold;" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+				<table class="panel" border="0" width="100%" cellspacing="0px">
+					<tr style="text-align: center; font-weight: bold;"> 
+						<td style="width: 20%;">Live</td>
+						<td style="width: 20%;">Harvested</td>
+						<td style="width: 60%;">Seed</td>
+					</tr>
+					<div id="thumbnailContent"></div>
+				</table>
+			</div>
+		</c:if>
+
 		</c:when>
 		<c:otherwise><div width="100%" align="center">--</div></c:otherwise>
 		</c:choose>

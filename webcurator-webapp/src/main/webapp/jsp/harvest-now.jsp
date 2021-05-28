@@ -56,7 +56,8 @@
 				<td class="annotationsLiteRow" align="center"><c:out value="${agent.value.harvesterStatusCount}"/></td>
 				<c:choose>
 				<c:when test="${agent.value.memoryWarning == false && agent.value.acceptTasks}">
-					<td class="annotationsLiteRow"><input type="image" src="images/targets-btn-allocate.gif" onclick="javascript:document.harvestNow.<%=TargetInstanceCommand.PARAM_AGENT%>.value='<c:out value="${agent.value.name}"/>';"/></td>
+					<td class="annotationsLiteRow"><input type="image" src="images/targets-btn-allocate.gif" onclick="document.getElementById('allocAlert').innerHTML='Allocating to the harvest agent.  You can continue browsing.';javascript:document.harvestNow.<%=TargetInstanceCommand.PARAM_AGENT%>.value='<c:out value="${agent.value.name}"/>';"/></td>
+					<tr><td colspan="4"><div id="allocAlert"></div></td></tr>
 				</c:when>
 				<c:when test="${agent.value.memoryWarning == false && !agent.value.acceptTasks}">
 					<td class="annotationsLiteRow">Agent manually set to stop accepting new tasks</td>
