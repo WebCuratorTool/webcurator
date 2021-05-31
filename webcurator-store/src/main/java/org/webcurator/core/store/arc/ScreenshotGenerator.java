@@ -49,7 +49,7 @@ public class ScreenshotGenerator {
 
     // The wayback banner may be problematic when getting full page screenshots, check against the live image dimensions
     // Allow some space for the wayback banner
-    private void checkFullpageScreenshotSize(String outputPath, String filename, File liveImageFile, String url) {
+    private boolean checkFullpageScreenshotSize(String outputPath, String filename, File liveImageFile, String url) {
         BufferedImage harvestedImage = null;
         try {
             BufferedImage liveImage = ImageIO.read(liveImageFile);
@@ -61,7 +61,7 @@ public class ScreenshotGenerator {
             harvestedImage = ImageIO.read(new File(outputPath + filename));
             if (harvestedImage.getWidth() >= liveImageWidth && harvestedImage.getHeight()>= liveImageHeight) {
                 harvestedImage.flush();
-                return;
+                return true;
             }
 
             String windowsizeCommand = windowSizeCommand
@@ -80,7 +80,7 @@ public class ScreenshotGenerator {
                 if (!runCommand(windowsizeCommand)) {
                     log.info("Unable to run command to generate screenshot.");
                     harvestedImage.flush();
-                    return;
+                    return false;
                 }
                 waitForScreenshot(toDelete);
                 if (toDelete.exists()) {
@@ -98,18 +98,19 @@ public class ScreenshotGenerator {
                 harvestedImage.flush();
             }
         }
+        return true;
     }
 
     private boolean runCommand(String command) {
         log.info("Running command " + command);
+        Thread processThread = null;
         try {
             List<String> commandList = Arrays.asList(command.split(" "));
 
             final Boolean[] threadFailed = {null};
-            Thread processThread = new Thread("processThread") {
+            processThread = new Thread("processThread") {
                 public void run() {
                     ProcessBuilder processBuilder = new ProcessBuilder(commandList);
-                    log.info("Processing from " + System.getProperty("user.dir"));
 
                     // Command output gets printed to the same place as the application console output
                     try {
@@ -130,11 +131,14 @@ public class ScreenshotGenerator {
 
             processThread.start();
             processThread.join();
+            processThread.stop();
 
             if (threadFailed[0]) return false;
-
         } catch (Exception e) {
             log.error("Unable to process command " + command, e);
+            if (processThread != null) {
+                processThread.stop();
+            }
             return false;
         }
         return true;
@@ -160,14 +164,31 @@ public class ScreenshotGenerator {
         }
     }
 
-    private void renameLiveFile(String liveDirectory, String outputDirectory, String seed, String harvestNumber, String filename) {
-        File fullpageLiveFilePath = new File(liveDirectory + filename.replace("harvested", "live"));
+    private String replaceSectionInFilename(String filename, String replacement, int sectionIndex) {
+        // File naming convention  ti_harvest_seedId_source_tool_size.png
+        String[] filenameSections = filename.split("_");
+        filenameSections[sectionIndex] = replacement;
+        String result = String.join("_", filenameSections);
+        log.debug("Changing filename from " + filename + " to " + result);
+        return result;
+    }
+
+    private void renameLiveFile(String liveDirectory, String outputDirectory, String seed, String harvestNumber,
+                                String filename, String seedPlaceholder) {
+        // Rename the seed section with the seed placeholder
+        // Then rename the "harvested" with "live"
+        String liveFilename = replaceSectionInFilename(filename, seedPlaceholder, 2);
+        liveFilename = replaceSectionInFilename(liveFilename, "live", 3);
+        File fullpageLiveFilePath = new File(liveDirectory + liveFilename);
+
         if (!fullpageLiveFilePath.exists()) return;
         if (harvestNumber == null) return;
         if (seed == null) return;
-        String newFilename = outputDirectory + filename.replace("seedID", seed).replace("harvestNum", harvestNumber);
-        newFilename = newFilename.replace("harvested", "live");
-        if (!fullpageLiveFilePath.renameTo(new File(newFilename))) {
+
+        // Replace seedID in live filename with seed placeholder and harvest humber
+        String newFilePath = replaceSectionInFilename(liveFilename, harvestNumber, 1);
+        newFilePath = outputDirectory + replaceSectionInFilename(newFilePath, seed, 2);
+        if (!fullpageLiveFilePath.renameTo(new File(newFilePath))) {
             log.error("Unable to rename live file to include harvest number and seed.  File: " + filename);
         }
     }
@@ -221,12 +242,41 @@ public class ScreenshotGenerator {
             return false;
         }
 
-        // file naming convention: ti_harvest_seedId_source_tool.png
+        // file naming convention: ti_harvest_seedId_source_tool_size.png
         String seedUrl = String.valueOf(identifiers.get("seed"));
         String targetInstanceOid = String.valueOf(identifiers.get("tiOid"));
         String liveOrHarvested = String.valueOf(identifiers.get("liveOrHarvested"));
         String seedId = String.valueOf(identifiers.get("seedOid"));
         String harvestNumber = String.valueOf(identifiers.get("harvestNumber"));
+
+        // Use the last 10 characters of the seed url as the placehoder
+        // and remove any characters that will make the filename invalid
+        // Remove any underscores because that's being used in the file naming convention
+        String seedPlaceholder = "seedID" + seedUrl.substring(seedUrl.length() -10)
+                        .replaceAll("\\s", "")
+                        .replaceAll("#","")
+                        .replaceAll("%", "")
+                        .replaceAll("&", "")
+                        .replaceAll("\\{", "")
+                        .replaceAll("}", "")
+                        .replaceAll("}", "")
+                        .replaceAll("\\\\", "")
+                        .replaceAll("<", "")
+                        .replaceAll(">","")
+                        .replaceAll("\\*", "")
+                        .replaceAll("\\?", "")
+                        .replaceAll("/", "")
+                        .replaceAll("$", "")
+                        .replaceAll("!", "")
+                        .replaceAll("'", "")
+                        .replaceAll("\"", "")
+                        .replaceAll(":", "")
+                        .replaceAll("@", "")
+                        .replaceAll("\\+", "")
+                        .replaceAll("`", "")
+                        .replaceAll("|", "")
+                        .replaceAll("=", "")
+                        .replaceAll("_", "");
 
         if (harvestNumber.equals("null")) harvestNumber = "tmpDir";
 
@@ -242,7 +292,7 @@ public class ScreenshotGenerator {
             destinationDir.mkdirs();
         }
 
-        // If using a default tool, specify as defualt
+        // If using a default tool, specify as default
         if (getFullpageSizeCommand().contains("SeleniumScreenshotCapture")) {
             toolUsed = "default";
             if (getFullpageSizeCommand().contains("python")) {
@@ -262,7 +312,8 @@ public class ScreenshotGenerator {
         if (liveOrHarvested.equals("harvested")) {
             // Check if live screenshots exist in tmp directory
             for (String size : new String[]{"fullpage","screen","fullpage-thumbnail","screen-thumbnail"}){
-                renameLiveFile(tmpDirectoryString, outputPathString, seedId, harvestNumber, fullpageFilename.replace("fullpage", size));
+                renameLiveFile(tmpDirectoryString, outputPathString, seedId, harvestNumber,
+                        replaceSectionInFilename(fullpageFilename, size + ".png", 5), seedPlaceholder);
             }
             deleteTmpDir(tmpDirectoryString);
 
@@ -276,13 +327,15 @@ public class ScreenshotGenerator {
 
         // Populate the filenames and the placeholder values
         if (identifiers.get("seedOid") != null && !seedId.equals("null")) {
-            fullpageFilename = fullpageFilename.replace("seedID", seedId);
+            fullpageFilename = replaceSectionInFilename(fullpageFilename, seedId, 2);
+        } else {
+            fullpageFilename = replaceSectionInFilename(fullpageFilename, seedPlaceholder, 2);
         }
         if (identifiers.get("harvestNumber") != null && !harvestNumber.equals("null")) {
-            fullpageFilename = fullpageFilename.replace("harvestNum", harvestNumber);
+            fullpageFilename = replaceSectionInFilename(fullpageFilename, harvestNumber, 1);
         }
 
-        String screenFilename = fullpageFilename.replace("fullpage", "screen");
+        String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 5);
         String imagePlaceholder = "%image.png%";
         String urlPlaceholder = "%url%";
 
@@ -307,9 +360,16 @@ public class ScreenshotGenerator {
                 }
             }
 
-            File liveImageFile = new File(outputPathString + File.separator + fullpageFilename.replace("harvested", "live"));
+            String liveImageFilename = fullpageFilename;
+            String[] filenameSections = fullpageFilename.split("_");
+            if (filenameSections[3].equals("harvested")) {
+                filenameSections[3] = "live";
+                liveImageFilename = String.join("_", filenameSections);
+            }
+
+            File liveImageFile = new File(outputPathString + File.separator + liveImageFilename);
             if (liveOrHarvested.equals("harvested") && !liveImageFile.exists()) {
-                log.info("Live image file does not exist, nothing to compare against.");
+                log.info("Live image file " + liveImageFilename + " does not exist, nothing to compare against.");
             }
             if (liveOrHarvested.equals("harvested") && liveImageFile.exists()) {
                 // Generate wayback commands
@@ -324,7 +384,10 @@ public class ScreenshotGenerator {
                     }
                     // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
                 } else {
-                    checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl);
+                    if (!checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl)) {
+                        log.error("Unable to check fullpage screenshot size");
+                        return false;
+                    }
                 }
             }
 
@@ -341,14 +404,13 @@ public class ScreenshotGenerator {
                 generateThumbnailOrScreenSizeScreenshot(fullpageFilename, outputPathString,
                         "fullpage","fullpage-thumbnail",100, 100);
                 waitForScreenshot(new File(outputPathString +
-                        fullpageFilename.replace("fullpage", "fullpage-thumbnail")));
+                        replaceSectionInFilename(fullpageFilename, "fullpage-thumbnail.png", 5)));
                 generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString,
                         "screen", "screen-thumbnail", 100, 100);
                 waitForScreenshot(new File(outputPathString +
-                        screenFilename.replace("screen", "screen-thumbnail")));
+                        replaceSectionInFilename(screenFilename, "screen-thumbnail.png", 5)));
             }
 
-            // Make sure all 4 live/harvest screenshots have been generated
             File dir = new File(outputPathString);
             int imageCounter = 0;
             for (File file : dir.listFiles()) {
@@ -356,11 +418,7 @@ public class ScreenshotGenerator {
                     imageCounter++;
                 }
             }
-            if (imageCounter == 4) {
-                log.info("Screenshots generated.");
-            } else {
-                log.info("Screenshot files are missing.");
-            }
+            log.info(String.valueOf(imageCounter) + " " + liveOrHarvested + " screenshots have been generated.");
 
         } catch (Exception e) {
             log.error("Failed to generate screenshots: " + e.getMessage(), e);
