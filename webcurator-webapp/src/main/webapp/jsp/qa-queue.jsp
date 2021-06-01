@@ -462,6 +462,59 @@ function clickEndorse(hrOid) {
 
 </script>
 
+<script>
+
+function populateThumbnailModalContent(seeds) {
+	// Clear the element first
+	document.getElementById("modalContent").innerHTML="";
+
+	// Create the table and header
+	var modalTable = document.createElement("table");
+	modalTable.id = "thumbnailTable";
+	modalTable.style.class = "panel";
+	modalTable.style.border ="0";
+	modalTable.style.width ="100%";
+	modalTable.style.cellspacing ="0px";
+
+	var header = modalTable.insertRow(0);
+	header.style.textAlign ="center";
+	header.style.fontWeight ="bold";
+
+	var headerCell = header.insertCell(0);
+	headerCell.style.width ="20%";
+	headerCell.innerHTML = "Live";
+
+	headerCell = header.insertCell(1);
+	headerCell.style.width ="20%";
+	headerCell.innerHTML = "Harvested";	
+
+	headerCell = header.insertCell(2);
+	headerCell.style.width ="60%";
+	headerCell.innerHTML = "Seed";
+
+	var instanceSeeds = seeds.substring(1,seeds.length -1).split(",");
+
+	for (var i = 0; i < instanceSeeds.length; i++) {
+		// Don't forget there's already a header row
+		var instanceRow = modalTable.insertRow(i + 1);
+		instanceRow.style.height = "100";
+
+		// Add live image
+		var cell = instanceRow.insertCell(0);
+		
+		// Add harvested image
+		cell = instanceRow.insertCell(1);
+
+		// Add seed url
+		cell = instanceRow.insertCell(2);
+		cell.innerHTML = instanceSeeds[i].trim();
+	}
+
+	return modalTable;
+}
+
+</script>
+
 
 <jsp:include page="include/useragencyfilter.jsp"/>
 <form name="filter" id="filter" method="POST" action="<c:out value="${action}"/>">
@@ -805,8 +858,8 @@ function clickEndorse(hrOid) {
 					<c:when test="${not empty browseUrls[instance.oid]}">
 						<c:set var = "liveFile" value= "${browseUrls[instance.oid]}" />
 						<c:set var = "harvestFile" value= "${fn:replace(liveFile, 'live', 'harvested')}" />
-							<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('thumbnailModal').style.display='block';"/>
-							<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('thumbnailModal').style.display='block';"/>
+							<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.getOriginalSeeds()}'));document.getElementById('thumbnailModal').style.display='block';"/>
+							<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.getOriginalSeeds()}'));document.getElementById('thumbnailModal').style.display='block';"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
@@ -815,16 +868,9 @@ function clickEndorse(hrOid) {
 			</c:if>
 		</div>
 		<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
-			<div id="thumbnailModal" style="display: none; position: fixed; overflow: auto; left: 50px; right:50px; bottom:50px; top: 100px; border: solid 1px black; background-color: white">
+			<div id="thumbnailModal" style="display: none; position: fixed; overflow: auto; left: 120px; right:50px; bottom:50px; top: 100px; border: solid 1px black; background-color: white">
 				<span id="close" style="position: fixed; right: 53px; font-weight: bold;" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
-				<table class="panel" border="0" width="100%" cellspacing="0px">
-					<tr style="text-align: center; font-weight: bold;"> 
-						<td style="width: 20%;">Live</td>
-						<td style="width: 20%;">Harvested</td>
-						<td style="width: 60%;">Seed</td>
-					</tr>
-					<div id="thumbnailContent"></div>
-				</table>
+				<div id="modalContent"></div>
 			</div>
 		</c:if>
 
