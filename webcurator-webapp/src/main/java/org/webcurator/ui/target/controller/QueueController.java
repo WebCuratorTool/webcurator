@@ -15,6 +15,7 @@
  */
 package org.webcurator.ui.target.controller;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Base64Utils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -50,14 +52,17 @@ import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.List;
 
 /**
  * The controller for displaying a list of target instances and processing
@@ -425,7 +430,7 @@ public class QueueController {
 				return;
 			}
 
-			String liveFilename = null;
+			File liveFile = null;
 
 			// Search for primary seed or use the first seed in the set
 			Set<Seed> seeds = ti.getTarget().getSeeds();
@@ -439,17 +444,49 @@ public class QueueController {
 			}
 
 			// Get the filename for the  primary seed  screen sized thumbnails only
-			for (String filename : liveFileDir.list()) {
+			for (File f : liveFileDir.listFiles()) {
+				String filename = f.getName();
 				if (!filename.contains("screen-thumbnail")) continue;
 				if (!filename.split("_")[2].equals(primarySeedOid)) continue;
 				if (filename.contains("live")) {
-					liveFilename = filename;
+					liveFile = f;
 					break;
 				}
 			}
-			if (liveFilename != null) {
-				log.info("Setting live thumbnail image url :" + liveFileDir + File.separator + liveFilename);
-				browseUrls.put(tiOid, liveFileDir + File.separator + liveFilename);
+			if (liveFile == null) {
+				return;
+			}
+
+			try {
+				// Convert png file to jpg
+				File jpgFile = Paths.get(liveFile.getAbsolutePath().substring(0, liveFile.getAbsolutePath().lastIndexOf(".") + 1) + "jpg").toFile();
+				BufferedImage image = ImageIO.read(liveFile);
+				BufferedImage newBufferedImage = new BufferedImage(image.getWidth(),image.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+				newBufferedImage.createGraphics().drawImage(image,0,0, Color.WHITE, null);
+				ImageIO.write(newBufferedImage, "jpg", jpgFile);
+
+				byte[] outputStream = FileUtils.readFileToByteArray(jpgFile);
+				if (outputStream == null || outputStream.length == 0) {
+					log.error("Could not write to output stream");
+					return;
+				}
+
+				image.flush();
+				newBufferedImage.flush();
+
+				// Return a Base64 string of the image
+				String byteString = Base64Utils.encodeToString(outputStream);
+
+				if (byteString == null || byteString.isEmpty()) {
+					log.error("Could not generate file byte string");
+					return;
+				}
+
+				browseUrls.put(tiOid, byteString);
+
+			} catch (Exception e) {
+				log.error("Could not generate file byte string, ", e);
 			}
 		}
 	}
