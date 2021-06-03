@@ -18,6 +18,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
@@ -38,6 +41,7 @@ import org.webcurator.core.util.ApplicationContextFactory;
 import javax.annotation.PostConstruct;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -47,7 +51,8 @@ import java.util.*;
  */
 @SuppressWarnings("all")
 @Configuration
-public class DasConfig {
+@EnableWebMvc
+public class DasConfig implements WebMvcConfigurer {
     private static Logger LOGGER = LoggerFactory.getLogger(DasConfig.class);
 
     @Autowired
@@ -743,5 +748,17 @@ public class DasConfig {
         bean.setMandatory(false);
 
         return bean;
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String resourceDir = arcDigitalAssetStoreServiceBaseDir;
+        if (!arcDigitalAssetStoreServiceBaseDir.startsWith(File.separator)) {
+            resourceDir = File.separator + resourceDir;
+        }
+        if (!arcDigitalAssetStoreServiceBaseDir.endsWith(File.separator)) {
+            resourceDir = resourceDir + File.separator;
+        }
+        registry.addResourceHandler("/store/**").addResourceLocations("file:" + resourceDir);
     }
 }
