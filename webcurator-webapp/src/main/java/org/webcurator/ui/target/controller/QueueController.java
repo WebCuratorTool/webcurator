@@ -113,10 +113,10 @@ public class QueueController {
 	@Value("${queueController.thumbnailHeight}")
 	private String thumbnailHeight = "100px;";
 
-	/** the configured directory for uploaded files **/
-	@Value("${digitalAssetStoreServer.uploadedFilesDir}")
-	private String uploadedFilesDir = "";
-
+		/** the configured base url for store **/
+		@Value("${digitalAssetStore.baseUrl}")
+		private String dasBaseUrl = "";
+		
 	@InitBinder
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
 		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
@@ -416,77 +416,35 @@ public class QueueController {
 //			}
 		}
 		if (thumbnailRendererName.equals("SCREENSHOTTOOL")) {
-			// Want to get the directory that store puts files into, then the toid, then the 1 (first harvest for this ti oid)
-			// Followed by _resources and the files for primary seed live_screen-thumbnail and harvested_screen-thumbnail
-			// File naming convention is ti_harvest_seedId_source_tool_size.png
-
-			// The files for each target instance are located within their own folders in the same directory
-			// as the uploaded files directory specified in application.properties
-			File liveFileDir = new File(uploadedFilesDir).getParentFile();
-			liveFileDir = new File(liveFileDir.toString() + File.separator + tiOid + File.separator
-					+ "1" + File.separator + "_resources");
-			if (!liveFileDir.exists()) {
-				log.info("Directory " + liveFileDir + " doesn't exist.");
-				return;
-			}
-
-			File liveFile = null;
-
-			// Search for primary seed or use the first seed in the set
-			Set<Seed> seeds = ti.getTarget().getSeeds();
-			String primarySeedOid = String.valueOf(seeds.iterator().next().getOid());
-
-			for (Seed s : seeds) {
-				if (s.isPrimary()) {
-					primarySeedOid = String.valueOf(s.getOid());
-					break;
-				}
-			}
-
-			// Get the filename for the  primary seed  screen sized thumbnails only
-			for (File f : liveFileDir.listFiles()) {
-				String filename = f.getName();
-				if (!filename.contains("screen-thumbnail")) continue;
-				if (!filename.split("_")[2].equals(primarySeedOid)) continue;
-				if (filename.contains("live")) {
-					liveFile = f;
-					break;
-				}
-			}
-			if (liveFile == null) {
-				return;
-			}
+			// File naming convention is ti_harvest_seedId_source_size.png
+			// Assign the filename for a primary seed screenshot
+			String dirString = dasBaseUrl + "/store/" + tiOid + "/1/_resources/";
 
 			try {
-				// Convert png file to jpg
-				File jpgFile = Paths.get(liveFile.getAbsolutePath().substring(0, liveFile.getAbsolutePath().lastIndexOf(".") + 1) + "jpg").toFile();
-				BufferedImage image = ImageIO.read(liveFile);
-				BufferedImage newBufferedImage = new BufferedImage(image.getWidth(),image.getHeight(), BufferedImage.TYPE_INT_RGB);
+				String primarySeedOid = null;
+				String primarySeedUrl = null;
+				for (Seed s : ti.getTarget().getSeeds()) {
+					if (s.isPrimary()) {
+						primarySeedOid = String.valueOf(s.getOid());
+						primarySeedUrl = s.getSeed();
+						break;
+					}
+				}
+				String liveScreenshotImage = String.valueOf(tiOid) + "_1_" + primarySeedOid + "_live_screen-thumbnail.png";
+				String liveImageUrl = dirString + liveScreenshotImage;
 
-				newBufferedImage.createGraphics().drawImage(image,0,0, Color.WHITE, null);
-				ImageIO.write(newBufferedImage, "jpg", jpgFile);
-
-				byte[] outputStream = FileUtils.readFileToByteArray(jpgFile);
-				if (outputStream == null || outputStream.length == 0) {
-					log.error("Could not write to output stream");
-					return;
+				// Return String including the primary seed url, the url of the live image, and the url and id of subsequent each seed 
+				// Use ---seed--- to indicate each seed
+				String result = primarySeedUrl + " " + liveImageUrl;
+				for (Seed s : ti.getTarget().getSeeds()) {
+					if (s.isPrimary()) continue;
+					result = result + "|" + s.getSeed() + " " + String.valueOf(s.getOid());
 				}
 
-				image.flush();
-				newBufferedImage.flush();
-
-				// Return a Base64 string of the image
-				String byteString = Base64Utils.encodeToString(outputStream);
-
-				if (byteString == null || byteString.isEmpty()) {
-					log.error("Could not generate file byte string");
-					return;
-				}
-
-				browseUrls.put(tiOid, byteString);
-
+				browseUrls.put(tiOid, result);
 			} catch (Exception e) {
-				log.error("Could not generate file byte string, ", e);
+				log.error("Could not get the primary seed screenshot: ", e);
+				return;
 			}
 		}
 	}
@@ -965,8 +923,8 @@ public class QueueController {
 		this.thumbnailRenderer = thumbnailRenderer;
 	}
 
-	public void setUploadedFilesDir(String uploadedFilesDir) {
-		this.uploadedFilesDir = uploadedFilesDir;
+	public void setDasBaseUrl(String dasBaseUrl) {
+		this.dasBaseUrl = dasBaseUrl;
 	}
 
 	public void setHarvestResourceUrlMapper(HarvestResourceUrlMapper harvestResourceUrlMapper) {

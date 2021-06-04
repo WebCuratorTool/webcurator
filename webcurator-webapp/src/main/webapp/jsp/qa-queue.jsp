@@ -464,7 +464,7 @@ function clickEndorse(hrOid) {
 
 <script>
 
-function populateThumbnailModalContent(seeds) {
+function populateThumbnailModalContent(seedUrls) {
 	// Clear the element first
 	document.getElementById("modalContent").innerHTML="";
 
@@ -479,6 +479,7 @@ function populateThumbnailModalContent(seeds) {
 	var header = modalTable.insertRow(0);
 	header.style.textAlign ="center";
 	header.style.fontWeight ="bold";
+	header.style.position="fixed";
 
 	var headerCell = header.insertCell(0);
 	headerCell.style.width ="20%";
@@ -492,22 +493,36 @@ function populateThumbnailModalContent(seeds) {
 	headerCell.style.width ="60%";
 	headerCell.innerHTML = "Seed";
 
-	var instanceSeeds = seeds.substring(1,seeds.length -1).split(",");
+	var primarySeed = seedUrls[0].split(" ");
+	var filename = primarySeed[1];
 
-	for (var i = 0; i < instanceSeeds.length; i++) {
-		// Don't forget there's already a header row
+	var primarySeedRow = modalTable.insertRow(1);
+	var primarySeedCell = primarySeedRow.insertCell(0);
+	primarySeedCell.innerHTML = filename;
+
+	// primarySeedCell = primarySeedRow.insertCell(1);
+	// primarySeedCell.innerHTML = filename.replace("live", "harvested");
+
+	// primarySeedCell = primarySeedRow.insertCell(2);
+	// primarySeedCell.innerHTML = primarySeed[0];
+
+	for (var i = 1; i < seedUrls.length; i++) {
+		var seedDetails = seedUrls[i];
+		var seedSplit = seedDetails.split(" ");
+
+		// Don't forget there's already a header row and a row for the primary seed
 		var instanceRow = modalTable.insertRow(i + 1);
-		instanceRow.style.height = "100";
+		instanceRow.style.height = "100px";
 
 		// Add live image
 		var cell = instanceRow.insertCell(0);
-		
+
 		// Add harvested image
 		cell = instanceRow.insertCell(1);
 
 		// Add seed url
 		cell = instanceRow.insertCell(2);
-		cell.innerHTML = instanceSeeds[i].trim();
+		cell.innerHTML = seedSplit[0];
 	}
 
 	return modalTable;
@@ -856,10 +871,20 @@ function populateThumbnailModalContent(seeds) {
 			<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
 				<c:choose>
 					<c:when test="${not empty browseUrls[instance.oid]}">
-						<c:set var = "liveFile" value= "${browseUrls[instance.oid]}" />
-						<c:set var = "harvestFile" value= "${fn:replace(liveFile, 'live', 'harvested')}" />
-							<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.getOriginalSeeds()}'));document.getElementById('thumbnailModal').style.display='block';"/>
-							<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.getOriginalSeeds()}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<c:set var = "seedsString" value = "${browseUrls[instance.oid]}" />
+						<c:choose>
+							<c:when test = "${fn:contains(seedsString, '|')}">
+								<c:set var = "keysValues" value = "${fn:split(seedsString, '|')}" />
+							</c:when>
+							<c:otherwise>
+								<c:set var = "keysValues" value = "${[seedsString]}" />
+							</c:otherwise>
+						</c:choose>
+						<c:set var = "primary" value = "${fn:split(keysValues[0], ' ')}" />
+						<c:set var = "liveFile" value = "${primary[1]}" />
+						<c:set var = "harvestFile" value = "${fn:replace(liveFile, 'live', 'harvested')}" />
+						<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${keysValues}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${keysValues}'));document.getElementById('thumbnailModal').style.display='block';"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
