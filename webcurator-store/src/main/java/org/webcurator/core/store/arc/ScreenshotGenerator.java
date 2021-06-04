@@ -4,6 +4,9 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -165,7 +168,7 @@ public class ScreenshotGenerator {
     }
 
     private String replaceSectionInFilename(String filename, String replacement, int sectionIndex) {
-        // File naming convention  ti_harvest_seedId_source_tool_size.png
+        // File naming convention  ti_harvest_seedId_source_size.png
         String[] filenameSections = filename.split("_");
         filenameSections[sectionIndex] = replacement;
         String result = String.join("_", filenameSections);
@@ -211,21 +214,27 @@ public class ScreenshotGenerator {
     private String getWaybackUrl(String seed, String outputPathString, Map identifiers, String waybackBaseUrl) {
         String result = "";
         // Get timestamp from warc file and use with harvest seed url
-        File harvestDirectory = new File(outputPathString);
-        harvestDirectory = new File(harvestDirectory.getParent());
+        File harvestDirectory = new File(new File(outputPathString).getParent());
 
+        if (identifiers.get("timestamp") == null || identifiers.get("timestamp").equals("null")) {
+            log.info("No valid timestamp to use");
+            return result;
+        }
+
+        // warc and index files will contain a timestamp within the filename formatted to YYYYmmdd
+        // In case the timing between the harvester collection and the screenshot generation does not match up
+        // Search for the year in the filename to generate the wayback timestamp
+        // In case the harvesting took place over new  year, search for the prior year as well
+        String tsArg = String.valueOf(identifiers.get("timestamp"));
+        String year = tsArg.substring(0, tsArg.length() -4);
         for (String fileString : harvestDirectory.list()) {
-            if (identifiers.get("timestamp") == null || identifiers.get("timestamp").equals("null")) {
-                log.info("No valid timestamp to use");
-                break;
+            if (!fileString.toLowerCase().endsWith(".warc")) continue;
+            if (!fileString.contains(year)) {
+                year = String.valueOf(Integer.parseInt(year) -1);
             }
+            if (!fileString.contains(tsArg) && !fileString.contains(year)) continue;
 
-            String tsArg = String.valueOf(identifiers.get("timestamp"));
-
-            if (!fileString.endsWith(".warc")) continue;
-            if (!fileString.contains(tsArg)) continue;
-
-            int tsIndex = fileString.indexOf(tsArg);
+            int tsIndex = fileString.indexOf(year);
             String timestamp = fileString.substring(tsIndex, tsIndex + 14);
 
             result = waybackBaseUrl + timestamp + "/" + seed;
@@ -236,62 +245,9 @@ public class ScreenshotGenerator {
         return result;
     }
 
-    public Boolean createScreenshots(Map identifiers, String baseDir, String harvestWaybackViewerBaseUrl) {
-        if (identifiers == null || identifiers.keySet().size() < 1) {
-            log.info("No arguments available for the screenshot.");
-            return false;
-        }
-
-        // file naming convention: ti_harvest_seedId_source_tool_size.png
-        String seedUrl = String.valueOf(identifiers.get("seed"));
-        String targetInstanceOid = String.valueOf(identifiers.get("tiOid"));
-        String liveOrHarvested = String.valueOf(identifiers.get("liveOrHarvested"));
-        String seedId = String.valueOf(identifiers.get("seedOid"));
-        String harvestNumber = String.valueOf(identifiers.get("harvestNumber"));
-
-        // Use the last 10 characters of the seed url as the placehoder
-        // and remove any characters that will make the filename invalid
-        // Remove any underscores because that's being used in the file naming convention
-        String seedPlaceholder = "seedID" + seedUrl.substring(seedUrl.length() -10)
-                        .replaceAll("\\s", "")
-                        .replaceAll("#","")
-                        .replaceAll("%", "")
-                        .replaceAll("&", "")
-                        .replaceAll("\\{", "")
-                        .replaceAll("}", "")
-                        .replaceAll("}", "")
-                        .replaceAll("\\\\", "")
-                        .replaceAll("<", "")
-                        .replaceAll(">","")
-                        .replaceAll("\\*", "")
-                        .replaceAll("\\?", "")
-                        .replaceAll("/", "")
-                        .replaceAll("$", "")
-                        .replaceAll("!", "")
-                        .replaceAll("'", "")
-                        .replaceAll("\"", "")
-                        .replaceAll(":", "")
-                        .replaceAll("@", "")
-                        .replaceAll("\\+", "")
-                        .replaceAll("`", "")
-                        .replaceAll("|", "")
-                        .replaceAll("=", "")
-                        .replaceAll("_", "");
-
-        if (harvestNumber.equals("null")) harvestNumber = "tmpDir";
-
-        String outputPathString = baseDir + File.separator + targetInstanceOid + File.separator +
-                harvestNumber + File.separator + "_resources" + File.separator;
-        String tmpDirectoryString = baseDir + File.separator + targetInstanceOid + File.separator + "tmpDir" +
-                File.separator + "_resources" + File.separator;
+    private String getScreenshotToolName() {
+        // Get the name of the tool used to get the screenshot
         String toolUsed = getFullpageSizeCommand().split("\\s+")[0];
-
-        // Make sure output path exists
-        File destinationDir = new File(outputPathString);
-        if (!destinationDir.exists()) {
-            destinationDir.mkdirs();
-        }
-
         // If using a default tool, specify as default
         if (getFullpageSizeCommand().contains("SeleniumScreenshotCapture")) {
             toolUsed = "default";
@@ -302,18 +258,79 @@ public class ScreenshotGenerator {
                 toolUsed = toolUsed + "-java";
             }
         }
+        if (toolUsed.contains(File.separator)) {
+            toolUsed = toolUsed.substring(toolUsed.lastIndexOf(File.separator) + 1);
+        }
+        return toolUsed;
+    }
 
-        // Get the name of the tool used to get the screenshot
-        if (toolUsed.contains(File.separator)) toolUsed = toolUsed.substring(toolUsed.lastIndexOf(File.separator) + 1);
+    private String removeInvalidFilenameCharacters(String filename) {
+        String newFilename = filename.replaceAll("\\s", "")
+                .replaceAll("#","")
+                .replaceAll("%", "")
+                .replaceAll("&", "")
+                .replaceAll("\\{", "")
+                .replaceAll("}", "")
+                .replaceAll("}", "")
+                .replaceAll("\\\\", "")
+                .replaceAll("<", "")
+                .replaceAll(">","")
+                .replaceAll("\\*", "")
+                .replaceAll("\\?", "")
+                .replaceAll("/", "")
+                .replaceAll("$", "")
+                .replaceAll("!", "")
+                .replaceAll("'", "")
+                .replaceAll("\"", "")
+                .replaceAll(":", "")
+                .replaceAll("@", "")
+                .replaceAll("\\+", "")
+                .replaceAll("`", "")
+                .replaceAll("|", "")
+                .replaceAll("=", "")
+                .replaceAll("_", "");
+        return filename;
+    }
 
-        String fullpageFilename =  targetInstanceOid + "_harvestNum_seedID_" + liveOrHarvested + "_" + toolUsed.toLowerCase() + "_fullpage.png";
+    public Boolean createScreenshots(Map identifiers, String baseDir, String harvestWaybackViewerBaseUrl) {
+        if (identifiers == null || identifiers.keySet().size() < 1) {
+            log.info("No arguments available for the screenshot.");
+            return false;
+        }
+
+        // file naming convention: ti_harvest_seedId_source_size.png
+        String seedUrl = String.valueOf(identifiers.get("seed"));
+        String targetInstanceOid = String.valueOf(identifiers.get("tiOid"));
+        String liveOrHarvested = String.valueOf(identifiers.get("liveOrHarvested"));
+        String seedId = String.valueOf(identifiers.get("seedOid"));
+        String harvestNumber = String.valueOf(identifiers.get("harvestNumber"));
+
+        // Use the last 10 characters of the seed url as the placehoder
+        // and remove any characters that will make the filename invalid
+        // Remove any underscores because that's being used in the file naming convention
+        String seedPlaceholder = "seedID" + removeInvalidFilenameCharacters(seedUrl.substring(seedUrl.length() -10));
+
+        if (harvestNumber.equals("null")) harvestNumber = "tmpDir";
+
+        String outputPathString = baseDir + File.separator + targetInstanceOid + File.separator +
+                harvestNumber + File.separator + "_resources" + File.separator;
+        String tmpDirectoryString = baseDir + File.separator + targetInstanceOid + File.separator + "tmpDir" +
+                File.separator + "_resources" + File.separator;
+
+        // Make sure output path exists
+        File destinationDir = new File(outputPathString);
+        if (!destinationDir.exists()) {
+            destinationDir.mkdirs();
+        }
+
+        String fullpageFilename =  targetInstanceOid + "_harvestNum_seedID_" + liveOrHarvested + "_fullpage.png";
 
         // Need to move the live screenshots and use the wayback indexed url instead of the seed url
         if (liveOrHarvested.equals("harvested")) {
             // Check if live screenshots exist in tmp directory
             for (String size : new String[]{"fullpage","screen","fullpage-thumbnail","screen-thumbnail"}){
                 renameLiveFile(tmpDirectoryString, outputPathString, seedId, harvestNumber,
-                        replaceSectionInFilename(fullpageFilename, size + ".png", 5), seedPlaceholder);
+                        replaceSectionInFilename(fullpageFilename, size + ".png", 4), seedPlaceholder);
             }
             deleteTmpDir(tmpDirectoryString);
 
@@ -335,7 +352,7 @@ public class ScreenshotGenerator {
             fullpageFilename = replaceSectionInFilename(fullpageFilename, harvestNumber, 1);
         }
 
-        String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 5);
+        String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 4);
         String imagePlaceholder = "%image.png%";
         String urlPlaceholder = "%url%";
 
@@ -345,6 +362,9 @@ public class ScreenshotGenerator {
         String commandScreen = getScreenSizeCommand()
                 .replace(urlPlaceholder, seedUrl.replaceAll("\\s+",""))
                 .replace(imagePlaceholder, outputPathString + screenFilename);
+
+        // Get the name of the tool used to get the screenshot
+        String toolUsed = getScreenshotToolName();
 
         log.info("Generating screenshots for job " + targetInstanceOid + " using " + toolUsed + "...");
 
@@ -363,8 +383,7 @@ public class ScreenshotGenerator {
             String liveImageFilename = fullpageFilename;
             String[] filenameSections = fullpageFilename.split("_");
             if (filenameSections[3].equals("harvested")) {
-                filenameSections[3] = "live";
-                liveImageFilename = String.join("_", filenameSections);
+                liveImageFilename = replaceSectionInFilename(fullpageFilename, "live", 3);
             }
 
             File liveImageFile = new File(outputPathString + File.separator + liveImageFilename);
@@ -404,21 +423,26 @@ public class ScreenshotGenerator {
                 generateThumbnailOrScreenSizeScreenshot(fullpageFilename, outputPathString,
                         "fullpage","fullpage-thumbnail",100, 100);
                 waitForScreenshot(new File(outputPathString +
-                        replaceSectionInFilename(fullpageFilename, "fullpage-thumbnail.png", 5)));
+                        replaceSectionInFilename(fullpageFilename, "fullpage-thumbnail.png", 4)));
                 generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString,
                         "screen", "screen-thumbnail", 100, 100);
                 waitForScreenshot(new File(outputPathString +
-                        replaceSectionInFilename(screenFilename, "screen-thumbnail.png", 5)));
+                        replaceSectionInFilename(screenFilename, "screen-thumbnail.png", 4)));
             }
 
+            // Count the number of screenshots generated and add the tool name as a file attribute
             File dir = new File(outputPathString);
             int imageCounter = 0;
             for (File file : dir.listFiles()) {
-                if (file.toString().toLowerCase().endsWith(".png") && file.toString().contains(liveOrHarvested)) {
-                    imageCounter++;
-                }
+                if (!file.toString().toLowerCase().endsWith(".png")) continue;
+                if (!file.toString().contains(liveOrHarvested)) continue;
+                imageCounter++;
+
+                if (Files.getFileStore(file.toPath()) == null) continue;
+                UserDefinedFileAttributeView attributeView = Files.getFileAttributeView(file.toPath(), UserDefinedFileAttributeView.class);
+                attributeView.write("screenshotTool-" + toolUsed, Charset.defaultCharset().encode(toolUsed));
             }
-            log.info(String.valueOf(imageCounter) + " " + liveOrHarvested + " screenshots have been generated.");
+            log.info(String.valueOf(imageCounter) + " " + liveOrHarvested + " screenshots have been generated for job " + targetInstanceOid);
 
         } catch (Exception e) {
             log.error("Failed to generate screenshots: " + e.getMessage(), e);
