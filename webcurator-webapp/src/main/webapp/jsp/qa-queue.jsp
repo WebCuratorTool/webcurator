@@ -464,7 +464,17 @@ function clickEndorse(hrOid) {
 
 <script>
 
-function populateThumbnailModalContent(seedUrls) {
+function createImageElement(filename) {
+	var imgEl = document.createElement("img");
+	imgEl.src = filename;
+	imgEl.style.height = "100%";
+	imgEl.style.width = "100%";
+	imgEl.style.padding = "5px";
+	
+	return imgEl;
+}
+
+function populateThumbnailModalContent(seedUrlsString) {
 	// Clear the element first
 	document.getElementById("modalContent").innerHTML="";
 
@@ -479,49 +489,61 @@ function populateThumbnailModalContent(seedUrls) {
 	var header = modalTable.insertRow(0);
 	header.style.textAlign ="center";
 	header.style.fontWeight ="bold";
-	header.style.position="fixed";
 
 	var headerCell = header.insertCell(0);
-	headerCell.style.width ="20%";
+	headerCell.style.width ="30%";
 	headerCell.innerHTML = "Live";
 
 	headerCell = header.insertCell(1);
-	headerCell.style.width ="20%";
+	headerCell.style.width ="30%";
 	headerCell.innerHTML = "Harvested";	
 
 	headerCell = header.insertCell(2);
-	headerCell.style.width ="60%";
+	headerCell.style.width ="40%";
 	headerCell.innerHTML = "Seed";
 
-	var primarySeed = seedUrls[0].split(" ");
-	var filename = primarySeed[1];
+	var seedArray = seedUrlsString.split("|");
+
+	var primarySeed = seedArray[0].split(" ");
+	var filename = primarySeed[1].replace("-thumbnail","");
 
 	var primarySeedRow = modalTable.insertRow(1);
+
 	var primarySeedCell = primarySeedRow.insertCell(0);
-	primarySeedCell.innerHTML = filename;
+	primarySeedCell.appendChild(createImageElement(filename));
 
-	// primarySeedCell = primarySeedRow.insertCell(1);
-	// primarySeedCell.innerHTML = filename.replace("live", "harvested");
+	primarySeedCell = primarySeedRow.insertCell(1);
+	primarySeedCell.appendChild(createImageElement(filename.replace("live", "harvested")));
 
-	// primarySeedCell = primarySeedRow.insertCell(2);
-	// primarySeedCell.innerHTML = primarySeed[0];
+	primarySeedCell = primarySeedRow.insertCell(2);
+	primarySeedCell.style.textAlign = "center";
+	primarySeedCell.innerHTML = primarySeed[0];
 
-	for (var i = 1; i < seedUrls.length; i++) {
-		var seedDetails = seedUrls[i];
+	for (var i = 1; i < seedArray.length; i++) {
+		var seedDetails = seedArray[i];
 		var seedSplit = seedDetails.split(" ");
 
-		// Don't forget there's already a header row and a row for the primary seed
+		// Header row and the primary seed row has already been done
 		var instanceRow = modalTable.insertRow(i + 1);
-		instanceRow.style.height = "100px";
+		instanceRow.style.height = "200px";
+
+		// Generate live image file name for seed
+		// File naming convention is ti_harvest_seedId_source_size.png
+		var splitSeedFilename = filename.split("_");
+		splitSeedFilename[3] = seedSplit[1];
+		var seedFilename = splitSeedFilename.join("_");
 
 		// Add live image
 		var cell = instanceRow.insertCell(0);
+		cell.appendChild(createImageElement(seedFilename));
 
 		// Add harvested image
 		cell = instanceRow.insertCell(1);
+		cell.appendChild(createImageElement(seedFilename.replace("live", "harvested")));
 
 		// Add seed url
 		cell = instanceRow.insertCell(2);
+		instanceRow.style.textAlign = "center";
 		cell.innerHTML = seedSplit[0];
 	}
 
@@ -883,8 +905,8 @@ function populateThumbnailModalContent(seedUrls) {
 						<c:set var = "primary" value = "${fn:split(keysValues[0], ' ')}" />
 						<c:set var = "liveFile" value = "${primary[1]}" />
 						<c:set var = "harvestFile" value = "${fn:replace(liveFile, 'live', 'harvested')}" />
-						<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${keysValues}'));document.getElementById('thumbnailModal').style.display='block';"/>
-						<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${keysValues}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${seedsString}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${seedsString}'));document.getElementById('thumbnailModal').style.display='block';"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
