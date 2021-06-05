@@ -223,9 +223,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     private void permenitCascadePath(NetworkMapTreeNodeDTO rootTreeNode, long parentPathId) {
         //
         if (rootTreeNode.getChildren().size() == 0) {
-            NetworkMapNode networkMapNode = this.urls.get(rootTreeNode.getUrl());
-            if (networkMapNode != null) {
-                networkMapNode.setParentPathId(parentPathId);
+            if (rootTreeNode.getUrl() != null) {
+                NetworkMapNode networkMapNode = this.urls.get(rootTreeNode.getUrl());
+                if (networkMapNode != null) {
+                    networkMapNode.setParentPathId(parentPathId);
+                }
             }
         } else {
             NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();

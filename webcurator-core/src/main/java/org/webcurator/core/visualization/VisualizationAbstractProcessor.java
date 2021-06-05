@@ -1,10 +1,10 @@
 package org.webcurator.core.visualization;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.util.Utils;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -96,7 +96,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             this.close();
             return true;
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Failed to process", e);
             return false;
         } finally {
             this.progressBar.clear();
@@ -119,10 +119,10 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         try {
             this.running_blocker.acquire();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("Failed to pause", e);
         }
         this.running = false;
-        System.out.println("Paused");
+        log.info("Paused");
     }
 
     public void resumeTask() {
@@ -132,17 +132,17 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         }
         this.running = true;
         this.running_blocker.release(2);
-        System.out.println("Resumed");
+        log.info("Resumed");
     }
 
     protected void tryBlock() {
         if (!running) {
             try {
-                System.out.println("Going to wait");
+                log.info("Going to wait");
                 this.running_blocker.acquire();
-                System.out.println("Awake");
+                log.debug("Awake");
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.info("Failed to block", e);
             }
         }
     }
@@ -157,7 +157,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         try {
             logWriter.write(String.format("%s %s %s%s", this.flag, time, content, System.lineSeparator()));
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Failed to write log", e);
         }
     }
 
@@ -173,7 +173,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
                 reportWriter.write(item.getPrintContent() + System.lineSeparator());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to write report", e);
         }
     }
 
@@ -210,14 +210,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
 
     protected void delete(File toPurge) {
         log.debug("About to purge dir " + toPurge.toString());
-        try {
-            FileUtils.deleteDirectory(toPurge);
-            if (toPurge.exists()) {
-                toPurge.delete();
-            }
-        } catch (IOException e) {
-            log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
-        }
+        Utils.cleanDirectory(toPurge);
     }
 
     public VisualizationProgressBar getProgress() {
@@ -283,7 +276,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
                 reportWriter.close();
             }
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Failed to close processor", e);
         }
     }
 

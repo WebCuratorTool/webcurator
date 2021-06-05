@@ -1,11 +1,11 @@
 package org.webcurator.core.visualization;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.util.Utils;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
@@ -107,40 +107,16 @@ public class VisualizationProcessorManager {
                     return false;
                 }
             }
-            return true;
         }
 
         ProcessorHandler handler = queued_processors.get(key);
         if (handler != null) {
-            return handler.future.cancel(true);
+            handler.future.cancel(true);
         }
 
         queued_processors.remove(key);
 
-        return false;
-    }
-
-    private void cleanDirectory(File directory) {
-        if (directory == null) {
-            return;
-        }
-
-        try {
-            if (directory.exists()) {
-                FileUtils.cleanDirectory(directory);
-            }
-
-            if (directory.exists()) {
-                boolean rst = directory.delete();
-                if (rst) {
-                    log.debug("Succeed to delete: {}", directory.getAbsolutePath());
-                } else {
-                    log.error("Failed to delete: {}", directory.getAbsolutePath());
-                }
-            }
-        } catch (IOException e) {
-            log.error("Failed to delete: {}", directory.getAbsolutePath(), e);
-        }
+        return true;
     }
 
     public boolean deleteTask(String processorType, long targetInstanceId, int harvestResultNumber) {
@@ -151,14 +127,14 @@ public class VisualizationProcessorManager {
         pool.close(targetInstanceId, harvestResultNumber); //Close the BDB instance when it is available
 
         File dirOfHarvestFiles = new File(visualizationDirectoryManager.getBaseDir(), String.format("%d%s%d", targetInstanceId, File.separator, harvestResultNumber));
-        this.cleanDirectory(dirOfHarvestFiles);
+        Utils.cleanDirectory(dirOfHarvestFiles);
 
         //Delete logs and reports
-        File dirOfLogs = new File(visualizationDirectoryManager.getPatchLogDir(HarvestResult.PATCH_STAGE_TYPE_ALL, targetInstanceId, harvestResultNumber)).getParentFile();
-        this.cleanDirectory(dirOfLogs);
+        File dirOfLogs = visualizationDirectoryManager.getBasePatchLogDir(targetInstanceId, harvestResultNumber);
+        Utils.cleanDirectory(dirOfLogs);
 
-        File dirOfReports = new File(visualizationDirectoryManager.getPatchReportDir(HarvestResult.PATCH_STAGE_TYPE_ALL, targetInstanceId, harvestResultNumber)).getParentFile();
-        this.cleanDirectory(dirOfReports);
+        File dirOfReports = visualizationDirectoryManager.getBasePatchReportDir(targetInstanceId, harvestResultNumber);
+        Utils.cleanDirectory(dirOfReports);
 
         //Delete command json files
         PatchUtil.modifier.deleteJob(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);

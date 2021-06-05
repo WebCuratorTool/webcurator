@@ -717,7 +717,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
         if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
-            log.info("Invalid input parameter");
+            log.debug("Invalid input parameter");
             return;
         }
         File[] fileList = logsDir.listFiles();
