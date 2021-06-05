@@ -207,7 +207,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         HarvestResult harvestResult = targetInstanceManager.getHarvestResult(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
         if (harvestResult != null && harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
+            if (harvestResult.getState() != HarvestResult.STATE_ABORTED) {
+                this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
+            }
         } else {
             TargetInstance ti = targetInstanceDao.load(aResult.getTargetInstanceOid());
             if (ti == null) {
@@ -1766,6 +1768,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return false;
         }
 
+        if (hr.getState() == HarvestResult.STATE_ABORTED) {
+            log.error("Invalid HarvestResult state: {}", hr.getState());
+            return false;
+        }
+
         ModifyApplyCommand cmd = (ModifyApplyCommand) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
             log.error("Could not load ModifyApplyCommand of target instance: {}", ti.getOid(), hr.getHarvestNumber());
@@ -1796,12 +1803,14 @@ public class WctCoordinatorImpl implements WctCoordinator {
                             , cmd.getHarvestResultId()));
         }
 
-        int newHarvestResultNumber = 1;
+        int newHarvestResultNumber = 0;
         List<HarvestResult> harvestResultList = ti.getHarvestResults();
-        OptionalInt maxHarvestResultNumber = harvestResultList.stream().mapToInt(HarvestResult::getHarvestNumber).max();
-        if (maxHarvestResultNumber.isPresent()) {
-            newHarvestResultNumber = maxHarvestResultNumber.getAsInt() + 1;
+        for (HarvestResult hr : harvestResultList) {
+            if (hr != null && hr.getHarvestNumber() > newHarvestResultNumber) {
+                newHarvestResultNumber = hr.getHarvestNumber();
+            }
         }
+        newHarvestResultNumber += 1;
 
         // Create a new harvest result.
         HarvestResult hr = new HarvestResult(ti, newHarvestResultNumber);

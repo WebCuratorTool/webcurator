@@ -477,7 +477,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
     public List<HarvestResult> getDerivedHarvestResults(int harvestResultNumber) {
         List<HarvestResult> list = new ArrayList<>();
         for (HarvestResult hr : harvestResults) {
-            if (hr.getDerivedFrom() != null && hr.getDerivedFrom() == harvestResultNumber) {
+            if (hr != null && hr.getDerivedFrom() != null && hr.getDerivedFrom() == harvestResultNumber) {
                 list.add(hr);
             }
         }
@@ -522,7 +522,7 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         List<HarvestResult> results = getHarvestResults(); //Trigger hibernate fetch if necessary
         if (results == null) return null;
         for (HarvestResult result : results) {
-            if (harvestNumber == result.getHarvestNumber()) {
+            if (result != null && harvestNumber == result.getHarvestNumber()) {
                 return result;
             }
         }
@@ -1346,9 +1346,9 @@ public class TargetInstance implements Annotatable, Overrideable, UserInTrayReso
         }
 
         for (HarvestResult hr : harvestResults) {
-            if (hr.getState() == HarvestResult.STATE_CRAWLING
+            if ((hr != null) && (hr.getState() == HarvestResult.STATE_CRAWLING
                     || hr.getState() == HarvestResult.STATE_MODIFYING
-                    || hr.getState() == HarvestResult.STATE_INDEXING) {
+                    || hr.getState() == HarvestResult.STATE_INDEXING)) {
                 list.add(hr);
             }
         }

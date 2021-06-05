@@ -1,6 +1,7 @@
 package org.webcurator.core.visualization;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
@@ -40,6 +41,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
 
     private boolean running = true;
     private final Semaphore running_blocker = new Semaphore(1);
+
+    private boolean finished = false;
 
     public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) {
         this.targetInstanceId = targetInstanceId;
@@ -97,14 +100,19 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             return false;
         } finally {
             this.progressBar.clear();
-            this.status = HarvestResult.STATUS_FINISHED;
+            if (this.status == HarvestResult.STATUS_RUNNING) {
+                this.status = HarvestResult.STATUS_FINISHED;
+            }
             processorManager.finalise(this);
+
+            this.finished = true;
         }
     }
 
     abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
+        this.status = HarvestResult.STATUS_PAUSED;
         if (!this.running) {
             return;
         }
@@ -118,6 +126,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void resumeTask() {
+        this.status = HarvestResult.STATUS_RUNNING;
         if (this.running) {
             return;
         }
@@ -169,6 +178,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void terminateTask() {
+        this.state = HarvestResult.STATE_ABORTED;
         this.status = HarvestResult.STATUS_TERMINATED;
         terminateInternal();
         updateHarvestResultStatus();
@@ -186,18 +196,25 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     abstract public void deleteInternal();
 
     protected void delete(String rootDir, String dir) {
-        File toPurge = new File(rootDir, dir);
-        delete(toPurge);
+        if (!StringUtils.isEmpty(rootDir) && !StringUtils.isEmpty(dir)) {
+            File toPurge = new File(rootDir, dir);
+            delete(toPurge);
+        }
     }
 
     protected void delete(String toPurge) {
-        delete(new File(toPurge));
+        if (!StringUtils.isEmpty(toPurge)) {
+            delete(new File(toPurge));
+        }
     }
 
     protected void delete(File toPurge) {
         log.debug("About to purge dir " + toPurge.toString());
         try {
             FileUtils.deleteDirectory(toPurge);
+            if (toPurge.exists()) {
+                toPurge.delete();
+            }
         } catch (IOException e) {
             log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
         }
@@ -268,5 +285,13 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         } catch (IOException e) {
             log.error(e.getMessage());
         }
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public void setFinished(boolean finished) {
+        this.finished = finished;
     }
 }

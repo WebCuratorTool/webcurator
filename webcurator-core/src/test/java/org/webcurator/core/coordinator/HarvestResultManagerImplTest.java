@@ -91,8 +91,8 @@ public class HarvestResultManagerImplTest extends BaseWCTTest<HarvestResultManag
 
         HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestNumber);
 
-        assertEquals(HarvestResult.STATE_UNASSESSED, hrDTO.getState());
-        assertEquals(HarvestResult.STATUS_UNASSESSED, hrDTO.getStatus());
+        assertEquals(state, hrDTO.getState());
+        assertEquals(status, hrDTO.getStatus());
     }
 
 

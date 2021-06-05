@@ -96,15 +96,22 @@ public class BDBNetworkMap {
      * @throws DatabaseException
      */
     public void shutdownDB() throws DatabaseException {
-
-        if (db != null) {
-            db.close();
-            db = null;
+        try {
+            if (db != null) {
+                db.close();
+                db = null;
+            }
+        } catch (Exception e) {
+            log.error("Failed to close db", e);
         }
 
-        if (env != null) {
-            env.close();
-            env = null;
+        try {
+            if (env != null) {
+                env.close();
+                env = null;
+            }
+        } catch (Exception e) {
+            log.error("Failed to close env", e);
         }
     }
 

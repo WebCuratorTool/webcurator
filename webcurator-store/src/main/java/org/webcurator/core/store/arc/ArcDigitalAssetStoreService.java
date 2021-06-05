@@ -56,6 +56,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
@@ -1108,16 +1109,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         } else if (command.equalsIgnoreCase("terminate")) {
             visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("delete")) {
-            visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
-
-            ModifyApplyCommand cmd = new ModifyApplyCommand();
-            cmd.setTargetInstanceId(targetInstanceId);
-            cmd.setNewHarvestResultNumber(harvestNumber);
-            VisualizationAbstractProcessor processorModifier = new ModifyProcessorWarc(cmd);
-            processorModifier.deleteTask();
-
-            VisualizationAbstractProcessor processorIndexer = new IndexProcessorWarc(pool, targetInstanceId, harvestNumber);
-            processorIndexer.deleteTask();
+            visualizationProcessorManager.deleteTask(stage, targetInstanceId, harvestNumber);
         }
     }
 

@@ -71,6 +71,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         preProcess();
         for (ArchiveRecord record : reader) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when indexing");
+                break;
+            }
+
             this.tryBlock();
 
             extractRecord(record, fileName);
@@ -253,6 +258,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
         for (File f : fileList) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when indexing");
+                break;
+            }
+
             if (!isWarcFormat(f.getName())) {
                 continue;
             }
@@ -263,6 +273,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         log.debug(progressBar.toString());
         for (File f : fileList) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when indexing");
+                break;
+            }
+
             if (!isWarcFormat(f.getName())) {
                 this.writeLog("Skipped unknown file: " + f.getName());
                 continue;
@@ -297,6 +312,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     @Override
     protected void terminateInternal() {
+        this.clear();
     }
 
     @Override

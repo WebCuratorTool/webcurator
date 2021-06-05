@@ -1,15 +1,18 @@
 package org.webcurator.core.visualization;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -29,15 +32,20 @@ public class VisualizationProcessorManager {
         this.thread_pool = Executors.newFixedThreadPool(maxConcurrencyModThreads);
     }
 
+    public void initTask(VisualizationAbstractProcessor processor) throws IOException {
+        //Execute processor with thread pool
+        NetworkMapService networkMapClient = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(NetworkMapClient.class);
+        processor.init(this, visualizationDirectoryManager, wctCoordinatorClient, networkMapClient);
+    }
+
     public void startTask(VisualizationAbstractProcessor processor) throws IOException {
         if (queued_processors.containsKey(processor.getKey())) {
             log.debug("Processor is in the queue: {}", processor.getKey());
             return;
         }
 
-        //Execute processor with thread pool
-        NetworkMapService networkMapClient = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(NetworkMapClient.class);
-        processor.init(this, visualizationDirectoryManager, wctCoordinatorClient, networkMapClient);
+        this.initTask(processor);
+
         Future<Boolean> futureResult = thread_pool.submit(processor);
 
         //Cache the current running
@@ -50,11 +58,15 @@ public class VisualizationProcessorManager {
         queued_processors.remove(processor.getKey());
 
         if (processor.getProcessorStage().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-            wctCoordinatorClient.notifyModificationComplete(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
+            if (processor.getStatus() == HarvestResult.STATUS_FINISHED) {
+                wctCoordinatorClient.notifyModificationComplete(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
+            }
             //Move the current metadata to history fold to avoid duplicated execution
             PatchUtil.modifier.moveJob2History(visualizationDirectoryManager.getBaseDir(), processor.getTargetInstanceId(), processor.getHarvestResultNumber());
         } else if (processor.getProcessorStage().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-            wctCoordinatorClient.finaliseIndex(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
+            if (processor.getStatus() == HarvestResult.STATUS_FINISHED) {
+                wctCoordinatorClient.finaliseIndex(processor.getTargetInstanceId(), processor.getHarvestResultNumber());
+            }
             //Move the current metadata to history fold to avoid duplicated execution
             PatchUtil.indexer.moveJob2History(visualizationDirectoryManager.getBaseDir(), processor.getTargetInstanceId(), processor.getHarvestResultNumber());
         }
@@ -86,6 +98,15 @@ public class VisualizationProcessorManager {
         VisualizationAbstractProcessor processor = getProcessor(key);
         if (processor != null) {
             processor.terminateTask();
+            while (!processor.isFinished()) {
+                log.debug("Waiting for to be finished, targetInstanceId={}, harvestResultNumber={}", targetInstanceId, harvestResultNumber);
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    log.error("Failed sleep", e);
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -99,14 +120,52 @@ public class VisualizationProcessorManager {
         return false;
     }
 
-    public boolean deleteTask(String processorType, long targetInstanceId, int harvestResultNumber) {
-        String key = getKey(targetInstanceId, harvestResultNumber);
-        VisualizationAbstractProcessor processor = getProcessor(key);
-        if (processor != null) {
-            processor.deleteTask();
-            return true;
+    private void cleanDirectory(File directory) {
+        if (directory == null) {
+            return;
         }
-        return false;
+
+        try {
+            if (directory.exists()) {
+                FileUtils.cleanDirectory(directory);
+            }
+
+            if (directory.exists()) {
+                boolean rst = directory.delete();
+                if (rst) {
+                    log.debug("Succeed to delete: {}", directory.getAbsolutePath());
+                } else {
+                    log.error("Failed to delete: {}", directory.getAbsolutePath());
+                }
+            }
+        } catch (IOException e) {
+            log.error("Failed to delete: {}", directory.getAbsolutePath(), e);
+        }
+    }
+
+    public boolean deleteTask(String processorType, long targetInstanceId, int harvestResultNumber) {
+        this.terminateTask(processorType, targetInstanceId, harvestResultNumber);
+
+        //Delete basic files: warc files and indexes
+        BDBNetworkMapPool pool = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(BDBNetworkMapPool.class);
+        pool.close(targetInstanceId, harvestResultNumber); //Close the BDB instance when it is available
+
+        File dirOfHarvestFiles = new File(visualizationDirectoryManager.getBaseDir(), String.format("%d%s%d", targetInstanceId, File.separator, harvestResultNumber));
+        this.cleanDirectory(dirOfHarvestFiles);
+
+        //Delete logs and reports
+        File dirOfLogs = new File(visualizationDirectoryManager.getPatchLogDir(HarvestResult.PATCH_STAGE_TYPE_ALL, targetInstanceId, harvestResultNumber)).getParentFile();
+        this.cleanDirectory(dirOfLogs);
+
+        File dirOfReports = new File(visualizationDirectoryManager.getPatchReportDir(HarvestResult.PATCH_STAGE_TYPE_ALL, targetInstanceId, harvestResultNumber)).getParentFile();
+        this.cleanDirectory(dirOfReports);
+
+        //Delete command json files
+        PatchUtil.modifier.deleteJob(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);
+        PatchUtil.modifier.deleteHistoryJob(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);
+        PatchUtil.indexer.deleteJob(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);
+        PatchUtil.indexer.deleteHistoryJob(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);
+        return true;
     }
 
     public VisualizationProgressBar getProgress(long targetInstanceId, int harvestResultNumber) {

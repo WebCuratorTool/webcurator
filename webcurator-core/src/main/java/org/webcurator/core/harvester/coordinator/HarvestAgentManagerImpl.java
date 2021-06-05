@@ -13,6 +13,7 @@ import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -162,8 +163,12 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_STOPPING);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
-            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_FINISHED);
-            wctCoordinator.pushPruneAndImport(ti.getOid(), harvestResultNumber);
+            HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
+            if (hr != null && hr.getState() != HarvestResult.STATE_ABORTED) {
+                harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_FINISHED);
+                wctCoordinator = wctCoordinator == null ? ApplicationContextFactory.getApplicationContext().getBean(WctCoordinator.class) : wctCoordinator;
+                wctCoordinator.pushPruneAndImport(ti.getOid(), harvestResultNumber);
+            }
         }
     }
 
@@ -458,13 +463,13 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         this.targetInstanceDao = targetInstanceDao;
     }
 
-    public WctCoordinator getWctCoordinator() {
-        return wctCoordinator;
-    }
-
-    public void setWctCoordinator(WctCoordinator wctCoordinator) {
-        this.wctCoordinator = wctCoordinator;
-    }
+//    public WctCoordinator getWctCoordinator() {
+//        return wctCoordinator;
+//    }
+//
+//    public void setWctCoordinator(WctCoordinator wctCoordinator) {
+//        this.wctCoordinator = wctCoordinator;
+//    }
 
     public HarvestResultManager getHarvestResultManager() {
         return harvestResultManager;
