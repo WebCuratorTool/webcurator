@@ -17,6 +17,8 @@ public class QualityReviewToolControllerAttribute {
     protected boolean enableBrowseTool = true;
     protected boolean enableAccessTool = false;
     protected String webArchiveTarget = null;
+    protected String thumbnailRenderer = null;
+    protected String dasBaseUrl = null;
 
     public void setTargetInstanceManager(TargetInstanceManager targetInstanceManager) {
         this.targetInstanceManager = targetInstanceManager;
@@ -60,6 +62,14 @@ public class QualityReviewToolControllerAttribute {
 
     public void setWebArchiveTarget(String webArchiveTarget) {
         this.webArchiveTarget = webArchiveTarget;
+    }
+
+    public void setThumbnailRenderer(String thumbnailRenderer) {
+		this.thumbnailRenderer = thumbnailRenderer;
+	}
+
+    public void setDasBaseUrl(String dasBaseUrl) {
+        this.dasBaseUrl = dasBaseUrl;
     }
 
 }

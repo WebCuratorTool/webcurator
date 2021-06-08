@@ -113,9 +113,9 @@ public class QueueController {
 	@Value("${queueController.thumbnailHeight}")
 	private String thumbnailHeight = "100px;";
 
-		/** the configured base url for store **/
-		@Value("${digitalAssetStore.baseUrl}")
-		private String dasBaseUrl = "";
+	/** the configured base url for store **/
+	@Value("${digitalAssetStore.baseUrl}")
+	private String dasBaseUrl = "";
 		
 	@InitBinder
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {

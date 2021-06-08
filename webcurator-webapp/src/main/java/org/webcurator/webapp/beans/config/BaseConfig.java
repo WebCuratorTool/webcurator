@@ -304,6 +304,8 @@ public class BaseConfig {
 
     @Value("${core.base.dir}")
     private String baseDir;
+    @Value("${queueController.thumbnailRenderer}")
+    private String thumbnailRenderer;
 
     @Autowired
     private ListsConfig listsConfig;
@@ -1150,6 +1152,8 @@ public class BaseConfig {
         bean.setEnableBrowseTool(qualityReviewToolControllerEnableBrowseTool);
         bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
         bean.setWebArchiveTarget(qualityReviewToolControllerWebArchiveTarget);
+        bean.setThumbnailRenderer(thumbnailRenderer);
+        bean.setDasBaseUrl(digitalAssetStoreBaseUrl);
 
         return bean;
     }

@@ -1,14 +1,16 @@
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
 <div id="resultsTable">
 	<table width="100%" cellpadding="2" cellspacing="0" border="0">
 		<tr>
 			<td><span class="midtitleGrey">Quality Review Tools</span></td>
 		</tr>
 		<tr>
-			<td colspan="2" class="tableHead">Browse</td>			
+			<td colspan="3" class="tableHead">Browse</td>			
 		</tr>
 		<tr>
-			<td colspan="2">
+			<td colspan="3">
 				<table width="100%">
 					<c:forEach items="${seeds}" var="seed">
 					<tr>
@@ -22,7 +24,7 @@
 							</c:otherwise> 
 							</c:choose> 
 						</td>
-						<td width="70%">
+						<td width="50%">
 						  <c:if test="${seed.browseUrl != ''}">
 						  <a href="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/<c:out value="${seed.browseUrl}"/>" target="_blank">Review this Harvest</a> 
 						  | 
@@ -57,10 +59,21 @@
 						    | <a href="<c:out value="${webArchiveTarget}" escapeXml="false"/><c:out value="${targetOid}"/>" target="_blank">Web Archive</a></td>
 						    </c:otherwise>
 						  </c:choose>
+
+                        </td>
+						<td width="20%">
+							<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+								<c:set var = "fileUrl" value = "${screenshotUrl}" />
+								<c:set var = "seedOid" value = "${seed.getOid()}" />
+								<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedOid)}" />
+								<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
+								<img src="${liveUrl}" alt="" width="100px" />
+								<img src="${harvestedUrl}" alt="" width="100px" />
+							</c:if>
 						</td>
 					</tr>
 					<tr>			
-						<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
+						<td colspan="3" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
 				    </tr>
 					</c:forEach>
 				</table>
