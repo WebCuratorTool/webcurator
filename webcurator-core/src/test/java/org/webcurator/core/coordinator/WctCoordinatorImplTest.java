@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.anotherbigidea.util.Base64;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -476,6 +477,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         assertEquals(2, store.getRemovedIndexes().size());
     }
 
+    @Ignore
     @Test
     public final void testReIndexHarvestResult() {
         MockDigitalAssetStore store = new MockDigitalAssetStore();

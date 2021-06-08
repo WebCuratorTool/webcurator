@@ -53,6 +53,8 @@ import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.auth.Privilege;
@@ -134,6 +136,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
     @Autowired
     private HarvestResultManager harvestResultManager;
 
+    @Autowired
+    private NetworkMapClient networkMapClient;
+
     /**
      * Default Constructor.
      */
@@ -206,9 +211,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
         log.debug("Harvest Complete: ti: {}, havestResult: {}", aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
 
         HarvestResult harvestResult = targetInstanceManager.getHarvestResult(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
-        if (harvestResult != null && harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            if (harvestResult.getState() != HarvestResult.STATE_ABORTED) {
+        if (harvestResult != null) {
+            if (harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING) && harvestResult.getState() != HarvestResult.STATE_ABORTED) {
                 this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
+            } else {
+                log.error("Invalis status, tiOID:{}, hrNum:{}, tiState:{}, hrState:{}", aResult.getTargetInstanceOid(), harvestResult.getHarvestNumber(), harvestResult.getTargetInstance().getState(), harvestResult.getState());
             }
         } else {
             TargetInstance ti = targetInstanceDao.load(aResult.getTargetInstanceOid());
@@ -300,63 +307,17 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
     }
 
-
     /**
      * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#reIndexHarvestResult(HarvestResult)
      */
     public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
-        TargetInstance ti = origHarvestResult.getTargetInstance();
-
-        // Assume we are already indexing
-        Boolean reIndex = false;
-
-        try {
-            reIndex = !digitalAssetStoreFactory.getDAS().checkIndexing(origHarvestResult.getOid());
-        } catch (DigitalAssetStoreException ex) {
-            log.error("Could not send checkIndexing message to the DAS", ex);
+        if (origHarvestResult != null) {
+            NetworkMapResult rst = networkMapClient.initialIndex(origHarvestResult.getOid(), origHarvestResult.getHarvestNumber());
+            return rst.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS;
+        } else {
+            log.error("Invalid input parameter, origHarvestResult is null.");
+            return false;
         }
-
-        if (reIndex) {
-            // Save any unsaved changes
-            targetInstanceDao.save(ti);
-
-            // reload the targetInstance
-            ti = targetInstanceDao.load(ti.getOid());
-
-            HarvestResultDTO hr = new HarvestResultDTO();
-            hr.setCreationDate(new Date());
-            hr.setTargetInstanceOid(ti.getOid());
-            hr.setProvenanceNote(origHarvestResult.getProvenanceNote());
-            hr.setHarvestNumber(origHarvestResult.getHarvestNumber());
-            HarvestResult newHarvestResult = new HarvestResult(hr, ti);
-
-            origHarvestResult.setState(HarvestResult.STATE_ABORTED);
-            newHarvestResult.setState(HarvestResult.STATE_INDEXING);
-
-            List<HarvestResult> hrs = ti.getHarvestResults();
-            hrs.add(newHarvestResult);
-            ti.setHarvestResults(hrs);
-
-            ti.setState(TargetInstance.STATE_HARVESTED);
-
-            targetInstanceDao.save(newHarvestResult);
-            targetInstanceDao.save(ti);
-
-            try {
-                digitalAssetStoreFactory.getDAS().initiateIndexing(
-                        new HarvestResultDTO(newHarvestResult.getOid(), newHarvestResult.getTargetInstance().getOid(),
-                                newHarvestResult.getCreationDate(), newHarvestResult.getHarvestNumber(), newHarvestResult
-                                .getProvenanceNote()));
-
-                inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC,
-                        MessageType.TARGET_INSTANCE_COMPLETE, ti);
-                inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
-            } catch (DigitalAssetStoreException ex) {
-                log.error("Could not send initiateIndexing message to the DAS", ex);
-            }
-        }
-
-        return reIndex;
     }
 
     /**

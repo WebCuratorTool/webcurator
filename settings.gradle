@@ -1,2 +1,2 @@
 rootProject.name = 'webcurator'
-include 'webcurator-legacy-lib-dependencies', 'webcurator-core', 'webcurator-webapp', 'webcurator-docs', 'webcurator-harvest-agent-h3', 'webcurator-harvest-agent-h1', 'webcurator-submit-to-rosetta', 'webcurator-store'
+include 'webcurator-legacy-lib-dependencies', 'webcurator-core', 'webcurator-webapp', 'webcurator-docs', 'webcurator-harvest-agent-h3', 'webcurator-submit-to-rosetta', 'webcurator-store'

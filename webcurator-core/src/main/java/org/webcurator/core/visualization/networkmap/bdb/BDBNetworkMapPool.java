@@ -1,8 +1,8 @@
 package org.webcurator.core.visualization.networkmap.bdb;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,17 +40,11 @@ public class BDBNetworkMapPool {
 
         //Clear the path
         String dbPath = this.getDbPath(job, harvestResultNumber);
-        try {
-
-            File dbDirectory = new File(dbPath);
-            if (dbDirectory.exists()) {
-                FileUtils.cleanDirectory(dbDirectory);
-            } else {
-                log.warn("Recover db files: {}", dbPath);
-            }
-        } catch (IOException e) {
-            log.error("Clear files failed: {}", dbPath);
-            return null;
+        File dbDirectory = new File(dbPath);
+        if (dbDirectory.exists()) {
+            Utils.cleanDirectory(dbDirectory);
+        } else {
+            log.warn("Recover db files: {}", dbPath);
         }
 
         BDBNetworkMap db = new BDBNetworkMap();

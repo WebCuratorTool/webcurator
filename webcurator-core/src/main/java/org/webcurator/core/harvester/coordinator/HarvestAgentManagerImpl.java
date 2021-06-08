@@ -3,6 +3,7 @@ package org.webcurator.core.harvester.coordinator;
 import java.text.MessageFormat;
 import java.util.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.common.Environment;
@@ -13,7 +14,6 @@ import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.PatchUtil;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -78,6 +78,11 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 log.debug("Heartbeat for ti: {}, state: {}", tiOid, harvesterStatus.getStatus());
 
                 String harvesterStatusValue = harvesterStatus.getStatus();
+                if (StringUtils.isEmpty(harvesterStatusValue)) {
+                    log.error("harvesterStatusValue is null, tiOid:{}", tiOid);
+                    return;
+                }
+
                 if (harvesterStatusValue.startsWith("Paused")) {
                     doHeartbeatPaused(ti, harvestResultNumber);
                 }
@@ -163,12 +168,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_STOPPING);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
-            HarvestResult hr = ti.getHarvestResult(harvestResultNumber);
-            if (hr != null && hr.getState() != HarvestResult.STATE_ABORTED) {
-                harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_FINISHED);
-                wctCoordinator = wctCoordinator == null ? ApplicationContextFactory.getApplicationContext().getBean(WctCoordinator.class) : wctCoordinator;
-                wctCoordinator.pushPruneAndImport(ti.getOid(), harvestResultNumber);
-            }
+            log.info("Recrawle job is stopping, tiOID:{}, hrNum:{}", ti.getOid(), harvestResultNumber);
         }
     }
 
