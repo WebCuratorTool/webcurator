@@ -35,6 +35,7 @@ import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
@@ -136,6 +137,9 @@ public class QaTiSummaryController {
 
     private static Map<String, Integer> monthMap = new HashMap<>(20);
     private static Map<String, Integer> dayMap = new HashMap<>(60);
+	/** the configured base url for store **/
+	@Value("${digitalAssetStore.baseUrl}")
+	private String dasBaseUrl = "";
 
     /** static Map of months used by the schedule panel **/
     static {
@@ -240,6 +244,16 @@ public class QaTiSummaryController {
         // add the seeds
         Set<String> seeds = ti.getOriginalSeeds();
         mav.addObject(TargetInstanceSummaryCommand.MDL_SEEDS, seeds);
+
+		// add the seeds with seed id
+		Map<String,String> seedsAndSeedId = new HashMap<String,String>();
+		for (Seed seed : ti.getTarget().getSeeds()) {
+			seedsAndSeedId.put(seed.getSeed(), String.valueOf(seed.getOid()));
+		}
+		mav.addObject("seedsAndIds", seedsAndSeedId);
+
+		String targetId = String.valueOf(ti.getOid());
+		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/harvestNum/_resources/" + targetId + "_harvestNum_seedId_live_screen-thumbnail.png");
 
         // add the log list
         List<LogFilePropertiesDTO> arrLogs = wctCoordinator.listLogFileAttributes(ti);
@@ -893,5 +907,9 @@ public class QaTiSummaryController {
     public void setDigitalAssetStore(DigitalAssetStore digitalAssetStore) {
         this.digitalAssetStore = digitalAssetStore;
     }
+
+	public void setDasBaseUrl(String dasBaseUrl) {
+		this.dasBaseUrl = dasBaseUrl;
+	}
 
 }

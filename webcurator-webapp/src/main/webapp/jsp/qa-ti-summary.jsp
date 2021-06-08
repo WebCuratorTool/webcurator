@@ -502,9 +502,18 @@ function getSelectedProfile(profilesList) {
 				</table></td></tr>
                 <c:forEach var="seed" items="${seeds}">
                     <tr style="height: 100px;">
-                    <td style="width: 20%; text-align: center;"></td>
-                    <td style="width: 20%; text-align: center;"></td>
-                    <td style="width: 60%; text-align: left;">${seed}</td>
+					<c:set var = "seedId" value = "${seedsAndIds[seed]}" />
+					<c:set var = "fileUrl" value = "${screenshotUrl}" />
+					<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedId)}" />
+					<c:set var = "liveUrl1" value = "${fn:replace(liveUrl, 'harvestNum', harvestResultCounter)}" />
+					<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl1, 'live', 'harvested')}" />
+                    <td style="width: 20%;">
+						<img src="${liveUrl1}" alt="" width="90%" />
+                    </td>
+					<td style="width: 20%;">
+						<img src="${harvestedUrl}" alt="" width="90%" />						
+					</td>
+					<td style="width: 60%; text-align: left;">${seed}</td>
                     </tr>
                 </c:forEach>
                 </table>
