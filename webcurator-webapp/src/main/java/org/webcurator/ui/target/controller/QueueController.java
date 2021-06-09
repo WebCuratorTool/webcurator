@@ -59,6 +59,8 @@ import javax.servlet.http.HttpSession;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.*;
@@ -289,6 +291,7 @@ public class QueueController {
 		HashMap<Long, Set<Indicator>> indicators = new HashMap<>();
 		List<Long> targetList = new ArrayList<Long>();
 		HashMap<Long, String> browseUrls = new HashMap<>();
+		HashMap<String, String> targetSeeds = new HashMap<>();
 		// we need to populate annotations to determine if targets are
 		// alertable.
 		if (instances != null) {
@@ -299,7 +302,7 @@ public class QueueController {
 				List<Indicator> tiIndicators = ti.getIndicators();
 				if (enableQaModule) {
 					indicators.put(ti.getOid(), new HashSet<Indicator>(tiIndicators));
-					addQaInformationForTi(indicators, browseUrls, ti);
+					addQaInformationForTi(indicators, browseUrls, targetSeeds, ti);
 				}
 				// keep a track of the target oids so that we can retrieve the
 				// furture schdeule
@@ -307,6 +310,7 @@ public class QueueController {
 			}
 			mav.addObject("browseUrls", browseUrls);
 			mav.addObject("thumbnailRenderer", thumbnailRenderer);
+			mav.addObject("targetSeeds", targetSeeds);
 		}
 
 		HashMap<Long, Long> futureScheduleCount = new HashMap<Long, Long>();
@@ -371,7 +375,7 @@ public class QueueController {
 		mav.addObject(Constants.THUMBNAIL_HEIGHT, thumbnailHeight);
 	}
 
-	void addQaInformationForTi(HashMap<Long, Set<Indicator>> indicators, HashMap<Long, String> browseUrls, TargetInstance ti) {
+	void addQaInformationForTi(HashMap<Long, Set<Indicator>> indicators, HashMap<Long, String> browseUrls, HashMap<String, String> targetSeeds, TargetInstance ti) {
 		// fetch the harvest results and seeds so that we can form the url for
 		// the browse tool preview
 		Long tiOid = ti.getOid();
@@ -417,31 +421,33 @@ public class QueueController {
 		}
 		if (thumbnailRendererName.equals("SCREENSHOTTOOL")) {
 			// File naming convention is ti_harvest_seedId_source_size.png
-			// Assign the filename for a primary seed screenshot
-			String dirString = dasBaseUrl + "/store/" + tiOid + "/1/_resources/";
+			String tiOidString = String.valueOf(tiOid);
+			browseUrls.put(tiOid, dasBaseUrl + "/store/" + tiOidString + "/1/_resources/" + tiOidString + "_1_seedId_live_screen-thumbnail.png");
 
 			try {
-				String primarySeedOid = null;
-				String primarySeedUrl = null;
+				Long primarySeedOid = null;
+				String keysAndValues = "";
+				// It is difficult to pass map to javascript.  For this reason, return a string separaated by spaces and |s
+				// The seed urls should be encoded
 				for (Seed s : ti.getTarget().getSeeds()) {
-					if (s.isPrimary()) {
-						primarySeedOid = String.valueOf(s.getOid());
-						primarySeedUrl = s.getSeed();
-						break;
+					if (s.isPrimary() && primarySeedOid == null) {
+						primarySeedOid = s.getOid();
+						targetSeeds.put(tiOidString + "_primarySeedId", String.valueOf(primarySeedOid));
+						targetSeeds.put(tiOidString + "_primarySeedUrl", s.getSeed());
+						if (keysAndValues.length() != 0) {
+							keysAndValues = "|" + keysAndValues;
+						}
+						keysAndValues = String.valueOf(primarySeedOid) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString()) + keysAndValues;
+					} else {
+						if (keysAndValues.length() != 0) {
+							keysAndValues = keysAndValues + "|";
+						}
+						keysAndValues = keysAndValues + String.valueOf(s.getOid()) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString());
 					}
-				}
-				String liveScreenshotImage = String.valueOf(tiOid) + "_1_" + primarySeedOid + "_live_screen-thumbnail.png";
-				String liveImageUrl = dirString + liveScreenshotImage;
-
-				// Return String including the primary seed url, the url of the live image, and the url and id of subsequent each seed 
-				// Use ---seed--- to indicate each seed
-				String result = primarySeedUrl + " " + liveImageUrl;
-				for (Seed s : ti.getTarget().getSeeds()) {
-					if (s.isPrimary()) continue;
-					result = result + "|" + s.getSeed() + " " + String.valueOf(s.getOid());
-				}
-
-				browseUrls.put(tiOid, result);
+				}	
+				
+				targetSeeds.put(tiOidString + "_keysAndValues", keysAndValues);
+				
 			} catch (Exception e) {
 				log.error("Could not get the primary seed screenshot: ", e);
 				return;

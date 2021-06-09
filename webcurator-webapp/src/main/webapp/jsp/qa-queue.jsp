@@ -474,7 +474,7 @@ function createImageElement(filename) {
 	return imgEl;
 }
 
-function populateThumbnailModalContent(seedUrlsString) {
+function populateThumbnailModalContent(instanceId, fileUrl, targetSeeds) {
 	// Clear the element first
 	document.getElementById("modalContent").innerHTML="";
 
@@ -502,36 +502,19 @@ function populateThumbnailModalContent(seedUrlsString) {
 	headerCell.style.width ="40%";
 	headerCell.innerHTML = "Seed";
 
-	var seedArray = seedUrlsString.split("|");
+	// Separate out the targetSeeds by | for each seed and a space for the id and url
+	var seedArray = targetSeeds.split("|");
+	var filename = fileUrl.replace("-thumbnail","");
 
-	var primarySeed = seedArray[0].split(" ");
-	var filename = primarySeed[1].replace("-thumbnail","");
-
-	var primarySeedRow = modalTable.insertRow(1);
-
-	var primarySeedCell = primarySeedRow.insertCell(0);
-	primarySeedCell.appendChild(createImageElement(filename));
-
-	primarySeedCell = primarySeedRow.insertCell(1);
-	primarySeedCell.appendChild(createImageElement(filename.replace("live", "harvested")));
-
-	primarySeedCell = primarySeedRow.insertCell(2);
-	primarySeedCell.style.textAlign = "center";
-	primarySeedCell.innerHTML = primarySeed[0];
-
-	for (var i = 1; i < seedArray.length; i++) {
+	for (var i = 0; i < seedArray.length; i++) {
 		var seedDetails = seedArray[i];
 		var seedSplit = seedDetails.split(" ");
 
-		// Header row and the primary seed row has already been done
 		var instanceRow = modalTable.insertRow(i + 1);
 		instanceRow.style.height = "200px";
 
 		// Generate live image file name for seed
-		// File naming convention is ti_harvest_seedId_source_size.png
-		var splitSeedFilename = filename.split("_");
-		splitSeedFilename[3] = seedSplit[1];
-		var seedFilename = splitSeedFilename.join("_");
+		var seedFilename = filename.replace("seedId", seedSplit[0]);
 
 		// Add live image
 		var cell = instanceRow.insertCell(0);
@@ -544,7 +527,7 @@ function populateThumbnailModalContent(seedUrlsString) {
 		// Add seed url
 		cell = instanceRow.insertCell(2);
 		instanceRow.style.textAlign = "center";
-		cell.innerHTML = seedSplit[0];
+		cell.innerHTML = decodeURIComponent(seedSplit[1]);
 	}
 
 	return modalTable;
@@ -893,20 +876,14 @@ function populateThumbnailModalContent(seedUrlsString) {
 			<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
 				<c:choose>
 					<c:when test="${not empty browseUrls[instance.oid]}">
-						<c:set var = "seedsString" value = "${browseUrls[instance.oid]}" />
-						<c:choose>
-							<c:when test = "${fn:contains(seedsString, '|')}">
-								<c:set var = "keysValues" value = "${fn:split(seedsString, '|')}" />
-							</c:when>
-							<c:otherwise>
-								<c:set var = "keysValues" value = "${[seedsString]}" />
-							</c:otherwise>
-						</c:choose>
-						<c:set var = "primary" value = "${fn:split(keysValues[0], ' ')}" />
-						<c:set var = "liveFile" value = "${primary[1]}" />
+						<c:set var = "fileUrl" value = "${browseUrls[instance.oid]}" />
+						<c:set var = "primarySeedIdKey" value = "${instance.oid}_primarySeedId" />
+						<c:set var = "mapKey" value = "${instance.oid}_keysAndValues" />
+						<c:set var = "primarySeedId" value = "${targetSeeds[primarySeedIdKey]}" />
+						<c:set var = "liveFile" value = "${fn:replace(fileUrl, 'seedId', primarySeedId)}" />
 						<c:set var = "harvestFile" value = "${fn:replace(liveFile, 'live', 'harvested')}" />
-						<img src="${liveFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${seedsString}'));document.getElementById('thumbnailModal').style.display='block';"/>
-						<img src="${harvestFile}" alt="" height="90" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${seedsString}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${liveFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.oid}', '${fileUrl}', '${targetSeeds[mapKey]}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${harvestFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.oid}', '${fileUrl}', '${targetSeeds[mapKey]}'));document.getElementById('thumbnailModal').style.display='block';"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
