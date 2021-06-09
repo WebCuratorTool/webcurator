@@ -474,7 +474,7 @@ function createImageElement(filename) {
 	return imgEl;
 }
 
-function populateThumbnailModalContent(instanceId, fileUrl, targetSeeds) {
+function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 	// Clear the element first
 	document.getElementById("modalContent").innerHTML="";
 
@@ -529,6 +529,38 @@ function populateThumbnailModalContent(instanceId, fileUrl, targetSeeds) {
 		instanceRow.style.textAlign = "center";
 		cell.innerHTML = decodeURIComponent(seedSplit[1]);
 	}
+
+	if (reviewUrl == null) {
+		return modalTable;
+	}
+
+	// Create table foot for the review button
+	var tableFoot = modalTable.createTFoot();
+	var footRow = tableFoot.insertRow(0);
+	var footCell = footRow.insertCell(0);
+	footCell.align = "right";
+	footCell.vAlign = "bottom";
+	footCell.colSpan = "3";
+	footCell.style.margin = "5px";
+
+	let reviewButton = document.createElement("a");
+	reviewButton.href = reviewUrl;
+	
+	var buttonImg = createImageElement("images/blank-button.gif");
+	buttonImg.style.width = "90px";
+	buttonImg.style.height = null;
+	buttonImg.style.position = null;
+
+
+	var buttonText = document.createElement("div");
+	buttonText.style.position = "relative";
+	buttonText.style.right = "35px";
+	buttonText.style.bottom = "27px";
+	buttonText.innerHTML = "review";
+
+	reviewButton.appendChild(buttonImg);
+	reviewButton.appendChild(buttonText);
+	footCell.appendChild(reviewButton);
 
 	return modalTable;
 }
@@ -882,8 +914,8 @@ function populateThumbnailModalContent(instanceId, fileUrl, targetSeeds) {
 						<c:set var = "primarySeedId" value = "${targetSeeds[primarySeedIdKey]}" />
 						<c:set var = "liveFile" value = "${fn:replace(fileUrl, 'seedId', primarySeedId)}" />
 						<c:set var = "harvestFile" value = "${fn:replace(liveFile, 'live', 'harvested')}" />
-						<img src="${liveFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.oid}', '${fileUrl}', '${targetSeeds[mapKey]}'));document.getElementById('thumbnailModal').style.display='block';"/>
-						<img src="${harvestFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${instance.oid}', '${fileUrl}', '${targetSeeds[mapKey]}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${liveFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${harvestFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviuewUrls[instance.oid]}'));document.getElementById('thumbnailModal').style.display='block';"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>

@@ -118,6 +118,10 @@ public class QueueController {
 	/** the configured base url for store **/
 	@Value("${digitalAssetStore.baseUrl}")
 	private String dasBaseUrl = "";
+
+	/** the configured base url for webapp **/
+	@Value("${webapp.baseUrl}")
+	private String webappBaseUrl = "";
 		
 	@InitBinder
 	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
@@ -292,6 +296,7 @@ public class QueueController {
 		List<Long> targetList = new ArrayList<Long>();
 		HashMap<Long, String> browseUrls = new HashMap<>();
 		HashMap<String, String> targetSeeds = new HashMap<>();
+		HashMap<Long, String> reviewUrls = new HashMap<>();
 		// we need to populate annotations to determine if targets are
 		// alertable.
 		if (instances != null) {
@@ -302,7 +307,7 @@ public class QueueController {
 				List<Indicator> tiIndicators = ti.getIndicators();
 				if (enableQaModule) {
 					indicators.put(ti.getOid(), new HashSet<Indicator>(tiIndicators));
-					addQaInformationForTi(indicators, browseUrls, targetSeeds, ti);
+					addQaInformationForTi(indicators, browseUrls, targetSeeds, reviewUrls, ti);
 				}
 				// keep a track of the target oids so that we can retrieve the
 				// furture schdeule
@@ -311,6 +316,7 @@ public class QueueController {
 			mav.addObject("browseUrls", browseUrls);
 			mav.addObject("thumbnailRenderer", thumbnailRenderer);
 			mav.addObject("targetSeeds", targetSeeds);
+			mav.addObject("reviewUrls", reviewUrls);
 		}
 
 		HashMap<Long, Long> futureScheduleCount = new HashMap<Long, Long>();
@@ -375,7 +381,7 @@ public class QueueController {
 		mav.addObject(Constants.THUMBNAIL_HEIGHT, thumbnailHeight);
 	}
 
-	void addQaInformationForTi(HashMap<Long, Set<Indicator>> indicators, HashMap<Long, String> browseUrls, HashMap<String, String> targetSeeds, TargetInstance ti) {
+	void addQaInformationForTi(HashMap<Long, Set<Indicator>> indicators, HashMap<Long, String> browseUrls, HashMap<String, String> targetSeeds, HashMap<Long, String> reviewUrls, TargetInstance ti) {
 		// fetch the harvest results and seeds so that we can form the url for
 		// the browse tool preview
 		Long tiOid = ti.getOid();
@@ -383,6 +389,7 @@ public class QueueController {
 		// endorsed
 		Long lastDisplayableResultOid = null;
 		HarvestResult lastDisplayableResult = null;
+		String harvestNum = null;
 
 		List<HarvestResult> results = targetInstanceManager.getHarvestResults(tiOid);
 		for (HarvestResult result : results) {
@@ -390,6 +397,7 @@ public class QueueController {
 					|| result.getState() == HarvestResult.STATE_ENDORSED) {
 				lastDisplayableResultOid = result.getOid();
 				lastDisplayableResult = result;
+				harvestNum = String.valueOf(result.getHarvestNumber());
 			}
 		}
 
@@ -421,8 +429,10 @@ public class QueueController {
 		}
 		if (thumbnailRendererName.equals("SCREENSHOTTOOL")) {
 			// File naming convention is ti_harvest_seedId_source_size.png
+			// Using the latest harvested harvest number
 			String tiOidString = String.valueOf(tiOid);
-			browseUrls.put(tiOid, dasBaseUrl + "/store/" + tiOidString + "/1/_resources/" + tiOidString + "_1_seedId_live_screen-thumbnail.png");
+			String browseUrl = dasBaseUrl + "/store/" + tiOidString + "/" + harvestNum + "/_resources/" + tiOidString + "_" + harvestNum + "_seedId_live_screen-thumbnail.png";
+			browseUrls.put(tiOid, browseUrl);
 
 			try {
 				Long primarySeedOid = null;
@@ -447,6 +457,12 @@ public class QueueController {
 				}	
 				
 				targetSeeds.put(tiOidString + "_keysAndValues", keysAndValues);
+
+				// Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
+				String reviewUrl = webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + tiOidString 
+						+ "&harvestResultId=" + String.valueOf(lastDisplayableResultOid) + "&harvestNumber=" + harvestNum;
+
+				reviewUrls.put(tiOid, reviewUrl);
 				
 			} catch (Exception e) {
 				log.error("Could not get the primary seed screenshot: ", e);
@@ -931,6 +947,10 @@ public class QueueController {
 
 	public void setDasBaseUrl(String dasBaseUrl) {
 		this.dasBaseUrl = dasBaseUrl;
+	}
+
+	public void setWebappBaseUrl(String webappBaseUrl) {
+		this.webappBaseUrl = webappBaseUrl;
 	}
 
 	public void setHarvestResourceUrlMapper(HarvestResourceUrlMapper harvestResourceUrlMapper) {
