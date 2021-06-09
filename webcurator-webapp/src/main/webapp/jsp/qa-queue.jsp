@@ -915,7 +915,7 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 						<c:set var = "liveFile" value = "${fn:replace(fileUrl, 'seedId', primarySeedId)}" />
 						<c:set var = "harvestFile" value = "${fn:replace(liveFile, 'live', 'harvested')}" />
 						<img src="${liveFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}'));document.getElementById('thumbnailModal').style.display='block';"/>
-						<img src="${harvestFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviuewUrls[instance.oid]}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${harvestFile}" alt="" width="90" style="padding: 5px;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}'));document.getElementById('thumbnailModal').style.display='block';"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>

@@ -141,6 +141,11 @@ public class QaTiSummaryController {
 	@Value("${digitalAssetStore.baseUrl}")
 	private String dasBaseUrl = "";
 
+
+	/** the configured base url for webapp **/
+	@Value("${webapp.baseUrl}")
+	private String webappBaseUrl = "";
+
     /** static Map of months used by the schedule panel **/
     static {
         monthMap.put("JAN", 0);
@@ -253,7 +258,12 @@ public class QaTiSummaryController {
 		mav.addObject("seedsAndIds", seedsAndSeedId);
 
 		String targetId = String.valueOf(ti.getOid());
-		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/harvestNum/_resources/" + targetId + "_harvestNum_seedId_live_screen-thumbnail.png");
+		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/harvestNum/_resources/" + targetId 
+			+ "_harvestNum_seedId_live_screen-thumbnail.png");
+
+		// Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
+		mav.addObject("reviewUrl", webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + targetId 
+			+ "&harvestResultId=" + String.valueOf(history.get(history.size() -1).getOid()) + "&harvestNumber=" + String.valueOf(history.size()));
 
         // add the log list
         List<LogFilePropertiesDTO> arrLogs = wctCoordinator.listLogFileAttributes(ti);
@@ -910,6 +920,10 @@ public class QaTiSummaryController {
 
 	public void setDasBaseUrl(String dasBaseUrl) {
 		this.dasBaseUrl = dasBaseUrl;
+	}
+
+	public void setWebappBaseUrl(String webappBaseUrl) {
+		this.webappBaseUrl = webappBaseUrl;
 	}
 
 }
