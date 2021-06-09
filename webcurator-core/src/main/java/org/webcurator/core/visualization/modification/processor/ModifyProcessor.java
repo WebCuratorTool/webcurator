@@ -126,6 +126,10 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
 
         //Process source URL import
         for (File f : patchArchiveFiles) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when modifying");
+                break;
+            }
             this.tryBlock();
             importFromPatchHarvest(f);
             VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
@@ -140,6 +144,10 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
 
         //Process copy and file import
         for (File f : derivedArchiveFiles) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when modifying");
+                break;
+            }
             this.tryBlock();
             copyArchiveRecords(f);
             VisualizationProgressBar.ProgressItem item = progressBar.getProgressItem(f.getName());
@@ -160,7 +168,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
 
     @Override
     protected void terminateInternal() {
-
+        this.clear();
     }
 
     @Override
@@ -209,7 +217,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         }
 
         if (cmd.getReplaceOptionStatus() == ModifyApplyCommand.REPLACE_OPTION_STATUS_FAILED) {
-            NetworkMapUrl queryCondition=new NetworkMapUrl();
+            NetworkMapUrl queryCondition = new NetworkMapUrl();
             queryCondition.setUrlName(url);
             NetworkMapResult networkMapResult = networkMapClient.getUrlByName(job, harvestResultNumber, queryCondition);
             if (networkMapResult == null || networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {

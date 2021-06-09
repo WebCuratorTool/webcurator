@@ -29,7 +29,6 @@ public class HttpMonitorFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse rsp = ((HttpServletResponse) response);
         String contentUri = req.getContextPath();
@@ -41,19 +40,17 @@ public class HttpMonitorFilter implements Filter {
                 url.startsWith("/harvest-coordinator") ||
                 url.startsWith("/digital-asset-store");
 
-        if (!isResourceUrl) {
-            log.info("Before doFilter {}", wctSecurityConfig.getCurrentSessionMessage(req, rsp));
+        if (log.isDebugEnabled() && !isResourceUrl) {
+            log.debug("Before doFilter {}", wctSecurityConfig.getCurrentSessionMessage(req, rsp));
         }
 
         chain.doFilter(request, response);
 
-        if (isResourceUrl) {
-            log.info("Request URL: {} {}", url, rsp.getStatus());
-        } else {
-            log.info("After doFilter {}", wctSecurityConfig.getCurrentSessionMessage(req, rsp));
+        if (log.isDebugEnabled()) {
+            log.debug("After doFilter {}", wctSecurityConfig.getCurrentSessionMessage(req, rsp));
         }
 
-//        rsp.setHeader("DEBUG_MSG", "--");
+        log.info("Request URL: {} {}", url, rsp.getStatus());
     }
 
     @Override

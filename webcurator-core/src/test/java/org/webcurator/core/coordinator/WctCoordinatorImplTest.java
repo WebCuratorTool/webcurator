@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.anotherbigidea.util.Base64;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -476,6 +477,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         assertEquals(2, store.getRemovedIndexes().size());
     }
 
+    @Ignore
     @Test
     public final void testReIndexHarvestResult() {
         MockDigitalAssetStore store = new MockDigitalAssetStore();
@@ -553,6 +555,13 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         results = ti.getHarvestResults();
         assertFalse(results.isEmpty());
         assertEquals(1, results.size());
+    }
+
+    @Test
+    public void testFinaliseIndex() {
+        long tiId = 5000L;
+        int hrNum = 1;
+        testInstance.finaliseIndex(tiId, hrNum);
     }
 
     @Test
@@ -1042,6 +1051,24 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
             assertEquals(newHarvestResult.getHarvestNumber(), cmd.getNewHarvestResultNumber());
             assertEquals(HarvestResult.STATE_MODIFYING, newHarvestResult.getState());
         }
+    }
+
+    @Test
+    public void testProbeMimeType() throws IOException {
+        File jpgFile = new File("src/test/resources/org/webcurator/core/coordinator/users.jpg");
+        String jpgMimeType = testInstance.probeMimeType(jpgFile);
+        assertNotNull(jpgMimeType);
+        assertTrue(jpgMimeType.equalsIgnoreCase("image/jpeg"));
+
+        File jpegFile = new File("src/test/resources/org/webcurator/core/coordinator/star.jpeg");
+        String jpegMimeType = testInstance.probeMimeType(jpegFile);
+        assertNotNull(jpegMimeType);
+        assertTrue(jpegMimeType.equalsIgnoreCase("image/jpeg"));
+
+        File pngFile = new File("src/test/resources/org/webcurator/core/coordinator/icon.png");
+        String pngMimeType = testInstance.probeMimeType(pngFile);
+        assertNotNull(pngMimeType);
+        assertTrue(pngMimeType.equalsIgnoreCase("image/png"));
     }
 
     @Test

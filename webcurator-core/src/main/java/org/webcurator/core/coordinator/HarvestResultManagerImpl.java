@@ -2,14 +2,9 @@ package org.webcurator.core.coordinator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.PatchUtil;
-import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationProgressView;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -22,16 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component("harvestResultManager")
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class HarvestResultManagerImpl implements HarvestResultManager {
     private static final Logger log = LoggerFactory.getLogger(HarvestResultManagerImpl.class);
     private final Map<String, HarvestResultDTO> harvestResults = Collections.synchronizedMap(new HashMap<>());
 
-    @Autowired
     private TargetInstanceManager targetInstanceManager;
 
-    @Autowired
     private NetworkMapClient networkMapClient;
 
     @Override
@@ -49,6 +40,9 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
     public HarvestResultDTO getHarvestResultDTO(long targetInstanceId, int harvestResultNumber) throws WCTRuntimeException {
         String key = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
         HarvestResultDTO hrDTO = harvestResults.containsKey(key) ? harvestResults.get(key) : initHarvestResultDTO(targetInstanceId, harvestResultNumber);
+        if (hrDTO == null) {
+            return null;
+        }
 
         //Refresh state, status and progress
         if (hrDTO.getState() == HarvestResult.STATE_MODIFYING || hrDTO.getState() == HarvestResult.STATE_INDEXING) {
@@ -79,6 +73,9 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
             }
             hrDTO.setState(state);
             hrDTO.setStatus(status);
+
+            String key = PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber);
+            harvestResults.put(key, hrDTO);
         }
     }
 
@@ -99,6 +96,11 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
         HarvestResultDTO hrDTO = null;
 
         TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceId);
+        if (ti == null || ti.getHarvestResult(harvestResultNumber) == null) {
+            log.info("Harvest Result does not exist, targetInstanceId={}, harvestResultNumber={}", targetInstanceId, harvestResultNumber);
+            return null;
+        }
+
         if (!ti.getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING) || harvestResultNumber == 1) {
             hrDTO = new HarvestResultDTO();
             hrDTO.setTargetInstanceOid(targetInstanceId);
@@ -117,9 +119,8 @@ public class HarvestResultManagerImpl implements HarvestResultManager {
 
         HarvestResult hr = targetInstanceManager.getHarvestResult(targetInstanceId, harvestResultNumber);
         if (hr == null) {
-            String err = String.format("Harvest Result does not exist, targetInstanceId=%d, harvestResultNumber=%d", targetInstanceId, harvestResultNumber);
-            log.info(err);
-            throw new WCTRuntimeException(err);
+            log.info("Harvest Result does not exist, targetInstanceId={}, harvestResultNumber={}", targetInstanceId, harvestResultNumber);
+            return null;
         }
 
         hrDTO.setTargetInstanceOid(targetInstanceId);

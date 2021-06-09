@@ -3,6 +3,7 @@ package org.webcurator.core.visualization.networkmap.processor;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.httpclient.StatusLine;
 import org.apache.commons.httpclient.util.EncodingUtil;
+import org.apache.commons.lang.StringUtils;
 import org.archive.format.http.HttpHeaderParser;
 import org.archive.format.http.HttpHeaders;
 import org.archive.io.ArchiveRecord;
@@ -36,6 +37,11 @@ public class IndexProcessorWarc extends IndexProcessor {
     @Override
     protected void extractRecord(ArchiveRecord rec, String fileName) throws IOException {
         String mime = rec.getHeader().getMimetype();
+        if (StringUtils.isEmpty(mime)) {
+            log.warn("The MimeType of ArchiveRecord is empty in file: " + fileName);
+            this.writeLog("The MimeType of ArchiveRecord is empty in file:" + fileName);
+            return;
+        }
         if (mime.equals("text/dns")) {
             this.writeLog("Skipped MIMEType: " + mime);
             return;

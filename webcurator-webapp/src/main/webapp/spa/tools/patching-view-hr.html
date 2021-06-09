@@ -77,13 +77,13 @@ to get the desired effect
     <div class="card card-outline">
         <div class="card-header bg-light">
             <h3 class="card-title"><b>Patching Harvest Result</b></h3>
-            <div class="card-tools hidden" id="btn-group-patch-actions">
+            <!-- <div class="card-tools hidden" id="btn-group-patch-actions">
                 <button type="button" class="btn btn-tool bg-primary" action="start">Start</button>
                 <button type="button" class="btn btn-tool bg-primary" action="pause">Pause</button>
                 <button type="button" class="btn btn-tool bg-primary" action="resume">Resume</button>
                 <button type="button" class="btn btn-tool bg-primary" action="terminate">Terminate</button>
                 <button type="button" class="btn btn-tool bg-primary" action="delete">Delete</button>
-            </div>
+            </div> -->
         </div>
 
         <div class="card-body" id="overall">
@@ -161,6 +161,10 @@ to get the desired effect
     <iframe src="../../logon.jsp" title="Login" style="width: 100vw; height: 100vh;"></iframe>
 </div>
 
+<div id="hr-deleted-cover" style="display: none;">
+<h1>Harvest Result Was Deleted.</h1>
+</div>
+
 <script src="../dist/jquery/jquery-3.4.1.min.js"></script>
 <script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
 <!-- <script src="../dist/plugins/bs-custom-file-input.min.js"></script> -->
@@ -225,43 +229,43 @@ to get the desired effect
         hrState=data.hrState;
         hrStatus=data.hrStatus;
 
-        if (hrState===3 || hrState===5 || hrState===6) {
-            $('#btn-group-patch-actions').show();
-        }else{
-            $('#btn-group-patch-actions').hide();
-        }
+        // if (hrState===3 || hrState===4 || hrState===5 || hrState===6) {
+        //     $('#btn-group-patch-actions').show();
+        // }else{
+        //     $('#btn-group-patch-actions').hide();
+        // }
 
-        //Buttons
-        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===1){
-            $('#btn-group-patch-actions button[action="start"]').prop('disabled', false);
-        }else{
-            $('#btn-group-patch-actions button[action="start"]').prop('disabled', true);
-        }
+        // //Buttons
+        // if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===1){
+        //     $('#btn-group-patch-actions button[action="start"]').prop('disabled', false);
+        // }else{
+        //     $('#btn-group-patch-actions button[action="start"]').prop('disabled', true);
+        // }
 
-        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===2) {
-            $('#btn-group-patch-actions button[action="pause"]').prop('disabled', false);
-        }else{
-            $('#btn-group-patch-actions button[action="pause"]').prop('disabled', true);
-        }
+        // if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===2) {
+        //     $('#btn-group-patch-actions button[action="pause"]').prop('disabled', false);
+        // }else{
+        //     $('#btn-group-patch-actions button[action="pause"]').prop('disabled', true);
+        // }
 
-        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===3) {
-            $('#btn-group-patch-actions button[action="resume"]').prop('disabled', false);
-        }else{
-            $('#btn-group-patch-actions button[action="resume"]').prop('disabled', true);
-        }
+        // if ((hrState===3 || hrState===5 || hrState===6) && hrStatus===3) {
+        //     $('#btn-group-patch-actions button[action="resume"]').prop('disabled', false);
+        // }else{
+        //     $('#btn-group-patch-actions button[action="resume"]').prop('disabled', true);
+        // }
 
-        if ((hrState===3 || hrState===5 || hrState===6) && hrStatus!==4) {
-            $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', false);
-        }else{
-            $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', true);
-        }
+        // if ((hrState===3 || hrState===5 || hrState===6) && hrStatus!==4) {
+        //     $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', false);
+        // }else{
+        //     $('#btn-group-patch-actions button[action="terminate"]').prop('disabled', true);
+        // }
 
-        // Delete not started task or terminted
-        if ((hrState===3 || hrState===5 || hrState===6) && (hrStatus===1 || hrStatus===4)) {
-            $('#btn-group-patch-actions button[action="delete"]').prop('disabled', false);
-        }else{
-            $('#btn-group-patch-actions button[action="delete"]').prop('disabled', true);
-        }
+        // // Delete not started or terminated task
+        // if (((hrState===3 || hrState===5 || hrState===6) && (hrStatus===1 || hrStatus===4)) || hrState===4){
+        //     $('#btn-group-patch-actions button[action="delete"]').prop('disabled', false);
+        // }else{
+        //     $('#btn-group-patch-actions button[action="delete"]').prop('disabled', true);
+        // }
 
         //Show overall fields
         $('#targetInstanceOid').html(data.targetInstanceOid);
@@ -270,7 +274,6 @@ to get the desired effect
         $('#createdOwner').html(data.createdOwner);
         $('#createdDate').html(data.createdDate);
         $('#hrState').html(StateMap[data.hrState] + '&nbsp;' + StatusMap[data.hrStatus]);
-
 
         //Progress
         $('#progressPatchingCrawler').val(data.progress.percentageHarvest);
@@ -284,12 +287,10 @@ to get the desired effect
         $('#progressPruneAndImportValue').html(data.progress.percentageModify);
         $('#progressIndexerValue').html(data.progress.percentageIndex);
 
-
         // Show logs
         updateLogTable('#table-body-crawl-log', gridOptionsLogsCrawling, data.logsCrawling, 'crawling');
         updateLogTable('#table-body-modify-log', gridOptionsLogsModifying, data.logsModifying, 'modifying');
         updateLogTable('#table-body-index-log', gridOptionsLogsIndexing, data.logsIndexing, 'indexing');
-
 
         //Show prune and import URLs
         updateCommandTable('#table-body-url-prune', gridOptionsCommandPrune, data.listToBePruned);
@@ -306,10 +307,14 @@ to get the desired effect
         }).then((response) => {
             return response.json();
         }).then((response) => {
-            if (response.respCode!=0) {
-                console.log(response.respMsg);
-            }else{
+            console.log(response.respCode + ': ' + response.respMsg);
+            if (response.respCode===0) {
                 renderContent(response);
+            }
+            if (response.respCode===1){
+                //Harvest result does not exist, close the current popup window
+                $('.card').hide();
+                $('#hr-deleted-cover').show();
             }
         });
     }
@@ -330,7 +335,6 @@ to get the desired effect
                 }
             });
         });
-
 
         fetchData();
 

@@ -62,8 +62,8 @@ dependencies {
     implementation 'javax.validation:validation-api'
 
     implementation 'com.h2database:h2:1.4.199'
-//    implementation 'mysql:mysql-connector-java:5.1.6'
-    implementation 'mysql:mysql-connector-java:8.0.21'
+    implementation 'mysql:mysql-connector-java:5.1.6'
+//    implementation 'mysql:mysql-connector-java:8.0.21'
     implementation 'oracle:ojdbc6:11.2.0.3'
     implementation 'org.postgresql:postgresql:42.2.19'
 
@@ -81,7 +81,7 @@ dependencies {
         // Use Spring boot logging.
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-        exclude group: 'com.sleepycat', module: 'je'
+        //exclude group: 'com.sleepycat', module: 'je'
     }
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'junit:junit:4.12'

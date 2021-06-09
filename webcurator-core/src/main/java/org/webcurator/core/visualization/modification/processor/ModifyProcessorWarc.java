@@ -13,6 +13,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
+import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.*;
 import java.net.*;
@@ -167,6 +168,11 @@ public class ModifyProcessorWarc extends ModifyProcessor {
 
         // Iterate through all the records, skipping deleted or imported URLs.
         while (archiveRecordsIt.hasNext()) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when modifying");
+                break;
+            }
+
             this.tryBlock();
 
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();
@@ -242,6 +248,11 @@ public class ModifyProcessorWarc extends ModifyProcessor {
         WARCWriter warcWriter = new WARCWriter(aint, settings);
 
         for (ModifyRowFullData fProps : hrsToImport.values()) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when modifying");
+                break;
+            }
+
             this.tryBlock();
 
             if (!fProps.getOption().equalsIgnoreCase(ModifyApplyCommand.OPTION_FILE)) {
@@ -269,13 +280,14 @@ public class ModifyProcessorWarc extends ModifyProcessor {
                 WARCRecordInfo warcRecordInfo = new WARCRecordInfo();
                 warcRecordInfo.setUrl(fProps.getUrl());
                 warcRecordInfo.setCreate14DigitDate(writerDF.format(warcDate));
-                warcRecordInfo.setMimetype(fProps.getContentType());
+                warcRecordInfo.setMimetype(WARCRecord.HTTP_RESPONSE_MIMETYPE);
                 warcRecordInfo.setRecordId(recordId);
                 warcRecordInfo.setExtraHeaders(namedFields);
                 warcRecordInfo.setContentStream(fin);
                 warcRecordInfo.setContentLength(tempFile.length());
                 warcRecordInfo.setType(org.archive.format.warc.WARCConstants.WARCRecordType.response);
                 warcWriter.writeRecord(warcRecordInfo);
+                fin.close();
 
                 this.writeLog(String.format("[INFO] Imported a record from file, name: %s, size: %d", tempFile.getName(), tempFile.length()));
                 statisticItem.increaseCopiedRecords();
@@ -364,6 +376,11 @@ public class ModifyProcessorWarc extends ModifyProcessor {
 
         // Iterate through all the records, skipping deleted URLs.
         while (archiveRecordsIt.hasNext()) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when modifying");
+                break;
+            }
+
             this.tryBlock();
 
             WARCRecord record = (WARCRecord) archiveRecordsIt.next();

@@ -40,8 +40,8 @@ import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
-import org.webcurator.core.common.TreeToolControllerAttribute;
 import org.webcurator.core.coordinator.HarvestResultManager;
+import org.webcurator.core.coordinator.HarvestResultManagerImpl;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
@@ -89,6 +89,7 @@ import java.util.*;
 @SuppressWarnings("all")
 @Configuration
 @EnableTransactionManagement
+@ComponentScan("org.webcurator.core.coordinator")
 public class BaseConfig {
     private static Logger LOGGER = LoggerFactory.getLogger(BaseConfig.class);
 
@@ -310,9 +311,6 @@ public class BaseConfig {
 
     @Autowired
     private WctCoordinator wctCoordinator;
-
-    @Autowired
-    private HarvestResultManager harvestResultManager;
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -617,13 +615,20 @@ public class BaseConfig {
     }
 
     @Bean
+    public HarvestResultManager harvestResultManager() {
+        HarvestResultManagerImpl bean = new HarvestResultManagerImpl();
+        bean.setTargetInstanceManager(targetInstanceManager());
+        bean.setNetworkMapClient(networkMapClientReomote());
+        return bean;
+    }
+
+    @Bean
     public HarvestAgentManagerImpl harvestAgentManager() {
         HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
         bean.setHarvestAgentFactory(harvestAgentFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setWctCoordinator(wctCoordinator);
-        bean.setHarvestResultManager(harvestResultManager);
+        bean.setHarvestResultManager(harvestResultManager());
         return bean;
     }
 
@@ -982,7 +987,6 @@ public class BaseConfig {
         bean.setErrorThreshold(bandwidthCheckerErrorThreshold);
         bean.setNotificationSubject("Core");
         bean.setCheckType("Bandwidth");
-//        bean.setHarvestCoordinator(harvestCoordinator);
         bean.setHarvestCoordinator(wctCoordinator);
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setHarvestBandwidthManager(harvestBandwidthManager());
@@ -1194,28 +1198,6 @@ public class BaseConfig {
 
         return bean;
     }
-
-//    @Bean
-//    @Scope(BeanDefinition.SCOPE_SINGLETON)
-//    @Lazy(false)
-//    public TreeToolControllerAttribute treeToolControllerAttribute() {
-//        TreeToolControllerAttribute bean = new TreeToolControllerAttribute();
-//        bean.setEnableAccessTool(qualityReviewToolControllerEnableAccessTool);
-//        bean.setUploadedFilesDir(digitalAssetStoreServerUploadedFilesDir);
-//        bean.setAutoQAUrl(harvestCoordinatorAutoQAUrl);
-//        return bean;
-//    }
-
-    //TODO: uncheck
-//    @Bean
-//    @Scope(BeanDefinition.SCOPE_SINGLETON)
-//    @Lazy(false)
-//    public TreeToolControllerAJAX treeToolControllerAJAX() {
-//        TreeToolControllerAJAX bean = new TreeToolControllerAJAX();
-//        bean.setQualityReviewFacade(qualityReviewFacade());
-//        bean.setHarvestResourceUrlMapper(harvestResourceUrlMapper());
-//        return bean;
-//    }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)

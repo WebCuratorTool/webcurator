@@ -75,7 +75,7 @@ public class PatchUtil {
             //Save cmd to local directory
             File jobDirectory = new File(baseDir, DIR_JOBS);
             if (!jobDirectory.exists()) {
-                boolean mkdirResult = jobDirectory.mkdir();
+                boolean mkdirResult = jobDirectory.mkdirs();
                 if (!mkdirResult) {
                     throw new IOException("Failed to make dir: " + jobDirectory.getAbsolutePath());
                 }
@@ -180,7 +180,7 @@ public class PatchUtil {
             File jobDirectory = new File(baseDir, DIR_JOBS);
             File historyDirectory = new File(baseDir, DIR_HISTORY);
             if (!historyDirectory.exists()) {
-                boolean mkdirResult = historyDirectory.mkdir();
+                boolean mkdirResult = historyDirectory.mkdirs();
                 if (!mkdirResult) {
                     log.error("Failed to make dir: {}", historyDirectory.getAbsolutePath());
                     return false;

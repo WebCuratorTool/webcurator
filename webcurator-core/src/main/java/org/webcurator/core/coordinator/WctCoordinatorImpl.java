@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,8 @@ import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
+import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.auth.Privilege;
@@ -71,6 +74,7 @@ import javax.servlet.http.HttpServletResponse;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class WctCoordinatorImpl implements WctCoordinator {
     private static final long HOUR_MILLISECONDS = 60 * 60 * 1000;
+    private static final Tika tika = new Tika();
 
     @Autowired
     private TargetInstanceManager targetInstanceManager;
@@ -131,6 +135,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     @Autowired
     private HarvestResultManager harvestResultManager;
+
+    @Autowired
+    private NetworkMapClient networkMapClient;
 
     /**
      * Default Constructor.
@@ -204,8 +211,12 @@ public class WctCoordinatorImpl implements WctCoordinator {
         log.debug("Harvest Complete: ti: {}, havestResult: {}", aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
 
         HarvestResult harvestResult = targetInstanceManager.getHarvestResult(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
-        if (harvestResult != null && harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING)) {
-            this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
+        if (harvestResult != null) {
+            if (harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING) && harvestResult.getState() != HarvestResult.STATE_ABORTED) {
+                this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
+            } else {
+                log.error("Invalis status, tiOID:{}, hrNum:{}, tiState:{}, hrState:{}", aResult.getTargetInstanceOid(), harvestResult.getHarvestNumber(), harvestResult.getTargetInstance().getState(), harvestResult.getState());
+            }
         } else {
             TargetInstance ti = targetInstanceDao.load(aResult.getTargetInstanceOid());
             if (ti == null) {
@@ -296,63 +307,17 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
     }
 
-
     /**
      * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#reIndexHarvestResult(HarvestResult)
      */
     public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
-        TargetInstance ti = origHarvestResult.getTargetInstance();
-
-        // Assume we are already indexing
-        Boolean reIndex = false;
-
-        try {
-            reIndex = !digitalAssetStoreFactory.getDAS().checkIndexing(origHarvestResult.getOid());
-        } catch (DigitalAssetStoreException ex) {
-            log.error("Could not send checkIndexing message to the DAS", ex);
+        if (origHarvestResult != null) {
+            NetworkMapResult rst = networkMapClient.initialIndex(origHarvestResult.getOid(), origHarvestResult.getHarvestNumber());
+            return rst.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS;
+        } else {
+            log.error("Invalid input parameter, origHarvestResult is null.");
+            return false;
         }
-
-        if (reIndex) {
-            // Save any unsaved changes
-            targetInstanceDao.save(ti);
-
-            // reload the targetInstance
-            ti = targetInstanceDao.load(ti.getOid());
-
-            HarvestResultDTO hr = new HarvestResultDTO();
-            hr.setCreationDate(new Date());
-            hr.setTargetInstanceOid(ti.getOid());
-            hr.setProvenanceNote(origHarvestResult.getProvenanceNote());
-            hr.setHarvestNumber(origHarvestResult.getHarvestNumber());
-            HarvestResult newHarvestResult = new HarvestResult(hr, ti);
-
-            origHarvestResult.setState(HarvestResult.STATE_ABORTED);
-            newHarvestResult.setState(HarvestResult.STATE_INDEXING);
-
-            List<HarvestResult> hrs = ti.getHarvestResults();
-            hrs.add(newHarvestResult);
-            ti.setHarvestResults(hrs);
-
-            ti.setState(TargetInstance.STATE_HARVESTED);
-
-            targetInstanceDao.save(newHarvestResult);
-            targetInstanceDao.save(ti);
-
-            try {
-                digitalAssetStoreFactory.getDAS().initiateIndexing(
-                        new HarvestResultDTO(newHarvestResult.getOid(), newHarvestResult.getTargetInstance().getOid(),
-                                newHarvestResult.getCreationDate(), newHarvestResult.getHarvestNumber(), newHarvestResult
-                                .getProvenanceNote()));
-
-                inTrayManager.generateNotification(ti.getOwner().getOid(), MessageType.CATEGORY_MISC,
-                        MessageType.TARGET_INSTANCE_COMPLETE, ti);
-                inTrayManager.generateTask(Privilege.ENDORSE_HARVEST, MessageType.TARGET_INSTANCE_ENDORSE, ti);
-            } catch (DigitalAssetStoreException ex) {
-                log.error("Could not send initiateIndexing message to the DAS", ex);
-            }
-        }
-
-        return reIndex;
     }
 
     /**
@@ -1764,6 +1729,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return false;
         }
 
+        if (hr.getState() == HarvestResult.STATE_ABORTED) {
+            log.error("Invalid HarvestResult state: {}", hr.getState());
+            return false;
+        }
+
         ModifyApplyCommand cmd = (ModifyApplyCommand) PatchUtil.modifier.readPatchJob(visualizationDirectoryManager.getBaseDir(), ti.getOid(), hr.getHarvestNumber());
         if (cmd == null) {
             log.error("Could not load ModifyApplyCommand of target instance: {}", ti.getOid(), hr.getHarvestNumber());
@@ -1794,12 +1764,14 @@ public class WctCoordinatorImpl implements WctCoordinator {
                             , cmd.getHarvestResultId()));
         }
 
-        int newHarvestResultNumber = 1;
+        int newHarvestResultNumber = 0;
         List<HarvestResult> harvestResultList = ti.getHarvestResults();
-        OptionalInt maxHarvestResultNumber = harvestResultList.stream().mapToInt(HarvestResult::getHarvestNumber).max();
-        if (maxHarvestResultNumber.isPresent()) {
-            newHarvestResultNumber = maxHarvestResultNumber.getAsInt() + 1;
+        for (HarvestResult hr : harvestResultList) {
+            if (hr != null && hr.getHarvestNumber() > newHarvestResultNumber) {
+                newHarvestResultNumber = hr.getHarvestNumber();
+            }
         }
+        newHarvestResultNumber += 1;
 
         // Create a new harvest result.
         HarvestResult hr = new HarvestResult(ti, newHarvestResultNumber);
@@ -1837,6 +1809,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return hrDTO;
     }
 
+    public String probeMimeType(File file) throws IOException {
+//        Files.probeContentType(file.toPath());
+        return tika.detect(file);
+    }
+
     @Override
     public void dasDownloadFile(long targetInstanceId, int harvestResultNumber, String fileName, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         File f = new File(visualizationDirectoryManager.getUploadDir(targetInstanceId), fileName);
@@ -1844,10 +1821,12 @@ public class WctCoordinatorImpl implements WctCoordinator {
         StringBuilder headers = new StringBuilder();
         headers.append("HTTP/1.1 200 OK\n");
         headers.append("Content-Type: ");
-        headers.append(Files.probeContentType(f.toPath())).append("\n");
+        headers.append(probeMimeType(f)).append("\n");
         headers.append("Content-Length: ");
         headers.append(f.length()).append("\n");
         headers.append("Connection: close\n");
+
+        log.debug("Store <-- Webapp fileName: {}, headers: {}", fileName, headers.toString());
 
         OutputStream outputStream = rsp.getOutputStream();
         outputStream.write(headers.toString().getBytes());

@@ -6,6 +6,7 @@ public class VisualizationDirectoryManager {
     private static final String TEMPLATE_UPLOAD = "%s" + File.separator + "uploadedFiles" + File.separator + "%d";
     private static final String TEMPLATE_BASE_LOG_REPORT = "%s" + File.separator + "%d" + File.separator + "%s";
     private static final String TEMPLATE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d" + File.separator + "%s";
+    private static final String TEMPLATE_BASE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d";
 
     private String baseDir = null;
     private String baseLogDir = null;
@@ -65,5 +66,15 @@ public class VisualizationDirectoryManager {
             f.mkdirs();
         }
         return s;
+    }
+
+    public File getBasePatchLogDir(long targetInstanceId, int harvestResultNumber){
+        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber);
+        return new File(s);
+    }
+
+    public File getBasePatchReportDir(long targetInstanceId, int harvestResultNumber){
+        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber);
+        return new File(s);
     }
 }

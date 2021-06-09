@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
 public abstract class IndexProcessor extends VisualizationAbstractProcessor {
-    private static final Logger log = LoggerFactory.getLogger(IndexProcessor.class);
+    protected static final Logger log = LoggerFactory.getLogger(IndexProcessor.class);
     protected static final int MAX_URL_LENGTH = 1020;
 
     protected Map<String, NetworkMapNode> urls = new Hashtable<>();
@@ -71,6 +71,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         preProcess();
         for (ArchiveRecord record : reader) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when indexing");
+                break;
+            }
+
             this.tryBlock();
 
             extractRecord(record, fileName);
@@ -218,9 +223,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     private void permenitCascadePath(NetworkMapTreeNodeDTO rootTreeNode, long parentPathId) {
         //
         if (rootTreeNode.getChildren().size() == 0) {
-            NetworkMapNode networkMapNode = this.urls.get(rootTreeNode.getUrl());
-            if (networkMapNode != null) {
-                networkMapNode.setParentPathId(parentPathId);
+            if (rootTreeNode.getUrl() != null) {
+                NetworkMapNode networkMapNode = this.urls.get(rootTreeNode.getUrl());
+                if (networkMapNode != null) {
+                    networkMapNode.setParentPathId(parentPathId);
+                }
             }
         } else {
             NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();
@@ -253,6 +260,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
         for (File f : fileList) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when indexing");
+                break;
+            }
+
             if (!isWarcFormat(f.getName())) {
                 continue;
             }
@@ -263,6 +275,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         log.debug(progressBar.toString());
         for (File f : fileList) {
+            if (this.status == HarvestResult.STATUS_TERMINATED) {
+                log.info("Terminated when indexing");
+                break;
+            }
+
             if (!isWarcFormat(f.getName())) {
                 this.writeLog("Skipped unknown file: " + f.getName());
                 continue;
@@ -273,7 +290,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 indexFile(reader, f.getName());
             } catch (Exception e) {
                 String err = "Failed to open archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
-                log.error(err);
+                log.error(err, e);
                 this.writeLog(err);
             } finally {
                 if (reader != null) {
@@ -297,6 +314,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     @Override
     protected void terminateInternal() {
+        this.clear();
     }
 
     @Override

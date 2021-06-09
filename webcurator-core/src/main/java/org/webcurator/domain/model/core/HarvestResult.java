@@ -55,6 +55,7 @@ public class HarvestResult implements UserInTrayResource {
     //The status for a Harvest Result that is finished at the specific stage: crawling finished, modification finished or indexing finished
     public static final int STATUS_FINISHED = 5;
 
+    public static final String PATCH_STAGE_TYPE_ALL = "all";
     public static final String PATCH_STAGE_TYPE_CRAWLING = "crawling";
     public static final String PATCH_STAGE_TYPE_MODIFYING = "modifying";
     public static final String PATCH_STAGE_TYPE_INDEXING = "indexing";

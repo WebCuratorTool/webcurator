@@ -1,9 +1,10 @@
 package org.webcurator.core.visualization;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.util.Utils;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -40,6 +41,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
 
     private boolean running = true;
     private final Semaphore running_blocker = new Semaphore(1);
+
+    private boolean finished = false;
 
     public VisualizationAbstractProcessor(long targetInstanceId, int harvestResultNumber) {
         this.targetInstanceId = targetInstanceId;
@@ -93,47 +96,53 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             this.close();
             return true;
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Failed to process", e);
             return false;
         } finally {
             this.progressBar.clear();
-            this.status = HarvestResult.STATUS_FINISHED;
+            if (this.status == HarvestResult.STATUS_RUNNING) {
+                this.status = HarvestResult.STATUS_FINISHED;
+            }
             processorManager.finalise(this);
+
+            this.finished = true;
         }
     }
 
     abstract public void processInternal() throws Exception;
 
     public void pauseTask() {
+        this.status = HarvestResult.STATUS_PAUSED;
         if (!this.running) {
             return;
         }
         try {
             this.running_blocker.acquire();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("Failed to pause", e);
         }
         this.running = false;
-        System.out.println("Paused");
+        log.info("Paused");
     }
 
     public void resumeTask() {
+        this.status = HarvestResult.STATUS_RUNNING;
         if (this.running) {
             return;
         }
         this.running = true;
         this.running_blocker.release(2);
-        System.out.println("Resumed");
+        log.info("Resumed");
     }
 
     protected void tryBlock() {
         if (!running) {
             try {
-                System.out.println("Going to wait");
+                log.info("Going to wait");
                 this.running_blocker.acquire();
-                System.out.println("Awake");
+                log.debug("Awake");
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.info("Failed to block", e);
             }
         }
     }
@@ -148,7 +157,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         try {
             logWriter.write(String.format("%s %s %s%s", this.flag, time, content, System.lineSeparator()));
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Failed to write log", e);
         }
     }
 
@@ -164,11 +173,12 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
                 reportWriter.write(item.getPrintContent() + System.lineSeparator());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to write report", e);
         }
     }
 
     public void terminateTask() {
+        this.state = HarvestResult.STATE_ABORTED;
         this.status = HarvestResult.STATUS_TERMINATED;
         terminateInternal();
         updateHarvestResultStatus();
@@ -186,21 +196,21 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     abstract public void deleteInternal();
 
     protected void delete(String rootDir, String dir) {
-        File toPurge = new File(rootDir, dir);
-        delete(toPurge);
+        if (!StringUtils.isEmpty(rootDir) && !StringUtils.isEmpty(dir)) {
+            File toPurge = new File(rootDir, dir);
+            delete(toPurge);
+        }
     }
 
     protected void delete(String toPurge) {
-        delete(new File(toPurge));
+        if (!StringUtils.isEmpty(toPurge)) {
+            delete(new File(toPurge));
+        }
     }
 
     protected void delete(File toPurge) {
         log.debug("About to purge dir " + toPurge.toString());
-        try {
-            FileUtils.deleteDirectory(toPurge);
-        } catch (IOException e) {
-            log.warn("Unable to purge target instance folder: " + toPurge.getAbsolutePath());
-        }
+        Utils.cleanDirectory(toPurge);
     }
 
     public VisualizationProgressBar getProgress() {
@@ -266,7 +276,15 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
                 reportWriter.close();
             }
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("Failed to close processor", e);
         }
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public void setFinished(boolean finished) {
+        this.finished = finished;
     }
 }

@@ -42,6 +42,7 @@ import java.util.*;
 @EnableWebSecurity
 public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
     private static final Logger log = LoggerFactory.getLogger(WctSecurityConfig.class);
+    private final String SESSION_LOCK = "lock";
 
     @Value("${hibernate.default_schema}")
     private String hibernateDefaultSchema;
@@ -525,7 +526,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
         return new HttpSessionListener() {
             @Override
             public void sessionCreated(HttpSessionEvent hse) {
-                synchronized (baseConfig) {
+                synchronized (SESSION_LOCK) {
                     log.info("Created session: {}", hse.getSession().getId());
                     sessions.put(hse.getSession().getId(), hse.getSession());
                 }
@@ -533,7 +534,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
 
             @Override
             public void sessionDestroyed(HttpSessionEvent hse) {
-                synchronized (baseConfig) {
+                synchronized (SESSION_LOCK) {
                     sessions.remove(hse.getSession().getId());
                     log.info("Removed session: {}", hse.getSession().getId());
                 }
@@ -586,14 +587,16 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 buf.append("\tAuth: ").append(getAuthDetails(ssCur)).append("\r\n");
             }
 
-            sessions.forEach((key, session) -> {
-                StandardSession ss = getPrivateSessionField(session);
-                if (ss != null) {
-                    buf.append(String.format("[Existing Session], key=%s, isValid=%b", key, ss.isValid())).append("\r\n");
-                    buf.append("\tDetails: ").append(getSessionDetails(ss)).append("\r\n");
-                    buf.append("\tAuth: ").append(getAuthDetails(ss)).append("\r\n");
-                }
-            });
+            synchronized (SESSION_LOCK) {
+                sessions.forEach((key, session) -> {
+                    StandardSession ss = getPrivateSessionField(session);
+                    if (ss != null) {
+                        buf.append(String.format("[Existing Session], key=%s, isValid=%b", key, ss.isValid())).append("\r\n");
+                        buf.append("\tDetails: ").append(getSessionDetails(ss)).append("\r\n");
+                        buf.append("\tAuth: ").append(getAuthDetails(ss)).append("\r\n");
+                    }
+                });
+            }
         } catch (Exception e) {
             log.error("Failed to generate message", e);
         }
@@ -606,17 +609,21 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
             return "null";
         }
 
-        if (ss.isValid()) {
-            return String.format("SessionId: %s, CreationTime: %s, LatestAccessTime: %s, Time Used: %d,  SessionTimeout: %d, MaxInactiveInterval: %d, isNew: %b",
-                    ss.getId(),
-                    getReadableDatetime(ss.getCreationTime()),
-                    getReadableDatetime(ss.getLastAccessedTime()),
-                    System.currentTimeMillis() - ss.getLastAccessedTime(),
-                    ss.getServletContext().getSessionTimeout(),
-                    ss.getMaxInactiveInterval(),
-                    ss.isNew());
-        } else {
-            return String.format("SessionId: %s", ss.getId());
+        try {
+            if (ss.isValid()) {
+                return String.format("SessionId: %s, CreationTime: %s, LatestAccessTime: %s, Time Used: %d, MaxInactiveInterval: %d, isNew: %b",
+                        ss.getId(),
+                        getReadableDatetime(ss.getCreationTime()),
+                        getReadableDatetime(ss.getLastAccessedTime()),
+                        System.currentTimeMillis() - ss.getLastAccessedTime(),
+//                        ss.getServletContext().getSessionTimeout(),
+                        ss.getMaxInactiveInterval(),
+                        ss.isNew());
+            } else {
+                return String.format("SessionId: %s", ss.getId());
+            }
+        } catch (Throwable e) {
+            return e.getMessage();
         }
     }
 

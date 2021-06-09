@@ -56,6 +56,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
+import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
@@ -423,8 +424,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     public List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
         log.debug("Start of getHeaders()");
-        log.debug("Casting the DTO to HarvestResult");
-
 
         NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
@@ -718,7 +717,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
         if (logFiles == null || logsDir == null || !logsDir.exists() || !logsDir.isDirectory()) {
-            log.info("Invalid input parameter");
+            log.debug("Invalid input parameter");
             return;
         }
         File[] fileList = logsDir.listFiles();
@@ -1022,7 +1021,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             char c1;
             while ((i = record.read()) != -1) {
                 c1 = (char) i;
-                if (c0 == '\r' && c1 == '\n') {
+//                if (c0 == '\r' && c1 == '\n') {
+                if (c1 == '\n') {
                     break;
                 }
                 c0 = c1;
@@ -1109,16 +1109,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         } else if (command.equalsIgnoreCase("terminate")) {
             visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
         } else if (command.equalsIgnoreCase("delete")) {
-            visualizationProcessorManager.terminateTask(stage, targetInstanceId, harvestNumber);
-
-            ModifyApplyCommand cmd = new ModifyApplyCommand();
-            cmd.setTargetInstanceId(targetInstanceId);
-            cmd.setNewHarvestResultNumber(harvestNumber);
-            VisualizationAbstractProcessor processorModifier = new ModifyProcessorWarc(cmd);
-            processorModifier.deleteTask();
-
-            VisualizationAbstractProcessor processorIndexer = new IndexProcessorWarc(pool, targetInstanceId, harvestNumber);
-            processorIndexer.deleteTask();
+            visualizationProcessorManager.deleteTask(stage, targetInstanceId, harvestNumber);
         }
     }
 
