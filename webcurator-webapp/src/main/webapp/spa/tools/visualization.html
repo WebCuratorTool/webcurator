@@ -80,9 +80,9 @@ to get the desired effect
         </div>
       </li>
 
-      <!-- To be modified: Cart -->
+      <!-- Patch Harvest: Cart -->
       <div class="btn-group">
-        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; To Be Modified</i></button>
+        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; Patch Harvest</i></button>
         <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
           <span class="sr-only">Toggle Dropdown</span>
           <div class="dropdown-menu" role="menu">
@@ -91,7 +91,7 @@ to get the desired effect
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item template-download" href="#" template="bulk-modification-template.xlsx"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Modification Template</a>
+            <a class="dropdown-item template-download" href="#" template="bulk-modification-template.xlsx"><i class="fas fa-cloud-download-alt text-secondary"></i> &nbsp; Bulk Patching Template</a>
           </div>
         </button>
       </div>
@@ -112,7 +112,7 @@ to get the desired effect
 
     <div class="card" style="position: absolute; left: 1px; top: 60px; width: 400px; margin: 0; padding: 0;">
       <div class="card-header" style="padding-top: 3px;">
-        <h3 class="card-title">Catagory</h3>
+        <h3 class="card-title">Category</h3>
         <div class="card-tools">
           <button type="button" class="btn btn-tool btn-side-group-type text-primary" name="statuscode">Status</button>
           <button type="button" class="btn btn-tool btn-side-group-type" name="contenttype">Type</button>
@@ -181,7 +181,7 @@ to get the desired effect
         <li class="nav-item flag-submit hidden" style="margin-right: 20px;">
           <button type="button" class="btn btn-block btn-primary" onclick="javascript:$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide();">Previous</button>
         </li>
-        <li class="nav-item"><h3 class="text-secondary">TO be pruned and to be imported URLs</h3></li>
+        <li class="nav-item"><h3 class="text-secondary">Patch Harvest</h3></li>
       </ul>
 
       <!-- Right navbar links -->
@@ -207,18 +207,18 @@ to get the desired effect
             </div>
             <div class="col-4">
               <div class="form-group" id="radio-group-replace-status">
-                <label for="radio-group-modified-date">Prune the existing URLs when repairing the URLs</label>
+                <label for="radio-group-modified-date">When re-crawling a URL:</label>
                 <div class="custom-control custom-radio">
                   <input type="radio" id="radioReplaceStatusAll" name="r-status" flag="1" checked>
-                  <label for="radioReplaceStatusAll" style="font-weight: normal;">Prune all existing urls</label>
+                  <label for="radioReplaceStatusAll" style="font-weight: normal;">Prune existing URL</label>
                 </div>
                 <div class="custom-control custom-radio">
                   <input type="radio" id="radioReplaceStatusFailed" name="r-status" flag="2">
-                  <label for="radioReplaceStatusFailed" style="font-weight: normal;">Prune failed existing urls</label>
+                  <label for="radioReplaceStatusFailed" style="font-weight: normal;">Prune only if existing URL failed</label>
                 </div>
                 <div class="custom-control custom-radio">
                   <input type="radio" id="radioReplaceStatusNone" name="r-status" flag="3">
-                  <label for="radioReplaceStatusNone" style="font-weight: normal;">Not prune existing urls</label>
+                  <label for="radioReplaceStatusNone" style="font-weight: normal;">Do not prune existing URL</label>
                 </div>
               </div>
             </div>

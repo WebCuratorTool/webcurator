@@ -522,14 +522,14 @@ class PopupModifyHarvest{
 		var isReplaceDuplicated=false;
 		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
 			if (!isReplaceDuplicated && map[node.data.url]) {
-				isReplaceDuplicated=confirm('There are duplicated urls in to be modified list, would you like to replace them?');
+				isReplaceDuplicated=confirm('There are duplicated urls in patch harvest list, would you like to replace them?');
 				if (!isReplaceDuplicated) {
 					return;
 				}
 			}
 		});
 
-		// Add to 'to be modified' grid, and marked as new
+		// Add to 'patch harvest' grid, and marked as new
 		this.gridToBeModified.gridOptions.api.forEachNode(function(node, index){
 			if(map[node.data.url]){
 				node.data=map[node.data.url];
