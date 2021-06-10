@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -210,7 +210,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
 
     protected void delete(File toPurge) {
         log.debug("About to purge dir " + toPurge.toString());
-        Utils.cleanDirectory(toPurge);
+        WctUtils.cleanDirectory(toPurge);
     }
 
     public VisualizationProgressBar getProgress() {

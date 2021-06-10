@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.PatchUtil;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
@@ -127,14 +127,14 @@ public class VisualizationProcessorManager {
         pool.close(targetInstanceId, harvestResultNumber); //Close the BDB instance when it is available
 
         File dirOfHarvestFiles = new File(visualizationDirectoryManager.getBaseDir(), String.format("%d%s%d", targetInstanceId, File.separator, harvestResultNumber));
-        Utils.cleanDirectory(dirOfHarvestFiles);
+        WctUtils.cleanDirectory(dirOfHarvestFiles);
 
         //Delete logs and reports
         File dirOfLogs = visualizationDirectoryManager.getBasePatchLogDir(targetInstanceId, harvestResultNumber);
-        Utils.cleanDirectory(dirOfLogs);
+        WctUtils.cleanDirectory(dirOfLogs);
 
         File dirOfReports = visualizationDirectoryManager.getBasePatchReportDir(targetInstanceId, harvestResultNumber);
-        Utils.cleanDirectory(dirOfReports);
+        WctUtils.cleanDirectory(dirOfReports);
 
         //Delete command json files
         PatchUtil.modifier.deleteJob(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);

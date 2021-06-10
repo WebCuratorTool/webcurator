@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.domain.model.dto.SeedHistorySetDTO;
@@ -83,15 +84,7 @@ public class WctCoordinatorClient extends AbstractRestClient {
 
         OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadedFile));
         InputStream inputStream = conn.getInputStream();
-        while (true) {
-            byte[] buf = new byte[1024 * 32];
-            int len = inputStream.read(buf);
-            if (len < 0) {
-                break;
-            }
-            outputStream.write(buf, 0, len);
-        }
-        outputStream.close();
+        WctUtils.copy(inputStream, outputStream);
 
         return downloadedFile;
     }

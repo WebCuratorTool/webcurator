@@ -22,7 +22,6 @@ import java.util.List;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.util.Auditor;
-import org.webcurator.core.util.Utils;
 import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.IndicatorCriteriaDAO;
 import org.webcurator.domain.IndicatorDAO;

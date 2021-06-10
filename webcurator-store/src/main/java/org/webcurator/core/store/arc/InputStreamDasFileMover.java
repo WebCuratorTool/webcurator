@@ -34,12 +34,16 @@ public class InputStreamDasFileMover implements DasFileMover {
 				os.write(buffer, 0, bytesRead);
 			}
 			success = true;
-		} 
+		}
 		finally {
-			is.close();
-			os.close();
-			
-			if(success) { 
+			if (is != null) {
+				is.close();
+			}
+			if (os != null) {
+				os.close();
+			}
+
+			if(success) {
 				if(!source.delete()) {
 					log.warn("Could not delete " + source.getAbsolutePath());
 				}

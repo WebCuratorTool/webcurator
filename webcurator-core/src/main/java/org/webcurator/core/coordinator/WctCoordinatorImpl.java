@@ -40,6 +40,7 @@ import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
@@ -1833,16 +1834,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
         outputStream.write("\n".getBytes());
 
         InputStream inputStream = new BufferedInputStream(new FileInputStream(f));
-        while (true) {
-            byte[] buf = new byte[1024 * 32];
-            int len = inputStream.read(buf);
-            if (len < 0) {
-                break;
-            }
-            outputStream.write(buf, 0, len);
-        }
-//        Files.copy(f.toPath(), outputStream);
-        inputStream.close();
+        WctUtils.copy(inputStream, outputStream);
 
         log.debug("Finished file download: {}", fileName);
     }

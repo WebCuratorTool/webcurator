@@ -16,18 +16,15 @@
 package org.webcurator.core.reader;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.rest.AbstractRestClient;
-import org.webcurator.core.rest.RestClientResponseHandler;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
 import java.io.File;
@@ -225,7 +222,7 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
             URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
 
             File file = File.createTempFile("wct", "tmp");
-            int bytes = StreamUtils.copy(url.openStream(),new FileOutputStream(file));
+            long bytes = WctUtils.copy(url.openStream(),new FileOutputStream(file));
             if(bytes > 0){
                 return file;
             }

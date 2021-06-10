@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -35,7 +34,6 @@ import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.store.*;
 import org.webcurator.core.store.arc.*;
 import org.webcurator.core.util.ApplicationContextFactory;
-//import org.webcurator.core.util.WebServiceEndPoint;
 
 import javax.annotation.PostConstruct;
 import java.nio.file.Files;
@@ -337,16 +335,6 @@ public class DasConfig {
                 maxConcurrencyModThreads);
     }
 
-//    @Bean
-//    public WebServiceEndPoint wctCoreWsEndpoint() {
-//        WebServiceEndPoint bean = new WebServiceEndPoint();
-//        bean.setSchema(wctCoreWsEndpointScheme);
-//        bean.setHost(wctCoreWsEndpointHost);
-//        bean.setPort(wctCoreWsEndpointPort);
-//
-//        return bean;
-//    }
-
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public WctCoordinatorClient wctCoordinatorClient() {
@@ -438,15 +426,6 @@ public class DasConfig {
 
         return bean;
     }
-
-//    @Bean
-//    public WCTIndexer wctIndexer() {
-//        WCTIndexer bean = new WCTIndexer(wctCoreWsEndpointScheme, wctCoreWsEndpointHost, wctCoreWsEndpointPort, restTemplateBuilder);
-//        bean.setWsEndPoint(wctCoreWsEndpoint());
-//        bean.setVisualizationDirectoryManager(visualizationManager);
-//        bean.setBDBNetworkMapPool(bdbDatabasePool());
-//        return bean;
-//    }
 
     @Bean
     public WaybackIndexer waybackIndexer() {

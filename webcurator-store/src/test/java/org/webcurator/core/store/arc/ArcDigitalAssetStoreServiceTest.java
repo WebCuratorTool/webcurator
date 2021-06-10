@@ -8,11 +8,15 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.core.reader.LogReaderImpl;
+import org.webcurator.core.store.DigitalAssetStoreHarvestSaveDTO;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
@@ -254,7 +258,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
     @Test
     public void testGetDownloadFileURL() {
         try {
-            File f = File.createTempFile("download",".temp");
+            File f = File.createTempFile("download", ".temp");
             f = testInstance.getDownloadFileURL("team.png", f);
             assert f.exists();
 
@@ -264,5 +268,45 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
             assert false;
         }
 
+    }
+
+    @Test
+    public void testFileTransferViaStream() throws InterruptedException {
+        testInstance.setBaseDir("/usr/local/wct/store");
+        ArcDigitalAssetStoreController arcDigitalAssetStoreController = new ArcDigitalAssetStoreController();
+        arcDigitalAssetStoreController.setArcDigitalAssetStoreService(testInstance);
+
+        LogReaderImpl logReader = new LogReaderImpl();
+        logReader.setLogProvider(testInstance);
+
+        for (int i = 0; i < 10; i++) {
+            try {
+                testSingleFileTransferViaStream(i, arcDigitalAssetStoreController, logReader);
+            } catch (IOException | DigitalAssetStoreException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void testSingleFileTransferViaStream(int idx, ArcDigitalAssetStoreController arcDigitalAssetStoreController, LogReaderImpl logReader) throws IOException, DigitalAssetStoreException {
+        String fileName = String.format("%d.warc", idx);
+        File f = new File("/usr/local/wct/harvest-agent/5000/1", fileName);
+        FileUtils.write(f, "test\n");
+        FileUtils.write(f, "data\n");
+
+        DigitalAssetStoreHarvestSaveDTO dto = new DigitalAssetStoreHarvestSaveDTO();
+        dto.setDirectory("1");
+        dto.setFilePath(f.getAbsolutePath());
+        dto.setFileUploadMode(ArcDigitalAssetStoreController.FILE_UPLOAD_MODE_STREAM);
+        dto.setTargetInstanceName("5000");
+        dto.setHarvestBaseUrl("http://localhost:8083");
+
+        arcDigitalAssetStoreController.save(dto);
+
+        logReader.get("5000", "crawl.log", 0, 1);
+
+//        String link = String.format("http://localhost:8083%s?filePath=%s", WctCoordinatorPaths.DOWNLOAD, f.getAbsolutePath());
+//
+//        testInstance.downloadAndSave(link, "5000", "1", fileName);
     }
 }

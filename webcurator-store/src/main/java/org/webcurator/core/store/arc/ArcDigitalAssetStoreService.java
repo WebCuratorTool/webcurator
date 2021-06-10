@@ -33,7 +33,6 @@ import java.util.*;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.archive.format.warc.WARCConstants;
 import org.archive.io.*;
 import org.archive.io.arc.ARCRecord;
@@ -56,8 +55,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
-import org.webcurator.core.util.PatchUtil;
-import org.webcurator.core.util.WebServiceEndPoint;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
@@ -172,7 +170,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         log.debug("Moving File to Store: " + fileName + " -> " + destination.getAbsolutePath());
 
         try {
-            FileUtils.copyInputStreamToFile(inputStream, destination);
+            WctUtils.copy(inputStream,new BufferedOutputStream(new FileOutputStream(destination)));
         } catch (IOException ex) {
             log.error("Failed to move file " + fileName + " to " + destination.getAbsolutePath(), ex);
             failureException = ex;
@@ -407,7 +405,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 }
             }
             try {
-                if (record != null)
+                if (reader != null)
                     reader.close();
             } catch (Exception ex) {
                 if (log.isErrorEnabled()) {
@@ -492,7 +490,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 }
             }
             try {
-                if (record != null)
+                if (reader != null)
                     reader.close();
             } catch (Exception ex) {
                 if (log.isErrorEnabled()) {
@@ -1124,9 +1122,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(downloadedFile));
         InputStream inputStream = conn.getInputStream();
 
-        IOUtils.copy(inputStream, outputStream);
-
-        outputStream.close();
+        WctUtils.copy(inputStream, outputStream);
 
         return downloadedFile;
     }

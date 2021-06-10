@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.Schedule;
 import org.webcurator.domain.model.dto.HeatmapConfigDTO;
 
@@ -94,7 +94,7 @@ public class TargetSchedulesCommand {
 
 
     public TargetSchedulesCommand() {
-    	startDate = Utils.clearTime(new Date());
+    	startDate = WctUtils.clearTime(new Date());
     	scheduleType = Schedule.TYPE_MONTHLY;
 
     	// Set the time to one hour in the future.
@@ -322,7 +322,7 @@ public class TargetSchedulesCommand {
 	}
 
 	/**
-	 * @param displayTarget The displayTarget to set.
+	 * @param harvestNow The displayTarget to set.
 	 */
 	public void setHarvestNow(boolean harvestNow) {
 		this.harvestNow = harvestNow;

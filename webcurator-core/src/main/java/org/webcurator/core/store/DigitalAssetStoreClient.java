@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.*;
@@ -18,7 +19,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +70,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
             URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
             URLConnection connection = url.openConnection();
             File file = File.createTempFile("wctd", "tmp");
-            Files.copy(connection.getInputStream(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            WctUtils.copy(connection.getInputStream(), Files.newOutputStream(file.toPath()));
             return file.toPath();
         } catch (IOException ex) {
             throw new DigitalAssetStoreException("Failed to get resource for " + targetInstanceId + " " + harvestResultNumber + ": " + ex.getMessage(), ex);

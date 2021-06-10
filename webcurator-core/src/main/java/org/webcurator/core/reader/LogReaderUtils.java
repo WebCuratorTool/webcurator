@@ -12,29 +12,27 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- *
  * Log file access functions copied from the old Heritrix 1 library
  * originally written by Kristinn Sigurdsson
  *
  * @author Hanna Koppelaar (KB, National Library of the Netherlands)
- *
  */
-public class Utils {
+public class LogReaderUtils {
 
     /**
      * Implementation of a unix-like 'tail -n' command
      *
      * @param aFileName a file name String
-     * @param n int number of lines to be returned
+     * @param n         int number of lines to be returned
      * @return An array of two strings is returned. At index 0 the String
-     *         representation of at most n last lines is located.
-     *         At index 1 there is an informational string about how large a
-     *         segment of the file is being returned.
-     *         Null is returned if errors occur (file not found or io exception)
+     * representation of at most n last lines is located.
+     * At index 1 there is an informational string about how large a
+     * segment of the file is being returned.
+     * Null is returned if errors occur (file not found or io exception)
      */
     public static List<String> tail(String aFileName, int n) {
         try {
-            return tail(new RandomAccessFile(new File(aFileName),"r"),n);
+            return tail(new RandomAccessFile(new File(aFileName), "r"), n);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return new ArrayList<>();
@@ -45,12 +43,12 @@ public class Utils {
      * Implementation of a unix-like 'tail -n' command
      *
      * @param raf a RandomAccessFile to tail
-     * @param n int number of lines to be returned
+     * @param n   int number of lines to be returned
      * @return An array of two strings is returned. At index 0 the String
-     *         representation of at most n last lines is located.
-     *         At index 1 there is an informational string about how large a
-     *         segment of the file is being returned.
-     *         Null is returned if errors occur (file not found or io exception)
+     * representation of at most n last lines is located.
+     * At index 1 there is an informational string about how large a
+     * segment of the file is being returned.
+     * Null is returned if errors occur (file not found or io exception)
      */
     public static List<String> tail(RandomAccessFile raf, int n) {
         int BUFFERSIZE = 1024;
@@ -58,7 +56,7 @@ public class Utils {
         long endPos;
         long lastPos;
         int numOfLines = 0;
-        String info=null;
+        String info = null;
         byte[] buffer = new byte[BUFFERSIZE];
         StringBuffer sb = new StringBuffer();
         try {
@@ -131,7 +129,7 @@ public class Utils {
                 e.printStackTrace();
             }
         }
-        if(sb==null){
+        if (sb == null) {
             return new ArrayList<>();
         }
         return Arrays.asList(sb.toString(), info);
@@ -140,9 +138,9 @@ public class Utils {
     public static String buildDisplayingHeader(int len, long logsize) {
         double percent = 0.0;
         if (logsize != 0) {
-            percent = ((double) len/logsize) * 100;
+            percent = ((double) len / logsize) * 100;
         }
-        return "Displaying: " + ArchiveUtils.doubleToString(percent,1) +
+        return "Displaying: " + ArchiveUtils.doubleToString(percent, 1) +
                 "% of " + ArchiveUtils.formatBytesForDisplay(logsize);
     }
 
@@ -151,24 +149,23 @@ public class Utils {
      * lines following that one or until the end of the log if that is reached
      * first.
      *
-     * @param aFileName The filename of the log/file
+     * @param aFileName  The filename of the log/file
      * @param lineNumber The number of the first line to get (if larger then the
      *                   file an empty string will be returned)
-     * @param n How many lines to return (total, including the one indicated by
+     * @param n          How many lines to return (total, including the one indicated by
      *                   lineNumber). If smaller then 1 then an empty string
      *                   will be returned.
-     *
      * @return An list of two strings is returned. At index 0 a portion of the
-     *         file starting at lineNumber and reaching lineNumber+n is located.
-     *         At index 1 there is an informational string about how large a
-     *         segment of the file is being returned.
-     *         Null is returned if errors occur (file not found or io exception)
+     * file starting at lineNumber and reaching lineNumber+n is located.
+     * At index 1 there is an informational string about how large a
+     * segment of the file is being returned.
+     * Null is returned if errors occur (file not found or io exception)
      */
     public static List<String> get(String aFileName, int lineNumber, int n) {
         File f = new File(aFileName);
         long logsize = f.length();
         try {
-            return get(new FileReader(aFileName),lineNumber,n,logsize);
+            return get(new FileReader(aFileName), lineNumber, n, logsize);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return new ArrayList<>();
@@ -180,45 +177,51 @@ public class Utils {
      * lines following that one or until the end of the log if that is reached
      * first.
      *
-     * @param reader source to scan for lines
+     * @param reader     source to scan for lines
      * @param lineNumber The number of the first line to get (if larger then the
      *                   file an empty string will be returned)
-     * @param n How many lines to return (total, including the one indicated by
+     * @param n          How many lines to return (total, including the one indicated by
      *                   lineNumber). If smaller then 1 then an empty string
      *                   will be returned.
-     *
-     * @param logsize total size of source
+     * @param logsize    total size of source
      * @return An list of two strings is returned. At index 0 a portion of the
-     *         file starting at lineNumber and reaching lineNumber+n is located.
-     *         At index 1 there is an informational string about how large a
-     *         segment of the file is being returned.
-     *         Null is returned if errors occur (file not found or io exception)
+     * file starting at lineNumber and reaching lineNumber+n is located.
+     * At index 1 there is an informational string about how large a
+     * segment of the file is being returned.
+     * Null is returned if errors occur (file not found or io exception)
      */
     public static List<String> get(InputStreamReader reader,
-                               int lineNumber,
-                               int n,
-                               long logsize) {
+                                   int lineNumber,
+                                   int n,
+                                   long logsize) {
         StringBuffer ret = new StringBuffer();
         String info = null;
-        try{
+        try {
             BufferedReader bf = new BufferedReader(reader, 8192);
 
             String line = null;
-            int i=1;
+            int i = 1;
             while ((line = bf.readLine()) != null) {
-                if(i >= lineNumber && i < (lineNumber+n))
-                {
+                if (i >= lineNumber && i < (lineNumber + n)) {
                     ret.append(line);
                     ret.append('\n');
-                } else if( i >= (lineNumber+n)){
+                } else if (i >= (lineNumber + n)) {
                     break;
                 }
                 i++;
             }
             info = buildDisplayingHeader(ret.length(), logsize);
-        }catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return Arrays.asList(ret.toString(), info);
     }
@@ -228,26 +231,26 @@ public class Utils {
      * Possible to get lines immediately following the matched line.  Also
      * possible to have each line prepended by it's line number.
      *
-     * @param filename The filename of the log/file
-     * @param regularExpression The regular expression that is to be used
-     * @param addLines Any lines following a match that <b>begin</b> with this
-     *                 string will also be included. We will stop including new
-     *                 lines once we hit the first that does not match.
+     * @param filename           The filename of the log/file
+     * @param regularExpression  The regular expression that is to be used
+     * @param addLines           Any lines following a match that <b>begin</b> with this
+     *                           string will also be included. We will stop including new
+     *                           lines once we hit the first that does not match.
      * @param prependLineNumbers If true, then each line will be prepended by
      *                           it's line number in the file.
-     * @param skipFirstMatches The first number of matches up to this value will
-     *                         be skipped over.
-     * @param numberOfMatches Once past matches that are to be skipped this many
-     *                        matches will be added to the return value. A
-     *                        value of 0 will cause all matching lines to be
-     *                        included.
+     * @param skipFirstMatches   The first number of matches up to this value will
+     *                           be skipped over.
+     * @param numberOfMatches    Once past matches that are to be skipped this many
+     *                           matches will be added to the return value. A
+     *                           value of 0 will cause all matching lines to be
+     *                           included.
      * @return An list of two strings is returned. At index 0 tall lines in a
-     *         log/file matching a given regular expression is located.
-     *         At index 1 there is an informational string about how large a
-     *         segment of the file is being returned.
-     *         Null is returned if errors occur (file not found or io exception)
-     *         If a PatternSyntaxException occurs, it's error message will be
-     *         returned and the informational string will be empty (not null).
+     * log/file matching a given regular expression is located.
+     * At index 1 there is an informational string about how large a
+     * segment of the file is being returned.
+     * Null is returned if errors occur (file not found or io exception)
+     * If a PatternSyntaxException occurs, it's error message will be
+     * returned and the informational string will be empty (not null).
      */
     public static List<String> getByRegularExpression(String filename,
                                                       String regularExpression,
@@ -276,27 +279,27 @@ public class Utils {
      * Possible to get lines immediately following the matched line.  Also
      * possible to have each line prepended by it's line number.
      *
-     * @param reader The reader of the log/file
-     * @param regularExpression The regular expression that is to be used
-     * @param addLines Any lines following a match that <b>begin</b> with this
-     *                 string will also be included. We will stop including new
-     *                 lines once we hit the first that does not match.
+     * @param reader             The reader of the log/file
+     * @param regularExpression  The regular expression that is to be used
+     * @param addLines           Any lines following a match that <b>begin</b> with this
+     *                           string will also be included. We will stop including new
+     *                           lines once we hit the first that does not match.
      * @param prependLineNumbers If true, then each line will be prepended by
      *                           it's line number in the file.
-     * @param skipFirstMatches The first number of matches up to this value will
-     *                         be skipped over.
-     * @param numberOfMatches Once past matches that are to be skipped this many
-     *                        matches will be added to the return value. A
-     *                        value of 0 will cause all matching lines to be
-     *                        included.
-     * @param logSize Size of the log in bytes
+     * @param skipFirstMatches   The first number of matches up to this value will
+     *                           be skipped over.
+     * @param numberOfMatches    Once past matches that are to be skipped this many
+     *                           matches will be added to the return value. A
+     *                           value of 0 will cause all matching lines to be
+     *                           included.
+     * @param logSize            Size of the log in bytes
      * @return An list of two strings is returned. At index 0 tall lines in a
-     *         log/file matching a given regular expression is located.
-     *         At index 1 there is an informational string about how large a
-     *         segment of the file is being returned.
-     *         Null is returned if errors occur (file not found or io exception)
-     *         If a PatternSyntaxException occurs, it's error message will be
-     *         returned and the informational string will be empty (not null).
+     * log/file matching a given regular expression is located.
+     * At index 1 there is an informational string about how large a
+     * segment of the file is being returned.
+     * Null is returned if errors occur (file not found or io exception)
+     * If a PatternSyntaxException occurs, it's error message will be
+     * returned and the informational string will be empty (not null).
      */
     public static List<String> getByRegularExpression(InputStreamReader reader,
                                                       String regularExpression,
@@ -307,7 +310,7 @@ public class Utils {
                                                       long logSize) {
         StringBuffer ret = new StringBuffer();
         String info = "";
-        try{
+        try {
             Matcher m = Pattern.compile(regularExpression).matcher("");
             BufferedReader bf = new BufferedReader(reader, 8192);
 
@@ -317,16 +320,16 @@ public class Utils {
             long linesMatched = 0;
             while ((line = bf.readLine()) != null) {
                 m.reset(line);
-                if(m.matches()){
+                if (m.matches()) {
                     // Found a match
-                    if(numberOfMatches > 0 &&
-                            linesMatched >= skipFirstMatches + numberOfMatches){
+                    if (numberOfMatches > 0 &&
+                            linesMatched >= skipFirstMatches + numberOfMatches) {
                         // Ok, we are done.
                         break;
                     }
                     linesMatched++;
-                    if(linesMatched > skipFirstMatches){
-                        if(prependLineNumbers){
+                    if (linesMatched > skipFirstMatches) {
+                        if (prependLineNumbers) {
                             ret.append(i);
                             ret.append(". ");
                         }
@@ -334,30 +337,38 @@ public class Utils {
                         ret.append("\n");
                         doAdd = true;
                     }
-                } else if(doAdd) {
-                    if(line.indexOf(addLines)==0){
+                } else if (doAdd) {
+                    if (line.indexOf(addLines) == 0) {
                         linesMatched++;
                         //Ok, line begins with 'addLines'
-                        if(prependLineNumbers){
+                        if (prependLineNumbers) {
                             ret.append(i);
                             ret.append(". ");
                         }
                         ret.append(line);
                         ret.append("\n");
-                    }else{
+                    } else {
                         doAdd = false;
                     }
                 }
                 i++;
             }
             info = buildDisplayingHeader(ret.length(), logSize);
-        }catch(FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             return new ArrayList<>();
-        }catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             return new ArrayList<>();
-        }catch(PatternSyntaxException e){
+        } catch (PatternSyntaxException e) {
             ret = new StringBuffer(e.getMessage());
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return Arrays.asList(ret.toString(), info);
     }
@@ -366,31 +377,39 @@ public class Utils {
      * Return the line number of the first line in the
      * log/file that matches a given regular expression.
      *
-     * @param reader The reader of the log/file
+     * @param reader            The reader of the log/file
      * @param regularExpression The regular expression that is to be used
      * @return The line number (counting from 1, not zero) of the first line
-     *         that matches the given regular expression. -1 is returned if no
-     *         line matches the regular expression. -1 also is returned if
-     *         errors occur (file not found, io exception etc.)
+     * that matches the given regular expression. -1 is returned if no
+     * line matches the regular expression. -1 also is returned if
+     * errors occur (file not found, io exception etc.)
      */
     public static int findFirstLineContaining(InputStreamReader reader,
                                               String regularExpression) {
         Pattern p = Pattern.compile(regularExpression);
 
-        try{
+        try {
             BufferedReader bf = new BufferedReader(reader, 8192);
 
             String line = null;
             int i = 1;
             while ((line = bf.readLine()) != null) {
-                if(p.matcher(line).matches()){
+                if (p.matcher(line).matches()) {
                     // Found a match
                     return i;
                 }
                 i++;
             }
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return -1;
     }
@@ -402,27 +421,35 @@ public class Utils {
      * @param reader The reader of the log/file
      * @param prefix The prefix string to match
      * @return The line number (counting from 1, not zero) of the first line
-     *         that matches the given regular expression. -1 is returned if no
-     *         line matches the regular expression. -1 also is returned if
-     *         errors occur (file not found, io exception etc.)
+     * that matches the given regular expression. -1 is returned if no
+     * line matches the regular expression. -1 also is returned if
+     * errors occur (file not found, io exception etc.)
      */
     public static int findFirstLineBeginning(InputStreamReader reader,
                                              String prefix) {
 
-        try{
+        try {
             BufferedReader bf = new BufferedReader(reader, 8192);
 
             String line = null;
             int i = 1;
             while ((line = bf.readLine()) != null) {
-                if(line.startsWith(prefix)){
+                if (line.startsWith(prefix)) {
                     // Found a match
                     return i;
                 }
                 i++;
             }
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return -1;
     }

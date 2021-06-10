@@ -23,10 +23,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.hibernate.annotations.Type;
 import org.webcurator.core.notification.AgencyInTrayResource;
 import org.webcurator.core.notification.InTrayResource;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.model.auth.Agency;
 
@@ -446,7 +445,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
      * @param anEndDate The endDate to set.
      */
     public void setEndDate(Date anEndDate) {
-        endDate = anEndDate == null ? null : Utils.endOfDay(anEndDate);
+        endDate = anEndDate == null ? null : WctUtils.endOfDay(anEndDate);
     }
 
     /**
@@ -505,7 +504,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
      * @param openAccessDate The openAccessDate to set.
      */
     public void setOpenAccessDate(Date openAccessDate) {
-        this.openAccessDate = openAccessDate == null ? null : Utils.clearTime(openAccessDate);
+        this.openAccessDate = openAccessDate == null ? null : WctUtils.clearTime(openAccessDate);
     }
 
     /**
@@ -587,7 +586,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
      * @param aStartDate The startDate to set.
      */
     public void setStartDate(Date aStartDate) {
-        startDate = aStartDate == null ? null : Utils.clearTime(aStartDate);
+        startDate = aStartDate == null ? null : WctUtils.clearTime(aStartDate);
     }
 
     /**

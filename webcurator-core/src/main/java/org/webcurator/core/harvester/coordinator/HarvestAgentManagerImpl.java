@@ -78,13 +78,15 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 log.debug("Heartbeat for ti: {}, state: {}", tiOid, harvesterStatus.getStatus());
 
                 String harvesterStatusValue = harvesterStatus.getStatus();
-                if (StringUtils.isEmpty(harvesterStatusValue)) {
+                if (StringUtils.isEmpty(harvesterStatusDto.getHarvesterState()) || StringUtils.isEmpty(harvesterStatusValue) || harvesterStatusDto.getHarvesterState().equals("H3 Job Not Found")) {
                     log.error("harvesterStatusValue is null, tiOid:{}", tiOid);
+                    doHeartbeatLaunchFailed(ti, harvestResultNumber);
                     return;
                 }
 
                 if (harvesterStatusValue.startsWith("Paused")) {
                     doHeartbeatPaused(ti, harvestResultNumber);
+                    return;
                 }
 
                 // We have seen cases where a running Harvest is showing as Queued
@@ -93,10 +95,12 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 // TIs in the wrong state will be corrected on the next heartbeat
                 if (harvesterStatusValue.startsWith("Running")) {
                     doHeartbeatRunning(aStatus, ti, harvesterStatus, harvestResultNumber);
+                    return;
                 }
 
                 if (harvesterStatusValue.startsWith("Finished")) {
                     doHeartbeatFinished(ti, harvestResultNumber);
+                    return;
                 }
 
                 // This is a required because when a
@@ -104,9 +108,8 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 // We do not get a notification that causes the job to stop nicely
                 if (harvesterStatusValue.startsWith("Could not launch job - Fatal InitializationException")) {
                     doHeartbeatLaunchFailed(ti, harvestResultNumber);
+                    return;
                 }
-
-                targetInstanceManager.save(ti);
             } catch (Exception e) {
                 log.error("Failed to process: {}", tiOid, e);
             } finally {
@@ -142,6 +145,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         String state = ti.getState();
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_ABORTED);
+            targetInstanceManager.save(ti);
             HarvestAgentStatusDTO hs = getHarvestAgentStatusFor(ti.getJobName());
             if (hs == null) {
                 log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", ti.getJobName());
@@ -151,15 +155,20 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             }
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             String jobName = PatchUtil.getPatchJobName(ti.getOid(), harvestResultNumber);
+
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            targetInstanceManager.save(ti);
+
             HarvestAgentStatusDTO hs = getHarvestAgentStatusFor(jobName);
             if (hs == null) {
-                log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", ti.getJobName());
+                log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", jobName);
             } else {
+                log.debug("Forced Abort job: {}.", jobName);
                 HarvestAgent agent = harvestAgentFactory.getHarvestAgent(hs);
                 agent.abort(jobName);
             }
 
-            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_TERMINATED);
+            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_ABORTED, HarvestResult.STATUS_TERMINATED);
         }
     }
 
@@ -167,6 +176,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         String state = ti.getState();
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_STOPPING);
+            targetInstanceManager.save(ti);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             log.info("Recrawle job is stopping, tiOID:{}, hrNum:{}", ti.getOid(), harvestResultNumber);
         }
@@ -189,6 +199,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 log.info("HarvestCoordinator: Target Instance start time set for target instance " + ti.getOid().toString());
             }
             ti.setState(TargetInstance.STATE_RUNNING);
+            targetInstanceManager.save(ti);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_RUNNING);
         }
@@ -198,6 +209,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         String state = ti.getState();
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_PAUSED);
+            targetInstanceManager.save(ti);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_PAUSED);
         }
