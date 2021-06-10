@@ -303,7 +303,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
                         identifiers.put("liveOrHarvested", "harvested");
                         identifiers.put("seedOid", String.valueOf(seed.getOid()));
                         identifiers.put("harvestNumber", String.valueOf(harvestResult.getHarvestNumber()));
-                        identifiers.put("timestamp", new SimpleDateFormat("yyyyMMdd").format(harvestResult.getCreationDate()));
+                        identifiers.put("timestamp", new SimpleDateFormat("yyyyMMddhhmmss").format(harvestResult.getCreationDate()));
 
                         digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
                     }

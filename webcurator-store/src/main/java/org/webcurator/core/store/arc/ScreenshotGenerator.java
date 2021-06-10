@@ -210,37 +210,17 @@ public class ScreenshotGenerator {
     }
 
     // Returns an empty string when it can't retrieve the timestamp for the url
-    private String getWaybackUrl(String seed, String outputPathString, Map identifiers, String waybackBaseUrl) {
+    private String getWaybackUrl(String seed, Map identifiers, String waybackBaseUrl) {
         String result = "";
-        // Get timestamp from warc file and use with harvest seed url
-        File harvestDirectory = new File(new File(outputPathString).getParent());
 
         if (identifiers.get("timestamp") == null || identifiers.get("timestamp").equals("null")) {
             log.info("No valid timestamp to use");
             return result;
         }
 
-        // warc and index files will contain a timestamp within the filename formatted to YYYYmmdd
-        // In case the timing between the harvester collection and the screenshot generation does not match up
-        // Search for the year in the filename to generate the wayback timestamp
-        // In case the harvesting took place over new  year, search for the prior year as well
         String tsArg = String.valueOf(identifiers.get("timestamp"));
-        String year = tsArg.substring(0, tsArg.length() -4);
-        for (String fileString : harvestDirectory.list()) {
-            if (!fileString.toLowerCase().endsWith(".warc")) continue;
-            if (!fileString.contains(year)) {
-                year = String.valueOf(Integer.parseInt(year) -1);
-            }
-            if (!fileString.contains(tsArg) && !fileString.contains(year)) continue;
-
-            int tsIndex = fileString.indexOf(year);
-            String timestamp = fileString.substring(tsIndex, tsIndex + 14);
-
-            result = waybackBaseUrl + timestamp + "/" + seed;
-
-            log.info("Using harvest url " + result + " to generate screenshots.");
-            break;
-        }
+        result = waybackBaseUrl + tsArg + "/" + seed;
+        log.info("Using harvest url " + result + " to generate screenshots.");
         return result;
     }
 
@@ -314,7 +294,7 @@ public class ScreenshotGenerator {
             }
             deleteTmpDir(tmpDirectoryString);
 
-            seedUrl = getWaybackUrl(seedUrl, outputPathString, identifiers, harvestWaybackViewerBaseUrl);
+            seedUrl = getWaybackUrl(seedUrl, identifiers, harvestWaybackViewerBaseUrl);
 
             if (seedUrl.equals("")) {
                 log.error("Could not retrieve wayback url.");
