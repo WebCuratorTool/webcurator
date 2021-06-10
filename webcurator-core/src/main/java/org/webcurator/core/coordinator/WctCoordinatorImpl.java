@@ -508,6 +508,14 @@ public class WctCoordinatorImpl implements WctCoordinator {
             identifiers.put("tiOid", targetInstanceId);
             identifiers.put("liveOrHarvested", "live");
 
+            // Get seed ID
+            for (Seed s : aTargetInstance.getTarget().getSeeds()) {
+                if (s.getSeed().equals(seed)) {
+                    identifiers.put("seedOid", s.getOid());
+                    break;
+                }
+            }
+
             // Abort harvest if the screenshots failed to generate
             try {
                 screenshotsTaken = digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);

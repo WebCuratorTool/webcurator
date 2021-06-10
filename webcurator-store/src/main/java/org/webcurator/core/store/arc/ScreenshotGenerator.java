@@ -176,21 +176,20 @@ public class ScreenshotGenerator {
         return result;
     }
 
-    private void renameLiveFile(String liveDirectory, String outputDirectory, String seed, String harvestNumber,
-                                String filename, String seedPlaceholder) {
-        // Rename the seed section with the seed placeholder
+    private void renameLiveFile(String liveDirectory, String outputDirectory, String harvestNumber, String filename) {
         // Then rename the "harvested" with "live"
-        String liveFilename = replaceSectionInFilename(filename, seedPlaceholder, 2);
-        liveFilename = replaceSectionInFilename(liveFilename, "live", 3);
+        String liveFilename = replaceSectionInFilename(filename, "live", 3);
         File fullpageLiveFilePath = new File(liveDirectory + liveFilename);
 
-        if (!fullpageLiveFilePath.exists()) return;
-        if (harvestNumber == null) return;
-        if (seed == null) return;
+        if (!fullpageLiveFilePath.exists()) {
+            log.info("Could not find screenshot live file " + liveFilename);
+            return;
+        }
 
-        // Replace seedID in live filename with seed placeholder and harvest humber
-        String newFilePath = replaceSectionInFilename(liveFilename, harvestNumber, 1);
-        newFilePath = outputDirectory + replaceSectionInFilename(newFilePath, seed, 2);
+        if (harvestNumber == null) return;
+
+        // Replace harvest humber in filename and move to permanent directory
+        String newFilePath = outputDirectory + replaceSectionInFilename(liveFilename, harvestNumber, 1);
         if (!fullpageLiveFilePath.renameTo(new File(newFilePath))) {
             log.error("Unable to rename live file to include harvest number and seed.  File: " + filename);
         }
@@ -264,37 +263,23 @@ public class ScreenshotGenerator {
         return toolUsed;
     }
 
-    private String removeInvalidFilenameCharacters(String filename) {
-        String newFilename = filename.replaceAll("\\s", "")
-                .replaceAll("#","")
-                .replaceAll("%", "")
-                .replaceAll("&", "")
-                .replaceAll("\\{", "")
-                .replaceAll("}", "")
-                .replaceAll("}", "")
-                .replaceAll("\\\\", "")
-                .replaceAll("<", "")
-                .replaceAll(">","")
-                .replaceAll("\\*", "")
-                .replaceAll("\\?", "")
-                .replaceAll("/", "")
-                .replaceAll("$", "")
-                .replaceAll("!", "")
-                .replaceAll("'", "")
-                .replaceAll("\"", "")
-                .replaceAll(":", "")
-                .replaceAll("@", "")
-                .replaceAll("\\+", "")
-                .replaceAll("`", "")
-                .replaceAll("|", "")
-                .replaceAll("=", "")
-                .replaceAll("_", "");
-        return filename;
+    private boolean hasAllRequiredIdentifiers(Map identifiers) {
+        for (String id : new String[]{"seed", "tiOid", "liveOrHarvested", "seedOid"}) {
+            if (identifiers.get(id) == null || String.valueOf(identifiers.get(id)).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public Boolean createScreenshots(Map identifiers, String baseDir, String harvestWaybackViewerBaseUrl) {
         if (identifiers == null || identifiers.keySet().size() < 1) {
             log.info("No arguments available for the screenshot.");
+            return false;
+        }
+
+        if (!hasAllRequiredIdentifiers(identifiers)) {
+            log.info("Missing some required identifiers.");
             return false;
         }
 
@@ -304,11 +289,6 @@ public class ScreenshotGenerator {
         String liveOrHarvested = String.valueOf(identifiers.get("liveOrHarvested"));
         String seedId = String.valueOf(identifiers.get("seedOid"));
         String harvestNumber = String.valueOf(identifiers.get("harvestNumber"));
-
-        // Use the last 10 characters of the seed url as the placehoder
-        // and remove any characters that will make the filename invalid
-        // Remove any underscores because that's being used in the file naming convention
-        String seedPlaceholder = "seedID" + removeInvalidFilenameCharacters(seedUrl.substring(seedUrl.length() -10));
 
         if (harvestNumber.equals("null")) harvestNumber = "tmpDir";
 
@@ -323,14 +303,14 @@ public class ScreenshotGenerator {
             destinationDir.mkdirs();
         }
 
-        String fullpageFilename =  targetInstanceOid + "_harvestNum_seedID_" + liveOrHarvested + "_fullpage.png";
+        String fullpageFilename =  targetInstanceOid + "_harvestNum_" + seedId + "_" + liveOrHarvested + "_fullpage.png";
 
         // Need to move the live screenshots and use the wayback indexed url instead of the seed url
         if (liveOrHarvested.equals("harvested")) {
             // Check if live screenshots exist in tmp directory
             for (String size : new String[]{"fullpage","screen","fullpage-thumbnail","screen-thumbnail"}){
-                renameLiveFile(tmpDirectoryString, outputPathString, seedId, harvestNumber,
-                        replaceSectionInFilename(fullpageFilename, size + ".png", 4), seedPlaceholder);
+                renameLiveFile(tmpDirectoryString, outputPathString, harvestNumber,
+                        replaceSectionInFilename(fullpageFilename, size + ".png", 4));
             }
             deleteTmpDir(tmpDirectoryString);
 
@@ -343,11 +323,6 @@ public class ScreenshotGenerator {
         }
 
         // Populate the filenames and the placeholder values
-        if (identifiers.get("seedOid") != null && !seedId.equals("null")) {
-            fullpageFilename = replaceSectionInFilename(fullpageFilename, seedId, 2);
-        } else {
-            fullpageFilename = replaceSectionInFilename(fullpageFilename, seedPlaceholder, 2);
-        }
         if (identifiers.get("harvestNumber") != null && !harvestNumber.equals("null")) {
             fullpageFilename = replaceSectionInFilename(fullpageFilename, harvestNumber, 1);
         }
