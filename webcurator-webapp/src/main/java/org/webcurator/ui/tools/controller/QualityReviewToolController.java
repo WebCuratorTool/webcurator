@@ -154,6 +154,18 @@ public class QualityReviewToolController {
 		mav.addObject("archiveAlternativeName", attr.archiveUrlAlternativeName);
 		mav.addObject("webArchiveTarget", attr.webArchiveTarget);
 		mav.addObject("targetOid", ti.getTarget().getOid());
+		mav.addObject("seedHistory", ti.getSeedHistory());
+
+		// Get seed ID of primary seed
+		Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+		while (seedHistory.hasNext()) {
+			SeedHistory s = seedHistory.next();
+			if (s.isPrimary()) {
+				mav.addObject("primarySeedId", s.getOid());
+				mav.addObject("primarySeedUrl", s.getSeed());
+				break;
+			}
+		}
 
 		String targetOid  = String.valueOf(ti.getOid());
 		String harvestNum = String.valueOf(result.getHarvestNumber());

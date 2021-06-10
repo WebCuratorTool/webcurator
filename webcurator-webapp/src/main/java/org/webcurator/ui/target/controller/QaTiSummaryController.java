@@ -252,7 +252,9 @@ public class QaTiSummaryController {
 
 		// add the seeds with seed id
 		Map<String,String> seedsAndSeedId = new HashMap<String,String>();
-		for (Seed seed : ti.getTarget().getSeeds()) {
+		Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+		while (seedHistory.hasNext()) {
+			SeedHistory seed = seedHistory.next();
 			seedsAndSeedId.put(seed.getSeed(), String.valueOf(seed.getOid()));
 		}
 		mav.addObject("seedsAndIds", seedsAndSeedId);

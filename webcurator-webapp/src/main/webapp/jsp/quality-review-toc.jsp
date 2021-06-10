@@ -64,11 +64,11 @@
 						<td width="20%">
 							<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
 								<c:set var = "fileUrl" value = "${screenshotUrl}" />
-								<c:set var = "seedOid" value = "${seed.getOid()}" />
-								<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedOid)}" />
+								<c:set var = "primarySeedOid" value = "${primarySeedId}" />
+								<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', primarySeedOid)}" />
 								<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
-								<img src="${liveUrl}" alt="" width="100px" />
-								<img src="${harvestedUrl}" alt="" width="100px" />
+								<img src="${liveUrl}" alt="Image unavailable" width="100px" />
+								<img src="${harvestedUrl}" alt="Image unavailable" width="100px" />
 							</c:if>
 						</td>
 					</tr>

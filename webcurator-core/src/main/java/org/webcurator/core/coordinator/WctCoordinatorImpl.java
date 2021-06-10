@@ -294,12 +294,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 if (!indexing) {
                     // Generate harvest screenshots
                     log.info("Generating harvest screenshots for harvest " + String.valueOf(aResult.getHarvestNumber()));
-
-                    // TO DELETE
-                    log.info("Harvest time: " + harvestResult.getCreationDate().toString());
-
-
-                    for (Seed seed : tiTarget.getSeeds()) {
+                    Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+                    while (seedHistory.hasNext()) {
+                        SeedHistory seed = seedHistory.next();
                         Map<String, String> identifiers = new HashMap<>();
                         identifiers.put("seed", seed.getSeed());
                         identifiers.put("tiOid", String.valueOf(aResult.getTargetInstanceOid()));
@@ -307,6 +304,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
                         identifiers.put("seedOid", String.valueOf(seed.getOid()));
                         identifiers.put("harvestNumber", String.valueOf(harvestResult.getHarvestNumber()));
                         identifiers.put("timestamp", new SimpleDateFormat("yyyyMMdd").format(harvestResult.getCreationDate()));
+
                         digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
                     }
                 } else {
@@ -472,8 +470,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
             return;
         }
 
-        // Potentially send a message to DAS to generate live screenshots from here
-
         // Create the seeds file contents.
         StringBuffer seeds = new StringBuffer();
         Set<String> originalSeeds = aTargetInstance.getOriginalSeeds();
@@ -509,7 +505,9 @@ public class WctCoordinatorImpl implements WctCoordinator {
             identifiers.put("liveOrHarvested", "live");
 
             // Get seed ID
-            for (Seed s : aTargetInstance.getTarget().getSeeds()) {
+            Iterator<SeedHistory> seedHistory = aTargetInstance.getSeedHistory().iterator();
+            while (seedHistory.hasNext()) {
+                SeedHistory s = seedHistory.next();
                 if (s.getSeed().equals(seed)) {
                     identifiers.put("seedOid", s.getOid());
                     break;

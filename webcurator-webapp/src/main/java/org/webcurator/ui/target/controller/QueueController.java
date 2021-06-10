@@ -439,7 +439,9 @@ public class QueueController {
 				String keysAndValues = "";
 				// It is difficult to pass map to javascript.  For this reason, return a string separaated by spaces and |s
 				// The seed urls should be encoded
-				for (Seed s : ti.getTarget().getSeeds()) {
+				Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+				while (seedHistory.hasNext()) {
+					SeedHistory s = seedHistory.next();
 					if (s.isPrimary() && primarySeedOid == null) {
 						primarySeedOid = s.getOid();
 						targetSeeds.put(tiOidString + "_primarySeedId", String.valueOf(primarySeedOid));

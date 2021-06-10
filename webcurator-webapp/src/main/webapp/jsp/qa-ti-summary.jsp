@@ -508,10 +508,10 @@ function getSelectedProfile(profilesList) {
 					<c:set var = "liveUrl1" value = "${fn:replace(liveUrl, 'harvestNum', harvestResultCounter)}" />
 					<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl1, 'live', 'harvested')}" />
                     <td style="width: 20%;">
-						<img src="${liveUrl1}" alt="" width="90%" />
+						<img src="${liveUrl1}" alt="Image unavailable" width="90%" />
                     </td>
 					<td style="width: 20%;">
-						<img src="${harvestedUrl}" alt="" width="90%" />						
+						<img src="${harvestedUrl}" alt="Image unavailable" width="90%" />
 					</td>
 					<td style="width: 60%; text-align: left;">${seed}</td>
                     </tr>
