@@ -259,13 +259,30 @@ public class QaTiSummaryController {
 		}
 		mav.addObject("seedsAndIds", seedsAndSeedId);
 
+		// get harvest number and oid of the last harvest result
+		String harvestNum = null;
+		String harvestResultId = null;
+		
+		List<HarvestResult> harvestResults = ti.getHarvestResults();
+		int counter = 1;
+		int resultsSize = harvestResults.size();
+		for (HarvestResult result : harvestResults) {
+			if (counter == resultsSize) {
+				harvestNum = String.valueOf(result.getHarvestNumber());
+				harvestResultId = String.valueOf(result.getOid());
+			} else {
+				counter = counter + 1;
+			}
+		}
+
 		String targetId = String.valueOf(ti.getOid());
-		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/harvestNum/_resources/" + targetId 
-			+ "_harvestNum_seedId_live_screen-thumbnail.png");
+
+		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/" + harvestNum + "/_resources/" + targetId 
+			+ "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
 
 		// Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
 		mav.addObject("reviewUrl", webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + targetId 
-			+ "&harvestResultId=" + String.valueOf(history.get(history.size() -1).getOid()) + "&harvestNumber=" + String.valueOf(history.size()));
+			+ "&harvestResultId=" + harvestResultId + "&harvestNumber=" + harvestNum);
 
         // add the log list
         List<LogFilePropertiesDTO> arrLogs = wctCoordinator.listLogFileAttributes(ti);

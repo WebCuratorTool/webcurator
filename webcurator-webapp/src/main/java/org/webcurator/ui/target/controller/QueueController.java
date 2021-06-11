@@ -395,9 +395,15 @@ public class QueueController {
 		for (HarvestResult result : results) {
 			if (result.getState() == HarvestResult.STATE_UNASSESSED || result.getState() == HarvestResult.STATE_INDEXING
 					|| result.getState() == HarvestResult.STATE_ENDORSED) {
+				// Use the first harvest result number as a default
+				// Otherwise use the most recent endorsed harvest result
+				if (harvestNum == null) {
+					harvestNum = String.valueOf(result.getHarvestNumber());
+				} else if (result.getState() == HarvestResult.STATE_ENDORSED) {
+					harvestNum = String.valueOf(result.getHarvestNumber());
+				}
 				lastDisplayableResultOid = result.getOid();
 				lastDisplayableResult = result;
-				harvestNum = String.valueOf(result.getHarvestNumber());
 			}
 		}
 
