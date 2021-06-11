@@ -1,6 +1,15 @@
 <%@taglib prefix = "c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
+<script>
+	document.addEventListener('mouseup', function(e) {
+    var container = document.getElementById('thumbnailModal');
+    if (!container.contains(e.target)) {
+        container.style.display = 'none';
+    }
+});
+</script>
+
 <div id="resultsTable">
 	<table width="100%" cellpadding="2" cellspacing="0" border="0">
 		<tr>

@@ -46,6 +46,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 }
 </style>
 
+<script>
+	document.addEventListener('mouseup', function(e) {
+    var container = document.getElementById('thumbnailModal');
+    if (!container.contains(e.target)) {
+        container.style.display = 'none';
+    }
+});
+</script>
+
 <script type="text/javascript"> 
 <!-- JQuery Section: ANNOTATIONS HISTORY (VIA AJAX) JAVASCRIPT -->
 

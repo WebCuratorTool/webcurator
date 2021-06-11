@@ -770,6 +770,32 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
+    private void clearTmpDir(File targetDir) {
+        File tmpDir = new File(targetDir, "tmpDir");
+        File resourcesDir = new File(tmpDir, "_resources");
+
+        if (resourcesDir.exists()) {
+            for (File f : resourcesDir.listFiles()) {
+                if (!f.delete()) {
+                    log.warn("Could not delete " + f.toString());
+                }
+            }
+            if (!resourcesDir.delete()) {
+                log.warn("Could not delete " + resourcesDir.toString());
+            }
+        }
+        if (tmpDir.exists()) {
+            for (File f : tmpDir.listFiles()) {
+                if (!f.delete()) {
+                    log.warn("Could not delete " + f.toString());
+                }
+            }
+            if (!tmpDir.delete()) {
+                log.warn("Could not delete " + tmpDir.toString());
+            }
+        }
+    }
+
     /**
      * @see DigitalAssetStore#purge(List<String>).
      */
@@ -782,9 +808,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                if (log.isDebugEnabled()) {
-                    log.debug("About to purge dir " + toPurge.toString());
-                }
+
+                log.debug("About to purge dir " + toPurge.toString());
+
+                // Screenshots may have been saved to a tmpDir/_resources folder
+                // Make sure these are deleted as well
+                clearTmpDir(toPurge);
+
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {
@@ -811,9 +841,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                if (log.isDebugEnabled()) {
-                    log.debug("About to purge dir " + toPurge.toString());
-                }
+
+                log.debug("About to purge dir " + toPurge.toString());
+
+                // Screenshots may have been saved to a tmpDir/_resources folder
+                // Make sure these are deleted as well
+                clearTmpDir(toPurge);
+
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {
