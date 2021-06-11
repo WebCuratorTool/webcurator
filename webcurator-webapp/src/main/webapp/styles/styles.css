@@ -1023,3 +1023,21 @@ input[readonly="readonly"] {
     padding: 0;
     margin: 0;
 }
+
+#thumbnailModal{
+	position: fixed; 
+	overflow: auto; 
+	left: 120px; 
+	right:50px; 
+	bottom:50px; 
+	top: 100px; 
+	border: solid 1px black; 
+	background-color: white
+}
+
+#close{
+	position: fixed; 
+	right: 53px; 
+	font-weight: bold;
+	cursor: pointer;
+}

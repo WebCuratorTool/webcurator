@@ -67,8 +67,8 @@
 								<c:set var = "primarySeedOid" value = "${primarySeedId}" />
 								<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', primarySeedOid)}" />
 								<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
-								<img src="${liveUrl}" alt="Image unavailable" width="100px" />
-								<img src="${harvestedUrl}" alt="Image unavailable" width="100px" />
+								<img src="${liveUrl}" alt="Image unavailable" width="100px" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('thumbnailModal').style.display='block';" />
+								<img src="${harvestedUrl}" alt="Image unavailable" width="100px" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('thumbnailModal').style.display='block';" />
 							</c:if>
 						</td>
 					</tr>
@@ -113,4 +113,35 @@
 		    <td width="70%">&nbsp;</td>
 		</tr>
 	</table>
+</div>
+
+<div id="thumbnailModal" style="display: none;">
+	<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+		<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+		<table id="thumbnailTable" style="border: 0px none; width: 100%;">
+			<tbody>
+				<tr style="text-align: center; font-weight: bold;">
+					<td style="width: 30%;">Live</td>
+					<td style="width: 30%;">Harvested</td>
+					<td style="width: 40%;">Seed</td>
+				</tr>
+				<c:forEach var = "seed" items = "${seeds}" >
+					<tr>
+						<c:set var = "fileUrl" value = "${fn:replace(screenshotUrl,'-thumbnail', '')}" />
+						<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seed['id'])}" />
+						<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
+						<td>
+							<img src="${liveUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
+						</td>
+						<td>
+							<img src="${harvestedUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
+						</td>
+						<td>
+							${seed["seedUrl"]}
+						</td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
+	</c:if>
 </div>

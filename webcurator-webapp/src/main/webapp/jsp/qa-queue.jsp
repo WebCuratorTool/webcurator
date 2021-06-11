@@ -551,11 +551,13 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 	buttonImg.style.width = "90px";
 	buttonImg.style.height = null;
 	buttonImg.style.position = null;
+	buttonImg.alt = "";
 
 	var buttonText = document.createElement("div");
 	buttonText.style.position = "relative";
 	buttonText.style.right = "35px";
 	buttonText.style.bottom = "27px";
+	buttonText.style.fontWeight = "bolder";
 	buttonText.innerHTML = "review";
 
 	reviewButton.appendChild(buttonImg);
@@ -924,8 +926,8 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 			</c:if>
 		</div>
 		<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
-			<div id="thumbnailModal" style="display: none; position: fixed; overflow: auto; left: 120px; right:50px; bottom:50px; top: 100px; border: solid 1px black; background-color: white">
-				<span id="close" style="position: fixed; right: 53px; font-weight: bold;" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+			<div id="thumbnailModal" style="display: none;">
+				<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
 				<div id="modalContent"></div>
 			</div>
 		</c:if>

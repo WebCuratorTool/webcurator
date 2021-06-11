@@ -17,6 +17,8 @@ package org.webcurator.ui.tools.controller;
 
 import java.util.*;
 
+import com.google.common.collect.Lists;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,16 +158,25 @@ public class QualityReviewToolController {
 		mav.addObject("targetOid", ti.getTarget().getOid());
 		mav.addObject("seedHistory", ti.getSeedHistory());
 
-		// Get seed ID of primary seed
+		// Get seed ID of primary seed and populate array of all seeds
 		Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+		List<Map<String, String>> sMap = Lists.newArrayList();
+
 		while (seedHistory.hasNext()) {
 			SeedHistory s = seedHistory.next();
+
+			Map<String, String> m = new HashMap<>();
+			m.put("id", String.valueOf(s.getOid()));
+			m.put("seedUrl", s.getSeed());
+			sMap.add(m);
+
 			if (s.isPrimary()) {
 				mav.addObject("primarySeedId", s.getOid());
 				mav.addObject("primarySeedUrl", s.getSeed());
 				break;
 			}
 		}
+		mav.addObject("seeds", sMap);
 
 		String targetOid  = String.valueOf(ti.getOid());
 		String harvestNum = String.valueOf(result.getHarvestNumber());

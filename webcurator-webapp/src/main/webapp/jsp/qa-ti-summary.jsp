@@ -500,17 +500,17 @@ function getSelectedProfile(profilesList) {
 						<td style="width: 60%; text-align: center;">Seed</td>
 					</tr>
 				</table></td></tr>
-                <c:forEach var="seed" items="${seeds}">
+                <c:forEach var = "seed" items = "${seeds}">
                     <tr style="height: 100px;">
 					<c:set var = "seedId" value = "${seedsAndIds[seed]}" />
 					<c:set var = "fileUrl" value = "${screenshotUrl}" />
 					<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedId)}" />
 					<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
                     <td style="width: 20%;">
-						<img src="${liveUrl}" alt="Image unavailable" width="90%" />
+						<img src="${liveUrl}" alt="Image unavailable" width="90%" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('thumbnailModal').style.display='block';" />
                     </td>
 					<td style="width: 20%;">
-						<img src="${harvestedUrl}" alt="Image unavailable" width="90%" />
+						<img src="${harvestedUrl}" alt="Image unavailable" width="90%" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('thumbnailModal').style.display='block';" />
 					</td>
 					<td style="width: 60%; text-align: left;">${seed}</td>
                     </tr>
@@ -525,7 +525,48 @@ function getSelectedProfile(profilesList) {
 						</td>
 					</tr>	
 				</tfoot>
-                </table>			
+                </table>		
+				
+				<div id="thumbnailModal" style="display: none;">
+					<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+					<table id="thumbnailTable" style="border: 0px none; width: 100%;">
+						<tbody>
+							<tr style="text-align: center; font-weight: bold;">
+								<td style="width: 30%;">Live</td>
+								<td style="width: 30%;">Harvested</td>
+								<td style="width: 40%;">Seed</td>
+							</tr>
+							<c:forEach var = "seed" items = "${seeds}" >
+								<tr>
+									<c:set var = "seedId" value = "${seedsAndIds[seed]}" />
+									<c:set var = "fileUrl" value = "${fn:replace(screenshotUrl,'-thumbnail', '')}" />
+									<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedId)}" />
+									<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
+									<td>
+										<img src="${liveUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
+									</td>
+									<td>
+										<img src="${harvestedUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
+									</td>
+									<td>
+										${seed}
+									</td>
+								</tr>
+							</c:forEach>
+						</tbody>
+						<tfoot>
+							<tr>
+								<td colspan="3" style="margin: 5px;" valign="bottom" align="right">
+									<a href="${reviewUrl}"  style="color: #484848;" onmouseover="this.style.textDecoration = 'none'; this.style.colour='#484848';">
+										<img src="images/blank-button.gif" style="width: 90px; padding: 5px;" alt="">
+										<div style="position: relative; right: 35px; bottom: 27px; font-weight: bolder; colour: #484848;">review</div>
+									</a>
+								</td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+
             </c:if>
 			
 			<!-- key indicators panel -->
