@@ -75,7 +75,7 @@ public abstract class IndexerBase extends AbstractRestClient implements Runnable
         synchronized (Indexer.lock) {
             if (Indexer.lastRunningIndex(this.getName(), harvestResultOid)) {
                 log.info("Marking harvest result for job " + getResult().getTargetInstanceOid() + " as ready");
-                finaliseIndex(harvestResultOid);
+//                finaliseIndex(harvestResultOid);
 
                 log.info("Index for job " + getResult().getTargetInstanceOid() + " is now ready");
             }

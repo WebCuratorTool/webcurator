@@ -250,6 +250,10 @@ public class WaybackIndexer extends IndexerBase {
         protected void copyToInput() {
             File inputFile = new File(waybackInputFolder + "/" + getVersionedName());
             try {
+                File directory = inputFile.getParentFile();
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                }
                 copyFile(theFile, inputFile);
                 status = FileStatus.COPIED;
             } catch (IOException e) {
