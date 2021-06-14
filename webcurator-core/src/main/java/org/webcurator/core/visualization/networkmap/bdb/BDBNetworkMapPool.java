@@ -2,7 +2,7 @@ package org.webcurator.core.visualization.networkmap.bdb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class BDBNetworkMapPool {
         String dbPath = this.getDbPath(job, harvestResultNumber);
         File dbDirectory = new File(dbPath);
         if (dbDirectory.exists()) {
-            Utils.cleanDirectory(dbDirectory);
+            WctUtils.cleanDirectory(dbDirectory);
         } else {
             log.warn("Recover db files: {}", dbPath);
         }

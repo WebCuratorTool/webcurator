@@ -21,7 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
 import javax.validation.constraints.Size;
@@ -143,7 +143,7 @@ public class TargetGroup extends AbstractTarget {
 			this.fromDate = null;
 		}
 		else { 
-			this.fromDate = Utils.clearTime(fromDate);
+			this.fromDate = WctUtils.clearTime(fromDate);
 		}
 	}
 
@@ -164,7 +164,7 @@ public class TargetGroup extends AbstractTarget {
 			this.toDate = null;
 		}
 		else { 
-			this.toDate = Utils.endOfDay(toDate);
+			this.toDate = WctUtils.endOfDay(toDate);
 		}
 	}
 

@@ -44,7 +44,7 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.DateUtils;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.SiteDAO;
@@ -880,7 +880,7 @@ public class TargetManagerImpl implements TargetManager {
 			} else {
 				c = aTarget.getClass();
 			}
-			annotations = annotationDAO.loadAnnotations(Utils.getPrefixClassName(c), aTarget.getOid());
+			annotations = annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(c), aTarget.getOid());
 		}
 
 		if (annotations == null) {

@@ -47,8 +47,9 @@ public class LogReaderImpl implements LogReader {
 
 		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
-	        try{
-	            BufferedReader bf = new BufferedReader(new FileReader(logFile), 8192);
+			BufferedReader bf = null;
+			try{
+	            bf = new BufferedReader(new FileReader(logFile), 8192);
 
 	            while (bf.readLine() != null){
 	            	count++;
@@ -56,7 +57,15 @@ public class LogReaderImpl implements LogReader {
 	        } catch(IOException e){
 	            e.printStackTrace();
 	            return null;
-	        }
+	        }finally {
+				if (bf != null) {
+					try {
+						bf.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 		
 		return count;
@@ -68,7 +77,7 @@ public class LogReaderImpl implements LogReader {
 
 		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
-			theTail = Utils.tail(logFile.toString(), numberOfLines);
+			theTail = LogReaderUtils.tail(logFile.toString(), numberOfLines);
 		} else {
 		    theTail = Arrays.asList("");
         }
@@ -82,7 +91,7 @@ public class LogReaderImpl implements LogReader {
 
 		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
-			theLines = Utils.get(logFile.toString(), startLine, numberOfLines);
+			theLines = LogReaderUtils.get(logFile.toString(), startLine, numberOfLines);
 		} else {
 		    theLines = Arrays.asList("");
         }
@@ -111,7 +120,7 @@ public class LogReaderImpl implements LogReader {
     	boolean foundUrl = false;
 
 
-        BufferedReader inputStream;
+        BufferedReader inputStream = null;
 		try {
 			inputStream = new BufferedReader(new FileReader(theFile.getAbsolutePath()));
 		} catch (FileNotFoundException e1) {
@@ -148,13 +157,14 @@ public class LogReaderImpl implements LogReader {
         } catch (IOException e) {
             e.printStackTrace();
             return;
-        }
-
-       	try {
-			inputStream.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-            return;
+        }finally {
+			try {
+				if (inputStream != null) {
+					inputStream.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		if (foundUrl && !foundLast) {
@@ -169,7 +179,7 @@ public class LogReaderImpl implements LogReader {
 
 		File logFile = logProvider.getLogFile(job, filename);
 		if (logFile != null) {
-			lines = Utils.getByRegularExpression(logFile.toString(), regularExpression, addLines, prependLineNumbers, skipFirstMatches, numberOfMatches);
+			lines = LogReaderUtils.getByRegularExpression(logFile.toString(), regularExpression, addLines, prependLineNumbers, skipFirstMatches, numberOfMatches);
 		} else {
 		    lines = Arrays.asList("");
         }
@@ -185,7 +195,7 @@ public class LogReaderImpl implements LogReader {
 		{
 			File logFile = logProvider.getLogFile(job, filename);
 			if (logFile != null) {
-				line = Utils.findFirstLineBeginning(new FileReader(logFile), match);
+				line = LogReaderUtils.findFirstLineBeginning(new FileReader(logFile), match);
 			}
 		}
 		catch(IOException e)
@@ -205,7 +215,7 @@ public class LogReaderImpl implements LogReader {
 		{
 			File logFile = logProvider.getLogFile(job, filename);
 			if (logFile != null) {
-				line = Utils.findFirstLineContaining(new FileReader(logFile), match);
+				line = LogReaderUtils.findFirstLineContaining(new FileReader(logFile), match);
 			}
 		}
 		catch(IOException e)
@@ -300,7 +310,15 @@ public class LogReaderImpl implements LogReader {
             }
         } catch(IOException e){
             e.printStackTrace();
-        }
+        }finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
         return -1;
     }
 

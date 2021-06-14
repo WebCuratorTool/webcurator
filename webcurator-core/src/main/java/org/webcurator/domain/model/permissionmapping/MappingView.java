@@ -17,8 +17,7 @@ package org.webcurator.domain.model.permissionmapping;
 
 import java.util.Date;
 
-import org.hibernate.annotations.GenericGenerator;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 
 import javax.validation.constraints.Size;
 import javax.validation.constraints.NotNull;
@@ -131,7 +130,7 @@ public class MappingView {
 	 * @param anEndDate The endDate to set.
 	 */
 	public void setEndDate(Date anEndDate) {
-		endDate = anEndDate == null ? null : Utils.endOfDay(anEndDate);
+		endDate = anEndDate == null ? null : WctUtils.endOfDay(anEndDate);
 	}
 
 	/**

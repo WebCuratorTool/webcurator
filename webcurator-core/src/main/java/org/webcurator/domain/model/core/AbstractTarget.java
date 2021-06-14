@@ -17,7 +17,7 @@ package org.webcurator.domain.model.core;
 
 import org.hibernate.annotations.Formula;
 import org.webcurator.core.notification.UserInTrayResource;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.UserOwnable;
 import org.webcurator.domain.model.auth.User;
 
@@ -290,7 +290,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
      * @param aDescription The description to set.
      */
     public void setDescription(String aDescription) {
-    	if(!Utils.hasChanged(description, aDescription)) { dirty = true; }
+    	if(!WctUtils.hasChanged(description, aDescription)) { dirty = true; }
         this.description = aDescription;
     }
 
@@ -307,7 +307,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
      * @param aName The name to set.
      */
     public void setName(String aName) {
-    	if(!Utils.hasChanged(name, aName)) { dirty = true; }
+    	if(!WctUtils.hasChanged(name, aName)) { dirty = true; }
         this.name = aName;
         if (name != null) {
         	this.name = this.name.trim();

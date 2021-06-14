@@ -19,7 +19,7 @@ import java.util.regex.PatternSyntaxException;
  * @author Hanna Koppelaar (KB, National Library of the Netherlands)
  *
  */
-public class Utils {
+public class LogReaderUtils {
 
     /**
      * Implementation of a unix-like 'tail -n' command
@@ -219,6 +219,14 @@ public class Utils {
         }catch(IOException e){
             e.printStackTrace();
             return new ArrayList<>();
+        }finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return Arrays.asList(ret.toString(), info);
     }
@@ -358,6 +366,14 @@ public class Utils {
             return new ArrayList<>();
         }catch(PatternSyntaxException e){
             ret = new StringBuffer(e.getMessage());
+        }finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return Arrays.asList(ret.toString(), info);
     }
@@ -391,6 +407,14 @@ public class Utils {
             }
         } catch(IOException e){
             e.printStackTrace();
+        }finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return -1;
     }
@@ -423,6 +447,14 @@ public class Utils {
             }
         } catch(IOException e){
             e.printStackTrace();
+        }finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return -1;
     }

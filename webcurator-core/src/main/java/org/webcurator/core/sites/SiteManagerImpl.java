@@ -21,12 +21,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.util.Auditor;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.SiteCriteria;
@@ -95,7 +94,7 @@ public class SiteManagerImpl implements SiteManager {
             // classname are set.
             for (Annotation annotation : annotations) {
                 annotation.setObjectOid(annotatable.getOid());
-                annotation.setObjectType(Utils.getPrefixClassName(annotatable.getClass()));
+                annotation.setObjectType(WctUtils.getPrefixClassName(annotatable.getClass()));
             }
             annotationDAO.saveAnnotations(annotations);
         }
@@ -144,27 +143,27 @@ public class SiteManagerImpl implements SiteManager {
 
         // Auditing messages.
         if (soid == null) {
-            auditor.audit(Utils.getPrefixClassName(Site.class), aSite.getOid(), Auditor.ACTION_NEW_SITE, "New Harvest Authorisation created");
+            auditor.audit(WctUtils.getPrefixClassName(Site.class), aSite.getOid(), Auditor.ACTION_NEW_SITE, "New Harvest Authorisation created");
         } else {
-            auditor.audit(Utils.getPrefixClassName(Site.class), aSite.getOid(), Auditor.ACTION_UPDATE_SITE, "Update Harvest Authorisation " + aSite.getTitle());
+            auditor.audit(WctUtils.getPrefixClassName(Site.class), aSite.getOid(), Auditor.ACTION_UPDATE_SITE, "Update Harvest Authorisation " + aSite.getTitle());
         }
 
 
         // New Permissions.
         for (Permission p : newPermissions) {
-            auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_NEW_PERMISSION, "New permission created");
+            auditor.audit(WctUtils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_NEW_PERMISSION, "New permission created");
         }
 
         // Removed Permissions.
         for (Permission p : removedPermissions) {
-            auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_DELETE_PERMISSION, "Permission deleted");
+            auditor.audit(WctUtils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_DELETE_PERMISSION, "Permission deleted");
             intrayManager.deleteTask(p.getOid(), p.getResourceType(), MessageType.TASK_SEEK_PERMISSON);
         }
 
         // Updated Permissions.
         for (Permission p : aSite.getPermissions()) {
             if (p.isDirty()) {
-                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_UPDATE_PERMISSION, "Permission updated");
+                auditor.audit(WctUtils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_UPDATE_PERMISSION, "Permission updated");
             }
         }
 
@@ -172,7 +171,7 @@ public class SiteManagerImpl implements SiteManager {
         for (Permission p : aSite.getPermissions()) {
             // Permissions that have been approved.
             if (p.hasChangedState() && p.getStatus() == Permission.STATUS_APPROVED) {
-                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_APPROVE_PERMISSION, "Permission approved");
+                auditor.audit(WctUtils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_APPROVE_PERMISSION, "Permission approved");
                 intrayManager.deleteTask(p.getOid(), p.getResourceType(), MessageType.TASK_SEEK_PERMISSON);
 
                 List<UserDTO> users = agencyUserManager.getUserDTOsByTargetPrivilege(p.getOid());
@@ -191,12 +190,12 @@ public class SiteManagerImpl implements SiteManager {
             }
 
             if (p.hasChangedState() && p.getStatus() == Permission.STATUS_REQUESTED) {
-                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_REQUESTED_PERMISSION, "Permission has been requested from the authoring agent(s)");
+                auditor.audit(WctUtils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_REQUESTED_PERMISSION, "Permission has been requested from the authoring agent(s)");
             }
 
 
             if (p.getStatus() == Permission.STATUS_PENDING && p.isCreateSeekPermissionTask()) {
-                auditor.audit(Utils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_SEEK_PERMISSION, "A task has been created for another user to request permission from an authoring agent");
+                auditor.audit(WctUtils.getPrefixClassName(Permission.class), p.getOid(), Auditor.ACTION_SEEK_PERMISSION, "A task has been created for another user to request permission from an authoring agent");
                 intrayManager.generateUniqueTask(Privilege.CONFIRM_PERMISSION, MessageType.TASK_SEEK_PERMISSON, p);
             }
         }
@@ -297,7 +296,7 @@ public class SiteManagerImpl implements SiteManager {
     public List<Annotation> getAnnotations(Site aSite) {
         List<Annotation> annotations = null;
         if (aSite.getOid() != null) {
-            annotations = annotationDAO.loadAnnotations(Utils.getPrefixClassName(Site.class), aSite.getOid());
+            annotations = annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(Site.class), aSite.getOid());
         }
 
         if (annotations == null) {
@@ -317,7 +316,7 @@ public class SiteManagerImpl implements SiteManager {
     public List<Annotation> getAnnotations(Permission aPermission) {
         List<Annotation> annotations = null;
         if (aPermission.getOid() != null) {
-            annotations = annotationDAO.loadAnnotations(Utils.getPrefixClassName(Permission.class), aPermission.getOid());
+            annotations = annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(Permission.class), aPermission.getOid());
         }
 
         if (annotations == null) {
