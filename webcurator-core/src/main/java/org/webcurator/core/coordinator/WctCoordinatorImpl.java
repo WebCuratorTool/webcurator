@@ -213,7 +213,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         HarvestResult harvestResult = targetInstanceManager.getHarvestResult(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
         if (harvestResult != null) {
-            if (harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING) && harvestResult.getState() != HarvestResult.STATE_ABORTED) {
+            if (harvestResult.getState() != HarvestResult.STATE_ABORTED) {
                 this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
             } else {
                 log.error("Invalis status, tiOID:{}, hrNum:{}, tiState:{}, hrState:{}", aResult.getTargetInstanceOid(), harvestResult.getHarvestNumber(), harvestResult.getTargetInstance().getState(), harvestResult.getState());

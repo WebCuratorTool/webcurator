@@ -65,7 +65,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             // lock the ti for update
             if (!lock(tiOid)) {
                 log.debug("Skipping heartbeat, found locked target instance: " + tiOid);
-                continue;
+                break;
             }
             try {
                 log.debug("Obtained lock for ti {}", tiOid);
@@ -74,6 +74,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 
                 updateStatusWithEnvironment(harvesterStatusDto);
                 HarvesterStatus harvesterStatus = createHarvesterStatus(ti, harvesterStatusDto);
+                targetInstanceManager.save(ti); //Update the status details
 
                 log.debug("Heartbeat for ti: {}, state: {}", tiOid, harvesterStatus.getStatus());
 
@@ -81,10 +82,11 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 if (StringUtils.isEmpty(harvesterStatusDto.getHarvesterState()) || StringUtils.isEmpty(harvesterStatusValue)) {
                     log.error("getHarvesterState or harvesterStatusValue is null, tiOid:{}", tiOid);
                     doHeartbeatLaunchFailed(ti, harvestResultNumber);
-                    break;
+                    continue; //Skip the current job, and continue to process the next one.
                 }
 
-                if (harvesterStatusValue.startsWith("Paused")) {
+                harvesterStatusValue = harvesterStatusValue.toUpperCase();
+                if (harvesterStatusValue.startsWith("Paused".toUpperCase())) {
                     doHeartbeatPaused(ti, harvestResultNumber);
                 }
 
@@ -92,18 +94,19 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 // in the UI. Once in this state, the user has no control over the
                 // harvest and cannot use it. This work around means that any
                 // TIs in the wrong state will be corrected on the next heartbeat
-                if (harvesterStatusValue.startsWith("Running")) {
+                if (harvesterStatusValue.startsWith("Running".toUpperCase())) {
                     doHeartbeatRunning(aStatus, ti, harvesterStatus, harvestResultNumber);
                 }
 
-                if (harvesterStatusValue.startsWith("Finished")) {
+                if (harvesterStatusValue.startsWith("Finished".toUpperCase())) {
                     doHeartbeatFinished(ti, harvestResultNumber);
                 }
 
                 // This is a required because when a
                 // "Could not launch job - Fatal InitializationException" job occurs
                 // We do not get a notification that causes the job to stop nicely
-                if (harvesterStatusValue.startsWith("Could not launch job - Fatal InitializationException") || harvesterStatusDto.getHarvesterState().equals("H3 Job Not Found")) {
+                if (harvesterStatusValue.startsWith("Could not launch job - Fatal InitializationException".toUpperCase())
+                        || harvesterStatusDto.getHarvesterState().toUpperCase().startsWith("H3 Job Not Found".toUpperCase())) {
                     doHeartbeatLaunchFailed(ti, harvestResultNumber);
                 }
 
