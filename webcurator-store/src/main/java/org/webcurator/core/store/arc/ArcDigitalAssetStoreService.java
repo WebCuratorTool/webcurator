@@ -170,7 +170,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         log.debug("Moving File to Store: " + fileName + " -> " + destination.getAbsolutePath());
 
         try {
-            WctUtils.copy(inputStream,new BufferedOutputStream(new FileOutputStream(destination)));
+            WctUtils.copy(inputStream, new BufferedOutputStream(new FileOutputStream(destination)));
         } catch (IOException ex) {
             log.error("Failed to move file " + fileName + " to " + destination.getAbsolutePath(), ex);
             failureException = ex;
@@ -547,9 +547,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * java.lang.String)
      */
     public File getLogFile(String aJob, String aFileName) {
+        JobItem jobItem = JobItem.getInstance(aJob);
+
         File file = null;
-        if (aJob.indexOf('@') < 0) {
-            File targetDir = new File(baseDir, aJob);
+
+        if (!jobItem.isPatchedJob()) {
+            File targetDir = new File(baseDir, jobItem.getJobName());
             File logsDir = new File(targetDir, Constants.DIR_LOGS);
             file = new File(logsDir, aFileName);
             if (!file.exists() && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
@@ -565,20 +568,14 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 logsDir = new File(targetDir, Constants.DIR_CONTENT);
                 file = new File(logsDir, aFileName);
             }
-        } else { //For patching logs
-            File targetDir = parseAttachedLogDir(aJob);
-            if (targetDir != null && targetDir.exists()) {
-                file = new File(targetDir, aFileName);
-            }
-
-            if (file == null || !file.exists()) {
-                targetDir = parseAttachedReportDir(aJob);
-                if (targetDir != null && targetDir.exists()) {
-                    file = new File(targetDir, aFileName);
-                }
+        } else {
+            file = new File(directoryManager.getBaseLogDir(jobItem.getTargetInstancdId()), aFileName);
+            if (!file.exists()) {
+                file = new File(directoryManager.getBaseReportDir(jobItem.getTargetInstancdId()), aFileName);
             }
         }
-        if (file == null || !file.exists()) {
+
+        if (!file.exists()) {
             file = null;
         }
         return file;
@@ -644,10 +641,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * @see org.webcurator.core.reader.LogProvider#getLogFileNames(java.lang.String)
      */
     public List<String> getLogFileNames(String aJob) {
+        JobItem jobItem = JobItem.getInstance(aJob);
+
         List<String> logFiles = new ArrayList<String>();
         File logsDir = null;
-        if (aJob.indexOf('@') < 0) {
-            File targetDir = new File(baseDir, aJob);
+        if (!jobItem.isPatchedJob()) {
+            File targetDir = new File(baseDir, jobItem.getJobName());
 
             logsDir = new File(targetDir, Constants.DIR_LOGS);
             this.appendLogFileNames(logFiles, logsDir);
@@ -655,11 +654,14 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             logsDir = new File(targetDir, Constants.DIR_REPORTS);
             this.appendLogFileNames(logFiles, logsDir);
         } else {
-            logsDir = parseAttachedLogDir(aJob);
-            this.appendLogFileNames(logFiles, logsDir);
-
-            logsDir = parseAttachedReportDir(aJob);
-            this.appendLogFileNames(logFiles, logsDir);
+            File patchedLogFile = new File(directoryManager.getBaseLogDir(jobItem.getTargetInstancdId()), directoryManager.getPatchLogFileName(jobItem.getPrefix(), jobItem.getHarvestNumber()));
+            if (patchedLogFile.exists()) {
+                logFiles.add(patchedLogFile.getName());
+            }
+            File patchedRepportFile = new File(directoryManager.getBaseReportDir(jobItem.targetInstancdId), directoryManager.getPatchReportFileName(jobItem.getPrefix(), jobItem.getHarvestNumber()));
+            if (patchedRepportFile.exists()) {
+                logFiles.add(patchedRepportFile.getName());
+            }
         }
 
         return logFiles;
@@ -669,10 +671,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      * @see org.webcurator.core.reader.LogProvider#getLogFileAttributes(java.lang.String)
      */
     public List<LogFilePropertiesDTO> getLogFileAttributes(String aJob) {
+        JobItem jobItem = JobItem.getInstance(aJob);
+
         List<LogFilePropertiesDTO> logFiles = new ArrayList<LogFilePropertiesDTO>();
         File logsDir = null;
-        if (aJob.indexOf('@') < 0) {
-            File targetDir = new File(baseDir, aJob);
+        if (!jobItem.isPatchedJob()) {
+            File targetDir = new File(baseDir, jobItem.getJobName());
 
             logsDir = new File(targetDir, Constants.DIR_LOGS);
             this.appendLogFiles(logFiles, logsDir);
@@ -680,37 +684,17 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             logsDir = new File(targetDir, Constants.DIR_REPORTS);
             this.appendLogFiles(logFiles, logsDir);
         } else {
-            logsDir = parseAttachedLogDir(aJob);
-            this.appendLogFiles(logFiles, logsDir);
-
-            logsDir = parseAttachedReportDir(aJob);
-            this.appendLogFiles(logFiles, logsDir);
+            File patchedLogFile = new File(directoryManager.getBaseLogDir(jobItem.getTargetInstancdId()), directoryManager.getPatchLogFileName(jobItem.getPrefix(), jobItem.getHarvestNumber()));
+            if (patchedLogFile.exists()) {
+                logFiles.add(new LogFilePropertiesDTO(patchedLogFile, pageImagePrefix, aqaReportPrefix));
+            }
+            File patchedRepportFile = new File(directoryManager.getBaseReportDir(jobItem.targetInstancdId), directoryManager.getPatchReportFileName(jobItem.getPrefix(), jobItem.getHarvestNumber()));
+            if (patchedRepportFile.exists()) {
+                logFiles.add(new LogFilePropertiesDTO(patchedRepportFile, pageImagePrefix, aqaReportPrefix));
+            }
         }
 
         return logFiles;
-    }
-
-
-    public File parseAttachedLogDir(String aJob) {
-        String[] prefixItems = aJob.split("@");
-        String prefix = prefixItems[0];
-        String[] jobItems = prefixItems[1].split("_");
-        String sTargetInstanceId = jobItems[1];
-        String sHarvestNumberId = jobItems[2];
-
-        String logsDir = directoryManager.getPatchLogDir(prefix, Long.parseLong(sTargetInstanceId), Integer.parseInt(sHarvestNumberId));
-        return new File(logsDir);
-    }
-
-    public File parseAttachedReportDir(String aJob) {
-        String[] prefixItems = aJob.split("@");
-        String prefix = prefixItems[0];
-        String[] jobItems = prefixItems[1].split("_");
-        String sTargetInstanceId = jobItems[1];
-        String sHarvestNumberId = jobItems[2];
-
-        String logsDir = directoryManager.getPatchReportDir(prefix, Long.parseLong(sTargetInstanceId), Integer.parseInt(sHarvestNumberId));
-        return new File(logsDir);
     }
 
     private void appendLogFiles(List<LogFilePropertiesDTO> logFiles, File logsDir) {
@@ -1125,5 +1109,82 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         WctUtils.copy(inputStream, outputStream);
 
         return downloadedFile;
+    }
+
+    private static class JobItem {
+        private boolean isPatchedJob;
+        private String jobName;
+        private String prefix;
+        private long targetInstancdId;
+        private int harvestNumber;
+
+        public static JobItem getInstance(String aJob) {
+            JobItem jobItem = new JobItem();
+            if (aJob.indexOf('@') < 0) {
+                jobItem.isPatchedJob = false;
+                jobItem.jobName = aJob;
+                jobItem.prefix = "";
+
+                if (aJob.startsWith("mod")) {
+                    String[] jobItems = aJob.split("_");
+                    jobItem.targetInstancdId = Long.parseLong(jobItems[1]);
+                    jobItem.harvestNumber = Integer.parseInt(jobItems[2]);
+                } else {
+                    jobItem.targetInstancdId = Long.parseLong(aJob);
+                    jobItem.harvestNumber = 1;
+                }
+            } else {
+                jobItem.isPatchedJob = true;
+
+                String[] prefixItems = aJob.split("@");
+                jobItem.prefix = prefixItems[0];
+                jobItem.jobName = prefixItems[1];
+                String[] jobItems = prefixItems[1].split("_");
+                jobItem.targetInstancdId = Long.parseLong(jobItems[1]);
+                jobItem.harvestNumber = Integer.parseInt(jobItems[2]);
+            }
+
+            return jobItem;
+        }
+
+        public boolean isPatchedJob() {
+            return isPatchedJob;
+        }
+
+        public void setPatchedJob(boolean patchedJob) {
+            isPatchedJob = patchedJob;
+        }
+
+        public String getJobName() {
+            return jobName;
+        }
+
+        public void setJobName(String jobName) {
+            this.jobName = jobName;
+        }
+
+        public String getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
+
+        public long getTargetInstancdId() {
+            return targetInstancdId;
+        }
+
+        public void setTargetInstancdId(long targetInstancdId) {
+            this.targetInstancdId = targetInstancdId;
+        }
+
+        public int getHarvestNumber() {
+            return harvestNumber;
+        }
+
+        public void setHarvestNumber(int harvestNumber) {
+            this.harvestNumber = harvestNumber;
+        }
     }
 }

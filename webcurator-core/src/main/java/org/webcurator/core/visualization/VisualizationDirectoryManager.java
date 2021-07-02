@@ -5,8 +5,8 @@ import java.io.File;
 public class VisualizationDirectoryManager {
     private static final String TEMPLATE_UPLOAD = "%s" + File.separator + "uploadedFiles" + File.separator + "%d";
     private static final String TEMPLATE_BASE_LOG_REPORT = "%s" + File.separator + "%d" + File.separator + "%s";
-    private static final String TEMPLATE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d" + File.separator + "%s";
-    private static final String TEMPLATE_BASE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d";
+//    private static final String TEMPLATE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d" + File.separator + "%s";
+//    private static final String TEMPLATE_BASE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d";
 
     private String baseDir = null;
     private String baseLogDir = null;
@@ -50,31 +50,39 @@ public class VisualizationDirectoryManager {
         return s;
     }
 
-    public String getPatchLogDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber, prefix);
-        File f = new File(s);
-        if (!f.exists()) {
-            f.mkdirs();
-        }
-        return s;
+    public String getPatchLogFileName(String prefix, int harvestResultNumber){
+       return String.format("%s-%d-running.log", prefix, harvestResultNumber);
     }
 
-    public String getPatchReportDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber, prefix);
-        File f = new File(s);
-        if (!f.exists()) {
-            f.mkdirs();
-        }
-        return s;
+    public String getPatchReportFileName(String prefix, int harvestResultNumber){
+        return String.format("%s-%d-report.txt", prefix, harvestResultNumber);
     }
 
-    public File getBasePatchLogDir(long targetInstanceId, int harvestResultNumber){
-        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber);
-        return new File(s);
-    }
-
-    public File getBasePatchReportDir(long targetInstanceId, int harvestResultNumber){
-        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber);
-        return new File(s);
-    }
+//    public String getPatchLogDir(String prefix, long targetInstanceId, int harvestResultNumber) {
+//        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber, prefix);
+//        File f = new File(s);
+//        if (!f.exists()) {
+//            f.mkdirs();
+//        }
+//        return s;
+//    }
+//
+//    public String getPatchReportDir(String prefix, long targetInstanceId, int harvestResultNumber) {
+//        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber, prefix);
+//        File f = new File(s);
+//        if (!f.exists()) {
+//            f.mkdirs();
+//        }
+//        return s;
+//    }
+//
+//    public File getBasePatchLogDir(long targetInstanceId, int harvestResultNumber){
+//        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber);
+//        return new File(s);
+//    }
+//
+//    public File getBasePatchReportDir(long targetInstanceId, int harvestResultNumber){
+//        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber);
+//        return new File(s);
+//    }
 }

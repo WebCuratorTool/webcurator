@@ -166,6 +166,23 @@ public class WctUtils {
         return idx > 0 ? clazzName.substring(0, idx) : clazzName;
     }
 
+    public static void deleteFile(String fPath, String fName) {
+        deleteFile(new File(fPath, fName));
+    }
+
+    public static void deleteFile(File f) {
+        if (f == null || !f.exists() || !f.isFile()) {
+            log.warn("Invalid file: " + f);
+            return;
+        }
+
+        try {
+            Files.deleteIfExists(f.toPath());
+        } catch (IOException e) {
+            log.error("Failed to delete file: {}", f.getAbsolutePath(), e);
+        }
+    }
+
     public static void cleanDirectory(File directory) {
         if (directory == null || !directory.exists()) {
             return;

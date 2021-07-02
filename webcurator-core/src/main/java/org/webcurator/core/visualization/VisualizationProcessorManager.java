@@ -130,11 +130,10 @@ public class VisualizationProcessorManager {
         WctUtils.cleanDirectory(dirOfHarvestFiles);
 
         //Delete logs and reports
-        File dirOfLogs = visualizationDirectoryManager.getBasePatchLogDir(targetInstanceId, harvestResultNumber);
-        WctUtils.cleanDirectory(dirOfLogs);
-
-        File dirOfReports = visualizationDirectoryManager.getBasePatchReportDir(targetInstanceId, harvestResultNumber);
-        WctUtils.cleanDirectory(dirOfReports);
+        WctUtils.deleteFile(visualizationDirectoryManager.getBaseLogDir(targetInstanceId), visualizationDirectoryManager.getPatchLogFileName(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, harvestResultNumber));
+        WctUtils.deleteFile(visualizationDirectoryManager.getBaseReportDir(targetInstanceId), visualizationDirectoryManager.getPatchReportFileName(HarvestResult.PATCH_STAGE_TYPE_MODIFYING, harvestResultNumber));
+        WctUtils.deleteFile(visualizationDirectoryManager.getBaseLogDir(targetInstanceId), visualizationDirectoryManager.getPatchLogFileName(HarvestResult.PATCH_STAGE_TYPE_INDEXING, harvestResultNumber));
+        WctUtils.deleteFile(visualizationDirectoryManager.getBaseReportDir(targetInstanceId), visualizationDirectoryManager.getPatchReportFileName(HarvestResult.PATCH_STAGE_TYPE_INDEXING, harvestResultNumber));
 
         //Delete command json files
         PatchUtil.modifier.deleteJob(visualizationDirectoryManager.getBaseDir(), targetInstanceId, harvestResultNumber);

@@ -17,7 +17,7 @@ public class TestVisualizationDirectoryManager extends BaseVisualizationTest {
         log.debug(directoryManager.getUploadDir(targetInstanceId));
         log.debug(directoryManager.getBaseLogDir(targetInstanceId));
         log.debug(directoryManager.getBaseReportDir(targetInstanceId));
-        log.debug(directoryManager.getPatchLogDir("default", targetInstanceId, harvestResultNumber));
-        log.debug(directoryManager.getPatchReportDir("default", targetInstanceId, harvestResultNumber));
+        //log.debug(directoryManager.getPatchLogDir("default", targetInstanceId, harvestResultNumber));
+        //log.debug(directoryManager.getPatchReportDir("default", targetInstanceId, harvestResultNumber));
     }
 }
