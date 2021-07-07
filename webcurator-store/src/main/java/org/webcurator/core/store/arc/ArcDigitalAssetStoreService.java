@@ -128,6 +128,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     @Autowired
     private BDBNetworkMapPool pool;
 
+    @Autowired
     private WctCoordinatorClient wctCoordinatorClient;
 
     private String pageImagePrefix = "PageImage";
@@ -799,7 +800,9 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             File sourceDir = new File(this.baseDir, "/" + targetInstanceName
                     + "/" + harvestResultNumber);
             for (File file : sourceDir.listFiles()) {
-                arcFiles.add(file);
+                if (file.isFile()) {
+                    arcFiles.add(file);
+                }
             }
             return arcFiles;
         } catch (RuntimeException ex) {
@@ -895,10 +898,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 ArrayList<ArchiveFile> fileList = new ArrayList<ArchiveFile>();
                 // Get log files
                 for (File f : getLogFiles(targetID)) {
+                    if (f.isDirectory()) {
+                        continue;
+                    }
                     fileList.add(new ArchiveFile(f, LOG_FILE));
                 }
                 // Get report files
                 for (File f : getReportFiles(targetID)) {
+                    if (f.isDirectory()) {
+                        continue;
+                    }
                     if (f.getName().endsWith("order.xml")) {
                         fileList.add(new ArchiveFile(f, ROOT_FILE));
                     } else {
@@ -907,11 +916,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
                 }
                 // Get arc files
                 for (File f : getAllARCFiles(targetID, harvestNumber)) {
+                    if (f.isDirectory()) {
+                        continue;
+                    }
                     fileList.add(new ArchiveFile(f, ARC_FILE));
                 }
 
-                String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid,
-                        SIP, xAttributes, fileList);
+                String archiveIID = arcDasArchive.submitToArchive(targetInstanceOid, SIP, xAttributes, fileList);
 
                 wctCoordinatorClient.completeArchiving(Long.parseLong(targetInstanceOid), archiveIID);
             } catch (Throwable t) {

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mets:mets xmlns:mets="http://www.loc.gov/METS/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.loc.gov/METS/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd">
+	<mets:metsHdr CREATEDATE="2021-07-07T21:35:24">
+		<mets:agent ROLE="DISSEMINATOR" TYPE="INDIVIDUAL">
+			<mets:name>f. lee</mets:name>
+		</mets:agent>
+		<mets:agent ROLE="CREATOR" TYPE="INDIVIDUAL">
+			<mets:name>f. lee</mets:name>
+		</mets:agent>
+	</mets:metsHdr>
+	<mets:dmdSec ID="DMD3459" CREATED="2021-07-07T21:35:24" STATUS="current">
+		<mets:mdWrap MDTYPE="DC">
+			<mets:xmlData>
+				<dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/">
+					<dc:title>H3_Profile_Input_CN</dc:title>
+					<dc:creator></dc:creator>
+					<dc:subject></dc:subject>
+					<dc:description></dc:description>
+					<dc:publisher></dc:publisher>
+					<dc:contributor></dc:contributor>
+					<dc:type></dc:type>
+					<dc:format></dc:format>
+					<dc:identifier></dc:identifier>
+					<dc:source></dc:source>
+					<dc:language></dc:language>
+					<dc:relation></dc:relation>
+					<dc:coverage></dc:coverage>
+					<dc:identifier></dc:identifier>
+					<dc:identifier></dc:identifier>
+				</dc:dc>
+				<wct:wct xmlns:wct="http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd">
+					<wct:Target>
+						<wct:ReferenceNumber></wct:ReferenceNumber>
+						<wct:Name>H3_Profile_Input_CN</wct:Name>
+						<wct:Description></wct:Description>
+						<wct:Seeds>
+							<wct:Seed>
+								<wct:SeedURL>https://www.qq.com/</wct:SeedURL>
+								<wct:SeedType>Primary</wct:SeedType>
+							</wct:Seed>
+						</wct:Seeds>
+					</wct:Target>
+
+					<wct:Groups>
+					</wct:Groups>
+				</wct:wct>
+				<mets:mdRef>order.xml</mets:mdRef>
+			</mets:xmlData>
+		</mets:mdWrap>
+	</mets:dmdSec>
+	<mets:amdSec ID="AMD3459">
+		<mets:techMD ID="TMD3459">
+			<mets:mdWrap MDTYPE="OTHER">
+				<mets:xmlData>
+					<wct:wct xmlns:wct="http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd">
+						<wct:TargetInstance>
+							<wct:Crawl>
+
+
+								<wct:AppVersion>3.1.0-SNAPSHOT</wct:AppVersion>
+
+
+
+								<wct:StartDate>2021-07-02 20:57:13.0</wct:StartDate>
+								<wct:StartDate>2021-07-02 20:57:13.0</wct:StartDate>
+								<wct:Duration>60772</wct:Duration>
+
+
+								<wct:CaptureSystem>Heritrix 3.4.0</wct:CaptureSystem>
+
+
+
+								<wct:URLs>
+									<wct:Downloaded>517</wct:Downloaded>
+									<wct:Failed>0</wct:Failed>
+								</wct:URLs>
+								<wct:AverageBandwidth>197.0</wct:AverageBandwidth>
+								<wct:DocumentProcessRate>8.507207266504311</wct:DocumentProcessRate>
+								<wct:DownloadedDataSize>12275446</wct:DownloadedDataSize>
+							</wct:Crawl>
+							<wct:Annotations>
+							</wct:Annotations>
+						</wct:TargetInstance>
+					</wct:wct>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:techMD>
+		<mets:rightsMD ID="RMD3459">
+			<mets:mdWrap MDTYPE="OTHER">
+				<mets:xmlData>
+					<wct:wct xmlns:wct="http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd">
+						<wct:Permissions>
+							<wct:Permission>
+								<wct:State>Granted</wct:State>
+								<wct:StartDate>2020-01-21</wct:StartDate>
+								<wct:EndDate>2022-03-31</wct:EndDate>
+								<wct:HarvestAuthorisation>
+									<wct:Name>HarvestAuthCommon</wct:Name>
+									<wct:Description></wct:Description>
+									<wct:OrderNumber>ytr</wct:OrderNumber>
+									<wct:IsPublished>true</wct:IsPublished>
+								</wct:HarvestAuthorisation>
+								<wct:AccessStatus>Open (unrestricted) access</wct:AccessStatus>
+								<wct:SpecialRequirements></wct:SpecialRequirements>
+								<wct:OpenAccessDate></wct:OpenAccessDate>
+								<wct:CopyrightStatement></wct:CopyrightStatement>
+								<wct:CopyrightURL></wct:CopyrightURL>
+								<wct:FileReference></wct:FileReference>
+								<wct:AuthorisingAgent>
+									<wct:Name>HarvestAuthCommon</wct:Name>
+									<wct:Contact>johnsionville</wct:Contact>
+								</wct:AuthorisingAgent>
+								<wct:Paterns>
+									<wct:Pattern>http://*.org/</wct:Pattern>
+									<wct:Pattern>https://*.com/</wct:Pattern>
+									<wct:Pattern>http://*.com/</wct:Pattern>
+									<wct:Pattern>https://translate.google.com/</wct:Pattern>
+								</wct:Paterns>
+								<wct:SeedsURLs>
+									<wct:SeedURL>https://www.qq.com/</wct:SeedURL>
+								</wct:SeedsURLs>
+							</wct:Permission>
+						</wct:Permissions>
+
+					</wct:wct>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:rightsMD>
+		<mets:digiprovMD ID="DPMD3459">
+			<mets:mdWrap MDTYPE="OTHER">
+				<mets:xmlData>
+					<wct:wct xmlns:wct="http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd">
+						<wct:TargetInstance>
+							<wct:HarvestResult>
+								<wct:Creator>lql 0/1</wct:Creator>
+								<wct:CreationDate>2021-07-02</wct:CreationDate>
+								<wct:ProvenanceNote>Original Harvest</wct:ProvenanceNote>
+							</wct:HarvestResult>
+
+							<wct:Owner>
+								<wct:UID>lql</wct:UID>
+								<wct:Agency>bootstrap</wct:Agency>
+							</wct:Owner>
+							<wct:ModificationType></wct:ModificationType>
+							<wct:ModiicationNote></wct:ModiicationNote>
+							<wct:HarvestServer>Local Agent H3</wct:HarvestServer>
+							<wct:DisplayTargetInstance>true</wct:DisplayTargetInstance>
+							<wct:TargetInstanceDisplayNote></wct:TargetInstanceDisplayNote>
+						</wct:TargetInstance>
+						<wct:Target>
+							<wct:ObjectType>Target</wct:ObjectType>
+
+							<wct:ProfileNote></wct:ProfileNote>
+
+							<wct:HarvestType></wct:HarvestType>
+							<wct:SelectionDate></wct:SelectionDate>
+							<wct:SelectionType></wct:SelectionType>
+							<wct:SelectionNote></wct:SelectionNote>
+							<wct:EvaluationNote></wct:EvaluationNote>
+
+							<wct:Annotations></wct:Annotations><wct:DisplayTarget>true</wct:DisplayTarget>
+							<wct:AccessZone>0</wct:AccessZone>
+							<wct:AccessZoneText>Public</wct:AccessZoneText>
+							<wct:TargetDisplayNote></wct:TargetDisplayNote>
+						</wct:Target>
+					</wct:wct>
+					<vCard:VCard xmlns:vCard="http://www.w3.org/2001/vcard-rdf/3.0#">
+						<vCard:FN>frank lee</vCard:FN>
+						<vCard:N>
+							<vCard:FAMILY>lee</vCard:FAMILY>
+							<vCard:GIVEN>frank</vCard:GIVEN>
+							<vCard:PREFIX>Mr</vCard:PREFIX>
+						</vCard:N>
+						<vCard:EMAIL>
+							<vCard:WORK>leefrank9527@gmail.com</vCard:WORK>
+						</vCard:EMAIL>
+						<vCard:ORG>
+							<vCard:Orgname>bootstrap</vCard:Orgname>
+							<vCard:EMAIL></vCard:EMAIL>
+						</vCard:ORG>
+						<vCard:URL></vCard:URL>
+						<vCard:LOGO>http://hhh/</vCard:LOGO>
+						<vCard:UID>lql</vCard:UID>
+					</vCard:VCard>
+				</mets:xmlData>
+			</mets:mdWrap>
+		</mets:digiprovMD>
+	</mets:amdSec>
