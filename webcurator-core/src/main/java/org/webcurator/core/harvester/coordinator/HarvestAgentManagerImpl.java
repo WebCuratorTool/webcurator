@@ -74,16 +74,19 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
 
                 updateStatusWithEnvironment(harvesterStatusDto);
                 HarvesterStatus harvesterStatus = createHarvesterStatus(ti, harvesterStatusDto);
+                targetInstanceManager.save(ti); //Update the status details
 
                 log.debug("Heartbeat for ti: {}, state: {}", tiOid, harvesterStatus.getStatus());
 
                 String harvesterStatusValue = harvesterStatus.getStatus();
-                if (StringUtils.isEmpty(harvesterStatusValue)) {
-                    log.error("harvesterStatusValue is null, tiOid:{}", tiOid);
-                    return;
+                if (StringUtils.isEmpty(harvesterStatusDto.getHarvesterState()) || StringUtils.isEmpty(harvesterStatusValue)) {
+                    log.error("getHarvesterState or harvesterStatusValue is null, tiOid:{}", tiOid);
+                    doHeartbeatLaunchFailed(ti, harvestResultNumber);
+                    continue; //Skip the current job, and continue to process the next one.
                 }
 
-                if (harvesterStatusValue.startsWith("Paused")) {
+                harvesterStatusValue = harvesterStatusValue.toUpperCase();
+                if (harvesterStatusValue.startsWith("Paused".toUpperCase())) {
                     doHeartbeatPaused(ti, harvestResultNumber);
                 }
 
@@ -91,22 +94,23 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 // in the UI. Once in this state, the user has no control over the
                 // harvest and cannot use it. This work around means that any
                 // TIs in the wrong state will be corrected on the next heartbeat
-                if (harvesterStatusValue.startsWith("Running")) {
+                if (harvesterStatusValue.startsWith("Running".toUpperCase())) {
                     doHeartbeatRunning(aStatus, ti, harvesterStatus, harvestResultNumber);
                 }
 
-                if (harvesterStatusValue.startsWith("Finished")) {
+                if (harvesterStatusValue.startsWith("Finished".toUpperCase())) {
                     doHeartbeatFinished(ti, harvestResultNumber);
                 }
 
                 // This is a required because when a
                 // "Could not launch job - Fatal InitializationException" job occurs
                 // We do not get a notification that causes the job to stop nicely
-                if (harvesterStatusValue.startsWith("Could not launch job - Fatal InitializationException")) {
+                if (harvesterStatusValue.startsWith("Could not launch job - Fatal InitializationException".toUpperCase())
+                        || harvesterStatusDto.getHarvesterState().toUpperCase().startsWith("H3 Job Not Found".toUpperCase())) {
                     doHeartbeatLaunchFailed(ti, harvestResultNumber);
                 }
 
-                targetInstanceManager.save(ti);
+                //targetInstanceManager.save(ti);
             } catch (Exception e) {
                 log.error("Failed to process: {}", tiOid, e);
             } finally {
@@ -142,6 +146,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         String state = ti.getState();
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_ABORTED);
+            targetInstanceManager.save(ti);
             HarvestAgentStatusDTO hs = getHarvestAgentStatusFor(ti.getJobName());
             if (hs == null) {
                 log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", ti.getJobName());
@@ -151,15 +156,20 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
             }
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             String jobName = PatchUtil.getPatchJobName(ti.getOid(), harvestResultNumber);
+
+            ti.setState(TargetInstance.STATE_HARVESTED);
+            targetInstanceManager.save(ti);
+
             HarvestAgentStatusDTO hs = getHarvestAgentStatusFor(jobName);
             if (hs == null) {
-                log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", ti.getJobName());
+                log.warn("Forced Abort Failed. Failed to find the Harvest Agent for the Job {}.", jobName);
             } else {
+                log.debug("Forced Abort job: {}.", jobName);
                 HarvestAgent agent = harvestAgentFactory.getHarvestAgent(hs);
                 agent.abort(jobName);
             }
 
-            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_TERMINATED);
+            harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_ABORTED, HarvestResult.STATUS_TERMINATED);
         }
     }
 
@@ -167,6 +177,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         String state = ti.getState();
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_STOPPING);
+            targetInstanceManager.save(ti);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             log.info("Recrawle job is stopping, tiOID:{}, hrNum:{}", ti.getOid(), harvestResultNumber);
         }
@@ -189,6 +200,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
                 log.info("HarvestCoordinator: Target Instance start time set for target instance " + ti.getOid().toString());
             }
             ti.setState(TargetInstance.STATE_RUNNING);
+            targetInstanceManager.save(ti);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_RUNNING);
         }
@@ -198,6 +210,7 @@ public class HarvestAgentManagerImpl implements HarvestAgentManager {
         String state = ti.getState();
         if (state.equals(TargetInstance.STATE_RUNNING)) {
             ti.setState(TargetInstance.STATE_PAUSED);
+            targetInstanceManager.save(ti);
         } else if (state.equals(TargetInstance.STATE_PATCHING)) {
             harvestResultManager.updateHarvestResultStatus(ti.getOid(), harvestResultNumber, HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_PAUSED);
         }

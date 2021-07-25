@@ -20,6 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,8 +34,10 @@ import java.util.Date;
  *
  * @author bbeaumont
  */
-public class Utils {
-    private static final Logger log = LoggerFactory.getLogger(Utils.class);
+public class WctUtils {
+    private static final Logger log = LoggerFactory.getLogger(WctUtils.class);
+    private static final int EOF = -1;
+    private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
     /**
      * Checks if a String is null or space.
@@ -162,6 +166,23 @@ public class Utils {
         return idx > 0 ? clazzName.substring(0, idx) : clazzName;
     }
 
+    public static void deleteFile(String fPath, String fName) {
+        deleteFile(new File(fPath, fName));
+    }
+
+    public static void deleteFile(File f) {
+        if (f == null || !f.exists() || !f.isFile()) {
+            log.warn("Invalid file: " + f);
+            return;
+        }
+
+        try {
+            Files.deleteIfExists(f.toPath());
+        } catch (IOException e) {
+            log.error("Failed to delete file: {}", f.getAbsolutePath(), e);
+        }
+    }
+
     public static void cleanDirectory(File directory) {
         if (directory == null || !directory.exists()) {
             return;
@@ -187,6 +208,34 @@ public class Utils {
         } catch (IOException e) {
             log.error("Failed to delete: {}", directory.getAbsolutePath(), e);
         }
+    }
+
+    /*Copy ans close streams*/
+    public static long copy(InputStream input, OutputStream output) throws IOException {
+        byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+        long count = 0;
+        int n = 0;
+        try {
+            while (EOF != (n = input.read(buffer))) {
+                output.write(buffer, 0, n);
+                count += n;
+            }
+        } catch (IOException e) {
+            log.error("Failed to copy stream", e);
+            throw e;
+        } finally {
+            try {
+                input.close();
+            } catch (IOException e) {
+                log.error("Failed to close input stream");
+            }
+            try {
+                output.close();
+            } catch (IOException e) {
+                log.error("Failed to close output stream");
+            }
+        }
+        return count;
     }
 
     public static void main(String... args) {

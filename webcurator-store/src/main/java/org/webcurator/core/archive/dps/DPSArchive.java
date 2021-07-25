@@ -1,23 +1,22 @@
 /**
  * org.webcurator.core.archive.dps - Software License
- *
+ * <p>
  * Copyright 2007/2009 National Library of New Zealand.
  * All rights reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0 
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * or the file "LICENSE.txt" included with the software.
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
- *
  */
 
 package org.webcurator.core.archive.dps;
@@ -27,12 +26,14 @@ import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.webcurator.core.archive.BaseArchive;
 import org.webcurator.core.archive.ArchiveFile;
+
 import static org.webcurator.core.archive.Constants.ACCESS_RESTRICTION;
 import static org.webcurator.core.archive.Constants.HARVEST_TYPE;
 import static org.webcurator.core.archive.Constants.REFERENCE_NUMBER;
@@ -67,7 +68,6 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 
 
-
 /**
  * A specific DPS-based archiver for the National Library of New Zealand's DPS archival system.
  *=======
@@ -89,11 +89,13 @@ public class DPSArchive extends BaseArchive {
     public static class DepData {
         public final String id;
         public final String description;
+
         protected DepData(String id, String description) {
             this.id = id;
             this.description = description;
         }
     }
+
     private static Log log = LogFactory.getLog(DPSArchive.class);
 
     private static Cache producerCache;
@@ -111,9 +113,9 @@ public class DPSArchive extends BaseArchive {
     private java.lang.String dpsUserPassword;
     private java.lang.String materialFlowId;
     private java.lang.String producerId;
-    private java.lang.String omsOpenAccess;  
+    private java.lang.String omsOpenAccess;
     private java.lang.String omsPublishedRestricted = "";
-	private java.lang.String omsUnpublishedRestrictedByLocation = "";
+    private java.lang.String omsUnpublishedRestrictedByLocation = "";
     private java.lang.String omsUnpublishedRestrictedByPersion = "";
     private java.lang.String cmsSection = "";
     private java.lang.String cmsSystem = "";
@@ -129,7 +131,7 @@ public class DPSArchive extends BaseArchive {
     private List<String> ieEntityTypesOfHtmlSerials = new ArrayList<String>();
     private List<String> customDepositFormURLsForHtmlSerialIngest;
     private boolean restrictHTMLSerialAgenciesToHTMLSerialTypes;
-//    private Map<String, Map<String, String>> customDepositFormFieldMaps = new HashMap<String, Map<String, String>>();
+    //    private Map<String, Map<String, String>> customDepositFormFieldMaps = new HashMap<String, Map<String, String>>();
     private CustomDepositFormMapping customDepositFormMapping;
 
     private static final String DPS_SIPID_PREFIX = "dps-sipid-";
@@ -150,7 +152,7 @@ public class DPSArchive extends BaseArchive {
             log.error("Error creating an ehCache for producer/producer agent caching", e);
         }
     }
-    
+
     /**
      * @param targetInstanceOID The target instance oid
      * @param SIP               The METS xml structure for completion and archival
@@ -165,7 +167,7 @@ public class DPSArchive extends BaseArchive {
 
         try {
             if (targetInstanceOID != null) {
-                for(ArchiveFile f : fileList){
+                for (ArchiveFile f : fileList) {
                     f.setMd5(calculateMD5(f.getFile()));
                 }
                 String finalSIP = getFinalSIP(SIP, targetInstanceOID, fileList);
@@ -181,16 +183,15 @@ public class DPSArchive extends BaseArchive {
                 DepositResult depositResult = dpsDeposit.deposit(parameters, files);
 
                 if (depositResult.isError())
-                    throw new DPSUploadException("Submission to DPS failed for Target Instance " + targetInstanceOID 
+                    throw new DPSUploadException("Submission to DPS failed for Target Instance " + targetInstanceOID
                             + ", message from DPS: " + depositResult.getMessageDesciption());
 
                 IID = DPS_SIPID_PREFIX + Long.toString(depositResult.getSipId());
             }
             return IID;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             log.error("Error submitting to DPS", ex);
-            throw new DPSUploadException(ex);
+            throw new DPSUploadException(ExceptionUtils.getStackTrace(ex));
         }
 
     }
@@ -198,23 +199,23 @@ public class DPSArchive extends BaseArchive {
     public CustomDepositFormResultDTO getCustomDepositFormDetails(CustomDepositFormCriteriaDTO criteria) {
         log.debug("DPSArchive: getCustomDepositFormDetails() invoked with " + criteria);
         CustomDepositFormResultDTO response = new CustomDepositFormResultDTO();
-        if (criteria == null) return response; 
+        if (criteria == null) return response;
         /*
          * Current logic of determining whether there is a need to fill a custom deposit form:
-         * 
+         *
          * A custom deposit form is required if:
          * - You are archiving a harvest of (target) type "HTML Serial", as
          *   dictated by the configured target type names in targetTypesOfHtmlSerials.
          * OR,
-         * - Your login id belongs to the agency responsible for harvesting/archiving 
+         * - Your login id belongs to the agency responsible for harvesting/archiving
          *   HTML Serials, as dictated by the configured agency names in
          *   agenciesResponsibleForHtmlSerials.
-         * 
+         *
          * Also, if your login belongs to the agency responsible for harvesting/archiving
          * HTML Serials and if you are NOT archiving a harvest of (target) type "HTML Serial",
-         * the custom form selected will be an "Error" custom form which is configured in 
+         * the custom form selected will be an "Error" custom form which is configured in
          * the system as rosetta_custom_deposit_form_invalid_dctype.jsp
-         * 
+         *
          * Note: All comparisons of target types or agency names are case-insensitive.
          */
         int targetTypeIndex = getIndexInList(criteria.getTargetType(), targetDCTypesOfHtmlSerials);
@@ -233,7 +234,7 @@ public class DPSArchive extends BaseArchive {
         } else {
             /*
              * Do not show custom form if you do not belong to the agency responsible for HTML serials.
-             * But if you do belong, then show an "invalid/error" page. 
+             * But if you do belong, then show an "invalid/error" page.
              */
             if (isAgencyResponsibleForHtmlSerials && restrictHTMLSerialAgenciesToHTMLSerialTypes) {
                 response.setCustomDepositFormRequired(true);
@@ -310,8 +311,8 @@ public class DPSArchive extends BaseArchive {
             String xmlReply = _pws.getProducersOfProducerAgent(producerAgentId);
             DepData[] depData = xmlReplyToDepData(xmlReply);
             DepData retDepData = null;
-            for(DepData data : depData){
-                if(data.id.equals(producerId)){
+            for (DepData data : depData) {
+                if (data.id.equals(producerId)) {
                     retDepData = data;
                     break;
                 }
@@ -342,7 +343,7 @@ public class DPSArchive extends BaseArchive {
             }
             return depData;
         } catch (Exception e) {
-            log.error("Error getting material flows for producer " + producerID  + " from URL " + producerWsdlUrl, e);
+            log.error("Error getting material flows for producer " + producerID + " from URL " + producerWsdlUrl, e);
         }
         return null;
     }
@@ -352,7 +353,7 @@ public class DPSArchive extends BaseArchive {
         if (materialFlowOfTargetDcType == null || materialFlowOfTargetDcType.length() <= 0)
             return false;
         DepData[] materialFlows = getMaterialFlows(producerId);
-        if (materialFlows == null || materialFlows.length <=0) {
+        if (materialFlows == null || materialFlows.length <= 0) {
             log.error("Could not get any material flows from Rosetta for producer " + producerId + " using URL " + producerWsdlUrl);
             return false;
         }
@@ -400,7 +401,7 @@ public class DPSArchive extends BaseArchive {
             log.error("DC Type " + targetDcType + " of the target instance is not of an HTML serial type");
             return null;
         }
-        if(propertyList.isEmpty()){
+        if (propertyList.isEmpty()) {
             log.info("DC Type " + targetDcType + " of the target instance does not have a preset Producer Id");
             return null;
         }
@@ -409,7 +410,7 @@ public class DPSArchive extends BaseArchive {
         } catch (Exception ex) {
             log.error("Error getting a property corresponding to the DC Type " + targetDcType + " from list " + propertyList, ex);
         }
-        return (propertyAgainstTargetDCType == null) ? null: propertyAgainstTargetDCType.trim();
+        return (propertyAgainstTargetDCType == null) ? null : propertyAgainstTargetDCType.trim();
     }
 
     private DepData[] xmlReplyToDepData(String xmlReply) throws XmlException {
@@ -420,7 +421,7 @@ public class DPSArchive extends BaseArchive {
     }
 
     private ProducerWebServices getProducerWebServices() {
-        synchronized(this) {
+        synchronized (this) {
             if (producerWsdlUrl == null) {
                 if (this.depositServerBaseUrl != null && producerWsdlRelativePath != null) {
                     producerWsdlUrl = this.depositServerBaseUrl + producerWsdlRelativePath;
@@ -431,13 +432,13 @@ public class DPSArchive extends BaseArchive {
          * Ideally, we should be using the following call:
          * return WebServiceLocator.getInstance().lookUp(ProducerWebServices.class, producerWsdlUrl);
          * which uses the DPS SDK class com.exlibris.digitool.locator.WebServiceLocator.
-         * 
+         *
          * However, the WebServiceLocator class from DPS SDK seems to be caching the web service
          * handle and this handle, when not used for several hours, seems to become stale, throwing
          * up exceptions.
-         * 
-         * So instead of using the DPS SDK's WebServiceLocator class, we are forced to use the 
-         * following low-level logic to bind to the Producer web service. The following code 
+         *
+         * So instead of using the DPS SDK's WebServiceLocator class, we are forced to use the
+         * following low-level logic to bind to the Producer web service. The following code
          * has been created by copying the required code segment from the
          * WebServiceLocator.lookUp() method by ExLibris.
          */
@@ -446,7 +447,7 @@ public class DPSArchive extends BaseArchive {
         String wsdlUrlStr = producerWsdlUrl;
         try {
             wsdlUrl = new URL(wsdlUrlStr);
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("Failed to build WSDL URL from " + wsdlUrlStr + " - Web service lookup of " + serviceEndpointInterfaceName + " will fail", e);
             e.printStackTrace();
         }
@@ -601,10 +602,9 @@ public class DPSArchive extends BaseArchive {
      in wct-das.properties, as a blank String value will just be passed through if it is missing.
      */
     public void setRestrictHTMLSerialAgenciesToHTMLSerialTypes(String restrictHTMLSerialAgenciesToHTMLSerialTypes) {
-        if(restrictHTMLSerialAgenciesToHTMLSerialTypes.isEmpty()){
+        if (restrictHTMLSerialAgenciesToHTMLSerialTypes.isEmpty()) {
             this.restrictHTMLSerialAgenciesToHTMLSerialTypes = true;
-        }
-        else{
+        } else {
             this.restrictHTMLSerialAgenciesToHTMLSerialTypes = Boolean.parseBoolean(restrictHTMLSerialAgenciesToHTMLSerialTypes);
         }
     }
@@ -632,18 +632,18 @@ public class DPSArchive extends BaseArchive {
     public void setOmsOpenAccess(String omsOpenAccess) {
         this.omsOpenAccess = omsOpenAccess;
     }
-    
+
     public void setOmsPublishedRestricted(String omsPublishedRestricted) {
-		this.omsPublishedRestricted = omsPublishedRestricted;
-	}
+        this.omsPublishedRestricted = omsPublishedRestricted;
+    }
 
-	public void setOmsUnpublishedRestrictedByLocation(String omsUnpublishedRestrictedByLocation) {
-		this.omsUnpublishedRestrictedByLocation = omsUnpublishedRestrictedByLocation;
-	}
+    public void setOmsUnpublishedRestrictedByLocation(String omsUnpublishedRestrictedByLocation) {
+        this.omsUnpublishedRestrictedByLocation = omsUnpublishedRestrictedByLocation;
+    }
 
-	public void setOmsUnpublishedRestrictedByPersion(String omsUnpublishedRestrictedByPersion) {
-		this.omsUnpublishedRestrictedByPersion = omsUnpublishedRestrictedByPersion;
-	}
+    public void setOmsUnpublishedRestrictedByPersion(String omsUnpublishedRestrictedByPersion) {
+        this.omsUnpublishedRestrictedByPersion = omsUnpublishedRestrictedByPersion;
+    }
 
     public void setCmsSection(String cmsSection) {
         this.cmsSection = cmsSection;
@@ -669,16 +669,16 @@ public class DPSArchive extends BaseArchive {
 
     /**
      * Converts a comma-separated string into a list of lower-case letter strings.
-     * 
+     *
      * @param commaSeparatedString
      * @return
      */
     protected static List<String> toListOfLowerCaseValues(String commaSeparatedString) {
         List<String> theList = new ArrayList<String>();
         if (commaSeparatedString == null) return theList;
-        
+
         String[] tokens = commaSeparatedString.split("[,]");
-        for (int i = 0; i< tokens.length; i++) {
+        for (int i = 0; i < tokens.length; i++) {
             String token = tokens[i];
             if (token == null || token.trim().length() <= 0) continue;
             theList.add(token.trim().toLowerCase());
@@ -688,16 +688,16 @@ public class DPSArchive extends BaseArchive {
 
     /**
      * Converts a comma-separated string into a list of strings.
-     * 
+     *
      * @param commaSeparatedString
      * @return
      */
     protected static List<String> toList(String commaSeparatedString) {
         List<String> theList = new ArrayList<String>();
         if (commaSeparatedString == null) return theList;
-        
+
         String[] tokens = commaSeparatedString.split("[,]");
-        for (int i = 0; i< tokens.length; i++) {
+        for (int i = 0; i < tokens.length; i++) {
             String token = tokens[i];
             if (token == null || token.trim().length() <= 0) continue;
             theList.add(token.trim());
@@ -736,7 +736,7 @@ public class DPSArchive extends BaseArchive {
 
         /*
          * Add the parameters read from wct-das.xml file. However, if the
-         * custom deposit form is filled by the user, get some of these 
+         * custom deposit form is filled by the user, get some of these
          * parameters from what the user filled in the custom form.
          */
         String dpsUserNameToUse = this.dpsUserName;
@@ -745,22 +745,21 @@ public class DPSArchive extends BaseArchive {
         String materialFlowIdToUse = this.materialFlowId;
         String ieEntityTypeToUse = null;
         String dcTitleSourceToUse = null;
-        if (Boolean.parseBoolean((String)attributes.get("customDepositForm_customFormPopulated"))) {
+        if (Boolean.parseBoolean((String) attributes.get("customDepositForm_customFormPopulated"))) {
 
             int targetTypeIndex = getIndexInList((String) attributes.get(HARVEST_TYPE), targetDCTypesOfHtmlSerials);
 
             List<CustomDepositField> customDepositFormFieldMapping = null;
             String customFormURL = customDepositFormURLsForHtmlSerialIngest.get(targetTypeIndex);
-            if(customDepositFormMapping.hasFormMapping(customFormURL)){
+            if (customDepositFormMapping.hasFormMapping(customFormURL)) {
                 customDepositFormFieldMapping = customDepositFormMapping.getFormMapping(customFormURL);
-            }
-            else {
+            } else {
                 throw new RuntimeException("Could not retrieve the Custom Deposit Form mappings for " + customFormURL + ".");
             }
 
 
             /*
-             * This is an HTML Serial Deposit harvest. So do not use the 
+             * This is an HTML Serial Deposit harvest. So do not use the
              * default values, but use those entered by the user
              */
             dpsUserNameToUse = (String) attributes.get("customDepositForm_producerAgent");
@@ -775,24 +774,23 @@ public class DPSArchive extends BaseArchive {
             parameterMap.put(DpsDepositFacade.CUSTOM_DEPOSIT_FORM_URL, customDepositFormURLsForHtmlSerialIngest.get(targetTypeIndex));
 
             // Capture Dublin Core values in the parameters map
-            for(CustomDepositField field : customDepositFormFieldMapping){
+            for (CustomDepositField field : customDepositFormFieldMapping) {
                 parameterMap.put(field.getFieldReference(), (String) attributes.get(field.getFormFieldLabel()));
             }
         } else {
 
 
             // Check if the Harvest Type matches any of the Custom Types
-            if(isCustomTargetDCType((String) attributes.get(HARVEST_TYPE))){
+            if (isCustomTargetDCType((String) attributes.get(HARVEST_TYPE))) {
                 // Get custom target DC type
-                 String targetDcType = (String) attributes.get(HARVEST_TYPE);
-                 materialFlowIdToUse = getMaterialFlowOfCustomTargetDCType(targetDcType);
+                String targetDcType = (String) attributes.get(HARVEST_TYPE);
+                materialFlowIdToUse = getMaterialFlowOfCustomTargetDCType(targetDcType);
                 producerIdToUse = getProducerIdsOfCustomTargetDCType(targetDcType);
-                 ieEntityTypeToUse = getIeEntityTypeOfCustomTargetDCType(targetDcType);
-                 dcTitleSourceToUse= getDCTitleSourceOfCustomTargetDCType(targetDcType);
-                if(dcTitleSourceToUse == null) dcTitleSourceToUse = "";
+                ieEntityTypeToUse = getIeEntityTypeOfCustomTargetDCType(targetDcType);
+                dcTitleSourceToUse = getDCTitleSourceOfCustomTargetDCType(targetDcType);
+                if (dcTitleSourceToUse == null) dcTitleSourceToUse = "";
                 parameterMap.put(DpsDepositFacade.HARVEST_TYPE, DpsDepositFacade.HarvestType.CustomWebHarvest.name());
-            }
-            else {
+            } else {
                 // The custom deposit form is not filled AND is not a Custom Target DC Type; So this is a traditional web harvest.
                 parameterMap.put(DpsDepositFacade.HARVEST_TYPE, DpsDepositFacade.HarvestType.TraditionalWebHarvest.name());
             }
@@ -819,20 +817,20 @@ public class DPSArchive extends BaseArchive {
 
         /*
          * Add target reference number.
-         * 
+         *
          * The target reference number needs to be taken from the xAttributes map
          * and not from the WCT METS document. A bug in the WCT causes the METS
          * to not contain the target reference number if it was entered into the
-         * target after a given target instance is endorsed. 
+         * target after a given target instance is endorsed.
          */
-        String ilsReference = (String)attributes.get(REFERENCE_NUMBER);
+        String ilsReference = (String) attributes.get(REFERENCE_NUMBER);
         if (ilsReference != null) ilsReference = ilsReference.trim();
         parameterMap.put(DpsDepositFacade.ILS_REFERENCE, ilsReference);
 
         /*
          * Add OMS-style access restriction string
          */
-        parameterMap.put(DpsDepositFacade.ACCESS_RESTRICTION, (String)attributes.get(ACCESS_RESTRICTION));
+        parameterMap.put(DpsDepositFacade.ACCESS_RESTRICTION, (String) attributes.get(ACCESS_RESTRICTION));
 
         /*
          * Add the WCT METS XML string
@@ -855,6 +853,7 @@ public class DPSArchive extends BaseArchive {
             if (isEmpty(o2)) return -1;
             return o1.description.compareToIgnoreCase(o2.description);
         }
+
         private boolean isEmpty(DepData o) {
             if (o == null || o.description == null) return true;
             return false;
@@ -862,7 +861,12 @@ public class DPSArchive extends BaseArchive {
 
     }
 
-    public String getWebappBaseUrl() { return webappBaseUrl; }
-    public void setWebappBaseUrl(String baseURL) {this.webappBaseUrl = baseURL; }
+    public String getWebappBaseUrl() {
+        return webappBaseUrl;
+    }
+
+    public void setWebappBaseUrl(String baseURL) {
+        this.webappBaseUrl = baseURL;
+    }
 
 }

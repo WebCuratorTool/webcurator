@@ -14,6 +14,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class WaybackIndexer extends IndexerBase {
@@ -250,6 +251,10 @@ public class WaybackIndexer extends IndexerBase {
         protected void copyToInput() {
             File inputFile = new File(waybackInputFolder + "/" + getVersionedName());
             try {
+                File directory = inputFile.getParentFile();
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                }
                 copyFile(theFile, inputFile);
                 status = FileStatus.COPIED;
             } catch (IOException e) {
@@ -283,25 +288,12 @@ public class WaybackIndexer extends IndexerBase {
         }
 
         private void copyFile(File source, File destination) throws IOException {
-            int BUFFER_SIZE = 64000;
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int bytesRead = 0;
+            log.debug("Copy file: {} --> {}", source.getAbsolutePath(), destination.getAbsolutePath());
 
-            InputStream is = null;
-            OutputStream os = null;
+            InputStream is = new BufferedInputStream(new FileInputStream(source));
+            OutputStream os = new BufferedOutputStream(new FileOutputStream(destination));
 
-            try {
-                log.debug("Copy file: {} --> {}", source.getAbsolutePath(), destination.getAbsolutePath());
-                is = new BufferedInputStream(new FileInputStream(source));
-                os = new BufferedOutputStream(new FileOutputStream(destination));
-
-                while ((bytesRead = is.read(buffer)) > 0) {
-                    os.write(buffer, 0, bytesRead);
-                }
-            } finally {
-                if (is != null) is.close();
-                if (os != null) os.close();
-            }
+            WctUtils.copy(is, os);
         }
     }
 }

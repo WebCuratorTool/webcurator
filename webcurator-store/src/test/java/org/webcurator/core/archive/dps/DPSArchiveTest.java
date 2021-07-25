@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.webcurator.core.archive.ArchiveFile;
+import org.webcurator.core.archive.MockSipMets;
 import org.webcurator.core.archive.dps.DPSArchive.DepData;
 import org.webcurator.core.archive.dps.DpsDepositFacade.DepositResult;
 import org.webcurator.domain.model.core.CustomDepositFormCriteriaDTO;
@@ -312,7 +313,7 @@ public class DPSArchiveTest {
 
     @Ignore
     @Test
-    public void testSubmitToArchive() throws DPSUploadException {
+    public void testSubmitToArchive() {
         mockDpsDepositFacade = mockDpsDepositFacade();
         DPSArchive archiver = new DPSArchive();
         setVariousParameters(archiver);
@@ -320,15 +321,24 @@ public class DPSArchiveTest {
 
         String targetInstanceOID = "1588";
 
-        File toBeTestDir = new File("/usr/local/wct/store/1588/1");
+        File toBeTestDir = new File("/usr/local/wct/store/3459/1");
         File[] files = toBeTestDir.listFiles();
         List<ArchiveFile> archiveFileList = new ArrayList<>();
         for (File f : files) {
+            if (!f.isFile()) {
+                continue;
+            }
             ArchiveFile archiveFile = new ArchiveFile(f, ARC_FILE);
             archiveFileList.add(archiveFile);
         }
 //		final List<ArchiveFile> archiveFileList = mockDasArchiveFileList();
-        String archiveId = archiver.submitToArchive(targetInstanceOID, getFinalSip(), attributes, archiveFileList);
+        String finalSip = MockSipMets.getSipMetsXml();
+        String archiveId = null;
+        try {
+            archiveId = archiver.submitToArchive(targetInstanceOID, finalSip, attributes, archiveFileList);
+        } catch (DPSUploadException e) {
+            e.printStackTrace();
+        }
         assertEquals("dps-sipid-" + expectedSipId, archiveId);
     }
 
@@ -453,211 +463,5 @@ public class DPSArchiveTest {
 
     private DepData mockDepData(final String id, final String desc) {
         return new DepData(id, desc);
-    }
-
-    private String getFinalSip() {
-        String finalSIP = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<mets:mets xmlns:mets=\"http://www.loc.gov/METS/\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.loc.gov/METS/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd\">\n" +
-                "<mets:metsHdr CREATEDATE=\"2020-11-10T11:38:27\">\n" +
-                "<mets:agent ROLE=\"DISSEMINATOR\" TYPE=\"INDIVIDUAL\">\n" +
-                "<mets:name>F. Lee</mets:name>\n" +
-                "</mets:agent>\n" +
-                "<mets:agent ROLE=\"CREATOR\" TYPE=\"INDIVIDUAL\">\n" +
-                "<mets:name>F. Lee</mets:name>\n" +
-                "</mets:agent>\n" +
-                "</mets:metsHdr>\n" +
-                "<mets:dmdSec ID=\"DMD55\" CREATED=\"2020-11-10T11:38:27\" STATUS=\"current\">\n" +
-                "<mets:mdWrap MDTYPE=\"DC\">\n" +
-                "<mets:xmlData>\n" +
-                "<dc:dc xmlns:dc=\"http://purl.org/dc/elements/1.1/\">\n" +
-                "<dc:title>Target_H1</dc:title>\n" +
-                "<dc:creator></dc:creator>\n" +
-                "<dc:subject></dc:subject>\t\t\t\t\t\t\n" +
-                "<dc:description></dc:description>\n" +
-                "<dc:publisher></dc:publisher>\n" +
-                "<dc:contributor></dc:contributor>\n" +
-                "<dc:type></dc:type>\n" +
-                "<dc:format></dc:format>\n" +
-                "<dc:identifier></dc:identifier>\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n" +
-                "<dc:source></dc:source>\n" +
-                "<dc:language></dc:language>\n" +
-                "<dc:relation></dc:relation>\n" +
-                "<dc:coverage></dc:coverage>\n" +
-                "<dc:identifier></dc:identifier>\n" +
-                "<dc:identifier></dc:identifier>\n" +
-                "</dc:dc>\n" +
-                "<wct:wct xmlns:wct=\"http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd\"> \n" +
-                "<wct:Target>\n" +
-                "<wct:ReferenceNumber></wct:ReferenceNumber>\n" +
-                "<wct:Name>Target_H1</wct:Name>\n" +
-                "<wct:Description></wct:Description>\n" +
-                "<wct:Seeds>\n" +
-                "<wct:Seed>\n" +
-                "<wct:SeedURL>https://www.rnz.co.nz/</wct:SeedURL>\n" +
-                "<wct:SeedType>Primary</wct:SeedType>\n" +
-                "</wct:Seed>\n" +
-                "</wct:Seeds>\n" +
-                "</wct:Target>\n" +
-                "\n" +
-                "<wct:Groups>\t\t\t\t\t\t\t\n" +
-                "</wct:Groups>\n" +
-                "</wct:wct>\n" +
-                "<mets:mdRef>order.xml</mets:mdRef>\n" +
-                "</mets:xmlData>\n" +
-                "</mets:mdWrap>\n" +
-                "</mets:dmdSec>\n" +
-                "<mets:amdSec ID=\"AMD55\">\n" +
-                "<mets:techMD ID=\"TMD55\">\n" +
-                "<mets:mdWrap MDTYPE=\"OTHER\">\n" +
-                "<mets:xmlData>\n" +
-                "<wct:wct xmlns:wct=\"http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd\">\n" +
-                "<wct:TargetInstance> \n" +
-                "<wct:Crawl>\n" +
-                "<wct:AppVersion>3.0.0-SNAPSHOT</wct:AppVersion>\n" +
-                "<wct:StartDate>2020-11-04 14:54:55.0</wct:StartDate>\n" +
-                "<wct:StartDate>2020-11-04 14:54:55.0</wct:StartDate>\n" +
-                "<wct:Duration>15046</wct:Duration>\n" +
-                "<wct:CaptureSystem>Heritrix 3.4.0</wct:CaptureSystem>\n" +
-                "<wct:URLs>\n" +
-                "<wct:Downloaded>51</wct:Downloaded>\n" +
-                "<wct:Failed>0</wct:Failed>\n" +
-                "</wct:URLs>\n" +
-                "<wct:AverageBandwidth>25.0</wct:AverageBandwidth>\n" +
-                "<wct:DocumentProcessRate>3.4</wct:DocumentProcessRate>\n" +
-                "<wct:DownloadedDataSize>394780</wct:DownloadedDataSize>\n" +
-                "</wct:Crawl>\n" +
-                "<wct:Annotations>\n" +
-                "</wct:Annotations>\n" +
-                "</wct:TargetInstance>\n" +
-                "</wct:wct>\n" +
-                "</mets:xmlData>\n" +
-                "</mets:mdWrap>\n" +
-                "</mets:techMD>\n" +
-                "<mets:rightsMD ID=\"RMD55\">\n" +
-                "<mets:mdWrap MDTYPE=\"OTHER\">\n" +
-                "<mets:xmlData>\n" +
-                "<wct:wct xmlns:wct=\"http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd\">\n" +
-                "<wct:Permissions>\n" +
-                "<wct:Permission>\n" +
-                "<wct:State>Granted</wct:State>\n" +
-                "<wct:StartDate>2020-11-04</wct:StartDate>\n" +
-                "<wct:EndDate></wct:EndDate>\n" +
-                "<wct:HarvestAuthorisation>\n" +
-                "<wct:Name>Auth</wct:Name>\n" +
-                "<wct:Description></wct:Description>\n" +
-                "<wct:OrderNumber></wct:OrderNumber>\n" +
-                "<wct:IsPublished>true</wct:IsPublished>\n" +
-                "</wct:HarvestAuthorisation>\n" +
-                "<wct:AccessStatus>Open (unrestricted) access</wct:AccessStatus>\n" +
-                "<wct:SpecialRequirements></wct:SpecialRequirements>\n" +
-                "<wct:OpenAccessDate></wct:OpenAccessDate>\n" +
-                "<wct:CopyrightStatement></wct:CopyrightStatement>\n" +
-                "<wct:CopyrightURL></wct:CopyrightURL>\n" +
-                "<wct:FileReference></wct:FileReference>\n" +
-                "<wct:AuthorisingAgent>\n" +
-                "<wct:Name>Agency_Auth_01</wct:Name>\n" +
-                "<wct:Contact>NLNZ</wct:Contact>\n" +
-                "</wct:AuthorisingAgent>\n" +
-                "<wct:Paterns>\n" +
-                "<wct:Pattern>https://www.rnz.co.nz/</wct:Pattern>\n" +
-                "</wct:Paterns>\n" +
-                "<wct:SeedsURLs>\n" +
-                "<wct:SeedURL>https://www.rnz.co.nz/</wct:SeedURL>\n" +
-                "</wct:SeedsURLs>\n" +
-                "</wct:Permission>\n" +
-                "</wct:Permissions>\n" +
-                "\n" +
-                "</wct:wct>\n" +
-                "</mets:xmlData>\n" +
-                "</mets:mdWrap>\n" +
-                "</mets:rightsMD>\n" +
-                "<mets:digiprovMD ID=\"DPMD55\">\n" +
-                "<mets:mdWrap MDTYPE=\"OTHER\">\n" +
-                "<mets:xmlData>\n" +
-                "<wct:wct xmlns:wct=\"http://dia-nz.github.io/webcurator/schemata/webcuratortool-1.0.dtd\">\n" +
-                "<wct:TargetInstance>\n" +
-                "<wct:HarvestResult>\n" +
-                "<wct:Creator>lql 0/4</wct:Creator>\n" +
-                "<wct:CreationDate>2020-11-04</wct:CreationDate>\n" +
-                "<wct:ProvenanceNote>css</wct:ProvenanceNote>\n" +
-                "<wct:ModificationNotes>\n" +
-                "<wct:ModificationNote>Imported http://kkk.google-analytics.com/font.css</wct:ModificationNote>\n" +
-                "</wct:ModificationNotes>\n" +
-                "<wct:DerivedFrom>\n" +
-                "<wct:HarvestResult>\n" +
-                "<wct:Creator>lql 1/4</wct:Creator>\n" +
-                "<wct:CreationDate>2020-11-04</wct:CreationDate>\n" +
-                "<wct:ProvenanceNote>Import a css</wct:ProvenanceNote>\n" +
-                "<wct:ModificationNotes>\n" +
-                "<wct:ModificationNote>Imported http://www.google-analytics.com/font.css</wct:ModificationNote>\n" +
-                "</wct:ModificationNotes>\n" +
-                "<wct:DerivedFrom>\n" +
-                "<wct:HarvestResult>\n" +
-                "<wct:Creator>lql 2/4</wct:Creator>\n" +
-                "<wct:CreationDate>2020-11-04</wct:CreationDate>\n" +
-                "<wct:ProvenanceNote>Repair   http://www.google-analytics.com/robots.txt with a xml file</wct:ProvenanceNote>\n" +
-                "<wct:DerivedFrom>\n" +
-                "<wct:HarvestResult>\n" +
-                "<wct:Creator>lql 3/4</wct:Creator>\n" +
-                "<wct:CreationDate>2020-11-04</wct:CreationDate>\n" +
-                "<wct:ProvenanceNote>Original Harvest</wct:ProvenanceNote>\n" +
-                "</wct:HarvestResult>\n" +
-                "</wct:DerivedFrom>\n" +
-                "</wct:HarvestResult>\n" +
-                "</wct:DerivedFrom>\n" +
-                "</wct:HarvestResult>\n" +
-                "</wct:DerivedFrom>\n" +
-                "</wct:HarvestResult>\n" +
-                "\n" +
-                "<wct:Owner> \n" +
-                "<wct:UID>lql</wct:UID>\n" +
-                "<wct:Agency>bootstrap</wct:Agency>\n" +
-                "</wct:Owner>\n" +
-                "<wct:ModificationType></wct:ModificationType>\n" +
-                "<wct:ModiicationNote></wct:ModiicationNote>\n" +
-                "<wct:HarvestServer>Local Agent H1</wct:HarvestServer>\n" +
-                "<wct:DisplayTargetInstance>true</wct:DisplayTargetInstance>\n" +
-                "<wct:TargetInstanceDisplayNote></wct:TargetInstanceDisplayNote>\n" +
-                "</wct:TargetInstance>\n" +
-                "<wct:Target>\n" +
-                "<wct:ObjectType>Target</wct:ObjectType>\n" +
-                "\n" +
-                "<wct:ProfileNote></wct:ProfileNote>\t\t\t\t\t\t\t\t\n" +
-                "\n" +
-                "<wct:HarvestType></wct:HarvestType>\t\t\t\t\t\t\t\t\n" +
-                "<wct:SelectionDate>2020-11-04</wct:SelectionDate>\n" +
-                "<wct:SelectionType></wct:SelectionType>\n" +
-                "<wct:SelectionNote></wct:SelectionNote>\n" +
-                "<wct:EvaluationNote></wct:EvaluationNote>\n" +
-                "\n" +
-                "<wct:Annotations></wct:Annotations><wct:DisplayTarget>true</wct:DisplayTarget>\n" +
-                "<wct:AccessZone>0</wct:AccessZone>\n" +
-                "<wct:AccessZoneText>Public</wct:AccessZoneText>\n" +
-                "<wct:TargetDisplayNote></wct:TargetDisplayNote>\n" +
-                "</wct:Target>\n" +
-                "</wct:wct>\n" +
-                "<vCard:VCard xmlns:vCard=\"http://www.w3.org/2001/vcard-rdf/3.0#\">\n" +
-                "<vCard:FN>Frank Lee</vCard:FN>\n" +
-                "<vCard:N>\n" +
-                "<vCard:FAMILY>Lee</vCard:FAMILY>\n" +
-                "<vCard:GIVEN>Frank</vCard:GIVEN>\n" +
-                "<vCard:PREFIX>Mr</vCard:PREFIX>\n" +
-                "</vCard:N>\n" +
-                "<vCard:EMAIL>\n" +
-                "<vCard:WORK>leefrank9527@gmail.com</vCard:WORK>\n" +
-                "</vCard:EMAIL>\n" +
-                "<vCard:ORG>\n" +
-                "<vCard:Orgname>bootstrap</vCard:Orgname>\n" +
-                "<vCard:EMAIL></vCard:EMAIL>\n" +
-                "</vCard:ORG>\n" +
-                "<vCard:URL></vCard:URL>\n" +
-                "<vCard:LOGO></vCard:LOGO>\n" +
-                "<vCard:UID>lql</vCard:UID>\n" +
-                "</vCard:VCard>\n" +
-                "</mets:xmlData>\n" +
-                "</mets:mdWrap>\n" +
-                "</mets:digiprovMD>\n" +
-                "</mets:amdSec>";
-        return finalSIP;
     }
 }

@@ -50,13 +50,14 @@
 						    </c:otherwise>
 						  </c:choose>
 						  <c:choose>
-						    <c:when test="${webArchiveTarget == ''}"></td>
+						    <c:when test="${webArchiveTarget == ''}">
 						    | Web Archive not configured
 						    </c:when>
 						    <c:otherwise>
 						    | <a href="<c:out value="${webArchiveTarget}" escapeXml="false"/><c:out value="${targetOid}"/>" target="_blank">Web Archive</a></td>
 						    </c:otherwise>
 						  </c:choose>
+						</td>
 					</tr>
 					<tr>			
 						<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>

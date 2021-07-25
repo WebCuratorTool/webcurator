@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.HasIdentity;
 
 /**
@@ -41,7 +41,7 @@ public class EditorContext {
      */
     public HasIdentity getObject(Class clazz, String identity) {
         // Get the cache for the given object type.
-        String key = Utils.getPrefixClassName(clazz);
+        String key = WctUtils.getPrefixClassName(clazz);
         Map<String, HasIdentity> clazzCache = objectCache.get(key);
 
         // Get the object out of the cache.
@@ -70,7 +70,7 @@ public class EditorContext {
      */
     public void putObject(HasIdentity anObject) {
         // Get the cache for the given object type.
-        String key = Utils.getPrefixClassName(anObject.getClass());
+        String key = WctUtils.getPrefixClassName(anObject.getClass());
         Map<String, HasIdentity> clazzCache = objectCache.get(key);
 
         // In case the object cache is empty.
@@ -106,7 +106,7 @@ public class EditorContext {
      */
     protected void removeObjectsOfType(Class clazz) {
         // Get the cache for the given object type.
-        String key = Utils.getPrefixClassName(clazz);
+        String key = WctUtils.getPrefixClassName(clazz);
         Map<String, HasIdentity> clazzCache = objectCache.get(key);
 
         // Get the object out of the cache.

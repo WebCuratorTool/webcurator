@@ -1,11 +1,11 @@
-function rendLogActionColumn(row){
+function rendLogViewColumn(row){
    if (row.data.flagShowMsg) {return '';}
-  var cellContent='';
-//  cellContent+='<a href="/curator/target/'+row.data.viewer+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">View</a> |';
-//  cellContent+='<a href="/curator/target/'+row.data.retriever+'?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">Download</a>';
-  cellContent+='<a href="'+webContextPath+'/curator/target/patch-log-viewer.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">View</a> |';
-  cellContent+='<a href="'+webContextPath+'/curator/target/patch-log-retriever.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">Download</a>';
-  return cellContent;
+   return '<a href="'+webContextPath+'/curator/target/patch-log-viewer.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">View</a>';
+}
+
+function rendLogDownloadColumn(row){
+   if (row.data.flagShowMsg) {return '';}
+   return '<a href="'+webContextPath+'/curator/target/patch-log-retriever.html?targetInstanceOid='+jobId+'&harvestResultNumber='+harvestResultNumber+'&logFileName='+row.data.name+'&prefix='+row.data.prefix+'" target="_blank">Download</a>';
 }
 
 var gridOptionsLogsCrawling= {
@@ -19,7 +19,8 @@ var gridOptionsLogsCrawling= {
   rowData: [],
   columnDefs: [
     {headerName: "Patch Crawling Logs: File Name", field: "name", width:380},
-    {headerName: "Action", field: "name", width: 120, pinned: "right", cellRenderer: rendLogActionColumn},
+    {headerName: "View", field: "name", width: 80, pinned: "right", cellRenderer: rendLogViewColumn},
+    {headerName: "Download", field: "name", width: 110, pinned: "right", cellRenderer: rendLogDownloadColumn},
     {headerName: "Size", field: "lengthString", width: 90, pinned: "right", cellRenderer:  (row) => {
         if (row.data.flagShowMsg) {return '';}
         return row.data.lengthString;
@@ -38,7 +39,8 @@ var gridOptionsLogsModifying= {
   rowData: [],
   columnDefs: [
     {headerName: "Modifying Logs: File Name", field: "name", width:380},
-    {headerName: "Action", field: "name", width: 120, pinned: "right", cellRenderer: rendLogActionColumn},
+    {headerName: "View", field: "name", width: 80, pinned: "right", cellRenderer: rendLogViewColumn},
+    {headerName: "Download", field: "name", width: 110, pinned: "right", cellRenderer: rendLogDownloadColumn},
     {headerName: "Size", field: "lengthString", width: 90, pinned: "right", cellRenderer:  (row) => {
         if (row.data.flagShowMsg) {return '';}
         return row.data.lengthString;
@@ -57,7 +59,8 @@ var gridOptionsLogsIndexing= {
   rowData: [],
   columnDefs: [
     {headerName: "Indexing Logs: File Name", field: "name", width:380},
-    {headerName: "Action", field: "name", width: 120, pinned: "right", cellRenderer: rendLogActionColumn},
+    {headerName: "View", field: "name", width: 80, pinned: "right", cellRenderer: rendLogViewColumn},
+    {headerName: "Download", field: "name", width: 110, pinned: "right", cellRenderer: rendLogDownloadColumn},
     {headerName: "Size", field: "lengthString", width: 90, pinned: "right", cellRenderer:  (row) => {
         if (row.data.flagShowMsg) {return '';}
         return row.data.lengthString;

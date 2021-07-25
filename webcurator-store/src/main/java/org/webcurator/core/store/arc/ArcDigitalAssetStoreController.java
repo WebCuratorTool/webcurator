@@ -11,11 +11,11 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreHarvestSaveDTO;
 import org.webcurator.core.store.DigitalAssetStorePaths;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,7 +54,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
             return;
         }
         try {
-            Files.copy(path, rsp.getOutputStream());
+            WctUtils.copy(Files.newInputStream(path), rsp.getOutputStream());
             Files.deleteIfExists(path);
         } catch (IOException e) {
             throw new DigitalAssetStoreException(e.getMessage());
@@ -157,7 +157,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     }
 
     @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})
-    public void externalSave(@RequestBody DigitalAssetStoreHarvestSaveDTO dto) throws DigitalAssetStoreException {
+    public void save(@RequestBody DigitalAssetStoreHarvestSaveDTO dto) throws DigitalAssetStoreException {
         log.debug("Save harvest, {}", dto.toString());
         File f = new File(dto.getFilePath());
         if (dto.getFileUploadMode().equalsIgnoreCase(FILE_UPLOAD_MODE_STREAM)) {
@@ -172,7 +172,6 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                 conn.setDoOutput(true);
 
                 arcDigitalAssetStoreService.save(dto.getTargetInstanceName(), dto.getDirectory(), f.getName(), conn.getInputStream());
-                conn.getInputStream().close();
             } catch (IOException e) {
                 log.error("Download file from harvest agent failed", e);
                 throw new DigitalAssetStoreException(e);

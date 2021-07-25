@@ -13,7 +13,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.RunnableIndex.Mode;
-import org.webcurator.core.util.WebServiceEndPoint;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class Indexer {

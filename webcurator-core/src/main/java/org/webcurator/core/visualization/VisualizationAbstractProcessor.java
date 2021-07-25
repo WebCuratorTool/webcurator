@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.HarvestResultDTO;
@@ -54,8 +54,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
         this.processorManager = processorManager;
         this.baseDir = directoryManager.getBaseDir();
         this.fileDir = directoryManager.getUploadDir(targetInstanceId);
-        this.logsDir = directoryManager.getPatchLogDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
-        this.reportsDir = directoryManager.getPatchReportDir(getProcessorStage(), targetInstanceId, harvestResultNumber);
+        this.logsDir = directoryManager.getBaseLogDir(targetInstanceId);
+        this.reportsDir = directoryManager.getBaseReportDir(targetInstanceId);
         this.wctClient = wctClient;
         this.networkMapClient = networkMapClient;
 
@@ -65,7 +65,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             log.error(err);
             throw new IOException(err);
         }
-        this.logWriter = new FileWriter(new File(logsDir, "running.log"), false);
+        this.logWriter = new FileWriter(new File(logsDir, directoryManager.getPatchLogFileName(getProcessorStage(), harvestResultNumber)), false);
 
         File fReportsDir = new File(reportsDir);
         if (!fReportsDir.exists() && !fReportsDir.mkdirs()) {
@@ -73,7 +73,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
             log.error(err);
             throw new IOException(err);
         }
-        this.reportWriter = new FileWriter(new File(reportsDir, "report.txt"), false);
+        this.reportWriter = new FileWriter(new File(reportsDir, directoryManager.getPatchReportFileName(getProcessorStage(), harvestResultNumber)), false);
 
         this.statisticItems.clear();
 
@@ -210,7 +210,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
 
     protected void delete(File toPurge) {
         log.debug("About to purge dir " + toPurge.toString());
-        Utils.cleanDirectory(toPurge);
+        WctUtils.cleanDirectory(toPurge);
     }
 
     public VisualizationProgressBar getProgress() {

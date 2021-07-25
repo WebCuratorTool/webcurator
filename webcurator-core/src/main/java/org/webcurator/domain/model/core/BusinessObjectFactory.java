@@ -21,7 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.AuthUtil;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.auth.User;
 
 
@@ -63,7 +63,7 @@ public class BusinessObjectFactory {
 		s.setTarget(owner);
 
 		// Set a default start date of today.
-		s.setStartDate(Utils.clearTime(new Date()));
+		s.setStartDate(WctUtils.clearTime(new Date()));
 		return s;
 	}
 	

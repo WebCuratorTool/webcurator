@@ -40,6 +40,7 @@ import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.PatchUtil;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
@@ -212,7 +213,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         HarvestResult harvestResult = targetInstanceManager.getHarvestResult(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
         if (harvestResult != null) {
-            if (harvestResult.getTargetInstance().getState().equalsIgnoreCase(TargetInstance.STATE_PATCHING) && harvestResult.getState() != HarvestResult.STATE_ABORTED) {
+            if (harvestResult.getState() != HarvestResult.STATE_ABORTED) {
                 this.pushPruneAndImport(aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
             } else {
                 log.error("Invalis status, tiOID:{}, hrNum:{}, tiState:{}, hrState:{}", aResult.getTargetInstanceOid(), harvestResult.getHarvestNumber(), harvestResult.getTargetInstance().getState(), harvestResult.getState());
@@ -1833,16 +1834,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
         outputStream.write("\n".getBytes());
 
         InputStream inputStream = new BufferedInputStream(new FileInputStream(f));
-        while (true) {
-            byte[] buf = new byte[1024 * 32];
-            int len = inputStream.read(buf);
-            if (len < 0) {
-                break;
-            }
-            outputStream.write(buf, 0, len);
-        }
-//        Files.copy(f.toPath(), outputStream);
-        inputStream.close();
+
+        WctUtils.copy(inputStream, outputStream);
 
         log.debug("Finished file download: {}", fileName);
     }

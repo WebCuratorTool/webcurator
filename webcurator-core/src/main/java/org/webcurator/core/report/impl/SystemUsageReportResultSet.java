@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.webcurator.core.report.ResultSet;
 import org.webcurator.core.report.dto.LogonUserDTO;
-import org.webcurator.core.util.Utils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.common.util.DateUtils;
 
 
@@ -116,7 +116,7 @@ public class SystemUsageReportResultSet implements ResultSet {
 			(activeAccount != null && ! activeAccount.booleanValue() && dateOfDisabledAccount != null ?
 					sdf.format(dateOfDisabledAccount) : ""),// display date if account is active
 			(logonTime == null ? "" : sdf.format(logonTime)),
-			(duration == null ? "" : Utils.getDDhhmmss(duration))
+			(duration == null ? "" : WctUtils.getDDhhmmss(duration))
 
 		};
 	}

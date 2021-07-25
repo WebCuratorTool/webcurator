@@ -28,6 +28,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.rest.RestClientResponseHandler;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
      * @param restTemplateBuilder: the rest template
      */
     public LogReaderClient(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
-       super(baseUrl, restTemplateBuilder);
+        super(baseUrl, restTemplateBuilder);
     }
 
     /* (non-Javadoc)
@@ -58,7 +59,8 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
     public List<String> listLogFiles(String job) {
         RestTemplate restTemplate = restTemplateBuilder.build();
         ResponseEntity<List<String>> listResponse = restTemplate.exchange(getUrl(LogReaderPaths.LOG_FILE),
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() { });
+                HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() {
+                });
         List<String> logFiles = listResponse.getBody();
 
         return logFiles;
@@ -75,7 +77,8 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
 
         ResponseEntity<List<LogFilePropertiesDTO>> listResponse = restTemplate.exchange(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUriString(),
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<LogFilePropertiesDTO>>() { },
+                HttpMethod.GET, null, new ParameterizedTypeReference<List<LogFilePropertiesDTO>>() {
+                },
                 pathVariables);
 
         return listResponse.getBody();
@@ -121,7 +124,8 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
         Map<String, String> pathVariables = ImmutableMap.of("job", job);
         ResponseEntity<List<String>> listResponse = restTemplate.exchange(
                 uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() { });
+                HttpMethod.GET, null, new ParameterizedTypeReference<List<String>>() {
+                });
         List<String> getLines = listResponse.getBody();
 
         return getLines;
@@ -140,7 +144,7 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
     }
 
     /* (non-Javadoc)
-     * @see LogReader#findFirstLineBeginning(String, String, String). 
+     * @see LogReader#findFirstLineBeginning(String, String, String).
      */
     public Integer findFirstLineBeginning(String job, String filename, String match) {
         RestTemplate restTemplate = restTemplateBuilder.build();
@@ -157,7 +161,7 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
     }
 
     /* (non-Javadoc)
-     * @see LogReader#findFirstLineContaining(String, String, String). 
+     * @see LogReader#findFirstLineContaining(String, String, String).
      */
     public Integer findFirstLineContaining(String job, String filename, String match) {
         RestTemplate restTemplate = restTemplateBuilder.build();
@@ -174,7 +178,7 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
     }
 
     /* (non-Javadoc)
-     * @see LogReader#findFirstLineAfterTimeStamp(String, String, Long). 
+     * @see LogReader#findFirstLineAfterTimeStamp(String, String, Long).
      */
     public Integer findFirstLineAfterTimeStamp(String job, String filename, Long timestamp) {
         RestTemplate restTemplate = restTemplateBuilder.build();
@@ -189,7 +193,7 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
 
         return firstLine;
     }
-    
+
     /* (non-Javadoc)
      * @see org.webcurator.core.reader.LogReader#getByRegularExpression(String, String, String, String, boolean, int, int)
      */
@@ -219,14 +223,14 @@ public class LogReaderClient extends AbstractRestClient implements LogReader {
     }
 
     public File retrieveLogfile(String job, String filename) {
-         try {
+        try {
             Map<String, String> pathVariables = ImmutableMap.of("job", job);
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(LogReaderPaths.LOG_FILE_RETRIEVE_LOG_FILE)).queryParam("filename", filename);
             URL url = uriComponentsBuilder.buildAndExpand(pathVariables).toUri().toURL();
 
             File file = File.createTempFile("wct", "tmp");
-            int bytes = StreamUtils.copy(url.openStream(),new FileOutputStream(file));
-            if(bytes > 0){
+            long bytes = WctUtils.copy(url.openStream(), new FileOutputStream(file));
+            if (bytes > 0) {
                 return file;
             }
             return null;

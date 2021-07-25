@@ -99,12 +99,12 @@ metadata.operatorContactUrl=http\://dia.govt.nz/
     <ref bean="acceptSurts"/>
     <!-- ...but REJECT those more than a configured link-hop-count from start... -->
     <bean class="org.archive.modules.deciderules.TooManyHopsDecideRule">
-          <property name="maxHops" value="1"/>
+          <property name="maxHops" value="0"/>
     </bean>
     <!-- ...but ACCEPT those more than a configured link-hop-count from start... -->
     <bean class="org.archive.modules.deciderules.TransclusionDecideRule">
-          <property name="maxTransHops" value="2"/>
-     <!-- <property name="maxSpeculativeHops" value="1" /> -->
+          <property name="maxTransHops" value="1"/>
+          <property name="maxSpeculativeHops" value="0" />
     </bean>
     <!-- ...but REJECT those from a configurable (initially empty) set of REJECT SURTs... -->
     <bean class="org.archive.modules.deciderules.surt.SurtPrefixedDecideRule">
@@ -122,14 +122,14 @@ metadata.operatorContactUrl=http\://dia.govt.nz/
           <property name="decision" value="REJECT"/>
      <!-- <property name="listLogicalOr" value="true" /> -->
           <property name="regexList">
-           <list><value>.*\.rss.*</value><value>.*google\.com\/jsapi.*</value><value>.*maps\.google.*</value><value>.*youtube\.com\/embed\/.*</value></list>
+           <list></list>
           </property>
     </bean>
     <bean class="org.archive.modules.deciderules.MatchesListRegexDecideRule">
           <property name="decision" value="ACCEPT"/>
      <!-- <property name="listLogicalOr" value="true" /> -->
           <property name="regexList">
-           <list><value>.*\.rss.*</value></list>
+           <list></list>
           </property>
     </bean>
     <!-- ...and REJECT those with suspicious repeating path-segments... -->
@@ -301,7 +301,7 @@ metadata.operatorContactUrl=http\://dia.govt.nz/
  <!-- first, processors are declared as top-level named beans  -->
  <bean class="org.archive.modules.writer.WARCWriterProcessor" id="warcWriter">
        <property name="compress" value="false"/>
-       <property name="prefix" value="IAH"/>
+       <property name="prefix" value="WCT"/>
   <!-- <property name="suffix" value="${HOSTNAME}" /> -->
        <property name="maxFileSizeBytes" value="1000000000"/>
   <!-- <property name="poolMaxActive" value="1" /> -->
@@ -326,10 +326,10 @@ metadata.operatorContactUrl=http\://dia.govt.nz/
   <!-- <property name="processErrorOutlinks" value="false" /> -->
  </bean>
  <bean class="org.archive.crawler.postprocessor.DispositionProcessor" id="disposition">
-       <property name="delayFactor" value="5.0"/>
-       <property name="minDelayMs" value="3000"/>
-       <property name="maxDelayMs" value="30000"/>
-       <property name="respectCrawlDelayUpToSeconds" value="300"/>
+       <property name="delayFactor" value="2.0"/>
+       <property name="minDelayMs" value="300"/>
+       <property name="maxDelayMs" value="3000"/>
+       <property name="respectCrawlDelayUpToSeconds" value="30"/>
        <property name="maxPerHostBandwidthUsageKbSec" value="800"/>
  </bean>
  <!-- <bean id="rescheduler" class="org.archive.crawler.postprocessor.ReschedulingProcessor">
