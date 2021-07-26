@@ -351,17 +351,28 @@ public class WctCoordinatorImpl implements WctCoordinator {
             throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
         }
 
-        // if the target is not approved to be harvested then do not harvest
-        if (queuePaused || !isTargetApproved(aTargetInstance) || aHarvestAgent.getMemoryWarning()) {
+        if (!harvestAgentManager.lock(aTargetInstance.getOid())) {
+            log.error("Target Instance is failed to get locked: {}", aTargetInstance.getOid());
             return;
+        } else {
+            log.debug("Target Instance is locked: {}", aTargetInstance.getOid());
         }
 
-        // Prepare the instance for harvesting by storing its current
-        // information.
-        prepareHarvest(aTargetInstance);
+        try {
+            // if the target is not approved to be harvested then do not harvest
+            if (queuePaused || !isTargetApproved(aTargetInstance) || aHarvestAgent.getMemoryWarning()) {
+                return;
+            }
 
-        // Run the actual harvest.
-        _harvest(aTargetInstance, aHarvestAgent);
+            // Prepare the instance for harvesting by storing its current
+            // information.
+            prepareHarvest(aTargetInstance);
+
+            // Run the actual harvest.
+            _harvest(aTargetInstance, aHarvestAgent);
+        }finally {
+            harvestAgentManager.unLock(aTargetInstance.getOid());
+        }
     }
 
     private void prepareHarvest(TargetInstance aTargetInstance) {
@@ -861,15 +872,28 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     private boolean loadAndStartOptimizable(QueuedTargetInstanceDTO qti) {
-        TargetInstance targetInstance = loadTargetInstance(qti.getOid());
-        AbstractTarget abstractTarget = targetInstance.getTarget();
-        if (abstractTarget.getObjectType() == AbstractTarget.TYPE_TARGET) {
-            Target target = targetManager.load(abstractTarget.getOid());
-            if (target.isAllowOptimize()) {
-                boolean harvesterWasAvailableForOptimize = startOptimisableInstance(targetInstance, qti.getAgencyName());
-                return harvesterWasAvailableForOptimize;
-            }
+        log.info("Load and start optimizable: {}.", qti.getOid());
+
+        if (!harvestAgentManager.lock(qti.getOid())) {
+            log.info("Failed to get a lock: {}.", qti.getOid());
+            return false;
         }
+        try {
+            log.info("Locked Target Instance: ", qti.getOid());
+            TargetInstance targetInstance = loadTargetInstance(qti.getOid());
+            AbstractTarget abstractTarget = targetInstance.getTarget();
+            if (abstractTarget.getObjectType() == AbstractTarget.TYPE_TARGET) {
+                Target target = targetManager.load(abstractTarget.getOid());
+                if (target.isAllowOptimize()) {
+                    boolean harvesterWasAvailableForOptimize = startOptimisableInstance(targetInstance, qti.getAgencyName());
+                    return harvesterWasAvailableForOptimize;
+                }
+            }
+        } finally {
+            harvestAgentManager.unLock(qti.getOid());
+            log.info("Unlocked Target Instance: .", qti.getOid());
+        }
+
         return false;
     }
 
