@@ -145,6 +145,13 @@ public class TargetInstanceResultHandler extends TabHandler {
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ENDORSE)) {
             // set the ti state and the hr states
             TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+
+            //To reload  the TI to avoid the issue of "Row was updated or deleted by another transaction".
+            ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
+
             ti.setState(TargetInstance.STATE_ENDORSED);
 
             for (HarvestResult hr : ti.getHarvestResults()) {
@@ -173,6 +180,13 @@ public class TargetInstanceResultHandler extends TabHandler {
         } else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_UNENDORSE)) {
             // set the ti state and the hr states
             TargetInstance ti = (TargetInstance) req.getSession().getAttribute(TargetInstanceCommand.SESSION_TI);
+
+            //To reload  the TI to avoid the issue of "Row was updated or deleted by another transaction".
+            ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
+
             ti.setState(TargetInstance.STATE_HARVESTED);
 
             for (HarvestResult hr : ti.getHarvestResults()) {
@@ -248,6 +262,9 @@ public class TargetInstanceResultHandler extends TabHandler {
 
             //Make sure any new HarvestResults are loaded
             ti = targetInstanceManager.getTargetInstance(ti.getOid());
+
+            //To save the TI to avoid the issue of "unsaved-value mapping was incorrect".
+            targetInstanceManager.save(ti);
 
             for (HarvestResult hr : ti.getHarvestResults()) {
                 if (hr.getOid().equals(cmd.getHarvestResultId()) &&
