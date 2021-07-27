@@ -104,8 +104,8 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                request, Boolean.class);
+       restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                request, Void.class);
     }
 
     /**
@@ -118,8 +118,8 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                request, Boolean.class);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                request, Void.class);
     }
 
     public void submitToArchive(String targetInstanceOid, String sip, Map xAttributes, int harvestNumber)
@@ -133,7 +133,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                request, Boolean.class);
+                request, Void.class);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         RestTemplate restTemplate = restTemplateBuilder.build();
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Boolean.class);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Void.class);
     }
 
     public void initiateRemoveIndexes(HarvestResultDTO harvestResult) throws DigitalAssetStoreException {
@@ -170,7 +170,7 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
 
         // TODO Process any exceptions or 404s, etc. as DigitalAssetStoreException, currently thrown as WCTRuntimeException.
         RestTemplate restTemplate = restTemplateBuilder.build();
-        Boolean result = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Boolean.class);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Void.class);
     }
 
     public Boolean checkIndexing(Long harvestResultOid) throws DigitalAssetStoreException {
