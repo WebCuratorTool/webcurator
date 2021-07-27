@@ -47,7 +47,7 @@ public class ProfileImportCommand extends ProfileListCommand {
     String importName;
     boolean showInactive = false;
 
-//    @NotNull
+    @NotNull
     CommonsMultipartFile uploadedFile;
 
 
