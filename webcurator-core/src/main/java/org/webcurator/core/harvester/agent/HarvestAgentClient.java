@@ -42,14 +42,14 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
         URI uri = uriComponentsBuilder.buildAndExpand(pathVariables).toUri();
 
         RestTemplate restTemplate = restTemplateBuilder.build();
-        restTemplate.postForObject(uri, params, String.class);
+        restTemplate.postForObject(uri, params, Void.class);
     }
 
     public void recoverHarvests(List<String> activeJobs) {
         HttpEntity<String> request = this.createHttpRequestEntity(activeJobs);
 
         RestTemplate restTemplate = restTemplateBuilder.build();
-        restTemplate.postForObject(getUrl(HarvestAgentPaths.RECOVER_HARVESTS), request, String.class);
+        restTemplate.postForObject(getUrl(HarvestAgentPaths.RECOVER_HARVESTS), request, Void.class);
     }
 
     /**
@@ -63,7 +63,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -75,7 +75,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -87,7 +87,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -99,7 +99,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -111,7 +111,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -131,7 +131,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -142,7 +142,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -153,7 +153,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, String.class);
+                null, Void.class);
     }
 
     /**
@@ -201,7 +201,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
         // exception on the client.
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                null, String.class);
+                null, Boolean.class);
     }
 
     /**
@@ -216,7 +216,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
 
         RestTemplate restTemplate = restTemplateBuilder.build();
         restTemplate.postForObject(uriComponentsBuilder.buildAndExpand(pathVariables).toUri(),
-                request, String.class);
+                request, Void.class);
     }
 
     /**
@@ -228,7 +228,7 @@ public class HarvestAgentClient extends AbstractRestClient implements HarvestAge
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(HarvestAgentPaths.PURGE_ABORTED_TARGET_INSTANCES));
 
         RestTemplate restTemplate = restTemplateBuilder.build();
-        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, String.class);
+        restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Void.class);
     }
 
     public boolean isValidProfile(String profile) {
