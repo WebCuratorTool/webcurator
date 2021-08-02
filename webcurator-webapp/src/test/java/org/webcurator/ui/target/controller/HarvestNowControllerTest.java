@@ -9,7 +9,6 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.context.MockMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -19,7 +18,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.archive.MockSipBuilder;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
-import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
 import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
@@ -70,9 +68,6 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 		harvestAgentManager.setTargetInstanceDao(tidao);
 		hc.setHarvestAgentManager(harvestAgentManager);
 		hc.setTargetInstanceDao(tidao);
-
-		HarvestBandwidthManager mockHarvestBandwidthManager = Mockito.mock(HarvestBandwidthManager.class);
-		hc.setHarvestBandwidthManager(mockHarvestBandwidthManager);
 
 		testInstance.setWctCoordinator(hc);
 		testInstance.setTargetInstanceDAO(tidao);

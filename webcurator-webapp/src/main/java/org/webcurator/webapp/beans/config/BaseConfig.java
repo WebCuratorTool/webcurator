@@ -33,7 +33,6 @@ import org.webcurator.core.admin.PermissionTemplateManagerImpl;
 import org.webcurator.core.agency.AgencyUserManagerImpl;
 import org.webcurator.core.archive.ArchiveAdapterImpl;
 import org.webcurator.core.archive.SipBuilder;
-import org.webcurator.core.check.BandwidthChecker;
 import org.webcurator.core.check.CheckProcessor;
 import org.webcurator.core.check.Checker;
 import org.webcurator.core.check.CoreCheckNotifier;
@@ -579,15 +578,6 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestCoordinatorDAOImpl harvestCoordinatorDao() {
-        HarvestCoordinatorDAOImpl bean = new HarvestCoordinatorDAOImpl();
-        bean.setSessionFactory(sessionFactory().getObject());
-        bean.setTxTemplate(transactionTemplate());
-
-        return bean;
-    }
-
-    @Bean
     public HeatmapDAO heatmapConfigDao() {
         HeatmapDAOImpl bean = new HeatmapDAOImpl();
         bean.setSessionFactory(sessionFactory().getObject());
@@ -665,19 +655,6 @@ public class BaseConfig {
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setType(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
-        return bean;
-    }
-
-    @Bean
-    public HarvestBandwidthManagerImpl harvestBandwidthManager() {
-        HarvestBandwidthManagerImpl bean = new HarvestBandwidthManagerImpl();
-        bean.setHarvestAgentManager(harvestAgentManager());
-        bean.setTargetInstanceDao(targetInstanceDao());
-        bean.setHarvestCoordinatorDao(harvestCoordinatorDao());
-        bean.setMinimumBandwidth(minimumBandwidth);
-        bean.setMaxBandwidthPercent(maxBandwidthPercent);
-        bean.setAuditor(audit());
-
         return bean;
     }
 
@@ -883,40 +860,15 @@ public class BaseConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public MethodInvokingJobDetailFactoryBean checkBandwidthTransitionsJob() {
-        MethodInvokingJobDetailFactoryBean bean = new MethodInvokingJobDetailFactoryBean();
-        bean.setTargetObject(wctCoordinator);
-        bean.setTargetMethod("checkForBandwidthTransition");
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public Trigger bandwidthCheckTrigger() {
-        // delay before running the job measured in milliseconds
-        Date startTime = new Date(System.currentTimeMillis() + bandwidthCheckTriggerStartDelay);
-        Trigger bean = newTrigger()
-                .withIdentity("BandwidthCheckTrigger", "BandwidthCheckTriggerGroup")
-                .startAt(startTime)
-                .withSchedule(simpleSchedule().repeatForever().withIntervalInMilliseconds(bandwidthCheckTriggerRepeatInterval))
-                .forJob(checkBandwidthTransitionsJob().getObject())
-                .build();
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public SchedulerFactoryBean schedulerFactory() {
         SchedulerFactoryBean bean = new SchedulerFactoryBean();
 
-        bean.setJobDetails(processScheduleJob(), checkBandwidthTransitionsJob().getObject(),
+        bean.setJobDetails(processScheduleJob(),
                 purgeDigitalAssetsJob().getObject(), purgeAbortedTargetInstancesJob().getObject(),
                 groupExpiryJob().getObject(), createNewTargetInstancesJob().getObject());
 
-        bean.setTriggers(processScheduleTrigger(), bandwidthCheckTrigger(), purgeDigitalAssetsTrigger(),
+        bean.setTriggers(processScheduleTrigger(), purgeDigitalAssetsTrigger(),
                 purgeAbortedTargetInstancesTrigger(), groupExpiryJobTrigger(), createNewTargetInstancesTrigger());
 
         return bean;
@@ -981,23 +933,6 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public BandwidthChecker bandwidthChecker() {
-        BandwidthChecker bean = new BandwidthChecker();
-        bean.setWarnThreshold(bandwidthCheckerWarnThreshold);
-        bean.setErrorThreshold(bandwidthCheckerErrorThreshold);
-        bean.setNotificationSubject("Core");
-        bean.setCheckType("Bandwidth");
-        bean.setHarvestCoordinator(wctCoordinator);
-        bean.setHarvestAgentManager(harvestAgentManager());
-        bean.setHarvestBandwidthManager(harvestBandwidthManager());
-        bean.setNotifier(checkNotifier());
-
-        return bean;
-    }
-
-    @Bean
-    @Scope(BeanDefinition.SCOPE_SINGLETON)
-    @Lazy(false)
     public CoreCheckNotifier checkNotifier() {
         CoreCheckNotifier bean = new CoreCheckNotifier();
         bean.setInTrayManager(inTrayManager());
@@ -1012,7 +947,7 @@ public class BaseConfig {
         CheckProcessor bean = new CheckProcessor();
 
         List<Checker> checksList = new ArrayList<>();
-        checksList.add(bandwidthChecker());
+//        checksList.add(bandwidthChecker());
 
         bean.setChecks(checksList);
 

@@ -94,8 +94,6 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 		WctCoordinatorImpl hc = new WctCoordinatorImpl();
 		hc.setTargetInstanceManager(getTargetInstanceManager());
 		hc.setTargetInstanceDao(new MockTargetInstanceDAO(testFile));
-		HarvestBandwidthManager mockHarvestBandwidthManager = Mockito.mock(HarvestBandwidthManager.class);
-		hc.setHarvestBandwidthManager(mockHarvestBandwidthManager);
 
 		HarvestAgentManager mockHarvestAgentManager = Mockito.mock(HarvestAgentManager.class);
 		hc.setHarvestAgentManager(mockHarvestAgentManager);

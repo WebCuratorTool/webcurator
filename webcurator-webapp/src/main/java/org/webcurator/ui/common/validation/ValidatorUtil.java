@@ -19,11 +19,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
-import org.webcurator.core.harvester.coordinator.HarvestBandwidthManagerImpl;
 import org.webcurator.core.permissionmapping.UrlUtils;
 import org.apache.commons.logging.LogFactory;
 import org.apache.oro.text.regex.MalformedPatternException;
@@ -32,19 +28,12 @@ import org.apache.oro.text.regex.Perl5Matcher;
 import org.apache.oro.text.regex.Perl5Pattern;
 import org.springframework.context.ApplicationContext;
 import org.springframework.validation.Errors;
-import org.webcurator.core.common.Constants;
-import org.webcurator.core.harvester.coordinator.HarvestBandwidthManager;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
-import org.webcurator.domain.HarvestCoordinatorDAO;
-import org.webcurator.domain.HarvestCoordinatorDAOImpl;
-import org.webcurator.domain.model.core.BandwidthRestriction;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.ui.agent.command.BandwidthRestrictionsCommand;
 
 /**
  * Utility class providing useful validation methods.
@@ -186,56 +175,6 @@ public final class ValidatorUtil {
         }
     }
 
-    /**
-     * Helper method to validated that a start time is before and
-     * not the same as an end time for a specified bandwidth restriction.
-     * @param aErrors the errors object to populate
-     * @param aCmd the bandwidth restriction command
-     * @param aErrorCode the error code
-     * @param aValues the values to set in the error message
-     * @param aFailureMessage the default failure message
-     */
-    public static void validateNoBandwidthPeriodOverlaps(Errors aErrors, BandwidthRestrictionsCommand aCmd,  String aErrorCode, Object[] aValues, String aFailureMessage) {
-        if (aCmd != null && aCmd.getStart() != null && aCmd.getEnd() != null && aCmd.getDay() != null) {
-            ApplicationContext context = ApplicationContextFactory.getApplicationContext();
-            HarvestCoordinatorDAO hcDao = context.getBean(HarvestCoordinatorDAOImpl.class);
-            HashMap<String, List<BandwidthRestriction>> allRestrictions = hcDao.getBandwidthRestrictions();
-            List restrictions = allRestrictions.get(aCmd.getDay());
-            if (restrictions != null && !restrictions.isEmpty()) {
-                BandwidthRestriction newBr = new BandwidthRestriction();
-                newBr.setStartTime(aCmd.getStart());
-                newBr.setEndTime(aCmd.getEnd());
-
-                BandwidthRestriction element = null;
-                Iterator it = restrictions.iterator();
-                while (it.hasNext()) {
-                    element = (BandwidthRestriction) it.next();
-                    if (aCmd.getOid() == null || !aCmd.getOid().equals(element.getOid())) {
-                        if (newBr.getStartTime().after(element.getStartTime()) && newBr.getStartTime().before(element.getEndTime())) {
-                            aErrors.reject(aErrorCode, aValues, aFailureMessage);
-                            return;
-                        }
-
-                        if (newBr.getEndTime().after(element.getStartTime()) && newBr.getEndTime().before(element.getEndTime())) {
-                            aErrors.reject(aErrorCode, aValues, aFailureMessage);
-                            return;
-                        }
-
-                        if (newBr.getStartTime().equals(element.getStartTime()) || newBr.getStartTime().equals(element.getEndTime())) {
-                            aErrors.reject(aErrorCode, aValues, aFailureMessage);
-                            return;
-                        }
-
-                        if (newBr.getEndTime().equals(element.getStartTime()) && newBr.getEndTime().equals(element.getEndTime())) {
-                            aErrors.reject(aErrorCode, aValues, aFailureMessage);
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     public static void validateIsDate(Errors errors, String aDate, String aDateFormat, String aErrorCode, Object[] aValues, String aDefaultMessage) {
     	DateFormat simpleDateFormat = new SimpleDateFormat(aDateFormat);
     	try {
@@ -244,48 +183,6 @@ public final class ValidatorUtil {
     	catch (ParseException e) {
     		errors.reject(aErrorCode, aValues, aDefaultMessage);
 		}
-    }
-
-    /**
-     * Helper method to check to see if adding the new target instance will mean that
-     * this or any other running harvest has a bandwidth setting below the minimum
-     * @param aErrors the errors object to populate
-     * @param aTargetInstanceOid the target instance id to check
-     * @param aErrorCode the error code for a vaildation failure
-     * @param aValues the values to set for a failure
-     * @param aFailureMessage the default failure message
-     */
-    public static void validateMinimumBandwidthAvailable(Errors aErrors, Long aTargetInstanceOid, String aErrorCode, Object[] aValues, String aFailureMessage) {
-        if (aTargetInstanceOid != null) {
-            ApplicationContext context = ApplicationContextFactory.getApplicationContext();
-            TargetInstanceManager targetInstanceManager = context.getBean(TargetInstanceManagerImpl.class);
-            HarvestBandwidthManager harvestBandwidthManager = context.getBean(HarvestBandwidthManagerImpl.class);
-
-            TargetInstance ti = targetInstanceManager.getTargetInstance(aTargetInstanceOid);
-        	if (!harvestBandwidthManager.isMiniumBandwidthAvailable(ti)) {
-            	// failure bandwidth setting is too low.
-            	aErrors.reject(aErrorCode, aValues, aFailureMessage);
-            }
-        }
-    }
-
-    /**
-     * Helper method to check to see if the bandwidth percentage setting is
-     * less than or equal to the maximum
-     * @param aErrors the errors object to populate
-     * @param aErrorCode the error code for a vaildation failure
-     * @param aPercentage the percentage to check.
-     */
-    public static void validateMaxBandwidthPercentage(Errors aErrors, int aPercentage, String aErrorCode) {
-        ApplicationContext context = ApplicationContextFactory.getApplicationContext();
-        HarvestBandwidthManager harvestBandwidthManager  = context.getBean(HarvestBandwidthManagerImpl.class);
-
-        if (aPercentage > harvestBandwidthManager.getMaxBandwidthPercent()) {
-        	// failure bandwidth percentage setting is too high.
-        	Object[] vals = new Object[1];
-         	vals[0] = harvestBandwidthManager.getMaxBandwidthPercent();
-        	aErrors.reject(aErrorCode, vals, "max bandwidth percentage exeeded");
-        }
     }
 
     /**

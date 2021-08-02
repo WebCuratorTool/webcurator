@@ -20,7 +20,7 @@ import javax.transaction.Transactional;
 @Transactional
 public class HeatmapDAOImpl extends HibernateDaoSupport implements HeatmapDAO {
 
-	private Log log = LogFactory.getLog(HarvestCoordinatorDAOImpl.class);
+	private Log log = LogFactory.getLog(HeatmapDAOImpl.class);
 	private TransactionTemplate txTemplate = null;
 
 	public Map<String, HeatmapConfig> getHeatmapConfigurations() {

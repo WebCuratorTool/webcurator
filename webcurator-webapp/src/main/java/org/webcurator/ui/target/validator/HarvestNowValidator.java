@@ -38,7 +38,7 @@ import org.webcurator.ui.target.command.TargetInstanceCommand;
 public class HarvestNowValidator extends AbstractBaseValidator {
 
     /** Logger to use with this class. */
-    private Log log;
+    private final Log log;
 
     /** default constructor. */
     public HarvestNowValidator() {
@@ -67,12 +67,6 @@ public class HarvestNowValidator extends AbstractBaseValidator {
         if (TargetInstanceCommand.ACTION_HARVEST.equals(cmd.getCmd())) {
             ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_AGENT, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_AGENT), "Harvest agent is a required field.");
             ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID, "required", getObjectArrayForLabel(CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID), "Target Instance Id is a required field.");
-            if (!aErrors.hasErrors()) {
-                ValidatorUtil.validateMinimumBandwidthAvailable(aErrors, cmd.getTargetInstanceId(), "no.minimum.bandwidth", getObjectArrayForLabel(CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID), "Adding this target instance will reduce the bandwidth.");
-                if (cmd.getBandwidthPercent() != null) {
-                	ValidatorUtil.validateMaxBandwidthPercentage(aErrors, cmd.getBandwidthPercent().intValue(), "max.bandwidth.exeeded");
-                }
-            }
 
             if (!aErrors.hasErrors()) {
             	ValidatorUtil.validateTargetApproved(aErrors, cmd.getTargetInstanceId(), "target.not.approved");
