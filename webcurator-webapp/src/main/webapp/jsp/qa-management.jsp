@@ -48,7 +48,8 @@
 			<div id="homeBoxTitle"><spring:message code="ui.label.management.harvesterConfiguration"/></div>
 			<div id="homeBoxLine"><img src="images/x.gif" width="1" height="5" border="0" /></div>
 			<div id="homeBoxText">
-				<a href="<%=Constants.CNTRL_MNG_AGENTS%>"><img src="images/home-btn-general.gif" alt="general" width="66" height="18" border="0" vspace="5" /></a><a href="<%=Constants.CNTRL_MNG_BANDWIDTH%>"><img src="images/home-btn-bandwidth.gif" alt="edit" width="80" height="18" border="0" vspace="5" hspace="3" /></a>
+				<a href="<%=Constants.CNTRL_MNG_AGENTS%>"><img src="images/home-btn-general.gif" alt="general" width="66" height="18" border="0" vspace="5" /></a>
+				<!--a href="<%=Constants.CNTRL_MNG_BANDWIDTH%>"><img src="images/home-btn-bandwidth.gif" alt="edit" width="80" height="18" border="0" vspace="5" hspace="3" /></a-->
 				<authority:hasAtLeastOnePriv privileges='<%=Privilege.MANAGE_PROFILES + "," + Privilege.VIEW_PROFILES %>'>
 				<a href="curator/profiles/list.html"><img src="images/home-btn-profile.gif" alt="profile" width="66" height="18" border="0" vspace="5" /></a>
 				</authority:hasAtLeastOnePriv>

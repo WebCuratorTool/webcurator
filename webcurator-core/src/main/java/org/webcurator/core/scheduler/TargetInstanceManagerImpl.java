@@ -22,6 +22,7 @@ import java.util.List;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.util.Auditor;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.IndicatorCriteriaDAO;
 import org.webcurator.domain.IndicatorDAO;
@@ -251,7 +252,7 @@ public class TargetInstanceManagerImpl implements TargetInstanceManager {
     public List<Annotation> getAnnotations(TargetInstance aTargetInstance) {
         List<Annotation> annotations = null;
         if (aTargetInstance.getOid() != null) {
-            annotations = annotationDAO.loadAnnotations(TargetInstance.class.getName(), aTargetInstance.getOid());
+            annotations = annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(TargetInstance.class), aTargetInstance.getOid());
         }
 
         if (annotations == null) {

@@ -61,12 +61,6 @@ public class TargetInstanceValidator extends AbstractBaseValidator {
 			ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_OWNER, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_OWNER), "Owner is a required field.");
             ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID, "required", getObjectArrayForLabel(CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID), "Target Instance Id is a required field.");
             ValidationUtils.rejectIfEmptyOrWhitespace(aErrors, TargetInstanceCommand.PARAM_TIME, "required", getObjectArrayForLabel(TargetInstanceCommand.PARAM_TIME), "Scheduled Time is a required field.");
-
-            if (!aErrors.hasErrors()) {
-            	if (cmd != null && cmd.getBandwidthPercent() != null) {
-            		ValidatorUtil.validateMaxBandwidthPercentage(aErrors, cmd.getBandwidthPercent(), "max.bandwidth.exeeded");
-            	}
-            }
 		}
 		else if (cmd.getCmd().equals(TargetInstanceCommand.ACTION_ADD_NOTE) ||
 				 cmd.getCmd().equals(TargetInstanceCommand.ACTION_MODIFY_NOTE)) {

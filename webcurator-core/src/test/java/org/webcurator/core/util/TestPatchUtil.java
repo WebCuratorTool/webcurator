@@ -5,7 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.webcurator.core.visualization.VisualizationAbstractApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
@@ -16,21 +17,26 @@ import java.io.IOException;
 import java.util.List;
 
 public class TestPatchUtil {
-    private static final String baseDir = "/usr/local/wct/store";
-    private final long targetInstanceId = 5010;
-    private final int harvestResultNumber = 2;
-    private final ModifyApplyCommand cmd = new ModifyApplyCommand();
-    private File jobFile;
-    private File historyFile;
+    private static final String baseDir = "./store";
+    private static final long targetInstanceId = 5010;
+    private static final int harvestResultNumber = 2;
+    private static final ModifyApplyCommand cmd = new ModifyApplyCommand();
+    private static File jobFile;
+    private static File historyFile;
 
-    @Before
-    public void initTest() {
+    @BeforeClass
+    public static void initTest() {
         cmd.setTargetInstanceId(targetInstanceId);
         cmd.setHarvestResultNumber(1);
         cmd.setNewHarvestResultNumber(harvestResultNumber);
 
         jobFile = new File(baseDir, "jobs" + File.separator + getJobFileName(HarvestResult.PATCH_STAGE_TYPE_MODIFYING));
         historyFile = new File(baseDir, "history" + File.separator + getJobFileName(HarvestResult.PATCH_STAGE_TYPE_MODIFYING));
+    }
+
+    @AfterClass
+    public static void endTest() {
+        WctUtils.cleanDirectory(new File(baseDir));
     }
 
     @Test
@@ -105,7 +111,7 @@ public class TestPatchUtil {
         assertTrue(historyFile.exists());
     }
 
-    private String getJobFileName(String prefix) {
+    private static String getJobFileName(String prefix) {
         return String.format("%s_%d_%d.json", prefix, targetInstanceId, harvestResultNumber);
     }
 }

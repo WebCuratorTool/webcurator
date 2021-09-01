@@ -14,8 +14,6 @@ import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.util.ApplicationContextFactory;
-import org.webcurator.domain.TargetDAO;
-import org.webcurator.domain.TargetDAOImpl;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.TargetInstanceDAOImpl;
 
@@ -64,18 +62,6 @@ public class TestBaseConfig {
         return bean;
     }
 
-    @Bean
-    public HarvestBandwidthManagerImpl harvestBandwidthManager() {
-        HarvestBandwidthManagerImpl bean = new HarvestBandwidthManagerImpl();
-        bean.setHarvestAgentManager(harvestAgentManager());
-        bean.setTargetInstanceDao(targetInstanceDao());
-//        bean.setHarvestCoordinatorDao(harvestCoordinatorDao());
-//        bean.setMinimumBandwidth(minimumBandwidth);
-//        bean.setMaxBandwidthPercent(maxBandwidthPercent);
-//        bean.setAuditor(audit());
-
-        return bean;
-    }
 
     @Bean
     public HarvestLogManager harvestLogManager() {

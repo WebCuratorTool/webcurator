@@ -86,8 +86,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
     @Autowired
     private HarvestLogManager harvestLogManager;
     @Autowired
-    private HarvestBandwidthManager harvestBandwidthManager;
-    @Autowired
     private HarvestQaManager harvestQaManager;
     @Autowired
     private TargetInstanceDAO targetInstanceDao;
@@ -153,10 +151,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
     public void setHarvestLogManager(HarvestLogManager harvestLogManager) {
         this.harvestLogManager = harvestLogManager;
-    }
-
-    public void setHarvestBandwidthManager(HarvestBandwidthManager harvestBandwidthManager) {
-        this.harvestBandwidthManager = harvestBandwidthManager;
     }
 
     public void setHarvestQaManager(HarvestQaManager harvestQaManager) {
@@ -244,8 +238,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
             ti.getHarvestResults().add(harvestResult);
             ti.setState(TargetInstance.STATE_HARVESTED);
             targetInstanceDao.save(ti);
-
-            harvestBandwidthManager.sendBandWidthRestrictions();
 
             // IF the associated target record for this TI has no active TIs remaining (scheduled, queued, running,
             // paused, stopping) AND the target's schedule is not active (i.e we're past
@@ -351,17 +343,28 @@ public class WctCoordinatorImpl implements WctCoordinator {
             throw new WCTRuntimeException("A null harvest agent status was provided to the harvest command.");
         }
 
-        // if the target is not approved to be harvested then do not harvest
-        if (queuePaused || !isTargetApproved(aTargetInstance) || aHarvestAgent.getMemoryWarning()) {
+        if (!harvestAgentManager.lock(aTargetInstance.getOid())) {
+            log.error("Target Instance is failed to get locked: {}", aTargetInstance.getOid());
             return;
+        } else {
+            log.debug("Target Instance is locked: {}", aTargetInstance.getOid());
         }
 
-        // Prepare the instance for harvesting by storing its current
-        // information.
-        prepareHarvest(aTargetInstance);
+        try {
+            // if the target is not approved to be harvested then do not harvest
+            if (queuePaused || !isTargetApproved(aTargetInstance) || aHarvestAgent.getMemoryWarning()) {
+                return;
+            }
 
-        // Run the actual harvest.
-        _harvest(aTargetInstance, aHarvestAgent);
+            // Prepare the instance for harvesting by storing its current
+            // information.
+            prepareHarvest(aTargetInstance);
+
+            // Run the actual harvest.
+            _harvest(aTargetInstance, aHarvestAgent);
+        } finally {
+            harvestAgentManager.unLock(aTargetInstance.getOid());
+        }
     }
 
     private void prepareHarvest(TargetInstance aTargetInstance) {
@@ -450,9 +453,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
         harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
 
         log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + aTargetInstance.getOid().toString());
-
-        // Run the bandwidth calculations.
-        harvestBandwidthManager.sendBandWidthRestrictions();
     }
 
     /**
@@ -578,9 +578,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
             harvestResultManager.updateHarvestResultStatus(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber(), HarvestResult.STATE_CRAWLING, HarvestResult.STATUS_RUNNING);
             log.info("HarvestCoordinator: Harvest initiated successfully for Harvest Result {}", ti.getOid(), hr.getHarvestNumber());
 
-            // Run the bandwidth calculations.
-            harvestBandwidthManager.sendBandWidthRestrictions();
-
             harvestAgentStatusDTO.setInTransition(true);
             processed = true;
         } catch (Throwable e) {
@@ -588,13 +585,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
             harvestAgentManager.markDead(harvestAgentStatusDTO);
         }
         return processed;
-    }
-
-    /**
-     * @see HarvestCoordinator#checkForBandwidthTransition().
-     */
-    public void checkForBandwidthTransition() {
-        harvestBandwidthManager.checkForBandwidthTransition();
     }
 
     /**
@@ -641,86 +631,12 @@ public class WctCoordinatorImpl implements WctCoordinator {
         return profile.getProfile();
     }
 
-    public long getCurrentGlobalMaxBandwidth() {
-        return harvestBandwidthManager.getCurrentGlobalMaxBandwidth();
-    }
-
-    /**
-     * Checks if harvest optimization is permitted within the current bandwidth
-     * restriction. Note that this is different to the
-     * "isHarvestOptimizationEnabled" check.
-     *
-     * @return
-     */
-    public boolean isHarvestOptimizationAllowed() {
-        return harvestBandwidthManager.isHarvestOptimizationAllowed();
-    }
-
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#getBandwidthRestrictions()
-     * .
-     */
-    public HashMap<String, List<BandwidthRestriction>> getBandwidthRestrictions() {
-        return harvestBandwidthManager.getBandwidthRestrictions();
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#getBandwidthRestriction(Long)
-     * .
-     */
-    public BandwidthRestriction getBandwidthRestriction(Long aOid) {
-        return harvestBandwidthManager.getBandwidthRestriction(aOid);
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#getBandwidthRestriction(String,
-     * Date).
-     */
-    public BandwidthRestriction getBandwidthRestriction(String aDay, Date aTime) {
-        return harvestBandwidthManager.getBandwidthRestriction(aDay, aTime);
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#saveOrUpdate(BandwidthRestriction)
-     * .
-     */
-    public void saveOrUpdate(BandwidthRestriction bandwidthRestriction) {
-        harvestBandwidthManager.saveOrUpdate(bandwidthRestriction);
-    }
-
-    /**
-     * @see org.webcurator.domain.HarvestCoordinatorDAO#delete(BandwidthRestriction)
-     */
-    public void delete(BandwidthRestriction bandwidthRestriction) {
-        harvestBandwidthManager.delete(bandwidthRestriction);
-    }
-
-    /**
-     * @param aMinimumBandwidth The minimumBandwidth to set.
-     */
-    public void setMinimumBandwidth(int aMinimumBandwidth) {
-        harvestBandwidthManager.setMinimumBandwidth(aMinimumBandwidth);
-    }
 
     /**
      * @param targetInstanceDao The targetInstanceDao to set.
      */
     public void setTargetInstanceDao(TargetInstanceDAO targetInstanceDao) {
         this.targetInstanceDao = targetInstanceDao;
-    }
-
-    /**
-     * @return Returns the maxBandwidthPercent.
-     */
-    public int getMaxBandwidthPercent() {
-        return harvestBandwidthManager.getMaxBandwidthPercent();
-    }
-
-    /**
-     * @param maxBandwidthPercent The maxBandwidthPercent to set.
-     */
-    public void setMaxBandwidthPercent(int maxBandwidthPercent) {
-        harvestBandwidthManager.setMaxBandwidthPercent(maxBandwidthPercent);
     }
 
     /**
@@ -749,9 +665,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
      */
     public void resume(TargetInstance aTargetInstance) {
         harvestAgentManager.resume(aTargetInstance);
-        // When profile overrides need updating we should also reset the
-        // bandwidth restrictions
-        harvestBandwidthManager.sendBandWidthRestrictions();
     }
 
     /**
@@ -762,7 +675,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
             throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
         }
         harvestAgentManager.abort(aTargetInstance);
-        harvestBandwidthManager.sendBandWidthRestrictions();
     }
 
     /**
@@ -840,7 +752,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     public void queueOptimisableInstances() {
-        if (harvestOptimizationEnabled && isHarvestOptimizationAllowed()) {
+        if (harvestOptimizationEnabled) {
             int optimizedJobCount = 0;
             int optimizationUnavailableCount = 0;
             List<QueuedTargetInstanceDTO> upcomingJobs = targetInstanceDao.getUpcomingJobs(harvestOptimizationLookAheadHours
@@ -861,15 +773,28 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     private boolean loadAndStartOptimizable(QueuedTargetInstanceDTO qti) {
-        TargetInstance targetInstance = loadTargetInstance(qti.getOid());
-        AbstractTarget abstractTarget = targetInstance.getTarget();
-        if (abstractTarget.getObjectType() == AbstractTarget.TYPE_TARGET) {
-            Target target = targetManager.load(abstractTarget.getOid());
-            if (target.isAllowOptimize()) {
-                boolean harvesterWasAvailableForOptimize = startOptimisableInstance(targetInstance, qti.getAgencyName());
-                return harvesterWasAvailableForOptimize;
-            }
+        log.info("Load and start optimizable: {}.", qti.getOid());
+
+        if (!harvestAgentManager.lock(qti.getOid())) {
+            log.info("Failed to get a lock: {}.", qti.getOid());
+            return false;
         }
+        try {
+            log.info("Locked Target Instance: ", qti.getOid());
+            TargetInstance targetInstance = loadTargetInstance(qti.getOid());
+            AbstractTarget abstractTarget = targetInstance.getTarget();
+            if (abstractTarget.getObjectType() == AbstractTarget.TYPE_TARGET) {
+                Target target = targetManager.load(abstractTarget.getOid());
+                if (target.isAllowOptimize()) {
+                    boolean harvesterWasAvailableForOptimize = startOptimisableInstance(targetInstance, qti.getAgencyName());
+                    return harvesterWasAvailableForOptimize;
+                }
+            }
+        } finally {
+            harvestAgentManager.unLock(qti.getOid());
+            log.info("Unlocked Target Instance: .", qti.getOid());
+        }
+
         return false;
     }
 
@@ -907,21 +832,27 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         // lock the ti
         Long tiOid = aTargetInstance.getOid();
-        if (!harvestAgentManager.lock(tiOid))
+        if (!harvestAgentManager.lock(tiOid)) {
+            log.warn("The ti is locked: {}", tiOid);
             return;
-        log.info("Obtained lock for ti " + tiOid);
-
-        if (TargetInstance.STATE_SCHEDULED.equals(aTargetInstance.getState())) {
-            ti = loadTargetInstance(tiOid);
-            approved = isTargetApproved(ti);
         }
 
-        if (approved) {
-            queueApprovedHarvest(aTargetInstance, ti, tiOid);
+        try {
+            log.info("Obtained lock for ti " + tiOid);
+
+            if (TargetInstance.STATE_SCHEDULED.equals(aTargetInstance.getState())) {
+                ti = loadTargetInstance(tiOid);
+                approved = isTargetApproved(ti);
+            }
+
+            if (approved) {
+                queueApprovedHarvest(aTargetInstance, ti, tiOid);
+            }
+        } finally {
+            // release the lock
+            harvestAgentManager.unLock(tiOid);
+            log.info("Released lock for ti " + tiOid);
         }
-        // release the lock
-        harvestAgentManager.unLock(tiOid);
-        log.info("Released lock for ti " + tiOid);
     }
 
     private void queueApprovedHarvest(QueuedTargetInstanceDTO queuedTargetInstance, TargetInstance ti, Long tiOid) {
@@ -993,8 +924,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     private boolean harvestAgentCanHarvest(HarvestAgentStatusDTO agent, QueuedTargetInstanceDTO aTargetInstance) {
-        return !queuePaused && agent != null && agent.isAcceptTasks()
-                && harvestBandwidthManager.isMiniumBandwidthAvailable(aTargetInstance);
+        return !queuePaused && agent != null && agent.isAcceptTasks();
     }
 
     /**
@@ -1025,13 +955,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
         }
 
         return true;
-    }
-
-    /**
-     * @see HarvestCoordinator#isMiniumBandwidthAvailable(TargetInstance) .
-     */
-    public boolean isMiniumBandwidthAvailable(TargetInstance aTargetInstance) {
-        return harvestBandwidthManager.isMiniumBandwidthAvailable(aTargetInstance);
     }
 
     /**
@@ -1671,9 +1594,6 @@ public class WctCoordinatorImpl implements WctCoordinator {
     }
 
     private void dasModificationComplete(TargetInstance ti, HarvestResult harvestResult) {
-        //Update status to scheduled
-        harvestBandwidthManager.sendBandWidthRestrictions();
-
         // Ask the DigitalAssetStore to index the ARC
         initiateIndexing(ti, harvestResult);
 
