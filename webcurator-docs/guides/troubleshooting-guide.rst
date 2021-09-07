@@ -38,7 +38,6 @@ Refer to the following guides:
 -   :doc:`User Manual<user-manual>`
 -   :doc:`System Administrator Guide<system-administrator-guide>`
 -   :doc:`Release Notes<release-notes>`
--   :doc:`Upgrade Guide<upgrade-guide>`
 -   :doc:`FAQ<faq>`
 
 

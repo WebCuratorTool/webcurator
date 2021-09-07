@@ -17,7 +17,12 @@ Web Curator Tool Documentation
    guides/user-manual
    guides/quick-start-guide
    guides/system-administrator-guide
-   guides/upgrade-guide
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Upgrades
+
+   guides/upgrade-guide-3-0
 
 .. toctree::
    :maxdepth: 1
