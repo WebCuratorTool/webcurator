@@ -169,9 +169,9 @@ Important terms used with the Web Curator Tool include:
 Impact of the tool 
 -------------------
 
-The Web Curator Tool is used at the National Library of New Zealand, and
-has had these impacts since it was introduced into the existing
-selective web archiving programme:
+The Web Curator Tool is used at the National Libraries of New Zealand and
+the Netherlands, and has had these impacts since it was introduced into
+the existing selective web archiving programme:
 
 -  Harvesting has become the responsibility of librarians and subject
    experts. These users control the software handling the technical
@@ -179,7 +179,7 @@ selective web archiving programme:
    less reliant on technical support people.
 
 -  Many harvest activities previously performed manually are now
-   automated, such as scheduling harvests, regulating bandwidth,
+   automated, such as scheduling harvests and
    generating preservation metadata.
 
 -  The institution's ability to harvest websites for archival purposes
@@ -214,8 +214,7 @@ Harvest Agents
 
 -  The harvest agent is responsible for crawling the website using the
    Heritrix web harvester, and downloading the required web content in
-   accordance with the harvester settings and any bandwidth
-   restrictions.
+   accordance with the harvester settings.
 
 -  Each installation can have more than one harvest agent, depending on
    the level of harvesting the organization undertakes.
@@ -268,11 +267,9 @@ request letters
 
 **Reports** -generate reports on system activity
 
-**Harvest Configuration** - view the harvester status, configure
-time-based bandwidth restrictions (how much content can be downloaded
-during different times of the day or week) and harvest profiles (such as
-how many documents to download, whether to compress them, delays to
-accommodate the hosting server, etc.)
+**Harvest Configuration** - view the harvester status, and configure
+harvest profiles (such as how many documents to download, whether to
+compress them, delays to accommodate the hosting server, etc.)
 
 **Users, Roles, Agencies, Rejection Reasons, Indicators & flags** -
 create and manage users, agencies, roles, privileges, rejection reasons,
@@ -1132,11 +1129,7 @@ Select a profile and any overrides
 12. Click the **Profile** tab.
 
 *The Profile tab includes a list of harvest profiles, and a series of
-options to override them. Generally, the default settings are fine. There
-are two types of harvest profiles to choose from:*
-
-   - Heritrix 1
-   - Heritrix 3
+options to override them. Generally, the default settings are fine.
 
 *See the Target Instance Quality Review section for further information
 about overriding profiles.*
@@ -1400,7 +1393,7 @@ Each Target Instance has a status:
 
 -  **queued** - the scheduled start time has passed, but the harvest
    cannot be run immediately because there are no slots available on the
-   harvest agents, or there is not enough bandwidth available.
+   harvest agents.
 
 -  **running**  - in the process of harvesting.
 
@@ -1642,8 +1635,7 @@ Queued Target Instances
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Sometimes a harvest cannot be run because there is no capacity on the
-system: either the maximum number of harvests are already running, or
-there is no spare bandwidth available for an additional harvest.
+system; the maximum number of harvests are already running.
 
 In these cases, the Target Instance cannot be sent to the Harvest
 Agents. Instead, their state is updated to **queued**, and they remain
@@ -2394,8 +2386,7 @@ there are tens of thousands of them).
 
 You can filter these URLs out of future harvests by going to the
 associated Target and opening the Profile tab and adding the following
-two lines to the "Exclude Filters" box for Heritrix 1 or "Block URLs" box
-for Heritrix 3:
+two lines to the "Block URLs" box for Heritrix 3:
 
 - .*g2_subView=core.UserLogin.\*
 
@@ -2480,11 +2471,8 @@ To test whether this is happening to you, switch the user agent
 Firefox is using to the one used in the Web Curator Tool, and
 then attempt to browse the relevant site.
 
-- Default Heritrix 1 string
-  ``Mozilla/5.0 (compatible; heritrix/1.14.1 +http://dia-nz.github.io/webcurator/)``
-
 - Default Heritrix 3 string
-  ``Mozilla/5.0 (compatible; heritrix/3.3.0 +http://dia-nz.github.io/webcurator/``
+  ``Mozilla/5.0 (compatible; heritrix/3.3.0 +https://webcuratortool.org/``
 
 
 .. _groups-1:
@@ -2917,10 +2905,6 @@ The different types of notification are outlined below.
 |                       | threshold/limit has   | Harvester privilege   |
 |                       | been reached.         |                       |
 +-----------------------+-----------------------+-----------------------+
-| Bandwidth Warning     | The bandwidth limit   | Users with Manage Web |
-|                       | has been exceeded     | Harvester privilege   |
-|                       | reached.              |                       |
-+-----------------------+-----------------------+-----------------------+
 
 Most notifications are sent only to people within the same Agency. The
 exception is the system usage warnings that are sent to all users with
@@ -3248,43 +3232,6 @@ instance that is currently running.
 
 Figure 43. Shows the number of jobs running on a particular harvester
 
-Bandwidth limits (Heritrix 1 Agents only)
-----------------
-
-This section only applies to Heritrix 1 Harvest Agents. Bandwidth limiting
-for Heritrix 3 is not yet supported. If you only use Heritrix 3 Agents,
-you can ignore this section.
-
-Bandwidth limits must be created before any harvesting can be
-undertaken. The default setting is '0'. Bandwidth will be allocated to a
-harvest as a percentage of the allowed bandwidth for the period.
-
-In figure 36 the bandwidth has been set to run at a reduced rate during
-the day and run at a higher level in the evenings and weekends.
-
-|image80|
-
-Figure 44. Bandwidth limits, harvest optimisation and heatmap
-
-In figure 44 above if you click on the hyperlinked numbers you can
-choose to optimise your harvests at particular times of the day or week
-earlier than the schedule otherwise permits. The window for this
-look-ahead is configurable and defaults to 12 hours. This example shows
-that optimisation has been set for evenings and weekends.
-
-You will also need to check the 'harvest optimization' button on the
-target schedule. If you need to run a harvest at a specified time then
-simply leave the 'harvest optimization' button on the target record
-unchecked.
-
-If you need to disable this feature temporarily you can do so from the
-Harvester Configuration general screen. Simply click on Optimize
-scheduled jobs button to disable and then click again when you want to
-enable the functionality again.
-
-The heatmap threshold can be changed to suit what you consider to be
-your low, medium or high harvesting levels.
-
 Profiles
 --------
 
@@ -3327,7 +3274,7 @@ How to create a profile
 
 From the **Profile** page
 
-1. Select the harvester type (Heritrix 3, Heritrix 1)
+1. Select the harvester type (Heritrix 3)
 
 2. Click **create new**
 
@@ -3450,37 +3397,6 @@ editing information about profiles.
    https://github.com/internetarchive/heritrix3/wiki/Basic%20Crawl%20Job%20Settings
 
 
-**Heritrix 1**:
-
-   |image87|
-
-   Figure 46. Profile page
-
-   - **General** - general information about the profile, such as a name,
-     description, agency, whether it's an active or inactive profile and what
-     level the profile should be set.
-
-   - **Base** - Information about the crawl order, user-agent string, and
-     robots honouring policy.
-
-   - **Scope** - settings that decide for each discovered URI if it's within
-     the scope of the current crawl. Several scopes are provided with
-     Heritrix such as DecidingScope, PathScope and HostScope
-
-   - **Frontier** - this maintains the internal state of the crawl. It
-     effects the order in which the URIs are crawled
-
-   The remaining tabs **Pre-fetchers**, **Fetchers**, **Extractors**,
-   **Writers**, and **Post-Processors** are a series of processors that a
-   URI passes through when it is crawled.
-
-   For more information about creating profiles see:
-   http://crawler.archive.org/articles/user_manual/creating.html
-
-   For more information about configuring profiles see:
-   http://crawler.archive.org/articles/user_manual/config.html
-
-
 Permission Request Templates
 =======================================
 
@@ -3530,8 +3446,6 @@ The workflow is similar to the web harvesting workflow. The target
 record is created for the serial. The seed URL is likely to change with
 each new issue. Because of this it is standard practice to use 'harvest
 now' rather than create ongoing schedules.
-
-The HTML serials standard profile using Heritrix 1 is a pathscope profile.
 
 The new QA Indicators are designed for websites so it's best to use the
 log files and tree view to quality review the harvested serial issue.

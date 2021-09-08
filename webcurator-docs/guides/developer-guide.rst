@@ -157,9 +157,6 @@ Some important notes
    the Store. The Store receives completed harvests from the Harvest Agents, and
    performs tasks as requested by the Webapp.
 
--  The legacy H1 Harvest Agent is self-contained. It contains the Heritrix v1
-   crawler as a dependency.
-
 -  The Heritrix H3 crawlers are not aware of their agents. Instead the H3 Harvest
    Agent tracks the Heritrix3 crawler. They run as separate applications within
    their own JVMs.
@@ -717,7 +714,7 @@ how the Web Curator Tool is structured for use in production. Several potential
 API candidates exist:
 
 1.  Agent API - A generic wrapper supporting different crawlers, such as
-    Heritrix1, Heritrix3 and other potential crawlers, such as WebRecorder.
+    Heritrix3 and other potential crawlers like WebRecorder and Brozzler.
     Re-develop WCT Core and Harvest Agent to be crawler agnostic, allowing other
     crawl tools to be utilised by WCT. Harvest Agent pooling/grouping also
     required to allocate scheduled Targets to different crawl tools.

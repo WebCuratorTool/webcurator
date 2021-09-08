@@ -88,7 +88,6 @@ running the application.
    /usr/local/wct/webcurator-webapp-3.0.0.war
    /usr/local/wct/webcurator-store-3.0.0.war
    /usr/local/wct/webcurator-harvest-agent-h3-3.0.0.jar
-   /usr/local/wct/webcurator-harvest-agent-h1-3.0.0.jar
 
 
 By default WCT assumes the existence of a directory **/usr/local/wct**, where it stores all

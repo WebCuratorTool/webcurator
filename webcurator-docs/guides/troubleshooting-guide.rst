@@ -59,13 +59,6 @@ Make sure you have at least one WCT Harvest Agent running. A Harvest Agent is th
 performs the crawl of your Target website. From the WCT Home screen, go to *general* under *Harvester Configuration* and
 you should see a list of your available Harvest Agents.
 
-Bandwidth Exceeded
-------------------
-
-Daily bandwidth caps can be set for your Harvest Agents. If you cap is exceeded then WCT will prevent any further
-harvests from completing for that day. From the WCT Home screen, go to *bandwidth* under *Harvester Configuration* and
-you can set the bandwidth limits and thresholds for each day.
-
 Harvest Logs
 ------------
 Once a Target Instance starts to harvest, a number of log files get generated. Upon opening a running Target Instance,
