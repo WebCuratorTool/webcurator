@@ -86,8 +86,8 @@ to get the desired effect
         <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
           <span class="sr-only">Toggle Dropdown</span>
           <div class="dropdown-menu" role="menu">
-            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showRecrawl();"><i class="fas fa-link text-info"></i> &nbsp; Repair by Crawl</a>
-            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Repair by File</a>
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showRecrawl();"><i class="fas fa-link text-info"></i> &nbsp; Import URL</a>
+            <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showImport();"><i class="fas fa-file-import text-warning"></i> &nbsp; Import File</a>
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.processorModify.bulkOpenMetadataFile();"><i class="fas fa-file-import text-primary"></i> &nbsp; Bulk Prune/Import</a>
             <div class="dropdown-divider"></div>
@@ -176,10 +176,10 @@ to get the desired effect
       <!-- Left navbar links -->
       <ul class="navbar-nav">
         <li class="nav-item flag-apply" style="margin-right: 20px;">
-          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.preApply();">Next</button>
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.preApply();">Patch</button>
         </li>
         <li class="nav-item flag-submit hidden" style="margin-right: 20px;">
-          <button type="button" class="btn btn-block btn-primary" onclick="javascript:$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide();">Previous</button>
+          <button type="button" class="btn btn-block btn-primary" onclick="javascript:$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide();">Back</button>
         </li>
         <li class="nav-item"><h3 class="text-secondary">Patch Harvest</h3></li>
       </ul>
@@ -187,7 +187,7 @@ to get the desired effect
       <!-- Right navbar links -->
       <ul class="navbar-nav ml-auto">
         <li class="nav-item flag-submit hidden" style="margin-right: 20px;">
-          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.confirmApply();">Apply</button>
+          <button type="button" class="btn btn-block btn-primary" onclick="gPopupModifyHarvest.confirmApply();">Start</button>
         </li>
         <li class="nav-item">
           <button type="button" class="btn btn-block btn-secondary" onclick="$('#popup-window-modification').hide();">Close</button>
@@ -252,7 +252,7 @@ to get the desired effect
 <div class="popup-window" id="popup-window-single-recrawl">
 <div class="card card-primary popup-content">
   <div class="card-header">
-    <h3 class="card-title">Single Patch Crawl</h3>
+    <h3 class="card-title">Import Single URL</h3>
     <div class="card-tools">
       <button type="button" class="btn btn-tool" onclick="$('#popup-window-single-recrawl').hide();"><i class="fas fa-times"></i></button>
     </div>
@@ -271,7 +271,7 @@ to get the desired effect
       <div class="col-8">
         <div class="custom-control custom-checkbox">
           <input class="custom-control-input" type="checkbox" id="checkbox-prune-of-single-import" checked>
-          <label for="checkbox-prune-of-single-import" class="custom-control-label">Prune the existing content when exist</label>
+          <label for="checkbox-prune-of-single-import" class="custom-control-label">Prune any existing records for Target URL</label>
         </div>
       </div>
       <div class="col-2">
@@ -290,7 +290,7 @@ to get the desired effect
 <span class="hidden" id="single-import-index"></span>
 <div class="card card-primary popup-content">
   <div class="card-header">
-    <h3 class="card-title">Single Import</h3>
+    <h3 class="card-title">Import Single File</h3>
     <div class="card-tools">
       <button type="button" class="btn btn-tool" onclick="$('#popup-window-single-import').hide();"><i class="fas fa-times"></i></button>
     </div>
@@ -305,7 +305,7 @@ to get the desired effect
     </div>
 
     <div class="form-group">
-      <label for="sourceFile">Import from disk file</label>
+      <label for="sourceFile">Import file from disk</label>
       <div class="input-group">
         <div class="custom-file">
           <input type="file" class="custom-file-input" id="sourceFile" name="sourceFile">
@@ -318,7 +318,7 @@ to get the desired effect
       <label for="radio-group-modified-date">Modified Datetime</label>
       <div class="custom-control custom-radio d-inline">
         <input type="radio" id="radioModifiedDateModeTbc" name="r1" flag="TBC" checked>
-        <label for="radioModifiedDateModeTbc" style="font-weight: normal;">TBC</label>
+        <label for="radioModifiedDateModeTbc" style="font-weight: normal;">Current System Time</label>
       </div>
       <div class="custom-control custom-radio d-inline">
         <input type="radio" id="radioModifiedDateModeFile" name="r1" flag="File">
@@ -337,7 +337,7 @@ to get the desired effect
       <div class="col-8">
         <div class="custom-control custom-checkbox">
           <input class="custom-control-input" type="checkbox" id="checkbox-prune-of-single-import" checked>
-          <label for="checkbox-prune-of-single-import" class="custom-control-label">Prune the existing content when exist</label>
+          <label for="checkbox-prune-of-single-import" class="custom-control-label">Prune any existing records for Target URL</label>
         </div>
       </div>
       <div class="col-2">

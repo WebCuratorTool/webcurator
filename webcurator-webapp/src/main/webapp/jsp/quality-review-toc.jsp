@@ -86,8 +86,8 @@
 			<td width="70%">Graphical view of harvested data.</td>			
 		</tr-->
 		<tr>
-            <td width="30%"><a href="curator/target/harvest-result-networkmap.html?targetInstanceOid=${targetInstanceOid}&harvestResultId=${command.harvestResultId}&harvestNumber=${command.harvestNumber}">Network Map</a></td>
-            <td width="70%">Graphical view of harvested data.</td>
+            <td width="30%"><a href="curator/target/harvest-result-networkmap.html?targetInstanceOid=${targetInstanceOid}&harvestResultId=${command.harvestResultId}&harvestNumber=${command.harvestNumber}">Harvest Analysis and Patching</a></td>
+            <td width="70%">Analyse harvested data through visualization and tree views, while importing and pruning missing or unwanted content.</td>
         </tr>
 		<tr>
 			<td colspan="2" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
