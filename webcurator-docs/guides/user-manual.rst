@@ -1974,8 +1974,84 @@ Target Instance view page corresponding to that particular harvest which
 in turn has a link back to the back to the Harvest History page from
 which they came.
 
-Quality review with the prune tool
-----------------------------------
+Harvest Analysis and Patching
+-----------------------------
+
+The **Harvest Analysis and Patching** tool can be used to analyse
+a harvest using a network graph visualization and structured tree views of URLs,
+as well as patching a harvest by importing or pruning content.
+
+*A network of the harvested domains displayed in the visualization tool.*
+
+|image98|
+
+   Figure X. Visualization Tool
+
+Visualization Tool
+~~~~~~~~~~~~~~~~~~
+
+The harvest visualization tool is an interactive method of exploring the domains of URLs
+harvested in a crawl.
+
+Domains link to each other when they contain at least one URL link.
+For example, if the page *http://natlib.govt.nz/about-us* has an http link to *http://thumbnailer.digitalnz.org/resource*,
+this will show a directional link between the natlib.govt.nz and thumbnailer.digitalnz.org nodes.
+
+|image99|
+
+   Figure X. Linked domain nodes
+
+Groups of nodes, or clusters, highlight the relationships and dependencies between content in a harvest.
+
+
+Node Shapes:
+
+- **Circle** nodes are a single domain of URLs.
+
+- **Star** nodes are a single domain of URLs that also contain the primary seed of the crawl.
+
+*Note, if a crawl has multiple seeds, it is possible to see multiple star nodes.*
+
+Node Colours:
+
+- **Yellow** nodes are a single domain of URLs
+
+- **Blue** nodes are a group of sub domains that have a common second level domain. Double clicking
+  a blue node will expand the domain group.
+
+  *For example, the following domains share a common second level domain, but have unique sub-domains.*
+  *This further aggregation of domain data helps to present clearer and more usable network graphs.*
+
+  - images.\ **google.com**
+  - maps.\ **google.com**
+  - video.\ **google.com**
+
+- **Red** nodes are expanded domain group nodes, representing a single domain of URLs
+
+- **Pink** nodes are parent domain grouping nodes. Double clicking a pink node will collapse the domain group.
+
+|image100|
+
+   Figure X. Sub-domain node group
+
+
+Node Sizes:
+
+- The size of a node indicates the number of URLs harvested in that domain, relative to the other domains
+  in the graph
+
+Graph Interaction:
+
+- All nodes can be dragged within the view pane. They are weighted by their relationships, so movement of
+  one node will affect other nodes it is linked to. Sometimes with large harvests it is necessary to drag
+  nodes around to get a clearer view of the harvest domains.
+
+- All expanded sub-domain groups can be automatically collapsed by clicking the *Collapse* button.
+
+- The graph can reverted to it's original state by clicking the *Redraw* button.
+
+
+
 
 The **Tree Tool** gives you a graphical, tree-like view of the harvested
 data. It is a visualisation tool, but can also be used to delete
@@ -3824,3 +3900,12 @@ Figure 28: Detailed workflow
 .. |image97| image:: ../_static/user-manual/image97.png
    :width: 0.21875in
    :height: 0.20833in
+.. |image98| image:: ../_static/user-manual/image98.png
+   :width: 6in
+   :height: 3.514in
+.. |image99| image:: ../_static/user-manual/image99.png
+   :width: 4.306in
+   :height: 1.597in
+.. |image100| image:: ../_static/user-manual/image100.png
+   :width: 4.00in
+   :height: 2.194in
