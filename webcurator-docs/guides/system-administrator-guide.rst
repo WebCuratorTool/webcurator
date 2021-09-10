@@ -324,6 +324,13 @@ instance, the maximum allowed memory a WCT component can use::
 
     java -Xmx512m -jar webcurator-webapp.war
 
+- **Memory**
+
+    Increased memory allocation for Webapp and Store may be required if performance
+    issues are experienced with the harvest visualization feature from v3.1 onwards.
+    This can be dependent on the size of harvests and whether all the WCT components and
+    Heritrix are running on a single server.
+
 Configuring WCT properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -898,6 +905,14 @@ The following are common configuration options for the Webapp adjusted via the *
       crawlPoliteness.aggressive.respectCrawlDelayUpToSeconds=2
       crawlPoliteness.aggressive.maxPerHostBandwidthUsageKbSec=2000
 
+
+-  Core Base Directory
+
+   The **core.base.dir** defines a temporary working directory for harvest patching activities
+   by the Webapp. The directory is used to store local files that have been imported into a
+   harvest, as well as caching patching metadata. ::
+
+      core.base.dir=/usr/local/wct/webapp/
 
 -  Triggers
 
