@@ -32,16 +32,16 @@ to get the desired effect
     <!-- Left navbar links -->
     <ul class="navbar-nav">
       <div class="btn-group btn-group-toggle" data-toggle="buttons">
-        <label class="btn bg-secondary btn-main-tab active" name="networkmap">
+        <label class="btn bg-secondary btn-main-tab active" title="network map" name="networkmap">
           <input type="radio" name="options" autocomplete="off" checked> <i class="fas fa-vector-square"></i>
         </label>
-        <label class="btn bg-secondary btn-main-tab" name="tree-harvest-struct">
+        <label class="btn bg-secondary btn-main-tab" title="crawler path view" name="tree-harvest-struct">
           <input type="radio" name="options" autocomplete="off"> <i class="fas fa-bezier-curve"></i>
         </label>
-        <label class="btn bg-secondary btn-main-tab" name="tree-url-names">
+        <label class="btn bg-secondary btn-main-tab" title="folders view" name="tree-url-names">
           <input type="radio" name="options" autocomplete="off"> <i class="fa fa-folder-open"></i>
         </label>
-        <label class="btn bg-secondary btn-main-tab" name="candidate-query">
+        <label class="btn bg-secondary btn-main-tab" title="inspect view" name="candidate-query">
           <input type="radio" name="options" autocomplete="off"> <i class="far fa-list-alt"></i>
         </label>
       </div>
@@ -55,8 +55,8 @@ to get the desired effect
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
         <div class="input-group-append">
-          <button type="button" class="btn btn-flat btn-outline-secondary" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
-          <button type="button" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
+          <button type="button" title="advanced search" class="btn btn-flat btn-outline-secondary" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
+          <button type="button" title="clear filter" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
         </div>
       </div>
     </form>
@@ -97,10 +97,10 @@ to get the desired effect
       </div>
 
       <li class="nav-item">
-        <a onclick="toggleScreenSize();" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
+        <a onclick="toggleScreenSize();" title="toggle fullscreen mode" role="button" class="nav-link btn-full-screen"><i class="fas fa-expand"></i></a>
       </li>
       <li class="nav-item">
-        <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>
+        <a onclick="gParentHarvestResultViewTab.closeContentWindow();" title="close tool" role="button" class="nav-link"><i class="fas fa-times"></i></a>
       </li>
     </ul>
   </nav> <!-- End of Header -->
@@ -112,10 +112,10 @@ to get the desired effect
 
     <div class="card" style="position: absolute; left: 1px; top: 60px; width: 400px; margin: 0; padding: 0;">
       <div class="card-header" style="padding-top: 3px;">
-        <h3 class="card-title">Category</h3>
+        <h3 class="card-title">Domain Analysis</h3>
         <div class="card-tools">
-          <button type="button" class="btn btn-tool btn-side-group-type text-primary" name="statuscode">Status</button>
-          <button type="button" class="btn btn-tool btn-side-group-type" name="contenttype">Type</button>
+          <button type="button" title="http status code" class="btn btn-tool btn-side-group-type text-primary" name="statuscode">Status</button>
+          <button type="button" title="mime type" class="btn btn-tool btn-side-group-type" name="contenttype">Type</button>
           <button type="button" class="btn btn-tool text-primary" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
         </div>
       </div>
@@ -137,8 +137,8 @@ to get the desired effect
     <div style="position: absolute; right: 5px; top: 60px; margin: 0; padding: 0;">
       <div class="btn-group">
         <!-- <button type="button" class="btn btn-default" onclick="networkmap.reload();">Reload</button> -->
-        <button type="button" class="btn btn-default" onclick="networkmap.graph.redraw();">Redraw</button>
-        <button type="button" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse</button>
+        <button type="button" title="redraw network graph" class="btn btn-default" onclick="networkmap.graph.redraw();">Redraw</button>
+        <button type="button" title="collapse any expanded node groups" class="btn btn-default" onclick="networkmap.graph.collapseAll();">Collapse</button>
       </div>
     </div>
   </div>    <!-- End of card body -->
