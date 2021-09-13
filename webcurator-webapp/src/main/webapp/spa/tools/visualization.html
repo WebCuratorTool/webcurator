@@ -56,7 +56,7 @@ to get the desired effect
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
         <div class="input-group-append">
           <button type="button" title="advanced search" class="btn btn-flat btn-outline-secondary" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
-          <button type="button" title="clear filter" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
+          <button type="button" title="clear the searched results" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
         </div>
       </div>
     </form>
@@ -585,10 +585,8 @@ to get the desired effect
 
 
         // Search input filter
-        $("#menu-tool-bar input[type='search']").on('keyup', function(e){
-          if (e.keyCode===13) {
+        $("#menu-tool-bar input[type='search']").on('search', function(e){
             gPopupModifyHarvest.filter($(this).val());
-          }
         });
 
         $("#popup-window-modify-harvest input[type='search']").on('input', function(e){
