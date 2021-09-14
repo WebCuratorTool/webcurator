@@ -2046,9 +2046,118 @@ Graph Interaction:
   one node will affect other nodes it is linked to. Sometimes with large harvests it is necessary to drag
   nodes around to get a clearer view of the harvest domains.
 
+- A right-click menu is available on all nodes. Giving the option to inspect all URLs within a domain, or
+  prune all URLs within a domain.
+
+|image101|
+
+   Figure X. Node right-click menu
+
 - All expanded sub-domain groups can be automatically collapsed by clicking the *Collapse* button.
 
 - The graph can reverted to it's original state by clicking the *Redraw* button.
+
+Domain Statistics
+~~~~~~~~~~~~~~~~~
+
+The left side of the visualization holds a collapsible table for domain statistics. By default the table will
+show data for all domains in the harvest. Selecting a domain node in the graph will restrict the statistics to
+URLs within that domain. Clicking off a node and onto empty space in the graph will reset the table data.
+
+For each statistic category, displayed is the total size of content harvested and total number of URLs harvested.
+The categories are:
+
+- **HTTP Status Code** - An HTTP status code is a server response to a client request. The three digit codes are
+  separated into five classes: informational, successful, redirection, client error and server error. Each URL
+  crawled in a harvest has a response code.
+
+- **Mime Type** - The mime type of a URL identifies the nature and format of the document, file or bytes
+  returned from a server. The string identifier for a mime type is composed of a *type* and *subtype*.
+
+|image102|
+
+   Figure X. Domain statistics
+
+
+Analysing URLs
+~~~~~~~~~~~~~~
+
+Several additional views are available to analyse the URLs in a harvest. Each view uses a sortable table to
+display a selection of URL data.
+
+  - Inspect View
+  - Crawler Path View
+  - Folders View
+
+
+- Seeds
+
+  Any primary and secondary seeds for a harvest are flagged with **P** and **S** badges.
+
+ |image103|
+
+  Figure X. Primary and Secondary seed badges
+
+- URL Actions (right-click context menu)
+
+  Right clicking on a URL or selection of URLs will present a context menu of possible actions.
+
+  - **HopPath Current** - Display the hop path for a URL from the primary seed.
+
+  - **Prune** - Prune the selected URLs.
+
+  - **Recrawl** - Import the selected URLs, while pruning the existing records.
+
+  - **Import From File** -
+
+  - **Browse**
+
+    - *WCT Browse* - Replay the harvest URL in the built-in WCT Browse tool.
+
+    - *Live Site Browse* - Open the harvest URL on the live web.
+
+    - *OpenWayback Browse* - Replay the harvest URL in an external viewer, such as OpenWayback or PYWB.
+
+  - **Download** - Download the payload from the WARC file for this harvested URL.
+
+  - **Export Data** - Export the table data for the selected URLs in a spreadsheet format.
+
+ |image104|
+
+  Figure X. Right-click context menu
+
+
+Inspect View
+~~~~~~~~~~~~
+
+The URLs for a domain can be inspected by right-clicking on a node. This will open a table view where you can
+filter, search, sort and further analyse the URLs.
+
+|image105|
+
+   Figure X. Inspecting URLs for a domain
+
+THe data, columns
+
+Folders View
+~~~~~~~~~~~~
+
+
+Crawler Path View
+~~~~~~~~~~~~~~~~~
+
+
+- Crawler Path View
+
+- **Action** -
+- **URL** -
+- **Type** -
+- **Status** -
+- **Size** -
+
+Filtering and Searching
+~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
 
@@ -3902,10 +4011,22 @@ Figure 28: Detailed workflow
    :height: 0.20833in
 .. |image98| image:: ../_static/user-manual/image98.png
    :width: 6in
-   :height: 3.514in
+   :height: 3.486in
 .. |image99| image:: ../_static/user-manual/image99.png
    :width: 4.306in
    :height: 1.597in
 .. |image100| image:: ../_static/user-manual/image100.png
    :width: 4.00in
    :height: 2.194in
+.. |image101| image:: ../_static/user-manual/image101.png
+   :width: 2.625in
+   :height: 1.0in
+.. |image102| image:: ../_static/user-manual/image102.png
+   :width: 6.00in
+   :height: 2.028in
+.. |image103| image:: ../_static/user-manual/image103.png
+   :width: 3.722in
+   :height: 1.0in
+.. |image104| image:: ../_static/user-manual/image104.png
+   :width: 5.208in
+   :height: 2.0in
