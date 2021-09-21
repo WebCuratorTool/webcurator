@@ -38,6 +38,7 @@ function fetchHttp(url, req, callback){
       return response.json();
     }
   }).then((response) => {
+
     callback(response);
   });
 }
@@ -85,6 +86,39 @@ function sp(id){
 
   $(".content-page").hide();
   $("#page-"+id).show();
+}
+
+function splitString2Array(s){
+  var rst=[];
+  if($.isEmptyObject(s) || s.trim().length===0){
+    return rst;
+  }
+
+  var items=s.split(",");
+  for(var i=0;i<items.length;i++){
+    var item=items[i];
+    if (!$.isEmptyObject(item) && item.trim().length>0) {
+      rst.push(item.trim());
+    }
+  }
+
+  return rst;
+}
+
+function getBrowserNameAndVersion(){
+  var ua = navigator.userAgent, tem, M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+  if(/trident/i.test(M[1])){
+      tem =  /\brv[ :]+(\d+)/g.exec(ua) || [];
+      return 'IE '+(tem[1] || '');
+  }
+  if(M[1] === 'Chrome'){
+      tem= ua.match(/\b(OPR|Edge)\/(\d+)/);
+      if(tem != null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+  }
+  M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+  if((tem = ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+
+  return M;
 }
 
 function formatDataForTreeGrid(listObj){
