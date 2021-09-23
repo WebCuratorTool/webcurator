@@ -163,6 +163,11 @@ function formatContentLengthAg(params){
     return formatContentLength(params.value);
 }
 
+function copyUrlToClipboard(data){
+  if(!$.isEmptyObject(data) && !$.isEmptyObject(data.url)){
+    navigator.clipboard.writeText(data.url);
+  }
+}
 
 function contextMenuCallback(key, data, source, target){
   var keyItems=key.split('-');
@@ -177,7 +182,11 @@ function contextMenuCallback(key, data, source, target){
     dataset=source.getAllNodes();
   }
 
-  if(action==='hoppath'){
+  if(action==='copyUrl'){
+    copyUrlToClipboard(data);
+  }else if(action==='outlinks'){
+    gPopupModifyHarvest.showOutlinks(data);
+  }else if(action==='hoppath'){
     visHopPath.draw(data.id);
   }else if(action==='import'){
     target.showImport(data);
@@ -231,15 +240,18 @@ var itemsUndo={
 };
 
 var contextMenuItemsUrlBasic={
-  "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
+  "copyUrl-current": {name: "Copy URL", icon: "far fa-clone"},
   "sep1": "---------",
+  "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
+  "outlinks-current": {name: "Outlinks Current", icon: "fas fa-share-alt"},
+  "sep2": "---------",
   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
   "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
   "import-current": {name: "Import From File", icon: "fas fa-file-import"},
-  "sep2": "---------",
+  "sep3": "---------",
   "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
   "download": {name: "Download", icon: "fas fa-download text-warning"},
-  "sep3": "---------",
+  "sep4": "---------",
   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
       "exportInspect-selected": {"name": "Selected"},
       "exportInspect-all": {"name": "All"}
@@ -255,13 +267,16 @@ var contextMenuItemsFolderTree={
 };
 
 var contextMenuItemsToBeModified={
-    "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
+    "copyUrl-current": {name: "Copy URL", icon: "far fa-clone"},
     "sep1": "---------",
-    "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
+    "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
+    "outlinks-current": {name: "Outlinks Current", icon: "fas fa-share-alt"},
     "sep2": "---------",
+    "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
+    "sep3": "---------",
     "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
     "download": {name: "Download", icon: "fas fa-download text-warning"},
-    "sep3": "---------",
+    "sep4": "---------",
     "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
         "exportToBeModified-selected": {"name": "Selected"},
         "exportToBeModified-all": {"name": "All"}
