@@ -412,6 +412,14 @@ class PopupModifyHarvest{
 		}
 	}
 
+	reset(){
+		if (currentMainTab === 'tree-url-names') {
+			this.initFolderTreeView(null);
+		}else if (currentMainTab === 'candidate-query') {
+			this.gridCandidate.clearAll();
+		}
+	}
+
 	filter(val){
 		if (currentMainTab === 'tree-harvest-struct') {
 			this.crawlerPathTreeView.filter(val);
