@@ -55,7 +55,7 @@ to get the desired effect
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
         <div class="input-group-append">
-          <button type="button" title="advanced search" class="btn btn-flat btn-outline-secondary" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
+          <button type="button" title="advanced search" class="btn btn-flat btn-outline-secondary" id="btn-advanced-search" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
           <button type="button" title="recover to the original" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.reset();"><i class="fab fa-resolving"></i></button>
         </div>
       </div>
@@ -82,7 +82,7 @@ to get the desired effect
 
       <!-- Patch Harvest: Cart -->
       <div class="btn-group">
-        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; Patch Harvest</i></button>
+        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide(); $('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; Patch Harvest</i></button>
         <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
           <span class="sr-only">Toggle Dropdown</span>
           <div class="dropdown-menu" role="menu">
@@ -537,7 +537,13 @@ to get the desired effect
           $('#main-tab-group .card-main').hide();
           $('#'+currentMainTab).show();
 
-          if (currentMainTab === 'networkmap' || currentMainTab==='tree-harvest-struct') {
+          if (currentMainTab === 'tree-harvest-struct') {
+            $('#btn-advanced-search').prop("disabled", true);
+          }else{
+            $('#btn-advanced-search').prop("disabled", false);
+          }
+          
+          if (currentMainTab === 'networkmap') {
             $('#menu-tool-bar').fadeOut();
           }else{
             $('#menu-tool-bar').fadeIn();

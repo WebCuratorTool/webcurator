@@ -42,7 +42,7 @@ function fetchHttp(url, req, callback){
       response.rspCode=9999;
       response.rspMsg=response.error;
     }
-      
+
     callback(response);
   });
 }
@@ -188,6 +188,8 @@ function contextMenuCallback(key, data, source, target){
 
   if(action==='copyUrl'){
     copyUrlToClipboard(data);
+  }else if(action==='outlinks'){
+    gPopupModifyHarvest.showOutlinks(data);
   }else if(action==='hoppath'){
     visHopPath.draw(data.id);
   }else if(action==='import'){
@@ -244,6 +246,7 @@ var contextMenuItemsUrlBasic={
   "copyUrl-current": {name: "Copy URL", icon: "far fa-clone"},
   "sep1": "---------",
   "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
+  "outlinks-current": {name: "Outlinks Current", icon: "fas fa-share-alt"},
   "sep2": "---------",
   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
   "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
@@ -270,6 +273,7 @@ var contextMenuItemsToBeModified={
     "copyUrl-current": {name: "Copy URL", icon: "far fa-clone"},
     "sep1": "---------",
     "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
+    "outlinks-current": {name: "Outlinks Current", icon: "fas fa-share-alt"},
     "sep2": "---------",
     "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
     "sep3": "---------",

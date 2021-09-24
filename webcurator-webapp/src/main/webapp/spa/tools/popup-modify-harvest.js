@@ -379,7 +379,7 @@ class HierarchyTree{
 				hideExpandedCounter: true,  // Hide counter badge if parent is expanded
 				hideExpanders: false,       // Hide expanders if all child nodes are hidden by filter
 				highlight: true,   // Highlight matches by wrapping inside <mark> tags
-				leavesOnly: true, // Match end nodes only
+				leavesOnly: false, // Match end nodes only
 				nodata: true,      // Display a 'no data' status node if result is empty
 				mode: "hide"       //dimm or hide Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
 		}
@@ -413,11 +413,48 @@ class PopupModifyHarvest{
 	}
 
 	reset(){
-		if (currentMainTab === 'tree-url-names') {
+		if (currentMainTab === 'tree-harvest-struct') {
+			this.initCrawlerPathTreeView();
+		}else if (currentMainTab === 'tree-url-names') {
 			this.initFolderTreeView(null);
 		}else if (currentMainTab === 'candidate-query') {
 			this.gridCandidate.clearAll();
 		}
+	}
+
+	showOutlinks(data){
+		if ($.isEmptyObject(data) || data.id < 0) {
+			toastr.warning("The url [" + data.url + "] does not exist.");
+			return;
+		}
+		//this.crawlerPathTreeView.draw(dataset);
+		var that=this;
+		var url="/networkmap/get/node?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + data.id;
+		g_TurnOnOverlayLoading();
+		fetchHttp(url, null, function(response){
+			if (!$.isEmptyObject(response.error)) {
+				response.rspCode=9999;
+				response.rspMsg=response.error;
+			}
+
+			if (response.rspCode != 0) {
+				g_TurnOffOverlayLoading();
+				alert(response.rspMsg);				
+				return;
+	        }
+
+			var data=JSON.parse(response.payload);
+			var dataset=[data];
+
+			$('#popup-window-modification').hide();
+
+			currentMainTab = 'tree-harvest-struct';
+			$('#btn-group-main-tabs label[name="tree-harvest-struct"]').trigger('click');
+		
+			that.crawlerPathTreeView.draw(dataset);
+
+			g_TurnOffOverlayLoading();
+		});
 	}
 
 	filter(val){
