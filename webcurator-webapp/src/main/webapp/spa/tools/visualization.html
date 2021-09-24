@@ -583,13 +583,23 @@ to get the desired effect
             gPopupModifyHarvest.processorModify.bulkUploadMetadataFile(file);
         });
 
-
-        // Search input filter
-        $("#menu-tool-bar input[type='search']").on('keyup', function(e){
-          if (e.keyCode===13) {
-            gPopupModifyHarvest.filter($(this).val());
-          }
-        });
+        var browser=getBrowserNameAndVersion();
+        if (browser[0]==='Chrome' || browser[0]==='Safari' || (browser[0]==='Opera' && browser[1] > 15)) {
+          // Search input filter
+          $("#menu-tool-bar input[type='search']").on('search', function(e){
+              //e.preventDefault();
+              gPopupModifyHarvest.filter($(this).val());
+              console.log("search event");
+          });
+        }else{
+          $("#menu-tool-bar input[type='search']").on('keyup', function(e){
+            //e.preventDefault();
+            if (e.keyCode===13) {
+              gPopupModifyHarvest.filter($(this).val());
+              console.log("keyup event");
+            }
+          });
+        }
 
         $("#popup-window-modify-harvest input[type='search']").on('input', function(e){
           var val=$(this).val();
