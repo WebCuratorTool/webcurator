@@ -604,8 +604,8 @@ to get the desired effect
     function initData(){
       updateDerivedHarvestResults();
       networkmap.init(jobId, harvestResultNumber);
-      gPopupModifyHarvest.initTreeWithSeedUrls();
-      gPopupModifyHarvest.initTreeWithSearchCommand(null);
+      gPopupModifyHarvest.initCrawlerPathTreeView();
+      gPopupModifyHarvest.initFolderTreeView(null);
     }
 
     var timerProgress;
