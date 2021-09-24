@@ -86,14 +86,21 @@ public class WaybackIndexer extends IndexerBase {
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
         boolean failed = false;
         allIndexed = false;
-        if (indexFiles.size() <= 0) {
-            log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
-        } else {
-            for (MonitoredFile f : indexFiles) {
-                if (f.getStatus() == FileStatus.INITIAL) {
-                    f.copyToInput();
-                }
-            }
+        if(indexFiles.size() <= 0)
+        {
+        	log.error("Could not find any archive files in directory: " + directory.getAbsolutePath() );
+        }
+        else
+        {
+            // Create the subdir for this harvest
+			new File(getWaybackInputHarvestSubdir()).mkdirs();
+	        for(MonitoredFile f: indexFiles)
+	        {
+	        	if(f.getStatus() == FileStatus.INITIAL)
+	        	{
+	        		f.copyToInput();
+	        	}
+	        }
         }
 
         MonitoredFile lastFileNotIndexed = null;
@@ -140,12 +147,18 @@ public class WaybackIndexer extends IndexerBase {
     public void removeIndex(Long harvestResultOid) {
         //Remove the Archive files from the Wayback input folder
         log.info("Removing indexes for " + getResult().getTargetInstanceOid() + " HarvestNumber " + getResult().getHarvestNumber());
-        if (indexFiles.size() <= 0) {
-            log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
-        } else {
-            for (MonitoredFile f : indexFiles) {
-                f.removeFromInput();
-            }
+        if(indexFiles.size() <= 0)
+        {
+        	log.error("Could not find any archive files in directory: " + directory.getAbsolutePath() );
+        }
+        else
+        {
+	        for(MonitoredFile f: indexFiles)
+	        {
+        		f.removeFromInput();
+	        }
+	        // Finally remove the subdir for this harvest
+	        new File(getWaybackInputHarvestSubdir()).delete();
         }
     }
 
@@ -206,74 +219,100 @@ public class WaybackIndexer extends IndexerBase {
         }
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+
+	/**
+	 *
+	 * @return The subdirectory for the current harvest
+	 */
+	private String getWaybackInputHarvestSubdir() {
+    	return waybackInputFolder + File.separator + result.getTargetInstanceOid() + "-" + result.getHarvestNumber()
+																	+ File.separator + "archive";
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
     @Override
     public boolean isEnabled() {
         return enabled;
     }
 
-    protected class MonitoredFile {
-        private File theFile;
-        private FileStatus status = FileStatus.INITIAL;
-        private final String extensionRegex = "((\\.arc)|(\\.arc.gz)|(\\.warc)|(\\.warc.gz))$";
+	protected class MonitoredFile
+	{
+		private File theFile;
+		private FileStatus status = FileStatus.INITIAL;
+		private final String extensionRegex = "((\\.arc)|(\\.arc.gz)|(\\.warc)|(\\.warc.gz))$";
 
-        protected MonitoredFile(File theFile) {
-            this.theFile = theFile;
-            checkStatus(); //set the initial status
-        }
+		protected MonitoredFile(File theFile)
+		{
+			this.theFile = theFile;
+			checkStatus(); //set the initial status
+		}
 
-        protected FileStatus getStatus() {
-            if (status == FileStatus.INITIAL || status == FileStatus.COPIED) {
-                //Even with a file in the INITIAL state, there may already be a Wayback index
-                checkStatus();
-            }
-            return status;
-        }
+		protected FileStatus getStatus()
+		{
+			if(status == FileStatus.INITIAL || status == FileStatus.COPIED)
+			{
+				//Even with a file in the INITIAL state, there may already be a Wayback index
+				checkStatus();
+			}
+			return status;
+		}
 
-        protected String getVersionedName() {
-            String fileName = theFile.getName();
-            String[] splitName = fileName.split(extensionRegex);
-            if (splitName.length > 0) {
-                String extension = fileName.substring(splitName[0].length(), fileName.length());
-                return splitName[0] + ".ver" + result.getHarvestNumber() + extension;
-            } else {
-                return fileName;
-            }
-        }
+		protected String getVersionedName()
+		{
+			String fileName = theFile.getName();
+			String[] splitName = fileName.split(extensionRegex);
+			if(splitName.length > 0)
+			{
+				String extension = fileName.substring(splitName[0].length(), fileName.length());
+				return splitName[0] + ".ver" + result.getHarvestNumber() + extension;
+			}
+			else
+			{
+				return fileName;
+			}
+		}
 
-        protected String getPath() {
-            return theFile.getPath();
-        }
+		protected String getPath()
+		{
+			return theFile.getPath();
+		}
 
-        protected void copyToInput() {
-            File inputFile = new File(waybackInputFolder + "/" + getVersionedName());
-            try {
-                File directory = inputFile.getParentFile();
-                if (!directory.exists()) {
-                    directory.mkdirs();
-                }
-                copyFile(theFile, inputFile);
-                status = FileStatus.COPIED;
-            } catch (IOException e) {
-                log.error("Unable to copy: " + theFile.getAbsolutePath() + " to: " + inputFile.getAbsolutePath(), e);
-            }
-        }
+		protected void copyToInput()
+		{
+			File inputFile = new File(getWaybackInputHarvestSubdir() + File.separator + getVersionedName());
+			try
+			{
+				copyFile(theFile, inputFile);
+				status = FileStatus.COPIED;
+			}
+			catch(IOException e)
+			{
+				log.error("Unable to copy: "+theFile.getAbsolutePath()+" to: "+inputFile.getAbsolutePath(), e);
+			}
+		}
 
-        protected void removeFromInput() {
-            File inputFile = new File(waybackInputFolder + "/" + getVersionedName());
-            if (inputFile.exists()) {
-                if (inputFile.delete()) {
-                    status = FileStatus.REMOVED;
-                } else {
-                    log.warn("Unable to remove Wayback indexed file: " + inputFile.getAbsolutePath());
-                }
-            } else {
-                status = FileStatus.REMOVED;
-            }
-        }
+		protected void removeFromInput()
+		{
+			File inputFile = new File(getWaybackInputHarvestSubdir() + File.separator + getVersionedName());
+			if(inputFile.exists())
+			{
+				if(inputFile.delete())
+				{
+					status = FileStatus.REMOVED;
+				}
+				else
+				{
+					log.warn("Unable to remove Wayback indexed file: "+inputFile.getAbsolutePath());
+				}
+			}
+			else
+			{
+				status = FileStatus.REMOVED;
+			}
+		}
 
         private void checkStatus() {
             File mergedFile = new File(waybackMergedFolder + "/" + getVersionedName());
