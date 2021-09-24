@@ -633,24 +633,16 @@ class PopupModifyHarvest{
 		}
 
 		var domainNames=$("#queryDomainName").val().trim();
-		if(domainNames.length > 0){
-			searchCondition.domainNames=domainNames.split();
-		}
+		searchCondition.domainNames=splitString2Array(domainNames);
 
-		var contentTypes=$("#queryContentType").val().trim();
-		if(contentTypes.length > 0){
-			searchCondition.contentTypes=contentTypes.split();
-		}
+		var urlNames=$("#queryUrlName").val().trim();
+	    searchCondition.urlNames=splitString2Array(urlNames);
 
 		var statusCodes=$("#queryStatusCode").val().trim();
-	    if(statusCodes.length > 0){
-	    	searchCondition.statusCodes=statusCodes.split();
-	    }
+		searchCondition.statusCodes=splitString2Array(statusCodes);
 
-	    var urlNames=$("#queryUrlName").val().trim();
-	    if(urlNames.length > 0){
-	    	searchCondition.urlNames=urlNames.split();
-	    }
+	    var contentTypes=$("#queryContentType").val().trim();
+		searchCondition.contentTypes=splitString2Array(contentTypes);
 
 	    var reqUrl=''
 	    if (currentMainTab === 'candidate-query') {
@@ -678,6 +670,7 @@ class PopupModifyHarvest{
 		g_TurnOnOverlayLoading();
 		fetchHttp(url, searchCondition, function(response){
 			if (response.rspCode != 0) {
+				g_TurnOffOverlayLoading();
 				alert(response.rspMsg);
 				return;	 
 	        }
@@ -707,6 +700,7 @@ class PopupModifyHarvest{
 			if(data.length===0){
 				g_TurnOffOverlayLoading();
 				alert('No data found!');
+				return;
 			}else{
 				that.gridCandidate.setRowData(data);
 			}

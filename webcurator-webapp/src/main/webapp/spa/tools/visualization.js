@@ -38,6 +38,11 @@ function fetchHttp(url, req, callback){
       return response.json();
     }
   }).then((response) => {
+    if (!$.isEmptyObject(response.error)) {
+      response.rspCode=9999;
+      response.rspMsg=response.error;
+    }
+      
     callback(response);
   });
 }
@@ -85,6 +90,23 @@ function sp(id){
 
   $(".content-page").hide();
   $("#page-"+id).show();
+}
+
+function splitString2Array(s){
+  var rst=[];
+  if($.isEmptyObject(s) || s.trim().length===0){
+    return rst;
+  }
+
+  var items=s.split(",");
+  for(var i=0;i<items.length;i++){
+    var item=items[i];
+    if (!$.isEmptyObject(item) && item.trim().length>0) {
+      rst.push(item.trim());
+    }
+  }
+
+  return rst;
 }
 
 function getBrowserNameAndVersion(){
