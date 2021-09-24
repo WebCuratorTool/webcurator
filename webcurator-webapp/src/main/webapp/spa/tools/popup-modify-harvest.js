@@ -216,7 +216,7 @@ const treeOptionsHarvestStruct=Object.assign({
 	        	}
 	        }
 	        
-				deferredResult.resolve(dataset);
+			deferredResult.resolve(dataset);
 		});
 
 	    data.result = deferredResult;
@@ -398,7 +398,7 @@ class PopupModifyHarvest{
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlGrid);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, null);
 		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, contextMenuItemsToBeModified);
-		this.gridToBeModifiedVerified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified-verified', gridOptionsToBeModifiedVerified, null);
+		this.gridToBeModifiedVerified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified-verified', gridOptionsToBeModifiedVerified, contextMenuItemsToBeModified);
 		this.processorModify=new ModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
 		this.uriSeedUrl="/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		this.uriInvalidUrl="/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
@@ -479,7 +479,8 @@ class PopupModifyHarvest{
 	}
 
 	undo(data, source){
-		source.clear(data);
+		this.gridToBeModified.clear(data);
+		this.gridToBeModifiedVerified.clear(data);
 		this.setRowStyle();
 	}
 
