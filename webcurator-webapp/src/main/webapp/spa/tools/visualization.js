@@ -92,13 +92,17 @@ function sp(id){
   $("#page-"+id).show();
 }
 
-function splitString2Array(s){
+function splitString2Array(s, separator){
+  if ($.isEmptyObject(separator)) {
+    separator=",";
+  }
+
   var rst=[];
   if($.isEmptyObject(s) || s.trim().length===0){
     return rst;
   }
 
-  var items=s.split(",");
+  var items=s.split(separator);
   for(var i=0;i<items.length;i++){
     var item=items[i];
     if (!$.isEmptyObject(item) && item.trim().length>0) {
@@ -215,13 +219,34 @@ function contextMenuCallback(key, data, source, target){
   }
 }
 
+function disableFolderUrlMenuItems(key, opt){
+    var containerName=splitString2Array(opt.selector, " ")[0];
+    var view=popupModifyViews[containerName];
+
+    if ($.isEmptyObject(view)) {return false}
+
+    var data={};
+    if (view.isTree) {
+      var treeNodeKey=$(this).attr('key');
+      var treeNode=$.ui.fancytree.getTree(containerName).getNodeByKey(treeNodeKey);
+      data=treeNode.data;
+    }else{
+      var rowIndex=$(this).attr('row-index');
+      data=view.getRowByIndex(rowIndex);
+    }
+    
+    if (data.id!==-1) {return false};
+
+    return true;
+}
+
 var itemsPruneHarvest={
-    "prune-current": {"name": "Current"},
+    "prune-current": {"name": "Current", disabled: disableFolderUrlMenuItems},
     "prune-selected": {"name": "Selected"}
 };
 
 var itemsRecrawlHarvest={
-    "recrawl-current": {"name": "Current"},
+    "recrawl-current": {"name": "Current", disabled: disableFolderUrlMenuItems},
     "recrawl-selected": {"name": "Selected"}
 };
 
@@ -245,15 +270,15 @@ var itemsUndo={
 var contextMenuItemsUrlBasic={
   "copyUrl-current": {name: "Copy URL", icon: "far fa-clone"},
   "sep1": "---------",
-  "hoppath-current": {name: "Show HopPath", icon: "fas fa-link"},
-  "outlinks-current": {name: "Show Outlinks", icon: "fas fa-share-alt"},
+  "hoppath-current": {name: "Show HopPath", icon: "fas fa-link", disabled: disableFolderUrlMenuItems},
+  "outlinks-current": {name: "Show Outlinks", icon: "fas fa-share-alt", disabled: disableFolderUrlMenuItems},
   "sep2": "---------",
   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
   "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
   "import-current": {name: "Import From File", icon: "fas fa-file-import"},
   "sep3": "---------",
-  "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
-  "download": {name: "Download", icon: "fas fa-download text-warning"},
+  "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse, disabled: disableFolderUrlMenuItems},
+  "download": {name: "Download", icon: "fas fa-download text-warning", disabled: disableFolderUrlMenuItems},
   "sep4": "---------",
   "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
       "exportInspect-selected": {"name": "Selected"},
@@ -261,8 +286,8 @@ var contextMenuItemsUrlBasic={
   }},
 };
 
-var contextMenuItemsUrlGrid=JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
-var contextMenuItemsUrlTree=JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
+var contextMenuItemsUrlGrid=Object.assign({},contextMenuItemsUrlBasic); // JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
+var contextMenuItemsUrlTree=Object.assign({},contextMenuItemsUrlBasic); //JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
 
 var contextMenuItemsFolderTree={
   "pruneFolder": {name: "Prune Folder", icon: "far fa-times-circle"},

@@ -1,5 +1,8 @@
+var popupModifyViews={};
+
 class CustomizedAgGrid{
 	constructor(jobId, harvestResultNumber, gridContainer, gridOptions, menuItems){
+		this.isGrid=true;
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
 		this.gridContainer=gridContainer;
@@ -21,6 +24,8 @@ class CustomizedAgGrid{
 	            items: that.menuItems
 	        });
 		}
+
+		popupModifyViews[gridContainer]=this;
 	}
 
 	getSelectedNodes(){
@@ -39,6 +44,19 @@ class CustomizedAgGrid{
 		});
 		return data;
 	}
+
+	getNodeByIndex(index){
+        return this.grid.gridOptions.api.getDisplayedRowAtIndex(index);
+    }
+
+    getRowByIndex(index){
+        var node=this.getNodeByIndex(index);
+        if (node) {
+            return node.data;
+        }else{
+            return null;
+        }
+    }
 
 	getNodeByDataIndex(rowIndex){
 		var result;
@@ -239,6 +257,7 @@ const treeOptionsCascadedPath=Object.assign({
 class HierarchyTree{
 	constructor(container, jobId, harvestResultNumber, options){
 		var that=this;
+		this.isTree=true;
 		this.dataset=[];
 		this.container=container;
 		this.jobId=jobId;
@@ -259,6 +278,7 @@ class HierarchyTree{
 		        },
 		        items: contextMenuItemsUrlTree
     	});
+    	popupModifyViews[container]=this;
 	}
 
 	_getDataFromNode(treeNode){
@@ -397,8 +417,8 @@ class PopupModifyHarvest{
 		this.folderTreeView=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber, treeOptionsCascadedPath);
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlGrid);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, null);
-		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, contextMenuItemsToBeModified);
-		this.gridToBeModifiedVerified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified-verified', gridOptionsToBeModifiedVerified, contextMenuItemsToBeModified);
+		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, Object.assign({}, contextMenuItemsToBeModified));
+		this.gridToBeModifiedVerified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified-verified', gridOptionsToBeModifiedVerified, Object.assign({}, contextMenuItemsToBeModified));
 		this.processorModify=new ModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
 		this.uriSeedUrl="/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		this.uriInvalidUrl="/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
