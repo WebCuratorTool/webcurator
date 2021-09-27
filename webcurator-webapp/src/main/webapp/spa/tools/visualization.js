@@ -245,8 +245,8 @@ var itemsUndo={
 var contextMenuItemsUrlBasic={
   "copyUrl-current": {name: "Copy URL", icon: "far fa-clone"},
   "sep1": "---------",
-  "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
-  "outlinks-current": {name: "Outlinks Current", icon: "fas fa-share-alt"},
+  "hoppath-current": {name: "Show HopPath", icon: "fas fa-link"},
+  "outlinks-current": {name: "Show Outlinks", icon: "fas fa-share-alt"},
   "sep2": "---------",
   "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
   "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
@@ -272,8 +272,8 @@ var contextMenuItemsFolderTree={
 var contextMenuItemsToBeModified={
     "copyUrl-current": {name: "Copy URL", icon: "far fa-clone"},
     "sep1": "---------",
-    "hoppath-current": {name: "HopPath", icon: "fas fa-link"},
-    "outlinks-current": {name: "Outlinks Current", icon: "fas fa-share-alt"},
+    "hoppath-current": {name: "Show HopPath", icon: "fas fa-link"},
+    "outlinks-current": {name: "Show Outlinks", icon: "fas fa-share-alt"},
     "sep2": "---------",
     "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
     "sep3": "---------",
