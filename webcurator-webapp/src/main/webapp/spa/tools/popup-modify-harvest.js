@@ -440,6 +440,7 @@ class PopupModifyHarvest{
 		}else if (currentMainTab === 'candidate-query') {
 			this.gridCandidate.clearAll();
 		}
+		$('#menu-tool-bar input[name="' + currentMainTab + '"]').val('');
 	}
 
 	showOutlinks(data){
