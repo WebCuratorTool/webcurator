@@ -33,7 +33,7 @@ public class ConverterUtil {
 	 */
 	public static String formatBytes(long bytes) {
 		if (bytes > 1024 * 1024 * 1024) {
-			return GIGABYTE_FORMAT.format(((double)bytes) / (1024*1024));
+			return GIGABYTE_FORMAT.format(((double)bytes) / (1024*1024*1024));
 		}
 		else if (bytes > 1024 * 1024) {
 			return MEGABYTE_FORMAT.format(((double)bytes) / (1024*1024));
