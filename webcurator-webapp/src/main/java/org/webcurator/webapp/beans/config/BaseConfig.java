@@ -41,7 +41,7 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.HarvestResultManagerImpl;
-import org.webcurator.core.coordinator.WctCoordinatorInterface;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
@@ -309,7 +309,7 @@ public class BaseConfig {
     private ListsConfig listsConfig;
 
     @Autowired
-    private WctCoordinatorInterface wctCoordinator;
+    private WctCoordinator wctCoordinator;
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
