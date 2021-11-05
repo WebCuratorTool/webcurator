@@ -15,7 +15,6 @@ import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.TargetInstanceDAOImpl;
 
 @TestConfiguration
 public class TestBaseConfig {
@@ -47,14 +46,14 @@ public class TestBaseConfig {
 
     @Bean
     public HarvestAgentManager harvestAgentManager() {
-        HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
+        HarvestAgentManager bean = new HarvestAgentManager();
         bean.setHarvestAgentFactory(harvestAgentFactory());
         return bean;
     }
 
     @Bean
     public TargetInstanceDAO targetInstanceDao() {
-        TargetInstanceDAOImpl bean = new TargetInstanceDAOImpl();
+        TargetInstanceDAO bean = new TargetInstanceDAO();
 //        bean.setSessionFactory(sessionFactory().getObject());
 //        bean.setTxTemplate(transactionTemplate());
 //        bean.setAuditor(audit());
@@ -65,8 +64,8 @@ public class TestBaseConfig {
 
     @Bean
     public HarvestLogManager harvestLogManager() {
-        HarvestLogManagerImpl bean = new HarvestLogManagerImpl();
-        bean.setHarvestAgentManager(harvestAgentManager());
+        HarvestLogManager bean = new HarvestLogManager();
+        bean.setHarvestAgentManagerImpl(harvestAgentManager());
 //        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
 
         return bean;

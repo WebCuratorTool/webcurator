@@ -14,6 +14,7 @@ import org.springframework.web.servlet.view.tiles3.TilesConfigurer;
 import org.springframework.web.servlet.view.tiles3.TilesView;
 import org.webcurator.common.ui.profiles.renderers.GeneralOnlyRendererFilter;
 import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorInterface;
 import org.webcurator.ui.common.validation.ProfilesBasicCredentialsValidator;
 import org.webcurator.ui.common.validation.ProfilesFormCredentialsValidator;
 import org.webcurator.ui.groups.command.GeneralCommand;

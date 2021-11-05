@@ -10,6 +10,7 @@ import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorInterface;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.reader.LogReader;
@@ -23,7 +24,7 @@ import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
 @SuppressWarnings("all")
-public class HarvestAgentManagerImpl {
+public class HarvestAgentManager {
     static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<>());
 
     HashMap<String, HarvestAgentStatusDTO> harvestAgents = new HashMap<>();

@@ -23,7 +23,8 @@ import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.webcurator.core.coordinator.WctCoordinator;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinatorInterface;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.util.ApplicationContextFactory;
 
 import java.util.Objects;
@@ -54,7 +55,7 @@ public class ScheduleJob extends QuartzJobBean {
             aContext.getScheduler().pauseTriggers(triggerMatcher);
 
             log.info("Starting processSchedule");
-            WctCoordinator wctCoordinator = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(WctCoordinatorImpl.class);
+            WctCoordinator wctCoordinator = Objects.requireNonNull(ApplicationContextFactory.getApplicationContext()).getBean(WctCoordinator.class);
             wctCoordinator.processSchedule();
         } catch (Exception e) {
             // Dont throw an exception here as this will stop the scheduling job running.

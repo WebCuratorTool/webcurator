@@ -33,9 +33,9 @@ import com.google.common.collect.Maps;
 //@Import(TestBaseConfig.class)
 //@RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
-public class HarvestAgentManagerImplTest {
+public class HarvestAgentManagerTest {
 
-    private HarvestAgentManagerImpl underTest;
+    private HarvestAgentManager underTest;
 
     @Mock
     private HarvestAgentFactory mockHarvestAgentFactory;
@@ -46,18 +46,18 @@ public class HarvestAgentManagerImplTest {
     @Mock
     private Environment mockEnvironment;
 
-    public HarvestAgentManagerImplTest() {
+    public HarvestAgentManagerTest() {
         MockitoAnnotations.initMocks(this);
     }
 
     @Before
     public void setup() {
-        underTest = new HarvestAgentManagerImpl();
+        underTest = new HarvestAgentManager();
         underTest.setHarvestAgentFactory(mockHarvestAgentFactory);
         underTest.setTargetInstanceDao(mockTargetInstanceDAO);
         underTest.setTargetInstanceManager(mockTargetInstanceManager);
 
-        HarvestAgentManagerImpl.targetInstanceLocks.clear();
+        HarvestAgentManager.targetInstanceLocks.clear();
 
         ApplicationContext context = mock(ApplicationContext.class);
         when(context.getBean("environmentWCT")).thenReturn(mockEnvironment);

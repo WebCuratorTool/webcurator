@@ -60,10 +60,10 @@ import javax.servlet.http.HttpServletResponse;
 
 @SuppressWarnings("all")
 @AutoConfigureMockMvc
-public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
+public class WctCoordinatorInterfaceImplTest extends BaseWCTTest<WctCoordinator> {
     private MockHarvestAgentFactory harvestAgentFactory = new MockHarvestAgentFactory();
     private MockTargetInstanceManager mockTargetInstanceManager = null;
-    private HarvestAgentManagerImpl harvestAgentManager;
+    private HarvestAgentManager harvestAgentManager;
     private TargetInstanceDAO tiDao;
     private HarvestLogManager mockHarvestLogManager;
     private DigitalAssetStore mockDigitalAssetStore;
@@ -71,8 +71,8 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     private HarvestResultManager mockHarvestResultManager;
     private VisualizationDirectoryManager directoryManager; // = new VisualizationDirectoryManager("/usr/local/wct/webapp", "logs", "reports");
 
-    public WctCoordinatorImplTest() {
-        super(WctCoordinatorImpl.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
+    public WctCoordinatorInterfaceImplTest() {
+        super(WctCoordinator.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
     }
 
     // Override BaseWCTTest setup method
@@ -103,7 +103,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         testInstance.setInTrayManager(new MockInTrayManager(testFile));
         testInstance.setSipBuilder(new MockSipBuilder(testFile));
 
-        harvestAgentManager = new HarvestAgentManagerImpl();
+        harvestAgentManager = new HarvestAgentManager();
         harvestAgentManager.setHarvestAgentFactory(harvestAgentFactory);
         harvestAgentManager.setTargetInstanceManager(mockTargetInstanceManager);
         testInstance.setHarvestAgentManager(harvestAgentManager);
@@ -123,7 +123,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         mockDigitalAssetStoreFactory = new MockDigitalAssetStoreFactory(mockDigitalAssetStore);
         testInstance.setDigitalAssetStoreFactory(mockDigitalAssetStoreFactory);
 
-        testInstance.setHarvestQaManager(mock(HarvestQaManagerImpl.class));
+        testInstance.setHarvestQaManager(mock(HarvestQaManager.class));
 
         mockHarvestResultManager = mock(HarvestResultManager.class);
         testInstance.setHarvestResultManager(mockHarvestResultManager);
@@ -557,7 +557,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
     @Test
     public void testStop() {
-        HarvestAgentManagerImpl mockHarvestAgentManager= mock(HarvestAgentManagerImpl.class);
+        HarvestAgentManager mockHarvestAgentManager= mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstance mockTi = mock(TargetInstance.class);
         testInstance.stop(mockTi);
@@ -618,17 +618,17 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
     @Test
     public void testResume() {
-        HarvestAgentManagerImpl mockHarvestAgentManagerImpl = mock(HarvestAgentManagerImpl.class);
-        testInstance.setHarvestAgentManager(mockHarvestAgentManagerImpl);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
+        testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstance mockTargetInstance = mock(TargetInstance.class);
         when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
         testInstance.resume(mockTargetInstance);
-        verify(mockHarvestAgentManagerImpl).resume(mockTargetInstance);
+        verify(mockHarvestAgentManager).resume(mockTargetInstance);
     }
 
     @Test
     public void testPause() {
-        HarvestAgentManagerImpl mockHarvestAgentManager = mock(HarvestAgentManagerImpl.class);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstance mockTargetInstance = mock(TargetInstance.class);
         testInstance.pause(mockTargetInstance);
@@ -637,7 +637,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
     @Test
     public void testResumeAll() {
-        HarvestAgentManagerImpl mockHarvestAgentManager = mock(HarvestAgentManagerImpl.class);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         testInstance.resumeAll();
         verify(mockHarvestAgentManager).resumeAll();
@@ -645,7 +645,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
     @Test
     public void testPauseAll() {
-        HarvestAgentManagerImpl mockHarvestAgentManager = mock(HarvestAgentManagerImpl.class);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         testInstance.pauseAll();
         verify(mockHarvestAgentManager).pauseAll();
@@ -653,7 +653,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
     @Test
     public void testAbort() {
-        HarvestAgentManagerImpl mockHarvestAgentManager = mock(HarvestAgentManagerImpl.class);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
         testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstance mockTargetInstance = mock(TargetInstance.class);
         when(mockTargetInstance.isAppliedBandwidthRestriction()).thenReturn(true);
@@ -676,7 +676,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         testInstance.setTargetInstanceManager(mockTargetInstanceManager);
         TargetInstanceDAO mockTiDao = mock(TargetInstanceDAO.class);
         testInstance.setTargetInstanceDao(mockTiDao);
-        DigitalAssetStoreFactoryImpl mockDasFactory = mock(DigitalAssetStoreFactoryImpl.class);
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
         testInstance.setDigitalAssetStoreFactory(mockDasFactory);
         DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
         when(mockDasFactory.getDAS()).thenReturn(mockDas);
@@ -695,7 +695,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         testInstance.setTargetInstanceManager(mockTargetInstanceManager);
         TargetInstanceDAO mockTiDao = mock(TargetInstanceDAO.class);
         testInstance.setTargetInstanceDao(mockTiDao);
-        DigitalAssetStoreFactoryImpl mockDasFactory = mock(DigitalAssetStoreFactoryImpl.class);
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
         testInstance.setDigitalAssetStoreFactory(mockDasFactory);
         DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
         when(mockDasFactory.getDAS()).thenReturn(mockDas);
@@ -712,13 +712,13 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
     @Test
     public void testPurgeAbortedTargetInstancesNone() throws Exception {
-        HarvestAgentManagerImpl mockHarvestAgentManagerImpl = mock(HarvestAgentManagerImpl.class);
-        testInstance.setHarvestAgentManager(mockHarvestAgentManagerImpl);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
+        testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstanceManager mockTargetInstanceManager = mock(TargetInstanceManager.class);
         testInstance.setTargetInstanceManager(mockTargetInstanceManager);
         TargetInstanceDAO mockTiDao = mock(TargetInstanceDAO.class);
         testInstance.setTargetInstanceDao(mockTiDao);
-        DigitalAssetStoreFactoryImpl mockDasFactory = mock(DigitalAssetStoreFactoryImpl.class);
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
         testInstance.setDigitalAssetStoreFactory(mockDasFactory);
         DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
         when(mockDasFactory.getDAS()).thenReturn(mockDas);
@@ -726,18 +726,18 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         List<TargetInstance> purgeableTargetInstances = Arrays.asList();
         when(mockTiDao.findPurgeableAbortedTargetInstances(any(Date.class))).thenReturn(purgeableTargetInstances);
         testInstance.purgeAbortedTargetInstances();
-        verifyNoMoreInteractions(mockHarvestAgentManagerImpl, mockDas, mockTargetInstanceManager);
+        verifyNoMoreInteractions(mockHarvestAgentManager, mockDas, mockTargetInstanceManager);
     }
 
     @Test
     public void testPurgeAbortedTargetInstances() throws Exception {
-        HarvestAgentManagerImpl mockHarvestAgentManagerImpl = mock(HarvestAgentManagerImpl.class);
-        testInstance.setHarvestAgentManager(mockHarvestAgentManagerImpl);
+        HarvestAgentManager mockHarvestAgentManager = mock(HarvestAgentManager.class);
+        testInstance.setHarvestAgentManager(mockHarvestAgentManager);
         TargetInstanceManager mockTargetInstanceManager = mock(TargetInstanceManager.class);
         testInstance.setTargetInstanceManager(mockTargetInstanceManager);
         TargetInstanceDAO mockTiDao = mock(TargetInstanceDAO.class);
         testInstance.setTargetInstanceDao(mockTiDao);
-        DigitalAssetStoreFactoryImpl mockDasFactory = mock(DigitalAssetStoreFactoryImpl.class);
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
         testInstance.setDigitalAssetStoreFactory(mockDasFactory);
         DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
         when(mockDasFactory.getDAS()).thenReturn(mockDas);
@@ -747,7 +747,7 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
         List<TargetInstance> purgeableTargetInstances = Arrays.asList(mockTargetInstance1, mockTargetInstance2);
         when(mockTiDao.findPurgeableAbortedTargetInstances(any(Date.class))).thenReturn(purgeableTargetInstances);
         testInstance.purgeAbortedTargetInstances();
-        verify(mockHarvestAgentManagerImpl).purgeAbortedTargetInstances(any(List.class));
+        verify(mockHarvestAgentManager).purgeAbortedTargetInstances(any(List.class));
         verify(mockDas).purgeAbortedTargetInstances(any(List.class));
         verify(mockTargetInstanceManager).purgeTargetInstance(mockTargetInstance1);
         verify(mockTargetInstanceManager).purgeTargetInstance(mockTargetInstance2);

@@ -9,14 +9,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.reader.LogReader;
-import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
+import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.TargetInstance;
 
-public class HarvestLogManagerImpl {
+public class HarvestLogManager {
 
-	private HarvestAgentManagerImpl harvestAgentManager;
-	private DigitalAssetStoreFactoryImpl digitalAssetStoreFactory;
+	private HarvestAgentManager harvestAgentManager;
+	private DigitalAssetStoreFactory digitalAssetStoreFactory;
 
 	private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -192,19 +192,19 @@ public class HarvestLogManagerImpl {
 
 	}
 
-	public HarvestAgentManagerImpl getHarvestAgentManager() {
+	public HarvestAgentManager getHarvestAgentManager() {
 		return harvestAgentManager;
 	}
 
-	public void setHarvestAgentManagerImpl(HarvestAgentManagerImpl harvestAgentManager) {
+	public void setHarvestAgentManagerImpl(HarvestAgentManager harvestAgentManager) {
 		this.harvestAgentManager = harvestAgentManager;
 	}
 
-	public DigitalAssetStoreFactoryImpl getDigitalAssetStoreFactory() {
+	public DigitalAssetStoreFactory getDigitalAssetStoreFactory() {
 		return digitalAssetStoreFactory;
 	}
 
-   public void setDigitalAssetStoreFactory(DigitalAssetStoreFactoryImpl digitalAssetStoreFactory) {
+   public void setDigitalAssetStoreFactory(DigitalAssetStoreFactory digitalAssetStoreFactory) {
 		this.digitalAssetStoreFactory = digitalAssetStoreFactory;
 	}
 	

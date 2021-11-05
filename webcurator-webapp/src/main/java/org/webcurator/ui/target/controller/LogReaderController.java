@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
-import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManagerImpl;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -63,15 +63,15 @@ public class LogReaderController {
 
 	@Autowired
 	@Qualifier(HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
-	private PatchingHarvestLogManager patchingHarvestLogManager;
+	private PatchingHarvestLogManagerImpl patchingHarvestLogManagerImpl;
 
 	@Autowired
 	@Qualifier(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
-	private PatchingHarvestLogManager patchingHarvestLogManagerModification;
+	private PatchingHarvestLogManagerImpl patchingHarvestLogManagerImplModification;
 
 	@Autowired
 	@Qualifier(HarvestResult.PATCH_STAGE_TYPE_INDEXING)
-	private PatchingHarvestLogManager patchingHarvestLogManagerIndex;
+	private PatchingHarvestLogManagerImpl patchingHarvestLogManagerImplIndex;
 
 	public LogReaderController() {
 		//Add values in reverse order of display
@@ -252,13 +252,13 @@ public class LogReaderController {
 
 			HarvestResult hr = ti.getHarvestResult(cmd.getHarvestResultNumber());
 
-			PatchingHarvestLogManager logReader = null;
+			PatchingHarvestLogManagerImpl logReader = null;
 			if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_INDEXING)) {
-				logReader = patchingHarvestLogManagerIndex;
+				logReader = patchingHarvestLogManagerImplIndex;
 			} else if (cmd.getPrefix().equalsIgnoreCase(HarvestResult.PATCH_STAGE_TYPE_MODIFYING)) {
-				logReader = patchingHarvestLogManagerModification;
+				logReader = patchingHarvestLogManagerImplModification;
 			} else {
-				logReader = patchingHarvestLogManager;
+				logReader = patchingHarvestLogManagerImpl;
 			}
 
 			//Count the log lines first time in

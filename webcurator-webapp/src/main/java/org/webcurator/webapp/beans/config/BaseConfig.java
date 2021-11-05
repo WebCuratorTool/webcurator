@@ -41,7 +41,7 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.HarvestResultManagerImpl;
-import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorInterface;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
@@ -62,7 +62,7 @@ import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.sites.SiteManagerImpl;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
+import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
@@ -309,7 +309,7 @@ public class BaseConfig {
     private ListsConfig listsConfig;
 
     @Autowired
-    private WctCoordinator wctCoordinator;
+    private WctCoordinatorInterface wctCoordinator;
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -416,8 +416,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public DigitalAssetStoreFactoryImpl digitalAssetStoreFactory() {
-        DigitalAssetStoreFactoryImpl bean = new DigitalAssetStoreFactoryImpl();
+    public DigitalAssetStoreFactory digitalAssetStoreFactory() {
+        DigitalAssetStoreFactory bean = new DigitalAssetStoreFactory();
         bean.setDAS(digitalAssetStore());
         bean.setLogReader(new LogReaderClient(digitalAssetStoreBaseUrl, restTemplateBuilder));
         return bean;
@@ -471,8 +471,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public TargetInstanceDAOImpl targetInstanceDao() {
-        TargetInstanceDAOImpl bean = new TargetInstanceDAOImpl();
+    public TargetInstanceDAO targetInstanceDao() {
+        TargetInstanceDAO bean = new TargetInstanceDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
         bean.setAuditor(audit());
@@ -613,8 +613,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestAgentManagerImpl harvestAgentManager() {
-        HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
+    public HarvestAgentManager harvestAgentManager() {
+        HarvestAgentManager bean = new HarvestAgentManager();
         bean.setHarvestAgentFactory(harvestAgentFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
@@ -623,9 +623,9 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestLogManagerImpl harvestLogManager() {
-        HarvestLogManagerImpl bean = new HarvestLogManagerImpl();
-        bean.setHarvestAgentManager(harvestAgentManager());
+    public HarvestLogManager harvestLogManager() {
+        HarvestLogManager bean = new HarvestLogManager();
+        bean.setHarvestAgentManagerImpl(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
 
         return bean;
@@ -660,7 +660,7 @@ public class BaseConfig {
 
     @Bean
     public HarvestQaManager harvestQaManager() {
-        HarvestQaManagerImpl bean = new HarvestQaManagerImpl();
+        HarvestQaManager bean = new HarvestQaManager();
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setAutoQAUrl(autoQAUrl);

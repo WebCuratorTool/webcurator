@@ -27,7 +27,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.core.coordinator.MockWctCoordinator;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
@@ -70,7 +70,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
         genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
         genHandler.setAuthorityManager(new AuthorityManagerImpl());
         genHandler.setTargetInstanceManager(targetInstanceManager);
-        genHandler.setWctCoordinator(new WctCoordinatorImpl());
+        genHandler.setWctCoordinator(new WctCoordinator());
         tabGeneral.setTabHandler(genHandler);
 
         tabs.add(tabGeneral);

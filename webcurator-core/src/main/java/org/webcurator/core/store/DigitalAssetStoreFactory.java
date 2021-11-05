@@ -9,7 +9,7 @@ import org.webcurator.core.reader.LogReader;
  *
  * @author kurwin
  */
-public class DigitalAssetStoreFactoryImpl {
+public class DigitalAssetStoreFactory {
     private DigitalAssetStore digitalAssetStore;
     private LogReader logReader;
 

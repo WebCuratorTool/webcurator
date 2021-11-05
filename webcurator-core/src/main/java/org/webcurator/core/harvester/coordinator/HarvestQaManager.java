@@ -19,7 +19,7 @@ import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
 
-public class HarvestQaManagerImpl {
+public class HarvestQaManager {
 
     private TargetInstanceManager targetInstanceManager;
     private TargetInstanceDAO targetInstanceDao;

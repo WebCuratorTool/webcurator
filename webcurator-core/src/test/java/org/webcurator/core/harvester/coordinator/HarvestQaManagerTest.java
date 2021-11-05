@@ -20,9 +20,9 @@ import java.util.List;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvestQaManagerImplTest extends BaseWCTTest<HarvestQaManagerImpl> {
-    public HarvestQaManagerImplTest() {
-        super(HarvestQaManagerImpl.class, "", false);
+public class HarvestQaManagerTest extends BaseWCTTest<HarvestQaManager> {
+    public HarvestQaManagerTest() {
+        super(HarvestQaManager.class, "", false);
     }
 
     @Before
@@ -38,7 +38,7 @@ public class HarvestQaManagerImplTest extends BaseWCTTest<HarvestQaManagerImpl> 
         dasClient.setFileUploadMode("stream");
 
 
-        testInstance = new HarvestQaManagerImpl();
+        testInstance = new HarvestQaManager();
         testInstance.setTargetInstanceDao(targetInstanceDAO);
         testInstance.setTargetInstanceManager(targetInstanceManager);
     }

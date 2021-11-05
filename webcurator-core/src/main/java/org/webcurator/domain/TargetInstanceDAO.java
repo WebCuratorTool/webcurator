@@ -19,7 +19,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -50,11 +49,11 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  */
 @SuppressWarnings("all")
 
-public class TargetInstanceDAOImpl extends HibernateDaoSupport {
+public class TargetInstanceDAO extends HibernateDaoSupport {
 
     private static SimpleDateFormat fullFormat = SafeSimpleDateFormat.getInstance("dd/MM/yyyy HH:mm:ss");
 
-    private static Log log = LogFactory.getLog(TargetInstanceDAOImpl.class);
+    private static Log log = LogFactory.getLog(TargetInstanceDAO.class);
 
     private TransactionTemplate txTemplate = null;
 

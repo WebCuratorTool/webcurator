@@ -2,8 +2,6 @@ package org.webcurator.core.harvester.coordinator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.webcurator.core.common.Environment;
-import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.reader.LogReader;
@@ -17,7 +15,7 @@ import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 import java.text.MessageFormat;
 import java.util.*;
 
-public class MockHarvestAgentManager implements HarvestAgentManager {
+public class MockHarvestAgentManager extends HarvestAgentManager {
 
 	static Set<Long> targetInstanceLocks = Collections.synchronizedSet(new HashSet<Long>());
 

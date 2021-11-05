@@ -67,7 +67,8 @@ public class TargetManagerImplTest {
 	@Mock MockInTrayManager intrayManager;
 	@Mock MockMessageSource messageSource;
 	@Mock MockSiteDAO siteDao;
-	@Mock TargetInstanceDAO targetInstanceDao;
+	@Mock
+	TargetInstanceDAO targetInstanceDao;
 	@Mock User mockUser;
 	@Mock Agency mockAgency;
 
@@ -110,7 +111,7 @@ public class TargetManagerImplTest {
 		targetGroup15000 = mockTargetGroup(15000L);
 		targetGroup25000 = mockTargetGroup(25000L);
 
-		targetInstanceDao = mock(TargetInstanceDAOImpl.class);
+		targetInstanceDao = mock(TargetInstanceDAO.class);
 
 		underTest = new TargetManagerImpl();
 		underTest.setAnnotationDAO(annotationDAO);

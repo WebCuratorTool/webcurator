@@ -18,6 +18,8 @@ import org.drools.compiler.compiler.DroolsParserException;
 import org.kie.internal.io.ResourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.coordinator.WctCoordinatorInterface;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorCriteria;
