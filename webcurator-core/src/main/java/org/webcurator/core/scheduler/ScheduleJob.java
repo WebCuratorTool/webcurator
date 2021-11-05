@@ -23,8 +23,6 @@ import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.webcurator.core.coordinator.WctCoordinator;
-import org.webcurator.core.coordinator.WctCoordinatorInterface;
-import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.util.ApplicationContextFactory;
 
 import java.util.Objects;

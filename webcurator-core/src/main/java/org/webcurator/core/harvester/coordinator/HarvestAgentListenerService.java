@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.check.CheckNotifier;
 import org.webcurator.core.common.Constants;
 import org.webcurator.core.coordinator.WctCoordinator;
-import org.webcurator.core.coordinator.WctCoordinatorInterface;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.*;
