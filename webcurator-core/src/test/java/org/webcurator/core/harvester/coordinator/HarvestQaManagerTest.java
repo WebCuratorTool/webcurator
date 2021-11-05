@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Target;
