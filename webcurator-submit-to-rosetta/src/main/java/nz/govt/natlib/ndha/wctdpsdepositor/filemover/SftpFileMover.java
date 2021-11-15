@@ -34,9 +34,16 @@ public class SftpFileMover implements FileMoverStrategy {
     @Override
     public void createAndChangeToDirectory(String depositDirectory) throws IOException {
         try {
-            this.channelSftp.connect();
+            if (!this.channelSftp.isConnected()) {
+                this.channelSftp.connect();
+            }
+
+            String pwd = this.channelSftp.pwd();
+            log.debug("Current directory: {}", pwd);
             this.channelSftp.mkdir(depositDirectory);
             this.channelSftp.cd(depositDirectory);
+            pwd = this.channelSftp.pwd();
+            log.debug("Current directory: {}", pwd);
         } catch (JSchException | SftpException e) {
             log.error("Failed to create directory: {}", depositDirectory, e);
             throw new IOException(e);
@@ -46,8 +53,14 @@ public class SftpFileMover implements FileMoverStrategy {
     @Override
     public void changeToDirectory(String depositDirectory) throws IOException {
         try {
-            this.channelSftp.connect();
+            if (!this.channelSftp.isConnected()) {
+                this.channelSftp.connect();
+            }
+            String pwd = this.channelSftp.pwd();
+            log.debug("Current directory: {}", pwd);
             this.channelSftp.cd(depositDirectory);
+            pwd = this.channelSftp.pwd();
+            log.debug("Current directory: {}", pwd);
         } catch (JSchException | SftpException e) {
             log.error("Failed to change directory: {}", depositDirectory, e);
             throw new IOException(e);
@@ -57,7 +70,9 @@ public class SftpFileMover implements FileMoverStrategy {
     @Override
     public void storeFile(String fileName, InputStream stream) throws IOException {
         try {
-            this.channelSftp.connect();
+            if (!this.channelSftp.isConnected()) {
+                this.channelSftp.connect();
+            }
             this.channelSftp.put(stream, fileName);
         } catch (JSchException | SftpException e) {
             log.error("Failed to store file: {}", fileName, e);
