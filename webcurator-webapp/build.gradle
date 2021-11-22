@@ -22,6 +22,11 @@ repositories {
     maven {
         url = 'http://www.datanucleus.org/downloads/maven2/'
     }
+
+    maven {
+        // For  com.cloudera.cdh:hadoop-root:0.20.2-cdh3u4
+        url = 'https://mvnrepository.com/repos/archive-builds'
+    }
 }
 
 group = 'org.webcurator'
