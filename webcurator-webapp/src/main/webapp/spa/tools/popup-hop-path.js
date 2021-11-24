@@ -25,11 +25,11 @@ class HopPath{
 
   draw(nodeId){
     var url="/networkmap/get/hop/path?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + nodeId;
-    var that=this;
+    var hopPathInstance=this;
     fetchHttp(url, null, function(response){
         if (response.rspCode === 0) {
           var data=JSON.parse(response.payload);
-          that.drawHopPath(data);
+          hopPathInstance.drawHopPath(data);
           $('#popup-window-hop-path').show();
         }else{
           alert(response.rspMsg);
@@ -78,7 +78,7 @@ class HopPath{
       this.visHopPath.destroy();
     }
 
-    var c = document.getElementById(this.container);
-    this.visHopPath = new vis.Network(c, dataSet, this.options);
+    var container= document.getElementById(this.container);
+    this.visHopPath = new vis.Network(container, dataSet, this.options);
   }
 }

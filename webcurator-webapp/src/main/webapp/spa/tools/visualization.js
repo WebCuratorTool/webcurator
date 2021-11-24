@@ -57,16 +57,16 @@ function authCallback(){
 }
 
 function saveData(data, fileName) {
-    var a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
+    var tempLinkForSaving = document.createElement("a");
+    document.body.appendChild(tempLinkForSaving);
+    tempLinkForSaving.style = "display: none";
 
     var json = JSON.stringify(data),
         blob = new Blob([data], {type: "text/plain;charset=utf-8"}),
         url = window.URL.createObjectURL(blob);
-    a.href = url;
-    a.download = fileName;
-    a.click();
+    tempLinkForSaving.href = url;
+    tempLinkForSaving.download = fileName;
+    tempLinkForSaving.click();
     window.URL.revokeObjectURL(url);
 }
 
@@ -131,15 +131,15 @@ function getBrowserNameAndVersion(){
 
 function formatDataForTreeGrid(listObj){
   for(var i=0;i<listObj.length;i++){
-    var e=listObj[i];
-    e.title=e.url;
-    if (e.outlinks.length>0) {
-      e.lazy=true;
+    var elementOfList=listObj[i];
+    elementOfList.title=e.url;
+    if (elementOfList.outlinks.length>0) {
+      elementOfList.lazy=true;
     }else{
-      e.lazy=false;
+      elementOfList.lazy=false;
     }
-    delete e["children"];
-    delete e["outlinks"];
+    delete elementOfList["children"];
+    delete elementOfList["outlinks"];
     //addTitleForTreeGrid(e.children);
   }
   return listObj;
@@ -315,18 +315,18 @@ function isSuccessNode(statusCode){
   return statusCode >= 200 && statusCode < 400;
 }
 
-function formatModifyHavestGridRow(params){
+function formatModifyHarvestGridRow(params){
   if(!params.data.flag){
     return 'grid-row-normal';
   }
-  var flag=params.data.flag.toUpperCase();
-  if (flag==='PRUNE') {
+  var flagOfOperationType=params.data.flag.toUpperCase();
+  if (flagOfOperationType==='PRUNE') {
     return 'grid-row-delete';
-  }else if (flag==='RECRAWL') {
+  }else if (flagOfOperationType==='RECRAWL') {
     return 'grid-row-recrawl';
-  }else if (flag==='FILE') {
+  }else if (flagOfOperationType==='FILE') {
     return 'grid-row-file';
-  }else if (flag==='NEW') {
+  }else if (flagOfOperationType==='NEW') {
     return 'grid-row-new';
   }
 
@@ -374,7 +374,7 @@ var gridOptionsCandidate={
     ]},
   ],
   // rowClassRules: gridRowClassRules,
-  getRowClass: formatModifyHavestGridRow
+  getRowClass: formatModifyHarvestGridRow
 };
 
 function getGridOption(params){
@@ -520,7 +520,7 @@ var gridOptionsToBeModified={
     //   {headerName: "Result", field: "respMsg", width: 200, pinned: "right", cellRenderer:  cellRendererRespMsg},
     // ]},
   ],
-  getRowClass: formatModifyHavestGridRow
+  getRowClass: formatModifyHarvestGridRow
 };
 
 var gridOptionsToBeModifiedVerified={
