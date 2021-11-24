@@ -3,6 +3,7 @@ package nz.govt.natlib.ndha.wctdpsdepositor.filemover;
 import nz.govt.natlib.ndha.wctdpsdepositor.WctDepositParameter;
 import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Ignore
 public class SftpFileMoverTest {
     private static SftpFileMover testInstance = new SftpFileMover();
     private static String USER_DIR = System.getenv("HOME");
@@ -18,9 +20,9 @@ public class SftpFileMoverTest {
     @BeforeClass
     public static void init() {
         WctDepositParameter depositParameter = new WctDepositParameter();
-        depositParameter.setFtpHost("localhost");
-        depositParameter.setFtpUserName("leefr");
-        depositParameter.setFtpPassword("wangyang@111");
+        depositParameter.setFtpHost("127.0.0.1");
+        depositParameter.setFtpUserName("test");
+        depositParameter.setFtpPassword("test");
         testInstance.connect(depositParameter);
     }
 
