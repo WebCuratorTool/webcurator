@@ -11,7 +11,7 @@ class NetworkMap{
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
 		var reqUrl="/networkmap/get/all/domains?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
-		var that=this;
+		var networkMapInstance=this;
 		g_TurnOnOverlayLoading();
     	fetchHttp(reqUrl, null, function(response){
     		console.log(response.rspCode + ': ' + response.rspMsg);
@@ -21,9 +21,9 @@ class NetworkMap{
     			return;
     		}
 			var data=JSON.parse(response.payload);
-			that.data=data;
-			that.formatData(data);
-			that.initDraw(data);
+			networkMapInstance.data=data;
+			networkMapInstance.formatData(data);
+			networkMapInstance.initDraw(data);
     	});
 	}
 

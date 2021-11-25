@@ -55,8 +55,8 @@ to get the desired effect
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="tree-url-names" style="display: none;">
         <input class="form-control form-control-navbar" type="search" placeholder="Filter" aria-label="Search" name="candidate-query" style="display: none;">
         <div class="input-group-append">
-          <button type="button" title="advanced search" class="btn btn-flat btn-outline-secondary" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
-          <button type="button" title="clear filter" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.clear();"><i class="far fa-trash-alt"></i></button>
+          <button type="button" title="advanced search" class="btn btn-flat btn-outline-secondary" id="btn-advanced-search" onclick="popupQueryWindow();"><i class="fas fa-binoculars"></i></button>
+          <button type="button" title="reset view" class="btn btn-flat btn-outline-secondary" onclick="gPopupModifyHarvest.reset();"><i class="fas fa-redo-alt"></i></button>
         </div>
       </div>
     </form>
@@ -82,7 +82,7 @@ to get the desired effect
 
       <!-- Patch Harvest: Cart -->
       <div class="btn-group">
-        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; Patch Harvest</i></button>
+        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide(); $('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; Patch Harvest</i></button>
         <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
           <span class="sr-only">Toggle Dropdown</span>
           <div class="dropdown-menu" role="menu">
@@ -537,7 +537,13 @@ to get the desired effect
           $('#main-tab-group .card-main').hide();
           $('#'+currentMainTab).show();
 
-          if (currentMainTab === 'networkmap' || currentMainTab==='tree-harvest-struct') {
+          if (currentMainTab === 'tree-harvest-struct') {
+            $('#btn-advanced-search').prop("disabled", true);
+          }else{
+            $('#btn-advanced-search').prop("disabled", false);
+          }
+          
+          if (currentMainTab === 'networkmap') {
             $('#menu-tool-bar').fadeOut();
           }else{
             $('#menu-tool-bar').fadeIn();
@@ -583,13 +589,23 @@ to get the desired effect
             gPopupModifyHarvest.processorModify.bulkUploadMetadataFile(file);
         });
 
-
-        // Search input filter
-        $("#menu-tool-bar input[type='search']").on('keyup', function(e){
-          if (e.keyCode===13) {
-            gPopupModifyHarvest.filter($(this).val());
-          }
-        });
+        var browser=getBrowserNameAndVersion();
+        if (browser[0]==='Chrome' || browser[0]==='Safari' || (browser[0]==='Opera' && browser[1] > 15)) {
+          // Search input filter
+          $("#menu-tool-bar input[type='search']").on('search', function(e){
+              //e.preventDefault();
+              gPopupModifyHarvest.filter($(this).val());
+              console.log("search event");
+          });
+        }else{
+          $("#menu-tool-bar input[type='search']").on('keyup', function(e){
+            //e.preventDefault();
+            if (e.keyCode===13) {
+              gPopupModifyHarvest.filter($(this).val());
+              console.log("keyup event");
+            }
+          });
+        }
 
         $("#popup-window-modify-harvest input[type='search']").on('input', function(e){
           var val=$(this).val();
@@ -604,8 +620,8 @@ to get the desired effect
     function initData(){
       updateDerivedHarvestResults();
       networkmap.init(jobId, harvestResultNumber);
-      gPopupModifyHarvest.initTreeWithSeedUrls();
-      gPopupModifyHarvest.initTreeWithSearchCommand(null);
+      gPopupModifyHarvest.initCrawlerPathTreeView();
+      gPopupModifyHarvest.initFolderTreeView(null);
     }
 
     var timerProgress;

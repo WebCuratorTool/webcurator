@@ -47,13 +47,13 @@ class NetworkMapGraph{
     this.originalDataMap=null;
 
 
-    var that=this;
+    var networkMapGraphInstance=this;
     $.contextMenu({
-            selector: that.containerName, 
+            selector: networkMapGraphInstance.containerName,
             trigger: 'none',
             reposition: false,
             callback: function(key, options) {
-                var node=that.getSelectedNode();
+                var node=networkMapGraphInstance.getSelectedNode();
                 var searchCondition={
                   "domainNames": [],
                   "contentTypes": [],
@@ -67,13 +67,13 @@ class NetworkMapGraph{
                   }
                 }
 
-                networkmap.contextMenuCallback(key, searchCondition, that);
+                networkmap.contextMenuCallback(key, searchCondition, networkMapGraphInstance);
             },
             position: function(opt, x, y){
-                // console.log('context menu position: (' + that.x + ', ' + that.y + ')');
+                // console.log('context menu position: (' + networkMapGraphInstance.x + ', ' + networkMapGraphInstance.y + ')');
                 var offset = opt.$menu.position();
-                offset.top=that.y;
-                offset.left=that.x;
+                offset.top=networkMapGraphInstance.y;
+                offset.left=networkMapGraphInstance.x;
                 opt.$menu.css(offset);
             },
             items: NetworkMap.contextMenuItemsGraph
@@ -89,7 +89,7 @@ class NetworkMapGraph{
     }
     this.network = new vis.Network(this.container, this.formatDataSet(), this.options);
 
-    var that=this;
+    var networkMapGraphInstance=this;
     //Event: doubleClic
     this.network.on("click", function (params) {
         console.log(params);
@@ -108,21 +108,21 @@ class NetworkMapGraph{
           return;
         }
         var nodeId=params.nodes[0];
-        that.toggleParentNode(nodeId);
+        networkMapGraphInstance.toggleParentNode(nodeId);
     });
 
     //Event: stabilized
     this.network.on("stabilized", function(){
-      if(!that.stabilized){
+      if(!networkMapGraphInstance.stabilized){
         // console.log("stabilized");
-        // that.network.setOptions({physics: false});
-        that.options.physics.stabilization.iterations=6;
-        that.network.setOptions(that.options);
-        that.attachPositions();
-        if(!that.originalDataMap){
-          that.originalDataMap=JSON.parse(JSON.stringify(that.dataMap));
+        // networkMapGraphInstance.network.setOptions({physics: false});
+        networkMapGraphInstance.options.physics.stabilization.iterations=6;
+        networkMapGraphInstance.network.setOptions(networkMapGraphInstance.options);
+        networkMapGraphInstance.attachPositions();
+        if(!networkMapGraphInstance.originalDataMap){
+          networkMapGraphInstance.originalDataMap=JSON.parse(JSON.stringify(networkMapGraphInstance.dataMap));
         }
-        that.stabilized=true;
+        networkMapGraphInstance.stabilized=true;
       }else{
         console.log("stabilized");
         setTimeout(function () {g_TurnOffOverlayLoading();}, 300);
@@ -136,14 +136,14 @@ class NetworkMapGraph{
     //========Recover the scale and position after pyhsics simulation========
     this.network.on("release", function(params){
       console.log("release");
-      that.viewOptions.scale=that.network.getScale();
-      that.viewOptions.position=that.network.getViewPosition();
+      networkMapGraphInstance.viewOptions.scale=networkMapGraphInstance.network.getScale();
+      networkMapGraphInstance.viewOptions.position=networkMapGraphInstance.network.getViewPosition();
     });
 
     this.network.on("initRedraw", function(){
-      if(that.viewOptions.scale > 0){
-        that.network.moveTo(that.viewOptions);
-        that.viewOptions.scale = -1;
+      if(networkMapGraphInstance.viewOptions.scale > 0){
+        networkMapGraphInstance.network.moveTo(networkMapGraphInstance.viewOptions);
+        networkMapGraphInstance.viewOptions.scale = -1;
       }    
     });
 
@@ -155,8 +155,8 @@ class NetworkMapGraph{
         return;
       }
 
-      // var node = that.network.getNodeAt({x: params.pointer.DOM.x, y: params.pointer.DOM.y});
-      var node = that.network.getNodeAt(params.pointer.DOM);
+      // var node = networkMapGraphInstance.network.getNodeAt({x: params.pointer.DOM.x, y: params.pointer.DOM.y});
+      var node = networkMapGraphInstance.network.getNodeAt(params.pointer.DOM);
 
       console.log(node);
 
@@ -165,12 +165,12 @@ class NetworkMapGraph{
       }
 
       networkmap.switchNode(node);
-      that.network.selectNodes([node]);
+      networkMapGraphInstance.network.selectNodes([node]);
 
-      that.x=params.event.x;
-      that.y=params.event.y;
-      console.log('vis network position: (' + that.x + ', ' + that.y + ')');
-      $(that.containerName).contextMenu();
+      networkMapGraphInstance.x=params.event.x;
+      networkMapGraphInstance.y=params.event.y;
+      console.log('vis network position: (' + networkMapGraphInstance.x + ', ' + networkMapGraphInstance.y + ')');
+      $(networkMapGraphInstance.containerName).contextMenu();
     }); 
   }
 

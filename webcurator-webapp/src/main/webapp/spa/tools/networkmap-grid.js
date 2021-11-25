@@ -30,9 +30,9 @@ class NetworkMapGrid{
 		  rowData: []
 		};
 
-		var that=this;
+		var networkMapGridInstance=this;
 		$.contextMenu({
-            selector: that.container + ' .ag-row', 
+            selector: networkMapGridInstance.container + ' .ag-row',
             callback: function(key, options) {
             	var searchCondition={
                   "domainNames": [],
@@ -41,22 +41,22 @@ class NetworkMapGrid{
                 }
 
             	var rowId=$(this).attr('row-id');
-            	var node = that.grid.gridOptions.api.getRowNode(rowId); //getDisplayedRowAtIndex
+            	var node = networkMapGridInstance.grid.gridOptions.api.getRowNode(rowId); //getDisplayedRowAtIndex
 				if(node){
-					if(that.key === 'statusCode'){
+					if(networkMapGridInstance.key === 'statusCode'){
 						searchCondition.statusCodes.push(node.data.name);
 					}else{
 						searchCondition.contentTypes.push(node.data.name);
 					}
 				}
-				if(that.domain.title){
-					searchCondition.domainNames.push(that.domain.title);
-					if(that.domain.children.length>0){
+				if(networkMapGridInstance.domain.title){
+					searchCondition.domainNames.push(networkMapGridInstance.domain.title);
+					if(networkMapGridInstance.domain.children.length>0){
 						searchCondition.domainLevel='high';
 					}
 				}
 
-                networkmap.contextMenuCallback(key, searchCondition, that);
+                networkmap.contextMenuCallback(key, searchCondition, networkMapGridInstance);
 
             },
             items: NetworkMap.contextMenuItemsGrid

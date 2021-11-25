@@ -80,10 +80,10 @@ class ModifyHarvestProcessor{
 	}
 
 	bulkUploadMetadataFile(file){
-		var that=this;
+		var modifyHarvestProcessorInstance=this;
 		var reader = new FileReader();
 		reader.addEventListener("loadend", function () {
-			var url="/bulk-import/parse?targetInstanceOid=" + that.jobId + "&harvestNumber=" + that.harvestResultNumber;
+			var url="/bulk-import/parse?targetInstanceOid=" + modifyHarvestProcessorInstance.jobId + "&harvestNumber=" + modifyHarvestProcessorInstance.harvestResultNumber;
 			var req={
 				uploadFileContent: reader.result,
 			};
@@ -95,9 +95,9 @@ class ModifyHarvestProcessor{
 				}
 
 				var dataset=JSON.parse(rsp.payload);
-				that._validateToBeImportedData(dataset);
+				modifyHarvestProcessorInstance._validateToBeImportedData(dataset);
 				gPopupModifyHarvest._appendAndMoveHarvest2ToBeModifiedList(dataset, function(data){
-					that._validateToBeImportedData(data);
+					modifyHarvestProcessorInstance._validateToBeImportedData(data);
 					for (var i = data.length - 1; i >= 0; i--) {
 						data[i].index=i;
 					}

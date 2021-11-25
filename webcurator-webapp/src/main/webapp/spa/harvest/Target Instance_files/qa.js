@@ -236,7 +236,7 @@ var contextMenuItemsImport={
   "undo": {name: "Undo", icon: "fas fa-undo", items: itemsUndo},
 };
 
-function formatModifyHavestGridRow(params){
+function formatModifyHarvestGridRow(params){
   if(!params.data.flag){
     return 'grid-row-normal';
   }
@@ -293,7 +293,7 @@ var gridOptionsCandidate={
     ]},
   ],
   // rowClassRules: gridRowClassRules,
-  getRowClass: formatModifyHavestGridRow
+  getRowClass: formatModifyHarvestGridRow
 };
 
 var gridOptionsPrune={
@@ -325,7 +325,7 @@ var gridOptionsPrune={
     // {headerName: "Cascade", field: "flagCascade", width: 40, filter: true, pinned: 'right', cellRenderer: 'renderImportOption', cellClass: 'grid-cell-centered'}
   ],
   // rowClassRules: gridRowClassRules
-  getRowClass: formatModifyHavestGridRow
+  getRowClass: formatModifyHarvestGridRow
 };
 
 var gridOptionsImport={
@@ -357,6 +357,6 @@ var gridOptionsImport={
           }
       }}
   ],
-  // getRowClass: formatModifyHavestGridRow
-  getRowClass: formatModifyHavestGridRow
+  // getRowClass: formatModifyHarvestGridRow
+  getRowClass: formatModifyHarvestGridRow
 };

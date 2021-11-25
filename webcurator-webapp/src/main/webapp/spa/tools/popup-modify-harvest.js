@@ -1,5 +1,8 @@
+var popupModifyViews={};
+
 class CustomizedAgGrid{
 	constructor(jobId, harvestResultNumber, gridContainer, gridOptions, menuItems){
+		this.isGrid=true;
 		this.jobId=jobId;
 		this.harvestResultNumber=harvestResultNumber;
 		this.gridContainer=gridContainer;
@@ -9,18 +12,20 @@ class CustomizedAgGrid{
 		this.dataMap={};
 
 		if(menuItems){
-			var that=this;
+			var customizedAgGridInstance=this;
 			$.contextMenu({
-	            selector: that.gridContainer + ' .ag-row', 
+	            selector: customizedAgGridInstance.gridContainer + ' .ag-row',
 	            callback: function(key, options) {
 					var rowId=$(this).attr('row-id');
-					// var rowNode = that.grid.gridOptions.api.getDisplayedRowAtIndex(rowId);
-					var rowNode = that.grid.gridOptions.api.getRowNode(rowId);
-					contextMenuCallback(key, rowNode.data, that, gPopupModifyHarvest);
+					// var rowNode = customizedAgGridInstance.grid.gridOptions.api.getDisplayedRowAtIndex(rowId);
+					var rowNode = customizedAgGridInstance.grid.gridOptions.api.getRowNode(rowId);
+					contextMenuCallback(key, rowNode.data, customizedAgGridInstance, gPopupModifyHarvest);
 	            },
-	            items: that.menuItems
+	            items: customizedAgGridInstance.menuItems
 	        });
 		}
+
+		popupModifyViews[gridContainer]=this;
 	}
 
 	getSelectedNodes(){
@@ -39,6 +44,19 @@ class CustomizedAgGrid{
 		});
 		return data;
 	}
+
+	getNodeByIndex(index){
+        return this.grid.gridOptions.api.getDisplayedRowAtIndex(index);
+    }
+
+    getRowByIndex(index){
+        var node=this.getNodeByIndex(index);
+        if (node) {
+            return node.data;
+        }else{
+            return null;
+        }
+    }
 
 	getNodeByDataIndex(rowIndex){
 		var result;
@@ -216,7 +234,7 @@ const treeOptionsHarvestStruct=Object.assign({
 	        	}
 	        }
 	        
-				deferredResult.resolve(dataset);
+			deferredResult.resolve(dataset);
 		});
 
 	    data.result = deferredResult;
@@ -238,7 +256,8 @@ const treeOptionsCascadedPath=Object.assign({
 
 class HierarchyTree{
 	constructor(container, jobId, harvestResultNumber, options){
-		var that=this;
+		var hierarchyTreeInstance=this;
+		this.isTree=true;
 		this.dataset=[];
 		this.container=container;
 		this.jobId=jobId;
@@ -252,13 +271,14 @@ class HierarchyTree{
 		        callback: function(key, options) {
 		            // var node=JSON.parse($(this).attr('data'));
 		            var treeNodeKey=$(this).attr('key');
-		            var treeNode=$.ui.fancytree.getTree(that.container).getNodeByKey(treeNodeKey);
-		            var nodeData=that._getDataFromNode(treeNode);
+		            var treeNode=$.ui.fancytree.getTree(hierarchyTreeInstance.container).getNodeByKey(treeNodeKey);
+		            var nodeData=hierarchyTreeInstance._getDataFromNode(treeNode);
 
-		            contextMenuCallback(key, nodeData, that, gPopupModifyHarvest);
+		            contextMenuCallback(key, nodeData, hierarchyTreeInstance, gPopupModifyHarvest);
 		        },
 		        items: contextMenuItemsUrlTree
     	});
+    	popupModifyViews[container]=this;
 	}
 
 	_getDataFromNode(treeNode){
@@ -379,7 +399,7 @@ class HierarchyTree{
 				hideExpandedCounter: true,  // Hide counter badge if parent is expanded
 				hideExpanders: false,       // Hide expanders if all child nodes are hidden by filter
 				highlight: true,   // Highlight matches by wrapping inside <mark> tags
-				leavesOnly: true, // Match end nodes only
+				leavesOnly: false, // Match end nodes only
 				nodata: true,      // Display a 'no data' status node if result is empty
 				mode: "hide"       //dimm or hide Grayout unmatched nodes (pass "hide" to remove unmatched node instead)
 		}
@@ -393,12 +413,12 @@ class PopupModifyHarvest{
 		this.jobId=jobId;
 		this.harvestResultId=harvestResultId;
 		this.harvestResultNumber=harvestResultNumber;
-		this.hierarchyTreeHarvestStruct=new HierarchyTree("#hierachy-tree-harvest-struct", jobId, harvestResultNumber, treeOptionsHarvestStruct);
-		this.hierarchyTreeUrlNames=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber, treeOptionsCascadedPath);
+		this.crawlerPathTreeView=new HierarchyTree("#hierachy-tree-harvest-struct", jobId, harvestResultNumber, treeOptionsHarvestStruct);
+		this.folderTreeView=new HierarchyTree("#hierachy-tree-url-names", jobId, harvestResultNumber, treeOptionsCascadedPath);
 		this.gridCandidate=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-candidate', gridOptionsCandidate, contextMenuItemsUrlGrid);
 		this.gridImportPrepare=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-bulk-import-prepare', gridOptionsImportPrepare, null);
-		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, contextMenuItemsToBeModified);
-		this.gridToBeModifiedVerified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified-verified', gridOptionsToBeModifiedVerified, null);
+		this.gridToBeModified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified', gridOptionsToBeModified, Object.assign({}, contextMenuItemsToBeModified));
+		this.gridToBeModifiedVerified=new CustomizedAgGrid(jobId, harvestResultNumber, '#grid-modify-tobe-modified-verified', gridOptionsToBeModifiedVerified, Object.assign({}, contextMenuItemsToBeModified));
 		this.processorModify=new ModifyHarvestProcessor(jobId, harvestResultId, harvestResultNumber);
 		this.uriSeedUrl="/networkmap/get/root/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		this.uriInvalidUrl="/networkmap/get/malformed/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
@@ -406,17 +426,63 @@ class PopupModifyHarvest{
 
 	clear(){
 		if (currentMainTab === 'tree-url-names') {
-			this.hierarchyTreeUrlNames.clearAll();
+			this.folderTreeView.clearAll();
 		}else if (currentMainTab === 'candidate-query') {
 			this.gridCandidate.clearAll();
 		}
 	}
 
+	reset(){
+		if (currentMainTab === 'tree-harvest-struct') {
+			this.initCrawlerPathTreeView();
+		}else if (currentMainTab === 'tree-url-names') {
+			this.initFolderTreeView(null);
+		}else if (currentMainTab === 'candidate-query') {
+			this.gridCandidate.clearAll();
+		}
+		$('#menu-tool-bar input[name="' + currentMainTab + '"]').val('');
+	}
+
+	showOutlinks(data){
+		if ($.isEmptyObject(data) || data.id < 0) {
+			toastr.warning("The url [" + data.url + "] does not exist.");
+			return;
+		}
+		//this.crawlerPathTreeView.draw(dataset);
+		var popupModifyHarvestInstance=this;
+		var url="/networkmap/get/node?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber + "&id=" + data.id;
+		g_TurnOnOverlayLoading();
+		fetchHttp(url, null, function(response){
+			if (!$.isEmptyObject(response.error)) {
+				response.rspCode=9999;
+				response.rspMsg=response.error;
+			}
+
+			if (response.rspCode != 0) {
+				g_TurnOffOverlayLoading();
+				alert(response.rspMsg);				
+				return;
+	        }
+
+			var data=JSON.parse(response.payload);
+			var dataset=[data];
+
+			$('#popup-window-modification').hide();
+
+			currentMainTab = 'tree-harvest-struct';
+			$('#btn-group-main-tabs label[name="tree-harvest-struct"]').trigger('click');
+		
+			popupModifyHarvestInstance.crawlerPathTreeView.draw(dataset);
+
+			g_TurnOffOverlayLoading();
+		});
+	}
+
 	filter(val){
 		if (currentMainTab === 'tree-harvest-struct') {
-			this.hierarchyTreeHarvestStruct.filter(val);
+			this.crawlerPathTreeView.filter(val);
 		}if (currentMainTab === 'tree-url-names') {
-			this.hierarchyTreeUrlNames.filter(val);
+			this.folderTreeView.filter(val);
 		}else if (currentMainTab === 'candidate-query') {
 			this.gridCandidate.filter(val);
 		}
@@ -471,7 +537,8 @@ class PopupModifyHarvest{
 	}
 
 	undo(data, source){
-		source.clear(data);
+		this.gridToBeModified.clear(data);
+		this.gridToBeModifiedVerified.clear(data);
 		this.setRowStyle();
 	}
 
@@ -483,7 +550,7 @@ class PopupModifyHarvest{
 			dataset[i].index=i;
 			map[i]=dataset[i];
 		}
-		var that=this;
+		var popupModifyHarvestInstance=this;
 		this._appendAndMoveHarvest2ToBeModifiedList(dataset, function(handledDateset){
 			for (var i = 0; i < handledDateset.length; i++) {
 				var oldNode=map[handledDateset[i].index];
@@ -491,12 +558,12 @@ class PopupModifyHarvest{
 					handledDateset[i].uploadFile=oldNode.uploadFile;
 				}
 			}
-			that._moveHarvest2ToBeModifiedList(handledDateset);
+			popupModifyHarvestInstance._moveHarvest2ToBeModifiedList(handledDateset);
 		});
 	}
 
 	_appendAndMoveHarvest2ToBeModifiedList(data, callback){
-		var that=this;
+		var popupModifyHarvestInstance=this;
 		var url="/check-and-append?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
 		fetchHttp(url, data, function(rsp){
 			if (rsp.rspCode!==0) {
@@ -624,30 +691,22 @@ class PopupModifyHarvest{
 		}
 
 		var domainNames=$("#queryDomainName").val().trim();
-		if(domainNames.length > 0){
-			searchCondition.domainNames=domainNames.split();
-		}
+		searchCondition.domainNames=splitString2Array(domainNames);
 
-		var contentTypes=$("#queryContentType").val().trim();
-		if(contentTypes.length > 0){
-			searchCondition.contentTypes=contentTypes.split();
-		}
+		var urlNames=$("#queryUrlName").val().trim();
+	    searchCondition.urlNames=splitString2Array(urlNames);
 
 		var statusCodes=$("#queryStatusCode").val().trim();
-	    if(statusCodes.length > 0){
-	    	searchCondition.statusCodes=statusCodes.split();
-	    }
+		searchCondition.statusCodes=splitString2Array(statusCodes);
 
-	    var urlNames=$("#queryUrlName").val().trim();
-	    if(urlNames.length > 0){
-	    	searchCondition.urlNames=urlNames.split();
-	    }
+	    var contentTypes=$("#queryContentType").val().trim();
+		searchCondition.contentTypes=splitString2Array(contentTypes);
 
 	    var reqUrl=''
 	    if (currentMainTab === 'candidate-query') {
 	    	this.checkUrls(searchCondition, 'inspect');
 	    }else if (currentMainTab === 'tree-url-names') {
-	    	this.initTreeWithSearchCommand(searchCondition);
+	    	this.initFolderTreeView(searchCondition);
 	  	}else{
 	  		alert('Bad request');
 	  		return;
@@ -660,7 +719,7 @@ class PopupModifyHarvest{
 			return;
 		}
 
-		var that=this;
+		var popupModifyHarvestInstance=this;
 		var url="/networkmap/search/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
 		if (flag==='inspect') {
 			currentMainTab = 'candidate-query';
@@ -669,15 +728,16 @@ class PopupModifyHarvest{
 		g_TurnOnOverlayLoading();
 		fetchHttp(url, searchCondition, function(response){
 			if (response.rspCode != 0) {
+				g_TurnOffOverlayLoading();
 				alert(response.rspMsg);
 				return;	 
 	        }
 
 			var data=JSON.parse(response.payload);
 			if(flag==='prune'){
-				that.modify(data, 'prune');
+				popupModifyHarvestInstance.modify(data, 'prune');
 			}else if(flag==='inspect'){
-				that.inspectHarvest(data);
+				popupModifyHarvestInstance.inspectHarvest(data);
 			}
 
 			g_TurnOffOverlayLoading();
@@ -685,7 +745,7 @@ class PopupModifyHarvest{
 	}
 
 	loadUrls(url){
-		var that=this;
+		var popupModifyHarvestInstance=this;
 		g_TurnOnOverlayLoading();
 		fetchHttp(url, null, function(response){
 			if (response.rspCode != 0) {
@@ -698,15 +758,16 @@ class PopupModifyHarvest{
 			if(data.length===0){
 				g_TurnOffOverlayLoading();
 				alert('No data found!');
+				return;
 			}else{
-				that.gridCandidate.setRowData(data);
+				popupModifyHarvestInstance.gridCandidate.setRowData(data);
 			}
 			g_TurnOffOverlayLoading();
 		});
 	}
 
-	initTreeWithSeedUrls(){
-		var that=this;
+	initCrawlerPathTreeView(){
+		var popupModifyHarvestInstance=this;
 		g_TurnOnOverlayLoading();
 		fetchHttp(this.uriSeedUrl, null, function(response){
 			if (response.rspCode != 0) {
@@ -716,15 +777,15 @@ class PopupModifyHarvest{
 	        }
 
 			var data=JSON.parse(response.payload);
-			that.hierarchyTreeHarvestStruct.draw(data);
-			that.setRowStyle();
+			popupModifyHarvestInstance.crawlerPathTreeView.draw(data);
+			popupModifyHarvestInstance.setRowStyle();
 			g_TurnOffOverlayLoading();
 		});
 	}
 
-	initTreeWithSearchCommand(searchCommand){
+	initFolderTreeView(searchCommand){
 		var reqUrl = "/networkmap/get/urls/cascaded-by-path?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + '&title=';
-		var that=this;
+		var popupModifyHarvestInstance=this;
 		g_TurnOnOverlayLoading();
 		fetchHttp(reqUrl, searchCommand, function(response){
 			if (response.rspCode != 0) {
@@ -734,8 +795,8 @@ class PopupModifyHarvest{
 	        }
 
 			var data=JSON.parse(response.payload);
-			that.hierarchyTreeUrlNames.drawWithDomain(data);
-			that.setRowStyle();
+			popupModifyHarvestInstance.folderTreeView.drawWithDomain(data);
+			popupModifyHarvestInstance.setRowStyle();
 			g_TurnOffOverlayLoading();
 		});
 	}
@@ -867,13 +928,13 @@ class PopupModifyHarvest{
 			}
 		}
 
-		var that=this;
+		var popupModifyHarvestInstance=this;
 		this.recurseUploadFiles(toBeUploadedNodes, 0, function(){
 			var replaceModeByStatus=parseInt($("#radio-group-replace-status input[name='r-status']:checked").attr("flag"));
 			var applyCommand={
-				targetInstanceId: that.jobId,
-				harvestResultId: that.harvestResultId,
-				harvestResultNumber: that.harvestResultNumber,
+				targetInstanceId: popupModifyHarvestInstance.jobId,
+				harvestResultId: popupModifyHarvestInstance.harvestResultId,
+				harvestResultNumber: popupModifyHarvestInstance.harvestResultNumber,
 				newHarvestResultNumber: 0,
 				replaceOptionStatus: replaceModeByStatus,
 				replaceOptionOutlink: 1,
@@ -900,14 +961,14 @@ class PopupModifyHarvest{
 			return;
 		}
 
-		var that=this;
+		var popupModifyHarvestInstance=this;
 		var reader = new FileReader();
 		reader.addEventListener("loadend", function () {
 			var req=toBeUploadedNodes[idx];
 			req.uploadFileContent=reader.result;
 			
 
-			var url="/modification/upload-file-stream?job=" + that.jobId + "&harvestResultNumber=" + that.harvestResultNumber;
+			var url="/modification/upload-file-stream?job=" + popupModifyHarvestInstance.jobId + "&harvestResultNumber=" + popupModifyHarvestInstance.harvestResultNumber;
 			fetchHttp(url, req, function(rsp){
 				req.uploadFileContent='';
 				if (rsp.respCode !== 0) {
@@ -916,7 +977,7 @@ class PopupModifyHarvest{
 					return;
 				}
 				req.cachedFileName=rsp.cachedFileName;
-				that.recurseUploadFiles(toBeUploadedNodes, idx+1, callback);
+				popupModifyHarvestInstance.recurseUploadFiles(toBeUploadedNodes, idx+1, callback);
 			});
 		});
 
