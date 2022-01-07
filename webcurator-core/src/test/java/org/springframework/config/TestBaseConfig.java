@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Scope;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
-import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.TargetInstanceDAO;
@@ -39,7 +38,7 @@ public class TestBaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public HarvestAgentFactory harvestAgentFactory() {
-        HarvestAgentFactoryImpl bean = new HarvestAgentFactoryImpl();
+        HarvestAgentFactory bean = new HarvestAgentFactory();
         return bean;
     }
 

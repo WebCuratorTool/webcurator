@@ -15,27 +15,20 @@
  */
 package org.webcurator.core.harvester.agent;
 
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.reader.LogReader;
+import org.webcurator.core.reader.LogReaderClient;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 /**
- * Interface for a factory to create instances of a HarvestAgent.
- *
- * @author nwaight
+ * Factory to create HarvestAgent and LogReader instances that use Restful API to communicate with a remote HarvestAgent.
  */
-public interface HarvestAgentFactory {
-    /**
-     * Return an instance of the harvest agent running on the
-     * specified host, port and service name.
-     *
-     * @return the Harvest Agent
-     */
-    HarvestAgent getHarvestAgent(HarvestAgentStatusDTO harvestAgentStatusDTO);
+public class HarvestAgentFactory {
+    public HarvestAgent getHarvestAgent(HarvestAgentStatusDTO harvestAgentStatusDTO) {
+        return new HarvestAgentClient(harvestAgentStatusDTO.getBaseUrl(), new RestTemplateBuilder());
+    }
 
-    /**
-     * Return an instance of the log reader running on the specified host and port
-     *
-     * @return the log reader
-     */
-    LogReader getLogReader(HarvestAgentStatusDTO harvestAgentStatusDTO);
+    public LogReader getLogReader(HarvestAgentStatusDTO harvestAgentStatusDTO) {
+        return new LogReaderClient(harvestAgentStatusDTO.getBaseUrl(), new RestTemplateBuilder());
+    }
 }

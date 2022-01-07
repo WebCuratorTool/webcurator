@@ -41,7 +41,7 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.HarvestResultManagerImpl;
 import org.webcurator.core.coordinator.WctCoordinator;
-import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
+import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.notification.MailServerImpl;
@@ -771,8 +771,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public HarvestAgentFactoryImpl harvestAgentFactory() {
-        return new HarvestAgentFactoryImpl();
+    public HarvestAgentFactory harvestAgentFactory() {
+        return new HarvestAgentFactory();
     }
 
     @Bean
