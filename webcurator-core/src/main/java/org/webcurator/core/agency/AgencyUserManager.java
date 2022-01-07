@@ -15,13 +15,14 @@
  */
 package org.webcurator.core.agency;
 
-import java.util.List;
-import java.util.Map;
-
-import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.webcurator.auth.AuthorityManager;
+import org.webcurator.core.exceptions.NoPrivilegeException;
+import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.AuthUtil;
-import org.webcurator.domain.UserOwnable;
+import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.Role;
@@ -31,263 +32,561 @@ import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.domain.model.core.RejReason;
 import org.webcurator.domain.model.dto.UserDTO;
 
+import java.util.*;
+
 /**
- * Provides the mechanism for accessing user, role and agency data.
  *
  * @author bprice
+ * @see AgencyUserManager
  */
-public interface AgencyUserManager {
+public class AgencyUserManager {
+    private static Log log = LogFactory.getLog(AgencyUserManager.class);
+
+    private Auditor auditor = null;
+
+    private AuthorityManager authorityManager = null;
+
+    private UserRoleDAO userRoleDAO = null;
+
+    private RejReasonDAO rejReasonDAO = null;
+
+    private IndicatorCriteriaDAO indicatorCriteriaDAO = null;
+
+    private FlagDAO flagDAO = null;
 
     /**
-     * gets all users of the WTC system
-     *
-     * @return a List of full populated User objects
+     * The ProfileManager to allow creating a default profile.
      */
-    public List getUsers();
+    private ProfileManager profileManager = null;
 
-    /**
-     * gets the users of the WTC system for a selected Agency
-     *
-     * @param agencyOid the Oid of the AGency in which to search for users
-     * @return a List of full populated User objects
-     */
-    public List getUsers(Long agencyOid);
+    public List getAgencies() {
+        return userRoleDAO.getAgencies();
+    }
 
-    /**
-     * gets a user based on its primary key
-     *
-     * @param userOid the users primary key
-     * @return the populated User object
-     */
-    public User getUserByOid(Long userOid);
+    public Agency getAgencyByOid(Long oid) {
+        return userRoleDAO.getAgencyByOid(oid);
+    }
 
-    /**
-     * gets a user based on its unique user name
-     *
-     * @param username the users name
-     * @return the populated User object
-     */
-    public User getUserByUserName(String username);
+    public List getUserDTOs() {
+        return userRoleDAO.getUserDTOs();
+    }
 
-    /**
-     * gets the WCT Users in the system, but only as Data Transfer Objects
-     *
-     * @return a List of UserDTO objects
-     */
-    public List getUserDTOs();
+    public List getUserDTOs(Long agencyOid) {
+        return userRoleDAO.getUserDTOs(agencyOid);
+    }
 
-    /**
-     * gets the WCT Users for a given agency, but only as Data Transfer Objects
-     *
-     * @param agencyOid a List of UserDTO objects
-     * @return a List of UserDTO objects for the agency
-     */
-    public List getUserDTOs(Long agencyOid);
+    public UserDTO getUserDTOByOid(Long userOid) {
+        return userRoleDAO.getUserDTOByOid(userOid);
+    }
 
-    /**
-     * gets the WCT Users that belong to the logged in users agency
-     *
-     * @return the list of Users
-     */
-    public List getUserDTOsForLoggedInUser();
+    public List getUsers() {
+        return userRoleDAO.getUsers();
+    }
 
-    /**
-     * gets a UserDTO object based on the Users oid
-     *
-     * @param userOid the oid to load
-     * @return a populated UserDTO object
-     */
-    public UserDTO getUserDTOByOid(Long userOid);
+    public List getUsers(Long agencyOid) {
+        return userRoleDAO.getUsers(agencyOid);
+    }
 
-    /**
-     * gets all the Agencies defined within the WCT system
-     *
-     * @return a List of Agencies
-     */
-    public List getAgencies();
+    public void setAuditor(Auditor auditor) {
+        this.auditor = auditor;
+    }
 
-    /**
-     * gets all the agencies defined for the logged in user,
-     * based on the users privilege levels
-     *
-     * @return a List of Agencies
-     */
-    public List getAgenciesForLoggedInUser();
+    public void setAuthorityManager(AuthorityManager authorityManager) {
+        this.authorityManager = authorityManager;
+    }
 
-    /**
-     * gets all the agencies defined for the logged in user
-     * based on their MANAGE_TEMPLATE privilege
-     *
-     * @return a List of Agencies
-     */
-    public List getAgenciesForTemplatePriv();
+    public void setUserRoleDAO(UserRoleDAO userRoleDAO) {
+        this.userRoleDAO = userRoleDAO;
+    }
 
-    /**
-     * gets an agency using its oid (primary key)
-     *
-     * @param oid the Agency Oid
-     * @return the populated Agency Object
-     */
-    public Agency getAgencyByOid(Long oid);
+    public void setRejReasonDAO(RejReasonDAO rejReasonDAO) {
+        this.rejReasonDAO = rejReasonDAO;
+    }
 
-    /**
-     * gets all the viewable roles for the Logged in user
-     *
-     * @return a List of Roles
-     */
-    public List getRolesForLoggedInUser();
+    public List getAgenciesForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
 
-    /**
-     * gets all the Roles that this user can be assigned.
-     * This will always be limited to the User Agency Roles.
-     *
-     * @param user the user object
-     * @return the List of Roles
-     */
-    public List getRolesForUser(User user);
+        if (authorityManager.hasPrivilege(Privilege.MANAGE_AGENCIES, Privilege.SCOPE_ALL)) {
+            return userRoleDAO.getAgencies();
+        } else {
+            Long agencyOid = usersAgency.getOid();
+            List<Agency> singleAgency = new ArrayList<Agency>();
+            singleAgency.add(userRoleDAO.getAgencyByOid(agencyOid));
+            return singleAgency;
+        }
+    }
 
-    /**
-     * gets a Role base on the Roles primary key
-     *
-     * @param oid the Roles primary key
-     * @return the fully populated Role object
-     */
-    public Role getRoleByOid(Long oid);
+    public List getAgenciesForTemplatePriv() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
 
-    /**
-     * gets the set of Roles that are currently assigned to this user
-     *
-     * @param oid the primary key of the User
-     * @return a List of Roles
-     */
-    public List getAssociatedRolesForUser(Long oid);
+        if (authorityManager.hasPrivilege(Privilege.PERMISSION_REQUEST_TEMPLATE, Privilege.SCOPE_ALL)) {
+            return userRoleDAO.getAgencies();
+        } else {
+            Long agencyOid = usersAgency.getOid();
+            List<Agency> singleAgency = new ArrayList<Agency>();
+            singleAgency.add(userRoleDAO.getAgencyByOid(agencyOid));
+            return singleAgency;
+        }
+    }
+
+
+    public void updateAgency(Agency agency, boolean update) {
+        userRoleDAO.saveOrUpdate(agency);
+        if (update) {
+            auditor.audit(Agency.class.getName(), agency.getOid(), Auditor.ACTION_UPDATE_AGENCY, "The Agency named '" + agency.getName() + "' has been updated");
+        } else {
+            auditor.audit(Agency.class.getName(), Auditor.ACTION_NEW_AGENCY, "A new Agency has been created with a name of '" + agency.getName() + "'");
+            profileManager.createDefaultProfile(agency);
+        }
+    }
+
+    public List getUserDTOsForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
+
+        if (authorityManager.hasPrivilege(Privilege.MANAGE_USERS, Privilege.SCOPE_ALL)) {
+            return userRoleDAO.getUserDTOs();
+        } else {
+            return userRoleDAO.getUserDTOs(usersAgency.getOid());
+        }
+    }
+
+    public User getUserByOid(Long userOid) {
+        return userRoleDAO.getUserByOid(userOid);
+    }
+
+    public User getUserByUserName(String username) {
+        return userRoleDAO.getUserByName(username);
+    }
+
+    public void modifyUserStatus(User user) {
+        boolean currentStatus = user.isActive();
+        boolean newStatus = !currentStatus;
+        user.setActive(newStatus);
+        if (newStatus == false) {
+            //record the deactivation date
+            user.setDeactivateDate(new Date());
+        } else {
+            //re-activate user and clear deactivation date
+            user.setDeactivateDate(null);
+        }
+        userRoleDAO.saveOrUpdate(user);
+        if (newStatus == true) {
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_ACTIVATE_USER, "User " + user.getUsername() + " was enabled");
+        } else {
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_DEACTIVATE_USER, "User " + user.getUsername() + " was deactivated");
+        }
+
+    }
+
+    public void deleteUser(User user) {
+        Long userOid = user.getOid();
+        String username = user.getUsername();
+        user.removeAllRoles();
+        userRoleDAO.delete(user);
+        auditor.audit(User.class.getName(), userOid, Auditor.ACTION_DELETE_USER, "User " + username + " has been deleted");
+
+    }
+
+    public List getRolesForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
+
+        if (authorityManager.hasPrivilege(Privilege.MANAGE_ROLES, Privilege.SCOPE_ALL)) {
+            return userRoleDAO.getRoles();
+        } else {
+            return userRoleDAO.getRoles(usersAgency.getOid());
+        }
+    }
+
+    public Role getRoleByOid(Long oid) {
+        return userRoleDAO.getRoleByOid(oid);
+    }
+
+    public void updateRole(Role role, boolean update) {
+        userRoleDAO.saveOrUpdate(role);
+        if (update == true) {
+            auditor.audit(Role.class.getName(), role.getOid(), Auditor.ACTION_UPDATE_ROLE, "The role '" + role.getName() + "' has been updated under the '" + role.getAgency().getName() + "' Agency.");
+        } else {
+            auditor.audit(Role.class.getName(), role.getOid(), Auditor.ACTION_NEW_ROLE, "A New role has been created with a role name of '" + role.getName() + "' under the '" + role.getAgency().getName() + "' Agency.");
+        }
+    }
+
+    public void deleteRole(Role role) {
+        Long roleOid = role.getOid();
+        String roleName = role.getName();
+        userRoleDAO.delete(role);
+        auditor.audit(Role.class.getName(), roleOid, Auditor.ACTION_DELETE_ROLE, "The role name of '" + roleName + "' has been deleted.");
+    }
+
+    public List getAssociatedRolesForUser(Long oid) {
+        return userRoleDAO.getAssociatedRolesForUser(oid);
+    }
+
+    public void updateUserRoles(User user) {
+        userRoleDAO.saveOrUpdate(user);
+        auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_ASSOCIATE_ROLES, "User " + user.getUsername() + " roles have been modified to include the following roles " + user.displayRoles());
+
+    }
+
+    public List getRolesForUser(User user) {
+        Agency usersAgency = user.getAgency();
+        return userRoleDAO.getRoles(usersAgency.getOid());
+    }
 
     // rejection reason related methods..
-    public List getRejReasonsForLoggedInUser();
+    public List getRejReasonsForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
 
-    public List getIndicatorCriteriaForLoggedInUser();
+        if (authorityManager.hasPrivilege(Privilege.MANAGE_REASONS, Privilege.SCOPE_ALL)) {
+            return rejReasonDAO.getRejReasons();
+        } else {
+            return rejReasonDAO.getRejReasons(usersAgency.getOid());
+        }
+    }
 
-    public IndicatorCriteria getIndicatorCriteriaByOid(Long oid);
+    @SuppressWarnings("unchecked")
+    public List getValidRejReasonsForTargets(Long agencyOid) {
 
-    public void deleteIndicatorCriteria(IndicatorCriteria indicatorCriteria);
+        List reasons = rejReasonDAO.getRejReasons(agencyOid);
+        List<RejReason> targetReasons = new ArrayList<RejReason>();
 
-    public List getFlagForLoggedInUser();
+        RejReason rr = null;
+        Iterator<RejReason> it = reasons.iterator();
+        while (it.hasNext()) {
+            rr = it.next();
+            if (rr.isAvailableForTargets()) {
+                targetReasons.add(rr);
+            }
+        }
+        return targetReasons;
+    }
 
-    public Flag getFlagByOid(Long oid);
+    @SuppressWarnings("unchecked")
+    public List getValidRejReasonsForTIs(Long agencyOid) {
 
-    public void deleteFlag(Flag flag);
+        List reasons = rejReasonDAO.getRejReasons(agencyOid);
+        List<RejReason> targetInstanceReasons = new ArrayList<RejReason>();
 
-    public void deleteRejReason(RejReason reason);
+        RejReason rr = null;
+        Iterator<RejReason> it = reasons.iterator();
+        while (it.hasNext()) {
+            rr = it.next();
+            if (rr.isAvailableForTIs()) {
+                targetInstanceReasons.add(rr);
+            }
+        }
+        return targetInstanceReasons;
+    }
 
-    public RejReason getRejReasonByOid(Long oid);
+    public void deleteRejReason(RejReason reason) {
+        Long reasonOid = reason.getOid();
+        String name = reason.getName();
+        rejReasonDAO.delete(reason);
+        auditor.audit(RejReason.class.getName(), reasonOid, Auditor.ACTION_DELETE_REASON, "The rejection: '" + name + "' has been deleted.");
+    }
 
-    public void updateRejReason(RejReason reason, boolean update);
+    public RejReason getRejReasonByOid(Long oid) {
+        return rejReasonDAO.getRejReasonByOid(oid);
+    }
 
-    public void updateIndicatorCriteria(IndicatorCriteria indicator, boolean update);
+    public void updateRejReason(RejReason reason, boolean update) {
+        rejReasonDAO.saveOrUpdate(reason);
+        if (update == true) {
+            auditor.audit(RejReason.class.getName(), reason.getOid(), Auditor.ACTION_UPDATE_REASON, "The rejection reason: '" + reason.getName() + "' has been updated");
+        } else {
+            auditor.audit(RejReason.class.getName(), Auditor.ACTION_NEW_REASON, "A new rejection reason has been created with a name of '" + reason.getName() + "'");
+        }
+    }
 
-    public void updateFlag(Flag flag, boolean update);
+    public void updateUser(User user, boolean update) {
+        userRoleDAO.saveOrUpdate(user);
+        if (update == true) {
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_UPDATE_USER, "The User named '" + user.getUsername() + "' has been updated");
+        } else {
+            auditor.audit(User.class.getName(), user.getOid(), Auditor.ACTION_NEW_USER, "New WCT User created with username of " + user.getUsername());
+        }
+    }
 
-    public List getValidRejReasonsForTargets(Long agencyOid);
+    public boolean canGiveTo(UserOwnable subject, User newOwner) {
 
-    public List getValidRejReasonsForTIs(Long agencyOid);
+        if (authorityManager.hasPrivilege(subject, Privilege.TAKE_OWNERSHIP)) {
+            User loggedInUser = AuthUtil.getRemoteUserObject();
+            int scope = authorityManager.getPrivilegeScopeNE(Privilege.GIVE_OWNERSHIP);
+
+            switch (scope) {
+                case Privilege.SCOPE_AGENCY:
+                    return newOwner.getAgency().equals(loggedInUser.getAgency());
+                case Privilege.SCOPE_ALL:
+                    return true;
+                case Privilege.SCOPE_OWNER:
+                    return newOwner.equals(loggedInUser);
+                default:
+                    return false;
+            }
+        }
+
+        // Can't take the object, so cannot give it away.
+        else {
+            return false;
+        }
+
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<UserDTO> getPossibleOwners(UserOwnable subject) {
+        List<UserDTO> results = null;
+        User remoteUser = AuthUtil.getRemoteUserObject();
+
+        if (authorityManager.hasPrivilege(subject, Privilege.TAKE_OWNERSHIP)) {
+            log.debug("Allowed to take ownership from: " + subject.getOwningUser().getUsername());
+            int scope = authorityManager.getPrivilegeScopeNE(Privilege.GIVE_OWNERSHIP);
+
+            switch (scope) {
+                case Privilege.SCOPE_NONE:
+                    log.debug("Not allowed to give ownership");
+                    results = new LinkedList<UserDTO>();
+                    results.add(new UserDTO(subject.getOwningUser()));
+                    break;
+
+                case Privilege.SCOPE_OWNER:
+                    log.debug("Can only give ownership to myself");
+                    results = new LinkedList<UserDTO>();
+                    results.add(new UserDTO(remoteUser));
+
+                    // The current owner may not be the same as the logged in user.
+                    if (!subject.getOwningUser().equals(remoteUser)) {
+                        results.add(new UserDTO(subject.getOwningUser()));
+                        Collections.sort(results);
+                    }
+
+                    break;
+
+                case Privilege.SCOPE_AGENCY:
+                    log.debug("Can give ownership to agency members");
+                    results = userRoleDAO.getUserDTOs(remoteUser.getAgency().getOid());
+
+                    // The current owner could be in a different agency.
+                    if (!subject.getOwningUser().getAgency().equals(remoteUser.getAgency())) {
+                        results.add(new UserDTO(subject.getOwningUser()));
+                        Collections.sort(results);
+                    }
+
+                    break;
+
+                case Privilege.SCOPE_ALL:
+                    log.debug("Can give ownership to anyone");
+                    results = new LinkedList<UserDTO>();
+                    results = userRoleDAO.getUserDTOs();
+                    break;
+            }
+
+        } else {
+            // The current owner should always be in the list
+            log.debug("Cannot take ownership of this object");
+            results = new LinkedList<UserDTO>();
+            results.add(new UserDTO(subject.getOwningUser()));
+        }
+
+        return results;
+
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<UserDTO> getAllowedOwners(User owner) {
+        int scope = Privilege.SCOPE_NONE;
+        if (owner.equals(AuthUtil.getRemoteUserObject())) {
+            if (authorityManager.hasPrivilege(Privilege.GIVE_OWNERSHIP, Privilege.SCOPE_NONE)) {
+                try {
+                    scope = authorityManager.getPrivilegeScope(Privilege.GIVE_OWNERSHIP);
+                } catch (NoPrivilegeException e) {
+                    if (log.isErrorEnabled()) {
+                        log.error("Failed to get the privilege scope " + e.getMessage(), e);
+                    }
+                }
+            }
+        } else {
+            if (authorityManager.hasPrivilege(Privilege.TAKE_OWNERSHIP, Privilege.SCOPE_NONE)) {
+                try {
+                    scope = authorityManager.getPrivilegeScope(Privilege.TAKE_OWNERSHIP);
+                } catch (NoPrivilegeException e) {
+                    if (log.isErrorEnabled()) {
+                        log.error("Failed to get the privilege scope " + e.getMessage(), e);
+                    }
+                }
+            }
+        }
+
+        List<UserDTO> owners = new ArrayList<UserDTO>();
+        if (scope == Privilege.SCOPE_AGENCY) {
+            owners = getUserDTOs(AuthUtil.getRemoteUserObject().getAgency().getOid());
+        }
+
+        if (scope == Privilege.SCOPE_ALL) {
+            owners = getUserDTOs();
+        }
+
+        UserDTO currentOwner = new UserDTO(owner);
+        if (owners.isEmpty() || !owners.contains(currentOwner)) {
+            owners.add(currentOwner);
+        }
+
+        return owners;
+    }
+
 
     /**
-     * persists the agency into the database
-     *
-     * @param agency the Agency domain object to persist
-     * @param update set this to true if the agency should be updated. Set
-     *               this to false if this is anew Agency
+     * @param profileManager The profileManager to set.
      */
-    public void updateAgency(Agency agency, boolean update);
+    public void setProfileManager(ProfileManager profileManager) {
+        this.profileManager = profileManager;
+    }
 
-    /**
-     * creates or updates a User object in the database
-     *
-     * @param user   the User object
-     * @param update true if this is an update action rather than a create action
-     */
-    public void updateUser(User user, boolean update);
+    @SuppressWarnings("unchecked")
+    public Map getUsersWithAllPrivilege(List privileges) {
+        Iterator it = privileges.iterator();
+        int numOfPrivs = privileges.size();
+        Map userSets[] = new Map[numOfPrivs];
+        int i = 0;
+        Map allUsersMap = new HashMap();
+        Map userMap = new HashMap();
+        while (it.hasNext()) {
+            String checkPrivilege = (String) it.next();
+            List users = userRoleDAO.getUserDTOsByPrivilege(checkPrivilege);
 
-    /**
-     * allows the users active/inactive flag to be altered
-     * and the action to be audited. If the user passed to the method
-     * is currently active, the user will be made inactive.
-     * If the user passed to the method is inactive, the user
-     * will be made active.
-     *
-     * @param user the User object to operate on
-     */
-    public void modifyUserStatus(User user);
+            log.debug("loading userDTOs with Privilege " + checkPrivilege);
 
-    /**
-     * deletes the User object and its role associations
-     *
-     * @param user the fully populated user object for deletion
-     */
-    public void deleteUser(User user);
+            putUsersIntoMap(users, userMap);
+            log.debug("putting UserMap into the userSets array");
+            userSets[i++] = userMap;
 
-    /**
-     * Creates or updates a Role
-     *
-     * @param role   the Role object to persist
-     * @param update true if the action is an update, false if the action is a create
-     */
-    public void updateRole(Role role, boolean update);
+        }
+        Set keys = userSets[0].keySet();
+        Iterator itKeys = keys.iterator();
+        while (itKeys.hasNext()) {
+            Long aUserOid = (Long) it.next();
+            log.debug("Found a User Oid key to check with oid=" + aUserOid);
+            boolean hasAll = true;
+            for (int j = 1; j < numOfPrivs; j++) {
+                hasAll = hasAll && userSets[j].containsKey(aUserOid);
+                log.debug("The User with user oid=" + aUserOid + " has all privileges=" + hasAll);
+            }
+            if (hasAll == true) {
+                //User has All the specified Privileges so store that user
+                log.debug("Storing the User as they have all privileges.");
+                allUsersMap.put(aUserOid, userSets[0].get(aUserOid));
+            }
+        }
+        return allUsersMap;
 
-    /**
-     * Deletes a Role from the System
-     *
-     * @param role the Role object to remove
-     */
-    public void deleteRole(Role role);
+    }
 
-    /**
-     * Takes a populated User object and updates all the associated Roles
-     * of the user.
-     *
-     * @param user the fully populated user with the new role associations defined
-     */
-    public void updateUserRoles(User user);
+    @SuppressWarnings("unchecked")
+    private void putUsersIntoMap(List users, Map allUsersMap) {
+        Iterator it = users.iterator();
+        while (it.hasNext()) {
+            UserDTO aUser = (UserDTO) it.next();
+            Long userOid = aUser.getOid();
+
+            if (!allUsersMap.containsKey(userOid)) {
+                allUsersMap.put(userOid, aUser);
+            }
+        }
+    }
+
+    public Map getUsersWithAtLeastOnePrivilege(List privileges) {
+        Iterator it = privileges.iterator();
+        Map allUsersMap = new HashMap();
+        while (it.hasNext()) {
+            String checkPrivilege = (String) it.next();
+            List users = userRoleDAO.getUserDTOsByPrivilege(checkPrivilege);
+
+            log.debug("loading userDTOs with Privilege " + checkPrivilege);
+            putUsersIntoMap(users, allUsersMap);
+        }
+
+        return allUsersMap;
+    }
+
+    public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
+        return userRoleDAO.getUserDTOsByTargetPrivilege(permissionOid);
+    }
+
+    public void setIndicatorCriteriaDAO(IndicatorCriteriaDAO indicatorCriteriaDAO) {
+        this.indicatorCriteriaDAO = indicatorCriteriaDAO;
+    }
+
+    public List getIndicatorCriteriaForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
+
+        if (authorityManager.hasPrivilege(Privilege.MANAGE_INDICATORS, Privilege.SCOPE_ALL)) {
+            return indicatorCriteriaDAO.getIndicatorCriterias();
+        } else {
+            return indicatorCriteriaDAO.getIndicatorCriteriasByAgencyOid(usersAgency.getOid());
+        }
+    }
+
+    public void deleteIndicatorCriteria(IndicatorCriteria indicatorCriteria) {
+        Long indicatorCriteriaOid = indicatorCriteria.getOid();
+        String name = indicatorCriteria.getName();
+        indicatorCriteriaDAO.delete(indicatorCriteria);
+        auditor.audit(RejReason.class.getName(), indicatorCriteriaOid, Auditor.ACTION_DELETE_INDICATOR_CRITERIA, "The Indicator Criteria: '" + name + "' has been deleted.");
+    }
+
+    public IndicatorCriteria getIndicatorCriteriaByOid(Long oid) {
+        return indicatorCriteriaDAO.getIndicatorCriteriaByOid(oid);
+    }
+
+    public void updateIndicatorCriteria(IndicatorCriteria indicatorCriteria, boolean update) {
+        indicatorCriteriaDAO.saveOrUpdate(indicatorCriteria);
+        if (update == true) {
+            auditor.audit(IndicatorCriteria.class.getName(), indicatorCriteria.getOid(), Auditor.ACTION_UPDATE_INDICATOR_CRITERIA, "The Indicator Criteria: '" + indicatorCriteria.getName() + "' has been updated");
+        } else {
+            auditor.audit(IndicatorCriteria.class.getName(), Auditor.ACTION_NEW_INDICATOR_CRITERIA, "A new Indicator Criteria has been created with a name of '" + indicatorCriteria.getName() + "'");
+        }
+    }
 
 
-    /**
-     * Gets a list of users that the current owner of an object can
-     * give ownership to.
-     *
-     * @param owner The current owner.
-     * @return A list of possible owners.
-     */
-    public List<UserDTO> getAllowedOwners(User owner);
+    public void setFlagDAO(FlagDAO flagDAO) {
+        this.flagDAO = flagDAO;
+    }
 
+    public List getFlagForLoggedInUser() {
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        Agency usersAgency = loggedInUser.getAgency();
 
-    public List<UserDTO> getPossibleOwners(UserOwnable subject);
+        if (authorityManager.hasPrivilege(Privilege.MANAGE_FLAGS, Privilege.SCOPE_ALL)) {
+            return flagDAO.getFlags();
+        } else {
+            return flagDAO.getFlagsByAgencyOid(usersAgency.getOid());
+        }
+    }
 
-    public boolean canGiveTo(UserOwnable subject, User newOwner);
+    public void deleteFlag(Flag Flag) {
+        Long FlagOid = Flag.getOid();
+        String name = Flag.getName();
+        flagDAO.delete(Flag);
+        auditor.audit(RejReason.class.getName(), FlagOid, Auditor.ACTION_DELETE_FLAG, "The Flag: '" + name + "' has been deleted.");
+    }
 
-    /**
-     * gets a Map of UserDTO's that have the all the specified privileges
-     *
-     * @param privileges the list of privileges to check
-     * @return the Map of UserDTO objects keyed by User Oid
-     */
-    Map getUsersWithAllPrivilege(List privileges);
+    public Flag getFlagByOid(Long oid) {
+        return flagDAO.getFlagByOid(oid);
+    }
 
-    /**
-     * gets a Map of UserDTO's that have the at least one of the specified privileges
-     *
-     * @param privileges the list of privileges to check
-     * @return the Map of UserDTO objects keyed by User Oid
-     */
-    Map getUsersWithAtLeastOnePrivilege(List privileges);
+    public void updateFlag(Flag Flag, boolean update) {
+        flagDAO.saveOrUpdate(Flag);
+        if (update == true) {
+            auditor.audit(Flag.class.getName(), Flag.getOid(), Auditor.ACTION_UPDATE_FLAG, "The Flag: '" + Flag.getName() + "' has been updated");
+        } else {
+            auditor.audit(Flag.class.getName(), Auditor.ACTION_NEW_FLAG, "A new Flag has been created with a name of '" + Flag.getName() + "'");
+        }
+    }
 
-    /**
-     * Get all the User DTOs who own targets associated with a given permission.
-     *
-     * @param permissionOid The OID of the permission.
-     * @return A list of UserDTOs.
-     */
-    public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid);
 
 }
-
-
