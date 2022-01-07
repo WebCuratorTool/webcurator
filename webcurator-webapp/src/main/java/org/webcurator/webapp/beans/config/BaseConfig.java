@@ -31,7 +31,7 @@ import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.admin.PermissionTemplateManagerImpl;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.archive.ArchiveAdapterImpl;
+import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.check.CheckProcessor;
 import org.webcurator.core.check.Checker;
@@ -1110,8 +1110,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public ArchiveAdapterImpl archiveAdapter() {
-        ArchiveAdapterImpl bean = new ArchiveAdapterImpl();
+    public ArchiveAdapter archiveAdapter() {
+        ArchiveAdapter bean = new ArchiveAdapter();
         bean.setDigitalAssetStore(digitalAssetStore());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetManager(targetManager());
