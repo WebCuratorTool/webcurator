@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<archiveadapterimpltest>
+<archiveadaptertest>
 	<agencies>
 		<agency id="2000">
 		   <name>National Library New Zealand</name>
@@ -343,6 +343,6 @@
 			</annotations>
 		</site>
 	</sites>
-</archiveadapterimpltest>
+</archiveadaptertest>
 
 

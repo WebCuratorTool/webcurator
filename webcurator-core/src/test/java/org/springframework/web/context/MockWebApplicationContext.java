@@ -34,7 +34,7 @@ public class MockWebApplicationContext extends GenericApplicationContext impleme
     	
         if(beanName.equals("environmentWCT"))
     	{
-    		EnvironmentImpl env = new EnvironmentImpl();
+    		Environment env = new Environment();
     		
     		env.setApplicationVersion("Test");
     		env.setDaysToSchedule(1);

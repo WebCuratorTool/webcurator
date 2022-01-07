@@ -18,7 +18,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.context.ApplicationContext;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
-import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -63,7 +62,7 @@ public class HarvestAgentManagerTest {
         when(context.getBean("environmentWCT")).thenReturn(mockEnvironment);
         ApplicationContextFactory.setApplicationContext(context);
 
-        EnvironmentImpl env = new EnvironmentImpl();
+        Environment env = new Environment();
         env.setApplicationVersion("3.0.1");
         env.setHeritrixVersion("3.4.0");
         EnvironmentFactory.setEnvironment(env);

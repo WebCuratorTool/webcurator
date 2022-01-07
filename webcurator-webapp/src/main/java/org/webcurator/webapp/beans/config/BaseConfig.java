@@ -38,7 +38,6 @@ import org.webcurator.core.check.Checker;
 import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
-import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.HarvestResultManagerImpl;
 import org.webcurator.core.coordinator.WctCoordinator;
@@ -778,7 +777,7 @@ public class BaseConfig {
 
     @Bean
     public Environment environmentWCT() {
-        EnvironmentImpl bean = new EnvironmentImpl();
+        Environment bean = new Environment();
         bean.setDaysToSchedule(harvestAgentDaysToSchedule);
         bean.setSchedulesPerBatch(targetInstancesTriggerSchedulesPerBatch);
         bean.setApplicationVersion(projectVersion);

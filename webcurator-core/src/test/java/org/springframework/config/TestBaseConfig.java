@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
-import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
@@ -23,7 +22,7 @@ public class TestBaseConfig {
 
     @Bean
     public Environment environmentWCT() {
-        EnvironmentImpl bean = new EnvironmentImpl();
+        Environment bean = new Environment();
         bean.setDaysToSchedule(1);
         bean.setSchedulesPerBatch(1000);
         bean.setApplicationVersion("Test");
