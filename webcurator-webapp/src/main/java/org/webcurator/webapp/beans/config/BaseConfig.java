@@ -908,8 +908,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public AnnotationDAOImpl annotationDao() {
-        AnnotationDAOImpl bean = new AnnotationDAOImpl();
+    public AnnotationDAO annotationDao() {
+        AnnotationDAO bean = new AnnotationDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
