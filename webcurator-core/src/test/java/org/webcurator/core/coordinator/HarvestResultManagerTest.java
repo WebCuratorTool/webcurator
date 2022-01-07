@@ -20,14 +20,14 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
 
 @AutoConfigureMockMvc
-public class HarvestResultManagerImplTest extends BaseWCTTest<HarvestResultManagerImpl> {
-    private HarvestResultManagerImpl harvestResultManager = new HarvestResultManagerImpl();
+public class HarvestResultManagerTest extends BaseWCTTest<HarvestResultManager> {
+    private HarvestResultManager harvestResultManager = new HarvestResultManager();
     private MockTargetInstanceDAO mockTargetInstanceDAO;
     private MockTargetInstanceManager mockTargetInstanceManager = null;
     private NetworkMapClient networkMapClient = mock(NetworkMapClient.class);
 
-    public HarvestResultManagerImplTest() {
-        super(HarvestResultManagerImpl.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
+    public HarvestResultManagerTest() {
+        super(HarvestResultManager.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
     }
 
     // Override BaseWCTTest setup method

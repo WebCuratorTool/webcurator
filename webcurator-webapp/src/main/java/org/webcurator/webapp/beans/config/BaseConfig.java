@@ -39,7 +39,6 @@ import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.coordinator.HarvestResultManager;
-import org.webcurator.core.coordinator.HarvestResultManagerImpl;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.*;
@@ -605,7 +604,7 @@ public class BaseConfig {
 
     @Bean
     public HarvestResultManager harvestResultManager() {
-        HarvestResultManagerImpl bean = new HarvestResultManagerImpl();
+        HarvestResultManager bean = new HarvestResultManager();
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setNetworkMapClient(networkMapClientReomote());
         return bean;
