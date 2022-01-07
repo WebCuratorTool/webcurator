@@ -526,7 +526,7 @@ public class BaseConfig {
 
     @Bean
     public FlagDAO flagDAO() {
-        FlagDAOImpl bean = new FlagDAOImpl();
+        FlagDAO bean = new FlagDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
