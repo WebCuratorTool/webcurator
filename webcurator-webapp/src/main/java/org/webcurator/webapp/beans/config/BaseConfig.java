@@ -536,7 +536,7 @@ public class BaseConfig {
 
     @Bean
     public TargetDAO targetDao() {
-        TargetDAOImpl bean = new TargetDAOImpl();
+        TargetDAO bean = new TargetDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -561,7 +561,7 @@ public class BaseConfig {
 
     @Bean
     public ProfileDAO profileDao() {
-        ProfileDAOImpl bean = new ProfileDAOImpl();
+        ProfileDAO bean = new ProfileDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 

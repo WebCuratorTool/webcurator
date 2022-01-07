@@ -17,38 +17,82 @@ package org.webcurator.domain;
 
 import java.util.Collection;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.webcurator.core.exceptions.WCTRuntimeException;
+
 /**
- * Base DAO interface. Over time common methods should be 
- * moved into this dao so they can be reused in all dao
- * implementations. 
- * 
+ * The implementation of the BaseDAO interface.
  * @author bbeaumont
  */
-public interface BaseDAO {
+public class BaseDAO extends HibernateDaoSupport {
+	private Log log = LogFactory.getLog(BaseDAO.class);
+	
+	protected TransactionTemplate txTemplate;
+	
+	public void setTxTemplate(TransactionTemplate txTemplate) {
+		this.txTemplate = txTemplate;
+	}
+	
+	public void evict(Object anObject) {
+		getHibernateTemplate().evict(anObject);
+	}
 	
 	/**
-	 * Evict the object from the session.
-	 * @param anObject The object to evict.
-	 */
-	public void evict(Object anObject);
+	 * Delete all objects in the collection.
+	 * @param anObject The object to remove.
+	 */	
+	public void delete(final Object anObject) { 
+		txTemplate.execute(
+				new TransactionCallback() {
+					public Object doInTransaction(TransactionStatus ts) {
+						try { 
+							log.debug("Before Delete");
+							currentSession().delete(anObject);
+							log.debug("After Delete");
+						}
+						catch(Exception ex) {
+							log.error("Setting Rollback Only", ex);
+							ts.setRollbackOnly();							
+							throw new WCTRuntimeException("Failed to delete object", ex);
+						}
+						return null;
+					}
+				}
+		);	
+	}	
 	
 	/**
 	 * Delete all objects in the collection.
 	 * @param aCollection The collection of objects to remove.
 	 */
-	public void deleteAll(Collection aCollection);
-	
-	/**
-	 * Delete an object from the database.
-	 * @param anObject The object to delete
-	 */
-	public void delete(final Object anObject);
-	
+	public void deleteAll(final Collection aCollection) {	
+		txTemplate.execute(
+				new TransactionCallback() {
+					public Object doInTransaction(TransactionStatus ts) {
+						try { 
+							log.debug("Before Delete");
+							for(Object anObject: aCollection) {
+								currentSession().delete(anObject);
+							}
+							log.debug("After Delete");
+						}
+						catch(Exception ex) {
+							log.error("Setting Rollback Only", ex);
+							ts.setRollbackOnly();
+						}
+						return null;
+					}
+				}
+		);	
+	}	
 
-	/**
-	 * Initialize an object from Hibernate.
-	 * @param anObject The object to initialize.
-	 */
-	public void initialize(Object anObject);
+	public void initialize(Object anObject) {
+		getHibernateTemplate().initialize(anObject);
+	}
 	
 }

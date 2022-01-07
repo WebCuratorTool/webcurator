@@ -826,7 +826,7 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
             if (aTarget.getObjectType() == AbstractTarget.TYPE_GROUP) {
                 AbstractTarget candidateGroup = aTarget;
                 if (!(candidateGroup instanceof TargetGroup)) {
-                    TargetDAOImpl targetDAO = new TargetDAOImpl();
+                    TargetDAO targetDAO = new TargetDAO();
                     targetDAO.setHibernateTemplate(getHibernateTemplate());
                     targetDAO.setTxTemplate(txTemplate);
                     targetDAO.setSessionFactory(getSessionFactory());
