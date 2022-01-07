@@ -27,10 +27,10 @@ import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.admin.PermissionTemplateManagerImpl;
-import org.webcurator.core.agency.AgencyUserManagerImpl;
+import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.archive.ArchiveAdapterImpl;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.check.CheckProcessor;
@@ -877,8 +877,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public AgencyUserManagerImpl agencyUserManager() {
-        AgencyUserManagerImpl bean = new AgencyUserManagerImpl();
+    public AgencyUserManager agencyUserManager() {
+        AgencyUserManager bean = new AgencyUserManager();
         bean.setUserRoleDAO(userRoleDAO());
         bean.setRejReasonDAO(rejReasonDAO());
         bean.setIndicatorCriteriaDAO(indicatorCriteriaDAO());
@@ -893,8 +893,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public AuthorityManagerImpl authorityManager() {
-        return new AuthorityManagerImpl();
+    public AuthorityManager authorityManager() {
+        return new AuthorityManager();
     }
 
     @Bean

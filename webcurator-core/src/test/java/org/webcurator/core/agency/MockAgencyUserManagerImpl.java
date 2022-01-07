@@ -9,7 +9,7 @@ public class MockAgencyUserManagerImpl extends AgencyUserManager {
 
 	public MockAgencyUserManagerImpl(String filename) {
 		super();
-		this.setAuthorityManager(new AuthorityManagerImpl());
+		this.setAuthorityManager(new AuthorityManager());
 		this.setUserRoleDAO(new MockUserRoleDAO(filename));
 		this.setAuditor(new TestAuditor());
 		this.setProfileManager(new MockProfileManager(filename));

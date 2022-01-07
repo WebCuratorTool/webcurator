@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.MockMessageSource;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -62,7 +62,8 @@ public class TargetManagerImplTest {
 	@Mock TargetInstanceManager tim;
 	@Mock MockAnnotationDAO annotationDAO;
 	@Mock TestAuditor auditor;
-	@Mock AuthorityManagerImpl authMgr;
+	@Mock
+    AuthorityManager authMgr;
 	@Mock BusinessObjectFactory businessObjectFactory;
 	@Mock MockInTrayManager intrayManager;
 	@Mock MockMessageSource messageSource;
