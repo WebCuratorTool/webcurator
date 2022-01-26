@@ -145,6 +145,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					    <tr>
 					         <td class="searchBoxLabel" valign="top"><input type="text" name="name" value="<c:out value="${command.name}" />" maxlength="255" /></td>
 					    </tr>
+						<tr>
+					         <td class="searchBoxLabel" valign="top">id:</td>
+					    </tr>
+					    <tr>
+					         <td class="searchBoxLabel" valign="top"><input type="text" name="targetId" value="<c:out value="${command.targetId}" />" maxlength="255" /></td>
+					    </tr>
 					</table>
 				</td>
 				<td class="searchBoxLabel" valign="top">
