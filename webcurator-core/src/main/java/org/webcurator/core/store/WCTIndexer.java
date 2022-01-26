@@ -38,9 +38,7 @@ public class WCTIndexer extends IndexerBase {
         super(original);
     }
 
-    @Retryable(maxAttempts = Integer.MAX_VALUE, backoff = @Backoff(delay = 30_000L))
     protected Long createIndex() {
-        Long harvestResultOid = Long.MIN_VALUE;
         // Step 1. Save the Harvest Result to the database.
         log.info("Initialising index for job " + getResult().getTargetInstanceOid());
 
@@ -58,25 +56,42 @@ public class WCTIndexer extends IndexerBase {
 
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(WctCoordinatorPaths.CREATE_HARVEST_RESULT));
 
-            harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Long.class);
+            Long harvestResultOid = restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(), request, Long.class);
             log.info("Initialised index for job " + getResult().getTargetInstanceOid());
-        } catch (JsonProcessingException e) {
+            return harvestResultOid;
+        } catch (JsonParseException e) {
             log.error("Parsing json failed: {}", e.getMessage());
+            return null;
+        } catch (Exception e) {
+            log.error("Index initialisation failed: {}", e.getMessage());
+            return null;
         }
-        return harvestResultOid;
+    }
+
+    private void sleep30seconds() {
+        try {Thread.sleep(30*1000 /* 30seconds */);} catch (Exception e) {};
     }
 
     @Override
     public Long begin() {
         Long harvestResultOid = null;
         if (doCreate) {
-            harvestResultOid = this.createIndex();
-            log.debug("Created new Harvest Result: " + harvestResultOid);
+            retry: for (int attempt = 0; attempt < 10 ; attempt++) {
+                harvestResultOid = this.createIndex();
+                if (harvestResultOid != null)  {
+                    break retry;
+                }
+                sleep30seconds();
+            } 
+            if (harvestResultOid == null) {
+                log.error("Failed to create harvestresult index after 10 attempts");
+            } else {
+                log.debug("Created new Harvest Result: " + harvestResultOid);
+            }
         } else {
             log.debug("Using Harvest Result " + getResult().getOid());
             harvestResultOid = getResult().getOid();
         }
-
         return harvestResultOid;
     }
 
