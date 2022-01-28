@@ -24,7 +24,6 @@ package nz.govt.natlib.ndha.wctdpsdepositor;
 import com.exlibris.dps.sdk.deposit.DepositWebServices;
 import com.exlibris.dps.sdk.pds.PdsClient;
 import com.google.inject.Inject;
-import nz.govt.natlib.ndha.common.FileUtils;
 import nz.govt.natlib.ndha.wctdpsdepositor.dpsdeposit.DepositWebServicesFactory;
 import nz.govt.natlib.ndha.wctdpsdepositor.dpsdeposit.dspresult.DepositResultConverter;
 import nz.govt.natlib.ndha.wctdpsdepositor.extractor.ArchiveFile;
@@ -47,7 +46,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,6 +135,9 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
             if (log.isDebugEnabled())
                 log.debug("Deposit finished, SipId: " + depositResultAdapter.getSipId());
             return depositResultAdapter;
+        } catch (Exception e) {
+            log.error("Failed to deposit: ", e);
+            return null;
         } finally {
             wctData.cleanUpCdxFile();
         }
@@ -171,6 +172,8 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
     }
 
     private DepositResult callDepositService(String pdsSessionId, MetsDocument metsDocument, WctDepositParameter depositParameter) {
+        String info = String.format("pdsSessionId=%s, materialId=%s, depositDirectoryName=%s, producerId=%s, depositSetId=%s", pdsSessionId, depositParameter.getMaterialFlowId(), metsDocument.getDepositDirectoryName(), depositParameter.getProducerId(), metsDocument.getDepositSetId());
+        log.debug(info);
         DepositWebServices dws = dwsFactory.createInstance(depositParameter);
         String xmlFragmentResult = dws.submitDepositActivity(pdsSessionId, depositParameter.getMaterialFlowId(), metsDocument.getDepositDirectoryName(), depositParameter.getProducerId(), metsDocument.getDepositSetId());
         return resultConverter.unmarshalFrom(xmlFragmentResult);
