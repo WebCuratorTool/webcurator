@@ -137,7 +137,7 @@ public class DpsDepositFacadeImpl implements DpsDepositFacade {
             return depositResultAdapter;
         } catch (Exception e) {
             log.error("Failed to deposit: ", e);
-            return null;
+            throw e;
         } finally {
             wctData.cleanUpCdxFile();
         }
