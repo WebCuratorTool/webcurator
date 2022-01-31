@@ -21,7 +21,7 @@
 
 package nz.govt.natlib.ndha.wctdpsdepositor;
 
-import com.exlibris.dps.sdk.deposit.DepositWebServices;
+import com.exlibris.dps.DepositWebServices;
 import com.exlibris.dps.sdk.pds.PdsClient;
 import com.google.inject.Inject;
 import nz.govt.natlib.ndha.wctdpsdepositor.dpsdeposit.DepositWebServicesFactory;
