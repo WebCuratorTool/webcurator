@@ -32,7 +32,7 @@ dependencies {
     compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
     compile 'it.unimi.dsi:mg4j:2.0.1'
     compile 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
-    compile('org.webcurator:webcurator-core:3.1.+') {
+    compile('org.webcurator:webcurator-core:3.1.0-SNAPSHOT') {
         exclude group: 'org.archive', module: 'heritrix'
     }
     compile 'net.sf.ehcache:ehcache:2.10.6'
