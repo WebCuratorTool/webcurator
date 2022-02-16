@@ -106,8 +106,6 @@ public class CrawlLogIndexerTest extends BaseWCTTest<CrawlLogIndexer>{
 		buildFolders();
 		testInstance.setLogsSubFolder("logs");
 		testInstance.setCrawlLogFileName("crawl.log");
-		testInstance.setSortedLogFileName("sortedcrawl.log");
-		testInstance.setStrippedLogFileName("strippedcrawl.log");
 		HarvestResultDTO result = new HarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
 		testInstance.initialise(result, archiveFolder);
 	}
