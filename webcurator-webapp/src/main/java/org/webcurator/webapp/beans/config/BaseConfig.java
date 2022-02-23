@@ -507,7 +507,7 @@ public class BaseConfig {
 
     @Bean
     public IndicatorCriteriaDAO indicatorCriteriaDAO() {
-        IndicatorCriteriaDAOImpl bean = new IndicatorCriteriaDAOImpl();
+        IndicatorCriteriaDAO bean = new IndicatorCriteriaDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
