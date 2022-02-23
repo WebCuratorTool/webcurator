@@ -516,7 +516,7 @@ public class BaseConfig {
 
     @Bean
     public IndicatorReportLineDAO indicatorReportLineDAO() {
-        IndicatorReportLineDAOImpl bean = new IndicatorReportLineDAOImpl();
+        IndicatorReportLineDAO bean = new IndicatorReportLineDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
