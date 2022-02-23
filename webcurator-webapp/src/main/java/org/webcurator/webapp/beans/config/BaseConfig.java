@@ -552,7 +552,7 @@ public class BaseConfig {
 
     @Bean
     public PermissionDAO permissionDAO() {
-        PermissionDAOImpl bean = new PermissionDAOImpl();
+        PermissionDAO bean = new PermissionDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         return bean;
     }
