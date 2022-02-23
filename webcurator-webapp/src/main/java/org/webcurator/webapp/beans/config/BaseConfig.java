@@ -577,7 +577,7 @@ public class BaseConfig {
 
     @Bean
     public HeatmapDAO heatmapConfigDao() {
-        HeatmapDAOImpl bean = new HeatmapDAOImpl();
+        HeatmapDAO bean = new HeatmapDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
