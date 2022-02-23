@@ -568,7 +568,7 @@ public class BaseConfig {
 
     @Bean
     public InTrayDAO inTrayDao() {
-        InTrayDAOImpl bean = new InTrayDAOImpl();
+        InTrayDAO bean = new InTrayDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
