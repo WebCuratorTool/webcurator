@@ -498,7 +498,7 @@ public class BaseConfig {
 
     @Bean
     public IndicatorDAO indicatorDAO() {
-        IndicatorDAOImpl bean = new IndicatorDAOImpl();
+        IndicatorDAO bean = new IndicatorDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 

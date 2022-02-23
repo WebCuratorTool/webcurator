@@ -28,7 +28,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.domain.model.dto.UserDTO;
 
-public class MockIndicatorCriteriaDAO implements IndicatorCriteriaDAO {
+public class MockIndicatorCriteriaDAO extends IndicatorCriteriaDAO {
 
 	private static Log log = LogFactory.getLog(MockIndicatorCriteriaDAO.class);
 	private Document theFile = null; 

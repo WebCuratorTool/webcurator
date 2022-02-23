@@ -21,7 +21,7 @@ import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-public class MockIndicatorDAO implements IndicatorDAO {
+public class MockIndicatorDAO extends IndicatorDAO {
 
 	private static Log log = LogFactory.getLog(MockIndicatorDAO.class);
 	private Document theFile = null; 
