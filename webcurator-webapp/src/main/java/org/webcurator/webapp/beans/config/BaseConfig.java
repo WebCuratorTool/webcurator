@@ -543,7 +543,7 @@ public class BaseConfig {
 
     @Bean
     public SiteDAO siteDao() {
-        SiteDAOImpl bean = new SiteDAOImpl();
+        SiteDAO bean = new SiteDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
