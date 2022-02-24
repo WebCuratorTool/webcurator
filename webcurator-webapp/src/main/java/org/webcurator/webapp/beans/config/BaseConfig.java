@@ -489,7 +489,7 @@ public class BaseConfig {
 
     @Bean
     public RejReasonDAO rejReasonDAO() {
-        RejReasonDAOImpl bean = new RejReasonDAOImpl();
+        RejReasonDAO bean = new RejReasonDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 

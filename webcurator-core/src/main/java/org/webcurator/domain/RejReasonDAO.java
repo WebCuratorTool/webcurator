@@ -17,45 +17,99 @@ package org.webcurator.domain;
 
 import java.util.List;
 
-import org.webcurator.domain.model.auth.Agency;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.springframework.dao.DataAccessException;
+import org.springframework.orm.hibernate5.HibernateCallback;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.RejReason;
 
 /**
- * The Rejection Reason DAO provides access to rejection reason
- * data from the persistent data store. 
+ * implements the RejReasonDAO Interface and provides the database calls for
+ * querying any objects related to rejection reasons. 
  * @author oakleigh_sk
  */
-public interface RejReasonDAO {
-	/**
-	 * Save or update the specified object to the persistent data store.
-	 * @param aObject the object to save or update
-	 */
-    public void saveOrUpdate(Object aObject);
+public class RejReasonDAO extends HibernateDaoSupport {
     
-    /**
-     * Remove the specified object from the persistent data store.
-     * @param aObject the object to remove
-     */
-    public void delete(Object aObject);
+    private Log log = LogFactory.getLog(RejReasonDAO.class);
     
-    /**
-     * gets the specific reason based on the provided oid
-     * @param oid the Rejection Reason's Oid 
-     * @return the populated RejReason object
-     */
-    public RejReason getRejReasonByOid(Long oid);
+    private TransactionTemplate txTemplate = null;
+
+    public void saveOrUpdate(final Object aObject) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try { 
+                            log.debug("Before Saving of Object");
+                            currentSession().saveOrUpdate(aObject);
+                            log.debug("After Saving Object");
+                        }
+                        catch(Exception ex) {
+                            log.warn("Setting Rollback Only",ex);
+                            ts.setRollbackOnly();
+                        }
+                        return null;
+                    }
+                }
+        );    
+    }
     
-    /**
-     * gets all reasons in the system
-     * @return a List of fully populated RejReason objects
-     */
-    public List getRejReasons();
+    public void delete(final Object aObject) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Delete of Object");
+                            getHibernateTemplate().delete(aObject);
+                            log.debug("After Deletes Object");
+                        }
+                        catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only",e);
+                            ts.setRollbackOnly();
+                            throw e;
+                        }
+                        return null;
+                    }
+                }
+        );    
+    }
+
+    public RejReason getRejReasonByOid(final Long reasonOid) {
+        return (RejReason)getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+                        Query query = session.getNamedQuery(RejReason.QRY_GET_REASON_BY_OID);
+                        query.setParameter(1,reasonOid);
+                        return query.uniqueResult();
+                    }
+                }
+            );
+          
+    }
     
-    /**
-     * gets the reasons for a selected Agency
-     * @param agencyOid the Oid of the Agency in which to search for reasons
-     * @return a List of fully populated RejReason objects
-     */
-    public List getRejReasons(Long agencyOid);
-    
+    public List getRejReasons() {
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(RejReason.QRY_GET_REASONS)
+                    .list());
+    }
+
+    @Transactional
+    public List getRejReasons(Long agencyOid) {
+        List results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(RejReason.QRY_GET_REASONS_BY_AGENCY)
+                    .setParameter(1, agencyOid)
+                    .list());
+        return results;
+    }
+
+    public void setTxTemplate(TransactionTemplate txTemplate) {
+        this.txTemplate = txTemplate;
+    }
+
 }
