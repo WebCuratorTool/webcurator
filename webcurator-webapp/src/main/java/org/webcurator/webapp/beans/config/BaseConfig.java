@@ -480,7 +480,7 @@ public class BaseConfig {
 
     @Bean
     public UserRoleDAO userRoleDAO() {
-        UserRoleDAOImpl bean = new UserRoleDAOImpl();
+        UserRoleDAO bean = new UserRoleDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         //bean.setTxTemplate(transactionTemplate());
 
