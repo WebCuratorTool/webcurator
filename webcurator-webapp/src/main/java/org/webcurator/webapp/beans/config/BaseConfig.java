@@ -586,7 +586,7 @@ public class BaseConfig {
 
     @Bean
     public PermissionTemplateDAO permissionTemplateDao() {
-        PermissionTemplateDAOImpl bean = new PermissionTemplateDAOImpl();
+        PermissionTemplateDAO bean = new PermissionTemplateDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
