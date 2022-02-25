@@ -557,11 +557,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             File targetDir = new File(baseDir, jobItem.getJobName());
             File logsDir = new File(targetDir, Constants.DIR_LOGS);
             file = new File(logsDir, aFileName);
-            if (!file.exists() && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
-                // we need to create sorted crawl.log from crawl.log.
-                createSortedCrawlLogFile(logsDir);
-                file = new File(logsDir, aFileName);
-            }
             if (!file.exists()) {
                 logsDir = new File(targetDir, Constants.DIR_REPORTS);
                 file = new File(logsDir, aFileName);
@@ -581,62 +576,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             file = null;
         }
         return file;
-    }
-
-    private void createSortedCrawlLogFile(File logsDir) {
-
-        // sort the crawl.log file to create a sorted crawl.log file in the same
-        // directory.
-
-        // write new 'stripped' crawl.log, replacing multiple spaces with a
-        // single space in each record..
-        try {
-
-            BufferedReader inputStream = new BufferedReader(new FileReader(
-                    logsDir.getAbsolutePath() + File.separator
-                            + Constants.CRAWL_LOG_FILE));
-            PrintWriter outputStream = new PrintWriter(new FileWriter(
-                    logsDir.getAbsolutePath() + File.separator
-                            + Constants.STRIPPED_CRAWL_LOG_FILE));
-
-            String inLine = null;
-
-            while ((inLine = inputStream.readLine()) != null) {
-                outputStream.println(inLine.replaceAll(" +", " "));
-            }
-
-            outputStream.close();
-            inputStream.close();
-
-        } catch (IOException e) {
-            return;
-        }
-
-        // sort the 'stripped' crawl.log file to create a 'sorted' crawl.log
-        // file...
-        ExternalSort sort = new ExternalSort();
-        try {
-            sort.setInFile(logsDir.getAbsolutePath() + File.separator
-                    + Constants.STRIPPED_CRAWL_LOG_FILE);
-        } catch (FileNotFoundException e1) {
-            return;
-        }
-        try {
-            sort.setOutFile(logsDir.getAbsolutePath() + File.separator
-                    + Constants.SORTED_CRAWL_LOG_FILE);
-        } catch (FileNotFoundException e1) {
-            return;
-        }
-        // sort on fourth column (url) then first column (timestamp)..
-        int[] cols = {3, 0};
-        sort.setColumns(cols);
-        sort.setSeparator(' '); // space
-
-        try {
-            sort.run();
-        } catch (IOException e1) {
-            return;
-        }
     }
 
     /**
