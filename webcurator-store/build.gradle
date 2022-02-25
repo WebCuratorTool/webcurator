@@ -30,8 +30,6 @@ apply plugin: 'war'
 dependencies {
     compile 'commons-httpclient:commons-httpclient:3.1'
     compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
-    compile 'it.unimi.dsi:mg4j:2.0.1'
-    compile 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
     compile('org.webcurator:webcurator-core:3.1.+') {
         exclude group: 'org.archive', module: 'heritrix'
     }

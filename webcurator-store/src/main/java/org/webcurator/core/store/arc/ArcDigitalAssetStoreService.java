@@ -15,26 +15,13 @@
  */
 package org.webcurator.core.store.arc;
 
-import static org.webcurator.core.archive.Constants.ARC_FILE;
-import static org.webcurator.core.archive.Constants.LOG_FILE;
-import static org.webcurator.core.archive.Constants.REPORT_FILE;
-import static org.webcurator.core.archive.Constants.ROOT_FILE;
-
-import it.unipi.di.util.ExternalSort;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
 import org.archive.format.warc.WARCConstants;
-import org.archive.io.*;
+import org.archive.io.ArchiveReader;
+import org.archive.io.ArchiveReaderFactory;
+import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +37,10 @@ import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
-import org.webcurator.core.rest.AbstractRestClient;
-import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.reader.LogProvider;
+import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.store.Constants;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WctUtils;
@@ -71,6 +58,16 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
+
+import java.io.*;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static org.webcurator.core.archive.Constants.*;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
