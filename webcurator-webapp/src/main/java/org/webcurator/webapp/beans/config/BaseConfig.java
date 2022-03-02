@@ -44,10 +44,7 @@ import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManagerImpl;
 import org.webcurator.core.notification.MailServerImpl;
-import org.webcurator.core.permissionmapping.HierPermMappingDAOImpl;
-import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrategy;
-import org.webcurator.core.permissionmapping.PermMappingSiteListener;
-import org.webcurator.core.permissionmapping.PermissionMappingStrategy;
+import org.webcurator.core.permissionmapping.*;
 import org.webcurator.core.profiles.PolitenessOptions;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.reader.LogReader;
@@ -818,8 +815,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public HierPermMappingDAOImpl permMappingDao() {
-        HierPermMappingDAOImpl bean = new HierPermMappingDAOImpl();
+    public HierPermMappingDAO permMappingDao() {
+        HierPermMappingDAO bean = new HierPermMappingDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
