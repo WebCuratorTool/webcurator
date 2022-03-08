@@ -15,27 +15,19 @@
  */
 package org.webcurator.ui.archive;
 
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.AbstractView;
-import org.webcurator.core.archive.ArchiveAdapter;
-import org.webcurator.core.archive.SipBuilder;
-import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
-import org.webcurator.core.targets.TargetManager;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 /**
  * The Controller for managing the archiving of target instances.

@@ -4,7 +4,7 @@ import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.util.TestAuditor;
 import org.webcurator.domain.*;
 
-public class MockTargetInstanceManager extends TargetInstanceManagerImpl {
+public class MockTargetInstanceManager extends TargetInstanceManager {
 
 	private MockTargetInstanceDAO mTargetInstanceDao = null;
 	private MockIndicatorDAO mIndicatorDAO = null;

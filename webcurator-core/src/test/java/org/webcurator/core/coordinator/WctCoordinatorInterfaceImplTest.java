@@ -1,23 +1,7 @@
 package org.webcurator.core.coordinator;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
 import com.anotherbigidea.util.Base64;
+import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -30,11 +14,16 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.MockHarvestAgent;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
-import org.webcurator.core.harvester.coordinator.*;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.harvester.coordinator.HarvestQaManager;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.store.*;
+import org.webcurator.core.store.DigitalAssetStore;
+import org.webcurator.core.store.DigitalAssetStoreFactory;
+import org.webcurator.core.store.MockDigitalAssetStore;
+import org.webcurator.core.store.MockDigitalAssetStoreFactory;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.PatchUtil;
@@ -45,18 +34,23 @@ import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 import org.webcurator.test.BaseWCTTest;
 
-import com.google.common.collect.Lists;
-
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("all")
 @AutoConfigureMockMvc

@@ -59,7 +59,8 @@ public class TargetManagerImplTest {
 	private TargetManagerImpl underTest;
 
 	@Mock TargetDAO targetDao;
-	@Mock TargetInstanceManager tim;
+	@Mock
+	TargetInstanceManager tim;
 	@Mock MockAnnotationDAO annotationDAO;
 	@Mock TestAuditor auditor;
 	@Mock

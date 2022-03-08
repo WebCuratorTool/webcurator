@@ -39,6 +39,7 @@ import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManager;
+import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.store.coordinator.DigitalAssetStoreCoordinator;
 import org.webcurator.core.util.AuthUtil;
@@ -51,7 +52,6 @@ import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData
 import org.webcurator.core.notification.MessageType;
 import org.webcurator.core.profiles.Heritrix3Profile;
 import org.webcurator.core.profiles.HeritrixProfile;
-import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.visualization.VisualizationConstants;
