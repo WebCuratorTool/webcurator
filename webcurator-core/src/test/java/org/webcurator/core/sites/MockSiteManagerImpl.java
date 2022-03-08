@@ -5,7 +5,7 @@ import org.webcurator.core.util.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.notification.*;
 
-public class MockSiteManagerImpl extends SiteManagerImpl {
+public class MockSiteManagerImpl extends SiteManager {
 
 	public MockSiteManagerImpl(String filename) {
 		

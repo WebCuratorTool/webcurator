@@ -56,7 +56,7 @@ import org.webcurator.core.report.LogonDurationDAO;
 import org.webcurator.core.rules.QaRecommendationService;
 import org.webcurator.core.scheduler.ScheduleJob;
 import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
-import org.webcurator.core.sites.SiteManagerImpl;
+import org.webcurator.core.sites.SiteManager;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
@@ -699,8 +699,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public SiteManagerImpl siteManager() {
-        SiteManagerImpl bean = new SiteManagerImpl();
+    public SiteManager siteManager() {
+        SiteManager bean = new SiteManager();
         bean.setSiteDao(siteDao());
         bean.setAnnotationDAO(annotationDao());
 
