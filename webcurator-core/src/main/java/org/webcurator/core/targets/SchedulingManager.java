@@ -19,27 +19,34 @@ import org.webcurator.domain.model.core.AbstractTarget;
 import org.webcurator.domain.model.core.Schedule;
 
 /**
- * The manager responsible for scheduling and un-scheduling abstract targets.
+ * The implementation of the SchedulingManager interface. 
+ * @see SchedulingManager
  * @author bbeaumont
  */
-public interface SchedulingManager {
+public class SchedulingManager {
 
 	/**
 	 * Schedule a target completely.
 	 * @param aTarget The target to schedule.
 	 */
-	public void schedule(AbstractTarget aTarget);
+	public void schedule(AbstractTarget aTarget) {
+		
+	}
 	
 	/**
 	 * Unschedule a target completely.
 	 * @param aTarget The target to unschedule.
 	 */
-	public void unschedule(AbstractTarget aTarget);
+	public void unschedule(AbstractTarget aTarget) {
+		
+	}
 	
 	/**
 	 * Schedule this schedule and all of the targets associated
 	 * with it.
 	 * @param aSchedule The Schedule object to process.
 	 */
-	public void schedule(Schedule aSchedule);	
+	public void schedule(Schedule aSchedule) {
+		
+	}
 }
