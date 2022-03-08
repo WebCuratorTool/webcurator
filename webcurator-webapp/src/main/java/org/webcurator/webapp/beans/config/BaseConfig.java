@@ -631,7 +631,7 @@ public class BaseConfig {
 
     @Bean(name = HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
     public PatchingHarvestLogManager patchingHarvestLogManagerNormal() {
-        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        PatchingHarvestLogManager bean = new PatchingHarvestLogManager();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setType(HarvestResult.PATCH_STAGE_TYPE_CRAWLING);
@@ -640,7 +640,7 @@ public class BaseConfig {
 
     @Bean(name = HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
     public PatchingHarvestLogManager patchingHarvestLogManagerModification() {
-        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        PatchingHarvestLogManager bean = new PatchingHarvestLogManager();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setType(HarvestResult.PATCH_STAGE_TYPE_MODIFYING);
@@ -649,7 +649,7 @@ public class BaseConfig {
 
     @Bean(name = HarvestResult.PATCH_STAGE_TYPE_INDEXING)
     public PatchingHarvestLogManager patchingHarvestLogManagerIndex() {
-        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        PatchingHarvestLogManager bean = new PatchingHarvestLogManager();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setType(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
