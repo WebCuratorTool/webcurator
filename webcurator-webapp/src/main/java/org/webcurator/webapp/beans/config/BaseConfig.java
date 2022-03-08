@@ -49,7 +49,7 @@ import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.reader.LogReaderClient;
 import org.webcurator.core.reader.LogReaderImpl;
-import org.webcurator.core.report.LogonDurationDAOImpl;
+import org.webcurator.core.report.LogonDurationDAO;
 import org.webcurator.core.rules.QaRecommendationServiceImpl;
 import org.webcurator.core.scheduler.ScheduleJob;
 import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
@@ -759,8 +759,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public LogonDurationDAOImpl logonDuration() {
-        LogonDurationDAOImpl bean = new LogonDurationDAOImpl();
+    public LogonDurationDAO logonDuration() {
+        LogonDurationDAO bean = new LogonDurationDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
