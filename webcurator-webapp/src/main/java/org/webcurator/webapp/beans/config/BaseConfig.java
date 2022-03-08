@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
-import org.webcurator.core.admin.PermissionTemplateManagerImpl;
+import org.webcurator.core.admin.PermissionTemplateManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
@@ -1047,8 +1047,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public PermissionTemplateManagerImpl permissionTemplateManager() {
-        PermissionTemplateManagerImpl bean = new PermissionTemplateManagerImpl();
+    public PermissionTemplateManager permissionTemplateManager() {
+        PermissionTemplateManager bean = new PermissionTemplateManager();
         bean.setPermissionTemplateDAO(permissionTemplateDao());
         bean.setAuthorityManager(authorityManager());
 
