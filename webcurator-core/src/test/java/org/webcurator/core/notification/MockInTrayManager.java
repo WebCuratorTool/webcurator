@@ -17,7 +17,7 @@ public class MockInTrayManager extends InTrayManager {
 		this.setAgencyUserManager(new MockAgencyUserManagerImpl(filename));
 		this.setAudit(new TestAuditor());
 		this.setInTrayDAO(new MockInTrayDAO(filename));
-		this.setMailServer(new MailServerImpl(mailConfig));
+		this.setMailServer(new MailServer(mailConfig));
 		this.setMessageSource(new MockMessageSource());
 		this.setSender("Test@localhost.co.uk");
 		this.setUserRoleDAO(new MockUserRoleDAO(filename));

@@ -39,7 +39,7 @@ import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManager;
-import org.webcurator.core.notification.MailServerImpl;
+import org.webcurator.core.notification.MailServer;
 import org.webcurator.core.permissionmapping.HierPermMappingDAO;
 import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrategy;
 import org.webcurator.core.permissionmapping.PermMappingSiteListener;
@@ -917,13 +917,13 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public MailServerImpl mailServer() {
+    public MailServer mailServer() {
         Properties properties = new Properties();
         properties.put("mail.transport.protocol", mailProtocol);
         properties.put("mail.smtp.host", mailServerSmtpHost);
         properties.put("mail.smtp.port", mailSmtpPort);
 
-        MailServerImpl bean = new MailServerImpl(properties);
+        MailServer bean = new MailServer(properties);
 
         return bean;
     }

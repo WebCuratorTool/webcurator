@@ -39,16 +39,15 @@ import javax.mail.internet.MimeMultipart;
  * @see MailServer
  * @author bprice
  */
-public class MockMailServer implements MailServer {
+public class MockMailServer extends MailServer {
 
-    private Properties mailConfig = null;
 
     /**
      * Constructor.
      * @param aMailConfig mail config
      */
     public MockMailServer(Properties aMailConfig) {
-        mailConfig = aMailConfig;
+        super(aMailConfig);
     }
     
     private Mailable email;
