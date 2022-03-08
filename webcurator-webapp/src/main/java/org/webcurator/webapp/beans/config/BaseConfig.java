@@ -4,10 +4,6 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
-
-import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
-import static org.quartz.TriggerBuilder.newTrigger;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +38,12 @@ import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.harvester.coordinator.*;
-import org.webcurator.core.notification.InTrayManagerImpl;
+import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MailServerImpl;
-import org.webcurator.core.permissionmapping.*;
+import org.webcurator.core.permissionmapping.HierPermMappingDAO;
+import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrategy;
+import org.webcurator.core.permissionmapping.PermMappingSiteListener;
+import org.webcurator.core.permissionmapping.PermissionMappingStrategy;
 import org.webcurator.core.profiles.PolitenessOptions;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.reader.LogReader;
@@ -69,11 +68,15 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SchedulePattern;
-import org.webcurator.ui.tools.controller.*;
+import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
+import org.webcurator.ui.tools.controller.QualityReviewToolControllerAttribute;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.*;
+
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
  * Contains configuration that used to be found in {@code wct-core.xml}. This
@@ -1027,8 +1030,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public InTrayManagerImpl inTrayManager() {
-        InTrayManagerImpl bean = new InTrayManagerImpl();
+    public InTrayManager inTrayManager() {
+        InTrayManager bean = new InTrayManager();
         bean.setInTrayDAO(inTrayDao());
         bean.setUserRoleDAO(userRoleDAO());
         bean.setAgencyUserManager(agencyUserManager());

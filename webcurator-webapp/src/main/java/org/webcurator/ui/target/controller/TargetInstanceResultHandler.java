@@ -15,12 +15,6 @@
  */
 package org.webcurator.ui.target.controller;
 
-import java.text.NumberFormat;
-import java.util.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.validation.BindException;
@@ -28,10 +22,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.ui.Constants;
+import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.notification.InTrayManagerImpl;
+import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreClient;
@@ -41,13 +37,18 @@ import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.admin.command.FlagCommand;
-import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
-import org.webcurator.common.util.DateUtils;
 import org.webcurator.ui.util.Tab;
 import org.webcurator.ui.util.TabHandler;
 import org.webcurator.ui.util.TabbedController;
 import org.webcurator.ui.util.TabbedController.TabbedModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.text.NumberFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * The handler for the target instance results/harvests tab.
@@ -63,7 +64,7 @@ public class TargetInstanceResultHandler extends TabHandler {
      * the digital asset store containing the harvests.
      */
     private DigitalAssetStore digitalAssetStore = null;
-    private InTrayManagerImpl inTrayManager = null;
+    private InTrayManager inTrayManager = null;
     private AgencyUserManager agencyUserManager;
 
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
@@ -326,7 +327,7 @@ public class TargetInstanceResultHandler extends TabHandler {
         this.digitalAssetStore = digitalAssetStore;
     }
 
-    public void setInTrayManager(InTrayManagerImpl inTrayManager) {
+    public void setInTrayManager(InTrayManager inTrayManager) {
         this.inTrayManager = inTrayManager;
     }
 
@@ -400,10 +401,10 @@ public class TargetInstanceResultHandler extends TabHandler {
         return digitalAssetStore;
     }
 
-    private InTrayManagerImpl getInTrayManager() {
+    private InTrayManager getInTrayManager() {
         if (inTrayManager == null) {
             ApplicationContext ctx = ApplicationContextFactory.getApplicationContext();
-            inTrayManager = ctx.getBean(InTrayManagerImpl.class);
+            inTrayManager = ctx.getBean(InTrayManager.class);
         }
         return inTrayManager;
     }

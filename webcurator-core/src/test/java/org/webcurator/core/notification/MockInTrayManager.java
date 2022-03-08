@@ -8,7 +8,7 @@ import org.webcurator.core.agency.MockAgencyUserManagerImpl;
 import org.webcurator.domain.*;
 import org.springframework.context.*;
 
-public class MockInTrayManager extends InTrayManagerImpl {
+public class MockInTrayManager extends InTrayManager {
 
 	public MockInTrayManager(String filename) 
 	{
