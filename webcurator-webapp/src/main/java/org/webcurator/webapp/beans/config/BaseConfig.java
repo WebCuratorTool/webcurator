@@ -37,7 +37,10 @@ import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
-import org.webcurator.core.harvester.coordinator.*;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.harvester.coordinator.HarvestQaManager;
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.notification.MailServer;
 import org.webcurator.core.permissionmapping.HierPermMappingDAO;
@@ -50,7 +53,7 @@ import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.reader.LogReaderClient;
 import org.webcurator.core.reader.LogReaderImpl;
 import org.webcurator.core.report.LogonDurationDAO;
-import org.webcurator.core.rules.QaRecommendationServiceImpl;
+import org.webcurator.core.rules.QaRecommendationService;
 import org.webcurator.core.scheduler.ScheduleJob;
 import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.sites.SiteManagerImpl;
@@ -431,8 +434,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public QaRecommendationServiceImpl qaRecommendationService() {
-        QaRecommendationServiceImpl bean = new QaRecommendationServiceImpl();
+    public QaRecommendationService qaRecommendationService() {
+        QaRecommendationService bean = new QaRecommendationService();
         // The state that will be used to denote a failure within the Rules Engine (eg: an unexpected exception).
         // This state will be returned to the user as the state of the failed indicator along with the exception.
         bean.setStateFailed("Failed");
