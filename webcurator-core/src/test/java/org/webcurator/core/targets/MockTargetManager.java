@@ -15,7 +15,7 @@ import org.webcurator.domain.MockTargetDAO;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 
-public class MockTargetManager extends TargetManagerImpl {
+public class MockTargetManager extends TargetManager {
 
 	public MockTargetManager(String fileName) {
 		this.setTargetDao(new MockTargetDAO(fileName));

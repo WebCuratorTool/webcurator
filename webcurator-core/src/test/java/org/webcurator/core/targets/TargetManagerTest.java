@@ -54,9 +54,9 @@ import org.webcurator.common.ui.target.TargetEditorContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 @RunWith(MockitoJUnitRunner.class)
-public class TargetManagerImplTest {
+public class TargetManagerTest {
 
-	private TargetManagerImpl underTest;
+	private TargetManager underTest;
 
 	@Mock TargetDAO targetDao;
 	@Mock
@@ -96,7 +96,7 @@ public class TargetManagerImplTest {
 		AuthUtil.setUser(null);
 	}
 	
-	public TargetManagerImplTest() {
+	public TargetManagerTest() {
 		MockitoAnnotations.initMocks(this);
 	}
 
@@ -115,7 +115,7 @@ public class TargetManagerImplTest {
 
 		targetInstanceDao = mock(TargetInstanceDAO.class);
 
-		underTest = new TargetManagerImpl();
+		underTest = new TargetManager();
 		underTest.setAnnotationDAO(annotationDAO);
 		underTest.setAuditor(auditor);
 		underTest.setAuthMgr(authMgr);

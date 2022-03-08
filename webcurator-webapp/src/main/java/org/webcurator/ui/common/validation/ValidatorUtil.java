@@ -25,7 +25,6 @@ import org.springframework.validation.Errors;
 import org.webcurator.core.permissionmapping.UrlUtils;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
-import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.core.TargetInstance;
 
@@ -193,7 +192,7 @@ public final class ValidatorUtil {
     public static void validateTargetApproved(Errors aErrors, Long aTargetInstanceOid, String aErrorCode) {
         ApplicationContext context = ApplicationContextFactory.getApplicationContext();
         TargetInstanceManager tiManager = context.getBean(TargetInstanceManager.class);
-        TargetManager targetManager = context.getBean(TargetManagerImpl.class);
+        TargetManager targetManager = context.getBean(TargetManager.class);
 
         TargetInstance ti = tiManager.getTargetInstance(aTargetInstanceOid);
         if (!targetManager.isTargetHarvestable(ti)) {

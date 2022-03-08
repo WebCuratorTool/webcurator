@@ -60,7 +60,7 @@ import org.webcurator.core.sites.SiteManager;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
-import org.webcurator.core.targets.TargetManagerImpl;
+import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.LockManager;
@@ -721,8 +721,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public TargetManagerImpl targetManager() {
-        TargetManagerImpl bean = new TargetManagerImpl();
+    public TargetManager targetManager() {
+        TargetManager bean = new TargetManager();
         bean.setTargetDao(targetDao());
         bean.setSiteDao(siteDao());
         bean.setAnnotationDAO(annotationDao());
