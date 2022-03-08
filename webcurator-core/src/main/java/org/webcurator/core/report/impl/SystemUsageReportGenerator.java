@@ -39,10 +39,10 @@ import org.webcurator.domain.model.report.LogonDuration;
  * 
  * @author MDubos
  */
-public class SystemUsageReportGeneratorImpl extends HibernateDaoSupport 
+public class SystemUsageReportGenerator extends HibernateDaoSupport
 	implements ReportGenerator {
 	
-	private Log log = LogFactory.getLog(SystemUsageReportGeneratorImpl.class);
+	private Log log = LogFactory.getLog(SystemUsageReportGenerator.class);
 	
 	/**
 	 * Generate report's data

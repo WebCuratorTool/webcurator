@@ -47,7 +47,7 @@ public class ReportConfig {
         bean.setName("System Usage Report");
         bean.setDescription("A report showing who logged in to the system.");
         bean.setInfo("<FONT size=\"1\"> <I>Start Date is inclusive.<BR>End Date is exclusive.</I> </FONT>");
-        bean.setReportGenerator(systemUsageReportGeneratorImpl());
+        bean.setReportGenerator(systemUsageReportGenerator());
 
         List<Parameter> parameters = new ArrayList<>();
 
@@ -61,8 +61,8 @@ public class ReportConfig {
     }
 
     @Bean
-    public SystemUsageReportGeneratorImpl systemUsageReportGeneratorImpl() {
-        SystemUsageReportGeneratorImpl bean = new SystemUsageReportGeneratorImpl();
+    public SystemUsageReportGenerator systemUsageReportGenerator() {
+        SystemUsageReportGenerator bean = new SystemUsageReportGenerator();
         bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;
