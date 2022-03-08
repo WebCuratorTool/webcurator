@@ -89,8 +89,8 @@ public class ReportConfig {
     }
 
     @Bean
-    public SystemActivityReportGeneratorImpl systemActivityReportGeneratorImpl() {
-        SystemActivityReportGeneratorImpl bean = new SystemActivityReportGeneratorImpl();
+    public SystemActivityReportGenerator systemActivityReportGeneratorImpl() {
+        SystemActivityReportGenerator bean = new SystemActivityReportGenerator();
         bean.setSessionFactory(baseConfig.sessionFactory().getObject());
 
         return bean;

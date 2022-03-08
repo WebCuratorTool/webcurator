@@ -37,10 +37,10 @@ import org.webcurator.domain.model.audit.Audit;
  * 
  * @author MDubos
  */
-public class SystemActivityReportGeneratorImpl extends HibernateDaoSupport 
+public class SystemActivityReportGenerator extends HibernateDaoSupport
 	implements ReportGenerator {
 	
-    private Log log = LogFactory.getLog(SystemActivityReportGeneratorImpl.class);
+    private Log log = LogFactory.getLog(SystemActivityReportGenerator.class);
     
 	
 	/**
