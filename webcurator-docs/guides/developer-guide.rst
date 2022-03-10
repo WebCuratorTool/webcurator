@@ -682,7 +682,7 @@ can receive an upgrade/code change without requiring all components be changed).
 
 
 Code quality assurance improvements
-------------------------------
+-----------------------------------
 
 In addition to providing a testable set of user journeys and an easy-to-use
 build and deploy pipeline, additional changes that ensure code quality,

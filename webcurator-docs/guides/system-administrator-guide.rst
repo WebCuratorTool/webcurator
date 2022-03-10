@@ -1528,7 +1528,7 @@ To create a truststore and import a certificate:
 
 
 Appendix B: Example application.properties overrides
-=================================================
+====================================================
 
 ::
 

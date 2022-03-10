@@ -43,9 +43,9 @@ Web Curator Tool Documentation
    :maxdepth: 1
    :caption: Support
 
-   guides/troubleshooting
    guides/faq
    guides/tutorials
+   guides/troubleshooting
 
 
 

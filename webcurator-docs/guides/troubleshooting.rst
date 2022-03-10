@@ -64,13 +64,13 @@ Harvest Logs
 Once a Target Instance starts to harvest, a number of log files get generated. Upon opening a running Target Instance,
 go to the *logs* tab. Two logs that are useful for troubleshooting are `crawl.log` and `local-errors.log`. Definitions
 for the status codes in crawl.log can be found in the
-`Heritrix documentation<http://crawler.archive.org/articles/user_manual/glossary.html>`_.
+`Heritrix documentation <http://crawler.archive.org/articles/user_manual/glossary.html>`_.
 
 Harvester Profiles
 ------------------
 Harvester profiles contain the settings that control how a harvest behaves. These are based on Heritrix profiles and set
 how a website is crawled buy the Harvest Agent. Consult the
-`Heritrix manual<http://crawler.archive.org/articles/user_manual/config.html>`_ on how to configure your profiles.
+`Heritrix manual <http://crawler.archive.org/articles/user_manual/config.html>`_ on how to configure your profiles.
 
 
 Known issues
