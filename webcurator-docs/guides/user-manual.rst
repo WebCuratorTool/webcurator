@@ -1128,7 +1128,7 @@ Select a profile and any overrides
 
 12. Click the **Profile** tab.
 
-*The Profile tab includes a list of harvest profiles, and a series of
+The Profile tab includes a list of harvest profiles, and a series of
 options to override them. Generally, the default settings are fine.
 
 *See the Target Instance Quality Review section for further information
@@ -1974,18 +1974,17 @@ Target Instance view page corresponding to that particular harvest which
 in turn has a link back to the back to the Harvest History page from
 which they came.
 
-Harvest Analysis and Patching
------------------------------
+Harvest Analysis
+----------------
 
 The **Harvest Analysis and Patching** tool can be used to analyse
-a harvest using a network graph visualization and structured tree views of URLs,
-as well as patching a harvest by importing or pruning content.
+a harvest using a network graph visualization and structured tree views of URLs.
 
 *A network of the harvested domains displayed in the visualization tool.*
 
 |image98|
 
-   Figure X. Visualization Tool
+   Figure 26. Visualization Tool
 
 Visualization Tool
 ~~~~~~~~~~~~~~~~~~
@@ -1999,7 +1998,7 @@ this will show a directional link between the natlib.govt.nz and thumbnailer.dig
 
 |image99|
 
-   Figure X. Linked domain nodes
+   Figure 27. Linked domain nodes
 
 Groups of nodes, or clusters, highlight the relationships and dependencies between content in a harvest.
 
@@ -2032,7 +2031,7 @@ Node Colours:
 
 |image100|
 
-   Figure X. Sub-domain node group
+   Figure 28. Sub-domain node group
 
 
 Node Sizes:
@@ -2044,30 +2043,38 @@ Graph Interaction:
 
 - All nodes can be dragged within the view pane. They are weighted by their relationships, so movement of
   one node will affect other nodes it is linked to. Sometimes with large harvests it is necessary to drag
-  nodes around to get a clearer view of the harvest domains.
+  nodes around to get a clearer view of the harvested domains.
 
 - A right-click menu is available on all nodes. Giving the option to inspect all URLs within a domain, or
   prune all URLs within a domain.
 
 |image101|
 
-   Figure X. Node right-click menu
+   Figure 29. Node right-click menu
 
-- All expanded sub-domain groups can be automatically collapsed by clicking the *Collapse* button.
+- All expanded sub-domain groups can be automatically collapsed by double clicking the *Collapse* button.
 
-- The graph can reverted to it's original state by clicking the *Redraw* button.
+- The graph can be reverted to it's original state by clicking the *Redraw* button.
 
-Domain Statistics
+
+Viewing Legacy Target Instances:
+
+- Target Instances harvested prior to the release of the Harvest Analysis tool in WCT can still be viewed. When
+  viewing such Target Instances for the first time, a prompt will state that the index file is missing and
+  ask whether to reindex the harvest result. Clicking OK will genterate the required data to view the Target
+  Instance in the Harvest Analysis tool.
+
+Domain Analysis
 ~~~~~~~~~~~~~~~~~
 
 The left side of the visualization holds a collapsible table for domain statistics. By default the table will
 show data for all domains in the harvest. Selecting a domain node in the graph will restrict the statistics to
 URLs within that domain. Clicking off a node and onto empty space in the graph will reset the table data.
 
-For each statistic category, displayed is the total size of content harvested and total number of URLs harvested.
+Displayed for each analysis category, is the total size of content harvested and total number of URLs harvested.
 The categories are:
 
-- **HTTP Status Code** - An HTTP status code is a server response to a client request. The three digit codes are
+- **HTTP Status Code** - An HTTP status code is a server response to a crawler request. The three digit codes are
   separated into five classes: informational, successful, redirection, client error and server error. Each URL
   crawled in a harvest has a response code.
 
@@ -2076,7 +2083,7 @@ The categories are:
 
 |image102|
 
-   Figure X. Domain statistics
+   Figure 30. Domain Analysis
 
 
 Analysing URLs
@@ -2096,11 +2103,15 @@ display a selection of URL data.
 
  |image103|
 
-  Figure X. Primary and Secondary seed badges
+  Figure 31. Primary and secondary seed badges
 
 - URL Actions (right-click context menu)
 
   Right clicking on a URL or selection of URLs will present a context menu of possible actions.
+
+  |image104|
+
+    Figure 32. Right-click context menu
 
   - **HopPath Current** - Display the hop path for a URL from the primary seed.
 
@@ -2108,7 +2119,8 @@ display a selection of URL data.
 
   - **Recrawl** - Import the selected URLs, while pruning the existing records.
 
-  - **Import From File** -
+  - **Import From File** - Import a local file using the selected URL as the target, while pruning the
+    existing records.
 
   - **Browse**
 
@@ -2122,9 +2134,20 @@ display a selection of URL data.
 
   - **Export Data** - Export the table data for the selected URLs in a spreadsheet format.
 
- |image104|
+      |image122|
 
-  Figure X. Right-click context menu
+        Figure 33. Exported URL data
+
+
+  - *Parent-Child URL relationships*
+
+    *WCT determines parent-child relationships, or Outlinks, using metdata from inside harvest WARC files.*
+    *The* **via** *metadata field is used to identify links between URLs. For example, this states that the crawler*
+    *discovered URL x from links extracted by processing URL y.*
+
+    *Note, that this does not mean that URL x is only referenced from one URL in the harvest. This is the path*
+    *the crawler took when discovering URL x, and other URLs in the harvest may also link to URL x.*
+
 
 
 Inspect View
@@ -2133,119 +2156,358 @@ Inspect View
 The URLs for a domain can be inspected by right-clicking on a node. This will open a table view where you can
 filter, search, sort and further analyse the URLs.
 
-|image105|
+The columns available in the Inspect View are:
 
-   Figure X. Inspecting URLs for a domain
+- *URL*
+- *Type* - Mime type of the URL
+- *Status* - http status code of the URL
+- *Size* - size of the payload for the harvested URL
+- *Outlinks*
 
-THe data, columns
+  - *TotUrls* - Total number of child URLs discovered via the URL
+  - *Failed* - Total number of child URLs discovered via the URL with a failed status code (4xx and 5xx)
+  - *Success* - Total number of child URLs discovered via the URL with a successful status code (2xx and 3xx)
+  - *TotSize* -  Total size of child URLs discovered via the URL
+
 
 Folders View
 ~~~~~~~~~~~~
 
+The URLs for a harvest, grouped in a tree structure based on logical folders taken from each URL path, can
+be analysed in the Folders view. The table is comprised of links and folders. For example, the URL
+*https://natlib.govt.nz/collections/a-z/new-zealand-web-archive* would be grouped into the following logical
+folder structure::
+
+  - natlib.govt.nz
+    |- collections
+      |- a-z
+        |- new-zealand-web-archive
+
+
+The columns available in the Folders View are:
+
+- *URL*
+- *Type* - Mime type of the URL
+- *Status* - http status code of the URL
+- *Size* - size of the payload for the harvested URL
+- *URLs* - Total number of URLs grouped within the folder
+- *Success* - Total number of URLs grouped within the folder with a successful status code (2xx and 3xx)
+- *Failed* - Total number of URLs grouped within the folder with a failed status code (4xx and 5xx)
+- *TotSize* - Total size of URLs grouped within the folder
+
+|image105|
+
+   Figure 34. Folder view grouping of URLs
 
 Crawler Path View
 ~~~~~~~~~~~~~~~~~
 
+The path the crawler took in discovering URLs in a harvest can be analysed as a tree structure in the
+Crawler Path view.
 
-- Crawler Path View
+The columns available in the Crawler Path View are:
 
-- **Action** -
-- **URL** -
-- **Type** -
-- **Status** -
-- **Size** -
+- *URL*
+- *Type* - Mime type of the URL
+- *Status* - http status code of the URL
+- *Size* - size of the payload for the harvested URL
+- *URLs* - Total number of child URLs discovered via the URL
+- *Success* - Total number of child URLs discovered via the URL with a successful status code (2xx and 3xx)
+- *Failed* - Total number of child URLs discovered via the URL with a failed status code (4xx and 5xx)
+- *TotSize* - Total size of child URLs discovered via the URL
+
+|image106|
+
+   Figure 35. Crawler Path view of URLs
 
 Filtering and Searching
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+Filtering and searching of URLs is available within the **Folders** and **Inspect** views.
+
+|image107|
+
+   Figure 36. Filtering and search options
+
+- Filtering
+
+  The content of the *URL, Type, Status* and *Size* columns can be filtered. Any matches within the URL
+  column will be highlighted.
+
+|image109|
+
+   Figure 37. Filtering URLs on the text *"robot"*
+
+- Adanced Search
+
+  To perform a more refined search, click the *advanced search* button |image110|.
+
+  - Searches across the *Domain*, *URL*, *Status* and *Content Type* data are available.
+  - A search can combine multiple fields, with a logical *AND* operator implied if fields are combined.
+
+    |image111|
+
+      Figure 38. Find all URLs where the Domain is 'natlib.govt.nz' AND the Status Code is 404.
+
+  - A search can combine multiple terms within a field, separated by commas. A logical *OR* operator is implied.
+
+    |image112|
+
+      Figure 39. Find all URLs where the Domain is 'natlib.govt.nz' AND the ContentType is either 'image/jpeg' OR 'image/png'.
+
+  - Terms can be prepended or appended with the *\** character to perform wildcard searches.
+
+    |image113|
+
+      Figure 40. Find all URLs where the Domain ends with 'google.com' AND the URL contains 'assets'.
+
+
+- Reset
+
+  To reset the view and clear any fitlered or search results, click the *reset* button |image108|.
+
+
+Patching
+--------
+
+The **Harvest Analysis and Patching** tool can be used to patch a harvest by importing or pruning content.
+
+
+Pruning
+~~~~~~~
+
+Pruning is the action of removing unwanted content from a web harvest at the URL level. There are several ways of pruning
+URLs:
+
+- Harvest Visualization
+
+  Within the harvest visualization tool entire domains can be selected for pruning, by right-clicking on a domain node.
+
+  |image114|
+
+    Figure 41. Pruning an entire domain of URLs
+
+
+- Domain Statistics
+
+  Within the domain statistics table, combinations of status codes or content types for specific domains
+  can be selected for pruning, by right-clicking on a table row.
+
+  |image115|
+
+    Figure 42. Pruning specific content types for a domain of URLs
+
+- Inspect, Folders and Crawler Path views
+
+  Within the Inspect, Folders and Crawler Path views one or more URLs can be selected for pruning, by right-clicking on
+  a table row.
+
+  |image116|
+
+    Figure 43. Pruning a selection of URLs
+
+
+*Note, once URLs have been selected for pruning, they will display in any table views with a strike-through.*
+
+|image117|
+
+    Figure 44. URLs selected for pruning
+
+
+Importing / Recrawling
+~~~~~~~~~~~~~~~~~~~~~~
+
+Importing is the action of adding missing content from a web harvest at the URL level.
+
+Recrawling is a variation of
+importing, where an existing URL is pruned and then imported, typically if it was crawled with an error code status
+(4xx, 5xx) in the original harvest.
+
+|image118|
+
+    Figure 45. Patching options
+
+There are several ways of importing content:
+
+- Import a single URL
+
+  A single URL can be imported by clicking the *Import URL* item in the Patch Harvest menu. Specify the target URL to
+  import and click *OK*.
+
+  *There is an optional checkbox to prune any existing records if the URL was already crawled in the harvest.*
+
+- Import a single file
+
+  A single file can be imported by clicking the *Import File* item in the Patch Harvest menu. A harvest resource must
+  contain a URL and a time stamp to be accessible. This is also required when importing a file. Specify the file to
+  import, and the target URL and time stamp it will be accessed by. The time stamp can be set to the following:
+
+    - The current system date and time
+    - The last modified date and time of the imported file
+    - A custom date and time
+
+  *There is an optional checkbox to prune any existing records if the URL was already crawled in the harvest.*
+
+  |image119|
+
+    Figure 46. Importing a file
+
+- Recrawling a URL
+
+  Within the Inspect, Folders and Crawler Path views one or more URLs can be selected to be recrawled, by right-clicking
+  on a table row.
+
+  |image120|
+
+    Figure 47. Recrawling a selection of URLs
+
+Bulk Patching
+~~~~~~~~~~~~~
+
+  URLs and files can be imported and pruned in bulk. This requires the use of a spreadsheet for specifying those URLs
+  and files.
+
+  - The spreadsheet template can be downloaded by clicking the *Bulk Patching Template* item in the Patch Harvest menu.
+
+  - URLs can also be exported in the same template. Within the Inspect, Folders and Crawler Path views, select one or
+    more URLs, right-click on a table row and choose *Export Data*. This can provide a more efficient way of sorting
+    through URLs to prune or recrawl. *See figure 33.*
+
+- Using the template to import or prune URLs
+
+  In a copy of the bulk patching template, enter the following data and save the file:
+
+  - **Target** - specify the target URLs to be imported or pruned in the *Target* column.
+
+  - **Option** - specify the action to be taken, either *PRUNE* or *RECRAWL*.
+
+  |image121|
+
+    Figure 48. URLs to be pruned and imported in bulk
 
 
 
+- Using the template to import files
 
-The **Tree Tool** gives you a graphical, tree-like view of the harvested
-data. It is a visualisation tool, but can also be used to delete
-unwanted material from the harvest or add new material.
+  In a copy of the bulk patching template, enter the following data and save the file:
 
-*A summary of the harvested web pages displayed in the tree tool.*
+  - **Target** - specify the target URLs to be imported.
 
-|image54|
+  - **Option** - specify the action to be taken, either *PRUNE* or *RECRAWL*.
 
-   Figure 26. Tree Tool
+  - **LocalFileName** - specify the local path to the file to be imported.
 
-When the tool is opened, a series of rows is presented. The first row
-represents the complete harvest, and several additional columns are
-provided with additional data about the harvest.
+  - **ModifiedMode** - specify the //TODO
 
-Subsequent rows contain summary information about each of the websites
-visited during the crawl. These can be expanded to show the directories
-and files that were harvested from within the website. Note that each
-row may represent a page that was downloaded, or may represent a summary
-statistic, or may fulfil both roles.
+  - **LastModifiedDate** - specify the time stamp associated with the file, in the format *yyy-mm-ddThh:mm*.
 
-On each row, the following statistics are presented:
 
--  **Status** - The HTTP status for an entry that was downloaded.
 
--  **Size** - The size (in bytes) of an entry that was downloaded.
+- Loading the template
 
--  **Total URLs** - The number of attempts to download documents from
-   "within" this site or folder.
+  A bulk patching spreadsheet can be loaded by clicking the *Bulk Prune/Import* item in the Patch Harvest menu. Then
+  browse to the file...
 
--  **Total Success** - The number of documents successfully downloaded from
-   "within" this site or folder.
+  All URLs are loaded and validated. A pop-up window confirms the URLs to be patched, and gives the option to *cancel*
+  any before confirming.
 
--  **Total Failed** - The number of documents unsuccessfully downloaded
-   from "within" this site or folder.
+  |image124|
 
--  **Total Size** - The number of bytes downloaded from "within" this site
-   or folder.
+    Figure 49. URLs to be pruned and imported in bulk
 
-Users can browse the tree structure and then view, prune or insert
-specific pages or files.
 
-To view a page, select it in the display, and press the **view** button
-- it is also possible to see the hop-path for a specific item by
-clicking on the hop-path button.
+Staging and Review
+~~~~~~~~~~~~~~~~~~
 
-To prune a page, or a set of pages:
+  Once URLs and files have been selected for importing and pruning, they are added to a staging area for review.
+  Clicking on the green **Patch Harvest** button will open the review window.
 
--  Select the site, folder, or page that you want to prune
+  |image125|
 
--  click Prune Single Item to remove just the highlighted page; or Prune
-   Item and Children to remove the page and all the pages "within" it
+    Figure 50. Review URLs staged to be pruned or imported
 
-To insert a new page or missing item (such as a graphics file):
+  The columns available in the Patch Harvest are:
 
--  Click on the folder in the Tree View where the item should appear
-   (see Figure 23 below)
+  - *Option* - Patching action (PRUNE or RECRAWL)
+  - *Target* - URL to be patched
+  - *File* - local file to be imported
+  - *Modified Mode* - //TODO
+  - *Modify Date* - modified date of local file to be imported
+  - *Type* - Mime type of the URL
+  - *Status* - http status code of the URL
+  - *Size* - size of the payload for the harvested URL
+  - *Outlinks*
 
--  Specify the full URL of the item as it should appear within the site
-   harvest in **Specify Target URL**
+    - *TotUrls* - Total number of child URLs discovered via the URL
+    - *Failed* - Total number of child URLs discovered via the URL with a failed status code (4xx and 5xx)
+    - *Success* - Total number of child URLs discovered via the URL with a successful status code (2xx and 3xx)
+    - *TotSize* -  Total size of child URLs discovered via the URL
 
--  Specify the appropriate file location on disk or the appropriate
-   external URL for the new item which is to be added and click on the
-   appropriate Import button.
 
--  The new item will be inserted at the appropriate place in the tree
-   view hierarchy.
+  To store provenance information with the patched Harvest Result, enter any text into the **Provenance Note**
+  box provided.
 
-   Then after either type of action;
+  All URLs that do not already exist in the harvest result will receive a **New** badge |image127|.
 
--  Add a description of why you have pruned or inserted content to the
-   provenance note textbox (required).
+  For all URLs staged to import, patching will determine whether a URL already exists in the harvest. The behaviour
+  if a URL is found, can be set under **When re-crawling a URL:**
 
--  Click Save. Note that for best efficiency it is best to combine
-   multiple prune and import operations before saving - as a new Harvest
-   Result is created after each operation which can be a very resource
-   intensive operation on the server.
+  - *Prune existing URL* - prune all WARC records for the existing URLs.
 
-   |image55|
+  - *Prune only if existing URL failed* - prune all WARC records for the existing URLs if they originally failed
+    to crawl in the harvest result (i.e. had a status code of 4xx or 5xx).
 
-..
+  - *Do not prune existing URL* - leave all WARC records for existing URLs un-touched.
 
-   Figure 27. Adding a missing jpg file
+  To remove URLs that are staged to be patched, right-click on one or more rows and select **Undo**.
 
-*The display returns to the Harvest Results tab.*
+
+  |image126|
+
+    Figure 51. Validation of URLs to be patched
+
+
+Starting a Patch
+~~~~~~~~~~~~~~~~
+
+  To start the patching process, open the **Patch Harvest** window, click the **Patch** button in the top left
+  corner of the staging and review window, and then click **Start**.
+
+  |image128|
+
+    Figure 52. Derived harvest results
+
+  After starting patching, a new derived harvest result will appear under the **Derived** button dropdown. This
+  lists all harvest results that have been created from the current one. Clicking on a derived harvest result
+  that is in-progress, will open a summary view of the patching.
+
+  |image129|
+
+    Figure 52. A running patch in harvest results
+
+  Alternatively, the patching summary can be opened from the Harvest Results tab, where the in-progress harvest
+  result will show the current patching state.
+
+
+  |image130|
+
+    Figure 53. Patch Summary screen
+
+  Areas of note in the Patch Summary screen are:
+
+    - Indicators for monitoring the progress of:
+
+      - Patch crawling of URLs
+      - Pruning of URLs and importing of local files
+      - Indexing of the new harvest result
+
+    - Patch crawling logs and reports from Heritrix
+    - Log and report of pruned URLs, where WARC files have been modified
+    - Log and report of the harvest result indexing
+    - A record of all pruned and imported URLs and files, and whether successful.
+
+  Once patching has completed, the harvest result will be ready for further harvest analysis.
+
 
 The log file viewer
 -------------------
@@ -2485,7 +2747,7 @@ dramatic change in the size of the harvest result.*
 
 |image57|
 
-Figure 28: Target Instance that failed to complete.
+Figure 54: Target Instance that failed to complete.
 
 In these cases, the general procedure is to
 
@@ -2524,7 +2786,7 @@ out-of-scope relative to the seed URL.
 
 |image58|
 
-Figure 29. Crawl log
+Figure 55. Crawl log
 
 The solution to this problem is to add the "real" site as a primary or
 secondary seed URL.
@@ -2556,7 +2818,7 @@ finished with the requests shown in this log file viewer window.
 
 |image59|
 
-Figure 30: the log file viewer showing the crawl log.
+Figure 56: the log file viewer showing the crawl log.
 
 Note that many of the requests are repeated calls to the CGI script
 http://whaleoil.co.nz/gallery2/main.php that include the parameters:
@@ -2725,7 +2987,7 @@ You manage Groups from the **Group search page**:
 
 |image61|
 
-Figure 31. Group search page
+Figure 57. Group search page
 
 At the top of the page are fields to search for existing groups by
 **ID**, **Name**, **Agency**, **Owner**, **Member Of**, and **Group
@@ -2760,7 +3022,7 @@ From the `Groups <#group-search-page>`__ page,
 
    |image62|
 
-   Figure 32. Create/Edit Groups
+   Figure 58. Create/Edit Groups
 
 The **Create/Edit Groups** page includes several tabs for adding or
 editing information about Groups:
@@ -2817,7 +3079,7 @@ Add the members of the Group
 
    |image63|
 
-   Figure 33. Members tab
+   Figure 59. Members tab
 
 5. Click the add button to search for previously created Targets and
    Groups by name to add to this Group.
@@ -2845,7 +3107,7 @@ Enter a schedule for the group
 
    |image64|
 
-   Figure 34. Schedule tab
+   Figure 60. Schedule tab
 
 9. Click **create new**.
 
@@ -2854,7 +3116,7 @@ Enter a schedule for the group
 
    |image65|
 
-   Figure 35. Create/Edit Schedule
+   Figure 61. Create/Edit Schedule
 
 10. Enter **From** and **To** dates for when the harvest will run;
     select a **Type** of schedule, eg 'Every Monday at 9:00pm' or
@@ -2905,7 +3167,7 @@ Access
 
     |image66|
 
-    Figure 36. Access Tab
+    Figure 62. Access Tab
 
 Save the completed group
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2968,7 +3230,7 @@ login. These can also (at your option) be emailed to you.
 
 |image68|
 
-Figure 37. In Tray
+Figure 63. In Tray
 
     *Note that the* **In Tray** *- and each Web Curator Tool page - has
     tabs across the top to access the main system functions, which
@@ -3107,7 +3369,7 @@ notification when a harvest finishes.
 
 |image71|
 
-Figure 38. User settings
+Figure 64. User settings
 
 User, Roles, Agencies, Rejection Reasons & QA Indicators
 ====================================================================
@@ -3238,7 +3500,7 @@ targets that have been rejected for a specific reason.
 
 |image73|
 
-Figure 39. Rejection Reasons
+Figure 65. Rejection Reasons
 
 QA Indicators
 -------------
@@ -3253,7 +3515,7 @@ installed when WCT is set up.
 
 |image74|
 
-Figure 40. QA Indicators
+Figure 66. QA Indicators
 
 Flags
 -----
@@ -3265,7 +3527,7 @@ have harvesting issues so that an analyst can investigate them.
 
 |image75|
 
-Figure 41. Flags
+Figure 67. Flags
 
 Reports
 ===================
@@ -3407,7 +3669,7 @@ schedule.
 
 |image78|
 
-Figure 42. Harvester Configuration
+Figure 68. Harvester Configuration
 
 If you click on the name of the harvester you can see which jobs are
 currently running. The numbers under **Job** refers to the target
@@ -3415,7 +3677,7 @@ instance that is currently running.
 
 |image79|
 
-Figure 43. Shows the number of jobs running on a particular harvester
+Figure 69. Shows the number of jobs running on a particular harvester
 
 Profiles
 --------
@@ -3428,7 +3690,7 @@ You manage profiles from the Profiles search page:
 
 |image81|
 
-Figure 45. Profile search page
+Figure 70. Profile search page
 
 You can import a profile from an existing XML file. Once a profile is
 imported you will need to rename it, otherwise it will be called
@@ -3473,7 +3735,7 @@ editing information about profiles.
 
    |image96|
 
-   Figure 46. Profile page
+   Figure 71. Profile page
 
    - **General** - general information about the profile, such as a name,
      description, agency, whether it's an active or inactive profile and what
@@ -3598,7 +3860,7 @@ time if specific information is required.
 
 |image89|
 
-Figure 47. Permission request templates
+Figure 72. Permission request templates
 
 Some agencies prefer to handle Permission requests outside of WCT and
 simply add the file number to the Harvest Authorisation once permission
@@ -3638,7 +3900,7 @@ log files and tree view to quality review the harvested serial issue.
 Once the serial issue has been harvested and is ready for archiving you
 can endorse the harvest. If you don't use Rosetta you can simply archive
 the serial. If you do use Rosetta you will see a 'next' button pop up
-(see figure 48 below). The National Library uses this metadata form to
+(see figure 73 below). The National Library uses this metadata form to
 link the HTML serial with the producer record in the preservation system
 as well as add the issue number and issue date.
 
@@ -3650,7 +3912,7 @@ the serial by issue number and date.
 
 |image91|
 
-Figure 48. Metadata for depositing a serial issue to Rosetta
+Figure 73. Metadata for depositing a serial issue to Rosetta
 
 Workflow
 ===================
@@ -3710,14 +3972,14 @@ permission before initiating any harvests:
 
 |image93|
 
-Figure 27. Web Curator Tool process flow
+Figure 74. Web Curator Tool process flow
 
 Detailed workflow example
 -------------------------
 
 |image94|
 
-Figure 28: Detailed workflow
+Figure 75: Detailed workflow
 
 .. [1]
    For information about the Rosetta preservation system visit:
@@ -4028,5 +4290,80 @@ Figure 28: Detailed workflow
    :width: 3.722in
    :height: 1.0in
 .. |image104| image:: ../_static/user-manual/image104.png
-   :width: 5.208in
+   :width: 4.166in
+   :height: 1.597in
+.. |image105| image:: ../_static/user-manual/image105.png
+   :width: 6.0in
+   :height: 2.528in
+.. |image106| image:: ../_static/user-manual/image106.png
+   :width: 6.0in
+   :height: 2.708in
+.. |image107| image:: ../_static/user-manual/image107.png
+   :width: 2.347in
+   :height: 0.403in
+.. |image108| image:: ../_static/user-manual/image108.png
+   :width: 0.250in
+   :height: 0.278in
+.. |image109| image:: ../_static/user-manual/image109.png
+   :width: 6.0in
+   :height: 1.875in
+.. |image110| image:: ../_static/user-manual/image110.png
+   :width: 0.250in
+   :height: 0.250in
+.. |image111| image:: ../_static/user-manual/image111.png
+   :width: 2.430in
+   :height: 1.597in
+.. |image112| image:: ../_static/user-manual/image112.png
+   :width: 2.430in
+   :height: 1.597in
+.. |image113| image:: ../_static/user-manual/image113.png
+   :width: 2.430in
+   :height: 1.597in
+.. |image114| image:: ../_static/user-manual/image114.png
+   :width: 4.3333in
    :height: 2.0in
+.. |image115| image:: ../_static/user-manual/image115.png
+   :width: 3.833in
+   :height: 2.0in
+.. |image116| image:: ../_static/user-manual/image116.png
+   :width: 4.069in
+   :height: 2.0in
+.. |image117| image:: ../_static/user-manual/image117.png
+   :width: 5.972in
+   :height: 1.597in
+.. |image118| image:: ../_static/user-manual/image118.png
+   :width: 4.139in
+   :height: 1.597in
+.. |image119| image:: ../_static/user-manual/image119.png
+   :width: 3.014in
+   :height: 1.597in
+.. |image120| image:: ../_static/user-manual/image120.png
+   :width: 4.528in
+   :height: 1.597in
+.. |image121| image:: ../_static/user-manual/image121.png
+   :width: 6.0in
+   :height: 1.139in
+.. |image122| image:: ../_static/user-manual/image122.png
+   :width: 3.458in
+   :height: 1.0in
+.. |image124| image:: ../_static/user-manual/image124.png
+   :width: 3.042in
+   :height: 2.0in
+.. |image125| image:: ../_static/user-manual/image125.png
+   :width: 6.0in
+   :height: 3.090in
+.. |image126| image:: ../_static/user-manual/image126.png
+   :width: 6.0in
+   :height: 3.090in
+.. |image127| image:: ../_static/user-manual/image127.png
+   :width: 0.375in
+   :height: 0.250in
+.. |image128| image:: ../_static/user-manual/image128.png
+   :width: 5.070in
+   :height: 1.50in
+.. |image129| image:: ../_static/user-manual/image129.png
+   :width: 6.0in
+   :height: 0.799in
+.. |image130| image:: ../_static/user-manual/image130.png
+   :width: 6.0in
+   :height: 3.445in
