@@ -41,6 +41,9 @@ local.properties
 
 *.eml
 
+# RST build folder
+/webcurator-docs/_build/
+
 ### Intellij ###
 *.iml
 
