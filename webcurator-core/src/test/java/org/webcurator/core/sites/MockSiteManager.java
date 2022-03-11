@@ -5,14 +5,14 @@ import org.webcurator.core.util.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.notification.*;
 
-public class MockSiteManagerImpl extends SiteManager {
+public class MockSiteManager extends SiteManager {
 
-	public MockSiteManagerImpl(String filename) {
+	public MockSiteManager(String filename) {
 		
 		super();
 		this.setSiteDao(new MockSiteDAO(filename));
 		this.setAuditor(new TestAuditor());
-		this.setAgencyUserManager(new MockAgencyUserManagerImpl(filename));
+		this.setAgencyUserManager(new MockAgencyUserManager(filename));
 		this.setAnnotationDAO(new MockAnnotationDAO(filename));
 		this.setIntrayManager(new MockInTrayManager(filename));
 	}

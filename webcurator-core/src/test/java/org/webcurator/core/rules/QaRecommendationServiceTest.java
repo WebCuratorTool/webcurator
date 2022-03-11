@@ -5,8 +5,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.webcurator.test.BaseWCTTest;
 
-public class QaRecommendationServiceImplTest extends BaseWCTTest<QaRecommendationService> {
-    public QaRecommendationServiceImplTest() {
+public class QaRecommendationServiceTest extends BaseWCTTest<QaRecommendationService> {
+    public QaRecommendationServiceTest() {
         super(QaRecommendationService.class, "", false);
 
     }

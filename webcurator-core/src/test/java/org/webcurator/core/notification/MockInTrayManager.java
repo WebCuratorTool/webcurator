@@ -4,7 +4,7 @@ import java.util.Properties;
 
 import org.webcurator.core.util.TestAuditor;
 import org.webcurator.domain.MockUserRoleDAO;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.domain.*;
 import org.springframework.context.*;
 
@@ -14,7 +14,7 @@ public class MockInTrayManager extends InTrayManager {
 	{
 		Properties mailConfig = new Properties();
 		//mailConfig.load(arg0);
-		this.setAgencyUserManager(new MockAgencyUserManagerImpl(filename));
+		this.setAgencyUserManager(new MockAgencyUserManager(filename));
 		this.setAudit(new TestAuditor());
 		this.setInTrayDAO(new MockInTrayDAO(filename));
 		this.setMailServer(new MailServer(mailConfig));

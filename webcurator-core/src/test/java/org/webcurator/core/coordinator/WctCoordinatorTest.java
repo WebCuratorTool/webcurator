@@ -54,7 +54,7 @@ import static org.mockito.Mockito.*;
 
 @SuppressWarnings("all")
 @AutoConfigureMockMvc
-public class WctCoordinatorInterfaceImplTest extends BaseWCTTest<WctCoordinator> {
+public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     private MockHarvestAgentFactory harvestAgentFactory = new MockHarvestAgentFactory();
     private MockTargetInstanceManager mockTargetInstanceManager = null;
     private HarvestAgentManager harvestAgentManager;
@@ -65,7 +65,7 @@ public class WctCoordinatorInterfaceImplTest extends BaseWCTTest<WctCoordinator>
     private HarvestResultManager mockHarvestResultManager;
     private VisualizationDirectoryManager directoryManager; // = new VisualizationDirectoryManager("/usr/local/wct/webapp", "logs", "reports");
 
-    public WctCoordinatorInterfaceImplTest() {
+    public WctCoordinatorTest() {
         super(WctCoordinator.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
     }
 
