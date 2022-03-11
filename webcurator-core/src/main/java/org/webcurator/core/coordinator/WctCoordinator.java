@@ -68,9 +68,6 @@ import org.webcurator.domain.model.dto.SeedHistorySetDTO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * @author nwaight
- */
 @SuppressWarnings("all")
 @Component("wctCoordinator")
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -167,9 +164,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         this.log = log;
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#heartbeat(HarvestAgentStatusDTO)
-     */
     public void heartbeat(HarvestAgentStatusDTO aStatus) {
         harvestAgentManager.heartbeat(aStatus);
     }
@@ -184,7 +178,7 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
      * active job names to List for Harvest Agent attempting recovery.
      *
      * @param aStatus harvest agent scheme/host/port/service requesting attempting recovery
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#recoverHarvests(String, int, String)
+     * 
      */
     public void recoverHarvests(HarvestAgentStatusDTO aStatus) {
         TargetInstanceCriteria criteria = new TargetInstanceCriteria();
@@ -201,9 +195,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         harvestAgentManager.recoverHarvests(aStatus.getBaseUrl(), aStatus.getService(), activeJobs);
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#harvestComplete(HarvestResultDTO)
-     */
     public void harvestComplete(HarvestResultDTO aResult) {
         log.debug("Harvest Complete: ti: {}, havestResult: {}", aResult.getTargetInstanceOid(), aResult.getHarvestNumber());
 
@@ -302,9 +293,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         }
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#reIndexHarvestResult(HarvestResult)
-     */
     public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
         if (origHarvestResult != null) {
             NetworkMapResult rst = networkMapClient.initialIndex(origHarvestResult.getOid(), origHarvestResult.getHarvestNumber());
@@ -315,27 +303,17 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         }
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestAgentListener#notification(Long, int, String)
-     * String, String)
-     */
     public void notification(Long aTargetInstanceOid, int notificationCategory, String aMessageType) {
         TargetInstance ti = targetInstanceDao.load(aTargetInstanceOid);
         inTrayManager.generateNotification(ti.getOwner().getOid(), notificationCategory, aMessageType, ti);
     }
 
-    /**
-     *
-     */
     public void notification(String aSubject, int notificationCategory, String aMessage) {
         List<String> privs = new ArrayList<String>();
         privs.add(Privilege.MANAGE_WEB_HARVESTER);
         inTrayManager.generateNotification(privs, notificationCategory, aSubject, aMessage);
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#harvest(TargetInstance, HarvestAgentStatusDTO)
-     */
     public void harvest(TargetInstance aTargetInstance, HarvestAgentStatusDTO aHarvestAgent) {
         if (aTargetInstance == null) {
             throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
@@ -641,9 +619,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         this.targetInstanceDao = targetInstanceDao;
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#updateProfileOverrides(TargetInstance)
-     */
     public void updateProfileOverrides(TargetInstance aTargetInstance) {
         if (aTargetInstance == null) {
             throw new WCTRuntimeException("A null target instance was provided.");
@@ -652,9 +627,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         harvestAgentManager.updateProfileOverrides(aTargetInstance, profile);
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#pause(TargetInstance)
-     */
     public void pause(TargetInstance aTargetInstance) {
         if (aTargetInstance == null) {
             throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
@@ -662,16 +634,10 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         harvestAgentManager.pause(aTargetInstance);
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#resume(TargetInstance)
-     */
     public void resume(TargetInstance aTargetInstance) {
         harvestAgentManager.resume(aTargetInstance);
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#abort(TargetInstance)
-     */
     public void abort(TargetInstance aTargetInstance) {
         if (aTargetInstance == null) {
             throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
@@ -679,9 +645,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         harvestAgentManager.abort(aTargetInstance);
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#stop(TargetInstance)
-     */
     public void stop(TargetInstance aTargetInstance) {
         if (aTargetInstance == null) {
             throw new WCTRuntimeException("A null target instance was provided to the harvest command.");
@@ -689,44 +652,26 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         harvestAgentManager.stop(aTargetInstance);
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#pauseAll()
-     */
     public void pauseAll() {
         harvestAgentManager.pauseAll();
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#resumeAll()
-     */
     public void resumeAll() {
         harvestAgentManager.resumeAll();
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#pauseQueue()
-     */
     public void pauseQueue() {
         queuePaused = true;
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#resumeQueue()
-     */
     public void resumeQueue() {
         queuePaused = false;
     }
 
-    /**
-     * @see org.webcurator.core.harvester.coordinator.HarvestCoordinator#isQueuePaused()
-     */
     public boolean isQueuePaused() {
         return queuePaused;
     }
 
-    /**
-     * @see HarvestCoordinator#processSchedule().
-     */
     public void processSchedule() {
         long now = System.currentTimeMillis();
         queueScheduledInstances();
@@ -959,9 +904,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         return true;
     }
 
-    /**
-     * @see HarvestCoordinator#listLogFiles(TargetInstance)
-     */
     public List<String> listLogFiles(TargetInstance aTargetInstance) {
         if (aTargetInstance == null) {
             throw new WCTRuntimeException("A null target instance was provided to the listLogFiles command.");
@@ -969,76 +911,43 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         return harvestLogManager.listLogFiles(aTargetInstance);
     }
 
-    /**
-     * @see HarvestCoordinator#listLogFileAttributes(TargetInstance)
-     */
     public List<LogFilePropertiesDTO> listLogFileAttributes(TargetInstance aTargetInstance) {
         return harvestLogManager.listLogFileAttributes(aTargetInstance);
     }
 
-    /**
-     * @see HarvestCoordinator#tailLog(TargetInstance, String, int)
-     */
     public List<String> tailLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines) {
         return harvestLogManager.tailLog(aTargetInstance, aFileName, aNoOfLines);
     }
 
-    /**
-     * @see HarvestCoordinator#countLogLines(TargetInstance, String)
-     */
     public Integer countLogLines(TargetInstance aTargetInstance, String aFileName) {
         return harvestLogManager.countLogLines(aTargetInstance, aFileName);
     }
 
-    /**
-     * @see HarvestCoordinator#headLog(TargetInstance, String, int)
-     */
     public List<String> headLog(TargetInstance aTargetInstance, String aFileName, int aNoOfLines) {
         return harvestLogManager.headLog(aTargetInstance, aFileName, aNoOfLines);
     }
 
-    /**
-     * @see HarvestCoordinator#getLog(TargetInstance, String, int, int)
-     */
     public List<String> getLog(TargetInstance aTargetInstance, String aFileName, int aStartLine, int aNoOfLines) {
         return harvestLogManager.getLog(aTargetInstance, aFileName, aStartLine, aNoOfLines);
     }
 
-    /**
-     * @see HarvestCoordinator#getFirstLogLineBeginning(TargetInstance, String,
-     * String)
-     */
     public Integer getFirstLogLineBeginning(TargetInstance aTargetInstance, String aFileName, String match) {
         return harvestLogManager.getFirstLogLineBeginning(aTargetInstance, aFileName, match);
     }
 
-    /**
-     * @see HarvestCoordinator#getFirstLogLineContaining(TargetInstance, String,
-     * String)
-     */
     public Integer getFirstLogLineContaining(TargetInstance aTargetInstance, String aFileName, String match) {
         return harvestLogManager.getFirstLogLineContaining(aTargetInstance, aFileName, match);
     }
 
-    /**
-     * @see HarvestCoordinator#getFirstLogLineAfterTimeStamp(TargetInstance,
-     * String, Long)
-     */
     public Integer getFirstLogLineAfterTimeStamp(TargetInstance aTargetInstance, String aFileName, Long timestamp) {
         return harvestLogManager.getFirstLogLineAfterTimeStamp(aTargetInstance, aFileName, timestamp);
     }
 
-    /**
-     * @see HarvestCoordinator#getLogLinesByRegex(TargetInstance, String, int, String, boolean)
-     */
     public List<String> getLogLinesByRegex(TargetInstance aTargetInstance, String aFileName, int aNoOfLines, String aRegex,
                                            boolean prependLineNumbers) {
         return harvestLogManager.getLogLinesByRegex(aTargetInstance, aFileName, aNoOfLines, aRegex, prependLineNumbers);
     }
 
-    /**
-     * @see HarvestCoordinator#getHopPath(TargetInstance, String, String)
-     */
     public List<String> getHopPath(TargetInstance aTargetInstance, String aFileName, String aUrl) {
         return harvestLogManager.getHopPath(aTargetInstance, aFileName, aUrl);
     }
@@ -1047,9 +956,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         return harvestLogManager.getLogfile(aTargetInstance, aFilename);
     }
 
-    /**
-     * @see HarvestCoordinator#purgeDigitalAssets().
-     */
     public void purgeDigitalAssets() {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, daysBeforeDASPurge * -1);
@@ -1070,9 +976,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         }
     }
 
-    /**
-     * @see HarvestCoordinator#purgeAbortedTargetInstances().
-     */
     public void purgeAbortedTargetInstances() {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, daysBeforeAbortedTargetInstancePurge * -1);

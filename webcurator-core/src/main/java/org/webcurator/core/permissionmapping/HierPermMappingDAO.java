@@ -34,10 +34,9 @@ import org.webcurator.domain.model.permissionmapping.Mapping;
 import org.webcurator.domain.model.permissionmapping.MappingView;
 
 /**
- * Implementation of the Hierarchical Permission Mapping DAO.
- *
+ * DAO for the Hierarchical Permission Mapping Strategy.
  * @author bbeaumont
- * @see org.webcurator.core.permissionmapping.HierPermMappingDAO
+ *
  */
 @Transactional
 public class HierPermMappingDAO extends HibernateDaoSupport {
@@ -51,9 +50,6 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
      */
     private TransactionTemplate txTemplate = null;
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.permissionmapping.HierPermMappingDAO#saveOrUpdate(org.webcurator.domain.model.permissionmapping.Mapping)
-     */
     public void saveOrUpdate(final Mapping aMapping) {
         // A Mapping can only be saved if it references real objects.
         if (aMapping.getOid() == null ||
@@ -115,16 +111,10 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
         );
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.permissionmapping.HierPermMappingDAO#delete(org.webcurator.domain.model.permissionmapping.Mapping)
-     */
     public void delete(final Mapping mapping) {
         this.delete(mapping.getPermissionId(), mapping.getUrlPatternId());
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.permissionmapping.HierPermMappingDAO#deleteMappings(org.webcurator.domain.model.core.Site)
-     */
     public void deleteMappings(final Site site) {
         Query query=currentSession().createNamedQuery(Permission.QUERY_BY_SITE_ID,Permission.class);
         query.setParameter("siteId",site.getOid());
@@ -163,9 +153,6 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
         );
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.permissionmapping.HierPermMappingDAO#getMapping(java.lang.Long)
-     */
     @SuppressWarnings("unchecked")
     public List<Mapping> getMapping(Long mappingOid) {
         return getHibernateTemplate().execute(session ->
@@ -174,9 +161,6 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                         .list());
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.permissionmapping.HierPermMappingDAO#getMappings(java.lang.String)
-     */
     @SuppressWarnings("unchecked")
     public List<Mapping> getMappings(String domain) {
         return getHibernateTemplate().execute(session ->
@@ -185,9 +169,6 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                         .list());
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.permissionmapping.HierPermMappingDAO#getMappingsView(java.lang.String)
-     */
     @SuppressWarnings("unchecked")
     public List<MappingView> getMappingsView(String domain) {
         return getHibernateTemplate().execute(session ->
@@ -196,9 +177,6 @@ public class HierPermMappingDAO extends HibernateDaoSupport {
                         .list());
     }
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.permissionmapping.HierPermMappingDAO#updateMappings(org.webcurator.domain.model.core.Site, java.util.Set)
-     */
     public void updateMappings(final Site aSite, final Set<Mapping> newMappings) {
         log.debug("Into updateMappings method");
         // Run the deletion.

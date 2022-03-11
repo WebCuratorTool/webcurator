@@ -28,7 +28,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.report.LogonDuration;
 
 /**
- * Class for marking a User's login / logout, storing his/her associated session
+ * Interface for marking a User's login / logout, storing his/her associated session
  * @author MDubos
  *
  */

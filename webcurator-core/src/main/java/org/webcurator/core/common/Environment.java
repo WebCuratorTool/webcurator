@@ -16,7 +16,8 @@
 package org.webcurator.core.common;
 
 /**
- * The Implemenation of the core environment.
+ * Holds the specific environment varaibales needed by the application.
+ * This object can be obtained by the EnvironmentFactory.
  * @author bbeaumont
  */
 public class Environment {

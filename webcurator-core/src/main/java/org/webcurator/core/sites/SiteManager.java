@@ -39,10 +39,8 @@ import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.dto.UserDTO;
 
 /**
- * The implementation of the <code>SiteManager<code/> interface.
- *
+ * The manager for accessing Harvest Authorisation data.
  * @author bbeaumont
- * @see SiteManager
  */
 public class SiteManager {
 
@@ -105,9 +103,6 @@ public class SiteManager {
     }
 
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.sites.SiteManager#save(org.webcurator.domain.model.core.Site)
-     */
 //    @Transactional
     public void save(Site aSite) {
         // Fire the before save event handlers.
@@ -211,17 +206,11 @@ public class SiteManager {
     }
 
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.sites.SiteManager#load(java.lang.Long, boolean)
-     */
     public Site getSite(Long siteOid, boolean fullyInitialise) {
         return siteDao.load(siteOid, fullyInitialise);
     }
 
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.sites.SiteManager#isSiteTitleUnique(Site)
-     */
     public boolean isSiteTitleUnique(Site aSite) {
         List<Site> sites = siteDao.listSitesByTitle(aSite.getTitle().toLowerCase());
         if (null == sites || sites.isEmpty()) {
@@ -247,9 +236,6 @@ public class SiteManager {
     }
 
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.sites.SiteManager#fireEvent(org.webcurator.core.sites.SiteManager.EVENT_TYPE, org.webcurator.domain.model.core.Site)
-     */
     private void fireEvent(EVENT_TYPE eventType, Site aSite) {
 
         for (SiteManagerListener l : listeners) {
@@ -274,25 +260,16 @@ public class SiteManager {
     }
 
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.sites.SiteManager#setSiteDao(org.webcurator.domain.SiteDAO)
-     */
     public void setSiteDao(SiteDAO siteDao) {
         this.siteDao = siteDao;
     }
 
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.sites.SiteManager#setListeners(java.util.List)
-     */
     public void setListeners(List<SiteManagerListener> listeners) {
         this.listeners = listeners;
     }
 
 
-    /* (non-Javadoc)
-     * @see org.webcurator.core.sites.SiteManager#getAnnotations(Site)
-     */
     public List<Annotation> getAnnotations(Site aSite) {
         List<Annotation> annotations = null;
         if (aSite.getOid() != null) {
@@ -332,9 +309,6 @@ public class SiteManager {
     }
 
 
-    /**
-     * @see SiteManager#search(SiteCriteria).
-     */
     public Pagination search(SiteCriteria aCriteria) {
         return search(aCriteria, 0, 10);
     }
@@ -345,7 +319,7 @@ public class SiteManager {
      * @param aPage     the result page to return
      * @param aPageSize
      * @return
-     * @see SiteManager#search(SiteCriteria, int, int)
+     * 
      */
     public Pagination search(SiteCriteria aCriteria, int aPage, int aPageSize) {
         return siteDao.search(aCriteria, aPage, aPageSize);

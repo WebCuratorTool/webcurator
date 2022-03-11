@@ -62,10 +62,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 /**
- * The implementation of the TargetDAO interface.
- *
+ * The TargetDAO provides access to targets, target groups and their related objects
+ * from the persistent store.
  * @author bbeaumont
- * @see TargetDAO
  */
 @SuppressWarnings("all")
 @Transactional

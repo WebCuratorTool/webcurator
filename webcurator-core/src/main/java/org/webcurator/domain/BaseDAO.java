@@ -26,7 +26,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 
 /**
- * The implementation of the BaseDAO interface.
+ * Base DAO interface. Over time common methods should be 
+ * moved into this dao so they can be reused in all dao
+ * implementations. 
+ * 
  * @author bbeaumont
  */
 public class BaseDAO extends HibernateDaoSupport {

@@ -48,8 +48,9 @@ import org.webcurator.domain.model.dto.UserDTO;
 import org.webcurator.common.ui.Constants;
 
 /**
- * The implementation of the InTrayManager interface.
- * @see InTrayManager
+ * The InTrayManager is responsible for managing and creating System Notifications and Tasks.
+ * The InTrayManager is also responsible for determining which users receive their Notifications
+ * via email or their in tray.
  * @author bprice
  */
 public class InTrayManager {
@@ -257,7 +258,6 @@ public class InTrayManager {
         inTrayDAO.delete(task);       
     }
     
-    /** @see InTrayManager#deleteTask(Long, String, String). */
 	public void deleteTask(Long aResourceOid, String aResourceType, String aTaskType) {
 		Task toDelete = inTrayDAO.getTask(aResourceOid, aResourceType, aTaskType);
 		if (toDelete != null) {
@@ -265,7 +265,6 @@ public class InTrayManager {
 		}
 	}
 
-    /** @see InTrayManager#deleteTasks(Long, String, String). */
 	public void deleteTasks(Long aResourceOid, String aResourceType, String aTaskType) {
 		List<Task> tasksToDelete = inTrayDAO.getTasks(aResourceOid, aResourceType, aTaskType);
 		if ( tasksToDelete != null ) {

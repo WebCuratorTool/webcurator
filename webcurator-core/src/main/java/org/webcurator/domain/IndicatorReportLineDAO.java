@@ -30,9 +30,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.IndicatorReportLine;
 
 /**
- * implements the IndicatorReportLineDAO Interface and provides the database calls for
- * querying any objects related to indicator report lines. 
- * @author oakleigh_sk
+ * The object for accessing <code>IndicatorReportLine</code>s from the persistent store.
  */
 public class IndicatorReportLineDAO extends HibernateDaoSupport {
     

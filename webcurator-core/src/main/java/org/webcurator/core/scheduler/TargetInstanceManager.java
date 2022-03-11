@@ -33,8 +33,7 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.domain.model.dto.TargetInstanceDTO;
 
 /**
- * The implementation of the Target Instance Manager interface.
- *
+ * The interface for managing target instances.
  * @author nwaight
  */
 @SuppressWarnings("all")
@@ -80,30 +79,18 @@ public class TargetInstanceManager {
         this.storeSeedHistory = storeSeedHistory;
     }
 
-    /**
-     * @see TargetInstanceManager#getStoreSeedHistory().
-     */
     public boolean getStoreSeedHistory() {
         return storeSeedHistory;
     }
 
-    /**
-     * @see TargetInstanceManager#search(TargetInstanceCriteria).
-     */
     public Pagination search(final TargetInstanceCriteria aCriteria) {
         return search(aCriteria, 0, 10);
     }
 
-    /**
-     * @see TargetInstanceManager#search(TargetInstanceCriteria, int).
-     */
     public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {
         return targetInstanceDao.search(aCriteria, aPage, aPageSize);
     }
 
-    /**
-     * @see TargetInstanceManager#getNextTargetInstanceToHarvest().
-     */
     public TargetInstance getNextTargetInstanceToHarvest() {
         List queue = targetInstanceDao.getQueue();
         if (queue != null && !queue.isEmpty()) {
@@ -129,16 +116,10 @@ public class TargetInstanceManager {
         return targetInstanceDao.countQueueLengthForTarget(targetOid);
     }
 
-    /**
-     * @see TargetInstanceManager#getTargetInstance(Long).
-     */
     public TargetInstance getTargetInstance(Long aOid) {
         return getTargetInstance(aOid, false);
     }
 
-    /**
-     * @see TargetInstanceManager#getTargetInstance(Long, boolean).
-     */
     public TargetInstance getTargetInstance(Long aOid, boolean aLoadFully) {
         TargetInstance ti = targetInstanceDao.load(aOid);
         if (aLoadFully) {
@@ -148,9 +129,6 @@ public class TargetInstanceManager {
         return ti;
     }
 
-    /**
-     * @see TargetInstanceManager#delete(TargetInstance).
-     */
     public void delete(TargetInstance aTargetInstance) {
         aTargetInstance.setTarget(null);
         //TODO: to be refined, uncessary remove from schedule entity
@@ -164,9 +142,6 @@ public class TargetInstanceManager {
         auditor.audit(TargetInstance.class.getName(), aTargetInstance.getOid(), Auditor.ACTION_DELETE_TARGET_INSTANCE, "The TargetInstance '" + aTargetInstance.getOid() + "' has been deleted");
     }
 
-    /**
-     * @see TargetInstanceManager#save(TargetInstance).
-     */
     public void save(TargetInstance aTargetInstance) {
         TargetInstanceDTO origTi = targetInstanceDao.getTargetInstanceDTO(aTargetInstance.getOid());
 
@@ -239,9 +214,6 @@ public class TargetInstanceManager {
         indicatorReportLineDAO.saveOrUpdate(indicatorReportLine);
     }
 
-    /**
-     * @see TargetInstanceManager#getAnnotations(TargetInstance).
-     */
     public List<Annotation> getAnnotations(TargetInstance aTargetInstance) {
         List<Annotation> annotations = null;
         if (aTargetInstance.getOid() != null) {
@@ -255,16 +227,10 @@ public class TargetInstanceManager {
         return annotations;
     }
 
-    /**
-     * @see TargetInstanceManager#countTargetInstances(User, ArrayList).
-     */
     public long countTargetInstances(User aUser, ArrayList<String> aStates) {
         return targetInstanceDao.countTargetInstances(aUser.getUsername(), aStates);
     }
 
-    /**
-     * @see TargetInstanceManager#countTargetInstancesByTarget(Long Oid).
-     */
     public long countTargetInstancesByTarget(Long Oid) {
         return targetInstanceDao.countTargetInstancesByTarget(Oid);
     }

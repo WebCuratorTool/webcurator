@@ -21,7 +21,9 @@ import org.webcurator.core.reader.LogReaderClient;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
 /**
- * Factory to create HarvestAgent and LogReader instances that use Restful API to communicate with a remote HarvestAgent.
+ * Interface for a factory to create instances of a HarvestAgent.
+ *
+ * @author nwaight
  */
 public class HarvestAgentFactory {
     public HarvestAgent getHarvestAgent(HarvestAgentStatusDTO harvestAgentStatusDTO) {

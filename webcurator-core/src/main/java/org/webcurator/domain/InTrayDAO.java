@@ -49,7 +49,7 @@ import org.webcurator.domain.model.core.Notification;
 import org.webcurator.domain.model.core.Task;
 
 /**
- * The implementation of the InTrayDAO interface.
+ * Persistence methods commonly used by the In-tray
  * @author bprice
  */
 @Transactional
@@ -202,7 +202,6 @@ public class InTrayDAO extends HibernateDaoSupport {
     	});
     }
     
-    /** @see InTrayDAO#getTask(Long, String, String). */
     public Task getTask(final Long aResourceOid, final String aResourceType, final String aTaskType) {
         return (Task) getHibernateTemplate().execute(new HibernateCallback() {
   
@@ -218,7 +217,6 @@ public class InTrayDAO extends HibernateDaoSupport {
         });
     }    
     
-    /** @see InTrayDAO#getTasks(Long, String, String). */
     @SuppressWarnings("unchecked")
     public List<Task> getTasks(final Long aResourceOid, final String aResourceType, final String aTaskType) {
         return (List<Task>) getHibernateTemplate().execute(new HibernateCallback() {

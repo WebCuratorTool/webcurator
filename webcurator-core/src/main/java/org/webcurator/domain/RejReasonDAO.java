@@ -31,8 +31,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.RejReason;
 
 /**
- * implements the RejReasonDAO Interface and provides the database calls for
- * querying any objects related to rejection reasons. 
+ * The Rejection Reason DAO provides access to rejection reason
+ * data from the persistent data store. 
  * @author oakleigh_sk
  */
 public class RejReasonDAO extends HibernateDaoSupport {

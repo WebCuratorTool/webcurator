@@ -49,6 +49,10 @@ import org.webcurator.domain.model.dto.TargetInstanceDTO;
  */
 @SuppressWarnings("all")
 
+/**
+ * The object for accessing TargetInstances from the persistent store.
+ * @author nwaight
+ */
 public class TargetInstanceDAO extends HibernateDaoSupport {
 
     private static SimpleDateFormat fullFormat = SafeSimpleDateFormat.getInstance("dd/MM/yyyy HH:mm:ss");
@@ -115,9 +119,6 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         }
     }
 
-    /**
-     * @see TargetInstanceDAO#delete(Object).
-     */
     @Transactional
     public void delete(final Object aObject) {
         txTemplate.execute(
@@ -137,9 +138,6 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         );
     }
 
-    /**
-     * @see TargetInstanceDAO#deleteHarvestResources(Long targetInstanceId).
-     */
     @Transactional
     public void deleteHarvestResources(final Long targetInstanceId) {
         getHibernateTemplate().execute(new HibernateCallback() {
@@ -156,9 +154,6 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         });
     }
 
-    /**
-     * @see TargetInstanceDAO#deleteHarvestResultResources(Long harvestResultId).
-     */
     @Transactional
     public void deleteHarvestResultResources(final Long harvestResultId) {
         log.info("Deleting harvest result resources for result: " + harvestResultId);
@@ -182,9 +177,6 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
         );
     }
 
-    /**
-     * @see TargetInstanceDAO#deleteHarvestResultFiles(Long harvestResultId).
-     */
     @Transactional
     public void deleteHarvestResultFiles(final Long harvestResultId) {
         log.info("Deleting harvest result files for result: " + harvestResultId);

@@ -67,9 +67,7 @@ import org.webcurator.common.ui.Constants;
 import org.webcurator.common.ui.target.TargetEditorContext;
 
 /**
- * The implementation of the TargetManager interface.
- * 
- * @see TargetManager
+ * The manager for accessing Target and Target Group data.
  * @author bbeaumont
  */
 @SuppressWarnings("all")
@@ -106,11 +104,6 @@ public class TargetManager {
 
 	private String subGroupTypeName = null;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#getAllowMultiplePrimarySeeds()
-	 */
 	public boolean getAllowMultiplePrimarySeeds() {
 		return allowMultiplePrimarySeeds;
 	}
@@ -119,11 +112,6 @@ public class TargetManager {
 		this.allowMultiplePrimarySeeds = allowMultiplePrimarySeeds;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#save(org.webcurator.domain. model.core.Target)
-	 */
 	public void save(Target aTarget, List<GroupMemberDTO> parents) {
 
 		boolean newSchedulesAddedByNonOwner = false;
@@ -402,11 +390,6 @@ public class TargetManager {
 		targetInstanceDao.deleteScheduledInstances(aTarget);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#save(org.webcurator.domain. model.core.TargetGroup)
-	 */
 	public void save(TargetGroup aTargetGroup) {
 		save(aTargetGroup, null);
 	}
@@ -718,9 +701,6 @@ public class TargetManager {
 		}
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#scheduleTargetGroup(org.webcurator.domain.model.core.TargetGroup)
-	 */
 	public void scheduleTargetGroup(TargetGroup aGroup) {
 		// Deal with the schedules
 		for (Schedule schedule : aGroup.getSchedules()) {
@@ -729,11 +709,6 @@ public class TargetManager {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#getNextStates(org.webcurator .domain.model.core.Target)
-	 */
 	public int[] getNextStates(Target aTarget) {
 
 		int[] emptyArray = new int[] { };
@@ -755,58 +730,28 @@ public class TargetManager {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#load(java.lang.Long)
-	 */
 	public Target load(Long oid) {
 		return load(oid, false);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#load(java.lang.Long, boolean)
-	 */
 	public Target load(Long oid, boolean loadFully) {
 		return targetDao.load(oid, loadFully);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#getQuickPickPermissions(Target)
-	 */
 	public List<Permission> getQuickPickPermissions(Target aTarget) {
 		return siteDao.getQuickPickPermissions(aTarget.getOwningUser().getAgency());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#findPermissionsBySiteTitle( java.lang.String, int)
-	 */
 	public Pagination findPermissionsBySiteTitle(Target aTarget, String aSiteTitle, int aPageNumber) {
 		return siteDao.findPermissionsBySiteTitle(aTarget.getOwningUser().getAgency().getOid(), aSiteTitle, aPageNumber);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#findPermissionsByUrl(java.lang .String, int)
-	 */
 	public Pagination findPermissionsByUrl(Target aTarget, String aUrl, int aPageNumber) {
 		List<Permission> permissionList = new LinkedList<Permission>();
 		permissionList.addAll(PermissionMappingStrategy.getStrategy().getMatchingPermissions(aTarget, aUrl));
 		return new Pagination(permissionList, aPageNumber, Constants.GBL_PAGE_SIZE);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#loadPermission(org.webcurator.common.ui.target.TargetEditorContext, java.lang.String)
-	 */
 	public Permission loadPermission(TargetEditorContext ctx, String identity) {
 		Permission p = (Permission) ctx.getObject(Permission.class, identity);
 
@@ -818,54 +763,26 @@ public class TargetManager {
 		return p;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#loadPermission(java.lang.Long)
-	 */
 	public Permission loadPermission(Long oid) {
 		return siteDao.loadPermission(oid);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#isNameOk(org.webcurator.domain .model.core.Target)
-	 */
 	public boolean isNameOk(AbstractTarget aTarget) {
 		return targetDao.isNameOk(aTarget);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#setTargetDao(org.webcurator .domain.TargetDAO)
-	 */
 	public void setTargetDao(TargetDAO targetDao) {
 		this.targetDao = targetDao;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#setAuthMgr(org.webcurator.auth .AuthorityManager)
-	 */
 	public void setAuthMgr(AuthorityManager authMgr) {
 		this.authMgr = authMgr;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.webcurator.core.targets.TargetManager#setSiteDao(org.webcurator.domain .SiteDAO)
-	 */
 	public void setSiteDao(SiteDAO siteDao) {
 		this.siteDao = siteDao;
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#getAnnotations(org.webcurator.domain.model.core.AbstractTarget)
-	 */
 	public List<Annotation> getAnnotations(AbstractTarget aTarget) {
 		List<Annotation> annotations = null;
 		if (aTarget.getOid() != null) {
@@ -894,7 +811,6 @@ public class TargetManager {
 		this.annotationDAO = annotationDAO;
 	}
 
-	/** @see TargetManager#isTargetHarvestable(TargetInstance). */
 	public boolean isTargetHarvestable(TargetInstance aTargetInstance) {
 		boolean harvestable = false;
 		boolean foundBadSeed = false;
@@ -925,16 +841,12 @@ public class TargetManager {
 		}
 	}
 
-	/** */
 	public boolean isTargetUsingAQA(Long targetOid) {
 
 		Target target = targetDao.load(targetOid, false);
 		return target.isUseAQA();
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#allowStateChange(org.webcurator.domain.model.core.Target, int)
-	 */
 	public boolean allowStateChange(Target aTarget, int nextState) {
 		if (aTarget.getOriginalState() == nextState) {
 			return true;
@@ -950,46 +862,30 @@ public class TargetManager {
 		}
 	}
 
-	/**
-	 * @see TargetManager#loadGroup(Long)
-	 */
 	public TargetGroup loadGroup(Long oid) {
 		return targetDao.loadGroup(oid);
 	}
 
-	/**
-	 * @see TargetManager#loadGroup(Long, boolean)
-	 */
 	public TargetGroup loadGroup(Long oid, boolean loadFully) {
 		return targetDao.loadGroup(oid, loadFully);
 	}
 
-	/**
-	 */
 	public Pagination getMembers(TargetGroup aTargetGroup, int pageNum, int pageSize) {
 		return targetDao.getMembers(aTargetGroup, pageNum, pageSize);
 	}
 
-	/**
-	 */
 	public Pagination getParents(AbstractTarget aTarget, int pageNum, int pageSize) {
 		return targetDao.getParents(aTarget, pageNum, pageSize);
 	}
 
-	/**
-	 */
 	public Pagination getAbstractTargetDTOs(String name, int pageNumber, int pageSize) {
 		return targetDao.getAbstractTargetDTOs(name, pageNumber, pageSize);
 	}
 
-	/**
-	 */
 	public Pagination getGroupDTOs(String name, int pageNumber, int pageSize) {
 		return targetDao.getGroupDTOs(name, pageNumber, pageSize);
 	}
 
-	/**
-	 */
 	public Pagination getSubGroupParentDTOs(String name, int pageNumber, int pageSize) {
 
 		List<String> types = new ArrayList<String>();
@@ -1002,31 +898,21 @@ public class TargetManager {
 		return targetDao.getSubGroupParentDTOs(name, types, pageNumber, pageSize);
 	}
 
-	/**
-	 */
 	public Pagination getNonSubGroupDTOs(String name, int pageNumber, int pageSize) {
 
 		return targetDao.getNonSubGroupDTOs(name, subGroupTypeName, pageNumber, pageSize);
 	}
 
-	/**
-	 * @see TargetManager#createGroupMemberDTO(TargetGroup, Long)
-	 */
 	public GroupMemberDTO createGroupMemberDTO(TargetGroup group, Long childOid) {
 		AbstractTarget child = loadAbstractTarget(childOid);
 		return new GroupMemberDTO(group, child);
 	}
 
-	/**
-	 * @see TargetManager#createGroupMemberDTO(Long, Target)
-	 */
 	public GroupMemberDTO createGroupMemberDTO(Long groupOid, Target child) {
 		TargetGroup group = targetDao.loadGroup(groupOid);
 		return new GroupMemberDTO(group, child);
 	}
 
-	/**
-	 */
 	public Pagination searchGroups(int pageNumber, int pageSize, Long searchOid, String name, String owner, String agency,
 			String memberOf, String groupType, boolean nondisplayonly) {
 		return targetDao.searchGroups(pageNumber, pageSize, searchOid, name, owner, agency, memberOf, groupType, nondisplayonly);
@@ -1502,16 +1388,10 @@ public class TargetManager {
 		}
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#countTargets(org.webcurator.domain.model.auth.User)
-	 */
 	public long countTargets(User aUser) {
 		return targetDao.countTargets(aUser.getUsername());
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#countTargetGroups(org.webcurator.domain.model.auth.User)
-	 */
 	public long countTargetGroups(User aUser) {
 		return targetDao.countTargetGroups(aUser.getUsername());
 	}
@@ -1546,17 +1426,10 @@ public class TargetManager {
 		this.intrayManager = intrayManager;
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#getAncestorOids(org.webcurator.domain.model.core.AbstractTarget)
-	 */
 	public Set<Long> getAncestorOids(AbstractTarget child) {
 		return targetDao.getAncestorOids(child.getOid());
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#isDuplicateMember(org.webcurator.domain.model.core.TargetGroup,
-	 *      java.lang.Long)
-	 */
 	public boolean isDuplicateMember(TargetGroup group, Long memberOid) {
 		for (GroupMemberDTO dto : group.getNewChildren()) {
 			if (dto.getChildOid().equals(memberOid)) {
@@ -1567,9 +1440,6 @@ public class TargetManager {
 		return targetDao.getImmediateChildrenOids(group.getOid()).contains(memberOid);
 	}
 
-	/**
-	 * @see org.webcurator.core.targets.TargetManager#loadAbstractTarget(java.lang.Long)
-	 */
 	public AbstractTarget loadAbstractTarget(Long oid) {
 		return targetDao.loadAbstractTarget(oid);
 	}
@@ -1646,7 +1516,6 @@ public class TargetManager {
 		return ancestorList;
 	}
 
-	/** @see TargetManager#getActivePermissions(TargetInstance). */
 	public Collection<PermissionSeedDTO> getActivePermissions(TargetInstance aTargetInstance) {
 		HashMap<Long, PermissionSeedDTO> permissions = new HashMap<Long, PermissionSeedDTO>();
 		Set<Seed> seeds = getSeeds(aTargetInstance);

@@ -47,7 +47,7 @@ import org.webcurator.domain.model.core.UrlPattern;
 import org.webcurator.common.ui.Constants;
 
 /**
- * The implementation of the SiteDAO interface.
+ * The interface used for accessing persistent Harvest Authorisation data.
  * @author bbeaumont
  */
 @Transactional

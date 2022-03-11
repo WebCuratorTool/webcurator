@@ -36,8 +36,7 @@ import javax.mail.internet.MimeMultipart;
 
 
 /**
- * The implementation of the MailServer interface.
- * @see MailServer
+ * Provides access to a SMTP mail gateway for sending emails.
  * @author bprice
  */
 public class MailServer {

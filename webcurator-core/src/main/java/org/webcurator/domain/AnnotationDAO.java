@@ -32,7 +32,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Annotation;
 
 /**
- * DAO for managing annotations
+ * The interface that defines the Data Access Object for 
+ * loading and saving annotations.
  * @author nwaight
  */
 @Transactional

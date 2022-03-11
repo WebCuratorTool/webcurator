@@ -41,7 +41,7 @@ import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 
 /**
- * The implementation of the ProfileDAO interface.
+ * DAO for loading/saving Profiles to the database.
  * @author bbeaumont
  */
 @Repository
@@ -165,9 +165,6 @@ public class ProfileDAO extends BaseDAO {
 		return theDTO;
 	}	
 
-	/* (non-Javadoc)
-	 * @see org.webcurator.domain.ProfileDAO#getDefaultProfile(org.webcurator.domain.model.auth.Agency)
-	 */
 	public Profile getDefaultProfile(Agency anAgency) {
 		Criteria query = currentSession().createCriteria(Profile.class);
 		query.createCriteria("owningAgency").add(Restrictions.eq("oid", anAgency.getOid()));

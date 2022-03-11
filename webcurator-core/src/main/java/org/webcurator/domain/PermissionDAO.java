@@ -23,6 +23,10 @@ import org.webcurator.domain.model.core.Permission;
 import javax.persistence.Query;
 import java.util.List;
 
+/**
+ * The interface used for accessing persistent Harvest Authorisation data.
+ * @author FrankLee
+ */
 @Transactional
 public class PermissionDAO extends HibernateDaoSupport {
     public Permission load(long permissionOid) {

@@ -32,7 +32,9 @@ import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 
 /**
- * The implementation of the AuthorityManager interface.
+ * The AuthorityManager Interface provides all the methods required
+ * to determine if Users in the system have the Authority to carry out 
+ * certain actions based on their privileges.
  * @author bprice
  */
 public class AuthorityManager {

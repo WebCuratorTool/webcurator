@@ -31,9 +31,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 
 /**
- * implements the IndicatorCriteriaDAO Interface and provides the database calls for
- * querying any objects related to indicator criteria. 
- * @author oakleigh_sk
+ * The object for accessing <code>IndicatorCriteria</code>s from the persistent store.
  */
 @Transactional
 public class IndicatorCriteriaDAO extends HibernateDaoSupport {

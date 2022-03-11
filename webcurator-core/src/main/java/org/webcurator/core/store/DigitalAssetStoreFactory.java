@@ -4,9 +4,7 @@ import org.webcurator.core.reader.LogReader;
 
 
 /**
- * Factory to store DigitalAssetStore and LogReader instances that use Restful API to communicate
- * with a remote DigitalAssetStore
- *
+ * Factory te instances of a DigitalAssetStore.
  * @author kurwin
  */
 public class DigitalAssetStoreFactory {

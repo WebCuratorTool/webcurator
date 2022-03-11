@@ -28,8 +28,8 @@ import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionTemplate;
 
 /**
- * The implementation of the PermissionTemplateDAO interface.
- * @author bprice
+ * Persistance Interface for the managing the Permission Template Request object
+ * @author BPrice
  */
 public class PermissionTemplateDAO extends HibernateDaoSupport {
 

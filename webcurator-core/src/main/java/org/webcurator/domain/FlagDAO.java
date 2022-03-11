@@ -31,9 +31,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Flag;
 
 /**
- * implements the FlagDAO Interface and provides the database calls for
- * querying any objects related to indicator criteria. 
- * @author oakleigh_sk
+ * The object for accessing <code>Flag</code>s from the persistent store.
  */
 @Transactional
 public class FlagDAO extends HibernateDaoSupport {

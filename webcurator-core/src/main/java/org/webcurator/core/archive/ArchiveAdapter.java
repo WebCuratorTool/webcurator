@@ -34,8 +34,8 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.common.util.DateUtils;
 
 /**
- * Implementation of the ArchiveAdapter interface.
- * @see ArchiveAdapter
+ * The archive adapter provides the mechanisim for archiving a harvested target instance 
+ * into an archive repository. 
  * @author aparker
  */
 public class ArchiveAdapter {
@@ -51,7 +51,6 @@ public class ArchiveAdapter {
 	private Map<String, String> accessStatusMap = new HashMap<String, String>();
 	private boolean targetReferenceMandatory = true;
 	
-	/** @see ArchiveAdapter#submitToArchive(TargetInstance, String, Map, int). */
 	@SuppressWarnings("unchecked")
 	public void submitToArchive(TargetInstance instance, String sipXML, Map customDepositFormElements, int harvestNumber) throws Exception{
 		// Populate the map of SIP information.

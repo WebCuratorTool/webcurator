@@ -23,6 +23,12 @@ import org.webcurator.domain.model.core.Indicator;
 import org.webcurator.domain.model.core.IndicatorCriteria;
 import org.webcurator.domain.model.core.TargetInstance;
 
+/**
+ * Provides a rules execution service for a specific <code>TargetInstance</code>.<p/>
+ * Uses the <code>Indicator</code>s defined for the owning <code>Agency</code> for the <code>TargetInstance</code> as a basis for a QA recommendation.
+ * @author twoods
+ *
+ */
 public class QaRecommendationService {
 	
 	/**

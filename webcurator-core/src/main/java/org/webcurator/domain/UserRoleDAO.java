@@ -30,9 +30,8 @@ import org.webcurator.domain.model.dto.UserDTO;
 import java.util.List;
 
 /**
- * implements the UserRoleDAO Interface and provides the database calls for
- * querying any objects related to Authentication. These include User, Roles
- * and Privilges.
+ * The User Role DAO provides access to User, Role and Agency
+ * data from the persistent data store. 
  * @author bprice
  */
 @Repository
@@ -144,9 +143,6 @@ public class UserRoleDAO {
         return q.getResultList();
     }
 
-    /**
-     * @see org.webcurator.domain.UserRoleDAO#getUserDTOsByPrivilege(java.lang.String, java.lang.Long)
-     */
     @SuppressWarnings("unchecked")
     public List<UserDTO> getUserDTOsByPrivilege(String privilege, Long agencyOid) {
         Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY);
@@ -155,9 +151,6 @@ public class UserRoleDAO {
         return q.getResultList();
     }
     
-    /**
-     * @see org.webcurator.domain.UserRoleDAO#getUserDTOsByTargetPrivilege(java.lang.Long)
-     */
     @SuppressWarnings("unchecked")
 	public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
         Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_TARGET_PERMISSION);

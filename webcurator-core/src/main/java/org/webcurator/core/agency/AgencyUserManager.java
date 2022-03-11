@@ -35,9 +35,9 @@ import org.webcurator.domain.model.dto.UserDTO;
 import java.util.*;
 
 /**
+ * Provides the mechanism for accessing user, role and agency data.
  *
  * @author bprice
- * @see AgencyUserManager
  */
 public class AgencyUserManager {
     private static Log log = LogFactory.getLog(AgencyUserManager.class);

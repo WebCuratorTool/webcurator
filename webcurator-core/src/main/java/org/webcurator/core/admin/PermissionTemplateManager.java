@@ -32,8 +32,7 @@ import org.webcurator.domain.model.core.UrlPattern;
 import org.webcurator.common.ui.validation.TemplateValidatorHelper;
 
 /**
- * Implementation of the PermissionTemplateManager interface.
- * @see PermissionTemplateManager
+ * Provides the helper methods required to manage PermissionTemplates.
  * @author bprice
  */
 public class PermissionTemplateManager {
