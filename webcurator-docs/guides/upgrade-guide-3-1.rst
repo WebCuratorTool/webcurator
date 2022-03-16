@@ -282,7 +282,7 @@ New configuration parameters in 3.1
 
 **webcurator-webapp.war/WEB-INF/classes/aplication.properties**
 
-The new harvest visualization feature and patching requires a local working directory for Webapp. ::
+The new harvest visualization feature and patching requires a local working directory for Webapp. If this directory doesn't exist, the application will attempt to create it. ::
 
     # WebApp additional settings
     #####################################

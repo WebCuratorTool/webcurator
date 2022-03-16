@@ -164,13 +164,13 @@ prior to setting up the WCT database and schema.*
 2. Run the following SQL scripts under the DB_WCT user or SYSTEM
    account::
 
-    db/latest/sql/wct-schema-postgresql.sql
+    db/latest/sql/wct-schema-postgres.sql
 
-    db/latest/sql/wct-schema-grants-postgresql.sql
+    db/latest/sql/wct-schema-grants-postgres.sql
 
-    db/latest/sql/wct-indexes-postgresql.sql
+    db/latest/sql/wct-indexes-postgres.sql
 
-    db/latest/sql/wct-bootstrap-postgresql.sql
+    db/latest/sql/wct-bootstrap-postgres.sql
 
     db/latest/sql/wct-qa-data-postgres.sql
 
