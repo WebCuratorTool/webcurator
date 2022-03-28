@@ -30,17 +30,6 @@ to get the desired effect
 <div class="card main-tab" id="main-tab-group">
   <nav class="main-header navbar navbar-expand navbar-dark">
 <!--    <form class="form-inline ml-3" style="margin-right: 10px;">-->
-<!--      <div class="input-group">-->
-<!--        <select class="form-control" style="width: 6em;" id="id-ti-select">-->
-<!--          <option>option 1</option>-->
-<!--        </select>-->
-
-<!--        <select class="form-control" style="width: 10em;" id="id-hr-select">-->
-<!--          <option>option 1</option>-->
-<!--        </select>-->
-<!--      </div>-->
-<!--    </form>-->
-
     <!-- Left navbar links -->
     <ul class="navbar-nav">
       <div class="btn-group btn-group-toggle" data-toggle="buttons">
@@ -122,6 +111,7 @@ to get the desired effect
       </li>
     </ul>
   </nav> <!-- End of Header -->
+
 
   <!-- Network Map -->
   <div class="card-body card-main" id="networkmap" style="height: calc(100vh - 50px); width: 100vw;">
@@ -643,8 +633,8 @@ to get the desired effect
 
         bsCustomFileInput.init(); //For file input: to set filename to input text
 
-        var hrs=new HarvestResult("#id-ti-select", "#id-hr-select");
-        hrs.init();
+        // Initial the target instance and harvest result inside the aside component.
+        func_fetch_ti_hr_data();
     }
 
     // Initial Data
