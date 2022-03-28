@@ -104,11 +104,11 @@ to get the desired effect
 <!--        <a onclick="gParentHarvestResultViewTab.closeContentWindow();" role="button" class="nav-link"><i class="fas fa-times"></i></a>-->
 <!--      </li>-->
 
-      <li class="nav-item btn-success">
-        <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
-          <i class="fas fa-bullseye"></i>
-        </a>
-      </li>
+<!--      <li class="nav-item btn-success">-->
+<!--        <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">-->
+<!--          <i class="fas fa-bullseye"></i>-->
+<!--        </a>-->
+<!--      </li>-->
     </ul>
   </nav> <!-- End of Header -->
 
@@ -465,34 +465,6 @@ to get the desired effect
   <div class="overlay dark"><i class="fas fa-circle-notch"></i></div>
 </div>
 
-<aside class="control-sidebar bg-light text-dark" style="border:solid; border-color: gray;">
-  <div class="form-group">
-    <label>Target Instance: </label>
-    <select id="id-ti-select" class="form-control" style="margin: 2px; width: calc(100% - 4px);">
-      <option>option 1</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label for="exampleInputEmail1">Harvest Result: </label>
-    <table class="table table-sm table-bordered">
-      <tbody id="id-hr-select">
-      <tr>
-        <td><span class="badge bg-primary">1</span></td>
-        <td>Indexed</td>
-        <td><a href="">Review</a></td>
-      </tr>
-      <tr>
-        <td><span class="badge bg-primary">2</span></td>
-        <td>Indexed</td>
-      </tr>
-      </tbody>
-    </table>
-
-  </div>
-</aside>
-
-
 <script src="../dist/jquery/jquery-3.4.1.min.js"></script>
 <script src="../dist/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="../dist/plugins/bs-custom-file-input.min.js"></script>
@@ -519,7 +491,6 @@ to get the desired effect
 <script src="popup-modify-harvest.js"></script>
 <script src="popup-hop-path.js"></script>
 <script src="url-browse.js"></script>
-<script src="harvest_result_selection.js"></script>
 
 <script>
     var urlParameters=getUrlVars();
@@ -632,9 +603,6 @@ to get the desired effect
         });
 
         bsCustomFileInput.init(); //For file input: to set filename to input text
-
-        // Initial the target instance and harvest result inside the aside component.
-        func_fetch_ti_hr_data();
     }
 
     // Initial Data
@@ -723,7 +691,7 @@ to get the desired effect
 
         initUI();
 
-<!--        initGlobalSettings();-->
+        initGlobalSettings();
     });
 </script>
 </body>
