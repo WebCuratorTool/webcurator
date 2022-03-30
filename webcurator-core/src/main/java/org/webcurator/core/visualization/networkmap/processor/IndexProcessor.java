@@ -47,10 +47,12 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     @Override
     protected void initInternal() throws IOException {
-        Set<SeedHistoryDTO> seedsHistory = wctClient.getSeedUrls(targetInstanceId, harvestResultNumber);
-        seedsHistory.forEach(seed -> {
-            this.seeds.put(seed.getSeed(), seed.isPrimary());
-        });
+        if (this.wctClient != null) {
+            Set<SeedHistoryDTO> seedsHistory = this.wctClient.getSeedUrls(targetInstanceId, harvestResultNumber);
+            seedsHistory.forEach(seed -> {
+                this.seeds.put(seed.getSeed(), seed.isPrimary());
+            });
+        }
 
         NetworkMapApplyCommand cmd = new NetworkMapApplyCommand();
         cmd.setTargetInstanceId(this.targetInstanceId);

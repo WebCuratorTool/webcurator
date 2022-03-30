@@ -128,8 +128,10 @@ public class IndexProcessorWarc extends IndexProcessor {
                 if (res.isSeed()) {
                     if (res.isRequestParseFlag() && !Utils.isEmpty(res.getViaUrl())) {
                         res.setSeed(false); //Correct it to un-seed if there is referer field exists in request record.
-                    } else {
+                    } else if (seeds.size() != 0) {
                         res.setSeedType(NetworkMapNode.SEED_TYPE_OTHER); //Other kind Seed Url. e.g. patching source urls.}
+                    } else {
+                        res.setSeedType(NetworkMapNode.SEED_TYPE_PRIMARY); //For visualization standalone app which not able to query seeds from webapp}
                     }
                 } else {
                     res.setViaUrl(httpHeaders.getValue("via"));
