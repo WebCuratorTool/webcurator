@@ -23,7 +23,6 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
@@ -121,17 +120,6 @@ public class HarvestModificationHandler {
         pair.put("data", data);
 
         result.put(key, pair);
-    }
-
-    public Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber) {
-        NetworkMapResult resultDbVersion = networkMapClient.getDbVersion(targetInstanceId, harvestResultNumber);
-        NetworkDbVersionDTO versionDTO = networkMapClient.getDbVersionDTO(resultDbVersion.getPayload());
-        Map<String, String> map = new HashMap<>();
-        map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
-        map.put("globalVersion", versionDTO.getGlobalVersion());
-        map.put("currentVersion", versionDTO.getCurrentVersion());
-        map.put("openWayBack", openWayBack);
-        return map;
     }
 
     public NetworkMapResult bulkImportParse(long targetInstanceId, int harvestResultNumber, ModifyRowFullData cmd) throws IOException, DigitalAssetStoreException {
