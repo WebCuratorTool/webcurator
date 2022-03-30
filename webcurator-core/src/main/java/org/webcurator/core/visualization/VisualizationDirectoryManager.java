@@ -10,7 +10,8 @@ public class VisualizationDirectoryManager {
     private String baseDir = null;
     private String baseLogDir = null;
     private String baseReportDir = null;
-
+    private String archiveRepository = null;
+    private String archiveArcDirectory = null;
 
     public VisualizationDirectoryManager(String baseDir, String baseLogDir, String baseReportDir) {
         this.baseDir = baseDir;
@@ -65,5 +66,21 @@ public class VisualizationDirectoryManager {
             f.mkdirs();
         }
         return s;
+    }
+
+    public String getArchiveRepository() {
+        return archiveRepository;
+    }
+
+    public void setArchiveRepository(String archiveRepository) {
+        this.archiveRepository = archiveRepository;
+    }
+
+    public String getArchiveArcDirectory() {
+        return archiveArcDirectory;
+    }
+
+    public void setArchiveArcDirectory(String archiveArcDirectory) {
+        this.archiveArcDirectory = archiveArcDirectory;
     }
 }

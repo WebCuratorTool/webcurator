@@ -1,0 +1,167 @@
+Frontier report - 202003040557
+ Job being crawled: basic
+
+ -----===== STATS =====-----
+ Discovered:    642
+ Queued:        0
+ Finished:      644
+  Successfully: 644
+  Failed:       0
+  Disregarded:  0
+
+ -----===== QUEUES =====-----
+ Already included size:     642
+               pending:     0
+
+ All class queues map size: 7
+             Active queues: 1
+                    In-process: 0
+                         Ready: 0
+                       Snoozed: 1
+           Inactive queues: 0 (p3: 0)
+            Retired queues: 0
+          Exhausted queues: 6
+
+             Last state: EMPTY
+ -----===== MANAGER THREAD =====-----
+Java Thread State: RUNNABLE
+Blocked/Waiting On: NONE
+    java.lang.Thread.getStackTrace(Thread.java:1556)
+    org.archive.crawler.framework.ToeThread.reportThread(ToeThread.java:484)
+    org.archive.crawler.frontier.WorkQueueFrontier.reportTo(WorkQueueFrontier.java:1333)
+    org.archive.crawler.reporting.FrontierSummaryReport.write(FrontierSummaryReport.java:39)
+    org.archive.crawler.reporting.StatisticsTracker.writeReportFile(StatisticsTracker.java:896)
+    org.archive.crawler.reporting.StatisticsTracker.dumpReports(StatisticsTracker.java:924)
+    org.archive.crawler.reporting.StatisticsTracker.stop(StatisticsTracker.java:342)
+    org.springframework.context.support.DefaultLifecycleProcessor.doStop(DefaultLifecycleProcessor.java:236)
+    org.springframework.context.support.DefaultLifecycleProcessor.doStop(DefaultLifecycleProcessor.java:213)
+    org.springframework.context.support.DefaultLifecycleProcessor.doStop(DefaultLifecycleProcessor.java:213)
+    org.springframework.context.support.DefaultLifecycleProcessor.doStop(DefaultLifecycleProcessor.java:213)
+    org.springframework.context.support.DefaultLifecycleProcessor.access$2(DefaultLifecycleProcessor.java:206)
+    org.springframework.context.support.DefaultLifecycleProcessor$LifecycleGroup.stop(DefaultLifecycleProcessor.java:352)
+    org.springframework.context.support.DefaultLifecycleProcessor.stopBeans(DefaultLifecycleProcessor.java:195)
+    org.springframework.context.support.DefaultLifecycleProcessor.stop(DefaultLifecycleProcessor.java:103)
+    org.springframework.context.support.AbstractApplicationContext.stop(AbstractApplicationContext.java:1241)
+    org.archive.crawler.framework.CrawlController.completeStop(CrawlController.java:392)
+    org.archive.crawler.framework.CrawlController.noteFrontierState(CrawlController.java:662)
+    org.archive.crawler.frontier.AbstractFrontier.reachedState(AbstractFrontier.java:437)
+    org.archive.crawler.frontier.AbstractFrontier.managementTasks(AbstractFrontier.java:394)
+    org.archive.crawler.frontier.AbstractFrontier$1.run(AbstractFrontier.java:311)
+
+ -----===== 7 LONGEST QUEUES =====-----
+LONGEST#0:
+Queue com,google-analytics,www, (p3)
+  0 items
+    last enqueued: https://www.google-analytics.com/favicon.ico
+      last peeked: https://www.google-analytics.com/favicon.ico
+   total expended: 4 (total budget: -1)
+   active balance: 2996
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   4 4 0 0 4 0 48390 48390 2 2020-03-04T05:23:52.280Z
+   SimplePrecedenceProvider
+   3
+
+LONGEST#1:
+Queue com,macromedia,download, (p3)
+  0 items
+    last enqueued: http://download.macromedia.com/favicon.ico
+      last peeked: http://download.macromedia.com/favicon.ico
+   total expended: 3 (total budget: -1)
+   active balance: 2997
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   3 3 0 0 3 0 1695 1695 1 2020-03-04T05:50:15.425Z
+   SimplePrecedenceProvider
+   3
+
+LONGEST#2:
+Queue com,macromedia,fpdownload, (p3)
+  0 items
+    last enqueued: https://fpdownload.macromedia.com/favicon.ico
+      last peeked: https://fpdownload.macromedia.com/favicon.ico
+   total expended: 4 (total budget: -1)
+   active balance: 2996
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   4 4 0 0 4 0 224542 224542 2 2020-03-04T05:50:10.850Z
+   SimplePrecedenceProvider
+   3
+
+LONGEST#3:
+Queue nz,govt,ird,find, (p3)
+  0 items
+    last enqueued: https://find.ird.govt.nz/syl/services/search
+      last peeked: https://find.ird.govt.nz/syl/rest/search/sourcelist
+   total expended: 4 (total budget: -1)
+   active balance: 2996
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   4 4 0 0 4 0 1856 1856 2 2020-03-04T05:25:56.231Z
+   SimplePrecedenceProvider
+   3
+
+LONGEST#4:
+Queue nz,govt,ird,www, (p3)
+  0 items
+    last enqueued: https://www.ird.govt.nz/resources/9/b/9be59d6b-ce1b-42e5-9671-87e514248169/icon-search.png
+      last peeked: https://www.ird.govt.nz/resources/9/b/9be59d6b-ce1b-42e5-9671-87e514248169/icon-search.png
+   total expended: 3 (total budget: -1)
+   active balance: 2997
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   3 3 0 0 3 0 2377 2377 2 2020-03-04T05:25:49.620Z
+   SimplePrecedenceProvider
+   3
+
+LONGEST#5:
+Queue nz,govt,kiwisaver, (p3)
+  0 items
+    last enqueued: http://kiwisaver.govt.nz/favicon.ico
+      last peeked: http://kiwisaver.govt.nz/favicon.ico
+   total expended: 4 (total budget: -1)
+   active balance: 2996
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   4 4 0 0 4 0 418 418 2 2020-03-04T05:23:51.861Z
+   SimplePrecedenceProvider
+   3
+
+LONGEST#6:
+Queue nz,govt,kiwisaver,www, (p3)
+  0 items
+   wakes in: 866ms
+    last enqueued: http://www.kiwisaver.govt.nz/already/contributions/you/leave/
+      last peeked: http://www.kiwisaver.govt.nz/already/contributions/you/leave/
+   total expended: 622 (total budget: -1)
+   active balance: 2378
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   622 622 0 0 622 0 8921815 8921815 2 2020-03-04T05:56:59.105Z
+   SimplePrecedenceProvider
+   3
+
+
+ -----===== IN-PROCESS QUEUES =====-----
+
+ -----===== READY QUEUES =====-----
+
+ -----===== SNOOZED QUEUES =====-----
+SNOOZED#0:
+Queue nz,govt,kiwisaver,www, (p3)
+  0 items
+   wakes in: 866ms
+    last enqueued: http://www.kiwisaver.govt.nz/already/contributions/you/leave/
+      last peeked: http://www.kiwisaver.govt.nz/already/contributions/you/leave/
+   total expended: 622 (total budget: -1)
+   active balance: 2378
+   last(avg) cost: 1(1)
+   totalScheduled fetchSuccesses fetchFailures fetchDisregards fetchResponses robotsDenials successBytes totalBytes fetchNonResponses lastSuccessTime
+   622 622 0 0 622 0 8921815 8921815 2 2020-03-04T05:56:59.105Z
+   SimplePrecedenceProvider
+   3
+
+
+ -----===== INACTIVE QUEUES =====-----
+
+ -----===== RETIRED QUEUES =====-----
