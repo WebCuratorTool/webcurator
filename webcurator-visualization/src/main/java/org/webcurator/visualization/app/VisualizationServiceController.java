@@ -72,15 +72,15 @@ public class VisualizationServiceController {
         return hrList;
     }
 
-    @RequestMapping(path = "/curator/get/global-settings", method = {RequestMethod.POST, RequestMethod.GET})
-    public Map<String, String> getGlobalSettings(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) {
-        NetworkMapResult resultDbVersion = networkMapClient.getDbVersion(targetInstanceId, harvestResultNumber);
-        NetworkDbVersionDTO versionDTO = networkMapClient.getDbVersionDTO(resultDbVersion.getPayload());
-        Map<String, String> map = new HashMap<>();
-        map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
-        map.put("globalVersion", versionDTO.getGlobalVersion());
-        map.put("currentVersion", versionDTO.getCurrentVersion());
-        map.put("openWayBack", openWayBack);
-        return map;
-    }
+//    @RequestMapping(path = "/curator/get/global-settings", method = {RequestMethod.POST, RequestMethod.GET})
+//    public Map<String, String> getGlobalSettings(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) {
+//        NetworkMapResult resultDbVersion = networkMapClient.getDbVersion(targetInstanceId, harvestResultNumber);
+//        NetworkDbVersionDTO versionDTO = networkMapClient.getDbVersionDTO(resultDbVersion.getPayload());
+//        Map<String, String> map = new HashMap<>();
+//        map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
+//        map.put("globalVersion", versionDTO.getGlobalVersion());
+//        map.put("currentVersion", versionDTO.getCurrentVersion());
+//        map.put("openWayBack", openWayBack);
+//        return map;
+//    }
 }

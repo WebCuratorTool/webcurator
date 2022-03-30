@@ -16,7 +16,8 @@ import java.util.Arrays;
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @ComponentScan(basePackages = {"org.webcurator.visualization.app",
         "org.webcurator.visualization.springboot",
-        "org.webcurator.core.visualization"},
+        "org.webcurator.core.visualization",
+        "org.webcurator.ui.tools.controller"},
 // HarvestAgentListenerService should be running on webcurator-webapp.
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = {HarvestAgentListenerService.class, WctCoordinatorImpl.class})

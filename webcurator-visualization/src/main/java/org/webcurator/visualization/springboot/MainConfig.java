@@ -14,8 +14,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.webcurator.core.coordinator.HarvestResultManager;
+import org.webcurator.core.coordinator.HarvestResultManagerImpl;
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManagerImpl;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
+import org.webcurator.core.visualization.browser.VisWayBackClient;
+import org.webcurator.core.visualization.browser.VisWayBackClientLocal;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
@@ -23,6 +30,7 @@ import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLoca
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.store.*;
 import org.webcurator.core.util.ApplicationContextFactory;
+import org.webcurator.domain.model.core.HarvestResult;
 
 import javax.annotation.PostConstruct;
 import java.nio.file.Files;
@@ -143,14 +151,14 @@ public class MainConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public VisualizationDirectoryManager visualizationManager() {
+    public VisualizationDirectoryManager visualizationDirectoryManager() {
         return new VisualizationDirectoryManager(arcDigitalAssetStoreServiceBaseDir, "logs", "reports");
     }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public VisualizationProcessorManager visualizationProcessorQueue() {
-        return new VisualizationProcessorManager(visualizationManager(),
+        return new VisualizationProcessorManager(visualizationDirectoryManager(),
                 null,
                 maxConcurrencyModThreads);
     }
@@ -224,6 +232,33 @@ public class MainConfig {
         return bean;
     }
 
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerNormal() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(null);
+        bean.setDigitalAssetStoreFactory(null);
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_CRAWLING);
+        return bean;
+    }
+
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerModification() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(null);
+        bean.setDigitalAssetStoreFactory(null);
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_MODIFYING);
+        return bean;
+    }
+
+    @Bean(name = HarvestResult.PATCH_STAGE_TYPE_INDEXING)
+    public PatchingHarvestLogManager patchingHarvestLogManagerIndex() {
+        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        bean.setHarvestAgentManager(null);
+        bean.setDigitalAssetStoreFactory(null);
+        bean.setType(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
+        return bean;
+    }
+
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public BDBNetworkMapPool bdbDatabasePool() {
@@ -236,4 +271,20 @@ public class MainConfig {
     public NetworkMapClient networkMapLocalClient() {
         return new NetworkMapClientLocal(bdbDatabasePool(), visualizationProcessorQueue());
     }
+
+    @Bean
+    public VisWayBackClient visWayBackClient() {
+        VisWayBackClientLocal bean = new VisWayBackClientLocal();
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setDirectoryManager(visualizationDirectoryManager());
+        bean.setNetworkMapClient(networkMapLocalClient());
+        return bean;
+    }
+
+//    @Bean
+//    public LocalSessionFactoryBean sessionFactory() {
+//        LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
+//
+//        return bean;
+//    }
 }

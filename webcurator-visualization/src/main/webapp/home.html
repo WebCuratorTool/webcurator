@@ -31,13 +31,12 @@
 </head>
 <body class="hold-transition sidebar-mini sidebar-collapse layout-fixed">
 <div class="wrapper">
-
     <nav id="nav-content" class="main-header navbar navbar-expand navbar-white navbar-light">
         <iframe id="iframe-main-content" src="tools/visualization.html" class="content-window-normal-screen"></iframe>
     </nav>
 
 
-    <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <aside class="main-sidebar sidebar-dark-primary elevation-2">
         <a href="#" class="brand-link elevation-4">
             <img src="favicon.ico" alt="Visualization Show" class="brand-image img-circle elevation-3" style="opacity: .8">
             <span class="brand-text font-weight-light">Visualization Show</span>
@@ -46,24 +45,6 @@
         <div class="sidebar">
             <nav class="mt-2">
                 <ul id="harvest-result-list" class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fas fa-copy"></i>
-                            <p>
-                                TI ID: 893502321
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="../layout/top-nav.html" class="nav-link">
-                                    <i class="far fa-circle nav-icon" style="font-size: 0.8em;"></i>
-                                    <p>HR Num: 1</p>
-                                    <span class="badge badge-info right">Indexed</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
                 </ul>
             </nav>
         </div>
@@ -92,7 +73,7 @@
    function gen_html_content_ti(ti){
       var h='<li class="nav-item">';
       h+='<a href="#" class="nav-link">'
-      h+='<i class="nav-icon fas fa-copy"></i>';
+      h+='<i class="nav-icon fas fa-bullseye"></i>';
       h+='<p>';
       h=h+'TI ID: '+ti.tiId;
       h+='<i class="fas fa-angle-left right"></i>';
@@ -112,7 +93,11 @@
    function gen_html_content_hr(jobId, hr){
       var h='<li class="nav-item">';
       h+='<a href="javascript: switch_url_iframe('+jobId+','+hr.hrId+','+hr.hrNumber+')" class="nav-link">';
-      h+='<i class="far fa-circle nav-icon" style="font-size: 0.8em;"></i>';
+      if(!hr.indexed){
+        h+='<i class="far fa-circle nav-icon text-danger" style="font-size: 0.8em;"></i>';
+      }else{
+        h+='<i class="far fa-circle nav-icon" style="font-size: 0.8em;"></i>';
+      }
       h=h+'<p>HR Num: '+hr.hrNumber+'</p>';
       if(!hr.indexed){
         h+='<span class="badge badge-info right">No Index</span>';
