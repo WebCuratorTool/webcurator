@@ -7,10 +7,7 @@ import com.sleepycat.je.OperationStatus;
 import org.webcurator.common.util.Utils;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.URLResolverFunc;
-import org.webcurator.core.visualization.VisualizationAbstractProcessor;
-import org.webcurator.core.visualization.VisualizationProcessorManager;
-import org.webcurator.core.visualization.VisualizationProgressBar;
-import org.webcurator.core.visualization.VisualizationProgressView;
+import org.webcurator.core.visualization.*;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.*;
@@ -25,10 +22,16 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     private final static String regex = "\\d+";
     private final BDBNetworkMapPool pool;
     private final VisualizationProcessorManager visualizationProcessorManager;
+    private final VisualizationDirectoryManager visualizationDirectoryManager;
 
     public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorManager visualizationProcessorManager) {
         this.pool = pool;
         this.visualizationProcessorManager = visualizationProcessorManager;
+        if (visualizationProcessorManager != null) {
+            visualizationDirectoryManager = visualizationProcessorManager.getVisualizationDirectoryManager();
+        } else {
+            visualizationDirectoryManager = null;
+        }
     }
 
     @Override
@@ -452,7 +455,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         List<NetworkMapNodeDTO> urlList = new ArrayList<>();
         for (String urlName : urlNameList) {
             NetworkMapNodeDTO node = db.getUrlByUrlName(urlName);
-            if (node!=null){
+            if (node != null) {
                 urlList.add(node);
             }
         }
@@ -506,6 +509,22 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(this.obj2Json(hrDTO));
         return result;
+    }
+
+    @Override
+    public Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber) {
+        NetworkMapResult resultDbVersion = this.getDbVersion(targetInstanceId, harvestResultNumber);
+        NetworkDbVersionDTO versionDTO = this.getDbVersionDTO(resultDbVersion.getPayload());
+        Map<String, String> map = new HashMap<>();
+        map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
+        map.put("globalVersion", versionDTO.getGlobalVersion());
+        map.put("currentVersion", versionDTO.getCurrentVersion());
+        if (this.visualizationDirectoryManager != null) {
+            map.put("openWayBack", this.visualizationDirectoryManager.getOpenWayBack());
+        } else {
+            map.put("openWayBack", "unknown");
+        }
+        return map;
     }
 }
 

@@ -12,6 +12,7 @@ public class VisualizationDirectoryManager {
     private String baseReportDir = null;
     private String archiveRepository = null;
     private String archiveArcDirectory = null;
+    private String openWayBack = null;
 
     public VisualizationDirectoryManager(String baseDir, String baseLogDir, String baseReportDir) {
         this.baseDir = baseDir;
@@ -82,5 +83,13 @@ public class VisualizationDirectoryManager {
 
     public void setArchiveArcDirectory(String archiveArcDirectory) {
         this.archiveArcDirectory = archiveArcDirectory;
+    }
+
+    public String getOpenWayBack() {
+        return openWayBack;
+    }
+
+    public void setOpenWayBack(String openWayBack) {
+        this.openWayBack = openWayBack;
     }
 }

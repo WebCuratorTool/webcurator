@@ -8,10 +8,8 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public interface NetworkMapService extends VisualizationServiceInterface {
     NetworkMapResult initialIndex(long job, int harvestResultNumber);
@@ -82,4 +80,6 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
         return null;
     }
+
+    Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber);
 }

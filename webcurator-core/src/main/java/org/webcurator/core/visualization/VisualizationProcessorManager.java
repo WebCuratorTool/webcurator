@@ -156,4 +156,8 @@ public class VisualizationProcessorManager {
             return System.currentTimeMillis() - startTime;
         }
     }
+
+    public VisualizationDirectoryManager getVisualizationDirectoryManager() {
+        return visualizationDirectoryManager;
+    }
 }

@@ -2,6 +2,7 @@ package org.webcurator.core.visualization;
 
 public class VisualizationConstants {
     public static final String ROOT_PATH = "/curator";
+    public static final String GLOBAL_SETTINGS = ROOT_PATH + "/get/global-settings";
     public static final String PATH_UPLOAD_FILE = ROOT_PATH + "/modification/upload-file-stream";
     public static final String PATH_CHECK_FILES = ROOT_PATH + "/modification/check-files";
     public static final String PATH_APPLY_PRUNE_IMPORT = ROOT_PATH + "/modification/apply";
