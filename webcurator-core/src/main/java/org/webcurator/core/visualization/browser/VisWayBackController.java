@@ -4,14 +4,15 @@ import org.apache.commons.httpclient.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.DigitalAssetStorePaths;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.net.URLDecoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -30,6 +31,24 @@ public class VisWayBackController implements VisWayBackService {
             log.info(e.getMessage());
         }
         return null;
+    }
+
+    @RequestMapping(path = DigitalAssetStorePaths.RESOURCE, method = {RequestMethod.POST, RequestMethod.GET})
+    void getResourceExternal(@PathVariable(value = "target-instance-id") long targetInstanceId,
+                             @RequestParam(value = "harvest-result-number") int harvestResultNumber,
+                             @RequestParam(value = "resource-url") String resourceUrl,
+                             HttpServletRequest req,
+                             HttpServletResponse rsp) throws DigitalAssetStoreException {
+        log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
+        Path path = getResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
+        if (path == null) {
+            return;
+        }
+        try {
+            Files.copy(path, rsp.getOutputStream());
+        } catch (IOException e) {
+            throw new DigitalAssetStoreException(e.getMessage());
+        }
     }
 
     @PostMapping(path = DigitalAssetStorePaths.SMALL_RESOURCE)

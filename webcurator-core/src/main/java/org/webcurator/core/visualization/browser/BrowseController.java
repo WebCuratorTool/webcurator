@@ -1,7 +1,9 @@
 package org.webcurator.core.visualization.browser;
 
+import bsh.StringUtil;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,7 +139,10 @@ public class BrowseController {
         IOUtils.read(Files.newInputStream(path), buf);
         path.toFile().delete();
 
-        StringBuilder content = new StringBuilder(new String(buf));
+        if (StringUtils.isEmpty(charset)) {
+            charset = Charset.defaultCharset().name();
+        }
+        StringBuilder content = new StringBuilder(new String(buf, charset));
 
         Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern("BASE", "HREF");
         Matcher m = baseUrlGetter.matcher(content);
@@ -155,7 +160,7 @@ public class BrowseController {
         }
         browseHelper.fix(content, simpleContentType, jobId, harvestResultNumber, baseUrl);
 
-        rsp.getOutputStream().write(content.toString().getBytes());
+        rsp.getOutputStream().write(content.toString().getBytes(charset));
     }
 
     private String getHeaderValue(List<Header> headers, String key) {

@@ -3,6 +3,7 @@ package org.webcurator.ui.tools.controller;
 import org.archive.wayback.ResultURIConverter;
 import org.archive.wayback.replay.html.ReplayParseContext;
 import org.archive.wayback.util.url.UrlOperations;
+import org.webcurator.core.visualization.browser.BrowseHelper;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;

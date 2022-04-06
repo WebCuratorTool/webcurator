@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.core.visualization.browser.BrowseHelper;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.tools.command.QualityReviewToolCommand;

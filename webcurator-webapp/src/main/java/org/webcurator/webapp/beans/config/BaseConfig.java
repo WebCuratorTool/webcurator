@@ -40,7 +40,6 @@ import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.common.EnvironmentImpl;
-import org.webcurator.core.common.TreeToolControllerAttribute;
 import org.webcurator.core.coordinator.HarvestResultManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
@@ -69,6 +68,8 @@ import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.LockManager;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
+import org.webcurator.core.visualization.browser.VisWayBackClient;
+import org.webcurator.core.visualization.browser.VisWayBackClientRemote;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientRemote;
 import org.webcurator.domain.*;
@@ -1262,5 +1263,11 @@ public class BaseConfig {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
         return new PolitenessOptions(crawlPolitenessAggressiveDelayFactor, crawlPolitenessAggressiveMinDelayMs, crawlPolitenessAggressiveMaxDelayMs, crawlPolitenessAggressiveRespectCrawlDelay, crawlPolitenessAggressiveMaxPerHostBandwidth);
+    }
+
+    @Bean
+    public VisWayBackClient getVisWayBackClient() {
+        VisWayBackClientRemote bean = new VisWayBackClientRemote(digitalAssetStoreBaseUrl, restTemplateBuilder);
+        return bean;
     }
 }

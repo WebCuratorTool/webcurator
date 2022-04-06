@@ -45,8 +45,8 @@ import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.AuthUtil;
+import org.webcurator.core.visualization.browser.VisWayBackClient;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -102,7 +102,7 @@ public class QaIndicatorRobotsReportController {
      * interface for retrieving data for excluded indicators
      **/
     @Autowired
-    private DigitalAssetStore digitalAssetStore;
+    private VisWayBackClient visWayBackClient;
 
     @Autowired
     private NetworkMapClient networkMapClient;
@@ -146,7 +146,7 @@ public class QaIndicatorRobotsReportController {
         List<String> lines = new ArrayList<String>();
         robotUrls.forEach(resourceUrl -> {
             try {
-                Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), resourceUrl.getUrl());
+                Path path = visWayBackClient.getResource(ti.getOid(), hr.getHarvestNumber(), resourceUrl.getUrl());
                 // read the file for reporting
                 Files.readAllLines(path).stream().filter(line -> {
                     return line != null && line.trim().length() > 0;

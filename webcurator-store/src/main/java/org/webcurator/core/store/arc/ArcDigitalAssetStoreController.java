@@ -1,6 +1,5 @@
 package org.webcurator.core.store.arc;
 
-import org.apache.commons.httpclient.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,18 +14,13 @@ import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.harvester.store.HarvestStoreDTO;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLDecoder;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -39,62 +33,6 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @Autowired
     @Qualifier("arcDigitalAssetStoreService")
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
-
-    //    @PostMapping(path = DigitalAssetStorePaths.RESOURCE, produces = "application/octet-stream")
-//    public @ResponseBody
-    @RequestMapping(path = DigitalAssetStorePaths.RESOURCE, method = {RequestMethod.POST, RequestMethod.GET})
-    void getResourceExternal(@PathVariable(value = "target-instance-id") long targetInstanceId,
-                             @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                             @RequestParam(value = "resource-url") String resourceUrl,
-                             HttpServletRequest req,
-                             HttpServletResponse rsp) throws DigitalAssetStoreException {
-        log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        Path path = getResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
-        if (path==null){
-            return;
-        }
-        try {
-            Files.copy(path, rsp.getOutputStream());
-        } catch (IOException e) {
-            throw new DigitalAssetStoreException(e.getMessage());
-        }
-    }
-
-    @Override
-    public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) {
-        try {
-            return arcDigitalAssetStoreService.getResource(targetInstanceId, harvestResultNumber, resourceUrl);
-        } catch (DigitalAssetStoreException e) {
-            log.info(e.getMessage());
-        }
-        return null;
-    }
-
-    @PostMapping(path = DigitalAssetStorePaths.SMALL_RESOURCE)
-    public byte[] getSmallResourceExternal(@PathVariable(value = "target-instance-id") long targetInstanceId,
-                                           @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                                           @RequestParam(value = "resource-url") String resourceUrl) throws DigitalAssetStoreException {
-        log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        return getSmallResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
-    }
-
-    @Override
-    public byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
-        return arcDigitalAssetStoreService.getSmallResource(targetInstanceId, harvestResultNumber, resourceUrl);
-    }
-
-    @PostMapping(path = DigitalAssetStorePaths.HEADERS)
-    public List<Header> getHeadersExternal(@PathVariable(value = "target-instance-id") long targetInstanceId,
-                                           @RequestParam(value = "harvest-result-number") int harvestResultNumber,
-                                           @RequestParam(value = "resource-url") String resourceUrl) throws DigitalAssetStoreException {
-        log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        return getHeaders(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
-    }
-
-    @Override
-    public List<Header> getHeaders(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
-        return arcDigitalAssetStoreService.getHeaders(targetInstanceId, harvestResultNumber, resourceUrl);
-    }
 
     @Override
     @PostMapping(path = DigitalAssetStorePaths.INITIATE_INDEXING)

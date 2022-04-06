@@ -45,7 +45,7 @@ configurations {
 dependencies {
     implementation('org.netpreserve.openwayback:openwayback-core:2.4.0'){
         exclude group: 'org.netpreserve.commons', module: 'webarchive-commons'
-        exclude group: 'com.sleepycat', module: 'je'
+//        exclude group: 'com.sleepycat', module: 'je'
     }
     implementation('org.apache.tiles:tiles-jsp:3.0.8') {
         // Use Spring boot logging.
