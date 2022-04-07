@@ -2364,8 +2364,7 @@ There are several ways of importing content:
 Bulk Patching
 ~~~~~~~~~~~~~
 
-  URLs and files can be imported and pruned in bulk. This requires the use of a spreadsheet for specifying those URLs
-  and files.
+  URLs can be imported and pruned in bulk. This requires the use of a spreadsheet for specifying those URLs.
 
   - The spreadsheet template can be downloaded by clicking the *Bulk Patching Template* item in the Patch Harvest menu.
 
@@ -2386,23 +2385,6 @@ Bulk Patching
     Figure 48. URLs to be pruned and imported in bulk
 
 
-
-- Using the template to import files
-
-  In a copy of the bulk patching template, enter the following data and save the file:
-
-  - **Target** - specify the target URLs to be imported.
-
-  - **Option** - specify the action to be taken, either *PRUNE* or *RECRAWL*.
-
-  - **LocalFileName** - specify the local path to the file to be imported.
-
-  - **ModifiedMode** - specify the //TODO
-
-  - **LastModifiedDate** - specify the time stamp associated with the file, in the format *yyy-mm-ddThh:mm*.
-
-
-
 - Loading the template
 
   A bulk patching spreadsheet can be loaded by clicking the *Bulk Prune/Import* item in the Patch Harvest menu. Then
@@ -2414,6 +2396,9 @@ Bulk Patching
   |image124|
 
     Figure 49. URLs to be pruned and imported in bulk
+
+
+*Note, due to modern browser security restrictions it is not possible to import local files in bulk.*
 
 
 Staging and Review
@@ -2431,7 +2416,7 @@ Staging and Review
   - *Option* - Patching action (PRUNE or RECRAWL)
   - *Target* - URL to be patched
   - *File* - local file to be imported
-  - *Modified Mode* - //TODO
+  - *Modified Mode* - mode to determine the modified date of an imported file ("Current System Time", "File Modified Time", "Custom")
   - *Modify Date* - modified date of local file to be imported
   - *Type* - Mime type of the URL
   - *Status* - http status code of the URL
