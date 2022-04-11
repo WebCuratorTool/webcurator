@@ -1,6 +1,5 @@
 package org.webcurator.core.visualization.browser;
 
-import bsh.StringUtil;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -45,12 +44,15 @@ public class BrowseController {
             headers = visWayBackClient.getHeaders(jobId, harvestResultNumber, url);
         } catch (Exception e) {
             log.error("Unexpected exception encountered when retrieving WARC headers for {} {}", jobId, harvestResultNumber);
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+//            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.getOutputStream().write((HttpServletResponse.SC_NOT_FOUND + ": " + url).getBytes(StandardCharsets.UTF_8));
+            return;
         }
 
         String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
         if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+//            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.getOutputStream().write((HttpServletResponse.SC_NOT_FOUND + ": " + url).getBytes(StandardCharsets.UTF_8));
             return;
         }
 
@@ -85,7 +87,9 @@ public class BrowseController {
             headers = visWayBackClient.getHeaders(jobId, harvestResultNumber, baseUrl);
         } catch (Exception e) {
             log.error("Unexpected exception encountered when retrieving WARC headers for {} {} ", jobId, harvestResultNumber);
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+//            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.getOutputStream().write((HttpServletResponse.SC_NOT_FOUND + ": " + baseUrl).getBytes(StandardCharsets.UTF_8));
+            return;
         }
 
         // Get the content type.
@@ -107,7 +111,8 @@ public class BrowseController {
 
         String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
         if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+//            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            rsp.getOutputStream().write((HttpServletResponse.SC_NOT_FOUND + ": " + baseUrl).getBytes(StandardCharsets.UTF_8));
             return;
         }
 

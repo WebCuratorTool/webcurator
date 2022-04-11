@@ -88,16 +88,16 @@ class NetworkMap{
 	}
 
 	static contextMenuItemsGrid={
-        "prune-current": {"name": "Prune Current", icon: "far fa-trash-alt"},
-		"prune-selected": {"name": "Prune Selected", icon: "fas fa-trash-alt"},
-    	"sep1": "---------",
+//        "prune-current": {"name": "Prune Current", icon: "far fa-trash-alt"},
+//		"prune-selected": {"name": "Prune Selected", icon: "fas fa-trash-alt"},
+//    	"sep1": "---------",
     	"inspect-current": {"name": "Inspect Current", icon: "far fa-eye"},
 		"inspect-selected": {"name": "Inspect Selected", icon: "fas fa-eye"}
     };
 
     static contextMenuItemsGraph={
-        "prune-current": {"name": "Prune", icon: "far fa-trash-alt"},
-    	"sep1": "---------",
+//        "prune-current": {"name": "Prune", icon: "far fa-trash-alt"},
+//    	"sep1": "---------",
     	"inspect-current": {"name": "Inspect", icon: "far fa-eye"},
     };
 }

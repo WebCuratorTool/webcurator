@@ -199,17 +199,17 @@ var itemsUndo={
 var contextMenuItemsUrlBasic={
   "hoppath-current": {name: "HopPath Current", icon: "fas fa-link"},
   "sep1": "---------",
-  "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
-  "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
-  "import-current": {name: "Import From File", icon: "fas fa-file-import"},
-  "sep2": "---------",
+//  "pruneHarvest": {name: "Prune", icon: "far fa-times-circle", items: itemsPruneHarvest},
+//  "recrawlHarvest": {name: "Recrawl", icon: "fas fa-redo", items: itemsRecrawlHarvest},
+//  "import-current": {name: "Import From File", icon: "fas fa-file-import"},
+//  "sep2": "---------",
   "browse": {name: "Browse", icon: "fab fa-internet-explorer text-primary", items: itemsBrowse},
   "download": {name: "Download", icon: "fas fa-download text-warning"},
-  "sep3": "---------",
-  "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
-      "exportInspect-selected": {"name": "Selected"},
-      "exportInspect-all": {"name": "All"}
-  }},
+//  "sep3": "---------",
+//  "exportLinks": {name: "Export Data", icon: "fas fa-file-export", items: {
+//      "exportInspect-selected": {"name": "Selected"},
+//      "exportInspect-all": {"name": "All"}
+//  }},
 };
 
 var contextMenuItemsUrlGrid=JSON.parse(JSON.stringify(contextMenuItemsUrlBasic));
