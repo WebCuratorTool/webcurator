@@ -98,7 +98,7 @@
       }else{
         h+='<i class="far fa-circle nav-icon" style="font-size: 0.8em;"></i>';
       }
-      h=h+'<p>HR Num: '+hr.hrNumber+'</p>';
+      h=h+'<p>Harvest Result: '+hr.hrNumber+'</p>';
       if(!hr.indexed){
         h+='<span class="badge badge-info right">No Index</span>';
       }
@@ -112,10 +112,11 @@
       $('#iframe-main-content').attr('src', url);
    }
 
-   $(function(){
+   function refresh(){
         var reqUrl="/vis/all_hr_results";
         fetchHttp(reqUrl, null, fill_aside_list);
-   });
+   }
+   $(function(){ refresh(); });
 </script>
 </body>
 </html>
