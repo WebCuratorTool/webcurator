@@ -1,6 +1,6 @@
-=============
-Upgrade Guide
-=============
+=================
+Upgrade Guide 3.0
+=================
 
 
 Introduction
@@ -302,7 +302,7 @@ Deploying WCT
     components. Ensure the WCT system user has read and write permission to the
     base directories for WCT Store and the Harvest Agents.
 
-6.  Copy any settings from the old properties and configuration files you backed
+7.  Copy any settings from the old properties and configuration files you backed
     up in step 3. Start from the new configuration files and merge any relevant
     values from your old configuration files back in. ::
 

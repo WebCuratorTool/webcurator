@@ -38,7 +38,6 @@ Refer to the following guides:
 -   :doc:`User Manual<user-manual>`
 -   :doc:`System Administrator Guide<system-administrator-guide>`
 -   :doc:`Release Notes<release-notes>`
--   :doc:`Upgrade Guide<upgrade-guide>`
 -   :doc:`FAQ<faq>`
 
 
@@ -60,25 +59,18 @@ Make sure you have at least one WCT Harvest Agent running. A Harvest Agent is th
 performs the crawl of your Target website. From the WCT Home screen, go to *general* under *Harvester Configuration* and
 you should see a list of your available Harvest Agents.
 
-Bandwidth Exceeded
-------------------
-
-Daily bandwidth caps can be set for your Harvest Agents. If you cap is exceeded then WCT will prevent any further
-harvests from completing for that day. From the WCT Home screen, go to *bandwidth* under *Harvester Configuration* and
-you can set the bandwidth limits and thresholds for each day.
-
 Harvest Logs
 ------------
 Once a Target Instance starts to harvest, a number of log files get generated. Upon opening a running Target Instance,
 go to the *logs* tab. Two logs that are useful for troubleshooting are `crawl.log` and `local-errors.log`. Definitions
 for the status codes in crawl.log can be found in the
-`Heritrix documentation<http://crawler.archive.org/articles/user_manual/glossary.html>`_.
+`Heritrix documentation <http://crawler.archive.org/articles/user_manual/glossary.html>`_.
 
 Harvester Profiles
 ------------------
 Harvester profiles contain the settings that control how a harvest behaves. These are based on Heritrix profiles and set
 how a website is crawled buy the Harvest Agent. Consult the
-`Heritrix manual<http://crawler.archive.org/articles/user_manual/config.html>`_ on how to configure your profiles.
+`Heritrix manual <http://crawler.archive.org/articles/user_manual/config.html>`_ on how to configure your profiles.
 
 
 Known issues

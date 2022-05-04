@@ -164,13 +164,13 @@ prior to setting up the WCT database and schema.*
 2. Run the following SQL scripts under the DB_WCT user or SYSTEM
    account::
 
-    db/latest/sql/wct-schema-postgresql.sql
+    db/latest/sql/wct-schema-postgres.sql
 
-    db/latest/sql/wct-schema-grants-postgresql.sql
+    db/latest/sql/wct-schema-grants-postgres.sql
 
-    db/latest/sql/wct-indexes-postgresql.sql
+    db/latest/sql/wct-indexes-postgres.sql
 
-    db/latest/sql/wct-bootstrap-postgresql.sql
+    db/latest/sql/wct-bootstrap-postgres.sql
 
     db/latest/sql/wct-qa-data-postgres.sql
 
@@ -270,7 +270,6 @@ To build WCT:
    - webcurator-webapp/build/libs/webcurator-webapp.war
    - webcurator-store/build/libs/webcurator-store.war
    - webcurator-harvest-agent-h3/build/libs/webcurator-harvest-agent-h3.jar
-   - webcurator-harvest-agent-h1/build/libs/webcurator-harvest-agent-h1.jar
 
 Deploying WCT
 -------------
@@ -280,7 +279,7 @@ Tool:
 
 -  Webapp (webcurator-webapp.war)
 -  Digital Asset Store (webcurator-store.war).
--  Harvest Agent (harvest-agent-h3.jar, harvest-agent-h1.jar)
+-  Harvest Agent (harvest-agent-h3.jar)
 
 Each of these three components must be deployed for the Web Curator
 Tool to be fully functional and more than one harvest agent can be
@@ -324,6 +323,13 @@ Additional properties can be passed to the Java Virtual Machine (JVM) for WCT on
 instance, the maximum allowed memory a WCT component can use::
 
     java -Xmx512m -jar webcurator-webapp.war
+
+- **Memory**
+
+    Increased memory allocation for Webapp and Store may be required if performance
+    issues are experienced with the harvest visualization feature from v3.1 onwards.
+    This can be dependent on the size of harvests and whether all the WCT components and
+    Heritrix are running on a single server.
 
 Configuring WCT properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -624,43 +630,6 @@ Configure a Heritrix 3 - Harvest Agent
    Heritrix v3 profile that is shipped with the WCT. See the `Default profile`_ section.
 
 
-Configure a Heritrix 1 - Harvest Agent
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--  Inside harvest-agent-h1.jar, open the **application.properties** file for editing::
-
-      harvest-agent-h1.jar\BOOT-INF\classes\application.properties
-
-   Set the *server.port* property to an open port on the server that the Harvest Agent will run on::
-
-      server.port=8081
-
-   Set the Base Directory of the Harvest Agent to a valid location on the server. Also make
-   sure the directory or shared folder has enough free disk space::
-
-      # name of the directory where the temporary harvest data is stored
-      harvestAgent.baseHarvestDirectory=/usr/local/wct/harvest-agent
-
-   Set the base URL (scheme, host, port and context) connection details for the Webapp::
-
-      # the base service url of Webapp
-      harvestCoordinatorNotifier.baseUrl=http://localhost:8080/wct
-
-   Set the base URL (scheme, host, and port) connection details for the DAS::
-
-      digitalAssetStore.baseUrl=http://localhost:8082
-
-   If the Harvest Agent will be running on a different server to the DAS, then set the file upload mode to *stream*::
-
-      # 1) copy: when Harvest Agent and Store Component are deployed on the same machine;
-      # 2) stream: when Harvest Agent and Store Component are distributed deployed on different machines;
-      digitalAssetStore.fileUploadMode=copy
-
-   Update the **application.properties** file inside harvest-agent-h1.jar with any change.
-
--  Alternatively, set the above parameters in your Harvest Agent local Spring application profile, and
-   override the default values in **application.properties**.
-
 Logon to WCT
 ~~~~~~~~~~~~
 
@@ -757,59 +726,6 @@ See the following table to troubleshoot Web Curator Tool setup.
 |                                   | have been provided to generate initial       |
 |                                   | values for the QA indicators.                |
 +-----------------------------------+----------------------------------------------+
-| **Heritrix 1.x harvests fail**    | If the following error message appears in    |
-| **with null pointer exception**   | the logs:                                    |
-|                                   |                                              |
-|                                   | java.lang.NullPointerException               |
-|                                   |                                              |
-|                                   | at                                           |
-|                                   | org.archive.crawler.admin.                   |
-|                                   | **CrawlJobHandler.loadJobs**                 |
-|                                   | (CrawlJobHandler.java:251)                   |
-|                                   |                                              |
-|                                   | at                                           |
-|                                   | org.archive.crawler.admin.                   |
-|                                   | **CrawlJobHandler.<init>**                   |
-|                                   | CrawlJobHandler.java:221)                    |
-|                                   |                                              |
-|                                   | The user running the WCT processes does      |
-|                                   | not have permission to write to the folder   |
-|                                   | Heritrix is using to store harvests in       |
-|                                   | progress.                                    |
-|                                   |                                              |
-|                                   | Add one of the following to the              |
-|                                   | startup command for harvest-agent-h1 or      |
-|                                   | that user's environment setup script:        |
-|                                   |                                              |
-|                                   | -Dheritrix.jobsdir=/var/wct/agent            |
-|                                   |                                              |
-|                                   | Or                                           |
-|                                   |                                              |
-|                                   | -Dheritrix.home=/var/wct/agent               |
-|                                   | -Dheritrix.jobsdir=jobs                      |
-|                                   |                                              |
-|                                   | The heritrix.jobsdir must be an              |
-|                                   | absolute path (i.e. starting with            |
-|                                   | a "/") otherwise the                         |
-|                                   | heritrix.home folder needs to be             |
-|                                   | specified as well.                           |
-+-----------------------------------+----------------------------------------------+
-|  **Heritrix 1.x harvests fail**   | The other common trap is not defining the    |
-|  **silently**                     | default bandwidth for the system. On start-up|
-|                                   | of WCT the system bandwidth is set to 0 KB's |
-|                                   | for every day of the week. Before Harvests   |
-|                                   | can be initiated you must specify a base     |
-|                                   | bandwidth for each of the days you plan to   |
-|                                   | harvest on.                                  |
-|                                   |                                              |
-|                                   | In order to setup the bandwidth you must     |
-|                                   | logon as a user that has the 'Manage Web     |
-|                                   | Harvester System' privilege set (usually     |
-|                                   | an WCT Administrator). The Bandwidth screen  |
-|                                   | can be found under the 'Management ->        |
-|                                   | Harvester Configuration -> Bandwidth' section|
-|                                   | of the site.                                 |
-+-----------------------------------+----------------------------------------------+
 
 
 Configuration Options
@@ -853,14 +769,10 @@ The following are common configuration options for the Webapp adjusted via the *
 -  Harvest Coordination
 
    The **harvestCoordinator** is responsible for the coordination of
-   harvest activity across all of the Harvest Agents. This is where the
-   minimum bandwidth (in KB/s) and maximum bandwidth percentages are
-   defined for all Heritrix 1 agents. Also defined in the Co-ordinator is 
+   harvest activity across all of the Harvest Agents. Defined in the Co-ordinator is
    the number of days before the Digital Asset Store is purged as well as the 
    number of days before data remaining after aborted harvests is purged ::
 
-      harvestCoordinator.minimumBandwidth=10
-      harvestCoordinator.maxBandwidthPercent=80
       harvestCoordinator.daysBeforeDASPurge=14
       harvestCoordinator.daysBeforeAbortedTargetInstancePurge=7
 
@@ -872,11 +784,7 @@ The following are common configuration options for the Webapp adjusted via the *
    optimization, to allow for non-optimizable harvests to execute on
    schedule.
 
-   Targets can be configured as optimizable on the target edit screen.
-
-   *Note, that there is also the ability to prevent harvest optimization
-   during certain hours, based on the bandwidth settings, in the
-   Management->Bandwidth area* ::
+   Targets can be configured as optimizable on the target edit screen. ::
 
       harvestCoordinator.harvestOptimizationEnabled=true
       harvestCoordinator.harvestOptimizationLookaheadHours=12
@@ -998,6 +906,14 @@ The following are common configuration options for the Webapp adjusted via the *
       crawlPoliteness.aggressive.maxPerHostBandwidthUsageKbSec=2000
 
 
+-  Core Base Directory
+
+   The **core.base.dir** defines a temporary working directory for harvest patching activities
+   by the Webapp. The directory is used to store local files that have been imported into a
+   harvest, as well as caching patching metadata. ::
+
+      core.base.dir=/usr/local/wct/webapp/
+
 -  Triggers
 
    The **processScheduleTrigger** defines when the heartbeat activity is
@@ -1093,7 +1009,7 @@ For more information on *dpsArchive*, see  :doc:`Rosetta DPS Configuration Guide
 Harvest Agent - application.properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following are common configuration options for the Heritrx 1 and Heritrix 3 Harvest Agents, adjusted
+The following are common configuration options for the Heritrix 3 Harvest Agent, adjusted
 via the **application.properties** file.
 
 -  Harvest Agent Name
@@ -1181,8 +1097,7 @@ Heritrix 3, the Harvest Agent has three primary functions:
 - retrieving job status updates from Heritrix 3, to send onto Webapp.
 - copying completed harvest files from Heritrix 3 job directory to the Digital Asset Store.
 
-*Previously, Heritrix (v1.14) was bundled within the Harvest Agent, as a .jar dependency. Heritrix 3
-is now a standalone application external from WCT.*
+*Heritrix 3 is a standalone application external from WCT.*
 
 The H3 Harvest Agent requires a corresponding Heritrix 3 instance to be running. If Heritrix 3 is not
 runnning then new Target Instances will fail to start crawling.
@@ -1613,7 +1528,7 @@ To create a truststore and import a certificate:
 
 
 Appendix B: Example application.properties overrides
-=================================================
+====================================================
 
 ::
 
