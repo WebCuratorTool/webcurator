@@ -2085,6 +2085,11 @@ The categories are:
 
    Figure 30. Domain Analysis
 
+Table Interaction:
+
+- A right-click menu is available on all rows. Giving the option to inspect or prune all URLs within a status code, or
+  mime type.
+
 
 Analysing URLs
 ~~~~~~~~~~~~~~
@@ -2223,7 +2228,7 @@ The columns available in the Crawler Path View are:
 Filtering and Searching
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Filtering and searching of URLs is available within the **Folders** and **Inspect** views.
+Filtering and searching of URLs is available within the **Folders**, **Crawler Path** and **Inspect** views.
 
 |image107|
 
@@ -4288,7 +4293,7 @@ Figure 75: Detailed workflow
    :height: 0.403in
 .. |image108| image:: ../_static/user-manual/image108.png
    :width: 0.250in
-   :height: 0.278in
+   :height: 0.222in
 .. |image109| image:: ../_static/user-manual/image109.png
    :width: 6.0in
    :height: 1.875in
