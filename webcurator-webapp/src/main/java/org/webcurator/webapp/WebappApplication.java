@@ -14,6 +14,7 @@ import java.util.Arrays;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"org.webcurator.webapp",
+        "org.webcurator.rest",
         "org.webcurator.ui",
         "org.webcurator.core.coordinator",
         "org.webcurator.core.harvester.coordinator",
