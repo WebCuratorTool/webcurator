@@ -85,10 +85,9 @@ running the application.
    user@host:/tmp/wct$ cd lib
    user@host:/tmp/wct/lib$ cp * /usr/local/wct
 
-   /usr/local/wct/webcurator-webapp-3.0.0.war
-   /usr/local/wct/webcurator-store-3.0.0.war
-   /usr/local/wct/webcurator-harvest-agent-h3-3.0.0.jar
-   /usr/local/wct/webcurator-harvest-agent-h1-3.0.0.jar
+   /usr/local/wct/webcurator-webapp-3.1.0.war
+   /usr/local/wct/webcurator-store-3.1.0.war
+   /usr/local/wct/webcurator-harvest-agent-h3-3.1.0.jar
 
 
 By default WCT assumes the existence of a directory **/usr/local/wct**, where it stores all

@@ -150,7 +150,7 @@ The following guides can provide additional information:
 
 -   :doc:`Developer Guide <developer-guide>`
 
--   :doc:`Troubleshooting Guide <troubleshooting-guide>`
+-   :doc:`Troubleshooting Guide <troubleshooting>`
 
 -   :doc:`FAQ <faq>`
 

@@ -20,7 +20,9 @@ Contents of this document
 Following this introduction, the Web Curator Tool Release Notes includes the
 following sections:
 
--   **Changes since 3.0.3** - Changes since the last official release *3.0.3*.
+-   **Changes since 3.1.0** - Changes since the last official release *3.0.3*.
+
+-   **3.1.0** - Release 3.1.0.
 
 -   **3.0.3** - Release 3.0.3.
 
@@ -51,11 +53,33 @@ following sections:
 -   **Previous versions** - Versions prior to release 1.5.
 
 
-Changes since 3.0.3
+Changes since 3.1.0
 ===================
 
-This is a placeholder for changes since the official *3.0.0* release. Please
+This is a placeholder for changes since the official *3.1.0* release. Please
 add notes here for changes and fixes as they are released into the master branch.
+
+3.1.0
+=====
+
+Released Sept 2021, v3.1.0 includes the following changes:
+
+- New Harvest Visualization and Bulk Patching
+
+  - A new network visualization of the harvested domains in a crawl, combined with
+    improved tree views for deeper analysis of the captured URLs.
+  - Basic harvest patching improvements, as well as the addition of bulk
+    importing and pruning.
+  - Removal of previous Tree View area.
+  - Removal of large redundant database tables,
+
+      - ARC_HARVEST_FILE
+      - ARC_HARVEST_RESOURCE
+      - ARC_HARVEST_RESULT
+      - HARVEST_RESOURCE
+
+- Retiring of H1 Harvest Agent.
+- Removal of redundant bandwidth functionality.
 
 3.0.3
 =====
