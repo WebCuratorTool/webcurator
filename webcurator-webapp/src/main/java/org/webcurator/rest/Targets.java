@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAOImpl;
+import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Target;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -35,7 +38,7 @@ public class Targets {
                                                 false, null, null);
         List<TargetSummary> targetSummaries = new ArrayList<>();
         for (Target t : (List<Target>)pagination.getList()) {
-            targetSummaries.add(new TargetSummary(t.getOid(), t.getSeeds().iterator().next().getSeed()));
+            targetSummaries.add(new TargetSummary(t));
         }
         ResponseEntity<List<TargetSummary>> response = ResponseEntity.ok(targetSummaries);
         return response;
@@ -48,12 +51,30 @@ public class Targets {
     private class TargetSummary {
 
         private long targetId;
-        private String primarySeed;
+        private Date creationDate;
+        private String name;
+        private String agency;
+        private String owner;
+        // FIXME we don't want the front-end to map integers to human-readable states (as happens in the JSPs)
+        private int status;
+        private List<HashMap<String, String>> seeds;
 
-        public TargetSummary(long targetId, String primarySeed) {
-            this.targetId = targetId;
-            this.primarySeed = primarySeed;
+        public TargetSummary(Target t) {
+            this.targetId = t.getOid();
+            this.creationDate = t.getCreationDate();
+            this.name = t.getName();
+            this.agency = t.getOwner().getAgency().getName();
+            this.owner = t.getOwner().getNiceName();
+            this.status = t.getState();
+            seeds = new ArrayList<>();
+            for (Seed s : t.getSeeds()) {
+                HashMap<String, String> seed = new HashMap<>();
+                seed.put("seed", s.getSeed());
+                seed.put("primary", Boolean.toString(s.isPrimary()));
+                seeds.add(seed);
+            }
         }
+
 
         public long getTargetId() {
             return targetId;
@@ -63,12 +84,52 @@ public class Targets {
             this.targetId = targetId;
         }
 
-        public String getPrimarySeed() {
-            return primarySeed;
+        public Date getCreationDate() {
+            return creationDate;
         }
 
-        public void setPrimarySeed(String primarySeed) {
-            this.primarySeed = primarySeed;
+        public void setCreationDate(Date creationDate) {
+            this.creationDate = creationDate;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getAgency() {
+            return agency;
+        }
+
+        public void setAgency(String agency) {
+            this.agency = agency;
+        }
+
+        public String getOwner() {
+            return owner;
+        }
+
+        public void setOwner(String owner) {
+            this.owner = owner;
+        }
+
+        public int getStatus() {
+            return status;
+        }
+
+        public void setStatus(int status) {
+            this.status = status;
+        }
+
+        public List<HashMap<String, String>> getSeeds() {
+            return seeds;
+        }
+
+        public void setSeeds(List<HashMap<String, String>> seeds) {
+            this.seeds = seeds;
         }
     }
 }
