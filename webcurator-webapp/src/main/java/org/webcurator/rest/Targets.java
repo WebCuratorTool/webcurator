@@ -75,7 +75,12 @@ public class Targets {
         }
 
         // The TargetDao API only supports offsets that are a multiple of limit
-        if (limit < 1 || offset < 0) {} // TODO send bad request
+        if (limit < 1) {
+            throw new BadRequestError("Limit must be positive");
+        }
+        if (offset < 0) {
+            throw new BadRequestError("Offset may not be negative");
+        }
         int pageNumber = offset / limit;
 
         Pagination pagination = targetDAO.search(pageNumber, limit, filter.targetId, filter.name,
