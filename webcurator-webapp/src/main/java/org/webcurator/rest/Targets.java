@@ -31,21 +31,31 @@ public class Targets {
                                  @RequestParam(required = false) String userId, @RequestParam(required = false) String description,
                                  @RequestParam(required = false) String groupName, @RequestParam(required = false) boolean nonDisplayOnly,
                                  @RequestParam(required = false) Set<Integer> states, @RequestParam(required = false) String sortBy,
-                                 @RequestParam(required = false) Long offset, @RequestParam(required = false) Integer limit) {
+                                 @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
         Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
-        List<TargetSummary> targetSummaries = search(filter, offset, limit, sortBy);
-        ResponseEntity<List<TargetSummary>> response = ResponseEntity.ok(targetSummaries);
-        return response;
+        try {
+            List<TargetSummary> targetSummaries = search(filter, offset, limit, sortBy);
+            ResponseEntity<List<TargetSummary>> response = ResponseEntity.ok(targetSummaries);
+            return response;
+        } catch (BadRequestError e) {
+            return badRequest(e.getMessage());
+        }
     }
+
 
     @GetMapping(path = "/{targetId}")
     public ResponseEntity<?> get(@RequestParam int targetId) {
         return null;
     }
 
-    private List<TargetSummary> search(Filter filter, Long offset, Integer limit, String sortBy) {
 
-        // Sort magic to comply with the TargetDao API
+    private List<TargetSummary> search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
+
+        // defaults
+        if (limit == null) { limit = 10; }
+        if (offset == null) { offset = 0; }
+
+        // magic to comply with the sort spec of the TargetDao API
         String magicSortStringForDao = null;
         if (sortBy != null) {
             String[] sortSpec = sortBy.split(",");
@@ -59,11 +69,16 @@ public class Targets {
                     magicSortStringForDao += sortSpec[1];
                 }
             }
-            // TODO send bad request if the sortBy param was not what we expected
-            if (magicSortStringForDao == null) {}
+            if (magicSortStringForDao == null) {
+                throw new BadRequestError("Unsupported or malformed sort spec: " + sortBy);
+            }
         }
 
-        Pagination pagination = targetDAO.search(0, 10, filter.targetId, filter.name,
+        // The TargetDao API only supports offsets that are a multiple of limit
+        if (limit < 1 || offset < 0) {} // TODO send bad request
+        int pageNumber = offset / limit;
+
+        Pagination pagination = targetDAO.search(pageNumber, limit, filter.targetId, filter.name,
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
                 filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<TargetSummary> targetSummaries = new ArrayList<>();
@@ -73,19 +88,31 @@ public class Targets {
         return targetSummaries;
     }
 
+
+    private ResponseEntity<?> badRequest(String msg) {
+        return ResponseEntity.badRequest().body(msg);
+    }
+
+
+    private class BadRequestError extends Exception {
+        BadRequestError(String msg) {
+            super(msg);
+        }
+    }
+
     /**
      * Wrapper for the search filter
      */
     private class Filter {
-        Long targetId;
-        String name;
-        String seed;
-        String agency;
-        String userId;
-        String description; // Spec; General.Description
-        String groupName; // Spec: Group.Name
-        boolean nonDisplayOnly; // Spec: Access.AccessZone as a human-readable string
-        Set<Integer> states; // Spec: General.State as human-readable string
+        public Long targetId;
+        public String name;
+        public String seed;
+        public String agency;
+        public String userId;
+        public String description; // Spec; General.Description
+        public String groupName; // Spec: Group.Name
+        public boolean nonDisplayOnly; // Spec: Access.AccessZone as a human-readable string
+        public Set<Integer> states; // Spec: General.State as human-readable string
 
         Filter(Long targetId, String name, String seed, String agency, String userId, String description,
                 String groupName, boolean nonDisplayOnly, Set<Integer> states) {
@@ -100,6 +127,7 @@ public class Targets {
             this.states = states;
         }
     }
+
 
     /**
      * Wraps summary info about a target, gets directly mapped to JSON
