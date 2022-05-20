@@ -3,6 +3,7 @@ package org.webcurator.rest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.Pagination;
@@ -35,7 +36,10 @@ public class Targets {
         Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
         try {
             List<TargetSummary> targetSummaries = search(filter, offset, limit, sortBy);
-            ResponseEntity<List<TargetSummary>> response = ResponseEntity.ok(targetSummaries);
+            HashMap<String, Object> responseMap = new HashMap<>();
+            responseMap.put("filter", filter);
+            responseMap.put("targets", targetSummaries);
+            ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
             return badRequest(e.getMessage());
@@ -95,7 +99,7 @@ public class Targets {
 
 
     private ResponseEntity<?> badRequest(String msg) {
-        return ResponseEntity.badRequest().body(msg);
+        return ResponseEntity.badRequest().contentType(MediaType.TEXT_PLAIN).body(msg);
     }
 
 
@@ -104,6 +108,7 @@ public class Targets {
             super(msg);
         }
     }
+
 
     /**
      * Wrapper for the search filter
