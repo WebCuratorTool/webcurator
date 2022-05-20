@@ -39,6 +39,15 @@ public class Targets {
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("filter", filter);
             responseMap.put("targets", targetSummaries);
+            if (sortBy != null) {
+                responseMap.put("sortBy", sortBy);
+            }
+            if (limit != null) {
+                responseMap.put("limit", limit);
+            }
+            if (offset != null) {
+                responseMap.put("offset", offset);
+            }
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
