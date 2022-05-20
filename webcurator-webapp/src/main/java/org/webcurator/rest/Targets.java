@@ -30,9 +30,10 @@ public class Targets {
                                  @RequestParam(required = false) String seed, @RequestParam(required = false) String agency,
                                  @RequestParam(required = false) String userId, @RequestParam(required = false) String description,
                                  @RequestParam(required = false) String groupName, @RequestParam(required = false) boolean nonDisplayOnly,
-                                 @RequestParam(required = false) Set<Integer> states) {
+                                 @RequestParam(required = false) Set<Integer> states, @RequestParam(required = false) String sortBy,
+                                 @RequestParam(required = false) Long offset, @RequestParam(required = false) Integer limit) {
         Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
-        List<TargetSummary> targetSummaries = search(filter);
+        List<TargetSummary> targetSummaries = search(filter, offset, limit, sortBy);
         ResponseEntity<List<TargetSummary>> response = ResponseEntity.ok(targetSummaries);
         return response;
     }
@@ -42,11 +43,29 @@ public class Targets {
         return null;
     }
 
-    private List<TargetSummary> search(Filter filter) {
-        // TODO implement paging and sorting
+    private List<TargetSummary> search(Filter filter, Long offset, Integer limit, String sortBy) {
+
+        // Sort magic to comply with the TargetDao API
+        String magicSortStringForDao = null;
+        if (sortBy != null) {
+            String[] sortSpec = sortBy.split(",");
+            if (sortSpec.length == 2) {
+                if (sortSpec[0].trim().equalsIgnoreCase("name")) {
+                    magicSortStringForDao = "name";
+                } else if (sortSpec[0].trim().equalsIgnoreCase("creationDate")) {
+                    magicSortStringForDao = "date";
+                }
+                if (magicSortStringForDao != null && (sortSpec[1].equalsIgnoreCase("asc") || sortSpec[1].equalsIgnoreCase("desc"))) {
+                    magicSortStringForDao += sortSpec[1];
+                }
+            }
+            // TODO send bad request if the sortBy param was not what we expected
+            if (magicSortStringForDao == null) {}
+        }
+
         Pagination pagination = targetDAO.search(0, 10, filter.targetId, filter.name,
                 filter.states, filter.seed, filter.userId, filter.agency, filter.groupName,
-                filter.nonDisplayOnly, null, filter.description);
+                filter.nonDisplayOnly, magicSortStringForDao, filter.description);
         List<TargetSummary> targetSummaries = new ArrayList<>();
         for (Target t : (List<Target>)pagination.getList()) {
             targetSummaries.add(new TargetSummary(t));
