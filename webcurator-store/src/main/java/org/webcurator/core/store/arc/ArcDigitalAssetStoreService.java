@@ -1482,7 +1482,12 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             return false;
         }
 
-        Boolean screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir, harvestWaybackViewerBaseUrl);
+        Boolean screenshotsSucceeded = Boolean.FALSE;
+        try {
+            screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir, harvestWaybackViewerBaseUrl);
+        } catch (Exception e) {
+            log.error("Failed to create screenshot.", e);
+        }
 
         if (!abortHarvestOnScreenshotFailure) return true;
 

@@ -126,7 +126,7 @@ public class ScreenshotGenerator {
                             threadFailed[0] = false;
                         }
                     } catch (Exception e) {
-                        log.error("Unable to process the command in a new thread.");
+                        log.error("Unable to process the command in a new thread.", e);
                         threadFailed[0] = true;
                     }
                 }
