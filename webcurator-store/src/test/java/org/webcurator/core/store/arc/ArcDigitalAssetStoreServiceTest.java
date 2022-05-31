@@ -257,7 +257,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
     @Test
     public void testGetDownloadFileURL() {
         try {
-            File f = File.createTempFile("download",".temp");
+            File f = File.createTempFile("download", ".temp");
             f = testInstance.getDownloadFileURL("team.png", f);
             assert f.exists();
 
@@ -275,7 +275,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         testInstance.setEnableScreenshots(true);
 
         try {
-            screenshotResult = testInstance.createScreenshots(null);
+            Map<String, String> identifiers = new HashMap<>();
+            screenshotResult = testInstance.createScreenshots(identifiers);
         } catch (DigitalAssetStoreException e) {
             assert screenshotResult == false;
         }

@@ -1072,6 +1072,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     public void setDasFileMover(DasFileMover fileMover) {
         this.dasFileMover = fileMover;
     }
+
     public void setScreenshotGenerator(ScreenshotGenerator screenshotGenerator) {
         this.screenshotGenerator = screenshotGenerator;
     }
@@ -1387,7 +1388,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     }
 
     // Delete everything in _resources file then resources file then harvest file
-    private void cleanUpTmpDir (File harvestTmpDir) {
+    private void cleanUpTmpDir(File harvestTmpDir) {
         File tmpDir = harvestTmpDir.getParentFile();
         if (harvestTmpDir.exists()) {
 
@@ -1469,7 +1470,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     }
 
     /**
-     *
      * @param identifiers
      * @return the boolean to say if the screenshots have been generated
      * @throws DigitalAssetStoreException
@@ -1478,6 +1478,9 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         // Can continue with the harvest without taking a screenshot
         if (!enableScreenshots) return true;
 
+        if (identifiers == null || identifiers.size() == 0) {
+            return false;
+        }
 
         Boolean screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir, harvestWaybackViewerBaseUrl);
 
