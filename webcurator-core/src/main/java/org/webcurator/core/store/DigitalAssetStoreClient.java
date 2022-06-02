@@ -264,15 +264,6 @@ public class DigitalAssetStoreClient extends AbstractRestClient implements Digit
         }
     }
 
-    public Boolean createScreenshots(Map identifiers) throws DigitalAssetStoreException {
-        HttpEntity<String> request = this.createHttpRequestEntity(identifiers);
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(DigitalAssetStorePaths.CREATE_SCREENSHOT));
-        RestTemplate restTemplate = restTemplateBuilder.build();
-
-        return restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
-                request, Boolean.class);
-    }
-
     public String getHarvestBaseUrl() {
         return harvestBaseUrl;
     }

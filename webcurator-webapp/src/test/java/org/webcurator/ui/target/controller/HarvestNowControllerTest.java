@@ -3,10 +3,8 @@ package org.webcurator.ui.target.controller;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.any;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -25,7 +23,6 @@ import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
-import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.TargetInstanceDAO;
@@ -116,7 +113,7 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
         hc.setDigitalAssetStoreFactory(mockDasFactory);
         DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
         when(mockDasFactory.getDAS()).thenReturn(mockDas);
-        when(mockDasFactory.getDAS().createScreenshots(any(Map.class))).thenReturn(true);
+//        when(mockDasFactory.getDAS().createScreenshots(any(Map.class))).thenReturn(true);
 
         ModelAndView mav = testInstance.processFormSubmission(aCmd, bindingResult, aReq);
         assertNotNull(mav);

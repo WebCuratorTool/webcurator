@@ -26,6 +26,8 @@ import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.screenshot.ScreenshotClientLocal;
+import org.webcurator.core.screenshot.ScreenshotGenerator;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
@@ -357,6 +359,7 @@ public class DasConfig implements WebMvcConfigurer {
                 wctCoordinatorClient(),
                 maxConcurrencyModThreads);
     }
+
     @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
     public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
         ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl, new RestTemplateBuilder());
@@ -366,6 +369,13 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
         bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         bean.setFileArchive(createFileArchive());
+        return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public ScreenshotClientLocal screenshotClientLocal() {
+        ScreenshotClientLocal bean = new ScreenshotClientLocal();
         bean.setScreenshotGenerator(screenshotGenerator());
         bean.setScreenshotCommandFullpage(screenshotCommandFullpage);
         bean.setScreenshotCommandScreen(screenshotCommandScreen);

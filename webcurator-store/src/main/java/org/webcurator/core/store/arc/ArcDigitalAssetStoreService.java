@@ -22,8 +22,6 @@ import static org.webcurator.core.archive.Constants.ROOT_FILE;
 
 import it.unipi.di.util.ExternalSort;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -75,8 +73,6 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
-
-import javax.imageio.ImageIO;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -131,19 +127,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     @Autowired
     private VisualizationProcessorManager visualizationProcessorManager;
-    private ScreenshotGenerator screenshotGenerator;
-    /**
-     * the fullpage screenshot command.
-     */
-    private String screenshotCommandFullpage = null;
-    /**
-     * the screen screenshot command.
-     */
-    private String screenshotCommandScreen = null;
-    /**
-     * the windowsize screenshot command.
-     */
-    private String screenshotCommandWindowsize = null;
 
 
     @Autowired
@@ -154,21 +137,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
-    /**
-     * the base url for the wayback viewer
-     */
-    private String harvestWaybackViewerBaseUrl;
-
-    /**
-     * Determines whether the harvest should stop if screenshots aren't generated
-     */
-    private boolean abortHarvestOnScreenshotFailure;
-
-    /**
-     * Determines whether or not to do screenshots
-     */
-    private boolean enableScreenshots;
-
 
     public ArcDigitalAssetStoreService() {
         super();
@@ -1073,10 +1041,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         this.dasFileMover = fileMover;
     }
 
-    public void setScreenshotGenerator(ScreenshotGenerator screenshotGenerator) {
-        this.screenshotGenerator = screenshotGenerator;
-    }
-
     // Moves the ArchiveRecord stream past the HTTP status line;
     // checks if it starts with HTTP and ends with CRLF
     private void skipStatusLine(ArchiveRecord record) throws IOException {
@@ -1279,265 +1243,5 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         public void setHarvestNumber(int harvestNumber) {
             this.harvestNumber = harvestNumber;
         }
-    }
-
-    private void waitForScreenshot(File file, String filename) {
-        try {
-            for (int i = 0; i < 5; i++) {
-                if (file.exists()) return;
-                log.info(filename + " has not been created yet.  Waiting...");
-                Thread.sleep(10000);
-            }
-            log.info("Timed out waiting for file creation.");
-        } catch (Exception e) {
-        }
-    }
-
-    // The wayback banner may be problematic when getting full page screenshots, check against the live image dimensions
-    // Allow some space for the wayback banner
-    private void checkFullpageScreenshotSize(String outputPath, String filename, File liveImageFile, String url) {
-        try {
-            BufferedImage liveImage = ImageIO.read(liveImageFile);
-            int liveImageWidth = liveImage.getWidth();
-            int liveImageHeight = liveImage.getHeight();
-            liveImage.flush();
-
-            // Only proceed if harvested fullpage image is smaller than live fullpage image
-            BufferedImage harvestedImage = ImageIO.read(new File(outputPath + File.separator + filename));
-            if (harvestedImage.getWidth() >= liveImageWidth && harvestedImage.getHeight() >= liveImageHeight) {
-                harvestedImage.flush();
-                return;
-            }
-
-            String windowsizeCommand = screenshotCommandWindowsize
-                    .replace("%width%", String.valueOf(liveImageWidth))
-                    .replace("%height%", String.valueOf(liveImageHeight + 150))
-                    .replace("%url%", url)
-                    .replace("%image.png%", outputPath + File.separator + filename);
-
-
-            log.info("Harvested full page screenshot is smaller than live full page screenshot.  " +
-                    "Getting a new screenshot using live image dimensions, command " + windowsizeCommand);
-
-            // Delete the old harvested fullpage image and replace it with one with new dimensions
-            File toDelete = new File(outputPath + File.separator + filename);
-            if (toDelete.delete()) {
-                runCommand(windowsizeCommand);
-                waitForScreenshot(toDelete, filename);
-                log.info("Fullpage screenshot of harvest replaced.");
-            } else {
-
-                log.info("Unable to replace harvest fullpage screenshot.");
-            }
-            harvestedImage.flush();
-        } catch (Exception e) {
-            log.error("Failed to resize fullpage harvest screenshot: " + e.getMessage(), e);
-        }
-    }
-
-    private void runCommand(String command) {
-        try {
-            String harvestAgentH3SourceDir = "webcurator-harvest-agent-h3";
-            ProcessBuilder processBuilder = new ProcessBuilder(command.split(" "));
-            if (command.contains("SeleniumScreenshotCapture")) {
-                String processDir = System.getProperty("user.dir");
-                if (processDir.contains(harvestAgentH3SourceDir)) {
-                    processDir = processDir.substring(0, processDir.indexOf(harvestAgentH3SourceDir));
-                }
-                processDir = processDir + File.separator + harvestAgentH3SourceDir + File.separator
-                        + "build" + File.separator + "classes" + File.separator + "java" + File.separator + "main";
-                processBuilder.directory(new File(processDir).getAbsoluteFile());
-            }
-            Process process = processBuilder.start();
-        } catch (Exception e) {
-            log.error("Unable to process command " + command, e);
-        }
-    }
-
-    private void generateThumbnailOrScreenSizeScreenshot(String inputFilename, String outputPathString,
-                                                         String inputSize, String outputSize, int width, int height) {
-        log.info("Generating " + outputSize + " screenshot...");
-        try {
-            BufferedImage sourceImage = ImageIO.read(new File(outputPathString + File.separator + inputFilename));
-            BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            Image scaledImage = sourceImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-            bufferedImage.createGraphics().drawImage(scaledImage, 0, 0, null);
-            BufferedImage thumbnailImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            thumbnailImage = bufferedImage.getSubimage(0, 0, width, height);
-            ImageIO.write(thumbnailImage, "png", new File(outputPathString + File.separator
-                    + inputFilename.replace(inputSize, outputSize)));
-            sourceImage.flush();
-            bufferedImage.flush();
-            thumbnailImage.flush();
-        } catch (Exception e) {
-            log.error("Unable to generate " + outputSize + " thumbnail.");
-        }
-    }
-
-
-    private void renameLiveFile(String liveDirectory, String outputDirectory, String seed, String harvestNumber, String filename) {
-        File fullpageLiveFilePath = new File(liveDirectory + filename.replace("harvested", "live"));
-        if (!fullpageLiveFilePath.exists()) return;
-        if (harvestNumber == null) return;
-        if (seed == null) return;
-        String newFilename = outputDirectory + filename.replace("seedID", seed).replace("harvestNum", harvestNumber);
-        newFilename = newFilename.replace("harvested", "live");
-        if (!fullpageLiveFilePath.renameTo(new File(newFilename))) {
-            log.error("Unable to rename live file to include harvest number and seed.  File: " + filename);
-        }
-    }
-
-    // Delete everything in _resources file then resources file then harvest file
-    private void cleanUpTmpDir(File harvestTmpDir) {
-        File tmpDir = harvestTmpDir.getParentFile();
-        if (harvestTmpDir.exists()) {
-
-            // Delete all files in all directories
-            for (File file : harvestTmpDir.listFiles()) {
-                if (!file.delete()) {
-                    log.info("Unable to delete file: " + file.getAbsolutePath());
-                }
-            }
-            if (harvestTmpDir.list().length != 0) {
-                log.info("Not all files have been removed from " + harvestTmpDir.toString());
-                return;
-            }
-            if (!harvestTmpDir.delete()) {
-                log.info("Unable to delete temporary screenshot directory.");
-                return;
-            }
-            if (tmpDir.list().length > 0) {
-                log.info("There are still files within " + tmpDir.toString());
-                return;
-            }
-            if (!tmpDir.delete()) {
-                log.info("Unable to delete " + tmpDir.getAbsolutePath());
-            }
-        }
-    }
-
-    private boolean checkDirOnlyOneFile(File dir, String expectedDir) {
-        if (dir.list().length == 0) return true;
-
-        File[] dirFiles = dir.listFiles();
-
-        // Return false if the directory contains more than 1 file
-        if (dirFiles.length > 1) {
-            log.info("There are more files in " + dir.toString() + " than the " + expectedDir + " directory.");
-            return false;
-        }
-
-        // Return false if the child directory isn't the expected directory
-        if (!dirFiles[0].getName().equals(expectedDir)) {
-            log.info("There is an unexpected file in " + dir.toString());
-            return false;
-        }
-
-        return true;
-    }
-
-    private void cleanUpDirOnAbort(File harvestBaseDir) {
-        if (!harvestBaseDir.exists()) return;
-
-        // Harvest base dir should only contain tmpDir, do not delete otherwise
-        if (!checkDirOnlyOneFile(harvestBaseDir, "tmpDir")) return;
-
-        // tmpDir should only contain _resources, do not delete otherwise
-        File tmpDir = harvestBaseDir.listFiles()[0];
-        if (!checkDirOnlyOneFile(tmpDir, "_resources")) return;
-
-        File resourcesDir = tmpDir.listFiles()[0];
-        // Delete all files in _resources
-        for (File f : resourcesDir.listFiles()) {
-            if (!f.delete()) {
-                log.info("Unable to delete " + f.toString());
-                return;
-            }
-        }
-
-        // Delete _resources directory then tmpDir then harvest directory
-        if (!resourcesDir.delete()) {
-            log.info("Could not delete " + resourcesDir.toString());
-            return;
-        }
-        if (!tmpDir.delete()) {
-            log.info("Could not delete " + tmpDir.toString());
-            return;
-        }
-        if (!harvestBaseDir.delete()) {
-            log.info("Could not delete " + harvestBaseDir.toString());
-        }
-    }
-
-    /**
-     * @param identifiers
-     * @return the boolean to say if the screenshots have been generated
-     * @throws DigitalAssetStoreException
-     */
-    public Boolean createScreenshots(Map identifiers) throws DigitalAssetStoreException {
-        // Can continue with the harvest without taking a screenshot
-        if (!enableScreenshots) return true;
-
-        if (identifiers == null || identifiers.size() == 0) {
-            return false;
-        }
-
-        Boolean screenshotsSucceeded = Boolean.FALSE;
-        try {
-            screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir, harvestWaybackViewerBaseUrl);
-        } catch (Exception e) {
-            log.error("Failed to create screenshot.", e);
-        }
-
-        if (!abortHarvestOnScreenshotFailure) return true;
-
-        // Delete temporary screenshot directory if the screenshot didn't succeed and the harvest has been aborted
-        if (!screenshotsSucceeded) {
-            cleanUpDirOnAbort(new File(baseDir + File.separator + identifiers.get("tiOid").toString()));
-        }
-
-        return screenshotsSucceeded;
-    }
-
-    /**
-     * @param aScreenshotFullpageCommand The screenshotFullpageCommand to set.
-     */
-    public void setScreenshotCommandFullpage(String aScreenshotCommandFullpage) {
-        this.screenshotCommandFullpage = aScreenshotCommandFullpage;
-    }
-
-    /**
-     * @param aScreenshotScreenCommand The screenshotScreenCommand to set.
-     */
-    public void setScreenshotCommandScreen(String aScreenshotCommandScreen) {
-        this.screenshotCommandScreen = aScreenshotCommandScreen;
-    }
-
-    /**
-     * @param aScreenshotWindowsizeCommand The screenshotWindowsizeCommand to set.
-     */
-    public void setScreenshotCommandWindowsize(String aScreenshotCommandWindowsize) {
-        this.screenshotCommandWindowsize = aScreenshotCommandWindowsize;
-    }
-
-    /**
-     * @param aHarvestWaybackViewerBaseUrl
-     */
-    public void setHarvestWaybackViewerBaseUrl(String aHarvestWaybackViewerBaseUrl) {
-        this.harvestWaybackViewerBaseUrl = aHarvestWaybackViewerBaseUrl;
-    }
-
-    /**
-     * @param aAbortHarvestOnScreenshotFailure
-     */
-    public void setAbortHarvestOnScreenshotFailure(boolean aAbortHarvestOnScreenshotFailure) {
-        this.abortHarvestOnScreenshotFailure = aAbortHarvestOnScreenshotFailure;
-    }
-
-    /**
-     * @param aEnableScreenshots
-     */
-    public void setEnableScreenshots(boolean aEnableScreenshots) {
-        this.enableScreenshots = aEnableScreenshots;
     }
 }

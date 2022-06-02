@@ -305,7 +305,7 @@ public class WctCoordinatorImpl implements WctCoordinator {
                         identifiers.put("harvestNumber", String.valueOf(harvestResult.getHarvestNumber()));
                         identifiers.put("timestamp", new SimpleDateFormat("yyyyMMddhhmmss").format(harvestResult.getCreationDate()));
 
-                        digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
+//                        digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
                     }
                 } else {
                     log.info("Timed out waiting for harvest " + String.valueOf(harvestResult.getHarvestNumber()) +
@@ -497,43 +497,43 @@ public class WctCoordinatorImpl implements WctCoordinator {
 
         // Generate live screenshots using a new thread
         for (String seed : originalSeeds) {
-            if (toAbort) break;
-
-            Map identifiers = new HashMap();
-            identifiers.put("seed", seed);
-            identifiers.put("tiOid", targetInstanceId);
-            identifiers.put("liveOrHarvested", "live");
-
-            // Get seed ID
-            Iterator<SeedHistory> seedHistory = aTargetInstance.getSeedHistory().iterator();
-            while (seedHistory.hasNext()) {
-                SeedHistory s = seedHistory.next();
-                if (s.getSeed().equals(seed)) {
-                    identifiers.put("seedOid", s.getOid());
-                    break;
-                }
-            }
+//            if (toAbort) break;
+//
+//            Map identifiers = new HashMap();
+//            identifiers.put("seed", seed);
+//            identifiers.put("tiOid", targetInstanceId);
+//            identifiers.put("liveOrHarvested", "live");
+//
+//            // Get seed ID
+//            Iterator<SeedHistory> seedHistory = aTargetInstance.getSeedHistory().iterator();
+//            while (seedHistory.hasNext()) {
+//                SeedHistory s = seedHistory.next();
+//                if (s.getSeed().equals(seed)) {
+//                    identifiers.put("seedOid", s.getOid());
+//                    break;
+//                }
+//            }
 
             // Abort harvest if the screenshots failed to generate
-            try {
-                screenshotsTaken = digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
-                if (screenshotsTaken != null) {
-                    toAbort = !screenshotsTaken;
-                }
-            } catch (DigitalAssetStoreException e) {
-                log.error("Error occurred while generating screenshots", e);
-                toAbort = true;
-            } catch (Exception e) {
-                log.error("Could not generate screenshots", e);
-                toAbort = true;
-            }
+//            try {
+//                screenshotsTaken = digitalAssetStoreFactory.getDAS().createScreenshots(identifiers);
+//                if (screenshotsTaken != null) {
+//                    toAbort = !screenshotsTaken;
+//                }
+//            } catch (DigitalAssetStoreException e) {
+//                log.error("Error occurred while generating screenshots", e);
+//                toAbort = true;
+//            } catch (Exception e) {
+//                log.error("Could not generate screenshots", e);
+//                toAbort = true;
+//            }
         }
 
-        if (toAbort || screenshotsTaken == null) {
-            log.info("There was a problem generating the screenshots.");
-            harvestAgentManager.abort(aTargetInstance);
-            return;
-        }
+//        if (toAbort || screenshotsTaken == null) {
+//            log.info("There was a problem generating the screenshots.");
+//            harvestAgentManager.abort(aTargetInstance);
+//            return;
+//        }
 
         // Initiate harvest on the remote harvest agent
         harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());

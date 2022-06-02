@@ -3,11 +3,9 @@ package org.webcurator.core.store.arc;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
-import static reactor.core.publisher.Mono.when;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.junit.BeforeClass;
@@ -27,7 +25,6 @@ import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLoca
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.test.BaseWCTStoreTest;
 import org.webcurator.core.store.MockIndexer;
-import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.apache.commons.httpclient.Header;
 
 public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigitalAssetStoreService> {
@@ -266,23 +263,6 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
             e.printStackTrace();
             assert false;
         }
-
-    }
-
-    @Test
-    public void testScreenshotFail() {
-        Boolean screenshotResult = null;
-        testInstance.setEnableScreenshots(true);
-
-        try {
-            Map<String, String> identifiers = new HashMap<>();
-            screenshotResult = testInstance.createScreenshots(identifiers);
-        } catch (DigitalAssetStoreException e) {
-            assert screenshotResult == false;
-        }
-        System.out.println(screenshotResult);
-        assert screenshotResult == false;
-
 
     }
 }
