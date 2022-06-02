@@ -1,19 +1,25 @@
 package org.webcurator.core.screenshot;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.webcurator.domain.model.core.SeedHistory;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class ScreenshotIdentifierCommand {
-    private String seed;
+    private List<SeedHistory> seeds = new ArrayList<>();
     private long tiOid;
     private ScreenshotType screenshotType;
     private long seedOid;
     private int harvestNumber;
     private String timestamp;
 
-    public String getSeed() {
-        return seed;
+    public List<SeedHistory> getSeeds() {
+        return seeds;
     }
 
-    public void setSeed(String seed) {
-        this.seed = seed;
+    public void setSeeds(List<SeedHistory> seeds) {
+        this.seeds = seeds;
     }
 
     public long getTiOid() {
@@ -57,9 +63,14 @@ public class ScreenshotIdentifierCommand {
     }
 
     @Override
+    @JsonIgnore
     public String toString() {
-        String str = String.format("seed=%s, tiOid=%d, screenshotType=%s, seedOid=%d, harvestNumber=%d, timestamp=%s",
-                this.seed, this.tiOid, this.screenshotType.name(), this.seedOid, this.harvestNumber, this.timestamp);
+        StringBuffer joined_seeds = new StringBuffer();
+        this.seeds.forEach(seed -> {
+            joined_seeds.append(seed.getSeed()).append(",");
+        });
+        String str = String.format("seed=%s tiOid=%d, screenshotType=%s, seedOid=%d, harvestNumber=%d, timestamp=%s",
+                joined_seeds.toString(), this.tiOid, this.screenshotType.name(), this.seedOid, this.harvestNumber, this.timestamp);
         return str;
     }
 }

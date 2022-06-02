@@ -3,6 +3,7 @@ package org.webcurator.core.screenshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.domain.model.core.SeedHistory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -18,7 +19,6 @@ public class ScreenshotClientLocal implements ScreenshotClient {
     private ScreenshotGenerator screenshotGenerator;
 
     private String baseDir = null;
-    private String harvestWaybackViewerBaseUrl;
 
     /**
      * the fullpage screenshot command.
@@ -45,7 +45,13 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
         Boolean screenshotsSucceeded = Boolean.FALSE;
         try {
-            screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers, baseDir, harvestWaybackViewerBaseUrl);
+            for (SeedHistory seed : identifiers.getSeeds()) {
+                screenshotsSucceeded = screenshotGenerator.createScreenshots(seed, identifiers.getTiOid(), identifiers.getScreenshotType(), identifiers.getHarvestNumber(), identifiers.getTimestamp());
+                if (!screenshotsSucceeded) {
+                    break;
+                }
+            }
+            screenshotsSucceeded = Boolean.TRUE;
         } catch (Exception e) {
             log.error("Failed to create screenshot.", e);
         }
@@ -111,6 +117,7 @@ public class ScreenshotClientLocal implements ScreenshotClient {
             }
             log.info("Timed out waiting for file creation.");
         } catch (Exception e) {
+            log.error("The thread was interrupted:", e);
         }
     }
 
@@ -264,9 +271,6 @@ public class ScreenshotClientLocal implements ScreenshotClient {
         this.baseDir = baseDir;
     }
 
-    public void setHarvestWaybackViewerBaseUrl(String harvestWaybackViewerBaseUrl) {
-        this.harvestWaybackViewerBaseUrl = harvestWaybackViewerBaseUrl;
-    }
 
     public void setScreenshotCommandFullpage(String screenshotCommandFullpage) {
         this.screenshotCommandFullpage = screenshotCommandFullpage;

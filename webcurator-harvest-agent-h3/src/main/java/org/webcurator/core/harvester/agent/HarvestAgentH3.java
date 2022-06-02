@@ -37,11 +37,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import java.awt.image.BufferedImage;
-import java.awt.Image;
-
-import javax.imageio.ImageIO;
-
 /**
  * This is an Implementation of the HarvestAgent interface that uses Heritrix as the
  * engine to perform the harvesting of the web sites.
