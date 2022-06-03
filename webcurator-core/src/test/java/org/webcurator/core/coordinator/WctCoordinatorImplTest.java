@@ -30,6 +30,7 @@ import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.screenshot.ScreenshotClient;
 import org.webcurator.core.store.*;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
@@ -66,6 +67,8 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
     private MockDigitalAssetStoreFactory mockDigitalAssetStoreFactory;
     private HarvestResultManager mockHarvestResultManager;
     private VisualizationDirectoryManager directoryManager; // = new VisualizationDirectoryManager("/usr/local/wct/webapp", "logs", "reports");
+
+    private ScreenshotClient mockScreenshotClient;
 
     public WctCoordinatorImplTest() {
         super(WctCoordinatorImpl.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
@@ -123,6 +126,10 @@ public class WctCoordinatorImplTest extends BaseWCTTest<WctCoordinatorImpl> {
 
         mockHarvestResultManager = mock(HarvestResultManager.class);
         testInstance.setHarvestResultManager(mockHarvestResultManager);
+
+        mockScreenshotClient = mock(ScreenshotClient.class);
+        when(mockScreenshotClient.createScreenshots(any())).thenReturn(true);
+        testInstance.setScreenshotClient(mockScreenshotClient);
     }
 
     private HarvesterStatusDTO getStatusDTO(String aStatus) {

@@ -169,6 +169,10 @@ public class WctCoordinatorImpl implements WctCoordinator {
         this.visualizationDirectoryManager = visualizationDirectoryManager;
     }
 
+    public void setScreenshotClient(ScreenshotClient screenshotClient) {
+        this.screenshotClient = screenshotClient;
+    }
+
     public void setLog(Logger log) {
         this.log = log;
     }

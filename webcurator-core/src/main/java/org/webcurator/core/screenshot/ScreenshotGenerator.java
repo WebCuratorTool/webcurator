@@ -19,15 +19,15 @@ import org.webcurator.domain.model.core.SeedHistory;
 public class ScreenshotGenerator {
     private static final Logger log = LoggerFactory.getLogger(ScreenshotGenerator.class);
 
-    private final static String SCREENSHOT_FOLDER = "_screenshots";
+    private final static String SCREENSHOT_FOLDER = "_snapshots";
     private final static int THUMBNAIL_WIDTH = 100;
     private final static int THUMBNAIL_HEIGHT = 100;
-    private final String windowSizeCommand;
-    private final String screenSizeCommand;
-    private final String fullpageSizeCommand;
+    private String windowSizeCommand;
+    private String screenSizeCommand;
+    private String fullpageSizeCommand;
 
-    private final String baseDir;
-    private final String harvestWaybackViewerBaseUrl;
+    private String baseDir;
+    private String harvestWaybackViewerBaseUrl;
 
 
     public String getFullpageSizeCommand() {
@@ -42,13 +42,13 @@ public class ScreenshotGenerator {
         return windowSizeCommand;
     }
 
-    public ScreenshotGenerator(String windowSizeCommand, String screenSizeCommand, String fullpageSizeCommand, String baseDir, String harvestWaybackViewerBaseUrl) {
-        this.windowSizeCommand = windowSizeCommand;
-        this.screenSizeCommand = screenSizeCommand;
-        this.fullpageSizeCommand = fullpageSizeCommand;
-        this.baseDir = baseDir;
-        this.harvestWaybackViewerBaseUrl = harvestWaybackViewerBaseUrl;
-    }
+//    public ScreenshotGenerator(String windowSizeCommand, String screenSizeCommand, String fullpageSizeCommand, String baseDir, String harvestWaybackViewerBaseUrl) {
+//        this.windowSizeCommand = windowSizeCommand;
+//        this.screenSizeCommand = screenSizeCommand;
+//        this.fullpageSizeCommand = fullpageSizeCommand;
+//        this.baseDir = baseDir;
+//        this.harvestWaybackViewerBaseUrl = harvestWaybackViewerBaseUrl;
+//    }
 
     private void waitForScreenshot(File file) {
         try {
@@ -226,7 +226,6 @@ public class ScreenshotGenerator {
             }
         }
 
-        String fullpageFilename = String.format("%d_%d_%d_%s_fullpage.png", tiOid, harvestNumber, seed.getOid(), liveOrHarvested.name());
         String seedUrl = seed.getSeed();
         // Need to move the live screenshots and use the wayback indexed url instead of the seed url
         if (liveOrHarvested == ScreenshotType.harvested) {
@@ -238,6 +237,7 @@ public class ScreenshotGenerator {
         }
 
         // Populate the filenames and the placeholder values
+        String fullpageFilename = String.format("%d_%d_%d_%s_fullpage.png", tiOid, harvestNumber, seed.getOid(), liveOrHarvested.name());
         fullpageFilename = replaceSectionInFilename(fullpageFilename, Integer.toString(harvestNumber), 1);
 
         String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 4);
@@ -263,7 +263,7 @@ public class ScreenshotGenerator {
                 if (runCommand(commandFullpage)) {
                     waitForScreenshot(new File(outputPathString + fullpageFilename));
                 } else {
-                    log.error("Unable to run command " + commandFullpage);
+                    log.error("Unable to run command: {}", commandFullpage);
                     return false;
                 }
             }
@@ -342,5 +342,25 @@ public class ScreenshotGenerator {
             return false;
         }
         return true;
+    }
+
+    public void setWindowSizeCommand(String windowSizeCommand) {
+        this.windowSizeCommand = windowSizeCommand;
+    }
+
+    public void setScreenSizeCommand(String screenSizeCommand) {
+        this.screenSizeCommand = screenSizeCommand;
+    }
+
+    public void setFullpageSizeCommand(String fullpageSizeCommand) {
+        this.fullpageSizeCommand = fullpageSizeCommand;
+    }
+
+    public void setBaseDir(String baseDir) {
+        this.baseDir = baseDir;
+    }
+
+    public void setHarvestWaybackViewerBaseUrl(String harvestWaybackViewerBaseUrl) {
+        this.harvestWaybackViewerBaseUrl = harvestWaybackViewerBaseUrl;
     }
 }
