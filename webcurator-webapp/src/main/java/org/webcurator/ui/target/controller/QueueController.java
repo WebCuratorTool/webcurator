@@ -15,7 +15,6 @@
  */
 package org.webcurator.ui.target.controller;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.Base64Utils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +38,7 @@ import org.webcurator.core.common.Environment;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.screenshot.ScreenshotType;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.core.util.CookieUtils;
 import org.webcurator.domain.Pagination;
@@ -51,17 +50,13 @@ import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
+import org.webcurator.core.screenshot.ScreenshotPaths;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -76,349 +71,371 @@ import java.util.List;
 @Controller
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @Lazy(false)
-@RequestMapping(path = {"/curator/ti","/curator/ti/","/curator/target/queue.html"})
+@RequestMapping(path = {"/curator/ti", "/curator/ti/", "/curator/target/queue.html"})
 public class QueueController {
-	private Logger log = LoggerFactory.getLogger(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
 
-	private final List<String> PAGINATION_ACTIONS = Arrays.asList(TargetInstanceCommand.ACTION_NEXT,
-			TargetInstanceCommand.ACTION_PREV, TargetInstanceCommand.ACTION_SHOW_PAGE);
+    private final List<String> PAGINATION_ACTIONS = Arrays.asList(TargetInstanceCommand.ACTION_NEXT,
+            TargetInstanceCommand.ACTION_PREV, TargetInstanceCommand.ACTION_SHOW_PAGE);
 
-	/** The manager to use to access the target instance. */
-	@Autowired
-	private TargetInstanceManager targetInstanceManager;
-	/** The harvest coordinator for looking at the harvesters. */
-	@Autowired
-	private WctCoordinator wctCoordinator;
-	/** the WCT global environment settings. */
-	@Autowired
-	@Qualifier("environmentWCT")
-	private Environment environment;
-	/** The manager to use for user, role and agency data. */
-	@Autowired
-	private AgencyUserManager agencyUserManager;
-	@Value("${queueController.thumbnailRenderer}")
-	private String thumbnailRenderer = "browseTool";
-	@Autowired
-	private HarvestResourceUrlMapper harvestResourceUrlMapper;
-	@Autowired
-	private MessageSource messageSource;
+    /**
+     * The manager to use to access the target instance.
+     */
+    @Autowired
+    private TargetInstanceManager targetInstanceManager;
+    /**
+     * The harvest coordinator for looking at the harvesters.
+     */
+    @Autowired
+    private WctCoordinator wctCoordinator;
+    /**
+     * the WCT global environment settings.
+     */
+    @Autowired
+    @Qualifier("environmentWCT")
+    private Environment environment;
+    /**
+     * The manager to use for user, role and agency data.
+     */
+    @Autowired
+    private AgencyUserManager agencyUserManager;
+    @Value("${queueController.thumbnailRenderer}")
+    private String thumbnailRenderer = "browseTool";
+    @Autowired
+    private HarvestResourceUrlMapper harvestResourceUrlMapper;
+    @Autowired
+    private MessageSource messageSource;
 
-	/** enables the new Target Instance and Harvest Summary pages **/
-	@Value("${queueController.enableQaModule}")
-	private boolean enableQaModule = false;
+    /**
+     * enables the new Target Instance and Harvest Summary pages
+     **/
+    @Value("${queueController.enableQaModule}")
+    private boolean enableQaModule = false;
 
-	/** the configured width of the harvest preview thumb-nail **/
-	@Value("${queueController.thumbnailWidth}")
-	private String thumbnailWidth = "150px;";
+    /**
+     * the configured width of the harvest preview thumb-nail
+     **/
+    @Value("${queueController.thumbnailWidth}")
+    private String thumbnailWidth = "150px;";
 
-	/** the configured height of the harvest preview thumb-nail **/
-	@Value("${queueController.thumbnailHeight}")
-	private String thumbnailHeight = "100px;";
+    /**
+     * the configured height of the harvest preview thumb-nail
+     **/
+    @Value("${queueController.thumbnailHeight}")
+    private String thumbnailHeight = "100px;";
 
-	/** the configured base url for store **/
-	@Value("${digitalAssetStore.baseUrl}")
-	private String dasBaseUrl = "";
+    /**
+     * the configured base url for store
+     **/
+    @Value("${digitalAssetStore.baseUrl}")
+    private String dasBaseUrl = "";
 
-	/** the configured base url for webapp **/
-	@Value("${webapp.baseUrl}")
-	private String webappBaseUrl = "";
-		
-	@InitBinder
-	public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
-		binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
+    /**
+     * the configured base url for webapp
+     **/
+    @Value("${webapp.baseUrl}")
+    private String webappBaseUrl = "";
 
-		NumberFormat nf = NumberFormat.getInstance(request.getLocale());
-		binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
-	}
+    @Value("${server.servlet.contextPath}")
+    private String webappContextPath;
 
-	public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp, BindingResult bindingResult)
-			throws Exception {
-		cleanSession(aReq);
-		return processFilter(aReq, aResp, null, bindingResult);
-	}
+    @InitBinder
+    public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
+        binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
 
-	@GetMapping
-	public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp)
-			throws Exception {
-		return showForm(aReq, aResp, null);
-	}
+        NumberFormat nf = NumberFormat.getInstance(request.getLocale());
+        binder.registerCustomEditor(java.lang.Long.class, new CustomNumberEditor(java.lang.Long.class, nf, true));
+    }
 
-	/**
-	 * Remove session attributes which ar left over from a previous request
-	 *
-	 * @param aReq
-	 */
-	private void cleanSession(HttpServletRequest aReq) {
-		HttpSession session = aReq.getSession();
-		if (aReq.getParameter(TargetInstanceCommand.REQ_TYPE) != null) {
-			session.removeAttribute(TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA);
-		}
-		session.removeAttribute(TargetInstanceCommand.SESSION_TI);
-		session.removeAttribute(TargetInstanceCommand.SESSION_MODE);
-		session.removeAttribute(Constants.GBL_SESS_EDIT_MODE);
-	}
+    public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp, BindingResult bindingResult)
+            throws Exception {
+        cleanSession(aReq);
+        return processFilter(aReq, aResp, null, bindingResult);
+    }
 
-	@PostMapping
-	protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, @ModelAttribute TargetInstanceCommand command,
-												 BindingResult bindingResult) throws Exception {
-		if (command == null || command.getCmd() == null) {
-			throw new WCTRuntimeException("Unknown command recieved.");
-		}
+    @GetMapping
+    public ModelAndView showForm(HttpServletRequest aReq, HttpServletResponse aResp)
+            throws Exception {
+        return showForm(aReq, aResp, null);
+    }
 
-		String cmd = command.getCmd();
-		log.debug("process command {}", cmd);
-		if (cmd.equals(TargetInstanceCommand.ACTION_FILTER) || PAGINATION_ACTIONS.contains(cmd)) {
-			return processFilter(aReq, aResp, command, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_RESET)) {
-			command.setAgency("");
-			command.setOwner("");
-			command.setFrom(null);
-			command.setTo(null);
-			command.setName("");
-			command.setStates(new HashSet<String>());
-			command.setSearchOid(null);
-			command.setFlagged(false);
-			command.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
-			command.setFlagOid(null);
-			command.setRecommendationFilter(null);
-			return processFilter(aReq, aResp, command, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_PAUSE)) {
-			return processPause(aReq, aResp, command, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_RESUME)) {
-			return processResume(aReq, aResp, command, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_ABORT)) {
-			return processAbort(aReq, aResp, command, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_STOP)) {
-			return processStop(aReq, aResp, command, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_DELETE)) {
-			processDelete(command.getTargetInstanceId(), bindingResult);
-			return processFilter(aReq, aResp, null, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_DELIST)) {
-			processDelist(command, bindingResult);
-			return processFilter(aReq, aResp, null, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_DELETE)) {
-			processMultiDelete(command, bindingResult);
-			return processFilter(aReq, aResp, null, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_ENDORSE)) {
-			processMultiEndorse(aReq, command);
-			return processFilter(aReq, aResp, null, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_REJECT)) {
-			processMultiReject(aReq, command, bindingResult);
-			return processFilter(aReq, aResp, null, bindingResult);
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_ARCHIVE)) {
-			// build a list of target instance ids in a query string then
-			// redirect to the
-			// ArchiveController for processing
-			StringBuilder queryString = new StringBuilder("redirect:/curator/archive/submit.html?");
-			List<String> multiSelect = command.getMultiselect();
-			for (int i = 0; i < multiSelect.size(); i++) {
-				String tIOid = multiSelect.get(i);
-				queryString.append("instanceID=");
-				queryString.append(tIOid);
-				if (i < multiSelect.size()) {
-					queryString.append("&");
-				}
-			}
-			return new ModelAndView(queryString.toString());
-		} else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_DELIST)) {
-			processMultiDelist(command, bindingResult);
-			return processFilter(aReq, aResp, null, bindingResult);
-		} else {
-			throw new WCTRuntimeException("Unknown command " + cmd + " recieved.");
-		}
-	}
+    /**
+     * Remove session attributes which ar left over from a previous request
+     *
+     * @param aReq
+     */
+    private void cleanSession(HttpServletRequest aReq) {
+        HttpSession session = aReq.getSession();
+        if (aReq.getParameter(TargetInstanceCommand.REQ_TYPE) != null) {
+            session.removeAttribute(TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA);
+        }
+        session.removeAttribute(TargetInstanceCommand.SESSION_TI);
+        session.removeAttribute(TargetInstanceCommand.SESSION_MODE);
+        session.removeAttribute(Constants.GBL_SESS_EDIT_MODE);
+    }
 
-	/**
-	 * @param aTargetInstanceManager
-	 *            The targetInstanceManager to set.
-	 */
-	public void setTargetInstanceManager(TargetInstanceManager aTargetInstanceManager) {
-		targetInstanceManager = aTargetInstanceManager;
-	}
+    @PostMapping
+    protected ModelAndView processFormSubmission(HttpServletRequest aReq, HttpServletResponse aResp, @ModelAttribute TargetInstanceCommand command,
+                                                 BindingResult bindingResult) throws Exception {
+        if (command == null || command.getCmd() == null) {
+            throw new WCTRuntimeException("Unknown command recieved.");
+        }
 
-	/**
-	 * process the filter target instances action.
-	 */
-	@SuppressWarnings("unchecked")
-	ModelAndView processFilter(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-							   BindingResult bindingResult) {
+        String cmd = command.getCmd();
+        log.debug("process command {}", cmd);
+        if (cmd.equals(TargetInstanceCommand.ACTION_FILTER) || PAGINATION_ACTIONS.contains(cmd)) {
+            return processFilter(aReq, aResp, command, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_RESET)) {
+            command.setAgency("");
+            command.setOwner("");
+            command.setFrom(null);
+            command.setTo(null);
+            command.setName("");
+            command.setStates(new HashSet<String>());
+            command.setSearchOid(null);
+            command.setFlagged(false);
+            command.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
+            command.setFlagOid(null);
+            command.setRecommendationFilter(null);
+            return processFilter(aReq, aResp, command, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_PAUSE)) {
+            return processPause(aReq, aResp, command, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_RESUME)) {
+            return processResume(aReq, aResp, command, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_ABORT)) {
+            return processAbort(aReq, aResp, command, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_STOP)) {
+            return processStop(aReq, aResp, command, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_DELETE)) {
+            processDelete(command.getTargetInstanceId(), bindingResult);
+            return processFilter(aReq, aResp, null, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_DELIST)) {
+            processDelist(command, bindingResult);
+            return processFilter(aReq, aResp, null, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_DELETE)) {
+            processMultiDelete(command, bindingResult);
+            return processFilter(aReq, aResp, null, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_ENDORSE)) {
+            processMultiEndorse(aReq, command);
+            return processFilter(aReq, aResp, null, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_REJECT)) {
+            processMultiReject(aReq, command, bindingResult);
+            return processFilter(aReq, aResp, null, bindingResult);
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_ARCHIVE)) {
+            // build a list of target instance ids in a query string then
+            // redirect to the
+            // ArchiveController for processing
+            StringBuilder queryString = new StringBuilder("redirect:/curator/archive/submit.html?");
+            List<String> multiSelect = command.getMultiselect();
+            for (int i = 0; i < multiSelect.size(); i++) {
+                String tIOid = multiSelect.get(i);
+                queryString.append("instanceID=");
+                queryString.append(tIOid);
+                if (i < multiSelect.size()) {
+                    queryString.append("&");
+                }
+            }
+            return new ModelAndView(queryString.toString());
+        } else if (cmd.equals(TargetInstanceCommand.ACTION_MULTI_DELIST)) {
+            processMultiDelist(command, bindingResult);
+            return processFilter(aReq, aResp, null, bindingResult);
+        } else {
+            throw new WCTRuntimeException("Unknown command " + cmd + " recieved.");
+        }
+    }
 
-		ModelAndView mav = new ModelAndView();
-		if (bindingResult != null && bindingResult.hasErrors()) {
-			mav.addObject(Constants.GBL_ERRORS, bindingResult);
-		}
+    /**
+     * @param aTargetInstanceManager The targetInstanceManager to set.
+     */
+    public void setTargetInstanceManager(TargetInstanceManager aTargetInstanceManager) {
+        targetInstanceManager = aTargetInstanceManager;
+    }
 
-		TargetInstanceCommand searchCommand = (TargetInstanceCommand) aReq.getSession().getAttribute(
-				TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA);
+    /**
+     * process the filter target instances action.
+     */
+    @SuppressWarnings("unchecked")
+    ModelAndView processFilter(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
+                               BindingResult bindingResult) {
 
-		TargetInstanceCriteria criteria = new TargetInstanceCriteria();
+        ModelAndView mav = new ModelAndView();
+        if (bindingResult != null && bindingResult.hasErrors()) {
+            mav.addObject(Constants.GBL_ERRORS, bindingResult);
+        }
 
-		// get value of page size cookie
-		String currentPageSize = CookieUtils.getPageSize(aReq);
+        TargetInstanceCommand searchCommand = (TargetInstanceCommand) aReq.getSession().getAttribute(
+                TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA);
 
-		if (aCmd != null && !PAGINATION_ACTIONS.contains(aCmd.getCmd())) {
-			copyCommandToCriteria(aCmd, criteria);
-			aCmd.setCmd(TargetInstanceCommand.ACTION_FILTER);
-		} else if (searchCommand != null) {
-			aCmd = createFilterCommandFromSearchCommand(aReq, aCmd, mav, searchCommand, currentPageSize);
-			copyCommandToCriteria(aCmd, criteria);
-		} else {
-			aCmd = createNewFilterCommand(aReq, criteria, currentPageSize);
-		}
+        TargetInstanceCriteria criteria = new TargetInstanceCriteria();
 
-		// apply the recommendation filter (archive, reject, investigate, delist
-		// etc)
-		Set<String> recommendationFilter = aCmd.getRecommendationFilter();
-		criteria.setRecommendationFilter(recommendationFilter);
+        // get value of page size cookie
+        String currentPageSize = CookieUtils.getPageSize(aReq);
 
-		if (enableQaModule && aCmd.getFlagOid() != null) {
-			Flag flag = agencyUserManager.getFlagByOid(aCmd.getFlagOid());
-			criteria.setFlag(flag);
-		}
+        if (aCmd != null && !PAGINATION_ACTIONS.contains(aCmd.getCmd())) {
+            copyCommandToCriteria(aCmd, criteria);
+            aCmd.setCmd(TargetInstanceCommand.ACTION_FILTER);
+        } else if (searchCommand != null) {
+            aCmd = createFilterCommandFromSearchCommand(aReq, aCmd, mav, searchCommand, currentPageSize);
+            copyCommandToCriteria(aCmd, criteria);
+        } else {
+            aCmd = createNewFilterCommand(aReq, criteria, currentPageSize);
+        }
 
-		// run the search ...
-		Pagination instances = null;
-		if (aCmd.getSelectedPageSize() == null) {
-			aCmd.setSelectedPageSize(currentPageSize);
-		}
+        // apply the recommendation filter (archive, reject, investigate, delist
+        // etc)
+        Set<String> recommendationFilter = aCmd.getRecommendationFilter();
+        criteria.setRecommendationFilter(recommendationFilter);
 
-		if (aCmd.getSelectedPageSize().equals(currentPageSize)) {
-			// user has left the page size unchanged..
-			instances = targetInstanceManager.search(criteria, aCmd.getPageNo(), Integer.parseInt(aCmd.getSelectedPageSize()));
-		} else {
-			// user has selected a new page size, so reset to first page..
-			instances = targetInstanceManager.search(criteria, 0, Integer.parseInt(aCmd.getSelectedPageSize()));
-			// ..then update the page size cookie
-			CookieUtils.setPageSize(aResp, aCmd.getSelectedPageSize());
-		}
+        if (enableQaModule && aCmd.getFlagOid() != null) {
+            Flag flag = agencyUserManager.getFlagByOid(aCmd.getFlagOid());
+            criteria.setFlag(flag);
+        }
 
-		HashMap<Long, Set<Indicator>> indicators = new HashMap<>();
-		List<Long> targetList = new ArrayList<Long>();
-		HashMap<Long, String> browseUrls = new HashMap<>();
-		HashMap<String, String> targetSeeds = new HashMap<>();
-		HashMap<Long, String> reviewUrls = new HashMap<>();
-		// we need to populate annotations to determine if targets are
-		// alertable.
-		if (instances != null) {
-			List<TargetInstance> targetInstances = instances.getList();
-			for (TargetInstance ti : targetInstances) {
-				ti.setAnnotations(targetInstanceManager.getAnnotations(ti));
-				// we also fetch any QA Indicators if the QA module is enabled
-				List<Indicator> tiIndicators = ti.getIndicators();
-				if (enableQaModule) {
-					indicators.put(ti.getOid(), new HashSet<Indicator>(tiIndicators));
-					addQaInformationForTi(indicators, browseUrls, targetSeeds, reviewUrls, ti);
-				}
-				// keep a track of the target oids so that we can retrieve the
-				// furture schdeule
-				targetList.add(ti.getTarget().getOid());
-			}
-			mav.addObject("browseUrls", browseUrls);
-			mav.addObject("thumbnailRenderer", thumbnailRenderer);
-			mav.addObject("targetSeeds", targetSeeds);
-			mav.addObject("reviewUrls", reviewUrls);
-		}
+        // run the search ...
+        Pagination instances = null;
+        if (aCmd.getSelectedPageSize() == null) {
+            aCmd.setSelectedPageSize(currentPageSize);
+        }
 
-		HashMap<Long, Long> futureScheduleCount = new HashMap<Long, Long>();
-		for (Long targetOid : targetList) {
-			// determine if there is a future schedule (to enable the delist
-			// checkbox)
-			futureScheduleCount.put(targetOid, targetInstanceManager.countQueueLengthForTarget(targetOid));
-		}
+        if (aCmd.getSelectedPageSize().equals(currentPageSize)) {
+            // user has left the page size unchanged..
+            instances = targetInstanceManager.search(criteria, aCmd.getPageNo(), Integer.parseInt(aCmd.getSelectedPageSize()));
+        } else {
+            // user has selected a new page size, so reset to first page..
+            instances = targetInstanceManager.search(criteria, 0, Integer.parseInt(aCmd.getSelectedPageSize()));
+            // ..then update the page size cookie
+            CookieUtils.setPageSize(aResp, aCmd.getSelectedPageSize());
+        }
 
-		aCmd.setQueuePaused(wctCoordinator.isQueuePaused());
+        HashMap<Long, Set<Indicator>> indicators = new HashMap<>();
+        List<Long> targetList = new ArrayList<Long>();
+        HashMap<Long, String> browseUrls = new HashMap<>();
+        HashMap<String, String> targetSeeds = new HashMap<>();
+        HashMap<Long, String> reviewUrls = new HashMap<>();
+        // we need to populate annotations to determine if targets are
+        // alertable.
+        if (instances != null) {
+            List<TargetInstance> targetInstances = instances.getList();
+            for (TargetInstance ti : targetInstances) {
+                ti.setAnnotations(targetInstanceManager.getAnnotations(ti));
+                // we also fetch any QA Indicators if the QA module is enabled
+                List<Indicator> tiIndicators = ti.getIndicators();
+                if (enableQaModule) {
+                    indicators.put(ti.getOid(), new HashSet<Indicator>(tiIndicators));
+                    addQaInformationForTi(indicators, browseUrls, targetSeeds, reviewUrls, ti);
+                }
+                // keep a track of the target oids so that we can retrieve the
+                // furture schdeule
+                targetList.add(ti.getTarget().getOid());
+            }
+            mav.addObject("browseUrls", browseUrls);
+            mav.addObject("thumbnailRenderer", thumbnailRenderer);
+            mav.addObject("targetSeeds", targetSeeds);
+            mav.addObject("reviewUrls", reviewUrls);
+        }
 
-		mav.addObject(TargetInstanceCommand.MDL_INDICATORS, indicators);
-		mav.addObject(TargetInstanceCommand.MDL_INSTANCES, instances);
-		mav.addObject(TargetInstanceCommand.MDL_FUTURE_SCHEDULE_COUNT, futureScheduleCount);
+        HashMap<Long, Long> futureScheduleCount = new HashMap<Long, Long>();
+        for (Long targetOid : targetList) {
+            // determine if there is a future schedule (to enable the delist
+            // checkbox)
+            futureScheduleCount.put(targetOid, targetInstanceManager.countQueueLengthForTarget(targetOid));
+        }
 
-		// Put the instances into the "page" attribute as well for the standard
-		// pagination bar.
-		mav.addObject("page", instances);
-		mav.addObject("action", Constants.CNTRL_TI_QUEUE);
-		mav.addObject(Constants.GBL_CMD_DATA, aCmd);
-		aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA, aCmd);
+        aCmd.setQueuePaused(wctCoordinator.isQueuePaused());
 
-		List<Agency> agencies = agencyUserManager.getAgencies();
-		mav.addObject(TargetInstanceCommand.MDL_AGENCIES, agencies);
+        mav.addObject(TargetInstanceCommand.MDL_INDICATORS, indicators);
+        mav.addObject(TargetInstanceCommand.MDL_INSTANCES, instances);
+        mav.addObject(TargetInstanceCommand.MDL_FUTURE_SCHEDULE_COUNT, futureScheduleCount);
 
-		Agency selectedAgency = null;
-		for (Agency a : agencies) {
-			if (a.getName().equals(aCmd.getAgency())) {
-				selectedAgency = a;
-				break;
-			}
-		}
-		List owners = null;
-		if (selectedAgency != null) {
-			owners = agencyUserManager.getUserDTOs(selectedAgency.getOid());
-		} else {
-			owners = agencyUserManager.getUserDTOs();
-		}
-		mav.addObject(TargetInstanceCommand.MDL_OWNERS, owners);
+        // Put the instances into the "page" attribute as well for the standard
+        // pagination bar.
+        mav.addObject("page", instances);
+        mav.addObject("action", Constants.CNTRL_TI_QUEUE);
+        mav.addObject(Constants.GBL_CMD_DATA, aCmd);
+        aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI_SEARCH_CRITERIA, aCmd);
 
-		if (enableQaModule) {
-			addQaInformation(mav);
-			mav.setViewName(Constants.VIEW_TARGET_INSTANCE_QA_QUEUE);
-		} else {
-			mav.setViewName(Constants.VIEW_TARGET_INSTANCE_QUEUE);
-		}
+        List<Agency> agencies = agencyUserManager.getAgencies();
+        mav.addObject(TargetInstanceCommand.MDL_AGENCIES, agencies);
 
-		return mav;
-	}
+        Agency selectedAgency = null;
+        for (Agency a : agencies) {
+            if (a.getName().equals(aCmd.getAgency())) {
+                selectedAgency = a;
+                break;
+            }
+        }
+        List owners = null;
+        if (selectedAgency != null) {
+            owners = agencyUserManager.getUserDTOs(selectedAgency.getOid());
+        } else {
+            owners = agencyUserManager.getUserDTOs();
+        }
+        mav.addObject(TargetInstanceCommand.MDL_OWNERS, owners);
 
-	private void addQaInformation(ModelAndView mav) {
-		// fetch the valid rejection reasons for targets
-		// (used to populate the rejection reason drop-down)
-		User user = AuthUtil.getRemoteUserObject();
-		List<RejReason> rejectionReasons = agencyUserManager.getValidRejReasonsForTIs(user.getAgency().getOid());
-		mav.addObject(TargetInstanceCommand.MDL_REASONS, rejectionReasons);
-		// add all the flags defined on the system for the flag filter
-		List<Flag> flags = agencyUserManager.getFlagForLoggedInUser();
-		mav.addObject(FlagCommand.MDL_FLAGS, flags);
-		// add the configured thumb-nail size
-		mav.addObject(Constants.THUMBNAIL_WIDTH, thumbnailWidth);
-		mav.addObject(Constants.THUMBNAIL_HEIGHT, thumbnailHeight);
-	}
+        if (enableQaModule) {
+            addQaInformation(mav);
+            mav.setViewName(Constants.VIEW_TARGET_INSTANCE_QA_QUEUE);
+        } else {
+            mav.setViewName(Constants.VIEW_TARGET_INSTANCE_QUEUE);
+        }
 
-	void addQaInformationForTi(HashMap<Long, Set<Indicator>> indicators, HashMap<Long, String> browseUrls, HashMap<String, String> targetSeeds, HashMap<Long, String> reviewUrls, TargetInstance ti) {
-		// fetch the harvest results and seeds so that we can form the url for
-		// the browse tool preview
-		Long tiOid = ti.getOid();
-		// find the last result with a state of un-assessed, indexing or
-		// endorsed
-		Long lastDisplayableResultOid = null;
-		HarvestResult lastDisplayableResult = null;
-		String harvestNum = null;
+        return mav;
+    }
 
-		List<HarvestResult> results = targetInstanceManager.getHarvestResults(tiOid);
-		for (HarvestResult result : results) {
-			if (result.getState() == HarvestResult.STATE_UNASSESSED || result.getState() == HarvestResult.STATE_INDEXING
-					|| result.getState() == HarvestResult.STATE_ENDORSED) {
-				// Use the first harvest result number as a default
-				// Otherwise use the most recent endorsed harvest result
-				if (harvestNum == null) {
-					harvestNum = String.valueOf(result.getHarvestNumber());
-				} else if (result.getState() == HarvestResult.STATE_ENDORSED) {
-					harvestNum = String.valueOf(result.getHarvestNumber());
-				}
-				lastDisplayableResultOid = result.getOid();
-				lastDisplayableResult = result;
-			}
-		}
+    private void addQaInformation(ModelAndView mav) {
+        // fetch the valid rejection reasons for targets
+        // (used to populate the rejection reason drop-down)
+        User user = AuthUtil.getRemoteUserObject();
+        List<RejReason> rejectionReasons = agencyUserManager.getValidRejReasonsForTIs(user.getAgency().getOid());
+        mav.addObject(TargetInstanceCommand.MDL_REASONS, rejectionReasons);
+        // add all the flags defined on the system for the flag filter
+        List<Flag> flags = agencyUserManager.getFlagForLoggedInUser();
+        mav.addObject(FlagCommand.MDL_FLAGS, flags);
+        // add the configured thumb-nail size
+        mav.addObject(Constants.THUMBNAIL_WIDTH, thumbnailWidth);
+        mav.addObject(Constants.THUMBNAIL_HEIGHT, thumbnailHeight);
+    }
 
-		String seed = getPrimarySeedName(ti);
-		String thumbnailRendererName = thumbnailRenderer.toUpperCase();
-		if (thumbnailRendererName.equals("BROWSETOOL")) {
-			if (lastDisplayableResultOid != null) {
-				browseUrls.put(tiOid, "curator/tools/browse/" + String.valueOf(lastDisplayableResultOid) + "/" + seed);
-			} else {
-				browseUrls.put(tiOid, null);
-			}
-		}
+    void addQaInformationForTi(HashMap<Long, Set<Indicator>> indicators, HashMap<Long, String> browseUrls, HashMap<String, String> targetSeeds, HashMap<Long, String> reviewUrls, TargetInstance ti) {
+        // fetch the harvest results and seeds so that we can form the url for
+        // the browse tool preview
+        Long tiOid = ti.getOid();
+        // find the last result with a state of un-assessed, indexing or
+        // endorsed
+        Long lastDisplayableResultOid = null;
+        HarvestResult lastDisplayableResult = null;
+        Integer harvestNum = null;
 
-		//TODO
-		if (thumbnailRendererName.equals("ACCESSTOOL") && lastDisplayableResult != null) {
+        List<HarvestResult> results = targetInstanceManager.getHarvestResults(tiOid);
+        for (HarvestResult result : results) {
+            if (result.getState() == HarvestResult.STATE_UNASSESSED || result.getState() == HarvestResult.STATE_INDEXING
+                    || result.getState() == HarvestResult.STATE_ENDORSED) {
+                // Use the first harvest result number as a default
+                // Otherwise use the most recent endorsed harvest result
+                if (harvestNum == null) {
+                    harvestNum = result.getHarvestNumber();
+                    lastDisplayableResultOid = result.getOid();
+                    lastDisplayableResult = result;
+                } else if (result.getState() == HarvestResult.STATE_ENDORSED) {
+                    harvestNum = result.getHarvestNumber();
+                    lastDisplayableResultOid = result.getOid();
+                    lastDisplayableResult = result;
+                }
+            }
+        }
+
+        SeedHistory seed = getPrimaryHistorySeed(ti);
+        String thumbnailRendererName = thumbnailRenderer.toUpperCase();
+        if (thumbnailRendererName.equals("BROWSETOOL")) {
+            if (lastDisplayableResultOid != null) {
+                browseUrls.put(tiOid, "curator/tools/browse/" + String.valueOf(lastDisplayableResultOid) + "/" + seed);
+            } else {
+                browseUrls.put(tiOid, null);
+            }
+        }
+
+        //TODO
+        if (thumbnailRendererName.equals("ACCESSTOOL") && lastDisplayableResult != null) {
 //			HarvestResourceDTO hRsr = null;
 //			try {
 //				hRsr = targetInstanceManager.getHarvestResourceDTO(lastDisplayableResult.getOid(), seed);
@@ -432,537 +449,529 @@ public class QueueController {
 //			} else {
 //				log.warn("Cannot find seed '{}' in harvest result ({}).", seed, lastDisplayableResult.getOid());
 //			}
-		}
-		if (thumbnailRendererName.equals("SCREENSHOTTOOL")) {
-			// File naming convention is ti_harvest_seedId_source_size.png
-			// Using the latest harvested harvest number
-			String tiOidString = String.valueOf(tiOid);
-			String browseUrl = dasBaseUrl + "/store/" + tiOidString + "/" + harvestNum + "/_resources/" + tiOidString + "_" + harvestNum + "_seedId_live_screen-thumbnail.png";
-			browseUrls.put(tiOid, browseUrl);
+        }
+        if (thumbnailRendererName.equals("SCREENSHOTTOOL")) {
+            // File naming convention is ti_harvest_seedId_source_size.png
+            // Using the latest harvested harvest number
+            String tiOidString = String.valueOf(tiOid);
+            if (harvestNum != null && seed != null) {
+                String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(tiOid, harvestNum) + "/" + ScreenshotPaths.getImageName(tiOid, harvestNum, seed.getOid(), ScreenshotType.live, "screen-thumbnail");
+                browseUrls.put(tiOid, browseUrl);
+            }
 
-			try {
-				Long primarySeedOid = null;
-				String keysAndValues = "";
-				// It is difficult to pass map to javascript.  For this reason, return a string separaated by spaces and |s
-				// The seed urls should be encoded
-				Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
-				while (seedHistory.hasNext()) {
-					SeedHistory s = seedHistory.next();
-					if (s.isPrimary() && primarySeedOid == null) {
-						primarySeedOid = s.getOid();
-						targetSeeds.put(tiOidString + "_primarySeedId", String.valueOf(primarySeedOid));
-						targetSeeds.put(tiOidString + "_primarySeedUrl", s.getSeed());
-						if (keysAndValues.length() != 0) {
-							keysAndValues = "|" + keysAndValues;
-						}
-						keysAndValues = String.valueOf(primarySeedOid) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString()) + keysAndValues;
-					} else {
-						if (keysAndValues.length() != 0) {
-							keysAndValues = keysAndValues + "|";
-						}
-						keysAndValues = keysAndValues + String.valueOf(s.getOid()) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString());
-					}
-				}	
-				
-				targetSeeds.put(tiOidString + "_keysAndValues", keysAndValues);
+            try {
+                Long primarySeedOid = null;
+                String keysAndValues = "";
+                // It is difficult to pass map to javascript.  For this reason, return a string separaated by spaces and |s
+                // The seed urls should be encoded
+                Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+                while (seedHistory.hasNext()) {
+                    SeedHistory s = seedHistory.next();
+                    if (s.isPrimary() && primarySeedOid == null) {
+                        primarySeedOid = s.getOid();
+                        targetSeeds.put(tiOidString + "_primarySeedId", String.valueOf(primarySeedOid));
+                        targetSeeds.put(tiOidString + "_primarySeedUrl", s.getSeed());
+                        if (keysAndValues.length() != 0) {
+                            keysAndValues = "|" + keysAndValues;
+                        }
+                        keysAndValues = String.valueOf(primarySeedOid) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString()) + keysAndValues;
+                    } else {
+                        if (keysAndValues.length() != 0) {
+                            keysAndValues = keysAndValues + "|";
+                        }
+                        keysAndValues = keysAndValues + String.valueOf(s.getOid()) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString());
+                    }
+                }
 
-				// Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
-				String reviewUrl = webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + tiOidString 
-						+ "&harvestResultId=" + String.valueOf(lastDisplayableResultOid) + "&harvestNumber=" + harvestNum;
+                targetSeeds.put(tiOidString + "_keysAndValues", keysAndValues);
 
-				reviewUrls.put(tiOid, reviewUrl);
-				
-			} catch (Exception e) {
-				log.error("Could not get the primary seed screenshot: ", e);
-				return;
-			}
-		}
-	}
+                // Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
+                String reviewUrl = webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + tiOidString
+                        + "&harvestResultId=" + String.valueOf(lastDisplayableResultOid) + "&harvestNumber=" + harvestNum;
 
-	private String getPrimarySeedName(TargetInstance ti) {
-		Set<Seed> seeds = ti.getTarget().getSeeds();
-		if(seeds==null) return null;
-		String lastSeedName = null;
-		// fetch the primary seed
-		for (Seed currentSeed : seeds) {
-			String seedName = currentSeed.getSeed();
-			if (currentSeed.isPrimary()) {
-				return seedName;
-			}
-			lastSeedName = seedName;
-		}
-		// if no seed is marked as primary then use the last one, or null
-		return lastSeedName;
-	}
+                reviewUrls.put(tiOid, reviewUrl);
 
-	// Package private so that this method can be unit tested reasonably cleanly
-	TargetInstanceCommand createFilterCommandFromSearchCommand(HttpServletRequest aReq, TargetInstanceCommand aCmd,
-															   ModelAndView mav, TargetInstanceCommand searchCommand, String currentPageSize) {
-		if (aCmd == null) {
-			// we have come from another page so update the page size in case it
-			// has been changed since the searchcommand was saved
-			searchCommand.setSelectedPageSize(currentPageSize);
-		} else if (PAGINATION_ACTIONS.contains(aCmd.getCmd())) {
-			searchCommand.setCmd(aCmd.getCmd());
-			searchCommand.setPageNo(aCmd.getPageNo());
-			searchCommand.setSelectedPageSize(aCmd.getSelectedPageSize());
-		}
+            } catch (Exception e) {
+                log.error("Could not get the primary seed screenshot: ", e);
+                return;
+            }
+        }
+    }
 
-		String showSubmittedMessageParameter = aReq.getParameter(TargetInstanceCommand.REQ_SHOW_SUBMITTED_MSG);
-		if (showSubmittedMessageParameter != null) {
-			if (showSubmittedMessageParameter.equals("y")) {
-				addMessageToModel(mav, "ui.label.targetinstance.submitToArchiveStarted");
-			} else {
-				addMessageToModel(mav, "ui.label.targetinstance.submitToArchiveFailed");
-			}
-		}
+    private SeedHistory getPrimaryHistorySeed(TargetInstance ti) {
+        Set<SeedHistory> seeds = ti.getSeedHistory();
+        if (seeds == null) return null;
+        SeedHistory lastHistorySeed = null;
+        // fetch the primary seed
+        for (SeedHistory currentSeed : seeds) {
+            if (currentSeed.isPrimary()) {
+                return currentSeed;
+            }
+            lastHistorySeed = currentSeed;
+        }
+        // if no seed is marked as primary then use the last one, or null
+        return lastHistorySeed;
+    }
 
-		searchCommand.setCmd(TargetInstanceCommand.ACTION_FILTER);
-		return searchCommand;
-	}
+    // Package private so that this method can be unit tested reasonably cleanly
+    TargetInstanceCommand createFilterCommandFromSearchCommand(HttpServletRequest aReq, TargetInstanceCommand aCmd,
+                                                               ModelAndView mav, TargetInstanceCommand searchCommand, String currentPageSize) {
+        if (aCmd == null) {
+            // we have come from another page so update the page size in case it
+            // has been changed since the searchcommand was saved
+            searchCommand.setSelectedPageSize(currentPageSize);
+        } else if (PAGINATION_ACTIONS.contains(aCmd.getCmd())) {
+            searchCommand.setCmd(aCmd.getCmd());
+            searchCommand.setPageNo(aCmd.getPageNo());
+            searchCommand.setSelectedPageSize(aCmd.getSelectedPageSize());
+        }
 
-	private void addMessageToModel(ModelAndView mav, String message) {
-		mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage(message, new Object[] {}, Locale.getDefault()));
-	}
+        String showSubmittedMessageParameter = aReq.getParameter(TargetInstanceCommand.REQ_SHOW_SUBMITTED_MSG);
+        if (showSubmittedMessageParameter != null) {
+            if (showSubmittedMessageParameter.equals("y")) {
+                addMessageToModel(mav, "ui.label.targetinstance.submitToArchiveStarted");
+            } else {
+                addMessageToModel(mav, "ui.label.targetinstance.submitToArchiveFailed");
+            }
+        }
 
-	private TargetInstanceCommand createNewFilterCommand(HttpServletRequest aReq, TargetInstanceCriteria criteria,
-														 String currentPageSize) {
-		TargetInstanceCommand aCmd;
-		// Command is null and there is no search command. Need to set up the
-		// new
-		// filter parameters
-		aCmd = new TargetInstanceCommand();
-		aCmd.setSelectedPageSize(currentPageSize);
+        searchCommand.setCmd(TargetInstanceCommand.ACTION_FILTER);
+        return searchCommand;
+    }
 
-		Set<String> states = new HashSet<String>();
-		String reqType = aReq.getParameter(TargetInstanceCommand.REQ_TYPE);
-		if (TargetInstanceCommand.TYPE_TARGET.equals(reqType)) {
-			String name = aReq.getParameter(TargetInstanceCommand.PARAM_TARGET_NAME);
-			criteria.setName(name);
-			aCmd.setName(name);
-			aCmd.setStates(states);
-			aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
-		} else if (TargetInstanceCommand.TYPE_HARVESTED.equals(reqType)) {
-			User user = AuthUtil.getRemoteUserObject();
-			criteria.setOwner(user.getUsername());
-			aCmd.setOwner(user.getUsername());
-			criteria.setAgency(user.getAgency().getName());
-			aCmd.setAgency(user.getAgency().getName());
+    private void addMessageToModel(ModelAndView mav, String message) {
+        mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage(message, new Object[]{}, Locale.getDefault()));
+    }
 
-			states.add(TargetInstance.STATE_HARVESTED);
-			aCmd.setStates(states);
-			aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
-		} else {
-			Calendar cal = Calendar.getInstance();
-			cal.add(Calendar.DATE, environment.getDaysToSchedule() + 1);
-			cal.set(Calendar.HOUR_OF_DAY, cal.getActualMaximum(Calendar.HOUR_OF_DAY));
-			cal.set(Calendar.MINUTE, cal.getActualMaximum(Calendar.MINUTE));
-			cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND));
-			criteria.setTo(cal.getTime());
-			aCmd.setTo(cal.getTime());
-			aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
+    private TargetInstanceCommand createNewFilterCommand(HttpServletRequest aReq, TargetInstanceCriteria criteria,
+                                                         String currentPageSize) {
+        TargetInstanceCommand aCmd;
+        // Command is null and there is no search command. Need to set up the
+        // new
+        // filter parameters
+        aCmd = new TargetInstanceCommand();
+        aCmd.setSelectedPageSize(currentPageSize);
 
-			if (TargetInstanceCommand.TYPE_QUEUE.equals(reqType)) {
-				states.add(TargetInstance.STATE_SCHEDULED);
-				states.add(TargetInstance.STATE_QUEUED);
-				states.add(TargetInstance.STATE_RUNNING);
-				states.add(TargetInstance.STATE_STOPPING);
-				states.add(TargetInstance.STATE_PAUSED);
-				aCmd.setStates(states);
-			} else {
-				cal = Calendar.getInstance();
-				cal.set(Calendar.HOUR_OF_DAY, cal.getActualMinimum(Calendar.HOUR_OF_DAY));
-				cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
-				cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
-				cal.add(Calendar.DATE, -1);
-				criteria.setFrom(cal.getTime());
-				aCmd.setFrom(cal.getTime());
+        Set<String> states = new HashSet<String>();
+        String reqType = aReq.getParameter(TargetInstanceCommand.REQ_TYPE);
+        if (TargetInstanceCommand.TYPE_TARGET.equals(reqType)) {
+            String name = aReq.getParameter(TargetInstanceCommand.PARAM_TARGET_NAME);
+            criteria.setName(name);
+            aCmd.setName(name);
+            aCmd.setStates(states);
+            aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
+        } else if (TargetInstanceCommand.TYPE_HARVESTED.equals(reqType)) {
+            User user = AuthUtil.getRemoteUserObject();
+            criteria.setOwner(user.getUsername());
+            aCmd.setOwner(user.getUsername());
+            criteria.setAgency(user.getAgency().getName());
+            aCmd.setAgency(user.getAgency().getName());
 
-				states.addAll(TargetInstance.getOrderedStates().keySet());
+            states.add(TargetInstance.STATE_HARVESTED);
+            aCmd.setStates(states);
+            aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
+        } else {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DATE, environment.getDaysToSchedule() + 1);
+            cal.set(Calendar.HOUR_OF_DAY, cal.getActualMaximum(Calendar.HOUR_OF_DAY));
+            cal.set(Calendar.MINUTE, cal.getActualMaximum(Calendar.MINUTE));
+            cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND));
+            criteria.setTo(cal.getTime());
+            aCmd.setTo(cal.getTime());
+            aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
 
-				User user = AuthUtil.getRemoteUserObject();
-				criteria.setOwner(user.getUsername());
-				aCmd.setOwner(user.getUsername());
-				criteria.setAgency(user.getAgency().getName());
-				aCmd.setAgency(user.getAgency().getName());
+            if (TargetInstanceCommand.TYPE_QUEUE.equals(reqType)) {
+                states.add(TargetInstance.STATE_SCHEDULED);
+                states.add(TargetInstance.STATE_QUEUED);
+                states.add(TargetInstance.STATE_RUNNING);
+                states.add(TargetInstance.STATE_STOPPING);
+                states.add(TargetInstance.STATE_PAUSED);
+                aCmd.setStates(states);
+            } else {
+                cal = Calendar.getInstance();
+                cal.set(Calendar.HOUR_OF_DAY, cal.getActualMinimum(Calendar.HOUR_OF_DAY));
+                cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
+                cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
+                cal.add(Calendar.DATE, -1);
+                criteria.setFrom(cal.getTime());
+                aCmd.setFrom(cal.getTime());
 
-				criteria.setSearchOid(aCmd.getSearchOid());
-			}
-		}
+                states.addAll(TargetInstance.getOrderedStates().keySet());
 
-		criteria.setStates(states);
-		criteria.setSortorder(aCmd.getSortorder());
+                User user = AuthUtil.getRemoteUserObject();
+                criteria.setOwner(user.getUsername());
+                aCmd.setOwner(user.getUsername());
+                criteria.setAgency(user.getAgency().getName());
+                aCmd.setAgency(user.getAgency().getName());
 
-		aCmd.setCmd(TargetInstanceCommand.ACTION_FILTER);
-		return aCmd;
-	}
+                criteria.setSearchOid(aCmd.getSearchOid());
+            }
+        }
 
-	/**
-	 * Copy the search filter data from the command to the criteria
-	 *
-	 * @param aCmd
-	 *            the command to copy search criteria from
-	 * @param aCriteria
-	 *            the criteria object to copy data to
-	 */
-	private void copyCommandToCriteria(TargetInstanceCommand aCmd, TargetInstanceCriteria aCriteria) {
-		aCriteria.setFrom(aCmd.getFrom());
-		aCriteria.setTo(aCmd.getTo());
+        criteria.setStates(states);
+        criteria.setSortorder(aCmd.getSortorder());
 
-		String name = aCmd.getName();
-		if (name != null) {
-			aCriteria.setName(name);
-		}
-		Set<String> commandStates = aCmd.getStates();
-		if (commandStates != null) {
-			if (!commandStates.isEmpty()) {
-				aCriteria.setStates(commandStates);
-			}
-			if (commandStates.contains(TargetInstance.STATE_RUNNING)) {
-				aCriteria.getStates().add(TargetInstance.STATE_STOPPING);
-			}
-		}
-		String owner = aCmd.getOwner();
-		if (owner != null) {
-			aCriteria.setOwner(owner);
-		}
-		String agency = aCmd.getAgency();
-		if (agency != null) {
-			aCriteria.setAgency(agency);
-		}
-		aCriteria.setSearchOid(aCmd.getSearchOid());
-		aCriteria.setFlagged(aCmd.getFlagged());
-		aCriteria.setNondisplayonly(aCmd.getNondisplayonly());
-		aCriteria.setSortorder(aCmd.getSortorder());
+        aCmd.setCmd(TargetInstanceCommand.ACTION_FILTER);
+        return aCmd;
+    }
 
-		String action = aCmd.getCmd();
-		if (action.equals(TargetInstanceCommand.ACTION_NEXT)) {
-			aCmd.setPageNo(aCmd.getPageNo() + 1);
-		}
+    /**
+     * Copy the search filter data from the command to the criteria
+     *
+     * @param aCmd      the command to copy search criteria from
+     * @param aCriteria the criteria object to copy data to
+     */
+    private void copyCommandToCriteria(TargetInstanceCommand aCmd, TargetInstanceCriteria aCriteria) {
+        aCriteria.setFrom(aCmd.getFrom());
+        aCriteria.setTo(aCmd.getTo());
 
-		if (action.equals(TargetInstanceCommand.ACTION_PREV)) {
-			aCmd.setPageNo(aCmd.getPageNo() - 1);
-		}
-	}
+        String name = aCmd.getName();
+        if (name != null) {
+            aCriteria.setName(name);
+        }
+        Set<String> commandStates = aCmd.getStates();
+        if (commandStates != null) {
+            if (!commandStates.isEmpty()) {
+                aCriteria.setStates(commandStates);
+            }
+            if (commandStates.contains(TargetInstance.STATE_RUNNING)) {
+                aCriteria.getStates().add(TargetInstance.STATE_STOPPING);
+            }
+        }
+        String owner = aCmd.getOwner();
+        if (owner != null) {
+            aCriteria.setOwner(owner);
+        }
+        String agency = aCmd.getAgency();
+        if (agency != null) {
+            aCriteria.setAgency(agency);
+        }
+        aCriteria.setSearchOid(aCmd.getSearchOid());
+        aCriteria.setFlagged(aCmd.getFlagged());
+        aCriteria.setNondisplayonly(aCmd.getNondisplayonly());
+        aCriteria.setSortorder(aCmd.getSortorder());
 
-	/**
-	 * process the delete target instance action.
-	 */
-	private void processDelete(Long targetInstanceId, BindingResult bindingResult) {
-		TargetInstance ti = null;
-		try {
-			try {
-				ti = targetInstanceManager.getTargetInstance(targetInstanceId);
-			} catch (RuntimeException e) {
-				// assume that the target instance has already been deleted.
-				ti = null;
-			}
+        String action = aCmd.getCmd();
+        if (action.equals(TargetInstanceCommand.ACTION_NEXT)) {
+            aCmd.setPageNo(aCmd.getPageNo() + 1);
+        }
 
-			// You can only delete a target instance if it is scheduled or
-			// queued
-			// and if it doesn't have a HarvestStatus (i.e. has not yet begun
-			// harvesting)
-			if (ti != null) {
-				if (ti.getState() != null && !ti.getState().equals(TargetInstance.STATE_SCHEDULED)
-						&& !ti.getState().equals(TargetInstance.STATE_QUEUED)) {
-					bindingResult.reject("target.instance.not.deleteable", new Object[] { ti.getJobName() },
-							"The target instance may not be deleted.");
-				} else {
-					if (ti.getStatus() == null) {
-						targetInstanceManager.delete(ti);
-					} else {
-						bindingResult.reject("target.instance.not.deleteable", new Object[] { ti.getJobName() },
-								"The target instance may not be deleted.");
-					}
-				}
-			}
-		} catch (org.springframework.orm.hibernate5.HibernateObjectRetrievalFailureException e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
+        if (action.equals(TargetInstanceCommand.ACTION_PREV)) {
+            aCmd.setPageNo(aCmd.getPageNo() - 1);
+        }
+    }
 
-	/**
-	 * process the multi-delete target instance action.
-	 */
-	private void processMultiDelete(TargetInstanceCommand aCmd, BindingResult bindingResult) {
-		// the id of each TI to remove is passed in the multiselect attribute
-		// for a multi-delete operation
-		for (String targetInstanceOid : aCmd.getMultiselect()) {
-			// delete the ti
-			processDelete(Long.parseLong(targetInstanceOid), bindingResult);
-		}
-	}
+    /**
+     * process the delete target instance action.
+     */
+    private void processDelete(Long targetInstanceId, BindingResult bindingResult) {
+        TargetInstance ti = null;
+        try {
+            try {
+                ti = targetInstanceManager.getTargetInstance(targetInstanceId);
+            } catch (RuntimeException e) {
+                // assume that the target instance has already been deleted.
+                ti = null;
+            }
 
-	/**
-	 * process the multi-endorse target instance action.
-	 */
-	private void processMultiEndorse(HttpServletRequest aReq, TargetInstanceCommand aCmd) {
-		// the id of each TI to endorse is passed in the multiselect attribute
-		// for a multi-endorse operation
-		for (String selectedOid : aCmd.getMultiselect()) {
-			Long targetInstanceOid = Long.parseLong(selectedOid);
-			TargetInstance ti = processEndorse(targetInstanceOid, this.getLastHarvestResultOid(targetInstanceOid));
-			aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-		}
-	}
+            // You can only delete a target instance if it is scheduled or
+            // queued
+            // and if it doesn't have a HarvestStatus (i.e. has not yet begun
+            // harvesting)
+            if (ti != null) {
+                if (ti.getState() != null && !ti.getState().equals(TargetInstance.STATE_SCHEDULED)
+                        && !ti.getState().equals(TargetInstance.STATE_QUEUED)) {
+                    bindingResult.reject("target.instance.not.deleteable", new Object[]{ti.getJobName()},
+                            "The target instance may not be deleted.");
+                } else {
+                    if (ti.getStatus() == null) {
+                        targetInstanceManager.delete(ti);
+                    } else {
+                        bindingResult.reject("target.instance.not.deleteable", new Object[]{ti.getJobName()},
+                                "The target instance may not be deleted.");
+                    }
+                }
+            }
+        } catch (org.springframework.orm.hibernate5.HibernateObjectRetrievalFailureException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 
-	/**
-	 * process the endorse target instance action.
-	 */
-	private TargetInstance processEndorse(Long targetInstanceOid, Long harvestResultId) {
-		// set the ti state and the hr states
-		TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceOid);
-		ti.setState(TargetInstance.STATE_ENDORSED);
+    /**
+     * process the multi-delete target instance action.
+     */
+    private void processMultiDelete(TargetInstanceCommand aCmd, BindingResult bindingResult) {
+        // the id of each TI to remove is passed in the multiselect attribute
+        // for a multi-delete operation
+        for (String targetInstanceOid : aCmd.getMultiselect()) {
+            // delete the ti
+            processDelete(Long.parseLong(targetInstanceOid), bindingResult);
+        }
+    }
 
-		for (HarvestResult hr : ti.getHarvestResults()) {
-			if (hr.getOid().equals(harvestResultId)) {
-				hr.setState(HarvestResult.STATE_ENDORSED);
-			} else if (hr.getState() != HarvestResult.STATE_REJECTED) {
-				hr.setState(HarvestResult.STATE_REJECTED);
-				wctCoordinator.removeIndexes(hr);
-			}
-			targetInstanceManager.save((HarvestResult) hr);
-		}
+    /**
+     * process the multi-endorse target instance action.
+     */
+    private void processMultiEndorse(HttpServletRequest aReq, TargetInstanceCommand aCmd) {
+        // the id of each TI to endorse is passed in the multiselect attribute
+        // for a multi-endorse operation
+        for (String selectedOid : aCmd.getMultiselect()) {
+            Long targetInstanceOid = Long.parseLong(selectedOid);
+            TargetInstance ti = processEndorse(targetInstanceOid, this.getLastHarvestResultOid(targetInstanceOid));
+            aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+        }
+    }
 
-		targetInstanceManager.save(ti);
+    /**
+     * process the endorse target instance action.
+     */
+    private TargetInstance processEndorse(Long targetInstanceOid, Long harvestResultId) {
+        // set the ti state and the hr states
+        TargetInstance ti = targetInstanceManager.getTargetInstance(targetInstanceOid);
+        ti.setState(TargetInstance.STATE_ENDORSED);
 
-		return ti;
-	}
+        for (HarvestResult hr : ti.getHarvestResults()) {
+            if (hr.getOid().equals(harvestResultId)) {
+                hr.setState(HarvestResult.STATE_ENDORSED);
+            } else if (hr.getState() != HarvestResult.STATE_REJECTED) {
+                hr.setState(HarvestResult.STATE_REJECTED);
+                wctCoordinator.removeIndexes(hr);
+            }
+            targetInstanceManager.save((HarvestResult) hr);
+        }
 
-	/**
-	 * process the reject target instance action.
-	 */
-	private void processReject(HttpServletRequest aReq, TargetInstanceCommand aCmd, BindingResult bindingResult) {
-		// set the ti state and the hr states
-		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		for (HarvestResult hr : ti.getHarvestResults()) {
-			if (hr.getOid().equals(aCmd.getHarvestResultId())) {
-				if (hr.getState() != HarvestResult.STATE_REJECTED) {
-					hr.setState(HarvestResult.STATE_REJECTED);
-					RejReason rejReason = agencyUserManager.getRejReasonByOid(aCmd.getRejReasonId());
-					if (rejReason == null) {
-						bindingResult.reject("rejection.reason.missing", new Object[] { ti.getJobName() },
-								"No rejection reason specified, but this is a required field.  Please create one if no rejection reasons are configured.");
-					} else {
-						hr.setRejReason(rejReason);
-						wctCoordinator.removeIndexes(hr);
-					}
-				}
+        targetInstanceManager.save(ti);
 
-				targetInstanceManager.save((HarvestResult) hr);
-			}
-		}
+        return ti;
+    }
 
-		boolean allRejected = true;
-		for (HarvestResult hr : ti.getHarvestResults()) {
-			if ((HarvestResult.STATE_REJECTED != hr.getState()) && (HarvestResult.STATE_ABORTED != hr.getState())) {
-				allRejected = false;
-				break;
-			}
-		}
+    /**
+     * process the reject target instance action.
+     */
+    private void processReject(HttpServletRequest aReq, TargetInstanceCommand aCmd, BindingResult bindingResult) {
+        // set the ti state and the hr states
+        TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
+        for (HarvestResult hr : ti.getHarvestResults()) {
+            if (hr.getOid().equals(aCmd.getHarvestResultId())) {
+                if (hr.getState() != HarvestResult.STATE_REJECTED) {
+                    hr.setState(HarvestResult.STATE_REJECTED);
+                    RejReason rejReason = agencyUserManager.getRejReasonByOid(aCmd.getRejReasonId());
+                    if (rejReason == null) {
+                        bindingResult.reject("rejection.reason.missing", new Object[]{ti.getJobName()},
+                                "No rejection reason specified, but this is a required field.  Please create one if no rejection reasons are configured.");
+                    } else {
+                        hr.setRejReason(rejReason);
+                        wctCoordinator.removeIndexes(hr);
+                    }
+                }
 
-		if (allRejected) {
-			ti.setState(TargetInstance.STATE_REJECTED);
-			ti.setArchivedTime(new Date());
-		}
+                targetInstanceManager.save((HarvestResult) hr);
+            }
+        }
 
-		targetInstanceManager.save(ti);
-		aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
-	}
+        boolean allRejected = true;
+        for (HarvestResult hr : ti.getHarvestResults()) {
+            if ((HarvestResult.STATE_REJECTED != hr.getState()) && (HarvestResult.STATE_ABORTED != hr.getState())) {
+                allRejected = false;
+                break;
+            }
+        }
 
-	/**
-	 * process the multi-reject target instance action.
-	 */
-	private void processMultiReject(HttpServletRequest aReq, TargetInstanceCommand aCmd, BindingResult bindingResult) {
-		// the id of each TI to reject is passed in the multiselect attribute
-		// for a multi-reject operation
-		// NOTE: the reject reason will already have been set on the command (by
-		// Spring MVC)
-		for (String tIOid : aCmd.getMultiselect()) {
-			Long targetInstanceOid = new Long(tIOid);
-			// set the ti oid on the command
-			aCmd.setTargetInstanceId(targetInstanceOid);
-			// iterate over the harvest results setting the oid on the command
-			List<HarvestResult> harvestResults = targetInstanceManager.getHarvestResults(targetInstanceOid);
-			for (HarvestResult harvestResult : harvestResults) {
-				aCmd.setHarvestResultId(harvestResult.getOid());
-				// set the harvest result to reject
-				processReject(aReq, aCmd, bindingResult);
-			}
-		}
-	}
+        if (allRejected) {
+            ti.setState(TargetInstance.STATE_REJECTED);
+            ti.setArchivedTime(new Date());
+        }
 
-	/**
-	 * process the delist target instance action (ie: terminate schedule)
-	 *
-	 * @param command
-	 *            the command carrying the target instance id of the target
-	 *            instance whos target will have its schedule terminated
-	 * @param bindingResult
-	 *            any bindingResult encountered
-	 * @throws Exception
-	 *             any unexpected exception
-	 */
-	private void processDelist(TargetInstanceCommand command, BindingResult bindingResult) {
+        targetInstanceManager.save(ti);
+        aReq.getSession().setAttribute(TargetInstanceCommand.SESSION_TI, ti);
+    }
 
-		TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceId());
+    /**
+     * process the multi-reject target instance action.
+     */
+    private void processMultiReject(HttpServletRequest aReq, TargetInstanceCommand aCmd, BindingResult bindingResult) {
+        // the id of each TI to reject is passed in the multiselect attribute
+        // for a multi-reject operation
+        // NOTE: the reject reason will already have been set on the command (by
+        // Spring MVC)
+        for (String tIOid : aCmd.getMultiselect()) {
+            Long targetInstanceOid = new Long(tIOid);
+            // set the ti oid on the command
+            aCmd.setTargetInstanceId(targetInstanceOid);
+            // iterate over the harvest results setting the oid on the command
+            List<HarvestResult> harvestResults = targetInstanceManager.getHarvestResults(targetInstanceOid);
+            for (HarvestResult harvestResult : harvestResults) {
+                aCmd.setHarvestResultId(harvestResult.getOid());
+                // set the harvest result to reject
+                processReject(aReq, aCmd, bindingResult);
+            }
+        }
+    }
 
-		// fetch the original schedules (array avoid concurrent modifications)
-		// iterate over the schedules and terminating each one
-		Set<Schedule> schedules = ti.getTarget().getSchedules();
-		for (Schedule schedule : schedules) {
-			schedule.setEndDate(new Date());
-			targetInstanceManager.save(ti);
+    /**
+     * process the delist target instance action (ie: terminate schedule)
+     *
+     * @param command       the command carrying the target instance id of the target
+     *                      instance whos target will have its schedule terminated
+     * @param bindingResult any bindingResult encountered
+     * @throws Exception any unexpected exception
+     */
+    private void processDelist(TargetInstanceCommand command, BindingResult bindingResult) {
 
-		}
+        TargetInstance ti = targetInstanceManager.getTargetInstance(command.getTargetInstanceId());
 
-		// delete all the tis for the same target that have a state of scheduled
-		// (using multi-delete)
-		List<String> tisToDelete = new ArrayList<String>();
+        // fetch the original schedules (array avoid concurrent modifications)
+        // iterate over the schedules and terminating each one
+        Set<Schedule> schedules = ti.getTarget().getSchedules();
+        for (Schedule schedule : schedules) {
+            schedule.setEndDate(new Date());
+            targetInstanceManager.save(ti);
 
-		Long targetOid = ti.getTarget().getOid();
-		List<QueuedTargetInstanceDTO> queue = targetInstanceManager.getQueueForTarget(targetOid);
-		for (QueuedTargetInstanceDTO qti : queue) {
-			TargetInstance child = targetInstanceManager.getTargetInstance(qti.getOid());
-			// delete the ti if it has the same target
-			if (child.getTarget().getOid().equals(targetOid)) {
-				tisToDelete.add(child.getOid().toString());
-			}
-		}
-		// use multi-delete functionality to delete the queued sublist
-		command.setMultiselect(tisToDelete);
-		command.setCmd(TargetInstanceCommand.ACTION_MULTI_DELETE);
-		processMultiDelete(command, bindingResult);
-	}
+        }
 
-	/**
-	 * process the multi-delist target instance action
-	 *
-	 * @param command
-	 *            the command carrying the list of target instance oid's whose
-	 *            target instance's target should have its schedule terminated
-	 * @param bindingResult
-	 *            any bindingResult encountered
-	 * @throws Exception
-	 *             any unexpected exception
-	 */
-	private void processMultiDelist(TargetInstanceCommand command, BindingResult bindingResult) {
-		// the id of each TI to reject is passed in the multi-select attribute
-		// for a multi-delist operation
-		for (String tIOid : command.getMultiselect()) {
-			Long targetInstanceOid = new Long(tIOid);
-			command.setTargetInstanceId(targetInstanceOid);
-			// terminate the schedule for the tis target
-			processDelist(command, bindingResult);
-		}
-	}
+        // delete all the tis for the same target that have a state of scheduled
+        // (using multi-delete)
+        List<String> tisToDelete = new ArrayList<String>();
 
-	/**
-	 * Helper method to return the last harvest result oid for a specified
-	 * harvest instance
-	 *
-	 * @param targetInstanceOid
-	 *            the harvest instance oid that contains the list of harvest
-	 *            results
-	 * @return the last harvest result oid
-	 */
-	private final Long getLastHarvestResultOid(Long targetInstanceOid) {
-		List<HarvestResult> harvestResults = targetInstanceManager.getHarvestResults(targetInstanceOid);
-		int numResults = harvestResults.size();
-		// return the last harvest result
-		return harvestResults.get(numResults - 1).getOid();
-	}
+        Long targetOid = ti.getTarget().getOid();
+        List<QueuedTargetInstanceDTO> queue = targetInstanceManager.getQueueForTarget(targetOid);
+        for (QueuedTargetInstanceDTO qti : queue) {
+            TargetInstance child = targetInstanceManager.getTargetInstance(qti.getOid());
+            // delete the ti if it has the same target
+            if (child.getTarget().getOid().equals(targetOid)) {
+                tisToDelete.add(child.getOid().toString());
+            }
+        }
+        // use multi-delete functionality to delete the queued sublist
+        command.setMultiselect(tisToDelete);
+        command.setCmd(TargetInstanceCommand.ACTION_MULTI_DELETE);
+        processMultiDelete(command, bindingResult);
+    }
 
-	/**
-	 * process the pause target instance action.
-	 */
-	private ModelAndView processPause(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-									  BindingResult bindingResult) {
-		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		wctCoordinator.pause(ti);
+    /**
+     * process the multi-delist target instance action
+     *
+     * @param command       the command carrying the list of target instance oid's whose
+     *                      target instance's target should have its schedule terminated
+     * @param bindingResult any bindingResult encountered
+     * @throws Exception any unexpected exception
+     */
+    private void processMultiDelist(TargetInstanceCommand command, BindingResult bindingResult) {
+        // the id of each TI to reject is passed in the multi-select attribute
+        // for a multi-delist operation
+        for (String tIOid : command.getMultiselect()) {
+            Long targetInstanceOid = new Long(tIOid);
+            command.setTargetInstanceId(targetInstanceOid);
+            // terminate the schedule for the tis target
+            processDelist(command, bindingResult);
+        }
+    }
 
-		return processFilter(aReq, aResp, null, bindingResult);
-	}
+    /**
+     * Helper method to return the last harvest result oid for a specified
+     * harvest instance
+     *
+     * @param targetInstanceOid the harvest instance oid that contains the list of harvest
+     *                          results
+     * @return the last harvest result oid
+     */
+    private final Long getLastHarvestResultOid(Long targetInstanceOid) {
+        List<HarvestResult> harvestResults = targetInstanceManager.getHarvestResults(targetInstanceOid);
+        int numResults = harvestResults.size();
+        // return the last harvest result
+        return harvestResults.get(numResults - 1).getOid();
+    }
 
-	/**
-	 * process the resume target instance action.
-	 */
-	private ModelAndView processResume(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-									   BindingResult bindingResult) {
-		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		wctCoordinator.resume(ti);
+    /**
+     * process the pause target instance action.
+     */
+    private ModelAndView processPause(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
+                                      BindingResult bindingResult) {
+        TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
+        wctCoordinator.pause(ti);
 
-		return processFilter(aReq, aResp, null, bindingResult);
-	}
+        return processFilter(aReq, aResp, null, bindingResult);
+    }
 
-	/**
-	 * process the abort target instance action.
-	 */
-	private ModelAndView processAbort(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-									  BindingResult bindingResult) {
-		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		wctCoordinator.abort(ti);
+    /**
+     * process the resume target instance action.
+     */
+    private ModelAndView processResume(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
+                                       BindingResult bindingResult) {
+        TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
+        wctCoordinator.resume(ti);
 
-		return processFilter(aReq, aResp, null, bindingResult);
-	}
+        return processFilter(aReq, aResp, null, bindingResult);
+    }
 
-	/**
-	 * process the stop target instance action.
-	 */
-	private ModelAndView processStop(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
-									 BindingResult bindingResult) {
-		TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
-		wctCoordinator.stop(ti);
+    /**
+     * process the abort target instance action.
+     */
+    private ModelAndView processAbort(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
+                                      BindingResult bindingResult) {
+        TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
+        wctCoordinator.abort(ti);
 
-		return processFilter(aReq, aResp, null, bindingResult);
-	}
+        return processFilter(aReq, aResp, null, bindingResult);
+    }
 
-	public void setWctCoordinator(WctCoordinator wctCoordinator) {
-		this.wctCoordinator = wctCoordinator;
-	}
+    /**
+     * process the stop target instance action.
+     */
+    private ModelAndView processStop(HttpServletRequest aReq, HttpServletResponse aResp, TargetInstanceCommand aCmd,
+                                     BindingResult bindingResult) {
+        TargetInstance ti = targetInstanceManager.getTargetInstance(aCmd.getTargetInstanceId());
+        wctCoordinator.stop(ti);
 
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
+        return processFilter(aReq, aResp, null, bindingResult);
+    }
 
-	public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
-		this.agencyUserManager = agencyUserManager;
-	}
+    public void setWctCoordinator(WctCoordinator wctCoordinator) {
+        this.wctCoordinator = wctCoordinator;
+    }
 
-	public void setMessageSource(MessageSource messageSource) {
-		this.messageSource = messageSource;
-	}
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
 
-	/**
-	 * Enable/disable the new QA Module (disabled by default)
-	 */
-	public void setEnableQaModule(Boolean enableQaModule) {
-		this.enableQaModule = enableQaModule;
-	}
+    public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
+        this.agencyUserManager = agencyUserManager;
+    }
 
-	public void setThumbnailWidth(String thumbnailWidth) {
-		this.thumbnailWidth = thumbnailWidth;
-	}
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
-	public void setThumbnailHeight(String thumbnailHeight) {
-		this.thumbnailHeight = thumbnailHeight;
-	}
+    /**
+     * Enable/disable the new QA Module (disabled by default)
+     */
+    public void setEnableQaModule(Boolean enableQaModule) {
+        this.enableQaModule = enableQaModule;
+    }
 
-	public void setThumbnailRenderer(String thumbnailRenderer) {
-		this.thumbnailRenderer = thumbnailRenderer;
-	}
+    public void setThumbnailWidth(String thumbnailWidth) {
+        this.thumbnailWidth = thumbnailWidth;
+    }
 
-	public void setDasBaseUrl(String dasBaseUrl) {
-		this.dasBaseUrl = dasBaseUrl;
-	}
+    public void setThumbnailHeight(String thumbnailHeight) {
+        this.thumbnailHeight = thumbnailHeight;
+    }
 
-	public void setWebappBaseUrl(String webappBaseUrl) {
-		this.webappBaseUrl = webappBaseUrl;
-	}
+    public void setThumbnailRenderer(String thumbnailRenderer) {
+        this.thumbnailRenderer = thumbnailRenderer;
+    }
 
-	public void setHarvestResourceUrlMapper(HarvestResourceUrlMapper harvestResourceUrlMapper) {
-		this.harvestResourceUrlMapper = harvestResourceUrlMapper;
-	}
+    public void setDasBaseUrl(String dasBaseUrl) {
+        this.dasBaseUrl = dasBaseUrl;
+    }
+
+    public void setWebappBaseUrl(String webappBaseUrl) {
+        this.webappBaseUrl = webappBaseUrl;
+    }
+
+    public void setHarvestResourceUrlMapper(HarvestResourceUrlMapper harvestResourceUrlMapper) {
+        this.harvestResourceUrlMapper = harvestResourceUrlMapper;
+    }
 
 }

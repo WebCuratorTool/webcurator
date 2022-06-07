@@ -1,6 +1,7 @@
 package org.webcurator.ui.target.controller;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -21,6 +22,7 @@ import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
 import org.webcurator.core.coordinator.WctCoordinatorImpl;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
+import org.webcurator.core.screenshot.ScreenshotClient;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.targets.MockTargetManager;
@@ -70,6 +72,10 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
         harvestAgentManager.setTargetInstanceDao(tidao);
         hc.setHarvestAgentManager(harvestAgentManager);
         hc.setTargetInstanceDao(tidao);
+
+        ScreenshotClient screenshotClient=mock(ScreenshotClient.class);
+        when(screenshotClient.createScreenshots(any())).thenReturn(true);
+        hc.setScreenshotClient(screenshotClient);
 
         testInstance.setWctCoordinator(hc);
         testInstance.setTargetInstanceDAO(tidao);

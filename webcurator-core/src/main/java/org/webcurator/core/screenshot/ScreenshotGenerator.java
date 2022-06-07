@@ -19,7 +19,7 @@ import org.webcurator.domain.model.core.SeedHistory;
 public class ScreenshotGenerator {
     private static final Logger log = LoggerFactory.getLogger(ScreenshotGenerator.class);
 
-    private final static String SCREENSHOT_FOLDER = "_snapshots";
+
     private final static int THUMBNAIL_WIDTH = 100;
     private final static int THUMBNAIL_HEIGHT = 100;
     private String windowSizeCommand;
@@ -215,7 +215,7 @@ public class ScreenshotGenerator {
     }
 
     public Boolean createScreenshots(SeedHistory seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber, String timestamp) {
-        String outputPathString = baseDir + File.separator + tiOid + File.separator + harvestNumber + File.separator + SCREENSHOT_FOLDER + File.separator;
+        String outputPathString = baseDir + File.separator + ScreenshotPaths.getImagePath(tiOid, harvestNumber);
 
         // Make sure output path exists
         File destinationDir = new File(outputPathString);
@@ -237,7 +237,7 @@ public class ScreenshotGenerator {
         }
 
         // Populate the filenames and the placeholder values
-        String fullpageFilename = String.format("%d_%d_%d_%s_fullpage.png", tiOid, harvestNumber, seed.getOid(), liveOrHarvested.name());
+        String fullpageFilename = ScreenshotPaths.getImageName(tiOid, harvestNumber, seed.getOid(), liveOrHarvested, "fullpage");
         fullpageFilename = replaceSectionInFilename(fullpageFilename, Integer.toString(harvestNumber), 1);
 
         String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 4);

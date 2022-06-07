@@ -297,7 +297,7 @@ public class DasConfig implements WebMvcConfigurer {
     private String screenshotCommandScreen;
 
     @Value("${screenshotCommand.windowsize}")
-    private String screenshotCommandWindowsize;
+    private String screenshotCommandWindowSize;
 
     @Value("${harvestWaybackViewer.baseUrl}")
     private String harvestWaybackViewerBaseUrl;
@@ -377,10 +377,7 @@ public class DasConfig implements WebMvcConfigurer {
     public ScreenshotClientLocal screenshotClientLocal() {
         ScreenshotClientLocal bean = new ScreenshotClientLocal();
         bean.setScreenshotGenerator(screenshotGenerator());
-        bean.setScreenshotCommandFullpage(screenshotCommandFullpage);
-        bean.setScreenshotCommandScreen(screenshotCommandScreen);
-        bean.setScreenshotCommandWindowsize(screenshotCommandWindowsize);
-        bean.setHarvestWaybackViewerBaseUrl(harvestWaybackViewerBaseUrl);
+        bean.setScreenshotCommandWindowSize(screenshotCommandWindowSize);
         bean.setAbortHarvestOnScreenshotFailure(abortHarvestOnScreenshotFailure);
         bean.setEnableScreenshots(enableScreenshots);
         return bean;
@@ -516,7 +513,12 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Bean
     public ScreenshotGenerator screenshotGenerator() {
-        ScreenshotGenerator bean = new ScreenshotGenerator(screenshotCommandWindowsize, screenshotCommandScreen, screenshotCommandFullpage);
+        ScreenshotGenerator bean = new ScreenshotGenerator();
+        bean.setWindowSizeCommand(screenshotCommandWindowSize);
+        bean.setScreenSizeCommand(screenshotCommandScreen);
+        bean.setFullpageSizeCommand(screenshotCommandFullpage);
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setHarvestWaybackViewerBaseUrl(harvestWaybackViewerBaseUrl);
         return bean;
     }
 

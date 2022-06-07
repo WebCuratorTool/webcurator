@@ -418,16 +418,17 @@ public class MockTargetInstanceDAO implements TargetInstanceDAO {
 
                         ti.setOriginalSeeds(originalSeeds);
                     } else if (child.getNodeName().equals("historySeeds")) {
-                        BusinessObjectFactory businessObjectFactory=new BusinessObjectFactory();
+                        BusinessObjectFactory businessObjectFactory = new BusinessObjectFactory();
                         Set<SeedHistory> historySeeds = new HashSet<>();
                         NodeList osNodes = child.getChildNodes();
                         for (int j = 0; j < osNodes.getLength(); j++) {
                             Node osNode = osNodes.item(j);
                             if (osNode.getNodeType() == Node.ELEMENT_NODE) {
-                                Seed seed=mock(Seed.class);
+                                Seed seed = mock(Seed.class);
                                 when(seed.getSeed()).thenReturn(getString(osNode));
                                 when(seed.isPrimary()).thenReturn(true);
-                                SeedHistory historySeed =businessObjectFactory.newSeedHistory(ti,seed) ;
+                                SeedHistory historySeed = businessObjectFactory.newSeedHistory(ti, seed);
+                                historySeed.setOid((long) (4000 + j));
                                 historySeeds.add(historySeed);
                             }
                         }

@@ -1,14 +1,21 @@
 package org.webcurator.core.screenshot;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.SeedHistory;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Objects;
 
 public class ScreenshotClientLocal implements ScreenshotClient {
@@ -18,20 +25,12 @@ public class ScreenshotClientLocal implements ScreenshotClient {
     private boolean abortHarvestOnScreenshotFailure;
     private ScreenshotGenerator screenshotGenerator;
 
-    private String baseDir = null;
+    private String baseDir;
 
     /**
-     * the fullpage screenshot command.
+     * the window size screenshot command.
      */
-    private String screenshotCommandFullpage;
-    /**
-     * the screen screenshot command.
-     */
-    private String screenshotCommandScreen;
-    /**
-     * the windowsize screenshot command.
-     */
-    private String screenshotCommandWindowsize;
+    private String screenshotCommandWindowSize;
 
 
     @Override
@@ -82,7 +81,7 @@ public class ScreenshotClientLocal implements ScreenshotClient {
                 return;
             }
 
-            String windowsizeCommand = screenshotCommandWindowsize
+            String windowSizeCommand = screenshotCommandWindowSize
                     .replace("%width%", String.valueOf(liveImageWidth))
                     .replace("%height%", String.valueOf(liveImageHeight + 150))
                     .replace("%url%", url)
@@ -90,12 +89,12 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
 
             log.info("Harvested full page screenshot is smaller than live full page screenshot.  " +
-                    "Getting a new screenshot using live image dimensions, command " + windowsizeCommand);
+                    "Getting a new screenshot using live image dimensions, command " + windowSizeCommand);
 
             // Delete the old harvested fullpage image and replace it with one with new dimensions
             File toDelete = new File(outputPath + File.separator + filename);
             if (toDelete.delete()) {
-                runCommand(windowsizeCommand);
+                runCommand(windowSizeCommand);
                 waitForScreenshot(toDelete, filename);
                 log.info("Fullpage screenshot of harvest replaced.");
             } else {
@@ -255,6 +254,14 @@ public class ScreenshotClientLocal implements ScreenshotClient {
         }
     }
 
+    @Override
+    public void browseScreenshotImage(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        String imgPath = req.getRequestURI();
+        File imgFilePath = new File(this.baseDir, imgPath);
+        rsp.setContentType("image/png");
+        IOUtils.copy(Files.newInputStream(imgFilePath.toPath()), rsp.getOutputStream());
+    }
+
     public void setEnableScreenshots(boolean enableScreenshots) {
         this.enableScreenshots = enableScreenshots;
     }
@@ -272,15 +279,7 @@ public class ScreenshotClientLocal implements ScreenshotClient {
     }
 
 
-    public void setScreenshotCommandFullpage(String screenshotCommandFullpage) {
-        this.screenshotCommandFullpage = screenshotCommandFullpage;
-    }
-
-    public void setScreenshotCommandScreen(String screenshotCommandScreen) {
-        this.screenshotCommandScreen = screenshotCommandScreen;
-    }
-
-    public void setScreenshotCommandWindowsize(String screenshotCommandWindowsize) {
-        this.screenshotCommandWindowsize = screenshotCommandWindowsize;
+    public void setScreenshotCommandWindowSize(String screenshotCommandWindowSize) {
+        this.screenshotCommandWindowSize = screenshotCommandWindowSize;
     }
 }

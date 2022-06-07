@@ -59,6 +59,8 @@ import org.webcurator.core.report.LogonDurationDAOImpl;
 import org.webcurator.core.rules.QaRecommendationServiceImpl;
 import org.webcurator.core.scheduler.ScheduleJob;
 import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
+import org.webcurator.core.screenshot.ScreenshotClient;
+import org.webcurator.core.screenshot.ScreenshotClientRemote;
 import org.webcurator.core.sites.SiteManagerImpl;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
@@ -1183,5 +1185,13 @@ public class BaseConfig {
         // Delay Factor, Min Delay milliseconds, Max Delay milliseconds,
         // Respect crawl delay up to seconds, Max per host bandwidth usage kb/sec
         return new PolitenessOptions(crawlPolitenessAggressiveDelayFactor, crawlPolitenessAggressiveMinDelayMs, crawlPolitenessAggressiveMaxDelayMs, crawlPolitenessAggressiveRespectCrawlDelay, crawlPolitenessAggressiveMaxPerHostBandwidth);
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false)
+    public ScreenshotClient screenshotClient(){
+        ScreenshotClientRemote bean=new ScreenshotClientRemote(digitalAssetStoreBaseUrl, restTemplateBuilder);
+        return bean;
     }
 }
