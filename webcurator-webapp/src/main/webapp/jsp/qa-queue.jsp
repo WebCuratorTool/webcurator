@@ -936,7 +936,7 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 		</div>
 		<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
 			<div id="thumbnailModal" style="display: none;">
-				<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+				<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';" style="font-size: 2em;"> &times; </span>
 				<div id="modalContent"></div>
 			</div>
 		</c:if>

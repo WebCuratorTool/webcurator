@@ -537,7 +537,7 @@ function getSelectedProfile(profilesList) {
                 </table>		
 				
 				<div id="thumbnailModal" style="display: none;">
-					<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+					<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';" style="font-size: 2em;"> &times; </span>
 					<table id="thumbnailTable" style="border: 0px none; width: 100%;">
 						<tbody>
 							<tr style="text-align: center; font-weight: bold;">
