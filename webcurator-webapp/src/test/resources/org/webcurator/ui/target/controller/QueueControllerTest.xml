@@ -138,6 +138,9 @@
 		    <originalSeeds>
 		    	<originalseed>www.oakleigh.co.uk</originalseed>
 		    </originalSeeds>
+			<historySeeds>
+				<historySeed>www.oakleigh.co.uk</historySeed>
+			</historySeeds>
 		    <overrides>
 		    </overrides>
 		    <archiveIdentifier/>

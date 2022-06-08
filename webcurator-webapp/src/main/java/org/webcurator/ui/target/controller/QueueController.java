@@ -428,7 +428,7 @@ public class QueueController {
         String thumbnailRendererName = thumbnailRenderer.toUpperCase();
         if (thumbnailRendererName.equals("BROWSETOOL")) {
             if (lastDisplayableResultOid != null) {
-                browseUrls.put(tiOid, "curator/tools/browse/" + String.valueOf(lastDisplayableResultOid) + "/" + seed);
+                browseUrls.put(tiOid, "curator/tools/browse/" + String.valueOf(lastDisplayableResultOid) + "/" + seed.getSeed());
             } else {
                 browseUrls.put(tiOid, null);
             }

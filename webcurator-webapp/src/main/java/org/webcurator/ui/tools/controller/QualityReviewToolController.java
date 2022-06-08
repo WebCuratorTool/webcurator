@@ -22,11 +22,13 @@ import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.core.screenshot.ScreenshotPaths;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -49,6 +51,9 @@ public class QualityReviewToolController {
 
 	@Autowired
 	private QualityReviewToolControllerAttribute attr;
+
+	@Value("${server.servlet.contextPath}")
+	private String webappContextPath;
 
 	private BusinessObjectFactory businessObjectFactory = null;
 
@@ -180,7 +185,11 @@ public class QualityReviewToolController {
 
 		String targetOid  = String.valueOf(ti.getOid());
 		String harvestNum = String.valueOf(result.getHarvestNumber());
-		mav.addObject("screenshotUrl", attr.dasBaseUrl + "/store/" + targetOid + "/" + harvestNum + "/_resources/" + targetOid + "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
+//		mav.addObject("screenshotUrl", attr.dasBaseUrl + "/store/" + targetOid + "/" + harvestNum + "/_resources/" + targetOid + "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
+		String img_model_name = targetOid + "_" + harvestNum + "_seedId_live_screen-thumbnail.png";
+		String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(ti.getOid(), result.getHarvestNumber()) + "/" + img_model_name;
+		mav.addObject("screenshotUrl", browseUrl);
+
 		mav.addObject("thumbnailRenderer", attr.thumbnailRenderer);
 
 		return mav;

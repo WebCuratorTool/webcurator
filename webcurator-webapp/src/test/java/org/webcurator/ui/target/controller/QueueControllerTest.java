@@ -52,13 +52,7 @@ import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.FlagDAO;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.TargetInstanceCriteria;
-import org.webcurator.domain.model.core.Flag;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Indicator;
-import org.webcurator.domain.model.core.RejReason;
-import org.webcurator.domain.model.core.Seed;
-import org.webcurator.domain.model.core.Target;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.common.ui.Constants;
@@ -478,6 +472,10 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
         when(target.getSeeds()).thenReturn(Sets.newHashSet(seed));
         TargetInstance targetInstance = createTargetInstance(tOid, target);
 
+        BusinessObjectFactory businessObjectFactory = new BusinessObjectFactory();
+        SeedHistory historySeed = businessObjectFactory.newSeedHistory(targetInstance, seed);
+        targetInstance.getSeedHistory().add(historySeed);
+
         int state = HarvestResult.STATE_ENDORSED;
         TargetInstanceManager mockTiManager = setTargetInstanceManager(tOid, hrOid, state);
 
@@ -492,7 +490,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 
     @Test
     public void testAddQaInformationForTiBrowseToolNoPrimarySeed() {
-        Long tOid = 123L;
+        Long tOid = 5000L;
         Long hrOid = 321L;
         HashMap<Long, Set<Indicator>> indicators = new HashMap<Long, Set<Indicator>>();
         HashMap<Long, String> browseUrls = new HashMap<Long, String>();
@@ -504,7 +502,14 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
         set.add(seed1);
         set.add(seed2);
         when(target.getSeeds()).thenReturn(set);
+
         TargetInstance targetInstance = createTargetInstance(tOid, target);
+
+        BusinessObjectFactory businessObjectFactory = new BusinessObjectFactory();
+        SeedHistory historySeed1 = businessObjectFactory.newSeedHistory(targetInstance, seed1);
+        SeedHistory historySeed2 = businessObjectFactory.newSeedHistory(targetInstance, seed2);
+        targetInstance.getSeedHistory().add(historySeed1);
+        targetInstance.getSeedHistory().add(historySeed2);
 
         int state = HarvestResult.STATE_ENDORSED;
         TargetInstanceManager mockTiManager = setTargetInstanceManager(tOid, hrOid, state);

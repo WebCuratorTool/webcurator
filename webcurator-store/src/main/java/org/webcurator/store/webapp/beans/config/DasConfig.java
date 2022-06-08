@@ -2,6 +2,7 @@ package org.webcurator.store.webapp.beans.config;
 
 import nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositField;
 import nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositFormMapping;
+import org.apache.commons.io.IOUtils;
 import org.archive.io.CDXIndexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,8 @@ import org.webcurator.core.store.arc.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.io.File;
@@ -380,6 +383,19 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setScreenshotCommandWindowSize(screenshotCommandWindowSize);
         bean.setAbortHarvestOnScreenshotFailure(abortHarvestOnScreenshotFailure);
         bean.setEnableScreenshots(enableScreenshots);
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+
+        Resource resource = new ClassPathResource("image_unavailable.png");
+
+        Path tempDataFilePath = null;
+        try {
+            ByteArrayOutputStream unavailableImage = new ByteArrayOutputStream();
+            IOUtils.copy(resource.getInputStream(), unavailableImage);
+            bean.setUnavailableImage(unavailableImage.toByteArray());
+        } catch (Exception e) {
+            LOGGER.error("Load unavailable image file failed.", e);
+        }
+
         return bean;
     }
 

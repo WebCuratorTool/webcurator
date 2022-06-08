@@ -215,7 +215,7 @@ public class ScreenshotGenerator {
     }
 
     public Boolean createScreenshots(SeedHistory seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber, String timestamp) {
-        String outputPathString = baseDir + File.separator + ScreenshotPaths.getImagePath(tiOid, harvestNumber);
+        String outputPathString = baseDir + File.separator + ScreenshotPaths.getImagePath(tiOid, harvestNumber) + File.separator;
 
         // Make sure output path exists
         File destinationDir = new File(outputPathString);

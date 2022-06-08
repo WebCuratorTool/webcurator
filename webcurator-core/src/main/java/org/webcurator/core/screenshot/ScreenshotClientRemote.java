@@ -34,10 +34,12 @@ public class ScreenshotClientRemote extends AbstractRestClient implements Screen
     @Override
     public void browseScreenshotImage(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         String imgPath = req.getRequestURI();
+        String imgContext = req.getContextPath();
+        imgPath = imgPath.substring(imgContext.length());
         String remoteUrl = getUrl(imgPath);
         URL url = new URL(remoteUrl);
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        rsp.setContentType(urlConnection.getContentType());
+        rsp.setContentType("image/png");
         urlConnection.setDoOutput(true);
         IOUtils.copy(urlConnection.getInputStream(), rsp.getOutputStream());
     }

@@ -1,6 +1,5 @@
 package org.webcurator.core.screenshot;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Objects;
@@ -32,6 +30,7 @@ public class ScreenshotClientLocal implements ScreenshotClient {
      */
     private String screenshotCommandWindowSize;
 
+    private byte[] unavailableImage = new byte[0];
 
     @Override
     public Boolean createScreenshots(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
@@ -257,9 +256,16 @@ public class ScreenshotClientLocal implements ScreenshotClient {
     @Override
     public void browseScreenshotImage(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         String imgPath = req.getRequestURI();
-        File imgFilePath = new File(this.baseDir, imgPath);
+        String imgContext = req.getContextPath();
+        imgPath = imgPath.substring(imgContext.length());
+        imgPath = imgPath.substring(ScreenshotPaths.BROWSE_SCREENSHOT.length());
         rsp.setContentType("image/png");
-        IOUtils.copy(Files.newInputStream(imgFilePath.toPath()), rsp.getOutputStream());
+        File imgFilePath = new File(this.baseDir, imgPath);
+        if (imgFilePath.exists()) {
+            IOUtils.copy(Files.newInputStream(imgFilePath.toPath()), rsp.getOutputStream());
+        } else {
+            IOUtils.write(unavailableImage, rsp.getOutputStream());
+        }
     }
 
     public void setEnableScreenshots(boolean enableScreenshots) {
@@ -281,5 +287,9 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
     public void setScreenshotCommandWindowSize(String screenshotCommandWindowSize) {
         this.screenshotCommandWindowSize = screenshotCommandWindowSize;
+    }
+
+    public void setUnavailableImage(byte[] unavailableImage) {
+        this.unavailableImage = unavailableImage;
     }
 }

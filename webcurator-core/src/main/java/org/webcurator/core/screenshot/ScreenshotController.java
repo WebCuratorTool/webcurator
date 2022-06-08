@@ -27,7 +27,7 @@ public class ScreenshotController implements ScreenshotService {
     }
 
     @Override
-    @GetMapping(path = ScreenshotPaths.BROWSE_SCREENSHOT)
+    @GetMapping(path = ScreenshotPaths.BROWSE_SCREENSHOT+"/**")
     public void browseScreenshotImage(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         screenshotClient.browseScreenshotImage(req, rsp);
     }

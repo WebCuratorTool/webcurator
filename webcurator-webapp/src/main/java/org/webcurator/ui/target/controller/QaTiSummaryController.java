@@ -57,6 +57,8 @@ import org.webcurator.core.profiles.ProfileDataUnit;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.profiles.ProfileTimeUnit;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.screenshot.ScreenshotPaths;
+import org.webcurator.core.screenshot.ScreenshotType;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
@@ -137,14 +139,21 @@ public class QaTiSummaryController {
 
     private static Map<String, Integer> monthMap = new HashMap<>(20);
     private static Map<String, Integer> dayMap = new HashMap<>(60);
-	/** the configured base url for store **/
-	@Value("${digitalAssetStore.baseUrl}")
-	private String dasBaseUrl = "";
+    /**
+     * the configured base url for store
+     **/
+    @Value("${digitalAssetStore.baseUrl}")
+    private String dasBaseUrl = "";
 
 
-	/** the configured base url for webapp **/
-	@Value("${webapp.baseUrl}")
-	private String webappBaseUrl = "";
+    /**
+     * the configured base url for webapp
+     **/
+    @Value("${webapp.baseUrl}")
+    private String webappBaseUrl = "";
+
+    @Value("${server.servlet.contextPath}")
+    private String webappContextPath;
 
     /** static Map of months used by the schedule panel **/
     static {
@@ -250,39 +259,43 @@ public class QaTiSummaryController {
         Set<String> seeds = ti.getOriginalSeeds();
         mav.addObject(TargetInstanceSummaryCommand.MDL_SEEDS, seeds);
 
-		// add the seeds with seed id
-		Map<String,String> seedsAndSeedId = new HashMap<String,String>();
-		Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
-		while (seedHistory.hasNext()) {
-			SeedHistory seed = seedHistory.next();
-			seedsAndSeedId.put(seed.getSeed(), String.valueOf(seed.getOid()));
-		}
-		mav.addObject("seedsAndIds", seedsAndSeedId);
+        // add the seeds with seed id
+        Map<String, String> seedsAndSeedId = new HashMap<String, String>();
+        Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+        while (seedHistory.hasNext()) {
+            SeedHistory seed = seedHistory.next();
+            seedsAndSeedId.put(seed.getSeed(), String.valueOf(seed.getOid()));
+        }
+        mav.addObject("seedsAndIds", seedsAndSeedId);
 
-		// get harvest number and oid of the last harvest result
-		String harvestNum = null;
-		String harvestResultId = null;
-		
-		List<HarvestResult> harvestResults = ti.getHarvestResults();
-		int counter = 1;
-		int resultsSize = harvestResults.size();
-		for (HarvestResult result : harvestResults) {
-			if (counter == resultsSize) {
-				harvestNum = String.valueOf(result.getHarvestNumber());
-				harvestResultId = String.valueOf(result.getOid());
-			} else {
-				counter = counter + 1;
-			}
-		}
+        // get harvest number and oid of the last harvest result
+        int harvestNum = 1;
+        String harvestResultId = null;
 
-		String targetId = String.valueOf(ti.getOid());
+        List<HarvestResult> harvestResults = ti.getHarvestResults();
+        int counter = 1;
+        int resultsSize = harvestResults.size();
+        for (HarvestResult result : harvestResults) {
+            if (counter == resultsSize) {
+                harvestNum = result.getHarvestNumber();
+                harvestResultId = String.valueOf(result.getOid());
+            } else {
+                counter = counter + 1;
+            }
+        }
 
-		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/" + harvestNum + "/_resources/" + targetId 
-			+ "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
+        String targetId = String.valueOf(ti.getOid());
 
-		// Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
-		mav.addObject("reviewUrl", webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + targetId 
-			+ "&harvestResultId=" + harvestResultId + "&harvestNumber=" + harvestNum);
+//		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/" + harvestNum + "/_resources/" + targetId
+//			+ "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
+
+        String img_model_name = targetId + "_" + harvestNum + "_seedId_live_screen-thumbnail.png";
+        String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(ti.getOid(), harvestNum) + "/" + img_model_name;
+        mav.addObject("screenshotUrl", browseUrl);
+
+        // Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
+        mav.addObject("reviewUrl", webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + targetId
+                + "&harvestResultId=" + harvestResultId + "&harvestNumber=" + harvestNum);
 
         // add the log list
         List<LogFilePropertiesDTO> arrLogs = wctCoordinator.listLogFileAttributes(ti);
@@ -937,12 +950,12 @@ public class QaTiSummaryController {
         this.digitalAssetStore = digitalAssetStore;
     }
 
-	public void setDasBaseUrl(String dasBaseUrl) {
-		this.dasBaseUrl = dasBaseUrl;
-	}
+    public void setDasBaseUrl(String dasBaseUrl) {
+        this.dasBaseUrl = dasBaseUrl;
+    }
 
-	public void setWebappBaseUrl(String webappBaseUrl) {
-		this.webappBaseUrl = webappBaseUrl;
-	}
+    public void setWebappBaseUrl(String webappBaseUrl) {
+        this.webappBaseUrl = webappBaseUrl;
+    }
 
 }
