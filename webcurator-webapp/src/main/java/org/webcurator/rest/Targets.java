@@ -128,10 +128,10 @@ public class Targets {
         public String seed;
         public String agency;
         public String userId;
-        public String description; // Spec; General.Description
-        public String groupName; // Spec: Group.Name
-        public boolean nonDisplayOnly; // Spec: Access.AccessZone as a human-readable string
-        public Set<Integer> states; // Spec: General.State as human-readable string
+        public String description;
+        public String groupName;
+        public boolean nonDisplayOnly;
+        public Set<Integer> states;
 
         Filter(Long targetId, String name, String seed, String agency, String userId, String description,
                 String groupName, boolean nonDisplayOnly, Set<Integer> states) {
@@ -158,8 +158,7 @@ public class Targets {
         public String name;
         public String agency;
         public String owner;
-        // FIXME we don't want the front-end to map integers to human-readable states (as happens in the JSPs)
-        public int status;
+        public int state;
         public List<HashMap<String, String>> seeds;
 
         TargetSummary(Target t) {
@@ -168,7 +167,7 @@ public class Targets {
             this.name = t.getName();
             this.agency = t.getOwner().getAgency().getName();
             this.owner = t.getOwner().getNiceName();
-            this.status = t.getState();
+            this.state = t.getState();
             seeds = new ArrayList<>();
             for (Seed s : t.getSeeds()) {
                 HashMap<String, String> seed = new HashMap<>();
