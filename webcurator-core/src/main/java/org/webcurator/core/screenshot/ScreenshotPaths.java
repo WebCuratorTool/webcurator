@@ -9,8 +9,8 @@ public class ScreenshotPaths {
 
     private final static String SCREENSHOT_FOLDER = "_snapshots";
 
-    public static String getImageName(long tiOid, int harvestNumber, long seedOid, ScreenshotType liveOrHarvested, String suffix) {
-        return String.format("%d_%d_%d_%s_%s.png", tiOid, harvestNumber, seedOid, liveOrHarvested.name(), suffix);
+    public static String getImageName(long tiOid, int harvestNumber, String seedOid, ScreenshotType liveOrHarvested, String suffix) {
+        return String.format("%d_%d_%s_%s_%s.png", tiOid, harvestNumber, seedOid, liveOrHarvested.name(), suffix);
     }
 
     public static String getImagePath(long tiOid, int harvestNumber) {

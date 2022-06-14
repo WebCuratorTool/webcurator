@@ -237,7 +237,7 @@ public class ScreenshotGenerator {
         }
 
         // Populate the filenames and the placeholder values
-        String fullpageFilename = ScreenshotPaths.getImageName(tiOid, harvestNumber, seed.getOid(), liveOrHarvested, "fullpage");
+        String fullpageFilename = ScreenshotPaths.getImageName(tiOid, harvestNumber, seed.getOid().toString(), liveOrHarvested, "fullpage");
         fullpageFilename = replaceSectionInFilename(fullpageFilename, Integer.toString(harvestNumber), 1);
 
         String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 4);

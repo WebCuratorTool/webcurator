@@ -1025,19 +1025,34 @@ input[readonly="readonly"] {
 }
 
 #thumbnailModal{
-	position: fixed; 
-	overflow: auto; 
-	left: 120px; 
-	right:50px; 
-	bottom:50px; 
-	top: 100px; 
-	border: solid 1px black; 
-	background-color: white
+	position: fixed;
+	overflow: hidden;
+	left: 250px;
+	right:250px;
+	top: 100px;
+	max-height: 800px;
+	border: solid 1px black;
+	background: white;
+}
+
+#thumbnailModalHeader{
+    font-weight: bold;
+    font-size: 2em;
+    color: white;
+    background-color: black;
+}
+
+#thumbnailTableContainer{
+    width:100%;
+    max-height: calc(800px - 25px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    color: black;
+    background: #EBEDEF;
 }
 
 #close{
 	position: fixed; 
-	right: 53px; 
-	font-weight: bold;
+	right: 255px;
 	cursor: pointer;
 }

@@ -537,43 +537,54 @@ function getSelectedProfile(profilesList) {
                 </table>		
 				
 				<div id="thumbnailModal" style="display: none;">
-					<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';" style="font-size: 2em;"> &times; </span>
-					<table id="thumbnailTable" style="border: 0px none; width: 100%;">
-						<tbody>
-							<tr style="text-align: center; font-weight: bold;">
-								<td style="width: 30%;">Live</td>
-								<td style="width: 30%;">Harvested</td>
-								<td style="width: 40%;">Seed</td>
-							</tr>
-							<c:forEach var = "seed" items = "${seeds}" >
-								<tr>
-									<c:set var = "seedId" value = "${seedsAndIds[seed]}" />
-									<c:set var = "fileUrl" value = "${fn:replace(screenshotUrl,'-thumbnail', '')}" />
-									<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedId)}" />
-									<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
-									<td>
-										<img src="${liveUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
-									</td>
-									<td>
-										<img src="${harvestedUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
-									</td>
-									<td>
-										${seed}
-									</td>
-								</tr>
-							</c:forEach>
-						</tbody>
-						<tfoot>
-							<tr>
-								<td colspan="3" style="margin: 5px;" valign="bottom" align="right">
-									<a href="${reviewUrl}"  style="color: #484848;" onmouseover="this.style.textDecoration = 'none'; this.style.colour='#484848';">
-										<img src="images/blank-button.gif" style="width: 90px; padding: 5px;" alt="">
-										<div style="position: relative; right: 35px; bottom: 27px; font-weight: bolder; colour: #484848;">review</div>
-									</a>
-								</td>
-							</tr>
-						</tfoot>
-					</table>
+					<div id="thumbnailModalHeader">
+                        <span>Screenshot</span>
+                        <span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+                    </div>
+
+                    <div id="thumbnailTableContainer">
+                        <table id="thumbnailTable" style="border: 0px none; width: 100%;">
+                            <tbody>
+                                <c:forEach var = "seed" items = "${seeds}" >
+                                    <tr>
+                                        <td colspan='2' style='margin-bottom: -10px; height:18px; font-size:14px; vertical-align:bottom; text-align:center;'>${seed}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td style='width:50%; text-align:center;'><span style='border-style: inset;'>Live</span></td>
+                                        <td style='width:50%; text-align:center;'><span style='border-style: inset;'>Harvested</span></td>
+                                    </tr>
+
+                                    <tr>
+                                        <c:set var = "seedId" value = "${seedsAndIds[seed]}" />
+                                        <c:set var = "fileUrl" value = "${fn:replace(screenshotUrl,'-thumbnail', '')}" />
+                                        <c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedId)}" />
+                                        <c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
+                                        <td>
+                                            <img src="${liveUrl}" alt="Image unavailable" style="width: 95%; padding: 5px;">
+                                        </td>
+                                        <td>
+                                            <img src="${harvestedUrl}" alt="Image unavailable" style="width: 95%; padding: 5px;">
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td colspan='2' style='height:8px; background:white;'></td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" style="margin: 5px;" valign="bottom" align="right">
+                                        <a href="${reviewUrl}"  style="color: #484848;" onmouseover="this.style.textDecoration = 'none'; this.style.colour='#484848';">
+                                            <img src="images/blank-button.gif" style="width: 90px; padding: 5px;" alt="">
+                                            <div style="position: relative; right: 35px; bottom: 27px; font-weight: bolder; colour: #484848;">review</div>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+					</div>
 				</div>
 
             </c:if>

@@ -30,7 +30,8 @@ public class ScreenshotClientLocal implements ScreenshotClient {
      */
     private String screenshotCommandWindowSize;
 
-    private byte[] unavailableImage = new byte[0];
+    private byte[] unavailableImageThumbnail = new byte[0];
+    private byte[] unavailableImageScreen = new byte[0];
 
     @Override
     public Boolean createScreenshots(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
@@ -264,7 +265,11 @@ public class ScreenshotClientLocal implements ScreenshotClient {
         if (imgFilePath.exists()) {
             IOUtils.copy(Files.newInputStream(imgFilePath.toPath()), rsp.getOutputStream());
         } else {
-            IOUtils.write(unavailableImage, rsp.getOutputStream());
+            if (imgFilePath.getName().contains("thumbnail")) {
+                IOUtils.write(unavailableImageThumbnail, rsp.getOutputStream());
+            } else {
+                IOUtils.write(unavailableImageScreen, rsp.getOutputStream());
+            }
         }
     }
 
@@ -289,7 +294,11 @@ public class ScreenshotClientLocal implements ScreenshotClient {
         this.screenshotCommandWindowSize = screenshotCommandWindowSize;
     }
 
-    public void setUnavailableImage(byte[] unavailableImage) {
-        this.unavailableImage = unavailableImage;
+    public void setUnavailableImageThumbnail(byte[] unavailableImageThumbnail) {
+        this.unavailableImageThumbnail = unavailableImageThumbnail;
+    }
+
+    public void setUnavailableImageScreen(byte[] unavailableImageScreen) {
+        this.unavailableImageScreen = unavailableImageScreen;
     }
 }

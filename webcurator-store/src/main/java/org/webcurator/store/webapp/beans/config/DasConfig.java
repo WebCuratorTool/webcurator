@@ -43,7 +43,6 @@ import org.webcurator.core.util.ApplicationContextFactory;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.io.File;
@@ -385,13 +384,20 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setEnableScreenshots(enableScreenshots);
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
 
-        Resource resource = new ClassPathResource("image_unavailable.png");
-
-        Path tempDataFilePath = null;
         try {
+            Resource resource = new ClassPathResource("image_unavailable_thumbnail.png");
             ByteArrayOutputStream unavailableImage = new ByteArrayOutputStream();
             IOUtils.copy(resource.getInputStream(), unavailableImage);
-            bean.setUnavailableImage(unavailableImage.toByteArray());
+            bean.setUnavailableImageThumbnail(unavailableImage.toByteArray());
+        } catch (Exception e) {
+            LOGGER.error("Load unavailable image file failed.", e);
+        }
+
+        try {
+            Resource resource = new ClassPathResource("image_unavailable_screen.png");
+            ByteArrayOutputStream unavailableImage = new ByteArrayOutputStream();
+            IOUtils.copy(resource.getInputStream(), unavailableImage);
+            bean.setUnavailableImageScreen(unavailableImage.toByteArray());
         } catch (Exception e) {
             LOGGER.error("Load unavailable image file failed.", e);
         }

@@ -455,7 +455,7 @@ public class QueueController {
             // Using the latest harvested harvest number
             String tiOidString = String.valueOf(tiOid);
             if (harvestNum != null && seed != null) {
-                String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(tiOid, harvestNum) + "/" + ScreenshotPaths.getImageName(tiOid, harvestNum, seed.getOid(), ScreenshotType.live, "screen-thumbnail");
+                String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(tiOid, harvestNum) + "/" + ScreenshotPaths.getImageName(tiOid, harvestNum, "seedId", ScreenshotType.live, "screen-thumbnail");
                 browseUrls.put(tiOid, browseUrl);
             }
 
@@ -467,19 +467,21 @@ public class QueueController {
                 Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
                 while (seedHistory.hasNext()) {
                     SeedHistory s = seedHistory.next();
+                    String seedIdAndUrl="";
                     if (s.isPrimary() && primarySeedOid == null) {
                         primarySeedOid = s.getOid();
                         targetSeeds.put(tiOidString + "_primarySeedId", String.valueOf(primarySeedOid));
                         targetSeeds.put(tiOidString + "_primarySeedUrl", s.getSeed());
-                        if (keysAndValues.length() != 0) {
-                            keysAndValues = "|" + keysAndValues;
-                        }
-                        keysAndValues = String.valueOf(primarySeedOid) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString()) + keysAndValues;
+
+                        seedIdAndUrl = s.getOid() + " " + s.getSeed() + " " + "Primary";
+                    }else{
+                        seedIdAndUrl = s.getOid() + " " + s.getSeed() + " " + "Secondary";
+                    }
+
+                    if (keysAndValues.length() != 0) {
+                        keysAndValues = keysAndValues + "|" + seedIdAndUrl;
                     } else {
-                        if (keysAndValues.length() != 0) {
-                            keysAndValues = keysAndValues + "|";
-                        }
-                        keysAndValues = keysAndValues + String.valueOf(s.getOid()) + " " + URLEncoder.encode(s.getSeed(), StandardCharsets.UTF_8.toString());
+                        keysAndValues = seedIdAndUrl;
                     }
                 }
 

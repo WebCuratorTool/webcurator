@@ -483,99 +483,46 @@ function createImageElement(filename) {
 	
 	return imgEl;
 }
-
 function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
-	// Clear the element first
-	document.getElementById("modalContent").innerHTML="";
+    var seedArray = targetSeeds.split("|");
+    var filename = fileUrl.replace("-thumbnail","");
 
-	// Create the table and header
-	var modalTable = document.createElement("table");
-	modalTable.id = "thumbnailTable";
-	modalTable.style.class = "panel";
-	modalTable.style.border ="0";
-	modalTable.style.width ="100%";
-	modalTable.style.cellspacing ="0px";
+    var html="";
+    for (var i = 0; i < seedArray.length; i++) {
+        var seedDetails = seedArray[i];
+        var seedSplit = seedDetails.split(" ");
 
-	var header = modalTable.insertRow(0);
-	header.style.textAlign ="center";
-	header.style.fontWeight ="bold";
+        html+="<tr>";
+        html+="<td colspan='2' style='margin-bottom: -10px; height:18px; font-size:14px; vertical-align:bottom; text-align:center;'>" + seedSplit[2] + " Seed: " + seedSplit[1] + "</td>";
+        html+="</tr>";
 
-	var headerCell = header.insertCell(0);
-	headerCell.style.width ="30%";
-	headerCell.innerHTML = "Live";
+        html+="<tr>";
+        html+="<td style='width:50%; text-align:center;'><span style='border-style: inset;'>Live</span></td>";
+        html+="<td style='width:50%; text-align:center;'><span style='border-style: inset;'>Harvested</span></td>";
+        html+="</tr>";
 
-	headerCell = header.insertCell(1);
-	headerCell.style.width ="30%";
-	headerCell.innerHTML = "Harvested";	
+        var seedFilenameLive = filename.replace("seedId", seedSplit[0]);
+        var seedFilenameHarvested = seedFilenameLive.replace("live", "harvested");
+        var row="";
+        row+="<tr>";
+        row+="<td><img src='" + seedFilenameLive + "' alt='Image unavailable' style='width: 95%; padding: 5px;'></td>";
+        row+="<td><img src='" + seedFilenameHarvested + "' alt='Image unavailable' style='width: 95%; padding: 5px;'></td>";
+        row+="</tr>";
+        html+=row;
 
-	headerCell = header.insertCell(2);
-	headerCell.style.width ="40%";
-	headerCell.innerHTML = "Seed";
+        var row_separator="<tr'>";
+        row_separator+="<td colspan='2' style='height:8px; background:white;'></td>";
+        row_separator+="</tr>";
+        html+=row_separator;
+    }
+    document.getElementById("modalContent").innerHTML=html;
 
-	// Separate out the targetSeeds by | for each seed and a space for the id and url
-	var seedArray = targetSeeds.split("|");
-	var filename = fileUrl.replace("-thumbnail","");
+    if (reviewUrl != null) {
+    	document.getElementById("thumbnailLinkReview").href=reviewUrl;
+    }
 
-	for (var i = 0; i < seedArray.length; i++) {
-		var seedDetails = seedArray[i];
-		var seedSplit = seedDetails.split(" ");
-
-		var instanceRow = modalTable.insertRow(i + 1);
-		instanceRow.style.height = "200px";
-
-		// Generate live image file name for seed
-		var seedFilename = filename.replace("seedId", seedSplit[0]);
-
-		// Add live image
-		var cell = instanceRow.insertCell(0);
-		cell.appendChild(createImageElement(seedFilename));
-
-		// Add harvested image
-		cell = instanceRow.insertCell(1);
-		cell.appendChild(createImageElement(seedFilename.replace("live", "harvested")));
-
-		// Add seed url
-		cell = instanceRow.insertCell(2);
-		instanceRow.style.textAlign = "center";
-		cell.innerHTML = decodeURIComponent(seedSplit[1]);
-	}
-
-	if (reviewUrl == null) {
-		return modalTable;
-	}
-
-	// Create table foot for the review button
-	var tableFoot = modalTable.createTFoot();
-	var footRow = tableFoot.insertRow(0);
-	var footCell = footRow.insertCell(0);
-	footCell.align = "right";
-	footCell.vAlign = "bottom";
-	footCell.colSpan = "3";
-	footCell.style.margin = "5px";
-
-	let reviewButton = document.createElement("a");
-	reviewButton.href = reviewUrl;
-	
-	var buttonImg = createImageElement("images/blank-button.gif");
-	buttonImg.style.width = "90px";
-	buttonImg.style.height = null;
-	buttonImg.style.position = null;
-	buttonImg.alt = "";
-
-	var buttonText = document.createElement("div");
-	buttonText.style.position = "relative";
-	buttonText.style.right = "35px";
-	buttonText.style.bottom = "27px";
-	buttonText.style.fontWeight = "bolder";
-	buttonText.innerHTML = "review";
-
-	reviewButton.appendChild(buttonImg);
-	reviewButton.appendChild(buttonText);
-	footCell.appendChild(reviewButton);
-
-	return modalTable;
+    document.getElementById('thumbnailModal').style.display='block';
 }
-
 </script>
 
 
@@ -925,8 +872,8 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 						<c:set var = "primarySeedId" value = "${targetSeeds[primarySeedIdKey]}" />
 						<c:set var = "liveFile" value = "${fn:replace(fileUrl, 'seedId', primarySeedId)}" />
 						<c:set var = "harvestFile" value = "${fn:replace(liveFile, 'live', 'harvested')}" />
-						<img src="${liveFile}" alt="Image unavailable" width="90" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}'));document.getElementById('thumbnailModal').style.display='block';"/>
-						<img src="${harvestFile}" alt="Image unavailable" width="90" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('modalContent').appendChild(populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}'));document.getElementById('thumbnailModal').style.display='block';"/>
+						<img src="${liveFile}" alt="Image unavailable" width="90" style="padding: 5px; cursor: pointer;" onclick="populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}');"/>
+						<img src="${harvestFile}" alt="Image unavailable" width="90" style="padding: 5px; cursor: pointer;" onclick="populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}');"/>
 					</c:when>
 					<c:otherwise>
 						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
@@ -936,8 +883,27 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 		</div>
 		<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
 			<div id="thumbnailModal" style="display: none;">
-				<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';" style="font-size: 2em;"> &times; </span>
-				<div id="modalContent"></div>
+			    <div id="thumbnailModalHeader">
+			        <span>Screenshot</span>
+			        <span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+			    </div>
+
+			    <div id="thumbnailTableContainer">
+					<table id="thumbnailTable" style="border: 0px none; width: 100%;">
+	                    <tbody id="modalContent">
+	                    </tbody>
+	                    <tfoot style="background:white;">
+	                        <tr>
+	                            <td colspan="2" style="margin: 5px;" valign="bottom" align="right">
+	                                <a id="thumbnailLinkReview" href="#" style="color: #484848;" onmouseover="this.style.textDecoration = 'none'; this.style.colour='#484848';">
+	                                    <img src="images/blank-button.gif" style="width: 90px; padding: 5px;" alt="">
+	                                    <div style="position: relative; right: 35px; bottom: 27px; font-weight: bolder; colour: #484848;">review</div>
+	                                </a>
+	                            </td>
+	                        </tr>
+	                    </tfoot>
+	                </table>
+                </div>
 			</div>
 		</c:if>
 

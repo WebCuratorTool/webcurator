@@ -25,13 +25,13 @@
 					<tr>
 						<td width="30%">
 							<c:choose> 
-			  				<c:when test="${seed.primary == true}" > 
-								<b><c:out value="${seed.seed}"/></b>
+			  				<c:when test="${seed.primary == 'true'}" >
+								<b>${seed.seedUrl}</b>
 							</c:when> 
 							<c:otherwise> 
-								<c:out value="${seed.seed}"/>
+								${seed.seedUrl}
 							</c:otherwise> 
-							</c:choose> 
+							</c:choose>
 						</td>
 						<td width="50%">
 						  <c:if test="${seed.browseUrl != ''}">
@@ -72,9 +72,10 @@
                         </td>
 						<td width="20%">
 							<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+							    <c:set var = "seedId" value = "${seed.id}" />
 								<c:set var = "fileUrl" value = "${screenshotUrl}" />
 								<c:set var = "primarySeedOid" value = "${primarySeedId}" />
-								<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', primarySeedOid)}" />
+								<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seedId)}" />
 								<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
 								<img src="${liveUrl}" alt="Image unavailable" width="100px" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('thumbnailModal').style.display='block';" />
 								<img src="${harvestedUrl}" alt="Image unavailable" width="100px" style="padding: 5px; cursor: pointer;" onclick="document.getElementById('thumbnailModal').style.display='block';" />
@@ -117,7 +118,7 @@
 		<tr>
 			<td colsapan="2">&nbsp;</td>
 		</tr>	
-		<tr class="tableRowLite">
+		<tr class="   ">
 			<td width="30%"><a href="curator/target/target-instance.html?targetInstanceId=<c:out value="${targetInstanceOid}&cmd=edit&init_tab=RESULTS"/>"><img src="images/generic-btn-done.gif" border="0"></a></td>			
 		    <td width="70%">&nbsp;</td>
 		</tr>
@@ -126,31 +127,42 @@
 
 <div id="thumbnailModal" style="display: none;">
 	<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
-		<span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"  style="font-size: 2em;"> &times; </span>
-		<table id="thumbnailTable" style="border: 0px none; width: 100%;">
-			<tbody>
-				<tr style="text-align: center; font-weight: bold;">
-					<td style="width: 30%;">Live</td>
-					<td style="width: 30%;">Harvested</td>
-					<td style="width: 40%;">Seed</td>
-				</tr>
-				<c:forEach var = "seed" items = "${seeds}" >
-					<tr>
-						<c:set var = "fileUrl" value = "${fn:replace(screenshotUrl,'-thumbnail', '')}" />
-						<c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seed['id'])}" />
-						<c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
-						<td>
-							<img src="${liveUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
-						</td>
-						<td>
-							<img src="${harvestedUrl}" alt="Image unavailable" style="width: 90%; padding: 5px;">
-						</td>
-						<td>
-							${seed["seedUrl"]}
-						</td>
-					</tr>
-				</c:forEach>
-			</tbody>
-		</table>
+		<div id="thumbnailModalHeader">
+            <span>Screenshot</span>
+            <span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+        </div>
+
+        <div id="thumbnailTableContainer">
+            <table id="thumbnailTable" style="border: 0px none; width: 100%;">
+                <tbody>
+                    <c:forEach var = "seed" items = "${seeds}" >
+                        <tr>
+                            <td colspan='2' style='margin-bottom: -10px; height:18px; font-size:14px; vertical-align:bottom; text-align:center;'>${seed["seedUrl"]}</td>
+                        </tr>
+
+                        <tr>
+                            <td style='width:50%; text-align:center;'><span style='border-style: inset;'>Live</span></td>
+                            <td style='width:50%; text-align:center;'><span style='border-style: inset;'>Harvested</span></td>
+                        </tr>
+
+                        <tr>
+                            <c:set var = "fileUrl" value = "${fn:replace(screenshotUrl,'-thumbnail', '')}" />
+                            <c:set var = "liveUrl" value = "${fn:replace(fileUrl, 'seedId', seed['id'])}" />
+                            <c:set var = "harvestedUrl" value = "${fn:replace(liveUrl, 'live', 'harvested')}" />
+                            <td>
+                                <img src="${liveUrl}" alt="Image unavailable" style="width: 95%; padding: 5px;">
+                            </td>
+                            <td>
+                                <img src="${harvestedUrl}" alt="Image unavailable" style="width: 95%; padding: 5px;">
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td colspan='2' style='height:8px; background:white;'></td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+		</div>
 	</c:if>
 </div>
