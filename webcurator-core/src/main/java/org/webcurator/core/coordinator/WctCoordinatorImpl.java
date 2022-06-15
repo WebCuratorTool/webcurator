@@ -463,32 +463,40 @@ public class WctCoordinatorImpl implements WctCoordinator {
         targetInstanceManager.save(aTargetInstance);
 
         // Generate live screenshots using a new thread
-        ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
-        identifiers.setTiOid(targetInstanceId);
-        identifiers.setHarvestNumber(Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST));
-        identifiers.setScreenshotType(ScreenshotType.live);
-        identifiers.setTimestamp(new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()));
-        for (SeedHistory seedHistory : aTargetInstance.getSeedHistory()) {
-            identifiers.getSeeds().add(seedHistory);
-        }
-        Boolean screenshotsTaken = Boolean.TRUE;
-        try {
-            screenshotsTaken = screenshotClient.createScreenshots(identifiers);
-        } catch (DigitalAssetStoreException e) {
-            log.error("Failed to create screenshot:", e);
-            screenshotsTaken = Boolean.FALSE;
-        }
+        final TargetInstance ti = aTargetInstance;
+        Runnable screenshotHandler = new Runnable() {
+            @Override
+            public void run() {
+                ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                identifiers.setTiOid(targetInstanceId);
+                identifiers.setHarvestNumber(Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST));
+                identifiers.setScreenshotType(ScreenshotType.live);
+                identifiers.setTimestamp(new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()));
+                for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                    identifiers.getSeeds().add(seedHistory);
+                }
+                Boolean screenshotsTaken = Boolean.TRUE;
+                try {
+                    screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                } catch (DigitalAssetStoreException e) {
+                    log.error("Failed to create screenshot:", e);
+                    screenshotsTaken = Boolean.FALSE;
+                }
 
-        if (!screenshotsTaken) {
-            log.info("There was a problem generating the screenshots.");
-            harvestAgentManager.abort(aTargetInstance);
-            return;
-        }
+                if (!screenshotsTaken) {
+                    log.info("There was a problem generating the screenshots.");
+                    harvestAgentManager.abort(ti);
+                    return;
+                }
 
-        // Initiate harvest on the remote harvest agent
-        harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
+                // Initiate harvest on the remote harvest agent
+                harvestAgentManager.initiateHarvest(aHarvestAgent, ti, profile, seeds.toString());
 
-        log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + aTargetInstance.getOid().toString());
+                log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + ti.getOid().toString());
+            }
+        };
+        Thread t = new Thread(screenshotHandler);
+        t.start();
     }
 
     /**
