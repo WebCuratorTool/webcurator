@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -44,8 +45,8 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
         Boolean screenshotsSucceeded = Boolean.FALSE;
         try {
-            for (SeedHistory seed : identifiers.getSeeds()) {
-                screenshotsSucceeded = screenshotGenerator.createScreenshots(seed, identifiers.getTiOid(), identifiers.getScreenshotType(), identifiers.getHarvestNumber(), identifiers.getTimestamp());
+            for (SeedHistoryDTO seed : identifiers.getSeeds()) {
+                screenshotsSucceeded = screenshotGenerator.createScreenshots(seed, identifiers.getTiOid(), identifiers.getScreenshotType(), identifiers.getHarvestNumber());
                 if (!screenshotsSucceeded) {
                     break;
                 }

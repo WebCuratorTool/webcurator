@@ -1,9 +1,21 @@
 import sys
+from enum import Enum
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from PIL import Image
+
+
+class WayBackType(Enum):
+    wayback = "wayback"
+    openwayback = "openwayback"
+    pywb = "pywb"
+
+
+# Set the wayback type in the capture script, so it's convenient to customize to use different wayback tools.
+wayback_type = WayBackType.pywb
 
 
 def createThumbnail(input, output):
@@ -21,7 +33,6 @@ def main(command_args):
     height = None
     server = None
     is_wayback = False
-
     # Assign argument values to variables
     for arg in command_args:
         if arg == "--wayback":
@@ -41,8 +52,8 @@ def main(command_args):
         elif key_vals[0] == "selenium-server":
             server = key_vals[1]
         else:
-            print("Unrecognised argument, cannot generate screenshots.  Arg: " + arg)
-            sys.exit(1)
+            print("Warning: unrecognised argument.  Arg: " + arg)
+            # sys.exit(1)
 
     # file_directory = Path(filepath).parent
     # file_directory.mkdir(parents=True, exist_ok=True)
@@ -57,7 +68,7 @@ def main(command_args):
 
     driver.get(url)
 
-    if is_wayback:
+    if wayback_type == WayBackType.wayback or wayback_type == WayBackType.openwayback:
         # Remove wayback banner and modify the iframe
         element = driver.find_element("wb_div")
         driver.execute_script("return document.getElementsByTagName('wb_div')[0].remove();")

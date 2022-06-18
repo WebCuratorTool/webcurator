@@ -13,7 +13,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 
 public class ScreenshotGenerator {
@@ -190,7 +190,12 @@ public class ScreenshotGenerator {
 
     // Returns an empty string when it can't retrieve the timestamp for the url
     private String getWaybackUrl(String seed, String timestamp, String waybackBaseUrl) {
-        String result = waybackBaseUrl + timestamp + "/" + seed;
+        String result = waybackBaseUrl;
+        if (StringUtils.isEmpty(timestamp)) {
+            result += seed;
+        } else {
+            result += timestamp + "/" + seed;
+        }
         log.info("Using harvest url {} to generate screenshots.", result);
         return result;
     }
@@ -214,7 +219,7 @@ public class ScreenshotGenerator {
         return toolUsed;
     }
 
-    public Boolean createScreenshots(SeedHistory seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber, String timestamp) {
+    public Boolean createScreenshots(SeedHistoryDTO seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber) {
         String outputPathString = baseDir + File.separator + ScreenshotPaths.getImagePath(tiOid, harvestNumber) + File.separator;
 
         // Make sure output path exists
@@ -229,7 +234,7 @@ public class ScreenshotGenerator {
         String seedUrl = seed.getSeed();
         // Need to move the live screenshots and use the wayback indexed url instead of the seed url
         if (liveOrHarvested == ScreenshotType.harvested) {
-            seedUrl = getWaybackUrl(seedUrl, timestamp, harvestWaybackViewerBaseUrl);
+            seedUrl = getWaybackUrl(seedUrl, seed.getTimestamp(), harvestWaybackViewerBaseUrl);
             if (StringUtils.isEmpty(seedUrl)) {
                 log.error("Could not retrieve wayback url.");
                 return false;
@@ -237,7 +242,7 @@ public class ScreenshotGenerator {
         }
 
         // Populate the filenames and the placeholder values
-        String fullpageFilename = ScreenshotPaths.getImageName(tiOid, harvestNumber, seed.getOid().toString(), liveOrHarvested, "fullpage");
+        String fullpageFilename = ScreenshotPaths.getImageName(tiOid, harvestNumber, Long.toString(seed.getOid()), liveOrHarvested, "fullpage");
         fullpageFilename = replaceSectionInFilename(fullpageFilename, Integer.toString(harvestNumber), 1);
 
         String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 4);

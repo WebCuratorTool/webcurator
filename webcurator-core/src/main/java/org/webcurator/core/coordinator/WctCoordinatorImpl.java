@@ -471,9 +471,11 @@ public class WctCoordinatorImpl implements WctCoordinator {
                 identifiers.setTiOid(targetInstanceId);
                 identifiers.setHarvestNumber(Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST));
                 identifiers.setScreenshotType(ScreenshotType.live);
-                identifiers.setTimestamp(new SimpleDateFormat("yyyyMMddhhmmss").format(new Date()));
+                String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
                 for (SeedHistory seedHistory : ti.getSeedHistory()) {
-                    identifiers.getSeeds().add(seedHistory);
+                    SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                    seedHistoryDTO.setTimestamp(timestamp);
+                    identifiers.getSeeds().add(seedHistoryDTO);
                 }
                 Boolean screenshotsTaken = Boolean.TRUE;
                 try {
@@ -1240,7 +1242,8 @@ public class WctCoordinatorImpl implements WctCoordinator {
             identifiers.setHarvestNumber(harvestNumber);
             identifiers.setScreenshotType(ScreenshotType.harvested);
             for (SeedHistory seedHistory : ti.getSeedHistory()) {
-                identifiers.getSeeds().add(seedHistory);
+                SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                identifiers.getSeeds().add(seedHistoryDTO);
             }
             Boolean screenshotsTaken = Boolean.TRUE;
             try {

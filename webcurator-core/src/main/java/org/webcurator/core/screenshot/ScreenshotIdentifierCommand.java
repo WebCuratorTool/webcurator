@@ -1,24 +1,22 @@
 package org.webcurator.core.screenshot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ScreenshotIdentifierCommand {
-    private List<SeedHistory> seeds = new ArrayList<>();
+    private List<SeedHistoryDTO> seeds = new ArrayList<>();
     private long tiOid;
     private ScreenshotType screenshotType;
-    private long seedOid;
     private int harvestNumber;
-    private String timestamp;
 
-    public List<SeedHistory> getSeeds() {
+    public List<SeedHistoryDTO> getSeeds() {
         return seeds;
     }
 
-    public void setSeeds(List<SeedHistory> seeds) {
+    public void setSeeds(List<SeedHistoryDTO> seeds) {
         this.seeds = seeds;
     }
 
@@ -38,14 +36,6 @@ public class ScreenshotIdentifierCommand {
         this.screenshotType = screenshotType;
     }
 
-    public long getSeedOid() {
-        return seedOid;
-    }
-
-    public void setSeedOid(long seedOid) {
-        this.seedOid = seedOid;
-    }
-
     public int getHarvestNumber() {
         return harvestNumber;
     }
@@ -54,23 +44,11 @@ public class ScreenshotIdentifierCommand {
         this.harvestNumber = harvestNumber;
     }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-
     @Override
     @JsonIgnore
     public String toString() {
         StringBuffer joined_seeds = new StringBuffer();
-        this.seeds.forEach(seed -> {
-            joined_seeds.append(seed.getSeed()).append(",");
-        });
-        String str = String.format("seed=%s tiOid=%d, screenshotType=%s, seedOid=%d, harvestNumber=%d, timestamp=%s",
-                joined_seeds.toString(), this.tiOid, this.screenshotType.name(), this.seedOid, this.harvestNumber, this.timestamp);
-        return str;
+        this.seeds.forEach(seed -> joined_seeds.append(seed.getSeed()).append(","));
+        return String.format("seed=%s tiOid=%d, screenshotType=%s, harvestNumber=%d", joined_seeds, this.tiOid, this.screenshotType.name(), this.harvestNumber);
     }
 }

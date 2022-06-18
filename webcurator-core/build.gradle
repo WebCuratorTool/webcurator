@@ -47,6 +47,8 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-jpa:2.1.7.RELEASE'
     compile 'org.springframework.boot:spring-boot-starter-webflux:2.1.7.RELEASE'
     compile 'org.apache.tika:tika-core:1.26'
+    implementation 'org.json:json:20220320'
+
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:3.2.4'

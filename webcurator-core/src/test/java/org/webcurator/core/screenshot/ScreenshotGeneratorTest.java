@@ -6,6 +6,7 @@ import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
 
@@ -52,7 +53,9 @@ public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
         Set<SeedHistory> seedHistorySet = ti.getSeedHistory();
         for (SeedHistory seedHistory : seedHistorySet) {
             String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-            boolean rstScreenshot = testInstance.createScreenshots(seedHistory, tiOid, ScreenshotType.live, harvestNumber, timestamp);
+            SeedHistoryDTO seedHistoryDTO=new SeedHistoryDTO(seedHistory);
+            seedHistoryDTO.setTimestamp(timestamp);
+            boolean rstScreenshot = testInstance.createScreenshots(seedHistoryDTO, tiOid, ScreenshotType.live, harvestNumber);
             assertTrue(rstScreenshot);
         }
     }
@@ -66,7 +69,9 @@ public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
         Set<SeedHistory> seedHistorySet = ti.getSeedHistory();
         for (SeedHistory seedHistory : seedHistorySet) {
             String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-            boolean rstScreenshot = testInstance.createScreenshots(seedHistory, tiOid, ScreenshotType.harvested, harvestNumber, timestamp);
+            SeedHistoryDTO seedHistoryDTO=new SeedHistoryDTO(seedHistory);
+            seedHistoryDTO.setTimestamp(timestamp);
+            boolean rstScreenshot = testInstance.createScreenshots(seedHistoryDTO, tiOid, ScreenshotType.harvested, harvestNumber);
             assertTrue(rstScreenshot);
         }
     }
