@@ -310,6 +310,22 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${abortHarvestOnScreenshotFailure}")
     private boolean abortHarvestOnScreenshotFailure;
 
+    @Value("${pywb.enable}")
+    private boolean pywbEnable;
+
+    @Value("${pywb.wb-manager.store}")
+    private String pywbWaybaclManagerStore;
+
+    @Value("${pywb.wb-manager.coll}")
+    private String pywbWaybaclManagerColl;
+
+    @Value("${pywb.service.cdx}")
+    private String pywbServiceCDXUrl;
+
+    @Value("${pywb.service.timeout}")
+    private long pywbServiceTimeout;
+
+
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
@@ -383,7 +399,7 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setAbortHarvestOnScreenshotFailure(abortHarvestOnScreenshotFailure);
         bean.setEnableScreenshots(enableScreenshots);
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-
+        bean.setPywbWarcDeposit(pywbWarcDeposit());
         try {
             Resource resource = new ClassPathResource("image_unavailable_thumbnail.png");
             ByteArrayOutputStream unavailableImage = new ByteArrayOutputStream();
@@ -530,6 +546,14 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setEnabled(cdxIndexerEnabled);
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
 
+        return bean;
+    }
+
+    @Bean
+    public PywbIndexer pywbIndexer() {
+        PywbIndexer bean = new PywbIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        bean.setEnabled(pywbEnable);
+        bean.setPywbWarcDeposit(pywbWarcDeposit());
         return bean;
     }
 
@@ -794,5 +818,17 @@ public class DasConfig implements WebMvcConfigurer {
             resourceDir = resourceDir + File.separator;
         }
         registry.addResourceHandler("/store/**").addResourceLocations("file:" + resourceDir);
+    }
+
+    public PywbWarcDeposit pywbWarcDeposit() {
+        PywbWarcDeposit bean = new PywbWarcDeposit(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        bean.setWctClient(wctCoordinatorClient());
+        bean.setRootStorePath(arcDigitalAssetStoreServiceBaseDir);
+        bean.setPywbEnabled(pywbEnable);
+        bean.setPywbManagerColl(pywbWaybaclManagerColl);
+        bean.setPywbManagerStoreDir(new File(pywbWaybaclManagerStore));
+        bean.setPywbCDXQueryUrl(pywbServiceCDXUrl);
+        bean.setMaxTrySeconds(pywbServiceTimeout);
+        return bean;
     }
 }

@@ -7,13 +7,13 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,9 +23,13 @@ import java.util.concurrent.TimeUnit;
 public class PywbWarcDeposit extends AbstractRestClient {
     private WctCoordinatorClient wctClient;
     private String rootStorePath;
-    private String pywbManagerCommand;
+    private String pywbManagerColl;
+
+    private File pywbManagerStoreDir;
     private String pywbCDXQueryUrl;
     private long maxTrySeconds = 1800L;
+
+    private boolean pywbEnabled = true;
 
     public PywbWarcDeposit() {
     }
@@ -35,29 +39,24 @@ public class PywbWarcDeposit extends AbstractRestClient {
     }
 
 
-    public List<SeedHistoryDTO> depositWarc(HarvestResultDTO harvestResult) throws Exception {
-        File directory = new File(rootStorePath, harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber());
-        File[] warcFiles = directory.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".arc") ||
-                        name.toLowerCase().endsWith(".arc.gz") ||
-                        name.toLowerCase().endsWith(".warc") ||
-                        name.toLowerCase().endsWith(".warc.gz");
-            }
-        });
-        if (warcFiles == null) {
-            return null;
+    public void depositWarc(HarvestResultDTO harvestResult) throws Exception {
+        if (!this.pywbEnabled) {
+            return;
         }
 
-        Map<String, File> mappedWarcFiles = new HashMap<>();
+        File directory = new File(rootStorePath, harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber());
+        File[] warcFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
+                name.toLowerCase().endsWith(".warc.gz"));
+        if (warcFiles == null) {
+            return;
+        }
 
         //Added all warc files to the PYWB
         for (File warc : warcFiles) {
-            mappedWarcFiles.put(warc.getName(), warc);
-            String command = this.pywbManagerCommand + " " + warc.getAbsolutePath();
-            List<String> commandList = Arrays.asList(command.split(" "));
+            String[] commands = {"wb-manager", "add", pywbManagerColl, warc.getAbsolutePath()};
+            List<String> commandList = Arrays.asList(commands);
             ProcessBuilder processBuilder = new ProcessBuilder(commandList);
+            processBuilder.directory(pywbManagerStoreDir);
             try {
                 Process process = processBuilder.inheritIO().start();
                 int processStatus = process.waitFor();
@@ -70,28 +69,48 @@ public class PywbWarcDeposit extends AbstractRestClient {
                 throw e;
             }
         }
+    }
 
-        File[] cdxFiles = directory.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".cdx");
-            }
-        });
+    public List<SeedHistoryDTO> getSeedWithTimestamps(HarvestResultDTO harvestResult) throws DigitalAssetStoreException {
+        if (!this.pywbEnabled) {
+            return null;
+        }
+
+        File directory = new File(rootStorePath, harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber());
+        File[] warcFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
+                name.toLowerCase().endsWith(".warc.gz"));
+        if (warcFiles == null) {
+            return null;
+        }
+
+        Map<String, File> mappedWarcFiles = new HashMap<>();
+
+        //Added all warc files to the PYWB
+        for (File warc : warcFiles) {
+            mappedWarcFiles.put(warc.getName(), warc);
+        }
+
+        File[] cdxFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".cdx"));
         if (cdxFiles == null) {
             return null;
         }
 
         LocalDateTime minTimestamp = LocalDateTime.now(), maxTimestamp = LocalDateTime.now().minusYears(5L);
         for (File cdx : cdxFiles) {
-            List<String> lines = FileUtils.readLines(cdx);
+            List<String> lines = null;
+            try {
+                lines = FileUtils.readLines(cdx);
+            } catch (IOException e) {
+                throw new DigitalAssetStoreException(e);
+            }
             for (int idx = 1; idx < lines.size(); idx++) {
                 String line = lines.get(idx);
                 int pos = line.indexOf(' ');
-                if (pos <= 0) {
+                if (pos <= 1) {
                     continue;
                 }
-                String strTimestamp = line.substring(0, pos);
-                LocalDateTime currTimestamp = LocalDateTime.parse(strTimestamp, DateTimeFormatter.ISO_INSTANT);
+                String strTimestamp = line.substring(0, pos - 1);
+                LocalDateTime currTimestamp = LocalDateTime.parse(strTimestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 if (currTimestamp.compareTo(minTimestamp) < 0) {
                     minTimestamp = currTimestamp;
                 }
@@ -104,10 +123,10 @@ public class PywbWarcDeposit extends AbstractRestClient {
         String to = maxTimestamp.format(DateTimeFormatter.BASIC_ISO_DATE) + "235959";
 
         // Query the CDX of the seeds
-        List<SeedHistoryDTO> identities = new ArrayList<>();
+        List<SeedHistoryDTO> seedWithTimestamp = new ArrayList<>();
         Set<SeedHistoryDTO> seedsHistory = wctClient.getSeedUrls(harvestResult.getTargetInstanceOid(), harvestResult.getHarvestNumber());
         long timeUsed = 0;
-        while (timeUsed < maxTrySeconds) {
+        while (timeUsed < maxTrySeconds && seedWithTimestamp.size() < seedsHistory.size()) {
             Iterator<SeedHistoryDTO> iterator = seedsHistory.iterator();
             boolean needRetry = false;
             while (iterator.hasNext()) {
@@ -115,27 +134,29 @@ public class PywbWarcDeposit extends AbstractRestClient {
                 String timestamp = getTimestampOfSeed(seed.getSeed(), from, to, mappedWarcFiles);
                 if (timestamp != null) {
                     seed.setTimestamp(timestamp);
-                    identities.add(seed);
+                    seedWithTimestamp.add(seed);
                 } else {
                     needRetry = true;
                     break;
                 }
             }
             if (needRetry) {
-                TimeUnit.SECONDS.sleep(15L);
+                try {
+                    TimeUnit.SECONDS.sleep(15L);
+                } catch (InterruptedException e) {
+                    throw new DigitalAssetStoreException(e);
+                }
                 timeUsed += 15;
             }
         }
         mappedWarcFiles.clear();
         seedsHistory.clear();
-        return identities;
+        return seedWithTimestamp;
     }
 
-    public String getTimestampOfSeed(String seed, String from, String to, Map<String, File> mappedWarcFiles) throws UnsupportedEncodingException {
+    public String getTimestampOfSeed(String seed, String from, String to, Map<String, File> mappedWarcFiles) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(this.pywbCDXQueryUrl)
                 .queryParam("url", seed)
-//                .queryParam("url", URLEncoder.encode(seed, String.valueOf(StandardCharsets.UTF_8)))
-//                .queryParam("limit", 20)
                 .queryParam("from", from)
                 .queryParam("to", to)
                 .queryParam("output", "json");
@@ -168,8 +189,12 @@ public class PywbWarcDeposit extends AbstractRestClient {
         this.rootStorePath = rootStorePath;
     }
 
-    public void setPywbManagerCommand(String pywbManagerCommand) {
-        this.pywbManagerCommand = pywbManagerCommand;
+    public void setPywbManagerColl(String pywbManagerColl) {
+        this.pywbManagerColl = pywbManagerColl;
+    }
+
+    public void setPywbManagerStoreDir(File pywbManagerStoreDir) {
+        this.pywbManagerStoreDir = pywbManagerStoreDir;
     }
 
     public void setPywbCDXQueryUrl(String pywbCDXQueryUrl) {
@@ -178,6 +203,10 @@ public class PywbWarcDeposit extends AbstractRestClient {
 
     public void setMaxTrySeconds(long maxTrySeconds) {
         this.maxTrySeconds = maxTrySeconds;
+    }
+
+    public void setPywbEnabled(boolean pywbEnabled) {
+        this.pywbEnabled = pywbEnabled;
     }
 }
 

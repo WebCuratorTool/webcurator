@@ -4,22 +4,25 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.core.store.PywbWarcDeposit;
+import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Objects;
 
 public class ScreenshotClientLocal implements ScreenshotClient {
     private static final Logger log = LoggerFactory.getLogger(ScreenshotClientLocal.class);
 
+    private PywbWarcDeposit pywbWarcDeposit;
     private boolean enableScreenshots;
     private boolean abortHarvestOnScreenshotFailure;
     private ScreenshotGenerator screenshotGenerator;
@@ -38,9 +41,19 @@ public class ScreenshotClientLocal implements ScreenshotClient {
     public Boolean createScreenshots(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
         // Can continue with the harvest without taking a screenshot
         if (!enableScreenshots) return true;
-
         if (identifiers == null) {
             return false;
+        }
+
+        if (identifiers.getScreenshotType() == ScreenshotType.harvested) {
+            HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
+            harvestResultDTO.setTargetInstanceOid(identifiers.getTiOid());
+            harvestResultDTO.setHarvestNumber(identifiers.getHarvestNumber());
+            List<SeedHistoryDTO> seedWithTimestamp = pywbWarcDeposit.getSeedWithTimestamps(harvestResultDTO);
+            if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
+                return false;
+            }
+            identifiers.setSeeds(seedWithTimestamp);
         }
 
         Boolean screenshotsSucceeded = Boolean.FALSE;
@@ -301,5 +314,9 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
     public void setUnavailableImageScreen(byte[] unavailableImageScreen) {
         this.unavailableImageScreen = unavailableImageScreen;
+    }
+
+    public void setPywbWarcDeposit(PywbWarcDeposit pywbWarcDeposit) {
+        this.pywbWarcDeposit = pywbWarcDeposit;
     }
 }
