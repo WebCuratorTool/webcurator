@@ -507,9 +507,9 @@ public class DasConfig implements WebMvcConfigurer {
         sourceList.add(waybackIndexer());
         sourceList.add(crawlLogIndexer());
         sourceList.add(cdxIndexer());
+        sourceList.add(pywbIndexer());
 
         bean.setSourceList(sourceList);
-
         return bean;
     }
 

@@ -1,3 +1,4 @@
+import os
 import sys
 from enum import Enum
 
@@ -78,6 +79,9 @@ def main(command_args):
         wait = WebDriverWait(driver, 10)
         replay_frame = wait.until(expected_conditions.visibility_of_element_located((By.ID, "replay_iframe")))
         driver.switch_to.frame("replay_iframe")
+    elif wayback_type == WayBackType.pywb:
+        # element = driver.find_element("_wb_frame_top_banner")
+        pass
 
     # Set screenshot size
     if width is None and height is None:
@@ -102,4 +106,12 @@ def main(command_args):
 
 
 if __name__ == "__main__":
+    # Export Environment
+    curr_directory = os.path.dirname(__file__)
+    path = os.environ.get("PATH")
+    if path is None:
+        path = curr_directory
+    elif curr_directory not in path:
+        path = path + ":" + curr_directory
+    os.environ["PATH"] = path
     main(sys.argv)
