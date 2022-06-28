@@ -47,8 +47,10 @@ public class PywbWarcDeposit extends AbstractRestClient {
         File directory = new File(rootStorePath, harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber());
         File[] warcFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
                 name.toLowerCase().endsWith(".warc.gz"));
-        if (warcFiles == null) {
-            return;
+        if (warcFiles == null || warcFiles.length == 0) {
+            String err = "No warc files found in folder: " + directory.getAbsolutePath();
+            log.error(err);
+            throw new DigitalAssetStoreException(err);
         }
 
         //Added all warc files to the PYWB
@@ -79,8 +81,10 @@ public class PywbWarcDeposit extends AbstractRestClient {
         File directory = new File(rootStorePath, harvestResult.getTargetInstanceOid() + File.separator + harvestResult.getHarvestNumber());
         File[] warcFiles = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
                 name.toLowerCase().endsWith(".warc.gz"));
-        if (warcFiles == null) {
-            return null;
+        if (warcFiles == null || warcFiles.length == 0) {
+            String err = "No warc files found in folder: " + directory.getAbsolutePath();
+            log.error(err);
+            throw new DigitalAssetStoreException(err);
         }
 
         Map<String, File> mappedWarcFiles = new HashMap<>();
@@ -97,7 +101,7 @@ public class PywbWarcDeposit extends AbstractRestClient {
 
         LocalDateTime minTimestamp = LocalDateTime.now(), maxTimestamp = LocalDateTime.now().minusYears(5L);
         for (File cdx : cdxFiles) {
-            List<String> lines = null;
+            List<String> lines;
             try {
                 lines = FileUtils.readLines(cdx);
             } catch (IOException e) {

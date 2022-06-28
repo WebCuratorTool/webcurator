@@ -69,19 +69,20 @@ def main(command_args):
 
     driver.get(url)
 
-    if wayback_type == WayBackType.wayback or wayback_type == WayBackType.openwayback:
-        # Remove wayback banner and modify the iframe
-        element = driver.find_element("wb_div")
-        driver.execute_script("return document.getElementsByTagName('wb_div')[0].remove();")
-        driver.execute_script("return document.getElementById('wb_iframe_div').setAttribute('style','padding:0px 0px 0px 0px');")
+    if is_wayback:
+        if wayback_type == WayBackType.wayback or wayback_type == WayBackType.openwayback:
+            # Remove wayback banner and modify the iframe
+            element = driver.find_element("wb_div")
+            driver.execute_script("return document.getElementsByTagName('wb_div')[0].remove();")
+            driver.execute_script("return document.getElementById('wb_iframe_div').setAttribute('style','padding:0px 0px 0px 0px');")
 
-        # Wait for frame to be ready then switch the focus to the frame
-        wait = WebDriverWait(driver, 10)
-        replay_frame = wait.until(expected_conditions.visibility_of_element_located((By.ID, "replay_iframe")))
-        driver.switch_to.frame("replay_iframe")
-    elif wayback_type == WayBackType.pywb:
-        # element = driver.find_element("_wb_frame_top_banner")
-        pass
+            # Wait for frame to be ready then switch the focus to the frame
+            wait = WebDriverWait(driver, 10)
+            replay_frame = wait.until(expected_conditions.visibility_of_element_located((By.ID, "replay_iframe")))
+            driver.switch_to.frame("replay_iframe")
+        elif wayback_type == WayBackType.pywb:
+            driver.execute_script("return document.getElementById('_wb_frame_top_banner').style.visibility='hidden';")
+            WebDriverWait(driver, 10)
 
     # Set screenshot size
     if width is None and height is None:
