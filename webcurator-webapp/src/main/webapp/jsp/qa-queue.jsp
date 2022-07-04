@@ -492,14 +492,15 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
         var seedDetails = seedArray[i];
         var seedSplit = seedDetails.split(" ");
 
-        html+="<tr>";
-        html+="<td colspan='2' style='margin-bottom: -10px; height:18px; font-size:14px; vertical-align:bottom; text-align:center;'>" + seedSplit[2] + " Seed: " + seedSplit[1] + "</td>";
+        html+='<tr><td colspan="2">';
+        html+='<table class="panel_dotted_row">';
+        html+='<tr>';
+        html+="<td style='width:15%; text-align:left;'><span style='border-style: inset;'>Live</span></td>";
+        html+="<td colspan='2' style='width:70%; height:18px; text-align:center;'>"+seedSplit[1]+"</td>";
+        html+="<td style='width:15%; text-align:right;'><span style='border-style: inset;'>Harvested</span></td>";
         html+="</tr>";
-
-        html+="<tr>";
-        html+="<td style='width:50%; text-align:center;'><span style='border-style: inset;'>Live</span></td>";
-        html+="<td style='width:50%; text-align:center;'><span style='border-style: inset;'>Harvested</span></td>";
-        html+="</tr>";
+        html+="</table>";
+        html+="</td></tr>";
 
         var seedFilenameLive = filename.replace("seedId", seedSplit[0]);
         var seedFilenameHarvested = seedFilenameLive.replace("live", "harvested");

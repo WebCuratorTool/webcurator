@@ -16,6 +16,7 @@
 package org.webcurator.ui.tools.controller;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
@@ -30,11 +31,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.screenshot.ScreenshotPaths;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
-import org.webcurator.domain.model.core.HarvestResourceDTO;
 import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.SeedHistory;
-import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.tools.command.QualityReviewToolCommand;
 
@@ -97,67 +95,7 @@ public class QualityReviewToolController {
         //Do not load fully as this loads ALL resources, regardless of whether they're seeds. Causes OutOfMemory for large harvests.
         HarvestResult result = attr.targetInstanceDao.getHarvestResult(harvestResultId, false);
 
-        // v1.2 - The seeds are now against the Target Instance. We should prefer the seeds
-        // in the instances over those on the target.
-        Set<Seed> seeds = new LinkedHashSet<Seed>();
-
-        // build the original seeds from the ti
-        Iterator<String> originalSeedsIt = ti.getOriginalSeeds().iterator();
-
-        // fetch the seed with the same url as the original seed
-        while (originalSeedsIt.hasNext()) {
-            String seedUrl = originalSeedsIt.next();
-            Iterator<Seed> currentSeedsIt = attr.targetManager.getSeeds(ti).iterator();
-            while (currentSeedsIt.hasNext()) {
-                Seed seed = currentSeedsIt.next();
-                if (seed.getSeed().equals(seedUrl)) {
-                    seeds.add(seed);
-                }
-            }
-
-        }
-
-        // If the seed url has been changed on the Target, then look for a match in the seed history.
-        // Construct a new seed object for the purposes of the QR tool.
-        if (seeds.isEmpty()) {
-            originalSeedsIt = ti.getOriginalSeeds().iterator();
-            while (originalSeedsIt.hasNext()) {
-                String seedUrl = originalSeedsIt.next();
-                Iterator<SeedHistory> currentSeedHistory = ti.getSeedHistory().iterator();
-                while (currentSeedHistory.hasNext()) {
-                    SeedHistory seedHistoryObj = currentSeedHistory.next();
-                    if (seedHistoryObj.getSeed().equals(seedUrl)) {
-                        // Retrieve target for building new seed
-                        Target existingTarget = null;
-                        Iterator<Seed> currentSeedsIt = attr.targetManager.getSeeds(ti).iterator();
-                        while (currentSeedsIt.hasNext()) {
-                            Seed seed = currentSeedsIt.next();
-                            existingTarget = seed.getTarget();
-                            if (existingTarget != null) break;
-                        }
-                        // Build new seed
-                        if (existingTarget != null) {
-                            Seed newSeed = businessObjectFactory.newSeed(existingTarget);
-                            newSeed.setPrimary(seedHistoryObj.isPrimary());
-                            newSeed.setSeed(seedHistoryObj.getSeed());
-                            seeds.add(newSeed);
-                        }
-                    }
-                }
-            }
-        }
-
-        // load seedMap list with primary seeds, followed by non-primary seeds.
-        List<SeedMapElement> seedMap = new ArrayList<SeedMapElement>();
-        for (Seed seed : seeds) {
-            load(seedMap, seed, true, result);
-        }
-        for (Seed seed : seeds) {
-            load(seedMap, seed, false, result);
-        }
-
         ModelAndView mav = new ModelAndView("quality-review-toc", "command", cmd);
-        mav.addObject(QualityReviewToolCommand.MDL_SEEDS, seedMap);
         mav.addObject("targetInstanceOid", ti.getOid());
         mav.addObject("archiveUrl", attr.archiveUrl);
         mav.addObject("archiveName", attr.archiveName);
@@ -168,12 +106,17 @@ public class QualityReviewToolController {
         mav.addObject("seedHistory", ti.getSeedHistory());
 
         // Get seed ID of primary seed and populate array of all seeds
-        Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
         List<Map<String, String>> sMap = Lists.newArrayList();
 
-        while (seedHistory.hasNext()) {
-            SeedHistory s = seedHistory.next();
-
+        List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(new Comparator<SeedHistory>() {
+            @Override
+            public int compare(SeedHistory s0, SeedHistory s1) {
+                int i0 = s0.isPrimary() ? 0 : 1;
+                int i1 = s0.isPrimary() ? 0 : 1;
+                return i0 - i1;
+            }
+        }).collect(Collectors.toList());
+        for (SeedHistory s : historySeeds) {
             Map<String, String> m = new HashMap<>();
             m.put("id", String.valueOf(s.getOid()));
             m.put("seedUrl", s.getSeed());
@@ -186,7 +129,7 @@ public class QualityReviewToolController {
 //				break;
             }
         }
-        mav.addObject("seeds", sMap);
+        mav.addObject(QualityReviewToolCommand.MDL_SEEDS, sMap);
 
         String targetOid = String.valueOf(ti.getOid());
         String harvestNum = String.valueOf(result.getHarvestNumber());
@@ -198,28 +141,5 @@ public class QualityReviewToolController {
         mav.addObject("thumbnailRenderer", attr.thumbnailRenderer);
 
         return mav;
-    }
-
-    private void load(List<SeedMapElement> seedMap, Seed seed, boolean loadPrimary, HarvestResult result) {
-        if (seed.isPrimary() == loadPrimary) {
-            SeedMapElement element = new SeedMapElement(seed.getSeed());
-            element.setPrimary(loadPrimary);
-            element.setOid(String.valueOf(seed.getOid()));
-            if (attr.enableBrowseTool) {
-                //Encode BrowserURL to base64 chars:
-                element.setBrowseUrl("curator/tools/browse/" + String.valueOf(result.getOid()) + "/?url=" + BrowseHelper.encodeUrl(seed.getSeed()));
-            }
-
-            if (attr.harvestResourceUrlMapper != null) {
-                //TODO
-                HarvestResourceDTO hRsr = new HarvestResourceDTO();
-                hRsr.setName(seed.getSeed());
-                if (attr.enableAccessTool) {
-                    element.setAccessUrl(attr.harvestResourceUrlMapper.generateUrl(result, hRsr));
-                }
-            }
-            seedMap.add(element);
-        }
-
     }
 }

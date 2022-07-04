@@ -136,14 +136,15 @@
             <table id="thumbnailTable" style="border: 0px none; width: 100%;">
                 <tbody>
                     <c:forEach var = "seed" items = "${seeds}" >
-                        <tr>
-                            <td colspan='2' style='margin-bottom: -10px; height:18px; font-size:14px; vertical-align:bottom; text-align:center;'>${seed["seedUrl"]}</td>
-                        </tr>
-
-                        <tr>
-                            <td style='width:50%; text-align:center;'><span style='border-style: inset;'>Live</span></td>
-                            <td style='width:50%; text-align:center;'><span style='border-style: inset;'>Harvested</span></td>
-                        </tr>
+                        <tr><td colspan="2">
+                            <table class="panel_dotted_row">
+                                <tr>
+                                    <td style='width:15%; text-align:left;'><span style='border-style: inset;'>Live</span></td>
+                                    <td colspan='2' style='width:70%; height:18px; text-align:center;'>${seed["seedUrl"]}</td>
+                                    <td style='width:15%; text-align:right;'><span style='border-style: inset;'>Harvested</span></td>
+                                </tr>
+                            </table>
+                        </td></tr>
 
                         <tr>
                             <c:set var = "fileUrl" value = "${fn:replace(screenshotUrl,'-thumbnail', '')}" />
@@ -157,9 +158,7 @@
                             </td>
                         </tr>
 
-                        <tr>
-                            <td colspan='2' style='height:8px; background:white;'></td>
-                        </tr>
+                        <tr><td colspan="2"><table class="panel_header_row"><tr><td style="height:8px;"></td></tr></table></td></tr>
                     </c:forEach>
                 </tbody>
             </table>

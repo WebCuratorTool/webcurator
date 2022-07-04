@@ -19,15 +19,8 @@ import java.beans.PropertyEditorSupport;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -52,13 +45,11 @@ import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.profiles.ProfileDataUnit;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.profiles.ProfileTimeUnit;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.screenshot.ScreenshotPaths;
-import org.webcurator.core.screenshot.ScreenshotType;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
@@ -256,7 +247,15 @@ public class QaTiSummaryController {
         mav.addObject(TargetInstanceSummaryCommand.MDL_HISTORY, history);
 
         // add the seeds
-        Set<String> seeds = ti.getOriginalSeeds();
+        List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(new Comparator<SeedHistory>() {
+            @Override
+            public int compare(SeedHistory s0, SeedHistory s1) {
+                int i0 = s0.isPrimary() ? 0 : 1;
+                int i1 = s0.isPrimary() ? 0 : 1;
+                return i0 - i1;
+            }
+        }).collect(Collectors.toList());
+        List<String> seeds = historySeeds.stream().map(SeedHistory::getSeed).collect(Collectors.toList());
         mav.addObject(TargetInstanceSummaryCommand.MDL_SEEDS, seeds);
 
         // add the seeds with seed id
@@ -294,7 +293,7 @@ public class QaTiSummaryController {
         mav.addObject("screenshotUrl", browseUrl);
 
         // Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
-        mav.addObject("reviewUrl", webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + targetId
+        mav.addObject("reviewUrl", "curator/target/quality-review-toc.html?targetInstanceOid=" + targetId
                 + "&harvestResultId=" + harvestResultId + "&harvestNumber=" + harvestNum);
 
         // add the log list

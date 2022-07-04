@@ -55,11 +55,10 @@ import org.webcurator.core.screenshot.ScreenshotPaths;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The controller for displaying a list of target instances and processing
@@ -464,17 +463,23 @@ public class QueueController {
                 String keysAndValues = "";
                 // It is difficult to pass map to javascript.  For this reason, return a string separaated by spaces and |s
                 // The seed urls should be encoded
-                Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
-                while (seedHistory.hasNext()) {
-                    SeedHistory s = seedHistory.next();
-                    String seedIdAndUrl="";
+                List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(new Comparator<SeedHistory>() {
+                    @Override
+                    public int compare(SeedHistory s0, SeedHistory s1) {
+                        int i0 = s0.isPrimary() ? 0 : 1;
+                        int i1 = s0.isPrimary() ? 0 : 1;
+                        return i0 - i1;
+                    }
+                }).collect(Collectors.toList());
+                for (SeedHistory s : historySeeds) {
+                    String seedIdAndUrl = "";
                     if (s.isPrimary() && primarySeedOid == null) {
                         primarySeedOid = s.getOid();
                         targetSeeds.put(tiOidString + "_primarySeedId", String.valueOf(primarySeedOid));
                         targetSeeds.put(tiOidString + "_primarySeedUrl", s.getSeed());
 
                         seedIdAndUrl = s.getOid() + " " + s.getSeed() + " " + "Primary";
-                    }else{
+                    } else {
                         seedIdAndUrl = s.getOid() + " " + s.getSeed() + " " + "Secondary";
                     }
 
@@ -488,7 +493,7 @@ public class QueueController {
                 targetSeeds.put(tiOidString + "_keysAndValues", keysAndValues);
 
                 // Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
-                String reviewUrl = webappBaseUrl + "/curator/target/quality-review-toc.html?targetInstanceOid=" + tiOidString
+                String reviewUrl = "curator/target/quality-review-toc.html?targetInstanceOid=" + tiOidString
                         + "&harvestResultId=" + String.valueOf(lastDisplayableResultOid) + "&harvestNumber=" + harvestNum;
 
                 reviewUrls.put(tiOid, reviewUrl);
