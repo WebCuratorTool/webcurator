@@ -139,6 +139,9 @@ public class QueueController {
     @Value("${server.servlet.contextPath}")
     private String webappContextPath;
 
+    @Value("${enableScreenshots}")
+    private boolean enableScreenshots;
+
     @InitBinder
     public void initBinder(HttpServletRequest request, ServletRequestDataBinder binder) throws Exception {
         binder.registerCustomEditor(java.util.Date.class, DateUtils.get().getFullDateTimeEditor(true));
@@ -379,6 +382,7 @@ public class QueueController {
             mav.setViewName(Constants.VIEW_TARGET_INSTANCE_QUEUE);
         }
 
+        mav.addObject("enableScreenshots", enableScreenshots);
         return mav;
     }
 

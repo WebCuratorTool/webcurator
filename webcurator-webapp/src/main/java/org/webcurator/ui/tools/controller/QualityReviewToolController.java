@@ -55,6 +55,9 @@ public class QualityReviewToolController {
     @Value("${server.servlet.contextPath}")
     private String webappContextPath;
 
+    @Value("${enableScreenshots}")
+    private boolean enableScreenshots;
+
     private BusinessObjectFactory businessObjectFactory = null;
 
     public QualityReviewToolController() {
@@ -133,7 +136,7 @@ public class QualityReviewToolController {
         mav.addObject("screenshotUrl", browseUrl);
 
         mav.addObject("thumbnailRenderer", attr.thumbnailRenderer);
-
+        mav.addObject("enableScreenshots", enableScreenshots);
         return mav;
     }
 }

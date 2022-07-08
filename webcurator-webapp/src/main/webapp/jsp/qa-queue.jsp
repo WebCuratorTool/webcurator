@@ -495,9 +495,9 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
         html+='<tr><td colspan="2">';
         html+='<table class="panel_dotted_row">';
         html+='<tr>';
-        html+="<td style='width:15%; text-align:left;'><span style='border-style: inset;'>Live</span></td>";
+        html+="<td style='width:15%; text-align:left;'><span style='font-weight: bold;'>Live</span></td>";
         html+="<td colspan='2' style='width:70%; height:18px; text-align:center;'>"+seedSplit[1]+"</td>";
-        html+="<td style='width:15%; text-align:right;'><span style='border-style: inset;'>Harvested</span></td>";
+        html+="<td style='width:15%; text-align:right;'><span style='font-weight: bold;'>Harvested</span></td>";
         html+="</tr>";
         html+="</table>";
         html+="</td></tr>";
@@ -790,7 +790,9 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 		<tr>
 			<td class="tableHead"><input type="checkbox" name="selectall" id="selectall" disabled="disabled" onclick="jqCheckAll(this.id, 'resultsTable');" /></td>
 			<td class="tableHead">Id</td>
+			<c:if test="${enableScreenshots}">
 			<td class="tableHead">Thumbnail</td>
+			</c:if>
 			<td class="tableHead"><img src="images/flag-icon-grey.gif"/></td>
 			<td class="tableHead"></td>
 			<td class="sortTableHead" data-id="name" onclick="toggleField($(this));">Name&nbsp;<span id="nameasc" /><span id="namedesc" /></td>
@@ -854,6 +856,7 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 
 		<td class="tableRowLite"><c:out value="${instance.oid}"/></td>
 
+        <c:if test="${enableScreenshots}">
 		<td class="tableRowLite" style="cellpadding: 0px; cellspacing: 0px;">
 		<c:choose>				
 		<c:when test="${instance.state eq 'Harvested' || instance.state eq 'Endorsed' || instance.state eq 'Archived'}">
@@ -912,6 +915,8 @@ function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
 		<c:otherwise><div width="100%" align="center">--</div></c:otherwise>
 		</c:choose>
 		</td>
+		</c:if>
+
 		<td class="tableRowLite">
 			<c:if test="${instance.flag ne null}">
 				<div style="width: 18px; height: 18px; background-color: #${instance.flag.rgb};"><img src="images/flag-icon-alpha.png" alt="${instance.flag.name}" /></div>

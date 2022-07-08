@@ -147,6 +147,9 @@ public class QaTiSummaryController {
     @Value("${server.servlet.contextPath}")
     private String webappContextPath;
 
+    @Value("${enableScreenshots}")
+    private boolean enableScreenshots;
+
     /** static Map of months used by the schedule panel **/
     static {
         monthMap.put("JAN", 0);
@@ -321,7 +324,7 @@ public class QaTiSummaryController {
         buildSchedule(mav, ti, command);
 
         includeCustomFormDetails(mav, ti);
-
+        mav.addObject("enableScreenshots", enableScreenshots);
         return mav;
     }
 

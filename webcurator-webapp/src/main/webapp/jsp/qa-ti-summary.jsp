@@ -499,7 +499,7 @@ function getSelectedProfile(profilesList) {
 			</table>
 
 			<!-- screenshots panel -->
-			<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+			<c:if test="${enableScreenshots && thumbnailRenderer eq 'screenshotTool'}">
 			    <div style="max-height: 360px; overflow-y: auto;">
                     <table class="panel" border="0" width="100%" cellspacing="0px">
                     <tr><td colspan="2"><table class="panel_header_row"><tr><td><div class="panel_header_title">Screenshots</div></td></tr></table></td></tr>
@@ -507,9 +507,9 @@ function getSelectedProfile(profilesList) {
                         <tr><td colspan="2">
                             <table class="panel_dotted_row">
                                 <tr>
-                                    <td style='width:15%; text-align:left;'><span style='border-style: inset;'>Live</span></td>
+                                    <td style='width:15%; text-align:left;'><span style='font-weight: bold;'>Live</span></td>
                                     <td colspan='2' style='width:70%; height:18px; text-align:center;'>${seed}</td>
-                                    <td style='width:15%; text-align:right;'><span style='border-style: inset;'>Harvested</span></td>
+                                    <td style='width:15%; text-align:right;'><span style='font-weight: bold;'>Harvested</span></td>
                                 </tr>
                             </table>
                         </td></tr>
@@ -556,9 +556,9 @@ function getSelectedProfile(profilesList) {
                                     <tr><td colspan="2">
                                         <table class="panel_dotted_row">
                                             <tr>
-                                                <td style='width:15%; text-align:left;'><span style='border-style: inset;'>Live</span></td>
+                                                <td style='width:15%; text-align:left;'><span style='font-weight: bold;'>Live</span></td>
                                                 <td colspan='2' style='width:70%; height:18px; text-align:center;'>${seed}</td>
-                                                <td style='width:15%; text-align:right;'><span style='border-style: inset;'>Harvested</span></td>
+                                                <td style='width:15%; text-align:right;'><span style='font-weight: bold;'>Harvested</span></td>
                                             </tr>
                                         </table>
                                     </td></tr>
