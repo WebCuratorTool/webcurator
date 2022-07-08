@@ -51,6 +51,7 @@ import org.webcurator.ui.admin.command.FlagCommand;
 import org.webcurator.ui.target.command.TargetInstanceCommand;
 import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
 import org.webcurator.core.screenshot.ScreenshotPaths;
+import org.webcurator.ui.util.PrimarySeedFirstCompare;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -463,14 +464,7 @@ public class QueueController {
                 String keysAndValues = "";
                 // It is difficult to pass map to javascript.  For this reason, return a string separaated by spaces and |s
                 // The seed urls should be encoded
-                List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(new Comparator<SeedHistory>() {
-                    @Override
-                    public int compare(SeedHistory s0, SeedHistory s1) {
-                        int i0 = s0.isPrimary() ? 0 : 1;
-                        int i1 = s0.isPrimary() ? 0 : 1;
-                        return i0 - i1;
-                    }
-                }).collect(Collectors.toList());
+                List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(PrimarySeedFirstCompare.getComparator()).collect(Collectors.toList());
                 for (SeedHistory s : historySeeds) {
                     String seedIdAndUrl = "";
                     if (s.isPrimary() && primarySeedOid == null) {

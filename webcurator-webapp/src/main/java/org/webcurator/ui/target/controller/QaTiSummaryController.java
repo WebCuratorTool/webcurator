@@ -67,6 +67,7 @@ import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.command.Time;
 import org.webcurator.ui.target.validator.QaTiSummaryValidator;
 import org.webcurator.common.util.DateUtils;
+import org.webcurator.ui.util.PrimarySeedFirstCompare;
 
 /**
  * The controller for displaying the Target Instance QA Summary Page.
@@ -247,14 +248,7 @@ public class QaTiSummaryController {
         mav.addObject(TargetInstanceSummaryCommand.MDL_HISTORY, history);
 
         // add the seeds
-        List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(new Comparator<SeedHistory>() {
-            @Override
-            public int compare(SeedHistory s0, SeedHistory s1) {
-                int i0 = s0.isPrimary() ? 0 : 1;
-                int i1 = s0.isPrimary() ? 0 : 1;
-                return i0 - i1;
-            }
-        }).collect(Collectors.toList());
+        List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(PrimarySeedFirstCompare.getComparator()).collect(Collectors.toList());
         List<String> seeds = historySeeds.stream().map(SeedHistory::getSeed).collect(Collectors.toList());
         mav.addObject(TargetInstanceSummaryCommand.MDL_SEEDS, seeds);
 
@@ -292,9 +286,17 @@ public class QaTiSummaryController {
         String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(ti.getOid(), harvestNum) + "/" + img_model_name;
         mav.addObject("screenshotUrl", browseUrl);
 
+        String reviewUrl = "curator/target/quality-review-toc.html?targetInstanceOid=" + targetId
+                + "&harvestResultId=" + harvestResultId + "&harvestNumber=" + harvestNum;
+
+        String reviewButtonEnableFlag = "inline";
+        if (harvestResultId == null) {
+            reviewButtonEnableFlag = "none";
+        }
+        mav.addObject("reviewButtonEnableFlag", reviewButtonEnableFlag);
+
         // Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
-        mav.addObject("reviewUrl", "curator/target/quality-review-toc.html?targetInstanceOid=" + targetId
-                + "&harvestResultId=" + harvestResultId + "&harvestNumber=" + harvestNum);
+        mav.addObject("reviewUrl", reviewUrl);
 
         // add the log list
         List<LogFilePropertiesDTO> arrLogs = wctCoordinator.listLogFileAttributes(ti);

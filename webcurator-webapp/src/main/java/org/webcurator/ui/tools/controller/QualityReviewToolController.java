@@ -35,6 +35,7 @@ import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistory;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.ui.tools.command.QualityReviewToolCommand;
+import org.webcurator.ui.util.PrimarySeedFirstCompare;
 
 /**
  * The QualityReviewToolController is responsible for displaying the "menu"
@@ -108,14 +109,7 @@ public class QualityReviewToolController {
         // Get seed ID of primary seed and populate array of all seeds
         List<Map<String, String>> sMap = Lists.newArrayList();
 
-        List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(new Comparator<SeedHistory>() {
-            @Override
-            public int compare(SeedHistory s0, SeedHistory s1) {
-                int i0 = s0.isPrimary() ? 0 : 1;
-                int i1 = s0.isPrimary() ? 0 : 1;
-                return i0 - i1;
-            }
-        }).collect(Collectors.toList());
+        List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(PrimarySeedFirstCompare.getComparator()).collect(Collectors.toList());
         for (SeedHistory s : historySeeds) {
             Map<String, String> m = new HashMap<>();
             m.put("id", String.valueOf(s.getOid()));

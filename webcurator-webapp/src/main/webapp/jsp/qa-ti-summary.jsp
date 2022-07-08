@@ -533,7 +533,7 @@ function getSelectedProfile(profilesList) {
                     <tfoot>
                         <tr>
                             <td colspan="3" style="margin: 5px;" valign="bottom" align="right">
-                                <a href="${reviewUrl}" style="color: #484848;" onmouseover="this.style.textDecoration = 'none'; this.style.colour='#484848';">
+                                <a href="${reviewUrl}" style="color: #484848; display: ${reviewButtonEnableFlag};" onmouseover="this.style.textDecoration = 'none'; this.style.colour='#484848';">
                                     <img src="images/blank-button.gif" style="width: 90px; padding: 5px;" />
                                     <div style="position: relative; right: 32px; bottom: 27px; font-weight: bolder; colour: #484848;">review</div>
                                 </a>
