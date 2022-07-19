@@ -19,6 +19,49 @@ dns:www.nzcee.co.nz 192.122.171.130 20070813080023 text/dns 56
 20070813080023
 www.nzcee.co.nz.	3600	IN	A	202.27.243.13
 
+http://www.nzcee.co.nz/robots.txt 202.27.243.13 20070813080025 text/html 1814
+HTTP/1.1 404 Not Found
+Content-Length: 1635
+Content-Type: text/html
+Server: Microsoft-IIS/6.0
+X-Powered-By: ASP.NET
+Date: Mon, 13 Aug 2007 08:01:15 GMT
+Connection: close
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<HTML><HEAD><TITLE>The page cannot be found</TITLE>
+<META HTTP-EQUIV="Content-Type" Content="text/html; charset=Windows-1252">
+<STYLE type="text/css">
+  BODY { font: 8pt/12pt verdana }
+  H1 { font: 13pt/15pt verdana }
+  H2 { font: 8pt/12pt verdana }
+  A:link { color: red }
+  A:visited { color: maroon }
+</STYLE>
+</HEAD><BODY><TABLE width=500 border=0 cellspacing=10><TR><TD>
+
+<h1>The page cannot be found</h1>
+The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+<hr>
+<p>Please try the following:</p>
+<ul>
+<li>Make sure that the Web site address displayed in the address bar of your browser is spelled and formatted correctly.</li>
+<li>If you reached this page by clicking a link, contact
+ the Web site administrator to alert them that the link is incorrectly formatted.
+</li>
+<li>Click the <a href="javascript:history.back(1)">Back</a> button to try another link.</li>
+</ul>
+<h2>HTTP Error 404 - File or directory not found.<br>Internet Information Services (IIS)</h2>
+<hr>
+<p>Technical Information (for support personnel)</p>
+<ul>
+<li>Go to <a href="http://go.microsoft.com/fwlink/?linkid=8180">Microsoft Product Support Services</a> and perform a title search for the words <b>HTTP</b> and <b>404</b>.</li>
+<li>Open <b>IIS Help</b>, which is accessible in IIS Manager (inetmgr),
+ and search for topics titled <b>Web Site Setup</b>, <b>Common Administrative Tasks</b>, and <b>About Custom Error Messages</b>.</li>
+</ul>
+
+</TD></TR></TABLE></BODY></HTML>
+
 http://www.nzcee.co.nz/ 202.27.243.13 20070813080025 text/html 12057
 HTTP/1.1 200 OK
 Connection: close
@@ -100,7 +143,8 @@ else
       end = dmnetCookieString.length;
     DMNETsession = unescape(dmnetCookieString.substring(start,end));
   }
-dmnetURL += "&id="+DMNETsession+"&url="+escape(DMNETpage) + "&ref="+escape(document.referrer)+"&lng=" + ((!document.all ||  navigator.userAgent.match('Opera')) ? navigator.language : navigator.userLanguage) + "&tz=" + (Math.round(new Date('dec 1, 2002').getTimezoneOffset()/60)*-1);
+dmnetURL += "&id="+DMNETsession+"&url="+escape(DMNETpage) + "&ref="+escape(document.referrer)+"&lng=" + ((!document.all 
+  navigator.userAgent.match('Opera')) ? navigator.language : navigator.userLanguage) + "&tz=" + (Math.round(new Date('dec 1, 2002').getTimezoneOffset()/60)*-1);
 if(screen)
   dmnetURL += "&scr=" + escape( screen.width + "x" + screen.height + " " + screen.colorDepth + "bpp" );
  
@@ -108,11 +152,11 @@ dmnetURL += "&rnd=" + new Date().getTime();
  
 if(document.layers)
 {
-  document.write("<la"+"yer name=\"DMStats\" visibility=hide><img src=\""+dmnetURL+"\" height=1 width=1></la"+"yer>");
+  document.write("<la"+"yer name="DMStats" visibility=hide><img src=""+dmnetURL+"" height=1 width=1></la"+"yer>");
 }
 else
 {
-  document.write("<di"+"v id=\"DMStats\" STYLE=\"position:absolute;visibility:hidden;\"><img src=\""+dmnetURL+"\" height=1 width=1></di"+"v>");
+  document.write("<di"+"v id="DMStats" STYLE="position:absolute;visibility:hidden;"><img src=""+dmnetURL+"" height=1 width=1></di"+"v>");
 }
  
 </script>
@@ -147,8 +191,8 @@ else
 								<a href="/pages/about_nzcee/" class="topnav">About&nbsp;NZCEE</a> | 
 								<a href="/pages/research_projects/" class="topnav">Research&nbsp;Projects</a> | 
 								<a href="/pages/services_products/" class="topnav">Expertise&nbsp;&amp;&nbsp;Services</a> | 
-								<a href="/pages/publications/recent_publications.asp" class="topnav">Publications</a> |
-								<a href="/pages/contact_us/" class="topnav">Contact&nbsp;Us</a>
+								<a href="/pages/publications/recent_publications.asp" class="topnav">Publications</a> 
+|								<a href="/pages/contact_us/" class="topnav">Contact&nbsp;Us</a>
 							</span>
 						</td>
           </tr>

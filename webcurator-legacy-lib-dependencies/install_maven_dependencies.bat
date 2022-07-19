@@ -2,10 +2,10 @@ rem To make this project work with maven, execute this batch file to install dep
 
 rem
 rem Clone the rosetta-dps-sdk-projects-maven-lib project to get its jar and pom and install it into the local maven 2 repository
-RD /S /Q .\wct-core\target\rosetta-dps-sdk-projects-maven-lib
-mkdir .\wct-core\target
-call git clone https://github.com/NLNZDigitalPreservation/rosetta-dps-sdk-projects-maven-lib.git .\wct-core\target\rosetta-dps-sdk-projects-maven-lib
-call mvn install:install-file -Dfile=.\wct-core\target\rosetta-dps-sdk-projects-maven-lib\dps-sdk-5.5.0.jar -DpomFile=.\wct-core\target\rosetta-dps-sdk-projects-maven-lib\dps-sdk-5.5.0-pom.xml
+rem RD /S /Q .\wct-core\target\rosetta-dps-sdk-projects-maven-lib
+rem mkdir .\wct-core\target
+rem call git clone https://github.com/NLNZDigitalPreservation/rosetta-dps-sdk-projects-maven-lib.git .\wct-core\target\rosetta-dps-sdk-projects-maven-lib
+rem call mvn install:install-file -Dfile=.\wct-core\target\rosetta-dps-sdk-projects-maven-lib\dps-sdk-5.5.0.jar -DpomFile=.\wct-core\target\rosetta-dps-sdk-projects-maven-lib\dps-sdk-5.5.0-pom.xml
 
 rem
 rem Clone the commons-httpclient-heritrix-1-14 project to get its jar and pom and install it into the local maven 2 repository
@@ -56,3 +56,6 @@ call call mvn install:install-file -DgroupId=xdoclet -DartifactId=xjavadoc -Dver
 
 call call mvn install:install-file -DgroupId=javassist -DartifactId=javassist -Dversion=2.6.ga -Dpackaging=jar -Dfile=wct-store\etc\lib\javassist-2.6.ga.jar
 call call mvn install:install-file -DgroupId=policy -DartifactId=policy -Dversion=4.2.2.GA -Dpackaging=jar -Dfile=wct-store\etc\lib\policy-4.2.2.GA.jar
+
+call call mvn install:install-file -DgroupId=com.exlibris -DartifactId=dps-sdk -Dversion=7.1.0 -Dpackaging=jar -Dfile=wct-submit-to-rosetta/lib/dps-sdk-7.1.0.jar
+call call mvn install:install-file -DgroupId=com.exlibris -DartifactId=dps-sdk-deposit-api -Dversion=7.1.0 -Dpackaging=jar -Dfile=wct-submit-to-rosetta/lib/dps-sdk-deposit-api-7.1.0.jar
