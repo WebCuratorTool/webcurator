@@ -43,7 +43,7 @@ import org.junit.Test;
 import org.webcurator.core.archive.dps.DpsDepositFacade;
 import org.webcurator.core.archive.dps.DpsDepositFacade.DepositResult;
 
-import com.exlibris.dps.sdk.deposit.DepositWebServices;
+import com.exlibris.dps.DepositWebServices;
 import com.exlibris.dps.sdk.pds.PdsClient;
 
 import java.io.File;

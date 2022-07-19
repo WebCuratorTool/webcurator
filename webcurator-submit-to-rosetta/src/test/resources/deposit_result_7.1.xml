@@ -1,0 +1,7 @@
+<ser:deposit_result xmlns:ser="http://www.exlibrisgroup.com/xsd/dps/deposit/service">
+    <ser:is_error>false</ser:is_error>
+    <ser:sip_id>345</ser:sip_id>
+    <ser:deposit_activity_id>365</ser:deposit_activity_id>
+    <ser:user_params>pdsHandle=31120221110657111610618059503016, materialFlowId=7, subDirectoryName=deposit-1643580605805, producerId=80349, depositSetId=1</ser:user_params>
+    <ser:creation_date>Mon Jan 31 11:10:56 NZDT 2022</ser:creation_date>
+</ser:deposit_result>

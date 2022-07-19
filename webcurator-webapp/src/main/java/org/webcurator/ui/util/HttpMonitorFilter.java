@@ -46,7 +46,7 @@ public class HttpMonitorFilter implements Filter {
 
         chain.doFilter(request, response);
 
-        if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled() && !isResourceUrl) {
             log.debug("After doFilter {}", wctSecurityConfig.getCurrentSessionMessage(req, rsp));
         }
 
