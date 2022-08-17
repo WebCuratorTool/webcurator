@@ -4,6 +4,7 @@ import axios from 'axios';
 import buildQuery from '../../utils/buildQuery';
 
 import TargetsView from './Targets.view';
+import TargetsTable from './TargetsTable';
 
 function TargetsContainer() {
   const [targets, setTargets] = useState(null);
@@ -70,18 +71,26 @@ function TargetsContainer() {
     }))
     setShouldSort(true);
   }
+
+  const renderTargetsTable = () => {
+    return (
+      <TargetsTable
+          onChangeSortBy={onChangeSortBy}
+          pageOffset={pageOffset}
+          setPageOffset={setPageOffset}
+          sortOptions={sortOptions}
+          targets={targets}
+      />
+    )
+  }
   
   return (
     <TargetsView
         loading={loading}
-        targets={targets}
-        pageOffset={pageOffset}
         clearSearchTerms={clearSearchTerms}
-        onChangeSortBy={onChangeSortBy}
         onSearchTargets={fetchTargets}
         searchTerms={searchTerms}
-        setPageOffset={setPageOffset}
-        sortOptions={sortOptions}
+        renderTargetsTable={renderTargetsTable}
         updateSearchTerms={updateSearchTerms}
     />
   );

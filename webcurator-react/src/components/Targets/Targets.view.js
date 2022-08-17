@@ -4,19 +4,15 @@ import '../../styles/targets.css';
 
 import Header from '../Header';
 import Loading from '../Loading';
-import TargetsTable from './TargetsTable';
+
 
 function TargetsView(props) {
     const {
         loading,
-        targets,
         clearSearchTerms,
-        onChangeSortBy,
         onSearchTargets,
-        pageOffset,
+        renderTargetsTable,
         searchTerms,
-        setPageOffset,
-        sortOptions,
         updateSearchTerms
     } = props;
         
@@ -55,15 +51,7 @@ function TargetsView(props) {
             </form>
 
             {loading && <Loading />}
-            {!loading && (
-                <TargetsTable
-                    onChangeSortBy={onChangeSortBy}
-                    pageOffset={pageOffset}
-                    setPageOffset={setPageOffset}
-                    sortOptions={sortOptions}
-                    targets={targets}
-                />
-            )}
+            {!loading && renderTargetsTable()}
         </div>
     );
 }
