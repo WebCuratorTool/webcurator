@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import TargetsContainer from "../../components/Targets/Targets.container";
 import TargetsView from "../../components/Targets/Targets.view";
+import TargetsTable from "../../components/Targets/TargetsTable";
 import { act } from "react-dom/test-utils";
 
 const MockTargetsContainer = () => {
@@ -14,16 +15,26 @@ const MockTargetsContainer = () => {
 }
 
 const MockTargetsView = ({ loading = false }) => {
+  const mockRenderTargetsTable = () => {
+    return (
+      <TargetsTable
+          onChangeSortBy={jest.fn()}
+          pageOffset={0}
+          setPageOffset={jest.fn()}
+          sortOptions={{}}
+          targets={[]}
+      />
+    )
+  }
+
   return (
     <BrowserRouter>
         <TargetsView
             loading={loading}
-            targets={[]}
             clearSearchTerms={jest.fn()}
-            onChangeSortBy={jest.fn()}
             onSearchTargets={jest.fn()}
+            renderTargetsTable={mockRenderTargetsTable}
             searchTerms={{}}
-            sortOptions={{}}
             updateSearchTerms={jest.fn()}
         />
     </BrowserRouter>
