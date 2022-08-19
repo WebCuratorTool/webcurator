@@ -250,7 +250,26 @@ const treeOptionsCascadedPath=Object.assign({
 			return "fas fa-link text-link";
 		}
 	},
+    lazyLoad: function(event, data) {
+        var nodeData=data.node.data;
+        var deferredResult = jQuery.Deferred();
+        var result = [];
+        var isDomain=nodeData.isDomain;
+        var viewType=nodeData.viewType;
+        var urlSubFolders = "/networkmap/get/urls/cascaded-by-path?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&folderId=" + nodeData.id;
 
+        fetchHttp(urlSubFolders, {}, function(response){
+            var dataset=[];
+            if (response.rspCode != 0) {
+                alert(response.rspMsg);
+            }else{
+                dataset=JSON.parse(response.payload);
+            }
+            deferredResult.resolve(dataset);
+        });
+
+        data.result = deferredResult;
+    },
 }, treeOptionsBasic);
 
 
@@ -784,7 +803,7 @@ class PopupModifyHarvest{
 	}
 
 	initFolderTreeView(searchCommand){
-		var reqUrl = "/networkmap/get/urls/cascaded-by-path?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + '&title=';
+		var reqUrl = "/networkmap/get/urls/cascaded-by-path?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + '&folderId=-1';
 		var popupModifyHarvestInstance=this;
 		g_TurnOnOverlayLoading();
 		fetchHttp(reqUrl, searchCommand, function(response){

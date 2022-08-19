@@ -20,6 +20,7 @@ public class NetworkMapNodeFolderDTO extends BasicNode {
     @JsonIgnore
     private String url;
 
+    @JsonIgnore
     private List<NetworkMapNodeFolderDTO> children = new ArrayList<>();
 
     @JsonIgnore
@@ -83,10 +84,12 @@ public class NetworkMapNodeFolderDTO extends BasicNode {
         this.handled = handled;
     }
 
+    @JsonIgnore
     public List<NetworkMapNodeFolderDTO> getChildren() {
         return children;
     }
 
+    @JsonIgnore
     public void setChildren(List<NetworkMapNodeFolderDTO> children) {
         this.children = children;
     }

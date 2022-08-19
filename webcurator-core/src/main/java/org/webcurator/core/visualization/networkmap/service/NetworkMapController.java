@@ -57,8 +57,8 @@ public class NetworkMapController implements NetworkMapService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_URLS_CASCADED_BY_PATH, method = {RequestMethod.POST}, produces = "application/json")
-    public NetworkMapResult searchUrl2CascadePaths(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("title") String title, @RequestBody NetworkMapServiceSearchCommand searchCommand) {
-        return client.searchUrl2CascadePaths(job, harvestResultNumber, title, searchCommand);
+    public NetworkMapResult searchUrl2CascadePaths(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("folderId") long folderId, @RequestBody NetworkMapServiceSearchCommand searchCommand) {
+        return client.searchUrl2CascadePaths(job, harvestResultNumber, folderId, searchCommand);
     }
 
     @Override

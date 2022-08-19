@@ -1,7 +1,6 @@
 package org.webcurator.core.visualization.networkmap.service;
 
 import com.sleepycat.persist.EntityCursor;
-import org.webcurator.common.util.Utils;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.URLResolverFunc;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
@@ -120,15 +119,14 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
 
     @Override
-    public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, String title, NetworkMapServiceSearchCommand searchCommand) {
+    public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, long folderId, NetworkMapServiceSearchCommand searchCommand) {
         List<NetworkMapNodeFolderDTO> listFolderDTO;
 
         if (searchCommand == null || !searchCommand.isFilterable()) {
-            if (Utils.isEmpty(title)) {
+            if (folderId < 0) {
                 listFolderDTO = this.folderMgmt.queryRootFolderList(job, harvestResultNumber);
             } else {
-                title = new String(Base64.getDecoder().decode(title));
-                listFolderDTO = this.folderMgmt.queryFolderListWithTitle(job, harvestResultNumber, title);
+                listFolderDTO = this.folderMgmt.queryFolderList(job, harvestResultNumber, folderId);
             }
         } else {
             List<NetworkMapNodeUrlEntity> allNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);

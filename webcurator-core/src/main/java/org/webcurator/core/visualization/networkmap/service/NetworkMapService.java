@@ -31,7 +31,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     NetworkMapResult searchUrl(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand);
 
-    NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, String title, NetworkMapServiceSearchCommand searchCommand);
+    NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, long folderId, NetworkMapServiceSearchCommand searchCommand);
 
     //List<String>
     NetworkMapResult searchUrlNames(long job, int harvestResultNumber, String substring);
