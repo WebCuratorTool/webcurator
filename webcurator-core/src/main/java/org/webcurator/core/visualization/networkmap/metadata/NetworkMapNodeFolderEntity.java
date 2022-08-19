@@ -1,19 +1,22 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
-public class NetworkMapNodeFolderEntity implements NetworkMapUnlStructure {
-    private final static int UNL_FIELDS_COUNT_MAX = 3;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sleepycat.persist.model.Entity;
+import com.sleepycat.persist.model.Relationship;
+import com.sleepycat.persist.model.SecondaryKey;
 
-    private long id;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+public class NetworkMapNodeFolderEntity extends BasicNode {
     private long parentPathId;
+
+    @SecondaryKey(relate = Relationship.ONE_TO_ONE)
     private String title;
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
+    private List<Long> subFolderList = new ArrayList<>();
+    private List<Long> subUrlList = new ArrayList<>();
 
     public long getParentPathId() {
         return parentPathId;
@@ -31,23 +34,29 @@ public class NetworkMapNodeFolderEntity implements NetworkMapUnlStructure {
         this.title = title;
     }
 
-    @Override
-    public String toUnlString() {
-        return String.format("%d\n%d\n%s", id, parentPathId, title);
+    public List<Long> getSubFolderList() {
+        return subFolderList;
     }
 
-    @Override
-    public void toObjectFromUnl(String unl) throws Exception {
-        if (unl == null) {
-            throw new Exception("Unl could not be null.");
-        }
-        String[] items = unl.split(UNL_FIELDS_SEPARATOR);
-        if (items.length != UNL_FIELDS_COUNT_MAX) {
-            throw new Exception("Item number=" + items.length + " does not equal to UNL_FIELDS_COUNT_MAX=" + UNL_FIELDS_COUNT_MAX);
-        }
+    public void setSubFolderList(List<Long> subFolderList) {
+        this.subFolderList = subFolderList;
+    }
 
-        this.id = Long.parseLong(items[0]);
-        this.parentPathId = Long.parseLong(items[1]);
-        this.title = items[2];
+    public List<Long> getSubUrlList() {
+        return subUrlList;
+    }
+
+    public void setSubUrlList(List<Long> subUrlList) {
+        this.subUrlList = subUrlList;
+    }
+
+    @JsonIgnore
+    public void addSubFolder(BasicNode node) {
+        this.subFolderList.add(node.getId());
+    }
+
+    @JsonIgnore
+    public void addSubUrl(BasicNode node) {
+        this.subUrlList.add(node.getId());
     }
 }

@@ -1,9 +1,6 @@
 package org.webcurator.core.visualization.networkmap.service;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
+import com.sleepycat.persist.EntityCursor;
 import org.webcurator.common.util.Utils;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.URLResolverFunc;
@@ -11,10 +8,11 @@ import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationProgressView;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.*;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
+import org.webcurator.core.visualization.networkmap.processor.TreeViewFolderMgmt;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.IOException;
@@ -22,12 +20,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class NetworkMapClientLocal implements NetworkMapClient {
-    private final static String regex = "\\d+";
     private final BDBNetworkMapPool pool;
     private final VisualizationProcessorManager visualizationProcessorManager;
+    private final TreeViewFolderMgmt folderMgmt;
 
     public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorManager visualizationProcessorManager) {
         this.pool = pool;
+        this.folderMgmt = new TreeViewFolderMgmt(this.pool);
         this.visualizationProcessorManager = visualizationProcessorManager;
     }
 
@@ -49,13 +48,12 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_SUCCESS);
         versionDTO.setGlobalVersion(pool.getDbVersion());
 
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         String currentVersion = "0.0.0";
         if (db == null) {
             versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_DB_NOT_EXIT);
         } else {
-            String version = db.getDbVersionStamp();
-            currentVersion = version == null ? "0.0.0" : version;
+            currentVersion = db.getDbVersionStamp();
         }
 
         if (!currentVersion.equalsIgnoreCase(pool.getDbVersion())) {
@@ -84,24 +82,24 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getNode(long job, int harvestResultNumber, long id) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
         NetworkMapResult result = new NetworkMapResult();
-        NetworkMapNodeUrlEntity networkMapNode = db.getUrl(id);
+        NetworkMapNodeUrlEntity networkMapNode = db.getUrlById(id);
         result.setPayload(obj2Json(networkMapNode));
         return result;
     }
 
     @Override
     public NetworkMapResult getOutlinks(long job, int harvestResultNumber, long parentId) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        NetworkMapNodeUrlEntity parentNode = db.getUrl(parentId);
+        NetworkMapNodeUrlEntity parentNode = db.getUrlById(parentId);
         if (parentNode == null) {
             return NetworkMapResult.getDataNotExistResult("Could not find parent node, id: " + parentId);
         }
@@ -119,37 +117,29 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return new NetworkMapResult();
     }
 
+
     @Override
     public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, String title, NetworkMapServiceSearchCommand searchCommand) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        if (db == null) {
-            return NetworkMapResult.getDBMissingErrorResult();
-        }
-        if (searchCommand == null) {
-            searchCommand = new NetworkMapServiceSearchCommand();
-        }
+        List<NetworkMapNodeFolderDTO> listFolderDTO;
 
-        if (!Utils.isEmpty(title)) {
-            title = new String(Base64.getDecoder().decode(title));
-        }
-
-        NetworkMapNodeFolderDTO rootTreeNode = this.searchUrlTreeNodes(job, harvestResultNumber, searchCommand);
-        if (rootTreeNode == null) {
-            return NetworkMapResult.getDataNotExistResult();
-        }
-
-//        NetworkMapCascadePath networkMapCascadePathProcessor = new NetworkMapCascadePath();
-//        networkMapCascadePathProcessor.classifyTreePaths(rootTreeNode);
-
-        List<NetworkMapNodeFolderDTO> returnedTreeNodes = new ArrayList<>();
-        if (Utils.isEmpty(rootTreeNode.getTitle()) && rootTreeNode.getChildren().size() == 0) {
-            returnedTreeNodes.add(rootTreeNode);
+        if (searchCommand == null || !searchCommand.isFilterable()) {
+            if (Utils.isEmpty(title)) {
+                listFolderDTO = this.folderMgmt.queryRootFolderList(job, harvestResultNumber);
+            } else {
+                title = new String(Base64.getDecoder().decode(title));
+                listFolderDTO = this.folderMgmt.queryFolderListWithTitle(job, harvestResultNumber, title);
+            }
         } else {
-            returnedTreeNodes = rootTreeNode.getChildren();
+            List<NetworkMapNodeUrlEntity> allNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
+            NetworkMapNodeFolderDTO rootTreeNode = this.folderMgmt.createFolderTreeView(job, harvestResultNumber, allNetworkMapNodes);
+            if (rootTreeNode == null) {
+                return NetworkMapResult.getDataNotExistResult();
+            }
+            listFolderDTO = rootTreeNode.getChildren();
         }
 
         NetworkMapResult result = new NetworkMapResult();
-        result.setPayload(this.obj2Json(returnedTreeNodes));
+        result.setPayload(this.obj2Json(listFolderDTO));
         return result;
     }
 
@@ -165,24 +155,32 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getAllDomains(long job, int harvestResultNumber) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
-
+        NetworkMapAccessPropertyEntity accProp = db.getAccProp();
+        if (accProp == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
         NetworkMapResult result = new NetworkMapResult();
-        result.setPayload(db.getRootDomainString());
+        result.setPayload(accProp.getRootDomain());
         return result;
     }
 
     @Override
     public NetworkMapResult getSeedUrls(long job, int harvestResultNumber) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<Long> ids = db.getRootUrlIdList();
+        NetworkMapAccessPropertyEntity accProp = db.getAccProp();
+        if (accProp == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<Long> ids = accProp.getSeedUrlIDs();
         if (ids == null) {
             return NetworkMapResult.getDataNotExistResult("Could not find seed urls");
         }
@@ -196,12 +194,17 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getMalformedUrls(long job, int harvestResultNumber) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<Long> ids = db.getMalformedUrlIdList();
+        NetworkMapAccessPropertyEntity accProp = db.getAccProp();
+        if (accProp == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<Long> ids = accProp.getMalformedUrlIDs();
         if (ids == null) {
             return NetworkMapResult.getDataNotExistResult("Could not find malformed urls");
         }
@@ -219,7 +222,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getBadRequestResult("Search command could not be null");
         }
 
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
@@ -234,60 +237,9 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return result;
     }
 
-    public NetworkMapNodeFolderDTO searchUrlTreeNodes(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        if (db == null) {
-            return null;
-        }
-
-        Map<Long, NetworkMapNodeFolderDTO> map = new HashMap<>();
-        NetworkMapNodeFolderDTO rootTreeNode = new NetworkMapNodeFolderDTO();
-        map.put((long) -1, rootTreeNode);
-
-        List<NetworkMapNodeUrlEntity> allNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
-        for (NetworkMapNodeUrlEntity networkMapNode : allNetworkMapNodes) {
-            NetworkMapNodeFolderDTO treeNode = new NetworkMapNodeFolderDTO();
-            treeNode.copy(networkMapNode);
-            treeNode.setUrl(networkMapNode.getUrl());
-            treeNode.setTitle(networkMapNode.getUrl());
-            long parentPathId = networkMapNode.getParentPathId();
-            while (true) {
-                NetworkMapNodeFolderDTO parentTreeNode;
-                if (map.containsKey(parentPathId)) {
-                    parentTreeNode = map.get(parentPathId);
-                    parentTreeNode.getChildren().add(treeNode);
-                    break;
-                }
-
-                NetworkMapNodeFolderEntity path = db.getTreeViewPath(parentPathId);
-                if (path == null) {
-                    log.error("parentPath does not exist, parentPathId={}", parentPathId);
-                    break;
-                }
-                parentTreeNode = new NetworkMapNodeFolderDTO();
-                parentTreeNode.setTitle(path.getTitle());
-                parentTreeNode.getChildren().add(treeNode);
-
-                map.put(parentPathId, parentTreeNode);
-
-                parentPathId = path.getParentPathId();
-                treeNode = parentTreeNode;
-            }
-        }
-        map.clear();
-
-        if (Utils.isEmpty(rootTreeNode.getTitle()) && rootTreeNode.getChildren().size() == 1) {
-            rootTreeNode = rootTreeNode.getChildren().get(0);
-        }
-
-        NetworkMapCascadePath cascadePathProcessor = new NetworkMapCascadePath();
-        cascadePathProcessor.summarize(rootTreeNode);
-
-        return rootTreeNode;
-    }
 
     public List<NetworkMapNodeUrlEntity> searchUrlDTOs(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return null;
         }
@@ -295,33 +247,24 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return searchUrlDTOs(db, job, harvestResultNumber, searchCommand);
     }
 
-    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(BDBNetworkMap db, long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
+    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(BDBRepoHolder db, long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
+        if (searchCommand == null) {
+            searchCommand = new NetworkMapServiceSearchCommand();
+        }
         CompiledSearchCommand compiledSearchCommand = CompiledSearchCommand.getInstance(searchCommand);
 
         long startTime = System.currentTimeMillis();
 
         final List<NetworkMapNodeUrlEntity> urls = new ArrayList<>();
-        long maxUrlSize = db.getUrlCount();
-        for (long urlId = 0; urlId < maxUrlSize; urlId++) {
-            String unl = db.getUrlString(urlId);
-            if (Utils.isEmpty(unl)) {
+        EntityCursor<NetworkMapNodeUrlEntity> cursor = db.openUrlCursor();
+        for (NetworkMapNodeUrlEntity urlEntity : cursor) {
+            if (!compiledSearchCommand.isInclude(urlEntity)) {
                 continue;
             }
-            if (!compiledSearchCommand.isInclude(unl)) {
-                continue;
-            }
-            NetworkMapNodeUrlEntity networkMapNode = new NetworkMapNodeUrlEntity();
-            try {
-                networkMapNode.toObjectFromUnl(unl);
-            } catch (Exception e) {
-                log.error("Failed to initial NetworkMapNodeDTO from unl: {}", unl, e);
-                continue;
-            }
-            urls.add(networkMapNode);
+            urls.add(urlEntity);
         }
-
+        cursor.close();
         long endTime = System.currentTimeMillis();
-
         log.debug("Search URLs time used: " + (endTime - startTime));
         return urls;
     }
@@ -332,7 +275,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getBadRequestResult("substring could not be null");
         }
 
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
@@ -340,25 +283,15 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         List<String> urlNameList = new ArrayList<>();
 
         // Open the cursor.
-        Cursor cursor = db.openCursor();
-        DatabaseEntry foundKey = new DatabaseEntry();
-        DatabaseEntry foundData = new DatabaseEntry();
-        while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-            String keyString = new String(foundKey.getData());
-            if (!keyString.startsWith("url_")) {
-                continue;
-            }
-            keyString = keyString.substring(4);
-
-            if (keyString.toUpperCase().contains(substring.toUpperCase())) {
-                urlNameList.add(keyString);
+        EntityCursor<NetworkMapNodeUrlEntity> cursor = db.openUrlCursor();
+        for (NetworkMapNodeUrlEntity urlEntity : cursor) {
+            if (urlEntity.getUrl().contains(substring)) {
+                urlNameList.add(urlEntity.getUrl());
             }
         }
-        //Close the cursor
         cursor.close();
 
         String json = obj2Json(urlNameList);
-
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(json);
         return result;
@@ -366,20 +299,20 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getHopPath(long job, int harvestResultNumber, long id) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
         List<NetworkMapNodeUrlEntity> listHopPath = new ArrayList<>();
-        NetworkMapNodeUrlEntity curNode = db.getUrl(id);
+        NetworkMapNodeUrlEntity curNode = db.getUrlById(id);
         while (curNode != null) {
             listHopPath.add(curNode);
             long parentId = curNode.getParentId();
             if (parentId <= 0) {
                 break;
             }
-            curNode = db.getUrl(parentId);
+            curNode = db.getUrlById(parentId);
         }
         String json = this.obj2Json(listHopPath);
 
@@ -393,20 +326,20 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getHierarchy(long job, int harvestResultNumber, List<Long> ids) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
         List<NetworkMapNodeUrlEntity> hierarchyLinks = new ArrayList<>();
         for (long urlId : ids) {
-            NetworkMapNodeUrlEntity node = db.getUrl(urlId);
+            NetworkMapNodeUrlEntity node = db.getUrlById(urlId);
             if (node == null) {
                 continue;
             }
             hierarchyLinks.add(node);
             for (long outlinkId : node.getOutlinks()) {
-                NetworkMapNodeUrlEntity outlink = db.getUrl(outlinkId);
+                NetworkMapNodeUrlEntity outlink = db.getUrlById(outlinkId);
                 node.putChild(outlink);
             }
         }
@@ -422,13 +355,13 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrlCommand url) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
         String urlName = url.getUrlName();
-        NetworkMapNodeUrlEntity networkMapNode = db.getUrlByUrlName(urlName);
+        NetworkMapNodeUrlEntity networkMapNode = db.getUrlByName(urlName);
         if (networkMapNode == null) {
             return NetworkMapResult.getDataNotExistResult();
         }
@@ -440,7 +373,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getUrlsByNames(long job, int harvestResultNumber, List<String> urlNameList) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
@@ -451,8 +384,8 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         List<NetworkMapNodeUrlEntity> urlList = new ArrayList<>();
         for (String urlName : urlNameList) {
-            NetworkMapNodeUrlEntity node = db.getUrlByUrlName(urlName);
-            if (node!=null){
+            NetworkMapNodeUrlEntity node = db.getUrlByName(urlName);
+            if (node != null) {
                 urlList.add(node);
             }
         }
@@ -462,7 +395,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     }
 
     private String combineUrlResultFromArrayIDs(long job, int harvestResultNumber, List<Long> ids) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
 
         if (ids == null || db == null) {
             return null;
@@ -470,7 +403,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         final List<NetworkMapNodeUrlEntity> result = new ArrayList<>();
         ids.forEach(childId -> {
-            NetworkMapNodeUrlEntity networkMapNode = db.getUrl(childId);
+            NetworkMapNodeUrlEntity networkMapNode = db.getUrlById(childId);
             if (networkMapNode != null) {
                 result.add(networkMapNode);
             }
@@ -541,21 +474,16 @@ class CompiledSearchCommand {
         return compiledSearchCommand;
     }
 
-    public boolean isInclude(String unl) {
-        String[] items = unl.split(NetworkMapNodeUrlEntity.UNL_FIELDS_SEPARATOR);
-        if (items.length != NetworkMapNodeUrlEntity.UNL_FIELDS_COUNT_MAX) {
-            return false;
-        }
-
-        boolean isInclude = isIncludedByUrlName(items[1]) &&
-                isIncludedByContentType(items[9]) &&
-                isIncludedByStatusCode(Integer.parseInt(items[10]));
+    public boolean isInclude(NetworkMapNodeUrlEntity urlEntity) {
+        boolean isInclude = isIncludedByUrlName(urlEntity.getUrl()) &&
+                isIncludedByContentType(urlEntity.getContentType()) &&
+                isIncludedByStatusCode(urlEntity.getStatusCode());
 
         if (!isInclude) {
             return false;
         }
 
-        String domainName = domainLevel != null && domainLevel.equals("high") ? NetworkMapNodeUrlDTO.getTopDomainName(items[1]) : URLResolverFunc.url2domain(items[1]);
+        String domainName = domainLevel != null && domainLevel.equals("high") ? NetworkMapNodeUrlDTO.getTopDomainName(urlEntity.getUrl()) : URLResolverFunc.url2domain(urlEntity.getUrl());
         return isIncludedByDomainName(domainName);
     }
 

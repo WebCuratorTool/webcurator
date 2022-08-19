@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.webcurator.core.visualization.BaseVisualizationTest;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
+import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderDTO;
@@ -49,7 +49,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
     @Test
     public void testClassifyTreeViewByPathName() {
         NetworkMapClientLocal localClient = new NetworkMapClientLocal(pool, processorManager);
-        BDBNetworkMap db = pool.getInstance(targetInstanceId, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(targetInstanceId, harvestResultNumber);
 
         NetworkMapServiceSearchCommand searchCommand = new NetworkMapServiceSearchCommand();
         List<NetworkMapNodeUrlEntity> networkMapNodeUrlEntityList = localClient.searchUrlDTOs(db, targetInstanceId, harvestResultNumber, searchCommand);

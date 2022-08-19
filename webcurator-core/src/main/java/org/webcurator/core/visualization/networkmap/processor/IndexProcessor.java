@@ -11,8 +11,8 @@ import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.*;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -30,9 +30,9 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     protected static final int MAX_URL_LENGTH = 1020;
 
     protected Map<String, NetworkMapNodeUrlDTO> urls = new Hashtable<>();
-    protected BDBNetworkMap db;
+    protected BDBRepoHolder db;
     protected AtomicLong atomicIdGeneratorUrl = new AtomicLong(0);
-    protected AtomicLong atomicIdGeneratorPath = new AtomicLong(0);
+    protected AtomicLong atomicIdGeneratorFolder = new AtomicLong(0);
     protected Map<String, Boolean> seeds = new HashMap<>();
     protected BDBNetworkMapPool pool;
 
@@ -102,6 +102,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     private void statAndSave() {
         this.tryBlock();
+        NetworkMapAccessPropertyEntity accProp = new NetworkMapAccessPropertyEntity();
 
         AtomicLong domainIdGenerator = new AtomicLong();
         NetworkMapDomainManager domainManager = new NetworkMapDomainManager();
@@ -144,20 +145,28 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 parentDomainNodeLower.addOutlink(domainNodeLower.getId());
             }
         });
-        db.putRootDomain(rootDomainNode);
+        String strRootDomain = getJson(rootDomainNode);
+        log.debug(strRootDomain);
+        accProp.setRootDomain(strRootDomain);
         this.writeLog("Finished storing domain nodes");
 
         //Saving the links of each domain
-        Map<Long, List<NetworkMapNodeUrlDTO>> groupedByDomain = this.urls.values().stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getDomainId));
-        groupedByDomain.forEach((k, v) -> {
-            this.tryBlock();
-            List<Long> listUrlIDs = v.stream().map(NetworkMapNodeUrlDTO::getId).collect(Collectors.toList());
-            db.putIndividualDomainIdList(k, listUrlIDs);
-        });
+//        Map<Long, List<NetworkMapNodeUrlDTO>> groupedByDomain = this.urls.values().stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getDomainId));
+//        groupedByDomain.forEach((k, v) -> {
+//            this.tryBlock();
+//            List<Long> listUrlIDs = v.stream().map(NetworkMapNodeUrlDTO::getId).collect(Collectors.toList());
+//            db.putIndividualDomainIdList(k, listUrlIDs);
+//        });
 
         //Create the treeview, permenit the paths and set parentPathId for all networkmap nodes.
         NetworkMapNodeFolderDTO rootTreeNode = this.classifyTreeFolders();
-        this.persistCascadeFolders(rootTreeNode, -1);
+        NetworkMapNodeFolderEntity rootFolderEntity = new NetworkMapNodeFolderEntity();
+        rootFolderEntity.copy(rootTreeNode);
+        rootFolderEntity.setId(atomicIdGeneratorFolder.incrementAndGet());
+        rootFolderEntity.setTitle(rootTreeNode.getTitle());
+
+        this.persistCascadeFolders(rootTreeNode, rootFolderEntity);
+        db.updateFolder(rootFolderEntity);
         rootTreeNode.destroy();
 
         //Process and save url
@@ -165,9 +174,9 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         List<Long> malformedUrls = new ArrayList<>();
         this.urls.values().forEach(e -> {
             this.tryBlock();
-
-            db.putUrl(e); //Indexed by ID, ID->NODE
-            db.putUrlNamePairUrlId(e.getUrl(), e.getId());//Indexed by URL, URL->ID->NODE
+            NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
+            urlEntity.copy(e);
+            db.updateUrl(urlEntity);
             if (e.isSeed() || e.getParentId() <= 0) {
                 rootUrls.add(e.getId());
             }
@@ -176,13 +185,10 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 malformedUrls.add(e.getId());
             }
         });
-        db.putRootUrlIdList(rootUrls);
-        rootUrls.clear();
-        db.putMalformedUrlIdList(malformedUrls);
-        malformedUrls.clear();
 
-        db.putUrlCount(atomicIdGeneratorUrl.incrementAndGet());
-
+        accProp.setSeedUrlIDs(rootUrls);
+        accProp.setMalformedUrlIDs(malformedUrls);
+        db.insertAccProp(accProp);
         this.writeLog("Finished storing url nodes");
     }
 
@@ -220,27 +226,31 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         return rootTreeNode;
     }
 
-    private void persistCascadeFolders(NetworkMapNodeFolderDTO rootTreeNode, long parentPathId) {
-        //
-        if (rootTreeNode.getChildren().size() == 0) {
-            if (rootTreeNode.getUrl() != null) {
-                NetworkMapNodeUrlDTO networkMapNodeUrlDTO = this.urls.get(rootTreeNode.getUrl());
+    private void persistCascadeFolders(NetworkMapNodeFolderDTO currFolderNode, NetworkMapNodeFolderEntity parentFolderEntity) {
+        //Update Url Entity
+        if (currFolderNode.getChildren().size() == 0) {
+            if (currFolderNode.getUrl() != null) {
+                NetworkMapNodeUrlDTO networkMapNodeUrlDTO = this.urls.get(currFolderNode.getUrl());
                 if (networkMapNodeUrlDTO != null) {
-                    networkMapNodeUrlDTO.setParentPathId(parentPathId);
+                    networkMapNodeUrlDTO.setParentPathId(parentFolderEntity.getId());
+                    parentFolderEntity.addSubUrl(networkMapNodeUrlDTO);
                 }
             }
-        } else {
-            NetworkMapNodeFolderEntity path = new NetworkMapNodeFolderEntity();
-            path.setId(atomicIdGeneratorPath.incrementAndGet());
-            path.setParentPathId(parentPathId);
-            path.setTitle(rootTreeNode.getTitle());
-
-            db.putTreeViewPath(path);
-
-            for (NetworkMapNodeFolderDTO subTreeNode : rootTreeNode.getChildren()) {
-                persistCascadeFolders(subTreeNode, path.getId());
-            }
+            return;
         }
+
+        NetworkMapNodeFolderEntity folderEntity = new NetworkMapNodeFolderEntity();
+        folderEntity.copy(currFolderNode);
+        folderEntity.setId(atomicIdGeneratorFolder.incrementAndGet());
+        folderEntity.setParentPathId(parentFolderEntity.getId());
+        folderEntity.setTitle(currFolderNode.getTitle());
+        parentFolderEntity.addSubFolder(folderEntity);
+
+        for (NetworkMapNodeFolderDTO subTreeNode : currFolderNode.getChildren()) {
+            persistCascadeFolders(subTreeNode, folderEntity);
+        }
+
+        db.updateFolder(folderEntity);
     }
 
     @Override
@@ -303,8 +313,6 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         }
 
         this.statAndSave();
-
-        db.putDbVersionStamp(pool.getDbVersion());
 
         this.writeReport();
         progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished

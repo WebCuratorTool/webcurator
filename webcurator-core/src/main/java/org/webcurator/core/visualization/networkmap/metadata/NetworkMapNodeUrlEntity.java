@@ -6,19 +6,15 @@ import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
-public class NetworkMapNodeUrlEntity extends BasicNode implements NetworkMapUnlStructure {
-    public final static int UNL_FIELDS_COUNT_MAX = 18;
-
+public class NetworkMapNodeUrlEntity extends BasicNode{
     public static final int SEED_TYPE_PRIMARY = 0;
     public static final int SEED_TYPE_SECONDARY = 1;
     public static final int SEED_TYPE_OTHER = 2;
 
-    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
+    @SecondaryKey(relate = Relationship.ONE_TO_ONE)
     protected String url;
 
     protected long parentId = -1;
@@ -129,54 +125,5 @@ public class NetworkMapNodeUrlEntity extends BasicNode implements NetworkMapUnlS
     @JsonIgnore
     public void putChild(NetworkMapNodeUrlEntity e) {
         this.children.add(e);
-    }
-
-    @JsonIgnore
-    @Override
-    public String toUnlString() {
-        String strOutlinks = outlinks.stream().map(outlink -> Long.toString(outlink)).collect(Collectors.joining(","));
-        return String.format("%d\n%s\n%d\n%d\n%d\n%d\n%d\n%d\n%d\n%s\n%s\n%d\n%d\n%d\n%s\n%b\n[%s]\n%d",
-                id, url, seedType, totUrls, totSuccess, totFailed, totSize,
-                domainId, contentLength, contentType, statusCode, parentId, offset, fetchTimeMs,
-                fileName, isSeed, strOutlinks, parentPathId);
-    }
-
-    @JsonIgnore
-    @Override
-    public void toObjectFromUnl(String unl) throws Exception {
-        if (unl == null) {
-            throw new Exception("Unl could not be null.");
-        }
-        String[] items = unl.split(UNL_FIELDS_SEPARATOR);
-        if (items.length != UNL_FIELDS_COUNT_MAX) {
-            throw new Exception("Item number=" + items.length + " does not equal to UNL_FIELDS_COUNT_MAX=" + UNL_FIELDS_COUNT_MAX);
-        }
-
-        this.setId(Long.parseLong(items[0]));
-        this.setUrl(items[1]);
-        this.setSeedType(Integer.parseInt(items[2]));
-        this.setTotUrls(Integer.parseInt(items[3]));
-        this.setTotSuccess(Integer.parseInt(items[4]));
-        this.setTotFailed(Integer.parseInt(items[5]));
-        this.setTotSize(Integer.parseInt(items[6]));
-        this.setDomainId(Integer.parseInt(items[7]));
-        this.setContentLength(Long.parseLong(items[8]));
-        this.setContentType(items[9]);
-        this.setStatusCode(Integer.parseInt(items[10]));
-        this.setParentId(Long.parseLong(items[11]));
-        this.setOffset(Long.parseLong(items[12]));
-        this.setFetchTimeMs(Long.parseLong(items[13]));
-        this.setFileName(items[14]);
-        this.setSeed(Boolean.parseBoolean(items[15]));
-
-        String strOutlinks = items[16];
-        List<Long> outlinks = new ArrayList<>();
-        if (strOutlinks.length() > 2) {
-            strOutlinks = strOutlinks.substring(1, strOutlinks.length() - 1);
-            outlinks = Arrays.stream(strOutlinks.split(",")).map(Long::parseLong).collect(Collectors.toList());
-        }
-        this.setOutlinks(outlinks);
-        this.setParentPathId(Long.parseLong(items[17]));
-        this.setOutlinkNum(this.getOutlinks().size());
     }
 }

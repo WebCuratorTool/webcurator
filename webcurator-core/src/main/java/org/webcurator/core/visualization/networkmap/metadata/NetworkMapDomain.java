@@ -1,17 +1,22 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sleepycat.persist.model.Entity;
+import com.sleepycat.persist.model.PrimaryKey;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+@Entity
 public class NetworkMapDomain {
     public static final int DOMAIN_NAME_LEVEL_ROOT = 0; //All
     public static final int DOMAIN_NAME_LEVEL_HIGH = 1;
     public static final int DOMAIN_NAME_LEVEL_LOWER = 2;
     public static final int DOMAIN_NAME_LEVEL_STAT = 9;
 
+
+    @PrimaryKey
     private long id;
     private String title;
     private String contentType;
@@ -37,6 +42,9 @@ public class NetworkMapDomain {
     private Map<String, NetworkMapDomain> children = new HashMap<>(); //Group by sub domains
 
     private List<NetworkMapDomain> statData = new ArrayList<>();
+
+    public NetworkMapDomain() {
+    }
 
     public NetworkMapDomain(int level, long id) {
         this.level = level;
