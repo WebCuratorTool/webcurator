@@ -3,15 +3,12 @@ package org.webcurator.core.visualization.networkmap.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.webcurator.core.visualization.VisualizationServiceInterface;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public interface NetworkMapService extends VisualizationServiceInterface {
     NetworkMapResult initialIndex(long job, int harvestResultNumber);
@@ -43,7 +40,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     NetworkMapResult getHierarchy(long job, int harvestResultNumber, List<Long> ids);
 
-    NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrl url);
+    NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrlCommand url);
 
     NetworkMapResult getUrlsByNames(long job, int harvestResultNumber, List<String> urlNameList);
 
@@ -51,7 +48,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
     NetworkMapResult getProcessingHarvestResultDTO(long job, int harvestResultNumber);
 
-    default NetworkMapNodeDTO getNodeEntity(String json) {
+    default NetworkMapNodeUrlEntity getNodeEntity(String json) {
         if (json == null) {
             return null;
         }
@@ -59,7 +56,7 @@ public interface NetworkMapService extends VisualizationServiceInterface {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            return objectMapper.readValue(json, NetworkMapNodeDTO.class);
+            return objectMapper.readValue(json, NetworkMapNodeUrlEntity.class);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,19 +1,24 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sleepycat.persist.model.Entity;
+import com.sleepycat.persist.model.Relationship;
+import com.sleepycat.persist.model.SecondaryKey;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NetworkMapNodeDTO extends NetworkMapCommonNode implements NetworkMapUnlStructure {
+@Entity
+public class NetworkMapNodeUrlEntity extends BasicNode implements NetworkMapUnlStructure {
     public final static int UNL_FIELDS_COUNT_MAX = 18;
 
     public static final int SEED_TYPE_PRIMARY = 0;
     public static final int SEED_TYPE_SECONDARY = 1;
     public static final int SEED_TYPE_OTHER = 2;
 
+    @SecondaryKey(relate = Relationship.MANY_TO_ONE)
     protected String url;
 
     protected long parentId = -1;
@@ -24,7 +29,7 @@ public class NetworkMapNodeDTO extends NetworkMapCommonNode implements NetworkMa
     protected String fileName;
 
     protected List<Long> outlinks = new ArrayList<>();
-    protected List<NetworkMapNodeDTO> children = new ArrayList<>();
+    protected List<NetworkMapNodeUrlEntity> children = new ArrayList<>();
 
     protected String title;
 
@@ -77,11 +82,11 @@ public class NetworkMapNodeDTO extends NetworkMapCommonNode implements NetworkMa
         this.outlinks = outlinks;
     }
 
-    public List<NetworkMapNodeDTO> getChildren() {
+    public List<NetworkMapNodeUrlEntity> getChildren() {
         return children;
     }
 
-    public void setChildren(List<NetworkMapNodeDTO> children) {
+    public void setChildren(List<NetworkMapNodeUrlEntity> children) {
         this.children = children;
     }
 
@@ -102,7 +107,7 @@ public class NetworkMapNodeDTO extends NetworkMapCommonNode implements NetworkMa
     }
 
     @JsonIgnore
-    public void copy(NetworkMapNodeDTO that) {
+    public void copy(NetworkMapNodeUrlEntity that) {
         super.copy(that);
         this.url = that.url;
         this.title = that.title;
@@ -117,12 +122,12 @@ public class NetworkMapNodeDTO extends NetworkMapCommonNode implements NetworkMa
     @JsonIgnore
     public void clear() {
         this.outlinks.clear();
-        this.children.forEach(NetworkMapNodeDTO::clear);
+        this.children.forEach(NetworkMapNodeUrlEntity::clear);
         this.children.clear();
     }
 
     @JsonIgnore
-    public void putChild(NetworkMapNodeDTO e) {
+    public void putChild(NetworkMapNodeUrlEntity e) {
         this.children.add(e);
     }
 

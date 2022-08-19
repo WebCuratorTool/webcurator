@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NetworkMapTreeNodeDTO extends NetworkMapCommonNode {
+public class NetworkMapNodeFolderDTO extends BasicNode {
     public static final int VIEW_TYPE_STRUCT = 1;
     public static final int VIEW_TYPE_DOMAIN = 2;
 
@@ -20,7 +20,7 @@ public class NetworkMapTreeNodeDTO extends NetworkMapCommonNode {
     @JsonIgnore
     private String url;
 
-    private List<NetworkMapTreeNodeDTO> children = new ArrayList<>();
+    private List<NetworkMapNodeFolderDTO> children = new ArrayList<>();
 
     @JsonIgnore
     private boolean handled = false;
@@ -83,11 +83,11 @@ public class NetworkMapTreeNodeDTO extends NetworkMapCommonNode {
         this.handled = handled;
     }
 
-    public List<NetworkMapTreeNodeDTO> getChildren() {
+    public List<NetworkMapNodeFolderDTO> getChildren() {
         return children;
     }
 
-    public void setChildren(List<NetworkMapTreeNodeDTO> children) {
+    public void setChildren(List<NetworkMapNodeFolderDTO> children) {
         this.children = children;
     }
 
@@ -102,7 +102,7 @@ public class NetworkMapTreeNodeDTO extends NetworkMapCommonNode {
     }
 
     @JsonIgnore
-    public void copy(NetworkMapTreeNodeDTO that) {
+    public void copy(NetworkMapNodeFolderDTO that) {
         super.copy(that);
         this.viewType = that.viewType;
         this.title = that.title;
@@ -111,7 +111,7 @@ public class NetworkMapTreeNodeDTO extends NetworkMapCommonNode {
 
     @JsonIgnore
     public void destroy() {
-        this.children.forEach(NetworkMapTreeNodeDTO::destroy);
+        this.children.forEach(NetworkMapNodeFolderDTO::destroy);
         this.children.clear();
     }
 }

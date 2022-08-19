@@ -7,7 +7,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 
 import java.net.URI;
 import java.util.List;
@@ -227,7 +227,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
     }
 
     @Override
-    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrl url) {
+    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrlCommand url) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_URL_BY_NAME))
                 .queryParam("job", job)
                 .queryParam("harvestResultNumber", harvestResultNumber);

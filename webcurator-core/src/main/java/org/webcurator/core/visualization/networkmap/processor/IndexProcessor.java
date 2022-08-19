@@ -29,7 +29,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     protected static final Logger log = LoggerFactory.getLogger(IndexProcessor.class);
     protected static final int MAX_URL_LENGTH = 1020;
 
-    protected Map<String, NetworkMapNode> urls = new Hashtable<>();
+    protected Map<String, NetworkMapNodeUrlDTO> urls = new Hashtable<>();
     protected BDBNetworkMap db;
     protected AtomicLong atomicIdGeneratorUrl = new AtomicLong(0);
     protected AtomicLong atomicIdGeneratorPath = new AtomicLong(0);
@@ -121,7 +121,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
             NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
             node.setDomainId(domainNodeLower.getId());
-            if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
+            if (node.isSeed() && (node.getSeedType() == NetworkMapNodeUrlDTO.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNodeUrlDTO.SEED_TYPE_SECONDARY)) {
                 domainNodeHigh.setSeed(true);
                 domainNodeLower.setSeed(true);
             }
@@ -130,7 +130,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             if (viaUrl == null || !this.urls.containsKey(viaUrl)) {
                 node.setParentId(-1);
             } else {
-                NetworkMapNode parentNode = this.urls.get(viaUrl);
+                NetworkMapNodeUrlDTO parentNode = this.urls.get(viaUrl);
                 parentNode.addOutlink(node);
 
                 NetworkMapDomain parentDomainNodeHigh = domainManager.getHighDomain(parentNode);
@@ -148,16 +148,16 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         this.writeLog("Finished storing domain nodes");
 
         //Saving the links of each domain
-        Map<Long, List<NetworkMapNode>> groupedByDomain = this.urls.values().stream().collect(Collectors.groupingBy(NetworkMapNode::getDomainId));
+        Map<Long, List<NetworkMapNodeUrlDTO>> groupedByDomain = this.urls.values().stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getDomainId));
         groupedByDomain.forEach((k, v) -> {
             this.tryBlock();
-            List<Long> listUrlIDs = v.stream().map(NetworkMapNode::getId).collect(Collectors.toList());
+            List<Long> listUrlIDs = v.stream().map(NetworkMapNodeUrlDTO::getId).collect(Collectors.toList());
             db.putIndividualDomainIdList(k, listUrlIDs);
         });
 
         //Create the treeview, permenit the paths and set parentPathId for all networkmap nodes.
-        NetworkMapTreeNodeDTO rootTreeNode = this.classifyTreePaths();
-        this.permenitCascadePath(rootTreeNode, -1);
+        NetworkMapNodeFolderDTO rootTreeNode = this.classifyTreeFolders();
+        this.persistCascadeFolders(rootTreeNode, -1);
         rootTreeNode.destroy();
 
         //Process and save url
@@ -192,15 +192,15 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     }
 
     public void clear() {
-        this.urls.values().forEach(NetworkMapNode::clear);
+        this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
         this.urls.clear();
     }
 
-    private NetworkMapTreeNodeDTO classifyTreePaths() {
-        List<NetworkMapTreeNodeDTO> allTreeNodes = this.urls.values().parallelStream().map(networkMapNode -> {
-            NetworkMapTreeNodeDTO treeNodeDTO = new NetworkMapTreeNodeDTO();
+    private NetworkMapNodeFolderDTO classifyTreeFolders() {
+        List<NetworkMapNodeFolderDTO> allTreeNodes = this.urls.values().parallelStream().map(networkMapNode -> {
+            NetworkMapNodeFolderDTO treeNodeDTO = new NetworkMapNodeFolderDTO();
             treeNodeDTO.setId(networkMapNode.getId());
-            treeNodeDTO.setViewType(NetworkMapTreeNodeDTO.VIEW_TYPE_DOMAIN);
+            treeNodeDTO.setViewType(NetworkMapNodeFolderDTO.VIEW_TYPE_DOMAIN);
             treeNodeDTO.setUrl(networkMapNode.getUrl());
             treeNodeDTO.setContentType(networkMapNode.getContentType());
             treeNodeDTO.setStatusCode(networkMapNode.getStatusCode());
@@ -211,7 +211,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             return treeNodeDTO;
         }).collect(Collectors.toList());
 
-        NetworkMapTreeNodeDTO rootTreeNode = new NetworkMapTreeNodeDTO();
+        NetworkMapNodeFolderDTO rootTreeNode = new NetworkMapNodeFolderDTO();
         rootTreeNode.setChildren(allTreeNodes);
 
         NetworkMapCascadePath cascadeProcessor = new NetworkMapCascadePath();
@@ -220,25 +220,25 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         return rootTreeNode;
     }
 
-    private void permenitCascadePath(NetworkMapTreeNodeDTO rootTreeNode, long parentPathId) {
+    private void persistCascadeFolders(NetworkMapNodeFolderDTO rootTreeNode, long parentPathId) {
         //
         if (rootTreeNode.getChildren().size() == 0) {
             if (rootTreeNode.getUrl() != null) {
-                NetworkMapNode networkMapNode = this.urls.get(rootTreeNode.getUrl());
-                if (networkMapNode != null) {
-                    networkMapNode.setParentPathId(parentPathId);
+                NetworkMapNodeUrlDTO networkMapNodeUrlDTO = this.urls.get(rootTreeNode.getUrl());
+                if (networkMapNodeUrlDTO != null) {
+                    networkMapNodeUrlDTO.setParentPathId(parentPathId);
                 }
             }
         } else {
-            NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();
+            NetworkMapNodeFolderEntity path = new NetworkMapNodeFolderEntity();
             path.setId(atomicIdGeneratorPath.incrementAndGet());
             path.setParentPathId(parentPathId);
             path.setTitle(rootTreeNode.getTitle());
 
             db.putTreeViewPath(path);
 
-            for (NetworkMapTreeNodeDTO subTreeNode : rootTreeNode.getChildren()) {
-                permenitCascadePath(subTreeNode, path.getId());
+            for (NetworkMapNodeFolderDTO subTreeNode : rootTreeNode.getChildren()) {
+                persistCascadeFolders(subTreeNode, path.getId());
             }
         }
     }

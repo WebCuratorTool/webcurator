@@ -1,6 +1,6 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
-public class NetworkMapUrl {
+public class NetworkMapUrlCommand {
     String urlName;
 
     public String getUrlName() {

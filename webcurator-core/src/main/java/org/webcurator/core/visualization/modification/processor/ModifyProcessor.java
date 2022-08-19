@@ -8,9 +8,9 @@ import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.domain.model.core.HarvestResult;
 
 import java.io.*;
@@ -202,7 +202,7 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
                 return false;
             }
 
-            NetworkMapNodeDTO node = networkMapClient.getNodeEntity(networkMapResult.getPayload());
+            NetworkMapNodeUrlEntity node = networkMapClient.getNodeEntity(networkMapResult.getPayload());
             if (node != null && !node.isSuccess()) {
                 return true;
             }
@@ -217,14 +217,14 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
         }
 
         if (cmd.getReplaceOptionStatus() == ModifyApplyCommand.REPLACE_OPTION_STATUS_FAILED) {
-            NetworkMapUrl queryCondition = new NetworkMapUrl();
+            NetworkMapUrlCommand queryCondition = new NetworkMapUrlCommand();
             queryCondition.setUrlName(url);
             NetworkMapResult networkMapResult = networkMapClient.getUrlByName(job, harvestResultNumber, queryCondition);
             if (networkMapResult == null || networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
                 return false;
             }
 
-            NetworkMapNodeDTO node = networkMapClient.getNodeEntity(networkMapResult.getPayload());
+            NetworkMapNodeUrlEntity node = networkMapClient.getNodeEntity(networkMapResult.getPayload());
             if (node != null && !node.isSuccess()) {
                 return true;
             }

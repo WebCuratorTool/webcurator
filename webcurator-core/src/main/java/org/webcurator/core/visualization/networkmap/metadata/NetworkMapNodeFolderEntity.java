@@ -1,6 +1,6 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
-public class NetworkMapTreeViewPath implements NetworkMapUnlStructure {
+public class NetworkMapNodeFolderEntity implements NetworkMapUnlStructure {
     private final static int UNL_FIELDS_COUNT_MAX = 3;
 
     private long id;

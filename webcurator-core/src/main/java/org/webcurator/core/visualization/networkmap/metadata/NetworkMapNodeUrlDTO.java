@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.*;
 
 @SuppressWarnings("all")
-public class NetworkMapNode extends NetworkMapNodeDTO {
+public class NetworkMapNodeUrlDTO extends NetworkMapNodeUrlEntity {
     private static NetworkMapDomainSuffix topDomainParser = null;
 
     public static void setTopDomainParse(NetworkMapDomainSuffix aTopDomainParser) {
@@ -32,15 +32,15 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
     @JsonIgnore
     protected String topDomain;
 
-    public NetworkMapNode() {
+    public NetworkMapNodeUrlDTO() {
     }
 
-    public NetworkMapNode(long id) {
+    public NetworkMapNodeUrlDTO(long id) {
         this.id = id;
     }
 
     @JsonIgnore
-    public void addOutlink(NetworkMapNode outlink) {
+    public void addOutlink(NetworkMapNodeUrlDTO outlink) {
         if (this.id != outlink.getId() && !this.outlinks.contains(outlink.getId())) {
             this.outlinks.add(outlink.getId());
             this.accumulate(outlink.getStatusCode(), outlink.getContentLength(), outlink.getContentType());
@@ -55,7 +55,7 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
     }
 
     @JsonIgnore
-    public void accumulate(List<NetworkMapNode> list) {
+    public void accumulate(List<NetworkMapNodeUrlDTO> list) {
         if (list == null) {
             return;
         }
@@ -173,7 +173,7 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
         this.topDomain = topDomain;
     }
 
-    public static NetworkMapNode getNodeEntity(String json) {
+    public static NetworkMapNodeUrlDTO getNodeEntity(String json) {
         if (json == null) {
             return null;
         }
@@ -181,7 +181,7 @@ public class NetworkMapNode extends NetworkMapNodeDTO {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            return objectMapper.readValue(json, NetworkMapNode.class);
+            return objectMapper.readValue(json, NetworkMapNodeUrlDTO.class);
         } catch (IOException e) {
             e.printStackTrace();
         }

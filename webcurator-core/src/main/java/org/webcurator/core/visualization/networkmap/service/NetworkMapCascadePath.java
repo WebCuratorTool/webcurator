@@ -3,7 +3,7 @@ package org.webcurator.core.visualization.networkmap.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.common.util.Utils;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapTreeNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderDTO;
 
 import java.util.Comparator;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class NetworkMapCascadePath {
     private static final Logger log = LoggerFactory.getLogger(NetworkMapCascadePath.class);
 
-    public void classifyTreePaths(NetworkMapTreeNodeDTO rootTreeNode) {
+    public void classifyTreePaths(NetworkMapNodeFolderDTO rootTreeNode) {
         log.debug("classifyTreeViewByPathNames: title={}, url={}", rootTreeNode.getTitle(), rootTreeNode.getUrl());
 
         //The terminal node
@@ -35,12 +35,12 @@ public class NetworkMapCascadePath {
         });
 
 
-        Map<String, List<NetworkMapTreeNodeDTO>> mapClassifiedByTitle = rootTreeNode.getChildren().stream().collect(Collectors.groupingBy(NetworkMapTreeNodeDTO::getTitle));
+        Map<String, List<NetworkMapNodeFolderDTO>> mapClassifiedByTitle = rootTreeNode.getChildren().stream().collect(Collectors.groupingBy(NetworkMapNodeFolderDTO::getTitle));
         rootTreeNode.getChildren().clear();
         for (String subTreeNodeTitle : mapClassifiedByTitle.keySet()) {
-            List<NetworkMapTreeNodeDTO> subTreeNodeChildren = mapClassifiedByTitle.get(subTreeNodeTitle);
+            List<NetworkMapNodeFolderDTO> subTreeNodeChildren = mapClassifiedByTitle.get(subTreeNodeTitle);
 
-            NetworkMapTreeNodeDTO subTreeNode = new NetworkMapTreeNodeDTO();
+            NetworkMapNodeFolderDTO subTreeNode = new NetworkMapNodeFolderDTO();
             subTreeNode.setTitle(subTreeNodeTitle);
             subTreeNode.setChildren(subTreeNodeChildren);
 
@@ -54,7 +54,7 @@ public class NetworkMapCascadePath {
 
         //Uplift
         if (rootTreeNode.getChildren().size() == 1) {
-            NetworkMapTreeNodeDTO subTreeNode = rootTreeNode.getChildren().get(0);
+            NetworkMapNodeFolderDTO subTreeNode = rootTreeNode.getChildren().get(0);
             rootTreeNode.copy(subTreeNode);
             rootTreeNode.setChildren(subTreeNode.getChildren());
         }
@@ -66,7 +66,7 @@ public class NetworkMapCascadePath {
         rootTreeNode.setLazy(true);
 
         //Sort the return result
-        rootTreeNode.getChildren().sort(Comparator.comparing(NetworkMapTreeNodeDTO::getTitle));
+        rootTreeNode.getChildren().sort(Comparator.comparing(NetworkMapNodeFolderDTO::getTitle));
     }
 
     public String getNextTitle(String parentTile, String url) {
@@ -103,7 +103,7 @@ public class NetworkMapCascadePath {
     }
 
 
-    public void summarize(NetworkMapTreeNodeDTO rootTreeNode) {
+    public void summarize(NetworkMapNodeFolderDTO rootTreeNode) {
         if (rootTreeNode.getChildren().size() == 0) {
             rootTreeNode.setFolder(false);
             rootTreeNode.setLazy(false);
@@ -120,7 +120,7 @@ public class NetworkMapCascadePath {
     }
 
 
-    public void statisticTreeNodes(final NetworkMapTreeNodeDTO node) {
+    public void statisticTreeNodes(final NetworkMapNodeFolderDTO node) {
         node.setZero();
         node.getChildren().forEach(node::accumulate);
     }

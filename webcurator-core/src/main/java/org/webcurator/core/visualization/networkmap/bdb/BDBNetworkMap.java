@@ -8,9 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.common.util.Utils;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapDomain;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapTreeViewPath;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderEntity;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,14 +134,14 @@ public class BDBNetworkMap {
     /**
      * @param itr
      */
-    public void insertRecords(final Iterator<NetworkMapNode> itr) {
+    public void insertRecords(final Iterator<NetworkMapNodeUrlDTO> itr) {
         OperationStatus status = null;
         try {
             Transaction txn = env.beginTransaction(null, null);
             try {
                 Cursor cursor = db.openCursor(txn, null);
                 while (itr.hasNext()) {
-                    NetworkMapNode node = itr.next();
+                    NetworkMapNodeUrlDTO node = itr.next();
                     DatabaseEntry key = new DatabaseEntry(Long.toString(node.getId()).getBytes());
                     DatabaseEntry value = new DatabaseEntry(node.toString().getBytes());
                     status = cursor.put(key, value);
@@ -295,17 +295,17 @@ public class BDBNetworkMap {
         return null;
     }
 
-    public void putUrl(NetworkMapNodeDTO url) {
+    public void putUrl(NetworkMapNodeUrlEntity url) {
         String key = "uid_" + url.getId();
         String unl = url.toUnlString();
         this.put(key, unl);
     }
 
-    public NetworkMapNodeDTO getUrl(long id) {
+    public NetworkMapNodeUrlEntity getUrl(long id) {
         String key = "uid_" + id;
         String unl = this.get(key);
 
-        NetworkMapNodeDTO n = new NetworkMapNodeDTO();
+        NetworkMapNodeUrlEntity n = new NetworkMapNodeUrlEntity();
         try {
             n.toObjectFromUnl(unl);
         } catch (Exception e) {
@@ -330,7 +330,7 @@ public class BDBNetworkMap {
         return Long.parseLong(urlId);
     }
 
-    public NetworkMapNodeDTO getUrlByUrlName(String urlName) {
+    public NetworkMapNodeUrlEntity getUrlByUrlName(String urlName) {
         String key1 = "url_" + urlName;
         String urlId = this.get(key1);
         String key2 = "uid_" + urlId;
@@ -338,7 +338,7 @@ public class BDBNetworkMap {
         if (Utils.isEmpty(unl)) {
             return null;
         }
-        NetworkMapNodeDTO n = new NetworkMapNodeDTO();
+        NetworkMapNodeUrlEntity n = new NetworkMapNodeUrlEntity();
         try {
             n.toObjectFromUnl(unl);
         } catch (Exception e) {
@@ -347,17 +347,17 @@ public class BDBNetworkMap {
         return n;
     }
 
-    public void putTreeViewPath(NetworkMapTreeViewPath path) {
+    public void putTreeViewPath(NetworkMapNodeFolderEntity path) {
         String key = "path_" + path.getId();
         String unl = path.toUnlString();
         log.debug("TreeViewPath: {}", unl);
         this.put(key, unl);
     }
 
-    public NetworkMapTreeViewPath getTreeViewPath(long id) {
+    public NetworkMapNodeFolderEntity getTreeViewPath(long id) {
         String key = "path_" + id;
         String unl = this.get(key);
-        NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();
+        NetworkMapNodeFolderEntity path = new NetworkMapNodeFolderEntity();
         try {
             path.toObjectFromUnl(unl);
         } catch (Exception e) {

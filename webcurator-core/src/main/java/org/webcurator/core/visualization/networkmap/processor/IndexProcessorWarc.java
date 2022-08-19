@@ -17,7 +17,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.File;
@@ -77,11 +77,11 @@ public class IndexProcessorWarc extends IndexProcessor {
         }
 
         String key = header.getUrl();
-        NetworkMapNode res = null;
+        NetworkMapNodeUrlDTO res = null;
         if (this.urls.containsKey(key)) {
             res = this.urls.get(key);
         } else {
-            res = new NetworkMapNode(atomicIdGeneratorUrl.incrementAndGet());
+            res = new NetworkMapNodeUrlDTO(atomicIdGeneratorUrl.incrementAndGet());
             this.urls.put(key, res);
         }
 
@@ -144,9 +144,9 @@ public class IndexProcessorWarc extends IndexProcessor {
             if (seeds.containsKey(key)) {
                 res.setSeed(true);
                 if (seeds.get(key)) {
-                    res.setSeedType(NetworkMapNode.SEED_TYPE_PRIMARY);  //Primary Seed Url
+                    res.setSeedType(NetworkMapNodeUrlDTO.SEED_TYPE_PRIMARY);  //Primary Seed Url
                 } else {
-                    res.setSeedType(NetworkMapNode.SEED_TYPE_SECONDARY);  //Secondary Seed Url
+                    res.setSeedType(NetworkMapNodeUrlDTO.SEED_TYPE_SECONDARY);  //Secondary Seed Url
                 }
             } else {
                 res.setSeed(httpHeaders.get("seed") != null);
@@ -154,7 +154,7 @@ public class IndexProcessorWarc extends IndexProcessor {
                     if (res.isRequestParseFlag() && !Utils.isEmpty(res.getViaUrl())) {
                         res.setSeed(false); //Correct it to un-seed if there is referer field exists in request record.
                     } else {
-                        res.setSeedType(NetworkMapNode.SEED_TYPE_OTHER); //Other kind Seed Url. e.g. patching source urls.}
+                        res.setSeedType(NetworkMapNodeUrlDTO.SEED_TYPE_OTHER); //Other kind Seed Url. e.g. patching source urls.}
                     }
                 } else {
                     res.setViaUrl(httpHeaders.getValue("via"));
