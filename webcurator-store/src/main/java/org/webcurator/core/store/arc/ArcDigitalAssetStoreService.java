@@ -52,9 +52,9 @@ import org.webcurator.core.visualization.modification.metadata.ModifyApplyComman
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.processor.ModifyProcessorWarc;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
@@ -235,7 +235,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     @SuppressWarnings("finally")
     public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeUrlEntity resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         FileOutputStream fos = null;
         ArchiveReader reader = null;
@@ -338,7 +338,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      */
     public byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeUrlEntity resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         ArchiveRecord record = null;
         ArchiveReader reader = null;
@@ -422,7 +422,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             throws DigitalAssetStoreException {
         log.debug("Start of getHeaders()");
 
-        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeUrlEntity resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         List<Header> headers = new ArrayList<>();
         ArchiveRecord record = null;
@@ -503,8 +503,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return null;
     }
 
-    private NetworkMapNodeDTO queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
-        NetworkMapUrl url = new NetworkMapUrl();
+    private NetworkMapNodeUrlEntity queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
+        NetworkMapUrlCommand url = new NetworkMapUrlCommand();
         url.setUrlName(resourceUrl);
         NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, url);
 
@@ -515,7 +515,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
 
         String json = (String) result.getPayload();
-        NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+        NetworkMapNodeUrlEntity node = networkMapClient.getNodeEntity(json);
         if (node == null) {
             log.warn(err);
             throw new DigitalAssetStoreException(err);

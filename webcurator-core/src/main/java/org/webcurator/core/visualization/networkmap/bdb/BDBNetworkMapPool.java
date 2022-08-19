@@ -95,6 +95,22 @@ public class BDBNetworkMapPool {
         return db;
     }
 
+    synchronized public void shutdownRepo(BDBRepoHolder db) {
+        db.shutdownDB();
+        String dbName = db.getDbName();
+        BDBRepoHolder oldDb = null;
+        for (BDBRepoHolder e : queue) {
+            if (e.getDbName().equals(dbName)) {
+                oldDb = e;
+                break;
+            }
+        }
+        if (oldDb != null) {
+            queue.remove(oldDb);
+        }
+        map.remove(dbName);
+    }
+
     public void close(long job, int harvestResultNumber) {
         String dbName = getDbName(job, harvestResultNumber);
         if (map.containsKey(dbName)) {

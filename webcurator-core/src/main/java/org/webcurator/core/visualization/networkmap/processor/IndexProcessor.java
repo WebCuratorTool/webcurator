@@ -160,13 +160,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
         //Create the treeview, permenit the paths and set parentPathId for all networkmap nodes.
         NetworkMapNodeFolderDTO rootTreeNode = this.classifyTreeFolders();
-        NetworkMapNodeFolderEntity rootFolderEntity = new NetworkMapNodeFolderEntity();
-        rootFolderEntity.copy(rootTreeNode);
-        rootFolderEntity.setId(atomicIdGeneratorFolder.incrementAndGet());
-        rootFolderEntity.setTitle(rootTreeNode.getTitle());
-
-        this.persistCascadeFolders(rootTreeNode, rootFolderEntity);
-        db.updateFolder(rootFolderEntity);
+        rootTreeNode.setTitle("All");
+        this.generateTreeFolderIds(rootTreeNode);
+        this.persistCascadeFolders(rootTreeNode);
+        accProp.setRootFolderNode(rootTreeNode.getId());
+        log.debug("rootTreeNode: {}", accProp.getRootFolderNode());
         rootTreeNode.destroy();
 
         //Process and save url
@@ -226,31 +224,38 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         return rootTreeNode;
     }
 
-    private void persistCascadeFolders(NetworkMapNodeFolderDTO currFolderNode, NetworkMapNodeFolderEntity parentFolderEntity) {
+    private void generateTreeFolderIds(NetworkMapNodeFolderDTO currFolderNode) {
+        if (currFolderNode.getChildren().size() == 0) {
+            return;
+        }
+        currFolderNode.setId(this.atomicIdGeneratorFolder.incrementAndGet());
+        log.debug("Generate folder ID: {} {}", currFolderNode.getId(), currFolderNode.getTitle());
+        for (NetworkMapNodeFolderDTO subFolderNode : currFolderNode.getChildren()) {
+            generateTreeFolderIds(subFolderNode);
+        }
+    }
+
+    private void persistCascadeFolders(NetworkMapNodeFolderDTO currFolderNode) {
         //Update Url Entity
         if (currFolderNode.getChildren().size() == 0) {
-            if (currFolderNode.getUrl() != null) {
-                NetworkMapNodeUrlDTO networkMapNodeUrlDTO = this.urls.get(currFolderNode.getUrl());
-                if (networkMapNodeUrlDTO != null) {
-                    networkMapNodeUrlDTO.setParentPathId(parentFolderEntity.getId());
-                    parentFolderEntity.addSubUrl(networkMapNodeUrlDTO);
-                }
-            }
             return;
         }
 
         NetworkMapNodeFolderEntity folderEntity = new NetworkMapNodeFolderEntity();
         folderEntity.copy(currFolderNode);
-        folderEntity.setId(atomicIdGeneratorFolder.incrementAndGet());
-        folderEntity.setParentPathId(parentFolderEntity.getId());
         folderEntity.setTitle(currFolderNode.getTitle());
-        parentFolderEntity.addSubFolder(folderEntity);
 
-        for (NetworkMapNodeFolderDTO subTreeNode : currFolderNode.getChildren()) {
-            persistCascadeFolders(subTreeNode, folderEntity);
+        for (NetworkMapNodeFolderDTO subFolderNode : currFolderNode.getChildren()) {
+            if (subFolderNode.isFolder()) {
+                folderEntity.addSubFolder(subFolderNode);
+            } else {
+                folderEntity.addSubUrl(subFolderNode);
+            }
+            persistCascadeFolders(subFolderNode);
         }
 
         db.updateFolder(folderEntity);
+        log.debug("Saved folder: {} {}", folderEntity.getId(), folderEntity.getTitle());
     }
 
     @Override
@@ -260,64 +265,68 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     @Override
     public void processInternal() throws Exception {
-        File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
+        try {
+            File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
 
-        List<File> fileList = PatchUtil.listWarcFiles(directory);
-        if (fileList == null || fileList.size() == 0) {
-            log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
-            return;
-        }
-
-        VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
-        for (File f : fileList) {
-            if (this.status == HarvestResult.STATUS_TERMINATED) {
-                log.info("Terminated when indexing");
-                break;
+            List<File> fileList = PatchUtil.listWarcFiles(directory);
+            if (fileList == null || fileList.size() == 0) {
+                log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
+                return;
             }
 
-            if (!isWarcFormat(f.getName())) {
-                continue;
-            }
-            VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
-            progressItem.setMaxLength(f.length());
-            progressItemStat.setMaxLength(progressItemStat.getMaxLength() + f.length());
-        }
-
-        log.debug(progressBar.toString());
-        for (File f : fileList) {
-            if (this.status == HarvestResult.STATUS_TERMINATED) {
-                log.info("Terminated when indexing");
-                break;
-            }
-
-            if (!isWarcFormat(f.getName())) {
-                this.writeLog("Skipped unknown file: " + f.getName());
-                continue;
-            }
-            ArchiveReader reader = null;
-            try {
-                reader = ArchiveReaderFactory.get(f);
-                indexFile(reader, f.getName());
-            } catch (Exception e) {
-                String err = "Failed to open archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
-                log.error(err, e);
-                this.writeLog(err);
-            } finally {
-                if (reader != null) {
-                    reader.close();
+            VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
+            for (File f : fileList) {
+                if (this.status == HarvestResult.STATUS_TERMINATED) {
+                    log.info("Terminated when indexing");
+                    break;
                 }
+
+                if (!isWarcFormat(f.getName())) {
+                    continue;
+                }
+                VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
+                progressItem.setMaxLength(f.length());
+                progressItemStat.setMaxLength(progressItemStat.getMaxLength() + f.length());
             }
 
-            VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
-            progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
+            log.debug(progressBar.toString());
+            for (File f : fileList) {
+                if (this.status == HarvestResult.STATUS_TERMINATED) {
+                    log.info("Terminated when indexing");
+                    break;
+                }
+
+                if (!isWarcFormat(f.getName())) {
+                    this.writeLog("Skipped unknown file: " + f.getName());
+                    continue;
+                }
+                ArchiveReader reader = null;
+                try {
+                    reader = ArchiveReaderFactory.get(f);
+                    indexFile(reader, f.getName());
+                } catch (Exception e) {
+                    String err = "Failed to open archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
+                    log.error(err, e);
+                    this.writeLog(err);
+                } finally {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                }
+
+                VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
+                progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
+            }
+
+            this.statAndSave();
+
+            this.writeReport();
+            progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
+
+            this.status = HarvestResult.STATUS_FINISHED;
+        } finally {
+            this.pool.shutdownRepo(db);
         }
-
-        this.statAndSave();
-
-        this.writeReport();
-        progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
-
-        this.status = HarvestResult.STATUS_FINISHED;
     }
 
     @Override

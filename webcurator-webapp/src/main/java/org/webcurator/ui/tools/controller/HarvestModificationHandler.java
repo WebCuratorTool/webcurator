@@ -32,9 +32,9 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
@@ -379,7 +379,7 @@ public class HarvestModificationHandler {
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
-        List<NetworkMapNodeDTO> listUrlNodes = objectMapper.readValue(urlsResult.getPayload(), new TypeReference<List<NetworkMapNodeDTO>>() {
+        List<NetworkMapNodeUrlEntity> listUrlNodes = objectMapper.readValue(urlsResult.getPayload(), new TypeReference<List<NetworkMapNodeUrlEntity>>() {
         });
         listUrlNodes.forEach(urlNode -> {
             mapIndexedUrlNodes.put(urlNode.getUrl(), true);
@@ -694,7 +694,7 @@ public class HarvestModificationHandler {
                 colOption.setCellValue(rowMetadata.getOption());
             }
 
-            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
+            NetworkMapUrlCommand networkMapUrl = new NetworkMapUrlCommand();
             networkMapUrl.setUrlName(rowMetadata.getUrl());
             NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
             if (result.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
@@ -704,7 +704,7 @@ public class HarvestModificationHandler {
                 Cell colExistingFlag = rowExcel.createCell(2);
                 colExistingFlag.setCellValue("Yes");
 
-                NetworkMapNodeDTO nodeDTO = networkMapClient.getNodeEntity(result.getPayload());
+                NetworkMapNodeUrlEntity nodeDTO = networkMapClient.getNodeEntity(result.getPayload());
                 if (nodeDTO == null) {
                     Cell colTarget = rowExcel.createCell(1);
                     colTarget.setCellValue(rowMetadata.getUrl());
@@ -771,7 +771,7 @@ public class HarvestModificationHandler {
                 return NetworkMapResult.getBadRequestResult("Option field and target field can not be empty.");
             }
 
-            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
+            NetworkMapUrlCommand networkMapUrl = new NetworkMapUrlCommand();
             networkMapUrl.setUrlName(row.getUrl());
             NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
 
@@ -786,7 +786,7 @@ public class HarvestModificationHandler {
                 row.setUrl(row.getUrl());
             } else if (networkMapResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
                 String json = (String) networkMapResult.getPayload();
-                NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+                NetworkMapNodeUrlEntity node = networkMapClient.getNodeEntity(json);
                 if (node == null) {
                     log.warn(err);
                     return NetworkMapResult.getBadRequestResult(err);

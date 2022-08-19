@@ -11,7 +11,6 @@ import java.util.List;
 @Entity
 public class NetworkMapNodeFolderEntity extends BasicNode {
     private long parentPathId;
-
     @SecondaryKey(relate = Relationship.ONE_TO_ONE)
     private String title;
 

@@ -10,12 +10,12 @@ import java.util.Map;
 
 @Entity
 public class NetworkMapAccessPropertyEntity {
-    private static final String DB_VERSION = "4.1.0";
+    private static final String GLOBAL_DB_VERSION = "4.1.0";
 
     @PrimaryKey
     protected Long id = 0L;
 
-    protected String version = DB_VERSION;
+    protected String version = GLOBAL_DB_VERSION;
     protected List<Long> seedUrlIDs = new ArrayList<>();
     protected List<Long> malformedUrlIDs = new ArrayList<>();
     protected String rootDomain;
@@ -78,7 +78,7 @@ public class NetworkMapAccessPropertyEntity {
         this.warcFileIdMaps = warcFileIdMaps;
     }
 
-    public static String getDbVersion() {
-        return DB_VERSION;
+    public static String getGlobalDbVersion() {
+        return GLOBAL_DB_VERSION;
     }
 }

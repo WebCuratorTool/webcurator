@@ -46,7 +46,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     public NetworkMapResult getDbVersion(long job, int harvestResultNumber) {
         NetworkDbVersionDTO versionDTO = new NetworkDbVersionDTO();
         versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_SUCCESS);
-        versionDTO.setGlobalVersion(pool.getDbVersion());
+        versionDTO.setGlobalVersion(NetworkMapAccessPropertyEntity.getGlobalDbVersion());
 
         BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         String currentVersion = "0.0.0";
@@ -55,11 +55,12 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         } else {
             currentVersion = db.getDbVersionStamp();
         }
+        versionDTO.setCurrentVersion(currentVersion);
 
-        if (!currentVersion.equalsIgnoreCase(pool.getDbVersion())) {
+        if (!versionDTO.getCurrentVersion().equalsIgnoreCase(versionDTO.getGlobalVersion())) {
             versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_NEED_REINDEX);
         }
-        versionDTO.setCurrentVersion(currentVersion);
+
 
         String payload = this.obj2Json(versionDTO);
 
