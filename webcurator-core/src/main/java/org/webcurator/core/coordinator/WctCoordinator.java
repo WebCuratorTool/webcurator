@@ -295,7 +295,7 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
 
     public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
         if (origHarvestResult != null) {
-            NetworkMapResult rst = networkMapClient.initialIndex(origHarvestResult.getOid(), origHarvestResult.getHarvestNumber());
+            NetworkMapResult rst = networkMapClient.initialIndex(origHarvestResult.getTargetInstance().getOid(), origHarvestResult.getHarvestNumber());
             return rst.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS;
         } else {
             log.error("Invalid input parameter, origHarvestResult is null.");
