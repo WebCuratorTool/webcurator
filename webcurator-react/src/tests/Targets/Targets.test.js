@@ -1,164 +1,89 @@
-import React from "react";
-import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import TargetsContainer from "../../components/Targets/Targets.container";
-import TargetsView from "../../components/Targets/Targets.view";
-import TargetsTable from "../../components/Targets/TargetsTable";
+import React from 'react'
+import { rest } from 'msw'
+import { setupServer } from 'msw/node'
+import { fireEvent, screen } from '@testing-library/react'
 import { act } from "react-dom/test-utils";
+// We're using our own custom render function and not RTL's render.
+import { renderWithProviders } from '../utils'
+import Targets from '../../components/Targets/Targets'
+import { defaultData, dataBySeed } from './mockedData';
 
-const MockTargetsContainer = () => {
-  return (
-    <BrowserRouter>
-      <TargetsContainer />
-    </BrowserRouter>
-  )
-}
-
-const MockTargetsView = ({ loading = false }) => {
-  const mockRenderTargetsTable = () => {
-    return (
-      <TargetsTable
-          onChangeSortBy={jest.fn()}
-          pageOffset={0}
-          setPageOffset={jest.fn()}
-          sortOptions={{}}
-          targets={[]}
-      />
-    )
-  }
-
-  return (
-    <BrowserRouter>
-        <TargetsView
-            loading={loading}
-            clearSearchTerms={jest.fn()}
-            onSearchTargets={jest.fn()}
-            renderTargetsTable={mockRenderTargetsTable}
-            searchTerms={{}}
-            updateSearchTerms={jest.fn()}
-        />
-    </BrowserRouter>
-  );
-}
-
-// Correct elements are rendered at the correct times
-describe('Targets - rendering', () => {
-  it ('should render a loading element while loading', () => {
-    render (<MockTargetsView loading={true} />);
-    const loadingElement = screen.queryByTestId('loading');
-    expect(loadingElement).toBeInTheDocument();
+// We use msw to intercept the network request during the test,
+// and return the response 'John Smith' after 150ms
+// when receiving a get request to the `/api/user` endpoint
+export const handlers = [
+  // rest.get('/wct/api/v1/targets', (res, ctx) => {
+  //   return res(ctx.json({ defaultData }), ctx.delay(150))
+  // }),
+  rest.get('/wct/api/v1/targets', (req, res, ctx) => {
+    let data = defaultData;
+    
+    if (req.url.searchParams.get('seed') == 'http://test.govt.nz') {
+      return res(ctx.json({ dataBySeed }), ctx.delay(150))
+    }
+    return res(ctx.json({ data }), ctx.delay(150))
   })
+]
 
-  it ('should not render a loading element when not loading', () => {
-    render (<MockTargetsView loading={false} />);
-    const loadingElement = screen.queryByTestId('loading');
-    expect(loadingElement).not.toBeInTheDocument();
-  })
+const server = setupServer(...handlers)
 
-  it ('should not render a table while loading', () => {
-    render (<MockTargetsView loading={true} />);
-    const table = screen.queryByRole('table');
-    expect(table).not.toBeInTheDocument()
-  })
+// Enable API mocking before tests.
+beforeAll(() => server.listen())
 
-  it ('should render a table when not loading', () => {
-    render (<MockTargetsView loading={false} />);
-    const table = screen.queryByRole('table');
-    expect(table).toBeInTheDocument();
-  })
+// Reset any runtime request handlers we may add during the tests.
+afterEach(() => server.resetHandlers())
 
-  it ('should render a form', () => {
-    render (<MockTargetsView />);
-    const form = screen.queryByRole('form');
-    expect(form).toBeInTheDocument();
-  })
+// Disable API mocking after the tests are done.
+afterAll(() => server.close())
+
+test('Targets: shows loading element while loading, renders table when api returns', async () => {
+  renderWithProviders(<Targets />);
+
+  // shows loading element initally
+  expect(screen.queryByTestId('loading')).toBeInTheDocument();
+  // when await resolves, shows table and no loading element
+  const tableRows = await screen.findAllByRole('row');
+  expect(tableRows.length).toBe(3);
+  expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
 })
- 
 
 // Form inputs update correctly - this tests both the form and the function updating state
 describe('Targets - update search inputs', () => {
-  it ('should update id field', async () => {
+  it ('should update each form field', async () => {
     await act(async () => {
-      render (<MockTargetsContainer />);
-    })
-    const input = screen.getByTestId('targetId-input');
-    fireEvent.change(input, { target: { value: 2 }});
-    
-    expect(input.value).toBe('2');
-  })
-
-  it ('should update name field', async () => {
-    await act(async () => {
-      render (<MockTargetsContainer />);
+      renderWithProviders(<Targets />)
     });
-    const input = screen.getByTestId('name-input');
-    fireEvent.change(input, { target: { value: 'test' }});
-    
-    expect(input.value).toBe('test');
-  })
 
-  it ('should update seed field', async () => {
-    await act(async () => {
-      render (<MockTargetsContainer />);
-    });
-    const input = screen.getByTestId('seed-input');
-    fireEvent.change(input, { target: { value: 'http://example.com' }});
-    
-    expect(input.value).toBe('http://example.com');
-  })
+    const idInput = screen.getByTestId('targetId-input');
+    fireEvent.change(idInput, { target: { value: 2 }});  
+    expect(idInput.value).toBe('2');
 
-  it ('should update description field', async () => {
-    await act(async () => {
-      render (<MockTargetsContainer />);
-    });
-    const input = screen.getByTestId('description-input');
-    fireEvent.change(input, { target: { value: 'a test target' }});
-    
-    expect(input.value).toBe('a test target');
+    const nameInput = screen.getByTestId('name-input');
+    fireEvent.change(nameInput, { target: { value: 'test' }});
+    expect(nameInput.value).toBe('test');
+
+    const seedInput = screen.getByTestId('seed-input');
+    fireEvent.change(seedInput, { target: { value: 'http://example.com' }});
+    expect(seedInput.value).toBe('http://example.com');
+
+    const descriptionInput = screen.getByTestId('description-input');
+    fireEvent.change(descriptionInput, { target: { value: 'a test target' }});
+    expect(descriptionInput.value).toBe('a test target');
   })
 })
 
-// The functions that interact with the api work correctly - mocked in ../__mocks__/axios.js
-describe('Targets - api functions', () => {
-  it('should fetch two targets and render them in table rows (3 rows including head)', async () => {
-      render (
-        <MockTargetsContainer />
-      );
-      const tableRows = await screen.findAllByRole('row');
-      expect(tableRows.length).toBe(3);
-  })
-
-  it ('should fetch and render one target when id field is submitted with 1', async () => {
-    await act(async () => {
-      render (<MockTargetsContainer />);
-    });
-    const input = screen.getByTestId('targetId-input');
-    const button = screen.getByText('Search');
-    fireEvent.change(input, { target: { value: 1 }});
-    fireEvent.click(button);
+  // it ('should fetch and render new data on search', async () => {
+  //   renderWithProviders(<Targets />);
     
-    const tableRows = await screen.findAllByRole("row");
-    expect(tableRows.length).toBe(2);
-  })
-})
+  //   const input = screen.getByTestId('seed-input');
+  //   const button = screen.getByDisplayValue('Search');
+  //   await act(async () => {
+  //     fireEvent.change(input, { target: { value: 'http://test.govt.nz' }});
+  //     fireEvent.click(button);
+  //   });
 
-describe('Targets - sort functions work', () => {
-  it('should send the correct query when sorting', async () => {
-    await act(async () => {
-      render (<MockTargetsContainer />);
-    });
-    const nameHeader = screen.getByTestId("clickable-table-cell-name");
-    fireEvent.click(nameHeader);
-    const tableCell = await screen.findByTestId("table-row-0-cell-2");
-    expect(tableCell.textContent).toBe("test3");
-  })
-  // it('should send the correct query when sorting', async () => {
-  //   // await act(async () => {
-  //   //   render (<MockTargetsContainer />)
-  //   // })
-  //   // const nameHeader = await screen.findByTestId("clickable-table-cell-name")
-  //   // fireEvent.click(nameHeader)
-  //   // const tableCell = await screen.findByTestId("table-row-0-cell-2");
-  //   // expect(tableCell.textContent).toBe("test1")
+    
+  //   const tableRows = await screen.findAllByRole("row");
+  //   expect(tableRows.length).toBe(3);
+  //   expect(screen.getAllByText('http://test.govt.nz').length).toBe(2);
   // })
-})

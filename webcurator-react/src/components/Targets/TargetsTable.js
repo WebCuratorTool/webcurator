@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux'
 import moment from 'moment';
 
 import Button from '../Button';
@@ -6,19 +7,23 @@ import Table from '../Table';
 
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 
-function TargetsTable(props) {
+import {
+    onChangeSortBy,
+    setPageOffset,
+} from '../../redux/targets';
+
+function TargetsTable() {
+    const dispatch = useDispatch();
     const {
-        onChangeSortBy,
-        pageOffset,
-        setPageOffset,
-        sortOptions,
         targets,
-    } = props
+        pageOffset,
+        sortOptions,
+    } = useSelector((state) => state.targets);
 
     const renderSortableHeader = useCallback((accessor, name) => {
         return (
             <div
-                onClick={() => onChangeSortBy(accessor)}
+                onClick={() => dispatch(onChangeSortBy(accessor))}
                 className='table-header-cell'
                 data-testid={`clickable-table-cell-${accessor}`}
             >
@@ -26,7 +31,7 @@ function TargetsTable(props) {
                 {sortOptions.accessor === accessor && sortOptions.direction === 'desc' ? <BsChevronUp /> : <BsChevronDown />}
             </div>
         )
-    }, [onChangeSortBy, sortOptions])
+    },[dispatch, sortOptions])
 
     const tableColumns = useMemo(() => [
         {
@@ -69,8 +74,8 @@ function TargetsTable(props) {
                 data={targets}
             />
             <div className='button-group'>
-                {pageOffset > 9 && <Button name='Prev' onClick={() => setPageOffset(pageOffset - 10)} />}
-                <Button name='Next' onClick={() => setPageOffset(pageOffset + 10)} />
+                {pageOffset > 9 && <Button name='Prev' onClick={() => dispatch(setPageOffset(pageOffset - 10))} />}
+                <Button name='Next' onClick={() => dispatch(setPageOffset(pageOffset + 10))} />
             </div>    
         </>
     )

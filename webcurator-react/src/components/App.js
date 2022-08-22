@@ -3,7 +3,7 @@ import { Routes,Route } from "react-router-dom";
 
 import '../styles/App.css'
 
-import Targets from "./Targets/Targets.container";
+import Targets from "./Targets/Targets";
 import Home from "./Home";
 
 function App() {
