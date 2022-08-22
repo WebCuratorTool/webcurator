@@ -273,6 +273,12 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
                 return;
             }
+            fileList.sort(new Comparator<File>() {
+                @Override
+                public int compare(File f0, File f1) {
+                    return f0.getName().compareTo(f1.getName());
+                }
+            });
 
             VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
             for (File f : fileList) {
