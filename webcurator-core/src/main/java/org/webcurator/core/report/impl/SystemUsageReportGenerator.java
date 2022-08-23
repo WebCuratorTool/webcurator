@@ -17,6 +17,7 @@ package org.webcurator.core.report.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -27,21 +28,21 @@ import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.webcurator.core.report.OperationalReport;
 import org.webcurator.core.report.ReportGenerator;
 import org.webcurator.core.report.ResultSet;
+import org.webcurator.core.report.dto.LogonUserDTO;
 import org.webcurator.core.report.parameter.DateParameter;
 import org.webcurator.core.report.parameter.Parameter;
 import org.webcurator.core.report.parameter.StringParameter;
-import org.webcurator.domain.model.audit.Audit;
+import org.webcurator.domain.model.report.LogonDuration;
 
 /**
- * ReportGenerator implementation for a System Activity Report
+ * ReportGenerator implementation for a System Usage Report
  * 
  * @author MDubos
  */
-public class SystemActivityReportGeneratorImpl extends HibernateDaoSupport 
+public class SystemUsageReportGenerator extends HibernateDaoSupport
 	implements ReportGenerator {
 	
-    private Log log = LogFactory.getLog(SystemActivityReportGeneratorImpl.class);
-    
+	private Log log = LogFactory.getLog(SystemUsageReportGenerator.class);
 	
 	/**
 	 * Generate report's data
@@ -49,65 +50,70 @@ public class SystemActivityReportGeneratorImpl extends HibernateDaoSupport
 	 * @return Report's data as a <code>List</code> of <code>ResultSet</code>
 	 */
 	public List<ResultSet> generateData(OperationalReport operationalReport) {
-		
+				
 		// Parameters
 		List<Parameter> parameters = operationalReport.getParameters();
-		DateParameter startDate =	(DateParameter) parameters.get(0);
+		DateParameter startDate =	(DateParameter)	parameters.get(0);
 		DateParameter endDate =		(DateParameter) parameters.get(1);
-		StringParameter agency =	(StringParameter) parameters.get(2);
-		StringParameter user =		(StringParameter) parameters.get(3);
+		StringParameter agency = 	(StringParameter) parameters.get(2);
 		
 		SimpleDateFormat sdf = startDate.getDateFormat();
 		log.debug(" startDate=" + sdf.format(startDate.getValue()));
 		log.debug(" endDate=" + sdf.format(endDate.getValue()));
 		log.debug(" agency=" + (agency == null ? "null" : agency.getValue()) );
-		log.debug(" user=" + user);
 		
+		List<ResultSet> res = getSystemUsageReport(startDate.getValue(), endDate.getValue(), agency.getValue());
 		
-		List<ResultSet> res = getSystemActivityReport(
-				startDate.getValue(), endDate.getValue(),
-				agency.getValue(), user.getValue());
-		
-		log.debug("  data=" + (res == null ? "null" : Integer.toString(res.size())) );
 		return res;
 	}
-
-
+	
+	
 	/**
-	 * Generate the System Activity Report's data
+	 * Generate the System Usage Report's data
 	 * 
 	 * @param startDate Start date<br>Is inclusive and value is mandatory
-	 * @param endDate End date.<br> Is inclusive and value is mandatory
+	 * @param endDate End date.<br>Is exclusive and value is mandatory
 	 * @param agencyName Name of Agency<br><code>null</code> value is accepted
-	 * @param username Username<br><code>null</code> value is accepted
-	 * @return A <code>List</code> of <code>SystemActivityReportResultSet</code>
+	 * @return A <code>List</code> of <code>SystemUsageReportResultSet</code>
 	 */
-	protected List<ResultSet> getSystemActivityReport(Date startDate, Date endDate, String agencyName, String username) {
-        List results = getHibernateTemplate().execute(session ->
-				session.getNamedQuery(Audit.QRY_GET_ALL_BY_PERIOD_BY_AGENCY_BY_USER)
-					.setParameter(1, startDate)
-					.setParameter(2, endDate)
-					.setParameter(3, agencyName)
-					.setParameter(4, agencyName)
-					.setParameter(5, agencyName)
-					.setParameter(6, username)
-					.setParameter(7, username)
-					.setParameter(8, username)
-					.list());
+	protected List<ResultSet> getSystemUsageReport(Date startDate, Date endDate, String agencyName){
+		
+		Calendar now = Calendar.getInstance();
 
-    	log.debug("results=" + results.size() );
-    	
-    	// Wrap into a SystemActivityResultSet
-    	ArrayList<ResultSet> resultSets = new ArrayList<ResultSet>();
-    	for(Iterator it = results.iterator(); it.hasNext(); ){
-    		Audit audit = (Audit) it.next();
-    		SystemActivityReportResultSet rs = new SystemActivityReportResultSet(audit);
-    		resultSets.add(rs);
-    	}
-    	
-    	return resultSets;
-    }
-	
+		// Get all logged users
+		List results = getHibernateTemplate().execute(session ->
+				session.getNamedQuery(LogonDuration.QRY_LOGGED_USERS_BY_PERIOD_BY_AGENCY)
+						.setParameter(1, startDate)
+						.setParameter(2, endDate)
+						.setParameter(3, now.getTime())
+						.setParameter(4, endDate)
+						.setParameter(5, endDate)
+						.setParameter(6, agencyName)
+						.setParameter(7, agencyName)
+						.setParameter(8, agencyName)
+						.list());
+
+		log.debug("results=" + results.size());
+		
+		ArrayList<ResultSet> resultSets = new ArrayList<ResultSet>();
+		for(Iterator it = results.iterator(); it.hasNext(); ){
+			
+			LogonUserDTO lud = (LogonUserDTO) it.next();
+			
+			// late user who is still logged in
+			if(lud.getDuration() == null){
+				Long duration = LogonDuration.computeDuration(lud.getLogonTime(), now.getTime());//(long)(now.getTime()/1000 - lud.getLogonTime().getTime()/1000);
+				lud.setDuration(duration);
+				log.debug("    still logged in, duration to now=" + duration.toString() );
+			}
+			
+			// Wrap into SystemUsageReportResultSet
+			SystemUsageReportResultSet rs = new SystemUsageReportResultSet(lud);
+			resultSets.add(rs);
+		}
+		
+		return resultSets;
+	}
 	
 
 }

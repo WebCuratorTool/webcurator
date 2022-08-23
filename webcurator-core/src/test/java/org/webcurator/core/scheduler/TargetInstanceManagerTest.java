@@ -12,14 +12,14 @@ import org.webcurator.core.util.TestAuditor;
 import org.webcurator.core.notification.*;
 import org.webcurator.domain.model.core.*;
 
-public class TargetInstanceManagerImplTest extends BaseWCTTest<TargetInstanceManagerImpl>{
+public class TargetInstanceManagerTest extends BaseWCTTest<TargetInstanceManager>{
 
 	private TargetInstanceDAO tiDao = null;
 	private ProfileDAO pDao = null;
 	
-	public TargetInstanceManagerImplTest()
+	public TargetInstanceManagerTest()
 	{
-		super(TargetInstanceManagerImpl.class, 
+		super(TargetInstanceManager.class,
 				"/org/webcurator/core/scheduler/TargetInstanceManagerImplTest.xml");
 	}
 	

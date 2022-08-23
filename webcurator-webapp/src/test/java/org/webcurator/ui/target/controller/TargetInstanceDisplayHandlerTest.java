@@ -15,7 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.util.DateUtils;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
@@ -55,7 +55,7 @@ public class TargetInstanceDisplayHandlerTest extends BaseWCTTest<TargetInstance
 		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
 		genHandler.setAuthorityManager(new AuthorityManagerImpl());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
-		genHandler.setWctCoordinator(new WctCoordinatorImpl());
+		genHandler.setWctCoordinator(new WctCoordinator());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);

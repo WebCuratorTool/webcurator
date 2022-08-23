@@ -15,69 +15,134 @@
  */
 package org.webcurator.core.admin;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.webcurator.auth.AuthorityManager;
+import org.webcurator.domain.PermissionTemplateDAO;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionTemplate;
+import org.webcurator.domain.model.core.Site;
+import org.webcurator.domain.model.core.UrlPattern;
+import org.webcurator.common.ui.validation.TemplateValidatorHelper;
 
 /**
  * Provides the helper methods required to manage PermissionTemplates.
  * @author bprice
  */
-public interface PermissionTemplateManager {
+public class PermissionTemplateManager {
 
-    /**
-     * gets the PermissionTemplate based on the Templates name
-     * @param templateOid the Primary key of the Template to load
-     * @return the PermissionTemplate
-     */
-    PermissionTemplate getTemplate(Long templateOid);
+    PermissionTemplateDAO permissionTemplateDAO;
     
-    /**
-     * gets the Permission object based on its primary key
-     * @param permissionOid the permission objects primary key
-     * @return the Permission object
-     */
-    Permission getPermission(Long permissionOid);
+    AuthorityManager authorityManager;
     
-    /**
-     * gets all Permission Request Templates for the logged in user.
-     * If the logged in user has a scope of ALL on the appropriate privilge,
-     * they will see all Templates in the system. If the use only has a scope 
-     * of AGENCY, they will only see the Agency specific Templates.
-     * @param user the User to generate the Template List for
-     * @return the List of PermissionTemplate objects
-     */
-    List getTemplates(User user);
+    public PermissionTemplateManager() {
+        
+    }
+
+    public PermissionTemplate getTemplate(Long templateOid) {
+        return permissionTemplateDAO.getTemplate(templateOid);
+    }
     
-    /**
-     * saves the Permission Template object to the database
-     * @param permissionTemplate the permission template to persist
-     */
-    void saveTemplate(PermissionTemplate permissionTemplate);
-    
-    /**
-     * gets the defined Template types within the WCT system
-     * @return a List of Template types
-     */
-    List getTemplateTypes();
-    
-    /**
-     * takes an existing template and the specified user and replaces
-     * all the variables in the template with the correct values based on the User
-     * and permissionOid
-     * @param templateOid the oid of the selected template to generate
-     * @param user the User associated with the template request
-     * @param permissionOid the permission oid that this template request is related to 
-     * @return the populated PermissionTemplate with all its varaiables replaced
-     */
-    PermissionTemplate completeTemplate(Long templateOid, User user, Long permissionOid);
-    
-    /**
-     * deletes the specified template based on the primary key of the template
-     * @param templateOid the template primary key to delete
-     */
-    void delete(Long templateOid);
+    public Permission getPermission(Long permissionOid) {
+        return permissionTemplateDAO.getPermission(permissionOid);
+    }
+
+    public List getTemplates(User loggedInUser) {
+        if (authorityManager.hasPrivilege(loggedInUser, Privilege.PERMISSION_REQUEST_TEMPLATE, Privilege.SCOPE_ALL)) {
+            //User can see and manage all Templates
+            return permissionTemplateDAO.getAllTemplates();
+        } else if (authorityManager.hasPrivilege(loggedInUser, Privilege.PERMISSION_REQUEST_TEMPLATE, Privilege.SCOPE_AGENCY)) {
+            //User can only see and manage their own templates
+            return permissionTemplateDAO.getTemplates(loggedInUser.getAgency().getOid());
+        } else {
+            //User can only see their own templates
+            return permissionTemplateDAO.getTemplates(loggedInUser.getAgency().getOid());
+        }
+    }
+
+    public void saveTemplate(PermissionTemplate permissionTemplate) {
+        permissionTemplateDAO.saveOrUpdate(permissionTemplate); 
+    }
+
+    public void setPermissionTemplateDAO(PermissionTemplateDAO permissionTemplateDAO) {
+        this.permissionTemplateDAO = permissionTemplateDAO;
+    }
+
+    public void setAuthorityManager(AuthorityManager authorityManager) {
+        this.authorityManager = authorityManager;
+    }
+
+    public List getTemplateTypes() {
+        List<String> types = new ArrayList<String>();
+        types.add(PermissionTemplate.EMAIL_TYPE_TEMPLATE);
+        types.add(PermissionTemplate.PRINT_TYPE_TEMPLATE);
+        
+        return types;
+    }
+
+    public PermissionTemplate completeTemplate(Long templateOid, User user, Long permissionOid) {
+        PermissionTemplate template = getTemplate(templateOid);
+        Permission perm = getPermission(permissionOid);
+        
+        Site site = perm.getSite();
+        String siteName = site.getTitle();
+        String contactName = perm.getAuthorisingAgent().getContact();
+        String contactAddress = perm.getAuthorisingAgent().getAddress();
+        Set<UrlPattern> urlPatterns = perm.getUrls();
+        StringBuffer urlsPlain = new StringBuffer();
+        StringBuffer urlsHTML = new StringBuffer();
+        String delim = "";
+        for (UrlPattern urlPattern:urlPatterns) {
+            urlsPlain.append(delim);
+            urlsPlain.append(urlPattern.getPattern());
+            delim = "\n";
+        }
+        urlsHTML.append("<ul>");
+        for (UrlPattern urlPattern:urlPatterns) {
+            urlsHTML.append("<li>");
+            urlsHTML.append(urlPattern.getPattern());
+            urlsHTML.append("</li>");
+        }
+        urlsHTML.append("</ul>");
+        
+        TemplateValidatorHelper templateValidatorHelper = new TemplateValidatorHelper(template.getTemplate(),template.getTemplateType());
+        Map <String, String>parameterMap =  new HashMap<String, String>();
+        
+        parameterMap.put("contact_name",contactName);
+        parameterMap.put("contact_address",contactAddress);
+        parameterMap.put("site_name",siteName);
+        parameterMap.put("urls_plain",urlsPlain.toString());
+        parameterMap.put("urls_html", urlsHTML.toString());
+        parameterMap.put("user_name", user.getFirstname()+" "+user.getLastname());
+        //TODO include user_position once it has been added to the database
+        //"user_position"
+        parameterMap.put("user_address", user.getAddress());
+        parameterMap.put("user_phone", user.getPhone());
+        parameterMap.put("user_email", user.getEmail());
+        parameterMap.put("agency_name", user.getAgency().getName());
+        parameterMap.put("agency_address", user.getAgency().getAddress());
+        parameterMap.put("agency_phone", user.getAgency().getPhone());
+        parameterMap.put("agency_url", user.getAgency().getAgencyURL());
+        parameterMap.put("agency_logo_url", user.getAgency().getAgencyLogoURL());
+        parameterMap.put("agency_email", user.getAgency().getEmail());
+        parameterMap.put("agency_fax", user.getAgency().getFax());
+        
+        //Store the fully populated template text back into the template object
+        String newTemplateText = templateValidatorHelper.parseTemplate(parameterMap);
+        template.setParsedText(newTemplateText);
+        return template;
+    }
+
+    public void delete(Long templateOid) {
+        PermissionTemplate permTemp = permissionTemplateDAO.getTemplate(templateOid);
+        //TODO add check for ownership of object before deleting
+        permissionTemplateDAO.delete(permTemp);
+    }
 
 }

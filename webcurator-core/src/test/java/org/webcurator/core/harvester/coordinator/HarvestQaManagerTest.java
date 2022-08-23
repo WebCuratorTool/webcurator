@@ -8,7 +8,6 @@ import org.springframework.web.client.RestTemplate;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.util.Auditor;
 import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Target;
@@ -21,9 +20,9 @@ import java.util.List;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvestQaManagerImplTest extends BaseWCTTest<HarvestQaManagerImpl> {
-    public HarvestQaManagerImplTest() {
-        super(HarvestQaManagerImpl.class, "", false);
+public class HarvestQaManagerTest extends BaseWCTTest<HarvestQaManager> {
+    public HarvestQaManagerTest() {
+        super(HarvestQaManager.class, "", false);
     }
 
     @Before
@@ -39,7 +38,7 @@ public class HarvestQaManagerImplTest extends BaseWCTTest<HarvestQaManagerImpl> 
         dasClient.setFileUploadMode("stream");
 
 
-        testInstance = new HarvestQaManagerImpl();
+        testInstance = new HarvestQaManager();
         testInstance.setTargetInstanceDao(targetInstanceDAO);
         testInstance.setTargetInstanceManager(targetInstanceManager);
     }

@@ -21,7 +21,6 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
@@ -39,7 +38,7 @@ public class NoPrivilegeTag extends TagSupport {
 
     private String privilege = null;
     private int scope = 1000;
-    private AuthorityManager authorityManager = new AuthorityManagerImpl();
+    private AuthorityManager authorityManager = new AuthorityManager();
     
     @Override
     public int doStartTag() throws JspException {

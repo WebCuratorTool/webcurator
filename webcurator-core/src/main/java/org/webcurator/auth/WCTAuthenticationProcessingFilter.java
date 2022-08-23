@@ -15,33 +15,28 @@
  */
 package org.webcurator.auth;
 
-import java.io.IOException;
-import java.util.Date;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.web.context.WebApplicationContext;
+import org.webcurator.core.common.Constants;
+import org.webcurator.core.report.LogonDurationDAO;
+import org.webcurator.core.util.Auditor;
+import org.webcurator.core.util.CookieUtils;
+import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.User;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.context.WebApplicationContext;
-
-import org.webcurator.core.common.Constants;
-import org.webcurator.core.report.LogonDurationDAO;
-import org.webcurator.core.util.ApplicationContextFactory;
-import org.webcurator.core.util.Auditor;
-import org.webcurator.core.util.CookieUtils;
-import org.webcurator.domain.UserRoleDAO;
-import org.webcurator.domain.model.auth.User;
+import java.io.IOException;
+import java.util.Date;
 
 
 /**

@@ -15,12 +15,12 @@ import org.webcurator.domain.*;
 
 import com.google.common.collect.Maps;
 
-public class ArchiveAdapterImplTest extends BaseWCTTest<ArchiveAdapterImpl>{
+public class ArchiveAdapterTest extends BaseWCTTest<ArchiveAdapter>{
 
-	public ArchiveAdapterImplTest()
+	public ArchiveAdapterTest()
 	{
-		super(ArchiveAdapterImpl.class,
-				"/org/webcurator/core/archive/ArchiveAdapterImplTest.xml");
+		super(ArchiveAdapter.class,
+                "/org/webcurator/core/archive/ArchiveAdapterTest.xml");
 	}
 	
 	public void setUp() throws Exception 

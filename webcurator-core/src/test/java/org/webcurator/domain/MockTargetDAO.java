@@ -40,7 +40,7 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.AbstractTargetDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
-public class MockTargetDAO implements TargetDAO {
+public class MockTargetDAO extends TargetDAO {
 
 	private static Log log = LogFactory.getLog(TargetInstanceDAO.class);
 	private Document theFile = null; 

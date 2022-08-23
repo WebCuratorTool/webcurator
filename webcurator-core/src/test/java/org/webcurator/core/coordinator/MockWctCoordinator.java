@@ -6,6 +6,8 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
+import org.webcurator.core.store.coordinator.DigitalAssetStoreCoordinator;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
@@ -20,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @SuppressWarnings("all")
-public class MockWctCoordinator implements WctCoordinator {
+public class MockWctCoordinator extends WctCoordinator{
     private static Log log = LogFactory.getLog(MockWctCoordinator.class);
     private LogReader logReader = null;
     private boolean queuePaused = false;

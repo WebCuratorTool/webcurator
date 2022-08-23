@@ -12,24 +12,17 @@ import java.util.HashMap;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.config.TestBaseConfig;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
-import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgent;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
@@ -39,9 +32,9 @@ import com.google.common.collect.Maps;
 //@Import(TestBaseConfig.class)
 //@RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
-public class HarvestAgentManagerImplTest {
+public class HarvestAgentManagerTest {
 
-    private HarvestAgentManagerImpl underTest;
+    private HarvestAgentManager underTest;
 
     @Mock
     private HarvestAgentFactory mockHarvestAgentFactory;
@@ -52,24 +45,24 @@ public class HarvestAgentManagerImplTest {
     @Mock
     private Environment mockEnvironment;
 
-    public HarvestAgentManagerImplTest() {
+    public HarvestAgentManagerTest() {
         MockitoAnnotations.initMocks(this);
     }
 
     @Before
     public void setup() {
-        underTest = new HarvestAgentManagerImpl();
+        underTest = new HarvestAgentManager();
         underTest.setHarvestAgentFactory(mockHarvestAgentFactory);
         underTest.setTargetInstanceDao(mockTargetInstanceDAO);
         underTest.setTargetInstanceManager(mockTargetInstanceManager);
 
-        HarvestAgentManagerImpl.targetInstanceLocks.clear();
+        HarvestAgentManager.targetInstanceLocks.clear();
 
         ApplicationContext context = mock(ApplicationContext.class);
         when(context.getBean("environmentWCT")).thenReturn(mockEnvironment);
         ApplicationContextFactory.setApplicationContext(context);
 
-        EnvironmentImpl env = new EnvironmentImpl();
+        Environment env = new Environment();
         env.setApplicationVersion("3.0.1");
         env.setHeritrixVersion("3.4.0");
         EnvironmentFactory.setEnvironment(env);

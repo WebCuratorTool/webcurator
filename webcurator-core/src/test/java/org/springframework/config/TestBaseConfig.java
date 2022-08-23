@@ -9,13 +9,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
-import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.harvester.agent.HarvestAgentFactory;
-import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.TargetInstanceDAOImpl;
 
 @TestConfiguration
 public class TestBaseConfig {
@@ -24,7 +21,7 @@ public class TestBaseConfig {
 
     @Bean
     public Environment environmentWCT() {
-        EnvironmentImpl bean = new EnvironmentImpl();
+        Environment bean = new Environment();
         bean.setDaysToSchedule(1);
         bean.setSchedulesPerBatch(1000);
         bean.setApplicationVersion("Test");
@@ -41,20 +38,20 @@ public class TestBaseConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
     public HarvestAgentFactory harvestAgentFactory() {
-        HarvestAgentFactoryImpl bean = new HarvestAgentFactoryImpl();
+        HarvestAgentFactory bean = new HarvestAgentFactory();
         return bean;
     }
 
     @Bean
     public HarvestAgentManager harvestAgentManager() {
-        HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
+        HarvestAgentManager bean = new HarvestAgentManager();
         bean.setHarvestAgentFactory(harvestAgentFactory());
         return bean;
     }
 
     @Bean
     public TargetInstanceDAO targetInstanceDao() {
-        TargetInstanceDAOImpl bean = new TargetInstanceDAOImpl();
+        TargetInstanceDAO bean = new TargetInstanceDAO();
 //        bean.setSessionFactory(sessionFactory().getObject());
 //        bean.setTxTemplate(transactionTemplate());
 //        bean.setAuditor(audit());
@@ -65,8 +62,8 @@ public class TestBaseConfig {
 
     @Bean
     public HarvestLogManager harvestLogManager() {
-        HarvestLogManagerImpl bean = new HarvestLogManagerImpl();
-        bean.setHarvestAgentManager(harvestAgentManager());
+        HarvestLogManager bean = new HarvestLogManager();
+        bean.setHarvestAgentManagerImpl(harvestAgentManager());
 //        bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
 
         return bean;

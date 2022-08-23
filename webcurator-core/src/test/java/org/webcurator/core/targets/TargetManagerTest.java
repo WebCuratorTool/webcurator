@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.context.MockMessageSource;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
 import org.webcurator.core.exceptions.WCTRuntimeException;
@@ -54,20 +54,23 @@ import org.webcurator.common.ui.target.TargetEditorContext;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 @RunWith(MockitoJUnitRunner.class)
-public class TargetManagerImplTest {
+public class TargetManagerTest {
 
-	private TargetManagerImpl underTest;
+	private TargetManager underTest;
 
 	@Mock TargetDAO targetDao;
-	@Mock TargetInstanceManager tim;
+	@Mock
+	TargetInstanceManager tim;
 	@Mock MockAnnotationDAO annotationDAO;
 	@Mock TestAuditor auditor;
-	@Mock AuthorityManagerImpl authMgr;
+	@Mock
+    AuthorityManager authMgr;
 	@Mock BusinessObjectFactory businessObjectFactory;
 	@Mock MockInTrayManager intrayManager;
 	@Mock MockMessageSource messageSource;
 	@Mock MockSiteDAO siteDao;
-	@Mock TargetInstanceDAO targetInstanceDao;
+	@Mock
+	TargetInstanceDAO targetInstanceDao;
 	@Mock User mockUser;
 	@Mock Agency mockAgency;
 
@@ -93,7 +96,7 @@ public class TargetManagerImplTest {
 		AuthUtil.setUser(null);
 	}
 	
-	public TargetManagerImplTest() {
+	public TargetManagerTest() {
 		MockitoAnnotations.initMocks(this);
 	}
 
@@ -110,9 +113,9 @@ public class TargetManagerImplTest {
 		targetGroup15000 = mockTargetGroup(15000L);
 		targetGroup25000 = mockTargetGroup(25000L);
 
-		targetInstanceDao = mock(TargetInstanceDAOImpl.class);
+		targetInstanceDao = mock(TargetInstanceDAO.class);
 
-		underTest = new TargetManagerImpl();
+		underTest = new TargetManager();
 		underTest.setAnnotationDAO(annotationDAO);
 		underTest.setAuditor(auditor);
 		underTest.setAuthMgr(authMgr);

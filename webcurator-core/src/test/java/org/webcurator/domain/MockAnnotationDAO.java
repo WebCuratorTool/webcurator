@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.webcurator.domain.model.core.Annotatable;
 import org.webcurator.domain.model.core.Annotation;
 
-public class MockAnnotationDAO implements AnnotationDAO {
+public class MockAnnotationDAO extends AnnotationDAO {
 
 	private static Log log = LogFactory.getLog(MockAnnotationDAO.class);
 	private Document theFile = null; 

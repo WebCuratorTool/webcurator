@@ -5,15 +5,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.webcurator.test.BaseWCTTest;
 
-public class QaRecommendationServiceImplTest extends BaseWCTTest<QaRecommendationServiceImpl> {
-    public QaRecommendationServiceImplTest() {
-        super(QaRecommendationServiceImpl.class, "", false);
+public class QaRecommendationServiceTest extends BaseWCTTest<QaRecommendationService> {
+    public QaRecommendationServiceTest() {
+        super(QaRecommendationService.class, "", false);
 
     }
 
     @Before
     public void init() {
-        testInstance = new QaRecommendationServiceImpl();
+        testInstance = new QaRecommendationService();
 
 //        File fileRules = new File("src/main/resources/rules.drl");
         testInstance.setRulesFileName("rules.drl");

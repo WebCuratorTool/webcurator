@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.webcurator.domain.PermissionDAO;
-import org.webcurator.domain.PermissionDAOImpl;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Site;

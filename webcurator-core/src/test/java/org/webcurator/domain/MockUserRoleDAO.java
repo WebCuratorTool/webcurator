@@ -15,7 +15,7 @@ import org.webcurator.test.WCTTestUtils;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException; 
 
-public class MockUserRoleDAO implements UserRoleDAO {
+public class MockUserRoleDAO extends UserRoleDAO {
 
 	private static Log log = LogFactory.getLog(MockUserRoleDAO.class);
 	private Document theFile = null; 

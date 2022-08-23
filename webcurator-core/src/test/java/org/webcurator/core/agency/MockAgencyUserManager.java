@@ -5,11 +5,11 @@ import org.webcurator.domain.*;
 import org.webcurator.core.util.*;
 import org.webcurator.core.profiles.MockProfileManager;
 
-public class MockAgencyUserManagerImpl extends AgencyUserManagerImpl {
+public class MockAgencyUserManager extends AgencyUserManager {
 
-	public MockAgencyUserManagerImpl(String filename) {
+	public MockAgencyUserManager(String filename) {
 		super();
-		this.setAuthorityManager(new AuthorityManagerImpl());
+		this.setAuthorityManager(new AuthorityManager());
 		this.setUserRoleDAO(new MockUserRoleDAO(filename));
 		this.setAuditor(new TestAuditor());
 		this.setProfileManager(new MockProfileManager(filename));

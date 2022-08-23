@@ -15,377 +15,1241 @@
  */
 package org.webcurator.domain;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.orm.hibernate5.HibernateCallback;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.webcurator.common.ui.CommandConstants;
+import org.webcurator.core.common.EnvironmentFactory;
+import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.targets.PermissionCriteria;
 import org.webcurator.domain.model.core.AbstractTarget;
+import org.webcurator.domain.model.core.AbstractTargetGroupTypeView;
+import org.webcurator.domain.model.core.GroupMember;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Schedule;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.domain.model.core.TargetGroup;
+import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.dto.AbstractTargetDTO;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
+import org.webcurator.domain.model.dto.GroupMemberDTO.SAVE_STATE;
+import org.webcurator.common.ui.Constants;
+import org.webcurator.common.util.Utils;
+
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 /**
  * The TargetDAO provides access to targets, target groups and their related objects
  * from the persistent store.
  * @author bbeaumont
  */
-public interface TargetDAO extends BaseDAO {	
-	/**
-	 * Basic save all method. This will save all of the objects in the 
-	 * collection to the database but will perform nothing more than the 
-	 * Hibernate save/cascade logic. It should not be used to save a collection
-	 * of targets or target groups.
-	 * @param collection A collection of objects to be saved.
-	 */
-	public void saveAll(Collection collection);
-	
-	/**
-	 * Save the specified target to the persistent data store.
-	 * @param aTarget the target to save
-	 */
-	public void save(Target aTarget);
-	
-	/**
-	 * Save a target with it's parent associations.
-	 * @param aTarget The target.
-	 * @param parents The parents.
-	 */
-	public void save(final Target aTarget, final List<GroupMemberDTO> parents);	
-	
-	/**
-	 * Save a schedule to the database.
-	 * @param aSchedule The schedule to save.
-	 */
-	public void save(Schedule aSchedule);
-	
-	/**
-	 * Get schedules to re-run. This method will fully-populate the schedule,
-	 * it's targets, and all child targets (recursively). This method exists
-	 * specifically to retrieve the schedules that must be recalculated in order
-	 * to populate the target instances xx days in advance.
-	 * @return A list of schedules with their targets and child targets 
-	 * populated.
-	 */
-	public List<Schedule> getSchedulesToRun();	
-	
-	/**
-	 * Save a TargetGroup to the database.
-	 * @param aTargetGroup The TargetGroup to save
-	 * @param withChildren true to process the newChildren/removedChildren
-	 *                          lists as well as saving the target group.
-	 * @param parents  The parents.
-	 */
-	public void save(TargetGroup aTargetGroup, boolean withChildren, final List<GroupMemberDTO> parents);
-		
-	/**
-	 * Refresh a persisted object from the database. This is typically
-	 * used after performing mass updates.
-	 * @param anObject The object to refresh.
-	 */
-	public void refresh(Object anObject);
-	
-	/**
-	 * Find all the groups that need to be end dated.
-	 * @return A List of groups to be end dated.
-	 */
-	public List<TargetGroup> findEndedGroups();	
-	
-	/**
-	 * Load the persisted target group SIP type from the database.
-	 * @return oid The OID of the TargetGroup.
-	 */
-	public Integer loadPersistedGroupSipType(Long oid);
-	
-	/**
-	 * Returns a list of seeds linked to the given permission.
-	 * @param aPermission A Permission record.
-	 * @return A List of seeds.
-	 */
-	public List<Seed> getLinkedSeeds(final Permission aPermission);	
+@SuppressWarnings("all")
+@Transactional
+public class TargetDAO extends BaseDAO {
+    private Log log = LogFactory.getLog(TargetDAO.class);
 
-	/**
-	 * Transfer all seeds from one permission to another.
-	 * @param fromPermissionOid The oid of the permission record to transfer
-	 *                          seeds from.
-	 * @param toPermissionOid   The oid of the permission record to transfer
-	 *                          seeds to.
-	 */
-	public void transferSeeds(Long fromPermissionOid, Long toPermissionOid);
-	
-	/**
-	 * Search the Permissions.
-	 * @param aPermissionCriteria The criteria to use to search the permissions.
-	 * @return A Pagination of permission records.
-	 */
-	public Pagination searchPermissions(PermissionCriteria aPermissionCriteria);	
-	
-	/**
-	 * Load a single AbstractTargetDTO.
-	 * @param oid The OID of the DTO to load.
-	 * @return The abstractTargetDTO.
-	 */
-	public AbstractTargetDTO loadAbstractTargetDTO(Long oid);
-	
-	/**
-	 * Delete a pending target.
-	 * @param aTarget The Target to be deleted.
-	 */
-	public void delete(Target aTarget);
+    public void save(final Target aTarget) {
+        save(aTarget, null);
+    }
 
-	/**
-	 * Delete a schedule
-	 * @param schedule The schedule to be deleted
-	 */
-	public void delete(final Schedule schedule);
+    public void save(final Target aTarget, final List<GroupMemberDTO> parents) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Saving of Target");
+                            Session session=currentSession();
+                            session.saveOrUpdate(aTarget);
 
-	/**
-	 * Delete a TargetGroup as long as it has no Target Instances associated
-	 * with it.
-	 * @param aTargetGroup The target group to delete.
-	 * @return true if deleted; otherwise false.
-	 */
-	public boolean deleteGroup(TargetGroup aTargetGroup);
-	
-	/**
-	 * Load the specified target from the persistent store.
-	 * @param targetOid the id of the target to load
-	 * @return the target
-	 */
-	public Target load(long targetOid);
-	
-	/**
-	 * Load the specified target and all its relationships if 
-	 * requested, from the persistent store.
-	 * @param targetOid the id of the target to load
-	 * @param fullyInitialise true if all the relationships should be loaded
-	 * @return the target
-	 */
-	public Target load(long targetOid, boolean fullyInitialise);
-	
-	/**
-	 * Load the specified target group from the persistent store.
-	 * @param targetGroupOid the id of the target group to load
-	 * @return the target group
-	 */
-	public TargetGroup loadGroup(long targetGroupOid);
-	
-	/**
-	 * Load the specified target group and all its relationships if 
-	 * requested, from the persistent store.
-	 * @param targetGroupOid the id of the target group to load
-	 * @param fullyInitialise true if all the relationships should be loaded
-	 * @return the target group
-	 */
-	public TargetGroup loadGroup(long targetGroupOid, boolean fullyInitialise);
+                            if (parents != null) {
+                                for (GroupMemberDTO parent : parents) {
+                                    switch (parent.getSaveState()) {
+                                        case NEW:
+                                            GroupMember member = new GroupMember();
+                                            TargetGroup grp = loadGroup(parent.getParentOid());
+                                            member.setParent(grp);
+                                            member.setChild(aTarget);
+                                            grp.getChildren().add(member);
+                                            aTarget.getParents().add(member);
+                                            session.save(member);
+                                            break;
 
-	/**
-	 * Search for targets that match the specified criteria.
-	 * @param pageNumber the page number of the results to return
-	 * @param pageSize the page size of the results to return
-	 * @param profileOid The OID of a profile that returned targets must be using.
-	 * @param agencyName agency that the target belongs to
-	 * @return the page of results
-	 */
-	public Pagination getTargetsForProfile(int pageNumber, int pageSize, Long profileOid, String agencyName);
+                                        case DELETED:
+                                            session.createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+                                                    .setParameter("childOid", aTarget.getOid())
+                                                    .setParameter("parentOid", parent.getParentOid())
+                                                    .executeUpdate();
+                                            break;
+                                    }
+                                }
+                            }
 
-	/**
-	 * Search for targets that match the specified criteria.
-	 * @param pageNumber the page number of the results to return
-	 * @param pageSize the page size of the results to return
-	 * @param profileOid The OID of a profile that returned targets must be using.
-	 * @return the page of results
-	 */
-	public Pagination getAbstractTargetDTOsForProfile(int pageNumber, int pageSize, Long profileOid);
+                            log.debug("After Saving Target");
+                        } catch (Exception ex) {
+                            log.debug("Setting Rollback Only", ex);
+                            ts.setRollbackOnly();
+                            throw new WCTRuntimeException("Failed to save target", ex);
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
 
-	/**
-	 * Search for targets that match the specified criteria.
-	 * @param pageNumber the page number of the results to return
-	 * @param pageSize the page size of the results to return
-	 * @param searchOid The OID to search for.
-	 * @param targetName the name of the target
-	 * @param states a list of states for the target
-	 * @param seed the targets seed
-	 * @param username the user that owns the target
-	 * @param agencyName agency that the target belongs to
-	 * @param description value to search within description
-	 * @return the page of results
-	 */
-	public Pagination search(int pageNumber, int pageSize, Long searchOid, final String targetName, final Set<Integer> states, final String seed, final String username, final String agencyName, final String memberOf, final boolean nondisplayonly, final String sortorder, final String description);
-	
-	/**
-	 * Check that the name given to an AbstractTarget is available to be used.
-	 * @param aTarget the AbstactTarget whos name will be checked
-	 * @return trus of the name is OK to bve used.
-	 */
-	public boolean isNameOk(AbstractTarget aTarget);
-	
-	
-	/**
-	 * Return a page of members for the specified target group.
-	 * @param aTargetGroup the group to return the members of
-	 * @param pageNum the page number to return
-	 * @return the page of group members
-	 */
-	public Pagination getMembers(TargetGroup aTargetGroup, int pageNum, int pageSize);
-	
-	/**
-	 * Return a list of Integers representing member states for the specified target group.
-	 * @param aTargetGroup the group to return the members states of
-	 * @return the list of group member states
-	 */
-	public List<Integer> getSavedMemberStates(final TargetGroup aTargetGroup);
-	
-	/**
-	 * Return a page of members for the specifed target group.
-	 * @param aTargetGroup the group to return the members of
-	 * @param pageNum the page number to return
-	 * @return the page of group members
-	 */
-	public Pagination getParents(AbstractTarget aTarget, int pageNum, int pageSize);
-	
-	/**
-	 * Return a list of all immediate parents of the specified target.
-	 * @param aTarget The Target to get the parents for.
-	 * @return A List of DTO objects.
-	 */
-	public List<GroupMemberDTO> getParents(final AbstractTarget aTarget);	
-	
-	/**
-	 * Return a page of abstract target DTOs where the name matches the 
-	 * name pattern passed.
-	 * @param name the name pattern to return matching AbstractTargetDTO's for 
-	 * @param pageNumber the page to return
-	 * @return the page of AbstractTargetDTOs
-	 */
-	public Pagination getAbstractTargetDTOs(String name, int pageNumber, int pageSize);
-	
-	
-	/**
-	 * Return a page of group DTOs where the name matches the 
-	 * name pattern passed.
-	 * @param name the name pattern to return matching AbstractTargetDTO's for 
-	 * @param pageNumber the page to return
-	 * @return the page of AbstractTargetDTOs
-	 */
-	public Pagination getGroupDTOs(String name, int pageNumber, int pageSize);
 
-	/**
-	 * Return a page of group DTOs of the specified types where the name matches the 
-	 * name pattern passed.
-	 * @param name the name pattern to return matching AbstractTargetDTO's for 
-	 * @param types a list of group types 
-	 * @param pageNumber the page to return
-	 * @return the page of AbstractTargetDTOs
-	 */
-	public Pagination getSubGroupParentDTOs(String name, List types, int pageNumber, int pageSize);
-	
-	/**
-	 * Return a page of group DTOs of the specified types where the name matches the 
-	 * name pattern passed.
-	 * @param name the name pattern to return matching AbstractTargetDTO's for 
-	 * @param subGroupType a name of the sub-group type 
-	 * @param pageNumber the page to return
-	 * @return the page of AbstractTargetDTOs
-	 */
-	public Pagination getNonSubGroupDTOs(final String name, final String subGroupType, final int pageNumber, final int pageSize);
-	
-	/**
-	 * Load the specified AbstractTarget from the persistent store.
-	 * @param oid the id of the AbstractTarget to load
-	 * @return the AbstractTarget
-	 */
-	public AbstractTarget loadAbstractTarget(Long oid);
-	
-	/**
-	 * Saerch for target groups that match the specified criteria.
-	 * @param pageNumber the page to return
-	 * @param name the name pattern of the group
-	 * @param searchOid The oid to search for.
-	 * @param owner the owner of the group
-	 * @param agency the agency the group belongs to
-	 * @return the page of groups
-	 */
-	public Pagination searchGroups(int pageNumber, int pageSize, Long searchOid, String name, String owner, String agency, String memberOf, String groupType, boolean nondisplayonly);
-	
-	/**
-	 * Perform a load of the requested TargetGroup from the persistent store
-	 * but ensuring that the object is not loaded from the cache.
-	 * @param oid the id of the group to load
-	 * @return the TargetGroup
-	 */
-	public TargetGroup reloadTargetGroup(Long oid);
+    public void save(final Schedule aSchedule) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Saving of Schedule");
+                            currentSession().saveOrUpdate(aSchedule);
+                            log.debug("After Saving Schedule");
+                        } catch (Exception ex) {
+                            log.debug("Setting Rollback Only", ex);
+                            ts.setRollbackOnly();
+                            throw new WCTRuntimeException("Failed to save schedule", ex);
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
 
-	
-	/**
-	 * Perform a load of the requested Target from the persistent store
-	 * but ensuring that the object is not loaded from the cache.
-	 * @param oid the id of the target to load
-	 * @return the Target
-	 */
-	public Target reloadTarget(Long oid);
-	
-	/**
-	 * Return the date and time of the last scheduled target instance 
-	 * for the specified AbstractTarget and Schedule
-	 * @param aTarget the AbstractTarget to get the date for
-	 * @param aSchedule the schedule to get the date for
-	 * @return the last scheduled date
-	 */
-	public Date getLatestScheduledDate(AbstractTarget aTarget, Schedule aSchedule);
-	
-	/**
-	 * Retrun a Set of seeds for the specified target.
-	 * @param aTarget the target to return the seeds for
-	 * @return the set of seeds
-	 */
-	public Set<Seed> getSeeds(Target aTarget);
-	
-	/**
-	 * Return the set of seeds for the specified target group and agency.
-	 * Olnly seeds that belong to targets in the specified agency will be
-	 * returned in the seed set.
-	 * @param aTarget the target group to return the seeds for
-	 * @param agencyOid the agency to return the seeds for
-	 * @param subGroupTypeName the name of the sub group type
-	 * @return the set of seeds
-	 */
-	public Set<Seed> getSeeds(TargetGroup aTarget, Long agencyOid, String subGroupTypeName);
-	
-	/**
-	 * Return a set of the ids of all the ancestors of the specified child.
-	 * @param childOid the oid of the child AbstractTarget
-	 * @return the set of ancestors
-	 */
-	public Set<Long> getAncestorOids(Long childOid);
-	
-	public Set<AbstractTargetDTO> getAncestorDTOs(Long childOid);	
-	
-	/**
-	 * Return a set of oids for a TargetGroups immediate children
-	 * @param groupOid the id of the Target Group
-	 * @return the set of child oids
-	 */
-	public Set<Long> getImmediateChildrenOids(Long groupOid);
-	
-	/**
-	 * Return a count of all the targets that are owned by the 
-	 * specified user
-	 * @param username the name of the owner to count targets for
-	 * @return the count of targets
-	 */
-	long countTargets(final String username);
-	
-	/**
-	 * Return a count of all the target groups that are owned by the 
-	 * specified user
-	 * @param username the name of the owner to count target groups for
-	 * @return the count of target groups
-	 */
-	long countTargetGroups(final String username);
+    public void save(final TargetGroup aTargetGroup, final boolean withChildren, final List<GroupMemberDTO> parents) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Saving of TargetGroup");
+
+                            currentSession().saveOrUpdate(aTargetGroup);
+
+                            // Save all the new children.
+                            if (withChildren) {
+                                List<GroupMemberDTO> groupMemberDTOs = aTargetGroup.getNewChildren();
+                                for (GroupMemberDTO dto : groupMemberDTOs) {
+
+                                    // Only consider new items not in the "Remove Children" list.
+                                    if (!aTargetGroup.getRemovedChildren().contains(dto.getChildOid())) {
+                                        GroupMember member = new GroupMember();
+                                        member.setParent(aTargetGroup);
+                                        AbstractTarget child = loadAbstractTarget(dto.getChildOid());
+                                        member.setChild(child);
+                                        currentSession().save(member);
+                                    }
+                                }
+
+                                // Delete all the removed children.
+                                for (Long childOid : aTargetGroup.getRemovedChildren()) {
+                                    currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+                                            .setParameter("childOid", childOid)
+                                            .setParameter("parentOid", aTargetGroup.getOid())
+                                            .executeUpdate();
+                                }
+                            }
+
+                            if (parents != null) {
+                                for (GroupMemberDTO parent : parents) {
+                                    switch (parent.getSaveState()) {
+                                        case NEW:
+                                            GroupMember member = new GroupMember();
+                                            TargetGroup grp = loadGroup(parent.getParentOid());
+                                            member.setParent(grp);
+                                            member.setChild(aTargetGroup);
+                                            grp.getChildren().add(member);
+                                            aTargetGroup.getParents().add(member);
+                                            currentSession().save(member);
+                                            break;
+
+                                        case DELETED:
+                                            currentSession().createQuery("delete GroupMember where child.oid = :childOid and parent.oid = :parentOid")
+                                                    .setParameter("childOid", aTargetGroup.getOid())
+                                                    .setParameter("parentOid", parent.getParentOid())
+                                                    .executeUpdate();
+                                            break;
+                                    }
+                                }
+                            }
+
+                            log.debug("After Saving TargetGroup");
+                        } catch (Exception ex) {
+                            log.debug("Setting Rollback Only", ex);
+                            ts.setRollbackOnly();
+                            throw new WCTRuntimeException("Failed to save Target Group", ex);
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
+
+    public Target load(long targetOid) {
+        return load(targetOid, false);
+    }
+
+    public Target load(final long targetOid, final boolean fullyInitialise) {
+
+        return (Target) getHibernateTemplate().execute(new HibernateCallback() {
+
+            public Object doInHibernate(Session aSession) throws HibernateException {
+                if (!fullyInitialise) {
+                    Target aTarget = (Target) aSession.load(Target.class, targetOid);
+                    aTarget.setDirty(false);
+                    return aTarget;
+                } else {
+                    // Initialise some more items that we'll need. This is used
+                    // to prevent lazy load exceptions, since we're doing things
+                    // across multiple sessions.
+                    Target t = (Target) aSession.load(Target.class, targetOid);
+
+                    Hibernate.initialize(t.getSeeds());
+                    Hibernate.initialize(t.getSchedules());
+                    Hibernate.initialize(t.getOverrides());
+                    Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
+                    Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
+                    Hibernate.initialize(t.getOverrides().getCredentials());
+
+                    for (Seed s : t.getSeeds()) {
+                        Hibernate.initialize(s.getPermissions());
+                    }
+
+                    t.setDirty(false);
+
+                    return t;
+                }
+            }
+        });
+    }
+
+
+    public Pagination getMembers(final TargetGroup aTargetGroup, final int pageNum, final int pageSize) {
+        if (aTargetGroup.isNew()) {
+            return new Pagination(aTargetGroup.getNewChildren(), pageNum, pageSize);
+        } else {
+            return (Pagination) getHibernateTemplate().execute(
+                    new HibernateCallback() {
+                        public Object doInHibernate(Session session) {
+                            Query query = session.getNamedQuery(GroupMember.QUERY_GET_MEMBERS);
+                            Query cntQuery = session.getNamedQuery(GroupMember.QUERY_CNT_MEMBERS);
+                            query.setParameter("parentOid", aTargetGroup.getOid());
+                            cntQuery.setParameter("parentOid", aTargetGroup.getOid());
+                            Pagination pagination = new Pagination(aTargetGroup.getNewChildren(), cntQuery, query, pageNum, pageSize);
+                            return pagination;
+                        }
+                    }
+            );
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Integer> getSavedMemberStates(final TargetGroup aTargetGroup) {
+        if (aTargetGroup.isNew()) {
+            return new LinkedList<Integer>();
+        } else {
+            return (List<Integer>) getHibernateTemplate().execute(
+                    new HibernateCallback() {
+                        @SuppressWarnings("unchecked")
+                        public Object doInHibernate(Session session) {
+                            Query q = session.getNamedQuery(GroupMember.QUERY_GET_MEMBERSTATES);
+                            q.setParameter("parentOid", aTargetGroup.getOid());
+                            List<Integer> states = q.list();
+
+                            return states;
+                        }
+                    }
+            );
+        }
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<GroupMemberDTO> getParents(final AbstractTarget aTarget) {
+        if (aTarget.isNew()) {
+            return new LinkedList<GroupMemberDTO>();
+        } else {
+            return (List<GroupMemberDTO>) getHibernateTemplate().execute(
+                    new HibernateCallback() {
+                        @SuppressWarnings("unchecked")
+                        public Object doInHibernate(Session session) {
+                            Query q = session.getNamedQuery(GroupMember.QUERY_GET_PARENTS);
+                            q.setParameter("childOid", aTarget.getOid());
+                            List<GroupMemberDTO> dtos = q.list();
+
+                            for (GroupMemberDTO dto : dtos) {
+                                dto.setSaveState(SAVE_STATE.ORIGINAL);
+                            }
+
+                            return dtos;
+                        }
+                    }
+            );
+        }
+    }
+
+
+    public Pagination getParents(final AbstractTarget aTarget, final int pageNum, final int pageSize) {
+        if (aTarget.isNew()) {
+            return new Pagination(aTarget.getNewParents(), pageNum, pageSize);
+        } else {
+            return (Pagination) getHibernateTemplate().execute(
+                    new HibernateCallback() {
+                        public Object doInHibernate(Session session) {
+                            Query query = session.getNamedQuery(GroupMember.QUERY_GET_PARENTS);
+                            Query cntQuery = session.getNamedQuery(GroupMember.QUERY_CNT_PARENTS);
+                            query.setParameter("childOid", aTarget.getOid());
+                            cntQuery.setParameter("childOid", aTarget.getOid());
+                            //FIXME Need to get the new parent groups.
+                            Pagination pagination = new Pagination(aTarget.getNewParents(), cntQuery, query, pageNum, pageSize);
+                            return pagination;
+                        }
+                    }
+            );
+        }
+    }
+
+    public Pagination getTargetsForProfile(final int pageNumber, final int pageSize, final Long profileOid, final String agencyName) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Criteria query = session.createCriteria(Target.class);
+                        Criteria cntQuery = session.createCriteria(Target.class);
+                        Criteria ownerCriteria = null;
+                        Criteria cntOwnerCriteria = null;
+
+                        if (profileOid != null) {
+                            query.add(Restrictions.eq("t.profile.oid", profileOid));
+                            cntQuery.add(Restrictions.eq("t.profile.oid", profileOid));
+                        }
+
+                        if (!Utils.isEmpty(agencyName)) {
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                                cntOwnerCriteria = cntQuery.createCriteria("owner");
+                            }
+                            ownerCriteria.createCriteria("agency").add(Restrictions.eq("name", agencyName));
+                            cntOwnerCriteria.createCriteria("agency").add(Restrictions.eq("name", agencyName));
+                        }
+
+                        query.addOrder(Order.asc("name"));
+
+                        cntQuery.setProjection(Projections.rowCount());
+
+                        return new Pagination(cntQuery, query, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public Pagination getAbstractTargetDTOsForProfile(final int pageNumber, final int pageSize, final Long profileOid) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Query q = session.getNamedQuery(AbstractTarget.QUERY_TARGET_DTOS_BY_PROFILE);
+                        Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_TARGET_DTOS_BY_PROFILE);
+                        q.setParameter("profileoid", profileOid);
+                        cq.setParameter("profileoid", profileOid);
+
+                        return new Pagination(cq, q, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+
+    public Pagination search(final int pageNumber, final int pageSize, final Long searchOid, final String targetName, final Set<Integer> states, final String seed, final String username, final String agencyName, final String memberOf, final boolean nondisplayonly, final String sortorder, final String description) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Criteria query = session.createCriteria(Target.class);
+                        Criteria cntQuery = session.createCriteria(Target.class);
+
+                        //To skip duplicated data.
+                        query.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+                        cntQuery.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
+
+                        Criteria ownerCriteria = null;
+                        Criteria cntOwnerCriteria = null;
+
+                        if (targetName != null && !"".equals(targetName.trim())) {
+                            query.add(Restrictions.ilike("name", targetName, MatchMode.START));
+                            cntQuery.add(Restrictions.ilike("name", targetName, MatchMode.START));
+                        }
+
+                        if (description != null && !"".equals(description.trim())) {
+                            query.add(Restrictions.ilike("description", description, MatchMode.ANYWHERE));
+                            cntQuery.add(Restrictions.ilike("description", description, MatchMode.ANYWHERE));
+                        }
+
+                        if (states != null && states.size() > 0) {
+                            Disjunction stateDisjunction = Restrictions.disjunction();
+                            for (Integer i : states) {
+                                stateDisjunction.add(Restrictions.eq("state", i));
+                            }
+                            query.add(stateDisjunction);
+                            cntQuery.add(stateDisjunction);
+                        }
+
+                        if (seed != null && !"".equals(seed.trim())) {
+                            query.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
+                            cntQuery.createCriteria("seeds").add(Restrictions.like("seed", seed, MatchMode.START));
+                        }
+
+                        if (!Utils.isEmpty(username)) {
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                                cntOwnerCriteria = cntQuery.createCriteria("owner");
+                            }
+                            ownerCriteria.add(Restrictions.eq("username", username));
+                            cntOwnerCriteria.add(Restrictions.eq("username", username));
+                        }
+
+                        // Parents criteria.
+                        if (!Utils.isEmpty(memberOf)) {
+                            query.createCriteria("parents").createCriteria("parent").add(Restrictions.ilike("name", memberOf, MatchMode.START));
+                            cntQuery.createCriteria("parents").createCriteria("parent").add(Restrictions.ilike("name", memberOf, MatchMode.START));
+                        }
+
+                        if (!Utils.isEmpty(agencyName)) {
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                                cntOwnerCriteria = cntQuery.createCriteria("owner");
+                            }
+                            ownerCriteria.createCriteria("agency").add(Restrictions.eq("name", agencyName));
+                            cntOwnerCriteria.createCriteria("agency").add(Restrictions.eq("name", agencyName));
+                        }
+
+                        if (searchOid != null) {
+                            query.add(Restrictions.eq("oid", searchOid));
+                            cntQuery.add(Restrictions.eq("oid", searchOid));
+                        }
+
+                        if (nondisplayonly) {
+                            query.add(Restrictions.eq("displayTarget", false));
+                            cntQuery.add(Restrictions.eq("displayTarget", false));
+                        }
+
+                        if (sortorder == null || sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_ASC)) {
+                            query.addOrder(Order.asc("name"));
+                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_NAME_DESC)) {
+                            query.addOrder(Order.desc("name"));
+                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_ASC)) {
+                            query.addOrder(Order.asc("creationDate"));
+                        } else if (sortorder.equals(CommandConstants.TARGET_SEARCH_COMMAND_SORT_DATE_DESC)) {
+                            query.addOrder(Order.desc("creationDate"));
+                        }
+                        cntQuery.setProjection(Projections.rowCount());
+
+                        return new Pagination(cntQuery, query, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name, final String owner, final String agency, final String memberOf, final String groupType, final boolean nondisplayonly) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Criteria query = session.createCriteria(TargetGroup.class);
+                        Criteria cntQuery = session.createCriteria(TargetGroup.class);
+                        Criteria ownerCriteria = null;
+                        Criteria cntOwnerCriteria = null;
+
+                        if (name != null && !"".equals(name.trim())) {
+                            query.add(Restrictions.ilike("name", name, MatchMode.START));
+                            cntQuery.add(Restrictions.ilike("name", name, MatchMode.START));
+                        }
+
+                        if (!Utils.isEmpty(owner)) {
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                                cntOwnerCriteria = cntQuery.createCriteria("owner");
+                            }
+                            ownerCriteria.add(Restrictions.eq("username", owner));
+                            cntOwnerCriteria.add(Restrictions.eq("username", owner));
+                        }
+
+                        // Parents criteria.
+                        if (!Utils.isEmpty(memberOf)) {
+                            query.createCriteria("parents").createCriteria("parent").add(Restrictions.ilike("name", memberOf, MatchMode.START));
+                            cntQuery.createCriteria("parents").createCriteria("parent").add(Restrictions.ilike("name", memberOf, MatchMode.START));
+                        }
+
+                        // Group Type criteria.
+                        if (!Utils.isEmpty(groupType)) {
+                            query.add(Restrictions.eq("type", groupType));
+                            cntQuery.add(Restrictions.eq("type", groupType));
+                        }
+
+                        if (!Utils.isEmpty(agency)) {
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                                cntOwnerCriteria = cntQuery.createCriteria("owner");
+                            }
+                            ownerCriteria.createCriteria("agency").add(Restrictions.eq("name", agency));
+                            cntOwnerCriteria.createCriteria("agency").add(Restrictions.eq("name", agency));
+                        }
+
+                        if (searchOid != null) {
+                            query.add(Restrictions.eq("oid", searchOid));
+                            cntQuery.add(Restrictions.eq("oid", searchOid));
+                        }
+
+                        if (nondisplayonly) {
+                            query.add(Restrictions.eq("displayTarget", false));
+                            cntQuery.add(Restrictions.eq("displayTarget", false));
+                        }
+
+                        query.addOrder(Order.asc("name"));
+
+                        cntQuery.setProjection(Projections.rowCount());
+
+                        return new Pagination(cntQuery, query, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public long countTargets(final String username) {
+        return (Long) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+                        Criteria query = session.createCriteria(Target.class);
+                        Criteria ownerCriteria = null;
+                        query.setProjection(Projections.rowCount());
+                        if (!Utils.isEmpty(username)) {
+                            ownerCriteria = query.createCriteria("owner").add(Restrictions.eq("username", username));
+                        }
+
+                        Long count = (Long) query.uniqueResult();
+
+                        return count;
+                    }
+                }
+        );
+    }
+
+    public long countTargetGroups(final String username) {
+        return (Long) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+                        Criteria query = session.createCriteria(TargetGroup.class);
+                        Criteria ownerCriteria = null;
+                        query.setProjection(Projections.rowCount());
+                        if (!Utils.isEmpty(username)) {
+                            if (ownerCriteria == null) {
+                                ownerCriteria = query.createCriteria("owner");
+                            }
+                            ownerCriteria.add(Restrictions.eq("username", username));
+                        }
+
+                        Long count = (Long) query.uniqueResult();
+
+                        return count;
+                    }
+                }
+        );
+    }
+
+    /**
+     * @param txTemplate The txTemplate to set.
+     */
+    public void setTxTemplate(TransactionTemplate txTemplate) {
+        this.txTemplate = txTemplate;
+    }
+
+    public boolean isNameOk(AbstractTarget aTarget) {
+        Criteria criteria = currentSession().createCriteria(AbstractTarget.class);
+        criteria.setProjection(Projections.rowCount());
+        criteria.add(Restrictions.eq("name", aTarget.getName()));
+        if (aTarget instanceof TargetGroup) {
+            criteria.add(Restrictions.eq("objectType", 0));
+        }
+        if (aTarget instanceof Target) {
+            criteria.add(Restrictions.eq("objectType", 1));
+        }
+        if (aTarget.getOid() != null) {
+            criteria.add(Restrictions.ne("oid", aTarget.getOid()));
+        }
+
+        Long count = (Long) criteria.uniqueResult();
+
+        return count == 0L;
+    }
+
+    public Pagination getAbstractTargetDTOs(final String name, final int pageNumber, final int pageSize) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Query q = session.getNamedQuery(AbstractTarget.QUERY_DTO_BY_NAME);
+                        Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_DTO_BY_NAME);
+                        q.setParameter(1, name);
+                        cq.setParameter(1, name);
+
+                        return new Pagination(cq, q, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public Pagination getGroupDTOs(final String name, final int pageNumber, final int pageSize) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Query q = session.getNamedQuery(AbstractTarget.QUERY_GROUP_DTOS_BY_NAME);
+                        Query cq = session.getNamedQuery(AbstractTarget.QUERY_CNT_GROUP_DTOS_BY_NAME);
+                        q.setParameter(1, name);
+                        cq.setParameter(1, name);
+
+                        return new Pagination(cq, q, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public Pagination getSubGroupParentDTOs(final String name, final List types, final int pageNumber, final int pageSize) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Query q = session.getNamedQuery(TargetGroup.QUERY_GROUP_DTOS_BY_NAME_AND_TYPE);
+                        Query cq = session.getNamedQuery(TargetGroup.QUERY_CNT_GROUP_DTOS_BY_NAME_AND_TYPE);
+                        q.setParameter("name", name);
+                        q.setParameterList("types", types);
+                        cq.setParameter("name", name);
+                        cq.setParameterList("types", types);
+
+                        return new Pagination(cq, q, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public Pagination getNonSubGroupDTOs(final String name, final String subGroupType, final int pageNumber, final int pageSize) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Query q = session.getNamedQuery(AbstractTargetGroupTypeView.QUERY_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
+                        Query cq = session.getNamedQuery(AbstractTargetGroupTypeView.QUERY_CNT_NON_SUBGROUP_DTOS_BY_NAME_AND_TYPE);
+                        q.setParameter("name", name);
+                        q.setParameter("subgrouptype", subGroupType);
+                        cq.setParameter("name", name);
+                        cq.setParameter("subgrouptype", subGroupType);
+
+                        return new Pagination(cq, q, pageNumber, pageSize);
+                    }
+                }
+        );
+    }
+
+    public AbstractTargetDTO loadAbstractTargetDTO(final Long oid) {
+        return (AbstractTargetDTO) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+                        return session.getNamedQuery(AbstractTarget.QUERY_DTO_BY_OID)
+                                .setParameter("oid", oid)
+                                .uniqueResult();
+                    }
+                }
+        );
+    }
+
+    public TargetGroup loadGroup(long targetGroupOid) {
+        return loadGroup(targetGroupOid, false);
+    }
+
+    public TargetGroup loadGroup(final long targetGroupOid, final boolean fullyInitialise) {
+        return (TargetGroup) getHibernateTemplate().execute(new HibernateCallback() {
+
+            public Object doInHibernate(Session aSession) throws HibernateException {
+                if (!fullyInitialise) {
+                    TargetGroup aTargetGroup = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
+                    aTargetGroup.setDirty(false);
+                    return aTargetGroup;
+                } else {
+                    // Initialise some more items that we'll need. This is used
+                    // to prevent lazy load exceptions, since we're doing things
+                    // across multiple sessions.
+                    TargetGroup t = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
+
+                    Hibernate.initialize(t.getSchedules());
+                    Hibernate.initialize(t.getOverrides());
+                    Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
+                    Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
+                    Hibernate.initialize(t.getOverrides().getCredentials());
+                    //Hibernate.initialize(t.getChildren());
+
+                    t.setDirty(false);
+
+                    return t;
+                }
+            }
+        });
+    }
+
+
+    public AbstractTarget loadAbstractTarget(Long oid) {
+        return (AbstractTarget) getHibernateTemplate().load(AbstractTarget.class, oid);
+    }
+
+    public void refresh(Object anObject) {
+        currentSession().refresh(anObject);
+    }
+
+    public TargetGroup reloadTargetGroup(Long oid) {
+        // Evict the group from the session and reload.
+        currentSession().evict(getHibernateTemplate().load(TargetGroup.class, oid));
+
+        return (TargetGroup) getHibernateTemplate().load(TargetGroup.class, oid);
+    }
+
+    public Target reloadTarget(Long oid) {
+        // Evict the group from the session and reload.
+        currentSession().evict(getHibernateTemplate().load(Target.class, oid));
+
+        return (Target) getHibernateTemplate().load(Target.class, oid);
+    }
+
+    public Date getLatestScheduledDate(final AbstractTarget aTarget, final Schedule aSchedule) {
+        return (Date) getHibernateTemplate().execute(new HibernateCallback() {
+            public Object doInHibernate(Session aSession) {
+                Query query = aSession.getNamedQuery(TargetInstance.QUERY_GET_LATEST_FOR_TARGET);
+                query.setParameter("targetOid", aTarget.getOid());
+                query.setParameter("scheduleOid", aSchedule.getOid());
+
+                Date dt = (Date) query.uniqueResult();
+                return dt;
+            }
+        });
+    }
+
+
+    @SuppressWarnings(value = "unchecked")
+    public Set<Seed> getSeeds(final Target aTarget) {
+        List<Seed> rst = (List<Seed>) getHibernateTemplate().execute(new HibernateCallback() {
+            public Object doInHibernate(Session aSession) {
+                Query q = aSession.createNamedQuery(Seed.QUERY_SEED_BY_TARGET_ID, Seed.class);
+                q.setLong("targetOid", aTarget.getOid());
+                return q.list();
+            }
+        });
+
+        Set<Seed> seeds = new HashSet<Seed>();
+        seeds.addAll(rst);
+        return seeds;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public Set<Seed> getSeeds(final TargetGroup aTarget, final Long agencyOid, final String subGroupTypeName) {
+        Set<Seed> seeds = new HashSet<Seed>();
+        seeds.addAll((Set) getHibernateTemplate().execute(new HibernateCallback() {
+            public Object doInHibernate(Session aSession) {
+                TargetGroup tg = (TargetGroup) aSession.load(TargetGroup.class, aTarget.getOid());
+                return getSeeds(aSession, tg);
+            }
+
+            public Set<Seed> getSeeds(Session aSession, AbstractTarget target) {
+                if (target.getObjectType() == AbstractTarget.TYPE_GROUP) {
+                    Set<Seed> seeds = new HashSet<Seed>();
+                    for (GroupMember groupMember : ((TargetGroup) target).getChildren()) {
+                        AbstractTarget child = groupMember.getChild();
+
+                        if (child.getObjectType() == AbstractTarget.TYPE_GROUP) {
+                            TargetGroup childGroup;
+                            if (child instanceof TargetGroup) {
+                                childGroup = (TargetGroup) child;
+                            } else {
+                                childGroup = (TargetGroup) aSession.load(TargetGroup.class, child.getOid());
+                            }
+
+                            //If the childGroup is a sub-group, we don't want to include the seeds from the sub-group members
+                            if (!subGroupTypeName.equals(childGroup.getType())) {
+                                seeds.addAll(getSeeds(aSession, childGroup));
+                            }
+                        } else {
+                            Target childTarget;
+                            if (child instanceof Target) {
+                                childTarget = (Target) child;
+                            } else {
+                                childTarget = (Target) aSession.load(Target.class, child.getOid());
+                            }
+
+                            if (isApprovedForHarvest(childTarget) && childTarget.getOwner().getAgency().getOid().equals(agencyOid)) {
+                                seeds.addAll(childTarget.getSeeds());
+                            }
+                        }
+                    }
+                    return seeds;
+                } else {
+                    return target.getSeeds();
+                }
+            }
+
+        }));
+        return seeds;
+    }
+
+    private boolean isApprovedForHarvest(Target aTarget) {
+
+        if (aTarget.getState() == Target.STATE_APPROVED || aTarget.getState() == Target.STATE_COMPLETED) {
+            boolean approved = false;
+            boolean foundBadSeed = false;
+
+            Seed seed = null;
+            Set<Seed> seeds = aTarget.getSeeds();
+            Iterator<Seed> it = seeds.iterator();
+            while (it.hasNext()) {
+                seed = (Seed) it.next();
+                if (!seed.isHarvestable(new Date())) {
+                    foundBadSeed = true;
+                    break;
+                }
+            }
+
+            if (!seeds.isEmpty() && !foundBadSeed) {
+                approved = true;
+            }
+
+            return approved;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean causesLoop(TargetGroup parentOid, AbstractTarget childOid) {
+
+
+        return false;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Set<Long> getAncestorOids(final Long childOid) {
+        Map<Long, Long> duplicateValidator=new HashMap<>();
+        Set<Long> parents=getAncestorOidsInternal(childOid,duplicateValidator);
+        duplicateValidator.clear();
+        return parents;
+    }
+    private Set<Long> getAncestorOidsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
+        if (childOid == null) {
+            return Collections.EMPTY_SET;
+        }
+
+        if(!duplicateValidator.containsKey(childOid.longValue())){
+            duplicateValidator.put(childOid.longValue(), childOid);
+        }
+
+        Set<Long> parentOids = new HashSet<Long>();
+
+        List<Long> immediateParents = getHibernateTemplate().execute(session ->
+                session.createQuery("SELECT new java.lang.Long(gm.parent.oid) FROM GroupMember gm where gm.child.oid = :childOid")
+                        .setParameter("childOid", childOid)
+                        .list());
+
+        for (Long parentOid : immediateParents) {
+            if(!duplicateValidator.containsKey(parentOid.longValue())) {
+                parentOids.add(parentOid);
+                parentOids.addAll(getAncestorOidsInternal(parentOid, duplicateValidator));
+            }
+        }
+
+        return parentOids;
+
+    }
+
+    @SuppressWarnings("unchecked")
+    public Set<AbstractTargetDTO> getAncestorDTOs(final Long childOid) {
+        Map<Long, Long> duplicateValidator=new HashMap<>();
+        Set<AbstractTargetDTO> parents=getAncestorDTOsInternal(childOid,duplicateValidator);
+        duplicateValidator.clear();
+        return parents;
+    }
+
+    private Set<AbstractTargetDTO> getAncestorDTOsInternal(final Long childOid, final  Map<Long, Long> duplicateValidator) {
+        if (childOid == null) {
+            return Collections.EMPTY_SET;
+        }
+
+        if(!duplicateValidator.containsKey(childOid.longValue())) {
+            duplicateValidator.put(childOid.longValue(),childOid);
+        }
+
+        Set<AbstractTargetDTO> parents = new HashSet<AbstractTargetDTO>();
+
+        List<AbstractTargetDTO> immediateParents = getHibernateTemplate().execute(session ->
+                session.createQuery("SELECT new org.webcurator.domain.model.dto.AbstractTargetDTO(t.oid, t.name, t.owner.oid, t.owner.username, t.owner.agency.name, t.state, t.profile.oid, t.objectType) FROM TargetGroup t LEFT JOIN t.children AS gm INNER JOIN gm.child AS child where child.oid = :childOid")
+                        .setParameter("childOid", childOid)
+                        .list());
+
+        for (AbstractTargetDTO parent : immediateParents) {
+            if(!duplicateValidator.containsKey(parent.getOid().longValue())) {
+                parents.add(parent);
+                parents.addAll(getAncestorDTOsInternal(parent.getOid(), duplicateValidator));
+            }
+        }
+
+        return parents;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public Set<Long> getImmediateChildrenOids(final Long parentOid) {
+        if (parentOid == null) {
+            return Collections.EMPTY_SET;
+        } else {
+            List<Long> immediateChildren = getHibernateTemplate().execute(session ->
+                    session.createQuery("SELECT new java.lang.Long(gm.child.oid) FROM GroupMember gm where gm.parent.oid = :parentOid")
+                            .setParameter("parentOid", parentOid)
+                            .list());
+
+            Set<Long> retval = new HashSet<Long>();
+            retval.addAll(immediateChildren);
+            return retval;
+        }
+    }
+
+    /**
+     * Find all the groups that need to be end dated.
+     *
+     * @return A List of groups to be end dated.
+     */
+    @SuppressWarnings("unchecked")
+    public List<TargetGroup> findEndedGroups() {
+        // TODO HIBERNATE Note the previous version. This is an attempt to convert to JPA 2.0 notation using lambdas.
+        // TODO HIBERNATE The joins and query may not be set up correctly and will need to be verified.
+        List<TargetGroup> results = getHibernateTemplate().execute(session -> {
+            CriteriaBuilder builder = session.getCriteriaBuilder();
+            CriteriaQuery<TargetGroup> criteriaQuery = builder.createQuery(TargetGroup.class);
+            Root<TargetGroup> root = criteriaQuery.from(TargetGroup.class);
+            Predicate notEqual = builder.notEqual(root.get("state"), TargetGroup.STATE_ACTIVE);
+            Predicate lessThan = builder.lessThan(root.get("toDate"), new Date());
+            root.fetch("schedules", JoinType.LEFT);
+            root.fetch("parents", JoinType.LEFT);
+            root.fetch("parents", JoinType.LEFT);
+            criteriaQuery.select(root).where(builder.and(notEqual, lessThan));
+            return session.createQuery(criteriaQuery).list();
+        });
+        log.debug("Found " + results.size() + " groups that need to be unscheduled");
+
+        return results;
+    }
+
+
+    /**
+     * Load the persisted target group SIP type from the database.
+     *
+     * @return oid The OID of the TargetGroup.
+     */
+    public Integer loadPersistedGroupSipType(final Long oid) {
+        return (Integer) getHibernateTemplate().execute(session ->
+                session.createQuery("SELECT new java.lang.Integer(sipType) FROM TargetGroup WHERE oid=:groupOid")
+                        .setParameter("groupOid", oid)
+                        .uniqueResult());
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<Seed> getLinkedSeeds(final Permission aPermission) {
+//        return getHibernateTemplate().execute(session ->
+//                session.createNamedQuery(Seed.QUERY_SEED_BY_PERMISSION_OID, Seed.class)
+//                        .setParameter(1, aPermission.getOid())
+//                        .list());
+        List<Seed> list = new ArrayList<Seed>();
+        list.addAll(aPermission.getSeeds());
+        return list;
+    }
+
+
+    /**
+     * Transfer all seeds from one permission to another.
+     *
+     * @param fromPermissionOid The oid of the permission record to transfer
+     *                          seeds from.
+     * @param toPermissionOid   The oid of the permission record to transfer
+     *                          seeds to.
+     */
+    public void transferSeeds(final Long fromPermissionOid, final Long toPermissionOid) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            return currentSession().createQuery("UPDATE SEED_PERMISSION SET SP_PERMISSION_ID = :toPermissionOid WHERE SP_PERMISSION_ID = :fromPermissionOid")
+                                    .setParameter("toPermissionOid", toPermissionOid)
+                                    .setParameter("fromPermissionOid", fromPermissionOid)
+                                    .executeUpdate();
+
+                        } catch (Exception ex) {
+                            ts.setRollbackOnly();
+                            log.error("Exception transferring seeds", ex);
+                            throw new WCTRuntimeException("Exception transferring seeds", ex);
+                        }
+                    }
+                }
+        );
+    }
+
+    /**
+     * Basic save all method. This will save all of the objects in the
+     * collection to the database but will perform nothing more than the
+     * Hibernate save/cascade logic. It should not be used to save a collection
+     * of targets or target groups.
+     *
+     * @param collection A collection of objects to be saved.
+     */
+    public void saveAll(final Collection collection) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Saving Object");
+                            for (Object o : collection) {
+                                currentSession().saveOrUpdate(o);
+                            }
+                            log.debug("After Saving Object");
+                        } catch (Exception ex) {
+                            log.debug("Setting Rollback Only");
+                            ts.setRollbackOnly();
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
+
+    private boolean nullOrEmpty(String aString) {
+        return aString == null || "".equals(aString.trim());
+    }
+
+    /**
+     * Search the Permissions.
+     *
+     * @param aPermissionCriteria The criteria to use to search the permissions.
+     * @return A Pagination of permission records.
+     */
+    public Pagination searchPermissions(final PermissionCriteria aPermissionCriteria) {
+        return (Pagination) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        Criteria query = session.createCriteria(Permission.class);
+                        Criteria cntQuery = session.createCriteria(Permission.class);
+
+                        if (!nullOrEmpty(aPermissionCriteria.getSiteName())) {
+                            query.createCriteria("site")
+                                    .add(Restrictions.ilike("title", aPermissionCriteria.getSiteName(), MatchMode.START));
+                            cntQuery.createCriteria("site")
+                                    .add(Restrictions.ilike("title", aPermissionCriteria.getSiteName(), MatchMode.START));
+                        }
+
+                        if (!nullOrEmpty(aPermissionCriteria.getUrlPattern())) {
+                            query.createCriteria("urls")
+                                    .add(Restrictions.ilike("pattern", aPermissionCriteria.getUrlPattern(), MatchMode.START));
+                            cntQuery.createCriteria("urls")
+                                    .add(Restrictions.ilike("pattern", aPermissionCriteria.getUrlPattern(), MatchMode.START));
+                        }
+
+                        if (aPermissionCriteria.getAgencyOid() != null) {
+                            query.createCriteria("owningAgency")
+                                    .add(Restrictions.eq("oid", aPermissionCriteria.getAgencyOid()));
+                            cntQuery.createCriteria("owningAgency")
+                                    .add(Restrictions.eq("oid", aPermissionCriteria.getAgencyOid()));
+                        }
+
+                        query.setFetchMode("permissions", FetchMode.JOIN);
+                        cntQuery.setFetchMode("permissions", FetchMode.JOIN);
+                        cntQuery.setProjection(Projections.rowCount());
+
+                        return new Pagination(cntQuery, query, aPermissionCriteria.getPageNumber(), Constants.GBL_PAGE_SIZE);
+                    }
+                }
+        );
+    }
+
+    /**
+     * Delete a pending target.
+     *
+     * @param aTarget The Target to be deleted.
+     */
+    public void delete(final Target aTarget) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Deleting Object");
+                            currentSession().delete(aTarget);
+                            log.debug("Object deleted successfully");
+                        } catch (Exception ex) {
+                            log.error("Setting Rollback Only");
+                            ts.setRollbackOnly();
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
+
+    /**
+     * Delete a schedule
+     * @param schedule
+     */
+    public void delete(final Schedule schedule){
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Deleting Object");
+                            currentSession().delete(schedule);
+                            log.debug("Object deleted successfully");
+                        } catch (Exception ex) {
+                            log.error("Setting Rollback Only");
+                            ts.setRollbackOnly();
+                        }
+                        return null;
+                    }
+                }
+        );
+    }
+    /**
+     * Delete a TargetGroup as long as it has no Target Instances associated
+     * with it.
+     *
+     * @param aTargetGroup The target group to delete.
+     * @return true if deleted; otherwise false.
+     */
+    public boolean deleteGroup(final TargetGroup aTargetGroup) {
+        return (Boolean) txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Deleting Object");
+
+                            // Step one - check that the target group has 
+                            // no target instances.
+                            Criteria criteria = currentSession()
+                                    .createCriteria(TargetInstance.class)
+                                    .createCriteria("schedule")
+                                    .createCriteria("target")
+                                    .add(Restrictions.eq("oid", aTargetGroup.getOid()))
+                                    .setProjection(Projections.rowCount());
+
+                            Long count = (Long) criteria.uniqueResult();
+
+                            // If there are instances, we can't delete the object.
+                            if (count > 0L) {
+                                log.debug("Delete failed due to target instances existing");
+                                return false;
+                            }
+
+                            // There are no instances, so delete away.
+                            else {
+                                // Delete all links to parents and children.
+                                currentSession()
+                                        .createQuery("delete from GroupMember g where g.child.oid = :groupOid or g.parent.oid = :groupOid")
+                                        .setParameter("groupOid", aTargetGroup.getOid())
+                                        .executeUpdate();
+
+                                // Finally delete the group.
+                                currentSession().delete(aTargetGroup);
+
+                                log.debug("Delete Successful");
+
+                                return true;
+                            }
+                        } catch (Exception ex) {
+                            log.error("Setting Rollback Only", ex);
+                            ts.setRollbackOnly();
+                            return false;
+                        }
+
+                    }
+                }
+        );
+    }
+
+    /**
+     * Get schedules to re-run
+     */
+    public List<Schedule> getSchedulesToRun() {
+
+        return (List<Schedule>) getHibernateTemplate().execute(
+                new HibernateCallback() {
+                    public Object doInHibernate(Session session) {
+
+                        final Calendar cal = Calendar.getInstance();
+
+                        cal.setTime(new Date());
+                        cal.add(Calendar.DAY_OF_MONTH, EnvironmentFactory.getEnv().getDaysToSchedule());
+                        cal.set(Calendar.HOUR_OF_DAY, 23);
+                        cal.set(Calendar.MINUTE, 59);
+                        cal.set(Calendar.SECOND, 59);
+                        cal.set(Calendar.MILLISECOND, 999);
+
+                        List<Schedule> schedules = session.createCriteria(Schedule.class)
+                                .add(Restrictions.le("nextScheduleAfterPeriod", cal.getTime()))
+                                .list();
+
+                        for (Schedule s : schedules) {
+                            if (s.getTarget() == null) {
+                                System.out.println("Schedule has null target so skipping initialisation: " + s.getOid());
+                                log.debug("Schedule has null target so skipping initialisation: " + s.getOid());
+                            } else {
+                                log.debug("Initialising target and children for schedule: " + s.getOid());
+                                initTargetAndChildrenInSession(s.getTarget(), session);
+                            }
+                        }
+
+                        return schedules;
+                    }
+                }
+        );
+    }
+
+    private void initTargetAndChildrenInSession(AbstractTarget aTarget, Session session) {
+        log.debug("Initialising target and children for abstract target: " + aTarget.getOid());
+        if (aTarget.getObjectType() == AbstractTarget.TYPE_GROUP) {
+            TargetGroup group = loadGroup(aTarget.getOid(), true);
+            if (group.getSipType() == TargetGroup.MANY_SIP) {
+                log.debug("Initialising a target group.");
+                Hibernate.initialize(group);
+                Hibernate.initialize(group.getChildren());
+                for (GroupMember gm : group.getChildren()) {
+                    AbstractTarget childTarget = (AbstractTarget) session.load(AbstractTarget.class, gm.getChild().getOid());
+                    initTargetAndChildrenInSession(childTarget, session);
+                }
+            }
+        } else {
+            log.debug("Initialising a target.");
+            Hibernate.initialize(aTarget);
+        }
+    }
 }

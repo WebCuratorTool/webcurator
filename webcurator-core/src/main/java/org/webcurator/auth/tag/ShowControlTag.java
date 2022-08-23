@@ -21,12 +21,11 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.UserOwnable;
 
 public class ShowControlTag extends TagSupport {
-	private static AuthorityManager authorityManager = new AuthorityManagerImpl();
+	private static AuthorityManager authorityManager = new AuthorityManager();
 	private static final long serialVersionUID = 1L;
 
 	

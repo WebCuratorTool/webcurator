@@ -15,130 +15,347 @@
  */
 package org.webcurator.domain;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.dao.DataAccessException;
+import org.springframework.orm.hibernate5.HibernateCallback;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.webcurator.core.notification.AgencyInTrayResource;
 import org.webcurator.core.notification.InTrayResource;
+import org.webcurator.core.notification.MessageType;
+import org.webcurator.core.notification.UserInTrayResource;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
+import org.webcurator.domain.model.core.Notification;
 import org.webcurator.domain.model.core.Task;
 
 /**
  * Persistence methods commonly used by the In-tray
  * @author bprice
  */
-public interface InTrayDAO {
+@Transactional
+public class InTrayDAO extends HibernateDaoSupport {
 
-	/**
-	 * Save or update the object in the persitant store.
-	 * @param aObject the object to save or update
-	 */
-    void saveOrUpdate(final Object aObject);
+    private Log log = LogFactory.getLog(InTrayDAO.class);
     
-    /**
-     * gets all Notifications for the specified User.
-     * @param userOid the oid of the user to get the Notifications for
-     * @param pageNum the specified page of the results to return
-     * @return a Paginated set of Notification objects
-     */
-    Pagination getNotifications(Long userOid, int pageNum, int pageSize);
+    private TransactionTemplate txTemplate = null;
     
-    /**
-     * counts the Notifications for the specified User
-     * @param userOid the oid of the user to count the Notifications for
-     * @return a count of Notification objects
-     */
-    long countNotifications(final Long userOid);
-    
-    /**
-     * loads a generic object, this could be a Notification or
-     * a Task object based on the objects oid
-     * @param clazz the Class of this object to load
-     * @param oid the oid of this object
-     * @return the loaded object, as an Object with no Casting applied
-     */
-    Object load(Class clazz, Long oid);
-    
-    /**
-     * deletes a generic object, this could be a Notification
-     * or a Task. 
-     * @param obj the object to delete
-     */
-    void delete(final Object obj);
-    
-    /**
-     * populates the Owner of the specified resource whether or not it is
-     * a User or Agency owned object
-     * @param wctResource the Resource to load the owning object on
-     * @return the populated resource with a populated owner
-     */
-    InTrayResource populateOwner(InTrayResource wctResource);
-    
-    /**
-     * obtains a List of Task objects based on the User and
-     * the User's privileges within their Agency
-     * @param user the User object
-     * @param privs a List of RolePrivileges
-     * @param pageNum the specified page of the results to return
-     * @return the paginated set of Tasks
-     */
-    Pagination getTasks(User user, List<RolePrivilege> privs, int pageNum, int pageSize);
-    
-    /**
-     * Count the tasks objects in the users view based on the User and
-     * the User's privileges within their Agency
-     * @param user the User object
-     * @param privs a List of RolePrivileges
-     * @return the count of tasks
-     */
-    long countTasks(final User user, final List<RolePrivilege> privs);
-    
-    /**
-     * Return the Task that matches the specified criteria. 
-     * @param aResourceOid the resource id
-     * @param aResourceType the resource type
-     * @param aTaskType the task type
-     * @return the Task
-     */
-    Task getTask(final Long aResourceOid, final String aResourceType, final String aTaskType);
-    
-    /**
-     * Return List of the Tasks that matche the specified criteria. 
-     * @param aResourceOid the resource id
-     * @param aResourceType the resource type
-     * @param aTaskType the task type
-     * @return the Task
-     */
-    List<Task> getTasks(final Long aResourceOid, final String aResourceType, final String aTaskType);
+    public InTrayDAO() {
 
-    /**
-     * lets the specified User claim the task
-     * @param user the User claiming the task
-     * @param task the task
-     */
-    void claimTask(User user, Task task);
-    
-    /**
-     * lets the specified User claim the task
-     * @param user the User claiming the task
-     * @param task the task
-     */
-    void unclaimTask(User user, Task task);
-    
-    /**
-     * Count the number of tasks of a given type associated with a particular
-     * resource. This can be used to ensure that we do not create two of the 
-     * same tasks against a single object.
-     * @param messageType The type of the task.
-     * @param wctResource The intray resource the task is related to.
-     * @return The number of tasks.
-     */
-    long countTasks(String messageType, InTrayResource wctResource);
-    
-    /**
-     * Deletes all notifications for the specified user.
-     * @param userOid The OID of the user.
-     */
-    void deleteNotificationsByUser(Long userOid);
+    }
 
-	void deleteAllTasks();
+    public void setTxTemplate(TransactionTemplate txTemplate) {
+        this.txTemplate = txTemplate;
+    }
+    
+    public void saveOrUpdate(final Object aObject) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try { 
+                            log.debug("Before Saving of Object");
+                            currentSession().saveOrUpdate(aObject);
+                            log.debug("After Saving Object");
+                        }
+                        catch(Exception ex) {
+                            log.warn("Setting Rollback Only",ex);
+                            ts.setRollbackOnly();
+                        }
+                        return null;
+                    }
+                }
+        );    
+    }
+    
+    public Pagination getNotifications(Long userOid, int pageNum, int pageSize) {
+        Map <String,Long>params = new HashMap<String,Long>();
+        params.put("recipientOid", userOid);
+
+        SessionFactory aSessionFactory = getHibernateTemplate().getSessionFactory();
+        return new Pagination(Notification.QRY_CNT_USER_NOTIFICATIONS, Notification.QRY_GET_USER_NOTIFICATIONS, params, pageNum, pageSize, true, aSessionFactory);
+    }
+
+    public long countNotifications(final Long userOid) {
+        return (Long) getHibernateTemplate().execute(new HibernateCallback() {
+			public Object doInHibernate(Session session) throws HibernateException {
+				
+				Query query = session.createQuery("select count(*) from Notification n where n.recipientOid = :userOid ");
+				query.setLong("userOid", userOid);
+				
+				return ((Number) query.uniqueResult()).longValue();
+			}
+    	});
+    }
+    
+    public void delete(final Object obj) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Delete of Object");
+                            getHibernateTemplate().delete(obj);
+                            log.debug("After Delete of Object");
+                        }
+                        catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only",e);
+                            ts.setRollbackOnly();
+                            throw e;
+                        }
+                        return null;
+                    }
+                }
+        );    
+    }
+
+    public Object load(Class clazz, Long oid) {
+        return getHibernateTemplate().load(clazz,oid);
+    }
+
+    public InTrayResource populateOwner(final InTrayResource wctResource) {
+        return (InTrayResource)getHibernateTemplate().execute(new HibernateCallback(){
+
+            public Object doInHibernate(Session aSession) throws HibernateException {
+                Object object = aSession.load(wctResource.getResourceType(),wctResource.getOid());
+                if (wctResource instanceof UserInTrayResource) {
+                    UserInTrayResource uitr = (UserInTrayResource) object;
+                    Hibernate.initialize(uitr.getOwningUser());
+                    Hibernate.initialize(uitr.getOwningUser().getAgency());
+                    return uitr;
+                } else if (wctResource instanceof AgencyInTrayResource) {
+                    AgencyInTrayResource aitr = (AgencyInTrayResource) object;
+                    Hibernate.initialize(aitr.getOwningAgency());
+                    return aitr;
+                }
+                return null;
+            }
+        }
+
+        );
+    }
+
+    public Pagination getTasks(final User user, final List<RolePrivilege> privs, final int pageNum, final int pageSize) {
+        return (Pagination) getHibernateTemplate().execute(new HibernateCallback() {
+  
+            public Object doInHibernate(Session aSession) throws HibernateException {
+                Criteria query = aSession.createCriteria(Task.class);
+                
+                Disjunction dis = Restrictions.disjunction();
+                
+                for(RolePrivilege userPriv: privs) {
+                  dis.add(Restrictions.eq("privilege", userPriv.getPrivilege()));
+                }
+                dis.add(Restrictions.eq("assigneeOid",user.getOid()));
+
+                query.add(dis);
+                query.createCriteria("agency").add(Restrictions.eq("oid", user.getAgency().getOid()));
+                query.addOrder(Order.desc("sentDate"));
+                
+                Criteria cntQuery = aSession.createCriteria(Task.class);
+                cntQuery.add(dis);
+                cntQuery.createCriteria("agency").add(Restrictions.eq("oid", user.getAgency().getOid()));
+                cntQuery.setProjection(Projections.rowCount());
+                
+                return new Pagination(cntQuery, query, pageNum, pageSize);
+            }
+        });
+    }
+    
+    public long countTasks(final User user, final List<RolePrivilege> privs) {
+    	return (Long) getHibernateTemplate().execute(new HibernateCallback() {
+			public Object doInHibernate(Session session) throws HibernateException {
+				
+				Criteria query = session.createCriteria(Task.class);
+				query.setProjection(Projections.rowCount());
+                Disjunction dis = Restrictions.disjunction();
+                
+                for(RolePrivilege userPriv: privs) {
+                  dis.add(Restrictions.eq("privilege", userPriv.getPrivilege()));
+                }
+                dis.add(Restrictions.eq("assigneeOid",user.getOid()));
+
+                query.add(dis);
+                query.createCriteria("agency").add(Restrictions.eq("oid", user.getAgency().getOid()));
+                                
+                Long count = (Long) query.uniqueResult();
+                
+                return count;
+			}
+    	});
+    }
+    
+    public Task getTask(final Long aResourceOid, final String aResourceType, final String aTaskType) {
+        return (Task) getHibernateTemplate().execute(new HibernateCallback() {
+  
+            public Object doInHibernate(Session aSession) throws HibernateException {
+                Criteria query = aSession.createCriteria(Task.class);
+
+                query.add(Restrictions.eq("resourceOid", aResourceOid));                
+                query.add(Restrictions.eq("resourceType", aResourceType));
+                query.add(Restrictions.eq("messageType", aTaskType));
+                                
+                return query.uniqueResult();
+            }            
+        });
+    }    
+    
+    @SuppressWarnings("unchecked")
+    public List<Task> getTasks(final Long aResourceOid, final String aResourceType, final String aTaskType) {
+        return (List<Task>) getHibernateTemplate().execute(new HibernateCallback() {
+  
+            public Object doInHibernate(Session aSession) throws HibernateException {
+                Criteria query = aSession.createCriteria(Task.class);
+
+                query.add(Restrictions.eq("resourceOid", aResourceOid));                
+                query.add(Restrictions.eq("resourceType", aResourceType));
+                query.add(Restrictions.eq("messageType", aTaskType));
+                                
+                return query.list();
+            }            
+        });
+    }    
+
+    public void claimTask(User user, final Task task) {
+        task.setPrivilege(null);
+        task.setAssigneeOid(user.getOid());
+        
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Save of Object");
+                            getHibernateTemplate().saveOrUpdate(task);
+                            log.debug("After Save of Object");
+                        }
+                        catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only",e);
+                            ts.setRollbackOnly();
+                            throw e;
+                        }
+                        return null;
+                    }
+                }
+        );   
+        
+    }
+    
+    public void unclaimTask(User user, final Task task) {
+        if (task.getMessageType().equals(MessageType.TARGET_INSTANCE_ENDORSE)) {
+        	task.setPrivilege(Privilege.ENDORSE_HARVEST);
+        }
+        else if (task.getMessageType().equals(MessageType.TASK_APPROVE_TARGET)) {
+        	task.setPrivilege(Privilege.APPROVE_TARGET);
+        }
+        else if (task.getMessageType().equals(MessageType.TARGET_INSTANCE_ARCHIVE)) {
+        	task.setPrivilege(Privilege.ARCHIVE_HARVEST);
+        }
+        else if (task.getMessageType().equals(MessageType.TASK_SEEK_PERMISSON)) {
+        	task.setPrivilege(Privilege.CONFIRM_PERMISSION);
+        }
+        
+        task.setAssigneeOid(null);
+        
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Save of Object");
+                            getHibernateTemplate().saveOrUpdate(task);
+                            log.debug("After Save of Object");
+                        }
+                        catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only",e);
+                            ts.setRollbackOnly();
+                            throw e;
+                        }
+                        return null;
+                    }
+                }
+        );   
+        
+    }
+    
+    public long countTasks(final String messageType, final InTrayResource wctResource) {
+        return (Long) getHibernateTemplate().execute(new HibernateCallback() {
+			public Object doInHibernate(Session session) throws HibernateException {
+				return (Long) session.createCriteria(Task.class)
+					.setProjection(Projections.rowCount())
+					.add(Restrictions.eq("messageType", messageType))
+					.add(Restrictions.eq("resourceOid", wctResource.getOid()))
+				    .add(Restrictions.eq("resourceType", wctResource.getResourceType()))
+				    .uniqueResult();
+			}
+    	});    	
+    }
+
+	public void deleteNotificationsByUser(final Long userOid) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Deleting all Notifications");
+                            
+                            String hqlDelete = "delete Notification n where n.recipientOid = :recipientOid";
+                            int deletedEntities = currentSession().createQuery( hqlDelete )
+                                    .setLong( "recipientOid", userOid )
+                                    .executeUpdate();
+                            
+                            //getHibernateTemplate().delete(obj);
+                            log.debug("After Deleting "+deletedEntities+" Notifications");
+                        }
+                        catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only",e);
+                            ts.setRollbackOnly();
+                            throw e;
+                        }
+                        return null;
+                    }
+                }
+        ); 
+		
+	}
+    
+	public void deleteAllTasks() {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Deleting all Tasks");
+                            
+                            String hqlDelete = "delete Task t";
+                            int deletedEntities = currentSession().createQuery( hqlDelete )
+                                    .executeUpdate();
+                            
+                            //getHibernateTemplate().delete(obj);
+                            log.debug("After Deleting "+deletedEntities+" Tasks");
+                        }
+                        catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only",e);
+                            ts.setRollbackOnly();
+                            throw e;
+                        }
+                        return null;
+                    }
+                }
+        ); 
+		
+	}
 }
