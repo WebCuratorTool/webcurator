@@ -44,7 +44,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.2-SNAPSHOT'
+version = '3.1.2'
 description = 'Web Curator Tool Digital Asset Store'
 sourceCompatibility = '1.8'
 
