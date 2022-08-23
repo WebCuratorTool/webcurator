@@ -1,5 +1,6 @@
 package org.webcurator.core.visualization.networkmap.bdb;
 
+import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Environment;
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.PrimaryIndex;
@@ -11,8 +12,8 @@ import java.util.List;
 
 public class RepoNetworkNodeUrl extends RepoNetworkNodeBasic {
     private static final String STORE_NAME = "url";
-    private PrimaryIndex<Long, NetworkMapNodeUrlEntity> primaryId;
-    private SecondaryIndex<String, Long, NetworkMapNodeUrlEntity> secondaryIndexByUrlName;
+    public PrimaryIndex<Long, NetworkMapNodeUrlEntity> primaryId;
+    public SecondaryIndex<String, Long, NetworkMapNodeUrlEntity> secondaryIndexByUrlName;
 
     public RepoNetworkNodeUrl(Environment env, boolean creatable) {
         super(env, creatable, STORE_NAME);
@@ -23,20 +24,18 @@ public class RepoNetworkNodeUrl extends RepoNetworkNodeBasic {
     public NetworkMapNodeUrlEntity insert(NetworkMapNodeUrlEntity entity) {
         entity.setId(this.nextId());
         try {
-            primaryId.put(entity);
+            return primaryId.put(entity);
         } catch (Exception e) {
             log.warn("Duplicated data: {}", entity.getTitle(), e);
         }
-
-        return entity;
+        return null;
     }
 
     public NetworkMapNodeUrlEntity update(NetworkMapNodeUrlEntity entity) throws NullPointerException {
         if (entity.getId() < 0) {
             throw new NullPointerException("The ID of url entity is null, can not be updated.");
         }
-        primaryId.put(entity);
-        return entity;
+        return primaryId.put(entity);
     }
 
     public NetworkMapNodeUrlEntity getById(Long id) {

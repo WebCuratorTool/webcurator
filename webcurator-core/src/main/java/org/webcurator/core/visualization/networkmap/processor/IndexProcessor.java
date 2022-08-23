@@ -2,6 +2,7 @@ package org.webcurator.core.visualization.networkmap.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     protected AtomicLong atomicIdGeneratorFolder = new AtomicLong(0);
     protected Map<String, Boolean> seeds = new HashMap<>();
     protected BDBNetworkMapPool pool;
+    protected List<String> fileWarcNames = new ArrayList<>();
 
     public IndexProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         super(targetInstanceId, harvestResultNumber);
@@ -78,12 +80,17 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
             this.tryBlock();
 
-            extractRecord(record, fileName);
+            try {
+                extractRecord(record, fileName);
+            } catch (Exception e) {
+                log.warn("Failed to extract record", e);
+                break;
+            } finally {
+                record.close();
+            }
             progressItem.setCurLength(record.getHeader().getOffset());
-            record.close();
-
-            log.debug("Extracting, results.size:{}", urls.size());
-            log.debug(progressItem.toString());
+//            log.debug("Extracting, results.size:{}", urls.size());
+//            log.debug(progressItem.toString());
             writeLog(progressItem.toString());
 
             statisticItem.increaseSucceedRecords();
@@ -158,6 +165,29 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 //            db.putIndividualDomainIdList(k, listUrlIDs);
 //        });
 
+        for (String warcFileName : this.fileWarcNames) {
+            final List<String> lines = new ArrayList<>();
+            this.urls.values().stream().filter(e -> {
+                return e.getFileName().equals(warcFileName);
+            }).forEach(e -> {
+                NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
+                urlEntity.copy(e);
+                String line = getJson(urlEntity);
+                lines.add(line);
+                urlEntity.clear();
+            });
+
+            File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
+            File fAllUrlsJson = new File(directory, warcFileName.replace(".warc", ".json"));
+            try {
+                FileUtils.writeLines(fAllUrlsJson, lines);
+                lines.clear();
+            } catch (IOException e) {
+                log.error("Failed to output all urls to the file");
+            }
+        }
+
+
         //Create the treeview, permenit the paths and set parentPathId for all networkmap nodes.
         NetworkMapNodeFolderDTO rootTreeNode = this.classifyTreeFolders();
         rootTreeNode.setTitle("All");
@@ -170,19 +200,19 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         //Process and save url
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
-        this.urls.values().forEach(e -> {
-            this.tryBlock();
-            NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
-            urlEntity.copy(e);
-            db.updateUrl(urlEntity);
-            if (e.isSeed() || e.getParentId() <= 0) {
-                rootUrls.add(e.getId());
-            }
-
-            if (!e.isFinished()) {
-                malformedUrls.add(e.getId());
-            }
-        });
+//        this.urls.values().forEach(e -> {
+//            this.tryBlock();
+//            NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
+//            urlEntity.copy(e);
+//            db.updateUrl(urlEntity);
+//            if (e.isSeed() || e.getParentId() <= 0) {
+//                rootUrls.add(e.getId());
+//            }
+//
+//            if (!e.isFinished()) {
+//                malformedUrls.add(e.getId());
+//            }
+//        });
 
         accProp.setSeedUrlIDs(rootUrls);
         accProp.setMalformedUrlIDs(malformedUrls);
@@ -290,6 +320,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 if (!isWarcFormat(f.getName())) {
                     continue;
                 }
+                this.fileWarcNames.add(f.getName());
+
                 VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
                 progressItem.setMaxLength(f.length());
                 progressItemStat.setMaxLength(progressItemStat.getMaxLength() + f.length());
@@ -311,7 +343,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                     reader = ArchiveReaderFactory.get(f);
                     indexFile(reader, f.getName());
                 } catch (Exception e) {
-                    String err = "Failed to open archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
+                    String err = "Failed to extract archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
                     log.error(err, e);
                     this.writeLog(err);
                 } finally {

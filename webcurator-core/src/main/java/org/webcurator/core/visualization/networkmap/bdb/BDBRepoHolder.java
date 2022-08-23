@@ -22,12 +22,12 @@ public class BDBRepoHolder {
     private final String dbPath;
     private String dbName;
 
-    private Environment env;
+    public Environment env;
 
-    private RepoAccessProperty tblAccessProp;
-    private RepoNetworkNodeDomain tblDomain;
-    private RepoNetworkNodeUrl tblUrl;
-    private RepoNetworkNodeFolder tblFolder;
+    public RepoAccessProperty tblAccessProp;
+    public RepoNetworkNodeDomain tblDomain;
+    public RepoNetworkNodeUrl tblUrl;
+    public RepoNetworkNodeFolder tblFolder;
 
     private BDBRepoHolder(String dbPath, String dbName) {
         this.dbPath = dbPath;

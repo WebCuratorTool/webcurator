@@ -23,16 +23,14 @@ public class RepoNetworkNodeFolder extends RepoNetworkNodeBasic {
 
     public NetworkMapNodeFolderEntity insert(NetworkMapNodeFolderEntity entity) {
         entity.setId(this.nextId());
-        primaryId.put(entity);
-        return entity;
+        return primaryId.put(entity);
     }
 
     public NetworkMapNodeFolderEntity update(NetworkMapNodeFolderEntity entity) throws NullPointerException {
         if (entity.getId() < 0) {
             throw new NullPointerException("The ID of folder entity is null, can not be updated.");
         }
-        primaryId.put(entity);
-        return entity;
+        return primaryId.put(entity);
     }
 
     public NetworkMapNodeFolderEntity getById(Long id) {

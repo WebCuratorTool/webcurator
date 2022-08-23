@@ -19,16 +19,14 @@ public class RepoNetworkNodeDomain extends RepoNetworkNodeBasic {
 
     public NetworkMapDomain insert(NetworkMapDomain entity) {
         entity.setId(this.nextId());
-        primaryId.put(entity);
-        return entity;
+        return  primaryId.put(entity);
     }
 
     public NetworkMapDomain update(NetworkMapDomain entity) throws NullPointerException {
         if (entity.getId() < 0) {
             throw new NullPointerException("The ID of domain entity is null, can not be updated.");
         }
-        primaryId.put(entity);
-        return entity;
+        return primaryId.put(entity);
     }
 
     public NetworkMapDomain getById(Long id) {
