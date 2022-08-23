@@ -1,40 +1,9 @@
 import React from 'react'
-import { rest } from 'msw'
-import { setupServer } from 'msw/node'
 import { fireEvent, screen } from '@testing-library/react'
 import { act } from "react-dom/test-utils";
 // We're using our own custom render function and not RTL's render.
 import { renderWithProviders } from '../utils'
 import Targets from '../../components/Targets/Targets'
-import { defaultData, dataBySeed } from './mockedData';
-
-// We use msw to intercept the network request during the test,
-// and return the response 'John Smith' after 150ms
-// when receiving a get request to the `/api/user` endpoint
-export const handlers = [
-  // rest.get('/wct/api/v1/targets', (res, ctx) => {
-  //   return res(ctx.json({ defaultData }), ctx.delay(150))
-  // }),
-  rest.get('/wct/api/v1/targets', (req, res, ctx) => {
-    let data = defaultData;
-    
-    if (req.url.searchParams.get('seed') == 'http://test.govt.nz') {
-      return res(ctx.json({ dataBySeed }), ctx.delay(150))
-    }
-    return res(ctx.json({ data }), ctx.delay(150))
-  })
-]
-
-const server = setupServer(...handlers)
-
-// Enable API mocking before tests.
-beforeAll(() => server.listen())
-
-// Reset any runtime request handlers we may add during the tests.
-afterEach(() => server.resetHandlers())
-
-// Disable API mocking after the tests are done.
-afterAll(() => server.close())
 
 test('Targets: shows loading element while loading, renders table when api returns', async () => {
   renderWithProviders(<Targets />);
@@ -80,10 +49,8 @@ describe('Targets - update search inputs', () => {
   //   await act(async () => {
   //     fireEvent.change(input, { target: { value: 'http://test.govt.nz' }});
   //     fireEvent.click(button);
+  //     const tableRows = await screen.findAllByRole("row");
+  //     expect(tableRows.length).toBe(2);
+  //     expect(screen.getAllByText('http://test.govt.nz').length).toBe(1);
   //   });
-
-    
-  //   const tableRows = await screen.findAllByRole("row");
-  //   expect(tableRows.length).toBe(3);
-  //   expect(screen.getAllByText('http://test.govt.nz').length).toBe(2);
   // })

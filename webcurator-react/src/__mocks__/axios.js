@@ -92,7 +92,7 @@ const mockQueryResponse = {
                 state: 5,
                 seeds: [
                     {
-                        seed: "http://nlnz.govt.nz",
+                        seed: "http://test.govt.nz",
                         primary: true
                     }
                 ]
@@ -203,7 +203,7 @@ const mockSortedAscResponse = {
 const fn = jest.fn().mockResolvedValue(mockResponse)
 when(fn)
     .calledWith('/wct/api/v1/targets').mockResolvedValue(mockResponse)
-    .calledWith('/wct/api/v1/targets?targetId=1').mockResolvedValue(mockQueryResponse)
+    .calledWith('/wct/api/v1/targets?seed=http://test.govt.nz').mockResolvedValue(mockQueryResponse)
     .calledWith('/wct/api/v1/targets?sortBy=name,desc').mockResolvedValue(mockSortedDescResponse)
     .calledWith('/wct/api/v1/targets?sortBy=name,asc').mockResolvedValue(mockSortedAscResponse)
 
