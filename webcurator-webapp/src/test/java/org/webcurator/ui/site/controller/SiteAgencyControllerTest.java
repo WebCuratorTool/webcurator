@@ -36,7 +36,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 		try
 		{
 			MockHttpServletRequest aReq = new MockHttpServletRequest();
-			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			SiteManager siteManager = new MockSiteManager(testFile);
 			ReflectionTestUtils.setField(testInstance, "siteAgencyValidator", new SiteAgencyValidator());
 
 			Site site = siteManager.getSite(9000L, true);
@@ -80,7 +80,7 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 		try
 		{
 			MockHttpServletRequest aReq = new MockHttpServletRequest();
-			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			SiteManager siteManager = new MockSiteManager(testFile);
 			ReflectionTestUtils.setField(testInstance, "siteAgencyValidator", new SiteAgencyValidator());
 
 			Site site = siteManager.getSite(9000L, true);
@@ -135,8 +135,8 @@ public class SiteAgencyControllerTest extends BaseWCTTest<SiteAgencyController>{
 		tabAuthAgencies.setPageId("AUTHORISING_AGENCIES");
 
 		SiteAuthorisingAgencyHandler theHandler = new SiteAuthorisingAgencyHandler();
-		//theHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
-		//theHandler.setAuthorityManager(new AuthorityManagerImpl());
+		//theHandler.setAgencyUserManager(new MockAgencyUserManager(testFile));
+		//theHandler.setAuthorityManager(new AuthorityManager());
 		tabAuthAgencies.setTabHandler(theHandler);
 
 		tabs.add(tabAuthAgencies);

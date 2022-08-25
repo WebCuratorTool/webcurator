@@ -23,7 +23,7 @@ import org.webcurator.ui.target.command.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.ui.util.*;
 import org.webcurator.core.scheduler.*;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
 
@@ -53,8 +53,8 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		tabGeneral.setValidator(new TargetInstanceValidator());
 
 		TargetInstanceGeneralHandler genHandler = new TargetInstanceGeneralHandler();
-		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAgencyUserManager(new MockAgencyUserManager(testFile));
+		genHandler.setAuthorityManager(new AuthorityManager());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
 		//genHandler.setHarvestCoordinator(new MockHarvestCoordinator());
 		genHandler.setWctCoordinator(new WctCoordinator());

@@ -14,10 +14,10 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
-import org.webcurator.core.common.EnvironmentImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
+import org.webcurator.core.common.Environment;
 import org.webcurator.core.coordinator.MockWctCoordinator;
 import org.webcurator.core.profiles.MockProfileManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
@@ -40,14 +40,14 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 		super(TabbedTargetInstanceController.class, "/org/webcurator/ui/target/controller/TabbedTargetInstanceControllerTest.xml");
 	}
 	TargetInstanceManager manager;
-	AuthorityManagerImpl authorityManager;
+	AuthorityManager authorityManager;
     //Override BaseWCTTest setup method
 	public void setUp() throws Exception {
 		//call the overridden method as well
 		super.setUp();
 
 		//add the extra bits
-		authorityManager = new AuthorityManagerImpl();
+		authorityManager = new AuthorityManager();
 		testInstance.setAuthorityManager(authorityManager);
 		BusinessObjectFactory factory = new BusinessObjectFactory();
 		factory.setProfileManager(new MockProfileManager(testFile));
@@ -61,8 +61,8 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 		tabConfig.setTabs(tabs);
 		testInstance.setTabConfig(tabConfig);
 		QueueController queueController = new QueueController();
-		queueController.setEnvironment(new EnvironmentImpl());
-		queueController.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		queueController.setEnvironment(new Environment());
+		queueController.setAgencyUserManager(new MockAgencyUserManager(testFile));
 		queueController.setTargetInstanceManager(manager);
 		queueController.setWctCoordinator(new MockWctCoordinator());
 		//MockTargetDAO targetDao = new MockTargetDAO(testFile);
@@ -81,13 +81,13 @@ public class TabbedTargetInstanceControllerTest extends BaseWCTTest<TabbedTarget
 		tabGeneral.setPageId("GENERAL");
 		//tabGeneral.setValidator(new TargetValidator());
 
-		AgencyUserManager agencyUserManager = new MockAgencyUserManagerImpl(testFile);
+		AgencyUserManager agencyUserManager = new MockAgencyUserManager(testFile);
 
 		TargetInstanceGeneralHandler genHandler = new TargetInstanceGeneralHandler();
 		genHandler.setTargetInstanceManager(targetInstanceManager);
 		tabGeneral.setTabHandler(genHandler);
 		genHandler.setAgencyUserManager(agencyUserManager);
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 
 		tabs.add(tabGeneral);
 

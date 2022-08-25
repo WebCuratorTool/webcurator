@@ -150,7 +150,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 	public final void testSetAgencyUserManager() {
 		try
 		{
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 		}
 		catch(Exception e)
@@ -165,7 +165,7 @@ public class CreateUserControllerTest extends BaseWCTTest<CreateUserController>{
 	public final void testSetAuthorityManager() {
 		try
 		{
-			AuthorityManager manager = new AuthorityManagerImpl();
+			AuthorityManager manager = new AuthorityManager();
 			testInstance.setAuthorityManager(manager);
 		}
 		catch(Exception e)

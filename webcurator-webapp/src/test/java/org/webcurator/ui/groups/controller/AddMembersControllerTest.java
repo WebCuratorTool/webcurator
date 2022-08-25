@@ -15,7 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.model.auth.Privilege;
@@ -55,7 +55,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 		tabGeneral.setValidator(new GeneralValidator());
 
 		GeneralHandler genHandler = new GeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -396,7 +396,7 @@ public class AddMembersControllerTest extends BaseWCTTest<AddMembersController>{
 	public final void testSetAuthorityManager() {
 		try
 		{
-			testInstance.setAuthorityManager(new AuthorityManagerImpl());
+			testInstance.setAuthorityManager(new AuthorityManager());
 		}
 		catch(Exception e)
 		{

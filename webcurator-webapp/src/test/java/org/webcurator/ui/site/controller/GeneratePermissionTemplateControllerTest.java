@@ -16,11 +16,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import org.webcurator.core.admin.PermissionTemplateManager;
-import org.webcurator.core.admin.MockPermissionTemplateManagerImpl;
+import org.webcurator.core.admin.MockPermissionTemplateManager;
 import org.webcurator.core.notification.Mailable;
 import org.webcurator.core.notification.MockMailServer;
 import org.webcurator.core.sites.SiteManager;
-import org.webcurator.core.sites.MockSiteManagerImpl;
+import org.webcurator.core.sites.MockSiteManager;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionTemplate;
 import org.webcurator.test.BaseWCTTest;
@@ -49,8 +49,8 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 		try {
 			MockHttpServletRequest request = new MockHttpServletRequest();
 
-			SiteManager sitemanager = new MockSiteManagerImpl(testFile);
-			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManagerImpl(testFile);
+			SiteManager sitemanager = new MockSiteManager(testFile);
+			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManager(testFile);
 
 			testInstance.setSiteManager(sitemanager);
 			testInstance.setPermissionTemplateManager(permissionTemplateManager);
@@ -75,8 +75,8 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 		try {
             BindingResult bindingResult = new BindException(new GeneratePermissionTemplateCommand(), GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE);
 
-			SiteManager sitemanager = new MockSiteManagerImpl(testFile);
-			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManagerImpl(testFile);
+			SiteManager sitemanager = new MockSiteManager(testFile);
+			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManager(testFile);
 			PermissionTemplate temp = permissionTemplateManager.getTemplate(1L);
 			temp.setTemplate("test");
 			temp.setTemplateType("testType");
@@ -134,8 +134,8 @@ public class GeneratePermissionTemplateControllerTest extends BaseWCTTest<Genera
 		try {
             BindingResult bindingResult = new BindException(new GeneratePermissionTemplateCommand(), GeneratePermissionTemplateCommand.ACTION_GENERATE_TEMPLATE);
 
-			SiteManager sitemanager = new MockSiteManagerImpl(testFile);
-			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManagerImpl(testFile);
+			SiteManager sitemanager = new MockSiteManager(testFile);
+			PermissionTemplateManager permissionTemplateManager = new MockPermissionTemplateManager(testFile);
 			Permission perm = permissionTemplateManager.getPermission(1L);
 			perm.getAuthorisingAgent().setEmail("rec@rep.com");
 

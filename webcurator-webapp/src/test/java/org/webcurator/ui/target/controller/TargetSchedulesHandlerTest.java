@@ -19,7 +19,7 @@ import org.webcurator.common.ui.target.AbstractTargetEditorContext;
 import org.webcurator.domain.*;
 import org.webcurator.core.targets.*;
 import org.webcurator.ui.util.*;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
 
@@ -48,7 +48,7 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 		tabGeneral.setValidator(new TargetGeneralValidator());
 
 		TargetGeneralHandler genHandler = new TargetGeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -71,7 +71,7 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		Target target = targetManager.load(4000L);
 		TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
 		aReq.getSession().setAttribute(TabbedTargetController.EDITOR_CONTEXT, targetEditorContext);
@@ -101,7 +101,7 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
 		testInstance.setTargetManager(targetManager);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		testInstance.setPatternFactory(new SpringSchedulePatternFactory());
 		Target target = targetManager.load(4000L);
 		//TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
@@ -135,7 +135,7 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
 		testInstance.setTargetManager(targetManager);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		testInstance.setPatternFactory(new SpringSchedulePatternFactory());
 		Target target = targetManager.load(4000L);
 		TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
@@ -164,6 +164,6 @@ public class TargetSchedulesHandlerTest extends BaseWCTTest<TargetSchedulesHandl
 
 	@Test
 	public final void testSetAuthorityManager() {
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 	}
 }
