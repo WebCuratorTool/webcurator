@@ -20,14 +20,10 @@ public class NetworkMapNodeFolderDTO extends BasicNode {
     @JsonIgnore
     private String url;
 
-    @JsonIgnore
     private List<NetworkMapNodeFolderDTO> children = new ArrayList<>();
 
     @JsonIgnore
     private boolean handled = false;
-
-    private List<String> folderPaths = new ArrayList<>();
-    private int depth = 0;
 
     public int getViewType() {
         return viewType;
@@ -87,12 +83,10 @@ public class NetworkMapNodeFolderDTO extends BasicNode {
         this.handled = handled;
     }
 
-    @JsonIgnore
     public List<NetworkMapNodeFolderDTO> getChildren() {
         return children;
     }
 
-    @JsonIgnore
     public void setChildren(List<NetworkMapNodeFolderDTO> children) {
         this.children = children;
     }

@@ -15,7 +15,6 @@ import org.webcurator.core.visualization.VisualizationStatisticItem;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.*;
-import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
@@ -190,7 +189,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         this.urls.clear();
 
         //Create the folder treeview, permenit the paths and set parentPathId for all networkmap nodes.
-        long rootFolderNodeId = NetworkMapCascadePath.classifyTreePaths(db);
+        long rootFolderNodeId = FolderTreeViewGenerator.classifyTreePaths(db);
         accProp.setRootFolderNode(rootFolderNodeId);
         log.debug("rootTreeNode: {}", accProp.getRootFolderNode());
 

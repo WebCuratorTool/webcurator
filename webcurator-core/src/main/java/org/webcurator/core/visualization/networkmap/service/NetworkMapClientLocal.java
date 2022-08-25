@@ -48,7 +48,13 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_SUCCESS);
         versionDTO.setGlobalVersion(NetworkMapAccessPropertyEntity.getGlobalDbVersion());
 
-        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db;
+        try {
+            db = pool.getInstance(job, harvestResultNumber);
+        } catch (Exception e) {
+            db = null;
+        }
+
         String currentVersion = "0.0.0";
         if (db == null) {
             versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_DB_NOT_EXIT);
@@ -111,14 +117,17 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, long folderId, NetworkMapServiceSearchCommand searchCommand) {
-        List<NetworkMapNodeFolderDTO> listFolderDTO;
         NetworkMapResult result = new NetworkMapResult();
         if (searchCommand == null || !searchCommand.isFilterable()) {
+            List<NetworkMapNodeFolderEntity> listFolderEntity;
             if (folderId < 0) {
-                listFolderDTO = this.folderMgmt.queryRootFolderList(job, harvestResultNumber);
+                listFolderEntity = this.folderMgmt.queryRootFolderList(job, harvestResultNumber);
             } else {
-                listFolderDTO = this.folderMgmt.queryFolderList(job, harvestResultNumber, folderId);
+                listFolderEntity = this.folderMgmt.queryFolderList(job, harvestResultNumber, folderId);
             }
+            result.setPayload(this.obj2Json(listFolderEntity));
+            listFolderEntity.forEach(NetworkMapNodeFolderEntity::clear);
+            listFolderEntity.clear();
         } else {
             List<NetworkMapNodeUrlEntity> searchedNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
             if (searchedNetworkMapNodes.size() > MAX_SEARCH_SIZE) {
@@ -127,13 +136,15 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
                 result.setRspMsg(warning);
             }
-            NetworkMapNodeFolderDTO rootTreeNode = this.folderMgmt.createFolderTreeView(job, harvestResultNumber, searchedNetworkMapNodes);
+            NetworkMapNodeFolderDTO rootTreeNode = this.folderMgmt.createFolderTreeView(searchedNetworkMapNodes);
             if (rootTreeNode == null) {
                 return NetworkMapResult.getDataNotExistResult();
             }
-            listFolderDTO = rootTreeNode.getChildren();
+            List<NetworkMapNodeFolderDTO> listFolderDTO = rootTreeNode.getChildren();
+            result.setPayload(this.obj2Json(listFolderDTO));
+            listFolderDTO.forEach(NetworkMapNodeFolderDTO::clear);
+            listFolderDTO.clear();
         }
-        result.setPayload(this.obj2Json(listFolderDTO));
         return result;
     }
 

@@ -1,4 +1,4 @@
-package org.webcurator.core.visualization.networkmap.service;
+package org.webcurator.core.visualization.networkmap.processor;
 
 import com.sleepycat.persist.EntityCursor;
 import org.slf4j.Logger;
@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-public class NetworkMapCascadePath {
-    private static final Logger log = LoggerFactory.getLogger(NetworkMapCascadePath.class);
+public class FolderTreeViewGenerator {
+    private static final Logger log = LoggerFactory.getLogger(FolderTreeViewGenerator.class);
     private static final String ROOT_FOLDER_NAME = "All";
 
     /**
@@ -244,7 +244,8 @@ public class NetworkMapCascadePath {
             NetworkMapNodeFolderDTO subTreeNode = new NetworkMapNodeFolderDTO();
             subTreeNode.setTitle(subTreeNodeTitle);
             subTreeNode.setChildren(subTreeNodeChildren);
-
+            subTreeNode.setFolder(true);
+            subTreeNode.setLazy(false);
             rootTreeNode.getChildren().add(subTreeNode);
 
             //Need to recurse because the title changed
@@ -264,7 +265,7 @@ public class NetworkMapCascadePath {
         this.statisticTreeNodes(rootTreeNode);
 
         rootTreeNode.setFolder(rootTreeNode.getChildren().size() > 0);
-        rootTreeNode.setLazy(true);
+        rootTreeNode.setLazy(false);
 
         //Sort the return result
         rootTreeNode.getChildren().sort(Comparator.comparing(NetworkMapNodeFolderDTO::getTitle));
@@ -303,25 +304,7 @@ public class NetworkMapCascadePath {
         return url;
     }
 
-
-    public void summarize(NetworkMapNodeFolderDTO rootTreeNode) {
-        if (rootTreeNode.getChildren().size() == 0) {
-            rootTreeNode.setFolder(false);
-            rootTreeNode.setLazy(false);
-            rootTreeNode.setZero();
-            rootTreeNode.accumulate();
-            return;
-        }
-
-        rootTreeNode.getChildren().forEach(this::summarize);
-        this.statisticTreeNodes(rootTreeNode);
-
-        rootTreeNode.setFolder(true);
-        rootTreeNode.setLazy(false);
-    }
-
-
-    public void statisticTreeNodes(final NetworkMapNodeFolderDTO node) {
+    private void statisticTreeNodes(final NetworkMapNodeFolderDTO node) {
         node.setZero();
         node.getChildren().forEach(node::accumulate);
     }

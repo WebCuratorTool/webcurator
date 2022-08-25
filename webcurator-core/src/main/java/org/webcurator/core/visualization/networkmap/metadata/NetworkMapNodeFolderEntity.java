@@ -11,19 +11,19 @@ import java.util.List;
 
 @Entity
 public class NetworkMapNodeFolderEntity extends BasicNode {
-    private long parentPathId;
+    private boolean lazy;
     @SecondaryKey(relate = Relationship.ONE_TO_ONE)
     private String title;
 
     private List<Long> subFolderList = new ArrayList<>();
     private List<Long> subUrlList = new ArrayList<>();
 
-    public long getParentPathId() {
-        return parentPathId;
+    public boolean isLazy() {
+        return lazy;
     }
 
-    public void setParentPathId(long parentPathId) {
-        this.parentPathId = parentPathId;
+    public void setLazy(boolean lazy) {
+        this.lazy = lazy;
     }
 
     public String getTitle() {

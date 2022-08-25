@@ -9,10 +9,10 @@ import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
-import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
+import org.webcurator.core.visualization.networkmap.processor.FolderTreeViewGenerator;
 
-public class NetworkMapCascadePathTest {
-    protected static final Logger log = LoggerFactory.getLogger(NetworkMapCascadePathTest.class);
+public class FolderTreeViewGeneratorTest {
+    protected static final Logger log = LoggerFactory.getLogger(FolderTreeViewGeneratorTest.class);
 
     protected static String baseDir = "/usr/local/wct/store";
     protected static String baseLogDir = "logs";
@@ -35,10 +35,10 @@ public class NetworkMapCascadePathTest {
 
         for (String url : urls) {
             NetworkMapNodeFolderEntity folderNode = new NetworkMapNodeFolderEntity();
-            int depth = NetworkMapCascadePath.getUrlDepth(url);
+            int depth = FolderTreeViewGenerator.getUrlDepth(url);
             log.debug("Max depth={}", depth);
             for (int i = 0; i <= depth; i++) {
-                String folderName = NetworkMapCascadePath.getFolderNameFromUrlDepth(url, i);
+                String folderName = FolderTreeViewGenerator.getFolderNameFromUrlDepth(url, i);
                 log.debug("Current depth={}, folderName={}, url={}", i, folderName, url);
             }
         }
@@ -50,7 +50,7 @@ public class NetworkMapCascadePathTest {
     @Test
     public void testClassifyFolders() {
         BDBRepoHolder db = pool.getInstance(targetInstanceId, harvestResultNumber);
-        NetworkMapCascadePath cascade = new NetworkMapCascadePath();
+        FolderTreeViewGenerator cascade = new FolderTreeViewGenerator();
         long rootFolderId = cascade.classifyTreePaths(db);
         assert rootFolderId > 0;
     }

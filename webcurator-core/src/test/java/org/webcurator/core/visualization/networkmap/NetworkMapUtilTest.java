@@ -12,7 +12,7 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEn
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderDTO;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
-import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
+import org.webcurator.core.visualization.networkmap.processor.FolderTreeViewGenerator;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapServiceSearchCommand;
 
@@ -65,7 +65,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
             rootTreeNodeDTO.getChildren().add(treeNodeDTO);
         });
 
-        NetworkMapCascadePath cascadePath = new NetworkMapCascadePath();
+        FolderTreeViewGenerator cascadePath = new FolderTreeViewGenerator();
         cascadePath.classifyTreePaths(rootTreeNodeDTO);
 
         log.debug("Size: {}", rootTreeNodeDTO.getChildren().size());
@@ -75,7 +75,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
 
     @Test
     public void testClassifyTreeViewByPathName2() {
-        NetworkMapCascadePath cascadePath = new NetworkMapCascadePath();
+        FolderTreeViewGenerator cascadePath = new FolderTreeViewGenerator();
         int first_level = 0;
 
         {
@@ -131,7 +131,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
 
     @Test
     public void testGetNextTitle() {
-        NetworkMapCascadePath cascadePath = new NetworkMapCascadePath();
+        FolderTreeViewGenerator cascadePath = new FolderTreeViewGenerator();
         {
             String url = "http://a.b.c/d/u/v?x=1";
             String parentTitle = null;
