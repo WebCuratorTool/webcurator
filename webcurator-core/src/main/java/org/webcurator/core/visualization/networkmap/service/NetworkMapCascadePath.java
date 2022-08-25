@@ -110,6 +110,8 @@ public class NetworkMapCascadePath {
         rootFolder.setId(atomicIdGeneratorFolder.incrementAndGet());
         db.updateFolder(rootFolder);
         log.debug("classified, id of the root folder: {}", rootFolder.getId());
+        rootFolders.values().forEach(NetworkMapNodeFolderEntity::clear);
+        rootFolders.clear();
         return rootFolder.getId();
     }
 

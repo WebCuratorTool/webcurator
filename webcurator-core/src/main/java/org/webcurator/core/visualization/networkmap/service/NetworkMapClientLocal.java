@@ -120,14 +120,14 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 listFolderDTO = this.folderMgmt.queryFolderList(job, harvestResultNumber, folderId);
             }
         } else {
-            List<NetworkMapNodeUrlEntity> allNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
-            if (allNetworkMapNodes.size() > MAX_SEARCH_SIZE) {
+            List<NetworkMapNodeUrlEntity> searchedNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
+            if (searchedNetworkMapNodes.size() > MAX_SEARCH_SIZE) {
                 String warning = String.format("More than %d number of URLs were found, please narrow the search conditions", MAX_SEARCH_SIZE);
                 log.warn(warning);
                 result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
                 result.setRspMsg(warning);
             }
-            NetworkMapNodeFolderDTO rootTreeNode = this.folderMgmt.createFolderTreeView(job, harvestResultNumber, allNetworkMapNodes);
+            NetworkMapNodeFolderDTO rootTreeNode = this.folderMgmt.createFolderTreeView(job, harvestResultNumber, searchedNetworkMapNodes);
             if (rootTreeNode == null) {
                 return NetworkMapResult.getDataNotExistResult();
             }

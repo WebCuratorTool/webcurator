@@ -183,8 +183,11 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 txn = db.env.beginTransaction(null, null);
                 log.debug("Saved: {} rootUrls={}, malformedUrls={}", batch_num.get(), rootUrls.size(), malformedUrls.size());
             }
+            urlEntity.clear();
         }
         txn.commit();
+        this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
+        this.urls.clear();
 
         //Create the folder treeview, permenit the paths and set parentPathId for all networkmap nodes.
         long rootFolderNodeId = NetworkMapCascadePath.classifyTreePaths(db);
@@ -195,6 +198,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         accProp.setMalformedUrlIDs(malformedUrls);
         db.insertAccProp(accProp);
         this.writeLog("Finished storing url nodes");
+        rootUrls.clear();
+        malformedUrls.clear();
 
         pool.shutdownRepo(db);
     }
