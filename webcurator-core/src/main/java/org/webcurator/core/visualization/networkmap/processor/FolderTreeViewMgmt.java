@@ -10,18 +10,17 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolde
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
-import org.webcurator.core.visualization.networkmap.service.NetworkMapServiceSearchCommand;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TreeViewFolderMgmt {
-    private final static Logger log = LoggerFactory.getLogger(TreeViewFolderMgmt.class);
+public class FolderTreeViewMgmt {
+    private final static Logger log = LoggerFactory.getLogger(FolderTreeViewMgmt.class);
     private final BDBNetworkMapPool pool;
 
-    public TreeViewFolderMgmt(BDBNetworkMapPool pool) {
+    public FolderTreeViewMgmt(BDBNetworkMapPool pool) {
         this.pool = pool;
     }
 

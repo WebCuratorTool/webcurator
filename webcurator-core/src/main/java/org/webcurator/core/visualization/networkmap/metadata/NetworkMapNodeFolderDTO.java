@@ -26,6 +26,9 @@ public class NetworkMapNodeFolderDTO extends BasicNode {
     @JsonIgnore
     private boolean handled = false;
 
+    private List<String> folderPaths = new ArrayList<>();
+    private int depth = 0;
+
     public int getViewType() {
         return viewType;
     }
@@ -113,8 +116,8 @@ public class NetworkMapNodeFolderDTO extends BasicNode {
     }
 
     @JsonIgnore
-    public void destroy() {
-        this.children.forEach(NetworkMapNodeFolderDTO::destroy);
+    public void clear() {
+        this.children.forEach(NetworkMapNodeFolderDTO::clear);
         this.children.clear();
     }
 }

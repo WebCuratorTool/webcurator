@@ -2,7 +2,7 @@ package org.webcurator.core.visualization.networkmap.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.FileUtils;
+import com.sleepycat.je.Transaction;
 import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
@@ -22,8 +22,8 @@ import org.webcurator.domain.model.core.SeedHistoryDTO;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
 public abstract class IndexProcessor extends VisualizationAbstractProcessor {
@@ -107,7 +107,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     abstract protected void extractRecord(ArchiveRecord rec, String fileName) throws IOException;
 
-    private void statAndSave() {
+    public void statAndSave() {
         this.tryBlock();
         NetworkMapAccessPropertyEntity accProp = new NetworkMapAccessPropertyEntity();
 
@@ -156,68 +156,47 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         log.debug(strRootDomain);
         accProp.setRootDomain(strRootDomain);
         this.writeLog("Finished storing domain nodes");
+        rootDomainNode.clear();
 
-        //Saving the links of each domain
-//        Map<Long, List<NetworkMapNodeUrlDTO>> groupedByDomain = this.urls.values().stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getDomainId));
-//        groupedByDomain.forEach((k, v) -> {
-//            this.tryBlock();
-//            List<Long> listUrlIDs = v.stream().map(NetworkMapNodeUrlDTO::getId).collect(Collectors.toList());
-//            db.putIndividualDomainIdList(k, listUrlIDs);
-//        });
-
-        for (String warcFileName : this.fileWarcNames) {
-            final List<String> lines = new ArrayList<>();
-            this.urls.values().stream().filter(e -> {
-                return e.getFileName().equals(warcFileName);
-            }).forEach(e -> {
-                NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
-                urlEntity.copy(e);
-                String line = getJson(urlEntity);
-                lines.add(line);
-                urlEntity.clear();
-            });
-
-            File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
-            File fAllUrlsJson = new File(directory, warcFileName.replace(".warc", ".json"));
-            try {
-                FileUtils.writeLines(fAllUrlsJson, lines);
-                lines.clear();
-            } catch (IOException e) {
-                log.error("Failed to output all urls to the file");
-            }
-        }
-
-
-        //Create the treeview, permenit the paths and set parentPathId for all networkmap nodes.
-        NetworkMapNodeFolderDTO rootTreeNode = this.classifyTreeFolders();
-        rootTreeNode.setTitle("All");
-        this.generateTreeFolderIds(rootTreeNode);
-        this.persistCascadeFolders(rootTreeNode);
-        accProp.setRootFolderNode(rootTreeNode.getId());
-        log.debug("rootTreeNode: {}", accProp.getRootFolderNode());
-        rootTreeNode.destroy();
 
         //Process and save url
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
-//        this.urls.values().forEach(e -> {
-//            this.tryBlock();
-//            NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
-//            urlEntity.copy(e);
-//            db.updateUrl(urlEntity);
-//            if (e.isSeed() || e.getParentId() <= 0) {
-//                rootUrls.add(e.getId());
-//            }
-//
-//            if (!e.isFinished()) {
-//                malformedUrls.add(e.getId());
-//            }
-//        });
+        //Using the transaction to improve the performance of bulk insert
+        Transaction txn = db.env.beginTransaction(null, null);
+        AtomicInteger batch_num = new AtomicInteger(0);
+        for (NetworkMapNodeUrlDTO e : this.urls.values()) {
+            this.tryBlock();
+            NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
+            urlEntity.copy(e);
+            db.tblUrl.primaryId.putNoReturn(txn, urlEntity);
+
+            if (e.isSeed() || e.getParentId() <= 0) {
+                rootUrls.add(e.getId());
+            }
+            if (!e.isFinished()) {
+                malformedUrls.add(e.getId());
+            }
+
+            if (batch_num.incrementAndGet() % 1000 == 0) {
+                txn.commit();
+                txn = db.env.beginTransaction(null, null);
+                log.debug("Saved: {} rootUrls={}, malformedUrls={}", batch_num.get(), rootUrls.size(), malformedUrls.size());
+            }
+        }
+        txn.commit();
+
+        //Create the folder treeview, permenit the paths and set parentPathId for all networkmap nodes.
+        long rootFolderNodeId = NetworkMapCascadePath.classifyTreePaths(db);
+        accProp.setRootFolderNode(rootFolderNodeId);
+        log.debug("rootTreeNode: {}", accProp.getRootFolderNode());
 
         accProp.setSeedUrlIDs(rootUrls);
         accProp.setMalformedUrlIDs(malformedUrls);
         db.insertAccProp(accProp);
         this.writeLog("Finished storing url nodes");
+
+        pool.shutdownRepo(db);
     }
 
     private boolean isWarcFormat(String name) {
@@ -230,63 +209,6 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         this.urls.clear();
     }
 
-    private NetworkMapNodeFolderDTO classifyTreeFolders() {
-        List<NetworkMapNodeFolderDTO> allTreeNodes = this.urls.values().parallelStream().map(networkMapNode -> {
-            NetworkMapNodeFolderDTO treeNodeDTO = new NetworkMapNodeFolderDTO();
-            treeNodeDTO.setId(networkMapNode.getId());
-            treeNodeDTO.setViewType(NetworkMapNodeFolderDTO.VIEW_TYPE_DOMAIN);
-            treeNodeDTO.setUrl(networkMapNode.getUrl());
-            treeNodeDTO.setContentType(networkMapNode.getContentType());
-            treeNodeDTO.setStatusCode(networkMapNode.getStatusCode());
-            treeNodeDTO.setContentLength(networkMapNode.getContentLength());
-            treeNodeDTO.setFolder(false);
-            treeNodeDTO.setLazy(false);
-            treeNodeDTO.accumulate();
-            return treeNodeDTO;
-        }).collect(Collectors.toList());
-
-        NetworkMapNodeFolderDTO rootTreeNode = new NetworkMapNodeFolderDTO();
-        rootTreeNode.setChildren(allTreeNodes);
-
-        NetworkMapCascadePath cascadeProcessor = new NetworkMapCascadePath();
-        cascadeProcessor.classifyTreePaths(rootTreeNode);
-
-        return rootTreeNode;
-    }
-
-    private void generateTreeFolderIds(NetworkMapNodeFolderDTO currFolderNode) {
-        if (currFolderNode.getChildren().size() == 0) {
-            return;
-        }
-        currFolderNode.setId(this.atomicIdGeneratorFolder.incrementAndGet());
-        log.debug("Generate folder ID: {} {}", currFolderNode.getId(), currFolderNode.getTitle());
-        for (NetworkMapNodeFolderDTO subFolderNode : currFolderNode.getChildren()) {
-            generateTreeFolderIds(subFolderNode);
-        }
-    }
-
-    private void persistCascadeFolders(NetworkMapNodeFolderDTO currFolderNode) {
-        //Update Url Entity
-        if (currFolderNode.getChildren().size() == 0) {
-            return;
-        }
-
-        NetworkMapNodeFolderEntity folderEntity = new NetworkMapNodeFolderEntity();
-        folderEntity.copy(currFolderNode);
-        folderEntity.setTitle(currFolderNode.getTitle());
-
-        for (NetworkMapNodeFolderDTO subFolderNode : currFolderNode.getChildren()) {
-            if (subFolderNode.isFolder()) {
-                folderEntity.addSubFolder(subFolderNode);
-            } else {
-                folderEntity.addSubUrl(subFolderNode);
-            }
-            persistCascadeFolders(subFolderNode);
-        }
-
-        db.updateFolder(folderEntity);
-        log.debug("Saved folder: {} {}", folderEntity.getId(), folderEntity.getTitle());
-    }
 
     @Override
     protected String getProcessorStage() {
@@ -363,6 +285,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
             this.status = HarvestResult.STATUS_FINISHED;
         } finally {
+            this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
+            this.urls.clear();
             this.pool.shutdownRepo(db);
         }
     }
@@ -406,6 +330,14 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             e.printStackTrace();
         }
         return json;
+    }
+
+    public Map<String, NetworkMapNodeUrlDTO> getUrls() {
+        return urls;
+    }
+
+    public void setUrls(Map<String, NetworkMapNodeUrlDTO> urls) {
+        this.urls = urls;
     }
 
     static class StatisticItem implements VisualizationStatisticItem {

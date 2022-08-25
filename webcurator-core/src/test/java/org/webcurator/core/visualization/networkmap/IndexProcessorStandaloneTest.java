@@ -2,7 +2,6 @@ package org.webcurator.core.visualization.networkmap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sleepycat.je.Transaction;
-import com.sleepycat.persist.EntityCursor;
 import org.apache.commons.io.FileUtils;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveReaderFactory;
@@ -23,11 +22,8 @@ import org.webcurator.core.visualization.*;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
+import org.webcurator.core.visualization.networkmap.metadata.*;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapService;
@@ -37,12 +33,13 @@ import org.webcurator.domain.model.core.SeedHistoryDTO;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 
 public class IndexProcessorStandaloneTest {
-    protected static final Logger log = LoggerFactory.getLogger(BaseVisualizationTest.class);
+    protected static final Logger log = LoggerFactory.getLogger(IndexProcessorStandaloneTest.class);
     protected static String baseDir = "/usr/local/wct/store";
     protected static String baseLogDir = "logs";
     protected static String baseReportDir = "reports";
@@ -50,7 +47,7 @@ public class IndexProcessorStandaloneTest {
     protected static BDBNetworkMapPool pool = null;
     protected static NetworkMapService networkMapClient = null;
 
-    protected static long targetInstanceId = 16;
+    protected static long targetInstanceId = 1;
     protected static int harvestResultNumber = 1;
     protected static int newHarvestResultNumber = 2;
     protected static Set<SeedHistoryDTO> seeds = new HashSet<>();
@@ -111,11 +108,13 @@ public class IndexProcessorStandaloneTest {
         }
     }
 
+    @Ignore
     @Test
     public void testProcessInternal() throws Exception {
         indexer.processInternal();
     }
 
+    @Ignore
     @Test
     public void testLoadAllUrlFromJson() {
         List<NetworkMapNodeUrlEntity> urlEntityList = loadAllUrlFromJson();
@@ -124,27 +123,61 @@ public class IndexProcessorStandaloneTest {
         urlEntityList.clear();
     }
 
+    @Ignore
+    @Test
+    public void testSaveAllUrlToOneJsonFile() throws IOException {
+        File directory = new File(baseDir, targetInstanceId + File.separator + harvestResultNumber);
+        File jsonFile = new File(directory, "all_urls.json");
+        List<NetworkMapNodeUrlEntity> urlEntityList = loadAllUrlFromJson();
+        String urlJsonString = indexer.getJson(urlEntityList);
+        FileUtils.write(jsonFile, urlJsonString);
+    }
+
+    @Ignore
     @Test
     public void testSaveAllUrlFromJsonToDB() {
-        BDBRepoHolder db = pool.createInstance(targetInstanceId, harvestResultNumber);
         List<NetworkMapNodeUrlEntity> urlEntityList = loadAllUrlFromJson();
+
+        BDBRepoHolder db = pool.createInstance(targetInstanceId, harvestResultNumber);
         long num = 1;
-        Transaction txn = db.env.beginTransaction(null, null);
+        AtomicReference<Transaction> txn = new AtomicReference<>(db.env.beginTransaction(null, null));
         for (NetworkMapNodeUrlEntity urlEntity : urlEntityList) {
-            db.tblUrl.primaryId.putNoReturn(txn, urlEntity);
+            db.tblUrl.primaryId.putNoReturn(txn.get(), urlEntity);
             if (num % 10000 == 0) {
-                log.debug("saved: {} {}", num, urlEntity.getUrl());
-                txn.commit();
-                txn = db.env.beginTransaction(null, null);
+                log.debug("Saved: {} {}", num, urlEntity.getUrl());
+                txn.get().commit();
+                txn.set(db.env.beginTransaction(null, null));
             }
             num++;
         }
-        txn.commit();
+        txn.get().commit();
         pool.shutdownRepo(db);
         log.debug("{} UrlEntities saved", urlEntityList.size());
         urlEntityList.forEach(NetworkMapNodeUrlEntity::clear);
         urlEntityList.clear();
     }
+
+    @Ignore
+    @Test
+    public void testStatAndSave() {
+        List<NetworkMapNodeUrlEntity> urlEntityList = loadAllUrlFromJson();
+        Map<String, NetworkMapNodeUrlDTO> urls = new HashMap<>();
+        long num = 0;
+        for (NetworkMapNodeUrlEntity urlEntity : urlEntityList) {
+            NetworkMapNodeUrlDTO dto = new NetworkMapNodeUrlDTO();
+            dto.copy(urlEntity);
+            dto.setUrlAndDomain(urlEntity.getUrl());
+            urls.put(dto.getUrl(), dto);
+            num++;
+            if (num % 10000 == 0) {
+                log.debug("To DTO: {} {}", num, urlEntity.getUrl());
+            }
+
+        }
+        indexer.setUrls(urls);
+        indexer.statAndSave();
+    }
+
 
     public List<NetworkMapNodeUrlEntity> loadAllUrlFromJson() {
         File directory = new File(baseDir, targetInstanceId + File.separator + harvestResultNumber);

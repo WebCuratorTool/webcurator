@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.Relationship;
 import com.sleepycat.persist.model.SecondaryKey;
+import org.webcurator.common.util.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,5 +58,12 @@ public class NetworkMapNodeFolderEntity extends BasicNode {
     @JsonIgnore
     public void addSubUrl(BasicNode node) {
         this.subUrlList.add(node.getId());
+    }
+
+
+    @JsonIgnore
+    public void clear() {
+        this.subUrlList.clear();
+        this.subFolderList.clear();
     }
 }

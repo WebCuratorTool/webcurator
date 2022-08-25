@@ -52,7 +52,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
         BDBRepoHolder db = pool.getInstance(targetInstanceId, harvestResultNumber);
 
         NetworkMapServiceSearchCommand searchCommand = new NetworkMapServiceSearchCommand();
-        List<NetworkMapNodeUrlEntity> networkMapNodeUrlEntityList = localClient.searchUrlDTOs(db, targetInstanceId, harvestResultNumber, searchCommand);
+        List<NetworkMapNodeUrlEntity> networkMapNodeUrlEntityList = localClient.searchUrlDTOs(db, searchCommand);
 
         NetworkMapNodeFolderDTO rootTreeNodeDTO = new NetworkMapNodeFolderDTO();
         networkMapNodeUrlEntityList.forEach(node -> {
