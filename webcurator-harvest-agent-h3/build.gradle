@@ -7,16 +7,20 @@ plugins {
 
 repositories {
     mavenLocal()
-    maven {
-        url = 'http://builds.archive.org:8080/maven2'
-    }
+    // maven {
+    //     url = 'http://builds.archive.org:8080/maven2'
+    // }
 
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
 
-    maven {
-        url = 'http://download.oracle.com/maven/'
+    // maven {
+    //     url = 'http://download.oracle.com/maven/'
+    // }
+
+    maven{
+        url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
 }
 

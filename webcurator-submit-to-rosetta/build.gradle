@@ -6,19 +6,25 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = 'http://builds.archive.org:8080/maven2'
-    }
+    // maven {
+    //     url = 'http://builds.archive.org:8080/maven2'
+    // }
     maven {
         url = 'https://repo1.maven.org/maven2'
     }
-    maven {
-        url = 'http://download.oracle.com/maven/'
+    // maven {
+    //     url = 'http://download.oracle.com/maven/'
+    // }
+    maven{
+        url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
 }
 
 dependencies {
     //compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
+    implementation ('org.netpreserve.commons:webarchive-commons:1.1.8') {
+        exclude group: 'org.apache.hadoop.thirdparty.guava', module: 'guava'
+    }
     compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
     compile 'com.exlibris:dps-sdk:7.1.0'
     compile 'com.exlibris:dps-sdk-deposit-api:7.1.0'
@@ -28,7 +34,7 @@ dependencies {
     compile 'org.apache.xmlbeans:xmlbeans:2.3.0'
     compile 'commons-logging:commons-logging:1.2'
     compile 'commons-lang:commons-lang:2.3'
-    compile 'org.netpreserve.commons:webarchive-commons:1.1.8'
+    // compile 'org.netpreserve.commons:webarchive-commons:1.1.8'
     compile 'commons-net:commons-net:1.4.1'
     compile 'log4j:log4j:1.2.17'
     compile 'com.sun.xml.ws:jaxws-ri:2.3.2'
