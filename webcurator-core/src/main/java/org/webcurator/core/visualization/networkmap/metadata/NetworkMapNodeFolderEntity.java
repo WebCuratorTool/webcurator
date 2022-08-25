@@ -12,6 +12,8 @@ import java.util.List;
 @Entity
 public class NetworkMapNodeFolderEntity extends BasicNode {
     private boolean lazy;
+    private boolean folder;
+
     @SecondaryKey(relate = Relationship.ONE_TO_ONE)
     private String title;
 
@@ -24,6 +26,14 @@ public class NetworkMapNodeFolderEntity extends BasicNode {
 
     public void setLazy(boolean lazy) {
         this.lazy = lazy;
+    }
+
+    public boolean isFolder() {
+        return folder;
+    }
+
+    public void setFolder(boolean folder) {
+        this.folder = folder;
     }
 
     public String getTitle() {

@@ -70,6 +70,7 @@ public class FolderTreeViewMgmt {
         for (long id : parentFolderEntity.getSubFolderList()) {
             NetworkMapNodeFolderEntity folderEntity = db.getFolderById(id);
             folderEntity.setLazy(true);
+            folderEntity.setFolder(true);
             listFolderDTO.add(folderEntity);
         }
 
@@ -78,7 +79,8 @@ public class FolderTreeViewMgmt {
             NetworkMapNodeFolderEntity folderEntity = new NetworkMapNodeFolderEntity();
             folderEntity.copy(urlEntity);
             folderEntity.setTitle(urlEntity.getUrl());
-            folderEntity.setLazy(true);
+            folderEntity.setLazy(false);
+            folderEntity.setFolder(false);
             listFolderDTO.add(folderEntity);
         }
         return listFolderDTO;
@@ -91,6 +93,8 @@ public class FolderTreeViewMgmt {
             treeNode.copy(urlEntity);
             treeNode.setUrl(urlEntity.getUrl());
             treeNode.setTitle(urlEntity.getUrl());
+            treeNode.setZero();
+            treeNode.accumulate(urlEntity.getStatusCode(), urlEntity.getContentLength(), urlEntity.getContentType());
             rootTreeNode.getChildren().add(treeNode);
             urlEntity.clear();
         }

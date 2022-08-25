@@ -63,7 +63,7 @@ public class BDBRepoHolder {
 
         EnvironmentConfig environmentConfig = new EnvironmentConfig();
         environmentConfig.setCacheSize(1024 * 1024);
-        environmentConfig.setAllowCreate(false);
+        environmentConfig.setAllowCreate(true);
         environmentConfig.setTransactional(true);
         environmentConfig.setConfigParam("je.log.fileMax", MAX_DB_FILE_SIZE);
         File file = new File(repo.dbPath);
@@ -73,10 +73,10 @@ public class BDBRepoHolder {
             }
         }
         repo.env = new Environment(file, environmentConfig);
-        repo.tblAccessProp = new RepoAccessProperty(repo.env, false);
-        repo.tblDomain = new RepoNetworkNodeDomain(repo.env, false);
-        repo.tblUrl = new RepoNetworkNodeUrl(repo.env, false);
-        repo.tblFolder = new RepoNetworkNodeFolder(repo.env, false);
+        repo.tblAccessProp = new RepoAccessProperty(repo.env, true);
+        repo.tblDomain = new RepoNetworkNodeDomain(repo.env, true);
+        repo.tblUrl = new RepoNetworkNodeUrl(repo.env, true);
+        repo.tblFolder = new RepoNetworkNodeFolder(repo.env, true);
         return repo;
     }
 
