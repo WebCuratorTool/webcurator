@@ -83,7 +83,7 @@ public class SitePermissionControllerTest extends BaseWCTTest<SitePermissionCont
 		try
 		{
 			HttpServletRequest aReq = new MockHttpServletRequest();
-			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			SiteManager siteManager = new MockSiteManager(testFile);
 			ReflectionTestUtils.setField(testInstance, "sitePermissionValidator", new SitePermissionValidator());
 
 			Site site = siteManager.getSite(9000L, true);

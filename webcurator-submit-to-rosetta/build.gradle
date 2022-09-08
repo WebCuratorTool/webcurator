@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    //compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
+//    compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
     compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
     compile 'com.exlibris:dps-sdk:7.1.0'
     compile 'com.exlibris:dps-sdk-deposit-api:7.1.0'

@@ -6,6 +6,7 @@ public class SeedMapElement {
 	private String browseUrl = "";
 	private String accessUrl = "";
 	private boolean primary = false;
+	private String oid = "";
 
 	public SeedMapElement(String seed)
 	{
@@ -42,5 +43,13 @@ public class SeedMapElement {
 
 	public boolean getPrimary() {
 		return primary;
+	}
+
+	public void setOid(String oid) {
+		this.oid = oid;
+	}
+
+	public String getOid() {
+		return oid;
 	}
 }

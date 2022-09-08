@@ -16,8 +16,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.auth.AuthorityManager;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.MockUserRoleDAO;
@@ -51,7 +51,7 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 		tabGeneral.setValidator(new TargetGeneralValidator());
 
 		TargetGeneralHandler genHandler = new TargetGeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -65,9 +65,9 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		testInstance.setTargetManager(targetManager);
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 		testInstance.setUserRoleDao(new MockUserRoleDAO(testFile));
 		Target target = targetManager.load(4000L);
 		TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
@@ -130,9 +130,9 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		testInstance.setTargetManager(targetManager);
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 		testInstance.setUserRoleDao(new MockUserRoleDAO(testFile));
 		Target target = targetManager.load(4000L);
 		target.setName(name);
@@ -164,9 +164,9 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 	public final void testProcessOther() {
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		testInstance.setTargetManager(targetManager);
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 		testInstance.setUserRoleDao(new MockUserRoleDAO(testFile));
 		Target target = targetManager.load(4000L);
 		TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
@@ -202,12 +202,12 @@ public class TargetGeneralHandlerTest extends BaseWCTTest<TargetGeneralHandler>{
 
 	@Test
 	public final void testSetAgencyUserManager() {
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 	}
 
 	@Test
 	public final void testSetAuthorityManager() {
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 	}
 
 }

@@ -19,15 +19,8 @@ import java.beans.PropertyEditorSupport;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,6 +28,7 @@ import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.propertyeditors.CustomNumberEditor;
 import org.springframework.context.MessageSource;
@@ -51,11 +45,11 @@ import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
-import org.webcurator.core.harvester.coordinator.HarvestCoordinator;
 import org.webcurator.core.profiles.ProfileDataUnit;
 import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.profiles.ProfileTimeUnit;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.screenshot.ScreenshotPaths;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.AuthUtil;
@@ -73,6 +67,7 @@ import org.webcurator.ui.target.command.TargetSchedulesCommand;
 import org.webcurator.ui.target.command.Time;
 import org.webcurator.ui.target.validator.QaTiSummaryValidator;
 import org.webcurator.common.util.DateUtils;
+import org.webcurator.ui.util.PrimarySeedFirstCompare;
 
 /**
  * The controller for displaying the Target Instance QA Summary Page.
@@ -136,6 +131,24 @@ public class QaTiSummaryController {
 
     private static Map<String, Integer> monthMap = new HashMap<>(20);
     private static Map<String, Integer> dayMap = new HashMap<>(60);
+    /**
+     * the configured base url for store
+     **/
+    @Value("${digitalAssetStore.baseUrl}")
+    private String dasBaseUrl = "";
+
+
+    /**
+     * the configured base url for webapp
+     **/
+    @Value("${webapp.baseUrl}")
+    private String webappBaseUrl = "";
+
+    @Value("${server.servlet.contextPath}")
+    private String webappContextPath;
+
+    @Value("${enableScreenshots}")
+    private boolean enableScreenshots;
 
     /** static Map of months used by the schedule panel **/
     static {
@@ -238,8 +251,55 @@ public class QaTiSummaryController {
         mav.addObject(TargetInstanceSummaryCommand.MDL_HISTORY, history);
 
         // add the seeds
-        Set<String> seeds = ti.getOriginalSeeds();
+        List<SeedHistory> historySeeds = ti.getSeedHistory().stream().sorted(PrimarySeedFirstCompare.getComparator()).collect(Collectors.toList());
+        List<String> seeds = historySeeds.stream().map(SeedHistory::getSeed).collect(Collectors.toList());
         mav.addObject(TargetInstanceSummaryCommand.MDL_SEEDS, seeds);
+
+        // add the seeds with seed id
+        Map<String, String> seedsAndSeedId = new HashMap<String, String>();
+        Iterator<SeedHistory> seedHistory = ti.getSeedHistory().iterator();
+        while (seedHistory.hasNext()) {
+            SeedHistory seed = seedHistory.next();
+            seedsAndSeedId.put(seed.getSeed(), String.valueOf(seed.getOid()));
+        }
+        mav.addObject("seedsAndIds", seedsAndSeedId);
+
+        // get harvest number and oid of the last harvest result
+        int harvestNum = 1;
+        String harvestResultId = null;
+
+        List<HarvestResult> harvestResults = ti.getHarvestResults();
+        int counter = 1;
+        int resultsSize = harvestResults.size();
+        for (HarvestResult result : harvestResults) {
+            if (counter == resultsSize) {
+                harvestNum = result.getHarvestNumber();
+                harvestResultId = String.valueOf(result.getOid());
+            } else {
+                counter = counter + 1;
+            }
+        }
+
+        String targetId = String.valueOf(ti.getOid());
+
+//		mav.addObject("screenshotUrl", dasBaseUrl + "/store/" + targetId + "/" + harvestNum + "/_resources/" + targetId
+//			+ "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
+
+        String img_model_name = targetId + "_" + harvestNum + "_seedId_live_screen-thumbnail.png";
+        String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(ti.getOid(), harvestNum) + "/" + img_model_name;
+        mav.addObject("screenshotUrl", browseUrl);
+
+        String reviewUrl = "curator/target/quality-review-toc.html?targetInstanceOid=" + targetId
+                + "&harvestResultId=" + harvestResultId + "&harvestNumber=" + harvestNum;
+
+        String reviewButtonEnableFlag = "inline";
+        if (harvestResultId == null) {
+            reviewButtonEnableFlag = "none";
+        }
+        mav.addObject("reviewButtonEnableFlag", reviewButtonEnableFlag);
+
+        // Review button url webappBaseUrl/curator/target/quality-review-toc.html?targetInstanceOid=#&harvestResultId=#&harvestNumber=#
+        mav.addObject("reviewUrl", reviewUrl);
 
         // add the log list
         List<LogFilePropertiesDTO> arrLogs = wctCoordinator.listLogFileAttributes(ti);
@@ -264,7 +324,7 @@ public class QaTiSummaryController {
         buildSchedule(mav, ti, command);
 
         includeCustomFormDetails(mav, ti);
-
+        mav.addObject("enableScreenshots", enableScreenshots);
         return mav;
     }
 
@@ -892,6 +952,14 @@ public class QaTiSummaryController {
 
     public void setDigitalAssetStore(DigitalAssetStore digitalAssetStore) {
         this.digitalAssetStore = digitalAssetStore;
+    }
+
+    public void setDasBaseUrl(String dasBaseUrl) {
+        this.dasBaseUrl = dasBaseUrl;
+    }
+
+    public void setWebappBaseUrl(String webappBaseUrl) {
+        this.webappBaseUrl = webappBaseUrl;
     }
 
 }

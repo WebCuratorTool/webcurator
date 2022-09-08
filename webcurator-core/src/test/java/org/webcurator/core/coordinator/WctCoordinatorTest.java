@@ -1,5 +1,6 @@
 package org.webcurator.core.coordinator;
 
+
 import com.anotherbigidea.util.Base64;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
@@ -20,6 +21,8 @@ import org.webcurator.core.harvester.coordinator.HarvestQaManager;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+
+import org.webcurator.core.screenshot.ScreenshotClient;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.store.MockDigitalAssetStore;
@@ -64,6 +67,7 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     private MockDigitalAssetStoreFactory mockDigitalAssetStoreFactory;
     private HarvestResultManager mockHarvestResultManager;
     private VisualizationDirectoryManager directoryManager; // = new VisualizationDirectoryManager("/usr/local/wct/webapp", "logs", "reports");
+    private ScreenshotClient mockScreenshotClient;
 
     public WctCoordinatorTest() {
         super(WctCoordinator.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
@@ -121,6 +125,10 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
 
         mockHarvestResultManager = mock(HarvestResultManager.class);
         testInstance.setHarvestResultManager(mockHarvestResultManager);
+
+        mockScreenshotClient = mock(ScreenshotClient.class);
+        when(mockScreenshotClient.createScreenshots(any())).thenReturn(true);
+        testInstance.setScreenshotClient(mockScreenshotClient);
     }
 
     private HarvesterStatusDTO getStatusDTO(String aStatus) {
@@ -206,7 +214,12 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     }
 
     @Test
-    public final void testHarvestOrQueue() {
+    public final void testHarvestOrQueue() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -268,7 +281,11 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     }
 
     @Test
-    public final void testAgentPaused() {
+    public final void testAgentPaused() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
 
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
@@ -301,7 +318,12 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     }
 
     @Test
-    public final void testHarvest() {
+    public final void testHarvest() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -322,7 +344,12 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     }
 
     @Test
-    public final void testHarvestStoreSeedHistory() {
+    public final void testHarvestStoreSeedHistory() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -347,7 +374,12 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     }
 
     @Test
-    public final void testHarvestDontStoreSeedHistory() {
+    public final void testHarvestDontStoreSeedHistory() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -417,7 +449,12 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     }
 
     @Test
-    public final void testHarvestProfilePrefix() {
+    public final void testHarvestProfilePrefix() throws DigitalAssetStoreException {
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+
         TargetInstance ti = tiDao.load(5001L);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 
@@ -847,8 +884,13 @@ public class WctCoordinatorTest extends BaseWCTTest<WctCoordinator> {
     }
 
     @Test
-    public void testComprehensiveHarvest() {
+    public void testComprehensiveHarvest() throws DigitalAssetStoreException {
         long tiOid = 5000L;
+        DigitalAssetStoreFactory mockDasFactory = mock(DigitalAssetStoreFactory.class);
+        testInstance.setDigitalAssetStoreFactory(mockDasFactory);
+        DigitalAssetStore mockDas = mock(DigitalAssetStore.class);
+        when(mockDasFactory.getDAS()).thenReturn(mockDas);
+
         TargetInstance ti = tiDao.load(tiOid);
         ti.setState(TargetInstance.STATE_SCHEDULED);
 

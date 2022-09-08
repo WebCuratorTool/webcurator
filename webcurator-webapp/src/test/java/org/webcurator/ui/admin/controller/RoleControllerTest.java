@@ -14,7 +14,7 @@ import org.springframework.context.MockMessageSource;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.*;
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.*;
 import org.webcurator.domain.model.auth.Privilege;
 import java.util.List;
@@ -223,7 +223,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 	public final void testSetAgencyUserManager() {
 		try
 		{
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 		}
 		catch(Exception e)
@@ -252,7 +252,7 @@ public class RoleControllerTest extends BaseWCTTest<RoleController> {
 	public final void testSetAuthorityManager() {
 		try
 		{
-			AuthorityManager manager = new AuthorityManagerImpl();
+			AuthorityManager manager = new AuthorityManager();
 			testInstance.setAuthorityManager(manager);
 		}
 		catch(Exception e)

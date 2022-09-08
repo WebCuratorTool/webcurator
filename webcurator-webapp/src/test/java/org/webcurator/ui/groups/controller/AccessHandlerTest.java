@@ -20,7 +20,7 @@ import org.webcurator.ui.target.command.*;
 import org.webcurator.ui.groups.GroupsEditorContext;
 import org.webcurator.core.targets.*;
 import org.webcurator.ui.util.*;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.groups.validator.*;
 
@@ -49,7 +49,7 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 		tabGeneral.setValidator(new GeneralValidator());
 
 		GeneralHandler genHandler = new GeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -72,7 +72,7 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		TargetGroup targetGroup = targetManager.loadGroup(15000L);
 		GroupsEditorContext groupsEditorContext = new GroupsEditorContext(targetGroup,true);
 		aReq.getSession().setAttribute(TabbedGroupController.EDITOR_CONTEXT, groupsEditorContext);
@@ -109,7 +109,7 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		TargetGroup targetGroup = targetManager.loadGroup(15000L);
 		GroupsEditorContext groupsEditorContext = new GroupsEditorContext(targetGroup,true);
 		aReq.getSession().setAttribute(TabbedGroupController.EDITOR_CONTEXT, groupsEditorContext);
@@ -144,7 +144,7 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		TargetGroup targetGroup = targetManager.loadGroup(15000L);
 		GroupsEditorContext groupsEditorContext = new GroupsEditorContext(targetGroup,true);
 		aReq.getSession().setAttribute(TabbedGroupController.EDITOR_CONTEXT, groupsEditorContext);
@@ -189,6 +189,6 @@ public class AccessHandlerTest extends BaseWCTTest<AccessHandler> {
 
 	@Test
 	public final void testSetAuthorityManager() {
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 	}
 }

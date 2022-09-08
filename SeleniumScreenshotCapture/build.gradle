@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+}
+
+group 'org.seleniumscreenshotcapture'
+version '1.0'
+description 'Tool to be used with WCT'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    implementation group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
+}
+
+
+jar {
+    manifest {
+        attributes "Main-Class": "SeleniumScreenshotCapture"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

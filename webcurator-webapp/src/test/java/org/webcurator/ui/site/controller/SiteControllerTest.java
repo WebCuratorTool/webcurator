@@ -35,7 +35,7 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 	{
 		super(SiteController.class, "/org/webcurator/ui/site/controller/SiteControllerTest.xml");
 	}
-	AuthorityManagerImpl authorityManager;
+	AuthorityManager authorityManager;
 
     //Override BaseWCTTest setup method
 	public void setUp() throws Exception {
@@ -43,13 +43,13 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 		super.setUp();
 
 		//add the extra bits
-		authorityManager = new AuthorityManagerImpl();
+		authorityManager = new AuthorityManager();
 		testInstance.setAuthorityManager(authorityManager);
 		BusinessObjectFactory factory = new BusinessObjectFactory();
 		factory.setProfileManager(new MockProfileManager(testFile));
 		testInstance.setBusinessObjectFactory(factory);
 		testInstance.setMessageSource(new MockMessageSource());
-		SiteManager manager = new MockSiteManagerImpl(testFile);
+		SiteManager manager = new MockSiteManager(testFile);
 		testInstance.setSiteManager(manager);
 		TabConfig tabConfig = new TabConfig();
 		tabConfig.setViewName("site");
@@ -57,7 +57,7 @@ public class SiteControllerTest extends BaseWCTTest<SiteController>{
 		tabConfig.setTabs(tabs);
 		testInstance.setTabConfig(tabConfig);
 		SiteSearchController searchController = new SiteSearchController();
-		searchController.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		searchController.setAgencyUserManager(new MockAgencyUserManager(testFile));
 		searchController.setSiteManager(manager);
 		testInstance.setSiteSearchController(searchController);
 

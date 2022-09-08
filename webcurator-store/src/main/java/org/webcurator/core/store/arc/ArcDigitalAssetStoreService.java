@@ -15,6 +15,22 @@
  */
 package org.webcurator.core.store.arc;
 
+import static org.webcurator.core.archive.Constants.ARC_FILE;
+import static org.webcurator.core.archive.Constants.LOG_FILE;
+import static org.webcurator.core.archive.Constants.REPORT_FILE;
+import static org.webcurator.core.archive.Constants.ROOT_FILE;
+
+import it.unipi.di.util.ExternalSort;
+
+import java.io.*;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.List;
+
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
@@ -28,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -123,6 +140,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     @Autowired
     private VisualizationProcessorManager visualizationProcessorManager;
 
+
     @Autowired
     private BDBNetworkMapPool pool;
 
@@ -131,6 +149,14 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
 
     private String pageImagePrefix = "PageImage";
     private String aqaReportPrefix = "aqa-report";
+
+    public ArcDigitalAssetStoreService() {
+        super();
+    }
+
+    public ArcDigitalAssetStoreService(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
+        super(baseUrl, restTemplateBuilder);
+    }
 
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -663,6 +689,32 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
     }
 
+    private void clearTmpDir(File targetDir) {
+        File tmpDir = new File(targetDir, "tmpDir");
+        File resourcesDir = new File(tmpDir, "_resources");
+
+        if (resourcesDir.exists()) {
+            for (File f : resourcesDir.listFiles()) {
+                if (!f.delete()) {
+                    log.warn("Could not delete " + f.toString());
+                }
+            }
+            if (!resourcesDir.delete()) {
+                log.warn("Could not delete " + resourcesDir.toString());
+            }
+        }
+        if (tmpDir.exists()) {
+            for (File f : tmpDir.listFiles()) {
+                if (!f.delete()) {
+                    log.warn("Could not delete " + f.toString());
+                }
+            }
+            if (!tmpDir.delete()) {
+                log.warn("Could not delete " + tmpDir.toString());
+            }
+        }
+    }
+
     /**
      * @see DigitalAssetStore#purge(List<String>).
      */
@@ -675,9 +727,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                if (log.isDebugEnabled()) {
-                    log.debug("About to purge dir " + toPurge.toString());
-                }
+
+                log.debug("About to purge dir " + toPurge.toString());
+
+                // Screenshots may have been saved to a tmpDir/_resources folder
+                // Make sure these are deleted as well
+                clearTmpDir(toPurge);
+
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {
@@ -704,9 +760,13 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         try {
             for (String tiName : targetInstanceNames) {
                 File toPurge = new File(baseDir, tiName);
-                if (log.isDebugEnabled()) {
-                    log.debug("About to purge dir " + toPurge.toString());
-                }
+
+                log.debug("About to purge dir " + toPurge.toString());
+
+                // Screenshots may have been saved to a tmpDir/_resources folder
+                // Make sure these are deleted as well
+                clearTmpDir(toPurge);
+
                 try {
                     FileUtils.deleteDirectory(toPurge);
                 } catch (IOException e) {

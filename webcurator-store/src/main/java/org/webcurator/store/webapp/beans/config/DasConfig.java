@@ -2,6 +2,7 @@ package org.webcurator.store.webapp.beans.config;
 
 import nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositField;
 import nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositFormMapping;
+import org.apache.commons.io.IOUtils;
 import org.archive.io.CDXIndexer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +19,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.webcurator.core.archive.Archive;
 import org.webcurator.core.archive.dps.DPSArchive;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
+import org.webcurator.core.screenshot.ScreenshotClientLocal;
+import org.webcurator.core.screenshot.ScreenshotGenerator;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
@@ -36,8 +42,10 @@ import org.webcurator.core.store.arc.*;
 import org.webcurator.core.util.ApplicationContextFactory;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -47,7 +55,8 @@ import java.util.*;
  */
 @SuppressWarnings("all")
 @Configuration
-public class DasConfig {
+@EnableWebMvc
+public class DasConfig implements WebMvcConfigurer {
     private static Logger LOGGER = LoggerFactory.getLogger(DasConfig.class);
 
     @Autowired
@@ -263,6 +272,40 @@ public class DasConfig {
 
     @Value(("${visualization.dbVersion}"))
     private String visualizationDbVersion;
+    // The commands used for generating screenshots
+    @Value("${screenshotCommand.fullpage}")
+    private String screenshotCommandFullpage;
+
+    @Value("${screenshotCommand.screen}")
+    private String screenshotCommandScreen;
+
+    @Value("${screenshotCommand.windowsize}")
+    private String screenshotCommandWindowSize;
+
+    @Value("${harvestWaybackViewer.baseUrl}")
+    private String harvestWaybackViewerBaseUrl;
+
+    @Value("${enableScreenshots}")
+    private boolean enableScreenshots;
+
+    @Value("${abortHarvestOnScreenshotFailure}")
+    private boolean abortHarvestOnScreenshotFailure;
+
+    @Value("${pywb.enable}")
+    private boolean pywbEnable;
+
+    @Value("${pywb.wb-manager.store}")
+    private String pywbWaybaclManagerStore;
+
+    @Value("${pywb.wb-manager.coll}")
+    private String pywbWaybaclManagerColl;
+
+    @Value("${pywb.service.cdx}")
+    private String pywbServiceCDXUrl;
+
+    @Value("${pywb.service.timeout}")
+    private long pywbServiceTimeout;
+
 
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
@@ -314,6 +357,49 @@ public class DasConfig {
         return new VisualizationProcessorManager(visualizationManager(),
                 wctCoordinatorClient(),
                 maxConcurrencyModThreads);
+    }
+
+    @Lazy(false) // lazy-init="default", but no default has been set for wct-das.xml
+    public ArcDigitalAssetStoreService arcDigitalAssetStoreService() {
+        ArcDigitalAssetStoreService bean = new ArcDigitalAssetStoreService(wctCoreWsEndpointBaseUrl, new RestTemplateBuilder());
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setIndexer(indexer());
+        bean.setDasFileMover(createDasFileMover());
+        bean.setPageImagePrefix(arcDigitalAssetStoreServicePageImagePrefix);
+        bean.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
+        bean.setFileArchive(createFileArchive());
+        return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public ScreenshotClientLocal screenshotClientLocal() {
+        ScreenshotClientLocal bean = new ScreenshotClientLocal();
+        bean.setScreenshotGenerator(screenshotGenerator());
+        bean.setScreenshotCommandWindowSize(screenshotCommandWindowSize);
+        bean.setAbortHarvestOnScreenshotFailure(abortHarvestOnScreenshotFailure);
+        bean.setEnableScreenshots(enableScreenshots);
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setPywbWarcDeposit(pywbWarcDeposit());
+        try {
+            Resource resource = new ClassPathResource("image_unavailable_thumbnail.png");
+            ByteArrayOutputStream unavailableImage = new ByteArrayOutputStream();
+            IOUtils.copy(resource.getInputStream(), unavailableImage);
+            bean.setUnavailableImageThumbnail(unavailableImage.toByteArray());
+        } catch (Exception e) {
+            LOGGER.error("Load unavailable image file failed.", e);
+        }
+
+        try {
+            Resource resource = new ClassPathResource("image_unavailable_screen.png");
+            ByteArrayOutputStream unavailableImage = new ByteArrayOutputStream();
+            IOUtils.copy(resource.getInputStream(), unavailableImage);
+            bean.setUnavailableImageScreen(unavailableImage.toByteArray());
+        } catch (Exception e) {
+            LOGGER.error("Load unavailable image file failed.", e);
+        }
+
+        return bean;
     }
 
     @Bean
@@ -401,9 +487,9 @@ public class DasConfig {
 //        sourceList.add(wctIndexer());
         sourceList.add(waybackIndexer());
         sourceList.add(cdxIndexer());
+        sourceList.add(pywbIndexer());
 
         bean.setSourceList(sourceList);
-
         return bean;
     }
 
@@ -427,6 +513,25 @@ public class DasConfig {
         bean.setEnabled(cdxIndexerEnabled);
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
 
+        return bean;
+    }
+
+    @Bean
+    public PywbIndexer pywbIndexer() {
+        PywbIndexer bean = new PywbIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        bean.setEnabled(pywbEnable);
+        bean.setPywbWarcDeposit(pywbWarcDeposit());
+        return bean;
+    }
+
+    @Bean
+    public ScreenshotGenerator screenshotGenerator() {
+        ScreenshotGenerator bean = new ScreenshotGenerator();
+        bean.setWindowSizeCommand(screenshotCommandWindowSize);
+        bean.setScreenSizeCommand(screenshotCommandScreen);
+        bean.setFullpageSizeCommand(screenshotCommandFullpage);
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setHarvestWaybackViewerBaseUrl(harvestWaybackViewerBaseUrl);
         return bean;
     }
 
@@ -667,6 +772,30 @@ public class DasConfig {
         bean.setDcFieldType("dc");
         bean.setMandatory(false);
 
+        return bean;
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String resourceDir = arcDigitalAssetStoreServiceBaseDir;
+        if (!arcDigitalAssetStoreServiceBaseDir.startsWith(File.separator)) {
+            resourceDir = File.separator + resourceDir;
+        }
+        if (!arcDigitalAssetStoreServiceBaseDir.endsWith(File.separator)) {
+            resourceDir = resourceDir + File.separator;
+        }
+        registry.addResourceHandler("/store/**").addResourceLocations("file:" + resourceDir);
+    }
+
+    public PywbWarcDeposit pywbWarcDeposit() {
+        PywbWarcDeposit bean = new PywbWarcDeposit(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
+        bean.setWctClient(wctCoordinatorClient());
+        bean.setRootStorePath(arcDigitalAssetStoreServiceBaseDir);
+        bean.setPywbEnabled(pywbEnable);
+        bean.setPywbManagerColl(pywbWaybaclManagerColl);
+        bean.setPywbManagerStoreDir(new File(pywbWaybaclManagerStore));
+        bean.setPywbCDXQueryUrl(pywbServiceCDXUrl);
+        bean.setMaxTrySeconds(pywbServiceTimeout);
         return bean;
     }
 }

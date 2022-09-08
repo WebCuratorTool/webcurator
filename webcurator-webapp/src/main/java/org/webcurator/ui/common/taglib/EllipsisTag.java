@@ -1,15 +1,12 @@
 package org.webcurator.ui.common.taglib;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
-import org.webcurator.domain.model.core.Indicator;
 
 /**
  * Formats a <code>List</code> strings into a comma delimited list and applies the ellipsis symbol, followed by suffix: (+n others)
@@ -32,7 +29,7 @@ public class EllipsisTag extends TagSupport {
 	/**
 	 * the string value that will be rendered
 	 */
-	private Set<String> strings;
+	private List<String> strings;
 
 	/**
 	 * the length of the string value before ellipsis is applied
@@ -104,7 +101,7 @@ public class EllipsisTag extends TagSupport {
  	 * the string values to be rendered
  	 * @param strings
  	 */
-	public void setStrings(Set<String> strings) {
+	public void setStrings(List<String> strings) {
 		this.strings = strings;
 	}
 

@@ -254,7 +254,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
     @Test
     public void testGetDownloadFileURL() {
         try {
-            File f = File.createTempFile("download",".temp");
+            File f = File.createTempFile("download", ".temp");
             f = testInstance.getDownloadFileURL("team.png", f);
             assert f.exists();
 

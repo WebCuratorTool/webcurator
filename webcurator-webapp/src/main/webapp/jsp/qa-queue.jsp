@@ -46,6 +46,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 }
 </style>
 
+<script>
+	document.addEventListener('mouseup', function(e) {
+    var container = document.getElementById('thumbnailModal');
+    if (!container.contains(e.target)) {
+        container.style.display = 'none';
+    }
+});
+</script>
+
 <script type="text/javascript"> 
 <!-- JQuery Section: ANNOTATIONS HISTORY (VIA AJAX) JAVASCRIPT -->
 
@@ -462,6 +471,61 @@ function clickEndorse(hrOid) {
 
 </script>
 
+<script>
+
+function createImageElement(filename) {
+	var imgEl = document.createElement("img");
+	imgEl.src = filename;
+	imgEl.style.height = "100%";
+	imgEl.style.width = "100%";
+	imgEl.style.padding = "5px";
+	imgEl.alt = "Image unavailable";
+	
+	return imgEl;
+}
+function populateThumbnailModalContent(fileUrl, targetSeeds, reviewUrl) {
+    var seedArray = targetSeeds.split("|");
+    var filename = fileUrl.replace("-thumbnail","");
+
+    var html="";
+    for (var i = 0; i < seedArray.length; i++) {
+        var seedDetails = seedArray[i];
+        var seedSplit = seedDetails.split(" ");
+
+        html+='<tr><td colspan="2">';
+        html+='<table class="panel_dotted_row">';
+        html+='<tr>';
+        html+="<td style='width:15%; text-align:left;'><span style='font-weight: bold;'>Live</span></td>";
+        html+="<td colspan='2' style='width:70%; height:18px; text-align:center;'>"+seedSplit[1]+"</td>";
+        html+="<td style='width:15%; text-align:right;'><span style='font-weight: bold;'>Harvested</span></td>";
+        html+="</tr>";
+        html+="</table>";
+        html+="</td></tr>";
+
+        var seedFilenameLive = filename.replace("seedId", seedSplit[0]);
+        var seedFilenameHarvested = seedFilenameLive.replace("live", "harvested");
+        var row="";
+        row+="<tr>";
+        row+="<td><img src='" + seedFilenameLive + "' alt='Image unavailable' style='width: 95%; padding: 5px;'></td>";
+        row+="<td><img src='" + seedFilenameHarvested + "' alt='Image unavailable' style='width: 95%; padding: 5px;'></td>";
+        row+="</tr>";
+        html+=row;
+
+        var row_separator="<tr'>";
+        row_separator+="<td colspan='2' style='height:8px; background:white;'></td>";
+        row_separator+="</tr>";
+        html+=row_separator;
+    }
+    document.getElementById("modalContent").innerHTML=html;
+
+    if (reviewUrl != null) {
+    	document.getElementById("thumbnailLinkReview").href=reviewUrl;
+    }
+
+    document.getElementById('thumbnailModal').style.display='block';
+}
+</script>
+
 
 <jsp:include page="include/useragencyfilter.jsp"/>
 <form name="filter" id="filter" method="POST" action="<c:out value="${action}"/>">
@@ -726,7 +790,9 @@ function clickEndorse(hrOid) {
 		<tr>
 			<td class="tableHead"><input type="checkbox" name="selectall" id="selectall" disabled="disabled" onclick="jqCheckAll(this.id, 'resultsTable');" /></td>
 			<td class="tableHead">Id</td>
+			<c:if test="${enableScreenshots}">
 			<td class="tableHead">Thumbnail</td>
+			</c:if>
 			<td class="tableHead"><img src="images/flag-icon-grey.gif"/></td>
 			<td class="tableHead"></td>
 			<td class="sortTableHead" data-id="name" onclick="toggleField($(this));">Name&nbsp;<span id="nameasc" /><span id="namedesc" /></td>
@@ -790,6 +856,7 @@ function clickEndorse(hrOid) {
 
 		<td class="tableRowLite"><c:out value="${instance.oid}"/></td>
 
+        <c:if test="${enableScreenshots}">
 		<td class="tableRowLite" style="cellpadding: 0px; cellspacing: 0px;">
 		<c:choose>				
 		<c:when test="${instance.state eq 'Harvested' || instance.state eq 'Endorsed' || instance.state eq 'Archived'}">
@@ -800,11 +867,56 @@ function clickEndorse(hrOid) {
 			<c:if test="${thumbnailRenderer eq 'accessTool'}">
 				<iframe id="frame" name="frame" src="" data-url="<c:out value='${browseUrls[instance.oid]}'/>" ></iframe>
 			</c:if>
+			<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+				<c:choose>
+					<c:when test="${not empty browseUrls[instance.oid]}">
+						<c:set var = "fileUrl" value = "${browseUrls[instance.oid]}" />
+						<c:set var = "primarySeedIdKey" value = "${instance.oid}_primarySeedId" />
+						<c:set var = "mapKey" value = "${instance.oid}_keysAndValues" />
+						<c:set var = "primarySeedId" value = "${targetSeeds[primarySeedIdKey]}" />
+						<c:set var = "liveFile" value = "${fn:replace(fileUrl, 'seedId', primarySeedId)}" />
+						<c:set var = "harvestFile" value = "${fn:replace(liveFile, 'live', 'harvested')}" />
+						<img src="${liveFile}" alt="Image unavailable" width="90" style="padding: 5px; cursor: pointer;" onclick="populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}');"/>
+						<img src="${harvestFile}" alt="Image unavailable" width="90" style="padding: 5px; cursor: pointer;" onclick="populateThumbnailModalContent('${fileUrl}', '${targetSeeds[mapKey]}', '${reviewUrls[instance.oid]}');"/>
+					</c:when>
+					<c:otherwise>
+						<div style="width: <c:out value='${thumbnailWidth}' /> height: <c:out value='${thumbnailHeight}' /> display: table-cell; vertical-align: middle; text-align: center">--</div>
+					</c:otherwise>
+				</c:choose>
+			</c:if>
 		</div>
+		<c:if test="${thumbnailRenderer eq 'screenshotTool'}">
+			<div id="thumbnailModal" style="display: none;">
+			    <div id="thumbnailModalHeader">
+			        <span>Screenshot</span>
+			        <span id="close" onclick="document.getElementById('thumbnailModal').style.display='none';"> &times; </span>
+			    </div>
+
+			    <div id="thumbnailTableContainer">
+					<table id="thumbnailTable" style="border: 0px none; width: 100%;">
+	                    <tbody id="modalContent">
+	                    </tbody>
+	                    <tfoot style="background:white;">
+	                        <tr>
+	                            <td colspan="2" style="margin: 5px;" valign="bottom" align="right">
+	                                <a id="thumbnailLinkReview" href="#" style="color: #484848;" onmouseover="this.style.textDecoration = 'none'; this.style.colour='#484848';">
+	                                    <img src="images/blank-button.gif" style="width: 90px; padding: 5px;" alt="">
+	                                    <div style="position: relative; right: 35px; bottom: 27px; font-weight: bolder; colour: #484848;">review</div>
+	                                </a>
+	                            </td>
+	                        </tr>
+	                    </tfoot>
+	                </table>
+                </div>
+			</div>
+		</c:if>
+
 		</c:when>
 		<c:otherwise><div width="100%" align="center">--</div></c:otherwise>
 		</c:choose>
 		</td>
+		</c:if>
+
 		<td class="tableRowLite">
 			<c:if test="${instance.flag ne null}">
 				<div style="width: 18px; height: 18px; background-color: #${instance.flag.rgb};"><img src="images/flag-icon-alpha.png" alt="${instance.flag.name}" /></div>
