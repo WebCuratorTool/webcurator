@@ -17,9 +17,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.core.profiles.MockProfileManager;
 import org.webcurator.core.targets.MockTargetManager;
@@ -48,7 +48,7 @@ public class TabbedGroupControllerTest extends
 
 	TargetManager manager;
 
-	AuthorityManagerImpl authorityManager;
+	AuthorityManager authorityManager;
 
 	// Override BaseWCTTest setup method
 	public void setUp() throws Exception {
@@ -56,7 +56,7 @@ public class TabbedGroupControllerTest extends
 		super.setUp();
 
 		// add the extra bits
-		authorityManager = new AuthorityManagerImpl();
+		authorityManager = new AuthorityManager();
 		testInstance.setAuthorityManager(authorityManager);
 		BusinessObjectFactory factory = new BusinessObjectFactory();
 		factory.setProfileManager(new MockProfileManager(testFile));
@@ -70,7 +70,7 @@ public class TabbedGroupControllerTest extends
 		tabConfig.setTabs(tabs);
 		testInstance.setTabConfig(tabConfig);
 		GroupSearchController searchController = new GroupSearchController();
-		searchController.setAgencyUserManager(new MockAgencyUserManagerImpl(
+		searchController.setAgencyUserManager(new MockAgencyUserManager(
 				testFile));
 		searchController.setTargetManager(manager);
 		// MockGroupDAO targetDao = new MockGroupDAO(testFile);
@@ -88,11 +88,11 @@ public class TabbedGroupControllerTest extends
 		tabGeneral.setPageId("GENERAL");
 		// tabGeneral.setValidator(new GroupValidator());
 
-		AgencyUserManager agencyUserManager = new MockAgencyUserManagerImpl(
+		AgencyUserManager agencyUserManager = new MockAgencyUserManager(
 				testFile);
 
 		GeneralHandler genHandler = new GeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		tabGeneral.setTabHandler(genHandler);
 		genHandler.setAgencyUserManager(agencyUserManager);
 		genHandler.setTargetManager(targetManager);

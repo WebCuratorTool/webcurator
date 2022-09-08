@@ -3,17 +3,13 @@ package org.webcurator.ui.profiles.controller;
 import static org.junit.Assert.*;
 
 import java.util.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.junit.Test;
 import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.profiles.*;
 import org.webcurator.core.util.AuthUtil;
@@ -240,12 +236,12 @@ public class ProfileListControllerTest extends BaseWCTTest<ProfileListController
 
 	@Test
 	public final void testSetAgencyUserManager() {
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 	}
 
 	@Test
 	public final void testSetAuthorityManager() {
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 	}
 
 }

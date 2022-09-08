@@ -17,51 +17,92 @@ package org.webcurator.domain;
 
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.PermissionTemplate;
+
 /**
  * Persistance Interface for the managing the Permission Template Request object
  * @author BPrice
  */
-public interface PermissionTemplateDAO {
+public class PermissionTemplateDAO extends HibernateDaoSupport {
 
-    /**
-     * gets a single template based on its primary key
-     * @param oid the primary key of the template
-     * @return the PermissionTemplate object
-     */
-    PermissionTemplate getTemplate(Long oid);
+    private Log log = LogFactory.getLog(PermissionTemplateDAO.class);
     
-    /**
-     * gets all the Templates appropriate for the agency specified
-     * @param agencyOid the primary key of the Agency
-     * @return a List of PermissionTemplate objects
-     */
-    List getTemplates(Long agencyOid);
+    private TransactionTemplate txTemplate;
     
-    /**
-     * gets all the Templates in the system
-     * @return a List of PermissionTemplate objects
-     */
-    List getAllTemplates();
-    
-    /**
-     * saves or updates the PermissionTemplate object
-     * @param aObject the PermissionTemplate object
-     */
-    void saveOrUpdate(Object aObject);
-    
-    /**
-     * obtains the Permission object from the system. The permission object
-     * holds all the information required by the template for rendering.
-     * @param oid the primary key of the Permission object
-     * @return the populated Permission object
-     */
-    Permission getPermission(Long oid);
-    
-    /**
-     * deletes the specified PermissionTemplate object
-     * @param aObject the template object to delete
-     */
-    void delete(Object aObject);
+    public PermissionTemplateDAO() {
+
+    }
+
+    public PermissionTemplate getTemplate(Long oid) {
+        return (PermissionTemplate)getHibernateTemplate().load(PermissionTemplate.class,oid);
+    }
+
+    public List getTemplates(Long agencyOid) {
+        return getHibernateTemplate().execute(session ->
+                session.getNamedQuery(PermissionTemplate.QRY_GET_TEMPLATES_BY_AGENCY)
+                    .setParameter(1, agencyOid)
+                    .list());
+    }
+
+    public List getAllTemplates() {
+        return getHibernateTemplate().loadAll(PermissionTemplate.class);
+    }
+
+    public void setTxTemplate(TransactionTemplate txTemplate) {
+        this.txTemplate = txTemplate;
+    }
+
+    public void saveOrUpdate(final Object aObject) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try { 
+                            log.debug("Before Saving of Object");
+                            currentSession().saveOrUpdate(aObject);
+                            log.debug("After Saving Object");
+                        }
+                        catch(Exception ex) {
+                            log.warn("Setting Rollback Only",ex);
+                            ts.setRollbackOnly();
+                        }
+                        return null;
+                    }
+                }
+        );    
+        
+    }
+
+    public Permission getPermission(Long oid) {
+        return (Permission)getHibernateTemplate().load(Permission.class,oid);
+    }
+
+    public void delete(final Object aObject) {
+        txTemplate.execute(
+                new TransactionCallback() {
+                    public Object doInTransaction(TransactionStatus ts) {
+                        try {
+                            log.debug("Before Delete of Object");
+                            getHibernateTemplate().delete(aObject);
+                            log.debug("After Delete Object");
+                        }
+                        catch (DataAccessException e) {
+                            log.warn("Setting Rollback Only",e);
+                            ts.setRollbackOnly();
+                            throw e;
+                        }
+                        return null;
+                    }
+                }
+        );    
+        
+    }
+
 }

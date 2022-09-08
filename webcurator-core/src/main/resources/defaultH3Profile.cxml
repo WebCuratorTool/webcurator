@@ -390,8 +390,8 @@ metadata.description=Basic crawl starting with useful defaults
         <bean class="org.archive.crawler.frontier.precedence.BaseQueuePrecedencePolicy" />
        </property> -->
   <!-- <property name="snoozeLongMs" value="300000" /> -->
-  <!-- <property name="retryDelaySeconds" value="900" /> -->
-  <!-- <property name="maxRetries" value="30" /> -->
+  <property name="retryDelaySeconds" value="300" />
+  <property name="maxRetries" value="5" />
   <!-- <property name="recoveryLogEnabled" value="true" /> -->
   <!-- <property name="maxOutlinks" value="6000" /> -->
   <!-- <property name="extractIndependently" value="false" /> -->

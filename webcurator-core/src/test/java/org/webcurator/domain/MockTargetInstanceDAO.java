@@ -33,7 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("all")
-public class MockTargetInstanceDAO implements TargetInstanceDAO {
+public class MockTargetInstanceDAO extends TargetInstanceDAO {
 
     private static Log log = LogFactory.getLog(MockTargetInstanceDAO.class);
     private Document theFile = null;

@@ -7,7 +7,7 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.domain.MockTargetInstanceDAO;
@@ -24,7 +24,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
         super(QualityReviewToolController.class, "/org/webcurator/ui/tools/controller/QualityReviewToolControllerTest.xml");
     }
 
-    AuthorityManagerImpl authorityManager;
+    AuthorityManager authorityManager;
 
     QualityReviewToolControllerAttribute mockQRTCA = new QualityReviewToolControllerAttribute();
 

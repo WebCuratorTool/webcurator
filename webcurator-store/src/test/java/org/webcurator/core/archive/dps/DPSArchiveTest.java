@@ -221,6 +221,7 @@ public class DPSArchiveTest {
         assertEquals(0, output.size());
     }
 
+    @Ignore
     @Test
     public void testPopulateDepositParameterFromFields_webHarvest() {
         DPSArchive archiver = new DPSArchive();
@@ -246,10 +247,12 @@ public class DPSArchiveTest {
         assertEquals("112233", parameters.get(DpsDepositFacade.TARGET_INSTANCE_ID));
         assertEquals("someFinalSIPXml", parameters.get(DpsDepositFacade.WCT_METS_XML_DOCUMENT));
         assertEquals("1234567890", parameters.get(DpsDepositFacade.ILS_REFERENCE));
-        assertEquals("anAccessRestriction", parameters.get(DpsDepositFacade.ACCESS_RESTRICTION));
+//        assertEquals("anAccessRestriction", parameters.get(DpsDepositFacade.ACCESS_RESTRICTION));
+        assertEquals("ACR_OPA", parameters.get(DpsDepositFacade.ACCESS_RESTRICTION));
         assertEquals("TraditionalWebHarvest", parameters.get(DpsDepositFacade.HARVEST_TYPE));
     }
 
+    @Ignore
     @Test
     public void testPopulateDepositParameterFromFields_htmlSerialHarvest() {
         DPSArchive archiver = new DPSArchive();
@@ -293,7 +296,8 @@ public class DPSArchiveTest {
         assertEquals("112233", parameters.get(DpsDepositFacade.TARGET_INSTANCE_ID));
         assertEquals("someFinalSIPXml", parameters.get(DpsDepositFacade.WCT_METS_XML_DOCUMENT));
         assertEquals("1234567890", parameters.get(DpsDepositFacade.ILS_REFERENCE));
-        assertEquals("anAccessRestriction", parameters.get(DpsDepositFacade.ACCESS_RESTRICTION));
+//        assertEquals("anAccessRestriction", parameters.get(DpsDepositFacade.ACCESS_RESTRICTION));
+        assertEquals("ACR_OPA", parameters.get(DpsDepositFacade.ACCESS_RESTRICTION));
         assertEquals("anHtmlSerialBibCitation", parameters.get(DpsDepositFacade.DCTERMS_BIBLIOGRAPHIC_CITATION));
         assertEquals("anHtmlSerialDctermsAvailable", parameters.get(DpsDepositFacade.DCTERMS_AVAILABLE));
         assertEquals("HtmlSerialHarvest", parameters.get(DpsDepositFacade.HARVEST_TYPE));
@@ -316,12 +320,13 @@ public class DPSArchiveTest {
     public void testSubmitToArchive() {
         mockDpsDepositFacade = mockDpsDepositFacade();
         DPSArchive archiver = new DPSArchive();
+
         setVariousParameters(archiver);
         Map<String, String> attributes = mockDasAttributeMap();
 
-        String targetInstanceOID = "1588";
+        String targetInstanceOID = "11";
 
-        File toBeTestDir = new File("/usr/local/wct/store/3459/1");
+        File toBeTestDir = new File("/usr/local/wct/store/11/1");
         File[] files = toBeTestDir.listFiles();
         List<ArchiveFile> archiveFileList = new ArrayList<>();
         for (File f : files) {
@@ -406,7 +411,8 @@ public class DPSArchiveTest {
 
     private Map<String, String> mockDasAttributeMap() {
         Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(ACCESS_RESTRICTION, "anAccessRestriction");
+//        attributes.put(ACCESS_RESTRICTION, "anAccessRestriction");
+        attributes.put(ACCESS_RESTRICTION, "ACR_OPA");
         attributes.put(REFERENCE_NUMBER, "1234567890");
         return attributes;
     }
@@ -427,11 +433,15 @@ public class DPSArchiveTest {
 
     private void setVariousParameters(DPSArchive archiver) {
         archiver.setPdsUrl("aPdsUrl");
-        archiver.setFtpHost("aFtpHost");
-        archiver.setFtpUserName("aFtpUserName");
-        archiver.setFtpPassword("aFtpPassword");
-        archiver.setFtpDirectory("aFtpDirectory");
-        archiver.setDepositServerBaseUrl("http://someserver.natlib.govt.nz:80000");
+//        archiver.setFtpHost("aFtpHost");
+//        archiver.setFtpUserName("aFtpUserName");
+//        archiver.setFtpPassword("aFtpPassword");
+//        archiver.setFtpDirectory("aFtpDirectory");
+        archiver.setFtpHost("localhost");
+        archiver.setFtpUserName("leefr");
+        archiver.setFtpPassword("leefr");
+        archiver.setFtpDirectory("/usr/local/wct/deposit");
+        archiver.setDepositServerBaseUrl("http://someserver.natlib.govt.nz:8000");
         archiver.setDepositWsdlRelativePath("/dpsws/deposit/DepositWebServices?wsdl");
         archiver.setDpsUserInstitution("aDpsUserInstitution");
         archiver.setDpsUserName("aDpsUserName");

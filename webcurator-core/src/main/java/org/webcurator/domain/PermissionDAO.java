@@ -16,16 +16,26 @@
 
 package org.webcurator.domain;
 
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.domain.model.core.Permission;
 
+import javax.persistence.Query;
 import java.util.List;
 
 /**
  * The interface used for accessing persistent Harvest Authorisation data.
  * @author FrankLee
  */
-public interface PermissionDAO {
-    Permission load(final long permissionOid);
+@Transactional
+public class PermissionDAO extends HibernateDaoSupport {
+    public Permission load(long permissionOid) {
+        return (Permission) getHibernateTemplate().load(Permission.class, permissionOid);
+    }
 
-    List<Permission> loadBySiteId(final long siteId);
+    public List<Permission> loadBySiteId(final long siteId){
+        Query query=currentSession().createNamedQuery(Permission.QUERY_BY_SITE_ID);
+        query.setParameter("siteId",siteId);
+        return query.getResultList();
+    }
 }

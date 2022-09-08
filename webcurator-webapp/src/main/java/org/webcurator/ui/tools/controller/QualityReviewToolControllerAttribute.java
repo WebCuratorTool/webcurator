@@ -3,7 +3,6 @@ package org.webcurator.ui.tools.controller;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.targets.TargetManager;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.BusinessObjectFactory;
 
 public class QualityReviewToolControllerAttribute {
     protected TargetInstanceManager targetInstanceManager;

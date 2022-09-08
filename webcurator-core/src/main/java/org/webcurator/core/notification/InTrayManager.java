@@ -15,12 +15,37 @@
  */
 package org.webcurator.core.notification;
 
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
+import javax.mail.MessagingException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.context.MessageSource;
+import org.webcurator.common.ui.CommandConstants;
+import org.webcurator.core.agency.AgencyUserManager;
+import org.webcurator.core.exceptions.NotOwnerRuntimeException;
+import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.util.Auditor;
+import org.webcurator.core.util.AuthUtil;
+import org.webcurator.domain.InTrayDAO;
 import org.webcurator.domain.Pagination;
+import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.User;
+import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.Notification;
+import org.webcurator.domain.model.core.Permission;
+import org.webcurator.domain.model.core.Target;
+import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.domain.model.core.Task;
+import org.webcurator.domain.model.dto.UserDTO;
+import org.webcurator.common.ui.Constants;
 
 /**
  * The InTrayManager is responsible for managing and creating System Notifications and Tasks.
@@ -28,7 +53,7 @@ import org.webcurator.domain.model.core.Task;
  * via email or their in tray.
  * @author bprice
  */
-public interface InTrayManager {
+public class InTrayManager {
     /**
      * This flag specifices if the List of privileges must all exist for a User to receive the Notification
      */
@@ -37,176 +62,557 @@ public interface InTrayManager {
      * This flag specifies that at least one or more privileges must exist before the User receives the Notification
      */
     public final static  String ONE_OR_MORE_PRIVILEGES = "OR";
+
+    private static Log log = LogFactory.getLog(InTrayManager.class);
     
-    /**
-     * generates an automated Notification for a specified user based on the notificationType and
-     * the wctResource passed in. The wctResource must implement the InTrayResource Interface.
-     * @param userOid the Users oid to create the notification for
-     * @param notificationType the type of Notification to generate
-     * @param wctResource the WCT resource that is effected by this notification.
-     */
-    void generateNotification(Long userOid, int notificationCategory, String notificationType, InTrayResource wctResource);
+    private InTrayDAO inTrayDAO = null;
     
-    /**
-     * generates a Notification for the specified User
-     * @param userOid the Users oid to create the notification for
-     * @param subject the Subject of the Notification
-     * @param message the detailed message of the Notification
-     */
-    void generateNotification(Long userOid, int notificationCategory, String subject, String message);
+    private UserRoleDAO userRoleDAO = null;
     
-    void generateNotification(Long userOid, int notificationCategory, String subjectKey, Object[] subjectSubst, String messageKey, Object[] messageSubst, InTrayResource wctResource, boolean editMode);
+    private AgencyUserManager agencyUserManager = null;
     
-    /**
-     * generates a list of Notifications in the system to users that have at least one of the privileges
-     * specified in the privilege list.
-     * @param privileges the List of Privileges this Notification is appropriate for
-     * @param andOrFlag the Flag to specify if the privileges suppplied are all required ALL_PRIVILEGES or just ONE_OR_MORE_PRIVILEGES
-     * @param subject the Subject of the Notification
-     * @param message the detailed message of the Notification
-     */
-    void generateNotification(List privileges, String andOrFlag, int notificationCategory, String subject, String message);
+    private MailServer mailServer = null;
     
-    /**
-     * generates a list of Notifications in the system to users that have at least one of the privileges
-     * specified in the privilege list.
-     * @param privileges the List of Privileges this Notification is appropriate for
-     * @param subject the Subject of the Notification
-     * @param message the detailed message of the Notification
-     */
-    void generateNotification(List privileges, int notificationCategory, String subject, String message);
+    private String sender;
     
-    /**
-     * gets a List of Notification objects appropriate for the User
-     * @param user the User 
-     * @param pageNum the the current page of the results to get
-     * @return the Pagination object containing the Notifications
-     */
-    Pagination getNotifications(User user, int pageNum, int pageSize);
+    private String wctBaseUrl;
     
-    /**
-     * Count the notifications available for the specified user.
-     * @param user the user to count the notifications for
-     * @return a count of notifications
-     */
-    long countNotifications(User user);
+    private MessageSource messageSource;
     
-    /**
-     * gets the List of Tasks appropriate for the user
-     * @param user the User
-     * @param pageNum the the current page of the results to get
-     * @return the Pagination object containing the Tasks
-     */
-    Pagination getTasks(User user, int pageNum, int pageSize);
+    private Auditor audit;
     
-    /**
-     * Return a count of tasks for the specified user.
-     * @param user the user to count tasks for
-     * @return the count of tasks
-     */
-    long countTasks(User user);
+    public InTrayManager() {
+
+    }
     
-    /**
-     *  generates a Task in the System for all Users within an Agnecy with a particular privilege
-     * @param privilege the Privilege
-     * @param messageType the type of message to create for this task
-     * @param wctResource the WCT resource that is the source of this Task.
-     */
-    void generateTask(String privilege, String messageType, InTrayResource wctResource);
+    public void generateNotification(List privileges, String allOrOneFlag, int notificationCategory, String subject, String message) {
+        Map usersToNotify = null;
+        if (ALL_PRIVILEGES.equals(allOrOneFlag)) {
+            usersToNotify = agencyUserManager.getUsersWithAllPrivilege(privileges);
+        } else {
+            usersToNotify = agencyUserManager.getUsersWithAtLeastOnePrivilege(privileges);
+        }
+        log.debug("Obtaining keys from the UsersToNotify map");
+        Set keys = usersToNotify.keySet();
+        Iterator it = keys.iterator();
+        
+            while (it.hasNext()) {
+                
+                Long userOid = (Long) it.next();
+                UserDTO effectedUser = (UserDTO)usersToNotify.get(userOid);
+                if(effectedUser.shouldSendNotification(notificationCategory)) {
+	                log.debug("Found a key so creating Notification for user with oid "+userOid);
+	                
+	                Notification notify = new Notification();
+	                notify.setSubject(subject);
+	                notify.setMessage(message);
+	                notify.setSentDate(new Date());
+	                notify.setRecipientOid(userOid);
+	                notify.setSender(this.sender);
+	                
+	                inTrayDAO.saveOrUpdate(notify);
+	                
+	                send(effectedUser, notify);
+                }
+                else {
+                	log.debug("Not sending notification to " + effectedUser.getNiceName() + " because level " + notificationCategory + " is off");
+                }
+            }      
+    }
+
+    public void generateNotification(List privileges, int notificationCategory, String subject, String message) {
+        generateNotification(privileges,ONE_OR_MORE_PRIVILEGES,notificationCategory,subject,message);
+    }
+
+    public void generateNotification(Long userOid, int notificationCategory, String notificationType, InTrayResource wctResource) {
+        String subject = lookupSubject(notificationType, wctResource);
+        String message = lookupMessage(notificationType, wctResource);
+        
+        generateNotification(userOid, notificationCategory, subject, message);
+    }
+    
+	public void generateNotification(Long userOid, int notificationCategory, String subjectKey, Object[] subjectSubst, String messageKey, Object[] messageSubst, InTrayResource wctResource, boolean editMode) {
+		Object[] newMessageSubst = new Object[messageSubst.length + 1];
+		int i = 0;
+		for(i=0; i<messageSubst.length; i++) { 
+			newMessageSubst[i] = messageSubst[i];
+		}
+		newMessageSubst[i] = lookupLink(wctResource, editMode);
+		
+		String subjectLine = messageSource.getMessage(subjectKey, subjectSubst, Locale.getDefault());
+		String messageLine = messageSource.getMessage(messageKey, newMessageSubst, Locale.getDefault());		
+
+        generateNotification(userOid, notificationCategory, subjectLine, messageLine);
+	}        
+
+    public void generateNotification(Long userOid, int notificationCategory, String subject, String message) {
+    	UserDTO effectedUser = agencyUserManager.getUserDTOByOid(userOid);
+    	
+    	if(effectedUser.shouldSendNotification(notificationCategory)) {
+	        Notification notify = new Notification();
+	        notify.setSubject(subject);
+	        notify.setMessage(message);
+	        notify.setSentDate(new Date());
+	        notify.setRecipientOid(userOid);
+	        notify.setSender(this.sender);
+	        
+	        inTrayDAO.saveOrUpdate(notify);
+	        
+	        send(effectedUser, notify);
+    	}
+        else {
+        	log.debug("Not sending notification to " + effectedUser.getNiceName() + " because level " + notificationCategory + " is off");
+        }
+    }
+
+    public Pagination getNotifications(User user, int pageNum, int pageSize) {
+        return inTrayDAO.getNotifications(user.getOid(), pageNum, pageSize);
+    }
+
+    public long countNotifications(User user) {
+    	return inTrayDAO.countNotifications(user.getOid());
+    }
+    
+    @SuppressWarnings("unchecked")
+	public long countTasks(User user) {
+    	return inTrayDAO.countTasks(user, userRoleDAO.getUserPrivileges(user.getUsername()));
+    }
+    
+    public void setInTrayDAO(InTrayDAO inTrayDAO) {
+        this.inTrayDAO = inTrayDAO;
+    }
+
+    public void setAgencyUserManager(AgencyUserManager agencyUserManager) {
+        this.agencyUserManager = agencyUserManager;
+    }
+
+    public void setMailServer(MailServer mailServer) {
+        this.mailServer = mailServer;
+    }
     
     
-    /**
-     * Create a unique task for the given privilege/messageType/resource. If any
-     * tasks already exist for the messageType and resource, then the task will
-     * not be created.
-     * @param privilege   The permission to allocate the task to if it needs
-     * 					  to be created.
-     * @param messageType The type of the task.
-     * @param wctResource The resource that the task relates to.
-     */
-    public void generateUniqueTask(String privilege, String messageType, InTrayResource wctResource);
+    public void generateUniqueTask(String privilege, String messageType, InTrayResource wctResource) {
+        if( countTasks(messageType, wctResource) == 0L) {
+    		generateTask(privilege, messageType, wctResource);
+    	}
+    }
+    
+    public long countTasks(String messageType, InTrayResource wctResource) {
+    	return inTrayDAO.countTasks(messageType, wctResource);
+    }
+    
+    
+    public void generateTask(String privilege, String messageType, InTrayResource wctResource) {
+        String subject = lookupSubject(messageType, wctResource);
+        String message = lookupMessage(messageType, wctResource);
+        
+        Task task = new Task();
+        task.setAssigneeOid(null);
+        
+        task.setMessage(message);
+        task.setSender(this.sender);
+        task.setSentDate(new Date());
+        task.setSubject(subject);
+        task.setPrivilege(privilege);
+        task.setMessageType(messageType);
+        task.setResourceOid(wctResource.getOid());
+        task.setResourceType(wctResource.getResourceType());
+        
+        try {
+            Agency agency = null;
+            wctResource = populateOwnerAgencyOfResource(wctResource);
+            if (wctResource instanceof UserInTrayResource) {
+                agency = ((UserInTrayResource)wctResource).getOwningUser().getAgency();
+            } else if (wctResource instanceof AgencyInTrayResource) {
+                agency = ((AgencyInTrayResource)wctResource).getOwningAgency();
+            } else {
+                throw new WCTRuntimeException("Unknown instance type "+wctResource.getClass().getName());
+            }
+            
+            task.setAgency(agency);
+            
+            inTrayDAO.saveOrUpdate(task);
+            
+            send(privilege, task);
+        }
+        catch (Throwable e) {
+            log.error("Failed to create Task for "+wctResource.getResourceName(),e);
+        }
+    }
+
+    public void deleteNotification(Long notificationOid) {
+        Notification notify = (Notification)inTrayDAO.load( Notification.class, notificationOid);
+        inTrayDAO.delete(notify);
+    }
+    
+    public void deleteAllNotifications(Long userOid) {
+    	inTrayDAO.deleteNotificationsByUser(userOid);
+    }
+
+    public void deleteTask(Long taskOid) {
+        Task task = (Task)inTrayDAO.load(Task.class, taskOid);
+        User currentUser = AuthUtil.getRemoteUserObject();              
+        if (task.getAssigneeOid() != null && !task.getAssigneeOid().equals(currentUser.getOid())) {
+        	throw new NotOwnerRuntimeException(currentUser.getNiceName() + " is not the owner of the task " + task.getOid() + " so cannot delete it.");
+        }        
+        inTrayDAO.delete(task);       
+    }
+    
+	public void deleteTask(Long aResourceOid, String aResourceType, String aTaskType) {
+		Task toDelete = inTrayDAO.getTask(aResourceOid, aResourceType, aTaskType);
+		if (toDelete != null) {
+			inTrayDAO.delete(toDelete);
+		}
+	}
+
+	public void deleteTasks(Long aResourceOid, String aResourceType, String aTaskType) {
+		List<Task> tasksToDelete = inTrayDAO.getTasks(aResourceOid, aResourceType, aTaskType);
+		if ( tasksToDelete != null ) {
+			for (Iterator<Task> it = tasksToDelete.iterator(); it.hasNext(); ) {
+				Task toDelete = (Task)it.next();
+				inTrayDAO.delete(toDelete);
+			}
+		}
+	}
+
+	public Notification getNotification(Long notificationOid) {
+        Notification notify = (Notification)inTrayDAO.load( Notification.class, notificationOid);
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        String recipientName = "";
+        if (loggedInUser.getOid() == notify.getRecipientOid()) {
+            //The Notification should always be for the logged in user 
+            //but we should just check to make sure
+            recipientName = loggedInUser.getNiceName();
+        } else {
+            //The Notification is for another user that we can see
+            User specifiedUser = userRoleDAO.getUserByOid(notify.getRecipientOid());
+            recipientName = specifiedUser.getNiceName();
+        }
+        notify.setRecipientName(recipientName);
+        return notify; 
+    }
+
+    public Task getTask(Long taskOid) {
+        Task task = (Task)inTrayDAO.load(Task.class, taskOid);
+        Long assigneeOid = task.getAssigneeOid();
+        User loggedInUser = AuthUtil.getRemoteUserObject();
+        String owner = "Unclaimed";
+        if (assigneeOid != null) {
+            if (loggedInUser.getOid() == task.getAssigneeOid()) {
+                //The Notification should always be for the logged in user 
+                //but we should just check to make sure
+                owner = loggedInUser.getNiceName();
+            } else {
+                //The Notification is for another user that we can see
+                User specifiedUser = userRoleDAO.getUserByOid(task.getAssigneeOid());
+                owner = specifiedUser.getNiceName();
+            }
+        }
+        task.setOwner(owner);
+        return task;
+    }
+
+    public void setUserRoleDAO(UserRoleDAO userRoleDAO) {
+        this.userRoleDAO = userRoleDAO;
+    }
 
     /**
-     * Count the number of tasks of the given type, related to a particular
-     * resource.
-     * @param messageType The task type.
-     * @param wctResource The related resource.
-     * @return The number of tasks.
+     * @return Returns the sender.
      */
-    public long countTasks(String messageType, InTrayResource wctResource);
-    
-    
-    /**
-     * deletes a specified Notification object
-     * @param notificationOid the Oid of the Notification to delete
-     */
-    void deleteNotification(Long notificationOid);
-    
-    /**
-     * deletes a specified Task object
-     * @param taskOid the Oid of the Task to delete
-     */
-    void deleteTask(Long taskOid);
-    
-    /**
-     * Deletes a task for the specified resource or the specified type.
-     * @param aResourceOid the id of the resource
-     * @param aResourceType the type of the resource
-     * @param aTaskType the type of the task
-     */
-    void deleteTask(Long aResourceOid, String aResourceType, String aTaskType);
-    
-    /**
-     * Deletes all tasks for the specified resource or the specified type.
-     * @param aResourceOid the id of the resource
-     * @param aResourceType the type of the resource
-     * @param aTaskType the type of the task
-     */
-    void deleteTasks(Long aResourceOid, String aResourceType, String aTaskType);
+    public String getSender() {
+        return sender;
+    }
 
     /**
-     * gets a fully populated Notification object
-     * @param notificationOid the oid of the Notification to load
-     * @return the Notification object
+     * @param sender The sender to set.
      */
-    Notification getNotification(Long notificationOid);
-    
-    /**
-     * gets a fully populated Task object
-     * @param taskOid the oid of the task to load
-     * @return the Task object
-     */
-    Task getTask(Long taskOid);
-    
-    /**
-     * The default system email address to be used if the Task or Notification is
-     * sent by the system.
-     * @param systemSender the system email address Notifications/Tasks get sent from
-     */
-    void setSender(String systemSender);
-    
-    /**
-     * lets the User Claim the specified task
-     * @param user the user claiming the task
-     * @param taskOid the task oid in question
-     */
-    void claimTask(User user, Long taskOid);
-    
-    /**
-     * lets the User un-claim the specified task
-     * @param user the user returning the task
-     * @param taskOid the task oid in question
-     */
-    void unclaimTask(User user, Long taskOid);
-    
-    /**
-     * Deletes all notifications sent to the given user.
-     * @param userOid The OID of the user to delete notifications for.
-     */
-    public void deleteAllNotifications(Long userOid);
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
 
     /**
-     * Deletes all tasks 
+     * @param messageSource The messageSource to set.
      */
-	public void deleteAllTasks();
+    public void setMessageSource(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+    
+    /**
+     * sets the base URL of the web curator system. This is the URL base that will be pre-appended
+     * to the automatically generated URL's for Notifications and Tasks 
+     * @param wctBaseUrl the wct Core machines base URL, e.g. https://www.wct.org/wct/
+     */
+    public void setWctBaseUrl(String wctBaseUrl) {
+        this.wctBaseUrl = wctBaseUrl;
+    }
+
+    public String getWctBaseUrl() {
+        return this.wctBaseUrl;
+    }
+    
+    @SuppressWarnings("unchecked")
+	public Pagination getTasks(User user, int pageNum, int pageSize) {
+        return inTrayDAO.getTasks(user, userRoleDAO.getUserPrivileges(user.getUsername()), pageNum, pageSize);
+    }
+    
+    public void claimTask(User user, Long taskOid) {
+        Task task = (Task)inTrayDAO.load(Task.class,taskOid);
+        inTrayDAO.claimTask(user,task);
+        audit.audit(Task.class.getName(), taskOid, Auditor.ACTION_CLAIM_TASK, "The task " + task.getSubject() + " has been un-claimed by " + user.getNiceName());
+    }
+        
+    public void unclaimTask(User user, Long taskOid) {
+        Task task = (Task)inTrayDAO.load(Task.class,taskOid);
+        inTrayDAO.unclaimTask(user,task);
+        audit.audit(Task.class.getName(), taskOid, Auditor.ACTION_UNCLAIM_TASK, "The task " + task.getSubject() + " has been claimed by " + user.getNiceName());
+    }
+        
+    /**
+     * looks up the Subject text for this type of Message
+     * @param messageType the MessageType as defined in the MessageType class
+     * @param wctResource the wctResource effected. The wctResource must implement the InTrayResource Interface.
+     * @return the subject text for the Notification or Task
+     */
+    private String lookupSubject(String messageType, InTrayResource wctResource) {
+        if (MessageType.TARGET_INSTANCE_COMPLETE.equals(messageType)) {
+            return messageSource.getMessage("subject.ti.complete", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_QUEUED.equals(messageType)) {
+            return messageSource.getMessage("subject.ti.queued", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_RESCHEDULED.equals(messageType)) {
+            return messageSource.getMessage("subject.ti.rescheduled", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_PROCESSING_ERROR.equals(messageType)) {
+            return messageSource.getMessage("subject.ti.error", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_ENDORSE.equals(messageType)) {
+            return messageSource.getMessage("subject.ti.endorse", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName() }, Locale.getDefault());     
+        } else if (MessageType.TARGET_INSTANCE_ARCHIVE.equals(messageType)) {
+            return messageSource.getMessage("subject.ti.archive", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName() }, Locale.getDefault());     
+        } else if (MessageType.TARGET_SCHEDULE_ADDED.equals(messageType)) {
+        	return messageSource.getMessage("subject.target.schedule_added", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.TASK_SEEK_PERMISSON.equals(messageType)) {
+        	return messageSource.getMessage("subject.permission.seek_approval", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.TASK_APPROVE_TARGET.equals(messageType)) {
+        	return messageSource.getMessage("subject.target.approve", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.DELEGATE_TARGET.equals(messageType)) {
+            return messageSource.getMessage("subject.target.delegate", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.TRANSFER_TARGET.equals(messageType)) { 
+        	return messageSource.getMessage("subject.target.transfer", new Object[] { wctResource.getResourceName(), ((Target) wctResource).getOwner().getFullName() }, Locale.getDefault());
+        } else if (MessageType.NOTIFICATION_PERMISSION_APPROVED.equals(messageType)) {
+        	return messageSource.getMessage("subject.permission.approved", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.NOTIFICATION_PERMISSION_DENIED.equals(messageType)) {
+        	return messageSource.getMessage("subject.permission.denied", new Object[] { wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.NOTIFICATION_ARCHIVE_SUCCESS.equals(messageType)) { 
+        	return messageSource.getMessage("subject.archived.success", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName() }, Locale.getDefault());
+        } else if (MessageType.NOTIFICATION_AQA_COMPLETE.equals(messageType)) { 
+        	return messageSource.getMessage("subject.aqa.complete", new Object[] { ((HarvestResult) wctResource).getTargetInstance().getTarget().getName(), ((HarvestResult) wctResource).getTargetInstance().getResourceName() }, Locale.getDefault());
+        } else {
+            throw new WCTRuntimeException("MessageType "+messageType+" is invalid.");           
+        }
+    }
+    
+    /**
+     * looks up the Message text for this type of Message
+     * @param messageType the MessageType as defined in the MessageType class
+     * @param wctResource the wctResource effected. The wctResource must implement the InTrayResource Interface.
+     * @return the message text for the Notification or Task
+     */
+    private String lookupMessage(String messageType, InTrayResource wctResource) {
+        String url = generateURL(messageType, wctResource);
+        if (MessageType.TARGET_INSTANCE_COMPLETE.equals(messageType)) {
+            return messageSource.getMessage("message.ti.complete", new Object[] {((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName(), lookupLink(messageType, wctResource) }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_QUEUED.equals(messageType)) {
+            return messageSource.getMessage("message.ti.queued", new Object[] { wctResource.getResourceName(),url }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_RESCHEDULED.equals(messageType)) {
+            return messageSource.getMessage("message.ti.rescheduled", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_PROCESSING_ERROR.equals(messageType)) {
+            return messageSource.getMessage("message.ti.error", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.TARGET_INSTANCE_ENDORSE.equals(messageType)) {
+            return messageSource.getMessage("message.ti.endorse", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName(), lookupLink(messageType, wctResource) }, Locale.getDefault());     
+        } else if (MessageType.TARGET_INSTANCE_ARCHIVE.equals(messageType)) {
+            return messageSource.getMessage("message.ti.archive", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName(), lookupLink(messageType, wctResource)  }, Locale.getDefault());
+        } else if (MessageType.TARGET_SCHEDULE_ADDED.equals(messageType)) {
+          	return messageSource.getMessage("message.target.schedule_added", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.TASK_SEEK_PERMISSON.equals(messageType)) {
+        	return messageSource.getMessage("message.permission.seek_approval", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.TASK_APPROVE_TARGET.equals(messageType)) {
+        	return messageSource.getMessage("message.target.approve", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.DELEGATE_TARGET.equals(messageType)) {
+            return messageSource.getMessage("message.target.delegate", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.TRANSFER_TARGET.equals(messageType)) { 
+        	return messageSource.getMessage("message.target.transfer", new Object[] { wctResource.getResourceName(), ((Target) wctResource).getOwner().getFullName(), url }, Locale.getDefault());            
+        } else if (MessageType.NOTIFICATION_PERMISSION_APPROVED.equals(messageType)) {
+        	return messageSource.getMessage("message.permission.approved", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.NOTIFICATION_PERMISSION_DENIED.equals(messageType)) {
+        	return messageSource.getMessage("message.permission.denied", new Object[] { wctResource.getResourceName(), url }, Locale.getDefault());
+        } else if (MessageType.NOTIFICATION_ARCHIVE_SUCCESS.equals(messageType)) { 
+        	return messageSource.getMessage("message.archived.success", new Object[] { ((TargetInstance) wctResource).getTarget().getName(), wctResource.getResourceName(), ((TargetInstance) wctResource).getArchiveIdentifier(), url }, Locale.getDefault());
+        } else if (MessageType.NOTIFICATION_AQA_COMPLETE.equals(messageType)) { 
+        	return messageSource.getMessage("message.aqa.complete", new Object[] { ((HarvestResult) wctResource).getTargetInstance().getTarget().getName(), wctResource.getResourceName(), generateURLBlankTarget(messageType, wctResource) }, Locale.getDefault());
+        } else {
+            throw new WCTRuntimeException("MessageType "+messageType+" is invalid.");           
+        }
+    }
+    
+    private String generateURL(String messageType, InTrayResource wctResource) {
+        String resourceName = wctResource.getResourceName();
+        StringBuffer url = new StringBuffer();
+        
+        url.append("<a href=\""+lookupLink(messageType, wctResource)+"\">");
+        url.append(resourceName);
+        url.append("</a>");
+        
+        
+        return url.toString();
+    }
+    
+    private String generateURLBlankTarget(String messageType, InTrayResource wctResource) {
+        String resourceName = wctResource.getResourceName();
+        StringBuffer url = new StringBuffer();
+        
+        url.append("<a href=\""+lookupLink(messageType, wctResource)+"\" target=\"_blank\">");
+        url.append(resourceName);
+        url.append("</a>");
+        
+        
+        return url.toString();
+    }
+    
+    
+    private String lookupLink(InTrayResource wctResource, boolean editMode) { 
+    	if(wctResource instanceof TargetInstance) {
+    		if(editMode) { 
+    			return wctBaseUrl + Constants.CNTRL_TI+"?"+ CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+wctResource.getOid()+"&cmd=edit";
+    		}
+    		else {
+    			return wctBaseUrl + Constants.CNTRL_TI+"?"+CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+wctResource.getOid();
+    		}
+    	}
+    	else {
+    		return "";
+    	}
+    }
+    
+    private String lookupLink(String messageType, InTrayResource wctResource) {
+    	return lookupLink(messageType, wctResource.getResourceType(), wctResource.getOid(), wctResource);
+    }
+    
+    private String lookupLink(String messageType, String resourceType, Long oid, InTrayResource wctResource) {
+        if (TargetInstance.class.getName().equals(resourceType)) {
+            //Create TargetInstance hyperlink
+        	if (MessageType.TARGET_INSTANCE_QUEUED.equals(messageType)) {
+                return wctBaseUrl + Constants.CNTRL_TI_QUEUE+"?"+CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+oid;
+            } else {
+                return wctBaseUrl + Constants.CNTRL_TI+"?"+CommandConstants.TARGET_INSTANCE_COMMAND_PARAM_OID+"="+oid+"&cmd=edit";
+            }
+        } 
+        if(Target.class.getName().equals(resourceType)) {
+        	if (MessageType.TARGET_SCHEDULE_ADDED.equals(messageType)) {
+        		return wctBaseUrl + Constants.CNTRL_TARGET+"?"+ CommandConstants.TARGET_DEFAULT_COMMAND_PARAM_OID +"="+oid;
+        	}
+        	if (MessageType.TASK_APPROVE_TARGET.equals(messageType) || MessageType.DELEGATE_TARGET.equals(messageType)) {
+        		return wctBaseUrl + Constants.CNTRL_TARGET+"?"+ CommandConstants.TARGET_DEFAULT_COMMAND_PARAM_OID + "=" + oid + "&mode=" + CommandConstants.TARGET_DEFAULT_COMMAND_MODE_EDIT;
+        	}
+        }
+        
+        if(Permission.class.getName().equals(resourceType)) {
+        	if( MessageType.TASK_SEEK_PERMISSON.equals(messageType) ||
+        		MessageType.NOTIFICATION_PERMISSION_APPROVED.equals(messageType) ||
+        		MessageType.NOTIFICATION_PERMISSION_DENIED.equals(messageType)) {
+        		long siteOid = ((Permission) wctResource).getSite().getOid();
+        		return wctBaseUrl + Constants.CNTRL_SITE + "?" + CommandConstants.DEFAULT_SITE_COMMAND_PARAM_SITE_OID +"=" + siteOid + "&" + CommandConstants.DEFAULT_SITE_COMMAND_PARAM_EDIT_MODE + "=true";
+        	}
+        }
+        
+    	if(wctResource instanceof HarvestResult)
+    	{
+    		HarvestResult result = (HarvestResult)wctResource;
+			return wctBaseUrl + Constants.CNTRL_AQA+"?"+CommandConstants.LOG_READER_COMMAND_PARAM_OID+"="+result.getTargetInstance().getOid()+"&"+CommandConstants.LOG_READER_COMMAND_PARAM_LOGFILE+"=aqa-report("+result.getHarvestNumber()+").xml";
+    	}
+        
+        return "";
+    }
+    
+    /**
+     * Identifies if the User should be informed of the Notification via email.
+     * If the User is to be notified by email, then the email will be sent to the users email address.
+     * @param effectedUser the User effected by the Notification
+     * @param notify the Notification to send
+     */
+    private void send(UserDTO effectedUser, Notification notify) {
+        if (effectedUser.isNotificationsByEmail()) {
+            //This user needs to be notified by email as well
+            try {
+                mailServer.sendHTML(convertNotificationToMail(notify, effectedUser.getEmail()));
+            } catch (MessagingException e) {
+                log.error("MailServer failure occurred during email of Notification with message "+e.getMessage());
+            }
+        }
+    }
+    
+    private void send(String privilege, Task task) {
+        List<UserDTO> userDTOs = userRoleDAO.getUserDTOsByPrivilege(privilege, task.getAgency().getOid());
+        for (UserDTO user: userDTOs) {
+            if (user.isTasksByEmail()) {
+                //This user needs to be notified by email as well
+                try {
+                    mailServer.sendHTML(convertTaskToMail(task, user.getEmail()));
+                } catch (MessagingException e) {
+                    log.error("MailServer failure occurred during email of Task with message "+e.getMessage());
+                }
+            }
+        }
+    }
+    
+    private InTrayResource populateOwnerAgencyOfResource(InTrayResource wctResource) {
+        
+        if (wctResource instanceof UserInTrayResource || wctResource instanceof AgencyInTrayResource) {
+            wctResource = inTrayDAO.populateOwner(wctResource);            
+        } else {
+            throw new WCTRuntimeException("InTrayResource of unknown instance type "+wctResource.getClass().getName());
+        }
+        
+        return wctResource;
+    }
+    
+    /**
+     * converts a Notification Object into something that is mailable.
+     * @param notify the Notification Object
+     * @param emailAddress the email address of the user to send this to 
+     * @return a Mailable object appropriate for the MailServer
+     */
+    private Mailable convertNotificationToMail(Notification notify, String emailAddress) {
+        Mailable email = new Mailable();
+        email.setMessage(notify.getMessage());
+        email.setRecipients(emailAddress);
+        email.setSender(notify.getSender());
+        email.setSubject(notify.getSubject());
+        
+        return email;
+    }
+    
+    /**
+     * converts a Task Object into something that is mailable.
+     * @param task the Task Object
+     * @param emailAddress the email address of the user to send this to 
+     * @return a Mailable object appropriate for the MailServer
+     */
+    private Mailable convertTaskToMail(Task task, String emailAddress) {
+        Mailable email = new Mailable();
+        email.setMessage(task.getMessage());
+        email.setRecipients(emailAddress);
+        email.setSender(task.getSender());
+        email.setSubject(task.getSubject());
+        
+        return email;
+    }
+
+	/**
+	 * @param audit the audit to set
+	 */
+	public void setAudit(Auditor audit) {
+		this.audit = audit;
+	}
+
+	public void deleteAllTasks() {
+    	inTrayDAO.deleteAllTasks();
+	}
 }

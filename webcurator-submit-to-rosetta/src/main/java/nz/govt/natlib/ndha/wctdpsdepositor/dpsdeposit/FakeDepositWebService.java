@@ -22,7 +22,7 @@
 
 package nz.govt.natlib.ndha.wctdpsdepositor.dpsdeposit;
 
-import com.exlibris.dps.sdk.deposit.DepositWebServices;
+import com.exlibris.dps.DepositWebServices;
 import com.exlibris.digitool.deposit.service.xmlbeans.DepositResultDocument;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

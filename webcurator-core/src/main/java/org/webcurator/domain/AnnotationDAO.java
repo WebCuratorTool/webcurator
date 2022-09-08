@@ -15,8 +15,20 @@
  */
 package org.webcurator.domain;
 
+import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.HibernateException;
+import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.springframework.orm.hibernate5.HibernateCallback;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.webcurator.domain.model.core.Annotation;
 
 /**
@@ -24,24 +36,85 @@ import org.webcurator.domain.model.core.Annotation;
  * loading and saving annotations.
  * @author nwaight
  */
-public interface AnnotationDAO {
-	/**
-	 * Return a list of annotation's for the specified object.
-	 * @param aType the type of the object to return the annoations for/
-	 * @param aOid the oid of the object to return the annoations for/
-	 * @return the annotation list
-	 */
-	List<Annotation> loadAnnotations(String aType, Long aOid);
+@Transactional
+public class AnnotationDAO extends HibernateDaoSupport {
+	/** the logger. */
+    private Log log = LogFactory.getLog(AnnotationDAO.class);    
+    /** The transaction template object to use. */
+    private TransactionTemplate txTemplate = null;
+    
+	public List<Annotation> loadAnnotations(final String aType, final Long aOid) {
+		if (log.isDebugEnabled()) {
+			log.debug("Load annotations for " + aType + " " + aOid);
+		}
+		Object obj = getHibernateTemplate().execute(new HibernateCallback() {
+			public Object doInHibernate(Session aSession) throws HibernateException {
+				Query q = aSession.getNamedQuery(Annotation.QRY_GET_NOTES);
+				q.setString(Annotation.PARAM_TYPE, aType);
+				q.setLong(Annotation.PARAM_OID, aOid);
+				
+				return q.list();
+			}
+		});			
+        
+        return (List<Annotation>) obj;
+	}
+
+	public void saveAnnotations(final List<Annotation> aAnnotations) {
+        txTemplate.execute(
+            new TransactionCallback() {
+                public Object doInTransaction(TransactionStatus ts) {
+                    try { 
+                    	Annotation a = null;
+                    	Iterator<Annotation> it = aAnnotations.iterator();
+                    	while (it.hasNext()) {
+							a = it.next();							
+							if (log.isDebugEnabled()) {
+								log.debug("Saving annotation " + a.getNote());
+							}
+							currentSession().saveOrUpdate(a);
+						}                    	                       
+                    }
+                    catch(Exception ex) {
+                    	if (log.isWarnEnabled()) {
+                    		log.warn("Failed to add annotations " + ex.getMessage(), ex);
+                    	}
+                        ts.setRollbackOnly();
+                    }
+                    return null;
+                }
+            }
+        );        
+	}
 	
-	/** 
-	 * Save the list of annotations provided.
-	 * @param aAnnotations the annotations to save
-	 */
-	void saveAnnotations(List<Annotation> aAnnotations);
+	public void deleteAnnotations(final List<Annotation> aAnnotations) {
+		txTemplate.execute(
+            new TransactionCallback() {
+                public Object doInTransaction(TransactionStatus ts) {
+                    try { 
+                    	Annotation a = null;
+                    	Iterator<Annotation> it = aAnnotations.iterator();
+                    	while (it.hasNext()) {
+							a = it.next();							
+							if (log.isDebugEnabled()) {
+								log.debug("Deleting annotation " + a.getNote());
+							}
+							currentSession().delete(a);
+						}                    	                       
+                    }
+                    catch(Exception ex) {
+                    	if (log.isWarnEnabled()) {
+                    		log.warn("Failed to delete annotations " + ex.getMessage(), ex);
+                    	}
+                        ts.setRollbackOnly();
+                    }
+                    return null;
+                }
+            }
+        );		
+	}
 	
-	/** 
-	 * Save the list of annotations provided.
-	 * @param aAnnotations the annotations to save
-	 */
-	void deleteAnnotations(List<Annotation> aAnnotations);
+    public void setTxTemplate(TransactionTemplate txTemplate) {
+        this.txTemplate = txTemplate;
+    }       
 }

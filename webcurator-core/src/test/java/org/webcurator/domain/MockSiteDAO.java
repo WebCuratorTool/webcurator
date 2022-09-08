@@ -22,7 +22,7 @@ import org.webcurator.domain.model.core.Permission;
 import org.webcurator.domain.model.core.Site;
 import org.webcurator.domain.model.core.UrlPattern;
 
-public class MockSiteDAO implements SiteDAO {
+public class MockSiteDAO extends SiteDAO {
 
 	private static Log log = LogFactory.getLog(MockSiteDAO.class);
 	private Document theFile = null; 

@@ -11,7 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.Constants;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.profiles.*;
 import org.webcurator.domain.model.auth.Privilege;
@@ -60,9 +60,9 @@ public class DeleteProfileControllerTest extends BaseWCTTest<DeleteProfileContro
 		ProfileListCommand command = null;
 
 		this.testSetMessageSource();
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		testInstance.setProfileManager(new MockProfileManager(testFile));
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 
 		try
 		{

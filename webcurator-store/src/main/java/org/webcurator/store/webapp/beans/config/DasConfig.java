@@ -108,25 +108,6 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${waybackIndexer.waybackFailedFolder}")
     private String waybackIndexerWaybackFailedFolder;
 
-    @Value("${crawlLogIndexer.enabled}")
-    private boolean crawlLogIndexerEnabled;
-
-    // Logs sub-folder name.
-    @Value("${crawlLogIndexer.logsSubFolder}")
-    private String crawlLogIndexerLogsSubFolder;
-
-    // Name of the crawl.log file.
-    @Value("${crawlLogIndexer.crawlLogFileName}")
-    private String crawlLogIndexerCrawlLogFileName;
-
-    // Name of the stripped crawl.log file.
-    @Value("${crawlLogIndexer.strippedLogFileName}")
-    private String crawlLogIndexerStrippedLogFileName;
-
-    // ame of the sorted crawl.log file.
-    @Value("${crawlLogIndexer.sortedLogFileName}")
-    private String crawlLogIndexerSortedLogFileName;
-
     @Value("${cdxIndexer.enabled}")
     private boolean cdxIndexerEnabled;
 
@@ -505,7 +486,6 @@ public class DasConfig implements WebMvcConfigurer {
         List<RunnableIndex> sourceList = new ArrayList<>();
 //        sourceList.add(wctIndexer());
         sourceList.add(waybackIndexer());
-        sourceList.add(crawlLogIndexer());
         sourceList.add(cdxIndexer());
         sourceList.add(pywbIndexer());
 
@@ -523,19 +503,6 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setWaybackInputFolder(waybackIndexerWaybackInputFolder);
         bean.setWaybackMergedFolder(waybackIndexerWaybackMergedFolder);
         bean.setWaybackFailedFolder(waybackIndexerWaybackFailedFolder);
-
-        return bean;
-    }
-
-    @Bean
-    public CrawlLogIndexer crawlLogIndexer() {
-        CrawlLogIndexer bean = new CrawlLogIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        bean.setEnabled(crawlLogIndexerEnabled);
-//        bean.setWsEndPoint(wctCoreWsEndpoint());
-        bean.setLogsSubFolder(crawlLogIndexerLogsSubFolder);
-        bean.setCrawlLogFileName(crawlLogIndexerCrawlLogFileName);
-        bean.setStrippedLogFileName(crawlLogIndexerStrippedLogFileName);
-        bean.setSortedLogFileName(crawlLogIndexerSortedLogFileName);
 
         return bean;
     }

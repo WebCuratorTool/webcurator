@@ -16,14 +16,14 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.coordinator.MockWctCoordinator;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.ui.util.*;
 import org.webcurator.core.scheduler.*;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
 
@@ -53,11 +53,11 @@ public class TargetInstanceLogsHandlerTest extends BaseWCTTest<TargetInstanceLog
 		tabGeneral.setValidator(new TargetInstanceValidator());
 
 		TargetInstanceGeneralHandler genHandler = new TargetInstanceGeneralHandler();
-		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAgencyUserManager(new MockAgencyUserManager(testFile));
+		genHandler.setAuthorityManager(new AuthorityManager());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
 		//genHandler.setHarvestCoordinator(new MockHarvestCoordinator());
-		genHandler.setWctCoordinator(new WctCoordinatorImpl());
+		genHandler.setWctCoordinator(new WctCoordinator());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);

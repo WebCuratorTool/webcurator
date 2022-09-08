@@ -18,7 +18,7 @@ import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.ui.target.command.*;
 import org.webcurator.ui.target.validator.*;
 import org.webcurator.ui.util.*;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.targets.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 
@@ -51,7 +51,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 		tabGeneral.setValidator(new TargetGeneralValidator());
 
 		TargetGeneralHandler genHandler = new TargetGeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -361,7 +361,7 @@ public class AddParentsControllerTest extends BaseWCTTest<AddParentsController>{
 	public final void testSetAuthorityManager() {
 		try
 		{
-			testInstance.setAuthorityManager(new AuthorityManagerImpl());
+			testInstance.setAuthorityManager(new AuthorityManager());
 		}
 		catch(Exception e)
 		{

@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 
-@ImplementedBy(FtpFileMover.class)
+@ImplementedBy(SftpFileMover.class)
 public interface FileMoverStrategy {
 
     public void connect(WctDepositParameter depositParameter);

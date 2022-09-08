@@ -3,7 +3,7 @@ package org.webcurator.core.harvester.agent;
 import org.webcurator.core.reader.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
-public class MockHarvestAgentFactory implements HarvestAgentFactory {
+public class MockHarvestAgentFactory extends HarvestAgentFactory {
 	static MockHarvestAgent agent = null;
 
 	public MockHarvestAgent getMockHarvestAgent() {

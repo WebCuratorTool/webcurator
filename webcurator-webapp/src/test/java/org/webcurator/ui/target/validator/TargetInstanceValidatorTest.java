@@ -1,29 +1,11 @@
 package org.webcurator.ui.target.validator;
 
 import static org.junit.Assert.*;
-
-import java.util.*;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.context.MockMessageSource;
 import org.junit.Test;
-import org.springframework.mock.web.*;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
-import org.springframework.web.bind.ServletRequestDataBinder;
-import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.ui.admin.command.CreateUserCommand;
 import org.webcurator.ui.target.command.*;
-import org.webcurator.core.agency.*;
-import org.webcurator.ui.util.*;
-import org.webcurator.core.scheduler.*;
-import org.webcurator.auth.AuthorityManagerImpl;
-import org.webcurator.domain.model.core.*;
-import org.webcurator.ui.target.validator.*;
-import org.webcurator.core.harvester.coordinator.*;
 
 public class TargetInstanceValidatorTest extends BaseWCTTest<TargetInstanceValidator>{
 

@@ -52,6 +52,8 @@ public class TargetInstanceCommand {
     /** name of the target type name parameter. */
     public static final String PARAM_TARGET_NAME = "targetname";
 
+    public static final String PARAM_TARGET_OID = "targetoid";
+
     /** name of the model object containing a list of target instances. */
     public static final String MDL_INSTANCES = "targetInstances";
     /** name of the model object containing a target instance. */
@@ -173,6 +175,7 @@ public class TargetInstanceCommand {
     public static final String PARAM_USE_AQA = "useAQA";
 
 	private Long targetInstanceId;
+    private Long targetId;
     private String cmd;
     private Date scheduledTime;
     private int priority;
@@ -240,6 +243,15 @@ public class TargetInstanceCommand {
 	public void setTargetInstanceId(Long targetInstanceId) {
 		this.targetInstanceId = targetInstanceId;
 	}
+
+
+    public Long getTargetid() {
+        return targetId;
+    }
+
+    public void setTargetId(Long targetId) {
+        this.targetId = targetId;
+    }
 
     /**
      * @return Returns the cmd.

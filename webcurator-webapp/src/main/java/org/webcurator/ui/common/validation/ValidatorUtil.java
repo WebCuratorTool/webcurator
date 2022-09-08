@@ -15,12 +15,6 @@
  */
 package org.webcurator.ui.common.validation;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.webcurator.core.permissionmapping.UrlUtils;
 import org.apache.commons.logging.LogFactory;
 import org.apache.oro.text.regex.MalformedPatternException;
 import org.apache.oro.text.regex.Perl5Compiler;
@@ -28,12 +22,16 @@ import org.apache.oro.text.regex.Perl5Matcher;
 import org.apache.oro.text.regex.Perl5Pattern;
 import org.springframework.context.ApplicationContext;
 import org.springframework.validation.Errors;
+import org.webcurator.core.permissionmapping.UrlUtils;
 import org.webcurator.core.scheduler.TargetInstanceManager;
-import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
 import org.webcurator.core.targets.TargetManager;
-import org.webcurator.core.targets.TargetManagerImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.domain.model.core.TargetInstance;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Utility class providing useful validation methods.
@@ -193,8 +191,8 @@ public final class ValidatorUtil {
      */
     public static void validateTargetApproved(Errors aErrors, Long aTargetInstanceOid, String aErrorCode) {
         ApplicationContext context = ApplicationContextFactory.getApplicationContext();
-        TargetInstanceManager tiManager = context.getBean(TargetInstanceManagerImpl.class);
-        TargetManager targetManager = context.getBean(TargetManagerImpl.class);
+        TargetInstanceManager tiManager = context.getBean(TargetInstanceManager.class);
+        TargetManager targetManager = context.getBean(TargetManager.class);
 
         TargetInstance ti = tiManager.getTargetInstance(aTargetInstanceOid);
         if (!targetManager.isTargetHarvestable(ti)) {

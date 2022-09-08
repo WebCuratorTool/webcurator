@@ -39,14 +39,14 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 		super(TabbedTargetController.class, "/org/webcurator/ui/target/controller/TabbedTargetControllerTest.xml");
 	}
 	TargetManager manager;
-	AuthorityManagerImpl authorityManager;
+	AuthorityManager authorityManager;
     //Override BaseWCTTest setup method
 	public void setUp() throws Exception {
 		//call the overridden method as well
 		super.setUp();
 
 		//add the extra bits
-		authorityManager = new AuthorityManagerImpl();
+		authorityManager = new AuthorityManager();
 		testInstance.setAuthorityManager(authorityManager);
 		BusinessObjectFactory factory = new BusinessObjectFactory();
 		factory.setProfileManager(new MockProfileManager(testFile));
@@ -60,7 +60,7 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 		tabConfig.setTabs(tabs);
 		testInstance.setTabConfig(tabConfig);
 		TargetSearchController searchController = new TargetSearchController();
-		searchController.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		searchController.setAgencyUserManager(new MockAgencyUserManager(testFile));
 		searchController.setTargetManager(manager);
 		MockTargetDAO targetDao = new MockTargetDAO(testFile);
 		searchController.setTargetDao(targetDao);
@@ -78,7 +78,7 @@ public class TabbedTargetControllerTest extends BaseWCTTest<TabbedTargetControll
 		tabGeneral.setPageId("GENERAL");
 		//tabGeneral.setValidator(new TargetValidator());
 
-		AgencyUserManager agencyUserManager = new MockAgencyUserManagerImpl(testFile);
+		AgencyUserManager agencyUserManager = new MockAgencyUserManager(testFile);
 
 		TargetGeneralHandler genHandler = new TargetGeneralHandler();
 		genHandler.setTargetManager(targetManager);

@@ -9,9 +9,9 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.UserCommand;
 import org.webcurator.core.util.AuthUtil;
@@ -70,7 +70,7 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 			command.setOid(1001L);
 			command.setCmd(UserCommand.ACTION_STATUS);
             BindingResult bindingResult = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
@@ -112,7 +112,7 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 			command.setOid(1001L);
 			command.setCmd(UserCommand.ACTION_DELETE);
             BindingResult bindingResult = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
@@ -140,7 +140,7 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 			command.setCmd(UserCommand.ACTION_FILTER);
 			command.setAgencyFilter("Dummy");
             BindingResult bindingResult = new BindException(new UserCommand(), UserCommand.ACTION_STATUS);
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 			this.testSetAuthorityManager();
 			this.testSetMessageSource();
@@ -162,7 +162,7 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 	public final void testSetAgencyUserManager() {
 		try
 		{
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 		}
 		catch(Exception e)
@@ -177,7 +177,7 @@ public class UserControllerTest extends BaseWCTTest<UserController>{
 	public final void testSetAuthorityManager() {
 		try
 		{
-			AuthorityManager manager = new AuthorityManagerImpl();
+			AuthorityManager manager = new AuthorityManager();
 			testInstance.setAuthorityManager(manager);
 		}
 		catch(Exception e)
