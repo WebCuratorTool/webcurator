@@ -18,8 +18,6 @@ import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 public class ScreenshotGenerator {
     private static final Logger log = LoggerFactory.getLogger(ScreenshotGenerator.class);
-
-
     private final static int THUMBNAIL_WIDTH = 100;
     private final static int THUMBNAIL_HEIGHT = 100;
     private String windowSizeCommand;
