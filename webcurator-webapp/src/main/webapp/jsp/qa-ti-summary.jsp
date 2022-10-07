@@ -797,7 +797,7 @@ function getSelectedProfile(profilesList) {
 								Blocked URLs:
 							</td>
 							<td>
-								<textarea name="h3BlockedUrls" cols="40" rows="3"><c:out value="${profileCommand.h3BlockedUrls}"/></textarea>
+								<textarea name="h3BlockedUrls" placeholder="Use regular expressions to match multiple URLs, e.g. https://.*google\.com/.*" cols="40" rows="3"><c:out value="${profileCommand.h3BlockedUrls}"/></textarea>
 							</td>
 							<td>
 								<input type="checkbox" name="overrideH3BlockedUrls" ${profileCommand.overrideH3BlockedUrls ? 'checked' : ''}/>
@@ -808,7 +808,7 @@ function getSelectedProfile(profilesList) {
 								Included URLs:
 							</td>
 							<td>
-								<textarea name="h3IncludedUrls" cols="40" rows="3"><c:out value="${profileCommand.h3IncludedUrls}"/></textarea>
+								<textarea name="h3IncludedUrls" placeholder="Use regular expressions to match multiple URLs, e.g. https://.*google\.com/.*" cols="40" rows="3"><c:out value="${profileCommand.h3IncludedUrls}"/></textarea>
 							</td>
 							<td>
 								<input type="checkbox" name="overrideH3IncludedUrls" ${profileCommand.overrideH3IncludedUrls ? 'checked' : ''}/>
