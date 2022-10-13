@@ -947,8 +947,10 @@ The following are common configuration options for the DAS adjusted via the **ap
    **WaybackIndexer** configures WCT to make copies of the ARC or WARC files and move them to
    the **waybackInputFolder** for automatic indexing by an installed Wayback instance. Wayback
    will eventually deposit a file of the same name in either the **waybackMergedFolder** (if successful)
-   or the **waybackFailedFolder** (if unsuccessful). This action triggers the indexing complete message.
-   This indexer is disabled by default ::
+   or the **waybackFailedFolder** (if unsuccessful). If **useSymLinks** is **true** the indexer will
+   create symbolic ("soft") links to the warc files instead of copies inside the **waybackInputFolder** 
+   to save space (default is false).
+   The **WaybackIndexer** is disabled by default. ::
 
       # Enable this indexer
       waybackIndexer.enabled=false
@@ -962,6 +964,8 @@ The following are common configuration options for the DAS adjusted via the **ap
       waybackIndexer.waybackMergedFolder=/usr/local/wct/wayback/index-data/merged
       # Location of the folder where Wayback places failed indexes
       waybackIndexer.waybackFailedFolder=/usr/local/wct/wayback/index-data/failed
+      # Create soft links instead of copies inside waybackInputFolder to save space
+      waybackIndexer.useSymLinks=false
 
    **CDXIndexer** generates a CDX index file in the same folder as the ARC/WARC files. When a target
    instance is submitted to the archive, the CDX index will be copied along with the ARC/WARC file(s) ::
