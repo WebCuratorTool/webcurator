@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.netpreserve.jwarc.*;
 import org.netpreserve.jwarc.cdx.CdxFormat;
-import org.netpreserve.jwarc.cdx.CdxRequestEncoder;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.store.IndexerBase;
 import org.webcurator.core.store.RunnableIndex;
@@ -24,6 +23,8 @@ public class CDXIndexer extends IndexerBase {
     private HarvestResultDTO result;
     private File directory;
     private boolean enabled = false;
+    private String format = CdxFormat.CDX11.legend();
+
 
     public CDXIndexer() {
         super();
@@ -36,6 +37,7 @@ public class CDXIndexer extends IndexerBase {
     protected CDXIndexer(CDXIndexer original) {
         super(original);
         enabled = original.enabled;
+        format = original.format;
     }
 
     /**
@@ -45,7 +47,7 @@ public class CDXIndexer extends IndexerBase {
      * @throws IOException
      */
     private void writeCDXIndex(File archiveFile) throws IOException {
-        CdxFormat cdxFormat = CdxFormat.CDX11;
+        CdxFormat cdxFormat = new CdxFormat(format);
         String cdxFilename = getCdxFilename(archiveFile);
         try (WarcReader reader = new WarcReader(archiveFile.toPath());
              BufferedWriter cdxWriter = new BufferedWriter(new FileWriter(cdxFilename))) {
@@ -54,7 +56,7 @@ public class CDXIndexer extends IndexerBase {
             String filename = archiveFile.getName();
 
             // Write cdx header
-            cdxWriter.write(" CDX " + cdxFormat.legend());
+            cdxWriter.write(" CDX " + format);
             cdxWriter.newLine();
             while (record != null) {
                 try {
@@ -147,4 +149,11 @@ public class CDXIndexer extends IndexerBase {
         return enabled;
     }
 
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format.trim();
+    }
 }
