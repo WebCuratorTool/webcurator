@@ -19,6 +19,7 @@ public class ModifyRowFullData extends NetworkMapNodeUrlEntity {
     private long index;
     private boolean existingFlag;
     private String option;
+    private boolean folder;
 
     private String uploadFileName;
     private String uploadFileContent;
@@ -106,6 +107,14 @@ public class ModifyRowFullData extends NetworkMapNodeUrlEntity {
 
     public void setOption(String option) {
         this.option = option;
+    }
+
+    public boolean isFolder() {
+        return folder;
+    }
+
+    public void setFolder(boolean folder) {
+        this.folder = folder;
     }
 
     public String getModifiedMode() {

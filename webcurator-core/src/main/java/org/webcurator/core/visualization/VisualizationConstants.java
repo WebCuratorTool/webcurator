@@ -21,6 +21,8 @@ public class VisualizationConstants {
     public static final String PATH_GET_URLS_BY_NAMES = ROOT_PATH + "/networkmap/get/query-urls-by-names";
     public static final String PATH_GET_URLS_CASCADED_BY_PATH = ROOT_PATH + "/networkmap/get/urls/cascaded-by-path";
     public static final String PATH_GET_DB_VERSION = ROOT_PATH + "/networkmap/get/db-version";
+    public static final String PATH_QUERY_CHILDREN_RECURSIVELY_CRAWL = ROOT_PATH + "/networkmap/query-children-recursively/crawl";
+    public static final String PATH_QUERY_CHILDREN_RECURSIVELY_FOLDER = ROOT_PATH + "/networkmap/query-children-recursively/folder";
 
     public static final String PATH_GET_PROGRESS = ROOT_PATH + "/visualization/progress";
     public static final String PATH_GET_PROCESSING_HARVEST_RESULT = ROOT_PATH + "/visualization/processing-harvest-result";

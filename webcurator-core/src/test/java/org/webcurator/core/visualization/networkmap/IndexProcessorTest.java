@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class IndexProcessorTest extends BaseVisualizationTest {
-    private IndexProcessor indexer;
+    protected IndexProcessor indexer;
 
     @Before
     public void initTest() throws Exception {

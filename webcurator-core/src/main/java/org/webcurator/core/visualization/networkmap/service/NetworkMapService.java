@@ -2,10 +2,8 @@ package org.webcurator.core.visualization.networkmap.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.webcurator.core.visualization.VisualizationServiceInterface;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
+import org.webcurator.core.visualization.networkmap.metadata.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,6 +45,10 @@ public interface NetworkMapService extends VisualizationServiceInterface {
     NetworkMapResult getProgress(long job, int harvestResultNumber);
 
     NetworkMapResult getProcessingHarvestResultDTO(long job, int harvestResultNumber);
+
+    NetworkMapResult queryChildrenRecursivelyCrawl(long job, int harvestResultNumber, List<ModifyRowFullData> nodes);
+
+    NetworkMapResult queryChildrenRecursivelyFolder(long job, int harvestResultNumber, List<ModifyRowFullData> nodes);
 
     default NetworkMapNodeUrlEntity getNodeEntity(String json) {
         if (json == null) {

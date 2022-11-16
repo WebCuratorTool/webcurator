@@ -106,7 +106,7 @@ public class HarvestModificationController implements ModifyService {
     }
 
     @RequestMapping(path = "/curator/check-and-append", method = {RequestMethod.POST, RequestMethod.GET})
-    public NetworkMapResult checkAndAppendModificationRows(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> dataset) {
-        return harvestModificationHandler.checkAndAppendModificationRows(targetInstanceId, harvestResultNumber, dataset);
+    public NetworkMapResult checkAndAppendModificationRows(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestParam("viewType") String viewType, @RequestBody List<ModifyRowFullData> dataset) {
+        return harvestModificationHandler.checkAndAppendModificationRows(targetInstanceId, harvestResultNumber, viewType,dataset);
     }
 }

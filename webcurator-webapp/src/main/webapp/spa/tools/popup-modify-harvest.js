@@ -307,6 +307,19 @@ class HierarchyTree{
 		return nodeData;
 	}
 
+	_getKeyFromNode(treeNode){
+		if(!treeNode){
+			return "null";
+		}
+		var nodeData=treeNode.data;
+		if(treeNode.folder){
+			return "folder-"+nodeData.id;
+		}else{
+			return "url-"+nodeData.id;
+		}
+	}
+
+
 	draw(dataset){
 		dataset=formatLazyloadData(dataset);
 		if($.ui.fancytree.getTree(this.container)){
@@ -362,43 +375,93 @@ class HierarchyTree{
 	getSelectedNodes(){
 		var selData=[];
 		var selNodes = $.ui.fancytree.getTree(this.container).getSelectedNodes();
+		var map={};
 		for(var i=0; i<selNodes.length; i++){
 			var treeNode=selNodes[i];
 			var nodeData=this._getDataFromNode(treeNode);
-			if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
-			|| (this.container==='#hierachy-tree-harvest-struct' && (!treeNode.folder || treeNode.folder===false))) {
-				selData.push(nodeData);
+			var key=this._getKeyFromNode(treeNode);
+			map[key]=true;
+
+			var keyParent=this._getKeyFromNode(treeNode.parent);
+			if(keyParent in map){
+				continue;
 			}
+
+
+			// selData.push({
+			// 	"id":nodeData.id,
+			// 	"name":nodeData.url,
+			// 	"folder":nodeData.folder
+			// });
+			selData.push(nodeData);
+
+
+			// if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
+			// || (this.container==='#hierachy-tree-harvest-struct' && (!treeNode.folder || treeNode.folder===false))) {
+			// 	selData.push(nodeData);
+			// }
 			// selData.push(selNodes[i].data);
 			// $.ui.fancytree.getTree(this.container).applyCommand('indent', selNodes[i]);
 		}
 
 		// console.log(selData);
-		return selData;
+		var viewType="";
+		if (this.container==='#hierachy-tree-url-names') {
+			viewType="folder";
+		}else if (this.container==='#hierachy-tree-harvest-struct') {
+			viewType="crawl";
+		}
+
+		return {
+			"viewType":viewType,
+			"dataset": selData
+		}
 	}
 
 	getAllNodes(){
+		var map={};
 		var dataset=[];
 		var rootNode= $.ui.fancytree.getTree(this.container).getRootNode();
-		this._walkAllNodes(dataset, rootNode);
-		return dataset;
+		this._walkAllNodes(map, dataset, rootNode);
+		
+		var viewType="";
+		if (this.container==='#hierachy-tree-url-names') {
+			viewType="folder";
+		}else if (this.container==='#hierachy-tree-harvest-struct') {
+			viewType="crawl";
+		}
+
+		return {
+			"viewType":viewType,
+			"dataset": dataset
+		}
 	}
 
-	_walkAllNodes(dataset, treeNode){
+	_walkAllNodes(map, dataset, treeNode){
 		var nodeData=this._getDataFromNode(treeNode);
 
-		if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
-			|| (this.container==='#hierachy-tree-harvest-struct' && treeNode.folder!==null)) {
-			dataset.push(nodeData);
-		}
+		var key=this._getKeyFromNode(treeNode);
+		map[key]=true;
 
-		var childrenNodes=treeNode.children;
-		if (!childrenNodes) {
+		var keyParent=this._getKeyFromNode(treeNode.parent);
+		if(keyParent in map){
 			return;
 		}
-		for(var i=0; i<childrenNodes.length; i++){
-			this._walkAllNodes(dataset, childrenNodes[i]);
-		}
+
+		// dataset.push({
+		// 	"id":nodeData.id,
+		// 	"name":nodeData.url,
+		// 	"folder":nodeData.folder
+		// });
+		dataset.push(nodeData);
+
+		// var childrenNodes=treeNode.children;
+		// if (!childrenNodes) {
+		// 	return;
+		// }
+		// for(var i=0; i<childrenNodes.length; i++){
+		// 	this._walkAllNodes(dataset, childrenNodes[i]);
+		// }
 	}
 
 	clearAll(){
@@ -561,8 +624,54 @@ class PopupModifyHarvest{
 		this.setRowStyle();
 	}
 
-	modify(dataset, option){
+	// _modify(dataset, option){
+	// 	var map={};
+	// 	for (var i = 0; i < dataset.length; i++) {
+	// 		dataset[i].option=option;
+	// 		dataset[i].flag='new';
+	// 		dataset[i].index=i;
+	// 		map[i]=dataset[i];
+	// 	}
+	// 	var popupModifyHarvestInstance=this;
+	// 	this._appendAndMoveHarvest2ToBeModifiedList(dataset, function(handledDateset){
+	// 		for (var i = 0; i < handledDateset.length; i++) {
+	// 			var oldNode=map[handledDateset[i].index];
+	// 			if (oldNode) {
+	// 				handledDateset[i].uploadFile=oldNode.uploadFile;
+	// 			}
+	// 		}
+	// 		popupModifyHarvestInstance._moveHarvest2ToBeModifiedList(handledDateset);
+	// 	});
+	// }
+
+	// modify(dataset, option){
+	// 	var reqUrl="";
+	// 	if (dataset.viewType==='folder'){
+	// 		reqUrl="/networkmap/query-children-recursively/folder";
+
+	// 	}
+	// 	else if(dataset.viewType==='crawl') {
+	// 		reqUrl="/networkmap/query-children-recursively/crawl";
+	// 	}else{
+	// 		console.log("Unknown view type");
+	// 	}
+	// 	reqUrl+="?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+	// 	var treeInstance=this;
+	// 	fetchHttp(reqUrl, dataset.dataset, function(response){
+	// 		if (response.rspCode !=0) {
+	// 			alert(response.rspMsg);
+	// 			return;
+	// 		}
+
+	// 		var nodes=JSON.parse(response.payload);
+	// 		treeInstance._modify(nodes, option);
+	// 	});
+	// }
+	modify(data, option){
 		var map={};
+		var dataset=data.dataset;
+		var viewType=data.viewType;
+
 		for (var i = 0; i < dataset.length; i++) {
 			dataset[i].option=option;
 			dataset[i].flag='new';
@@ -570,7 +679,7 @@ class PopupModifyHarvest{
 			map[i]=dataset[i];
 		}
 		var popupModifyHarvestInstance=this;
-		this._appendAndMoveHarvest2ToBeModifiedList(dataset, function(handledDateset){
+		this._appendAndMoveHarvest2ToBeModifiedList(viewType, dataset, function(handledDateset){
 			for (var i = 0; i < handledDateset.length; i++) {
 				var oldNode=map[handledDateset[i].index];
 				if (oldNode) {
@@ -581,9 +690,9 @@ class PopupModifyHarvest{
 		});
 	}
 
-	_appendAndMoveHarvest2ToBeModifiedList(data, callback){
+	_appendAndMoveHarvest2ToBeModifiedList(viewType, data, callback){
 		var popupModifyHarvestInstance=this;
-		var url="/check-and-append?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
+		var url="/check-and-append?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber + "&viewType=" + viewType;
 		fetchHttp(url, data, function(rsp){
 			if (rsp.rspCode!==0) {
 				alert(rsp.rspMsg);

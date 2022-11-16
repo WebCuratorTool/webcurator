@@ -7,6 +7,7 @@ import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationProgressView;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.*;
@@ -437,6 +438,95 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         result.setPayload(this.obj2Json(hrDTO));
         return result;
     }
+
+
+    private void queryChildrenRecursivelyCrawl(BDBRepoHolder db, long nodeId, List<NetworkMapNodeUrlEntity> result) {
+        NetworkMapNodeUrlEntity node = db.getUrlById(nodeId);
+        if (node == null) {
+            return;
+        }
+        result.add(node);
+        if (node.getOutlinks() != null) {
+            for (long outLinkId : node.getOutlinks()) {
+                queryChildrenRecursivelyCrawl(db, outLinkId, result);
+            }
+        }
+    }
+
+    @Override
+    public NetworkMapResult queryChildrenRecursivelyCrawl(long job, int harvestResultNumber, List<ModifyRowFullData> nodes) {
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<NetworkMapNodeUrlEntity> payload = new ArrayList<>();
+        for (ModifyRowFullData nodeCmd : nodes) {
+            queryChildrenRecursivelyCrawl(db, nodeCmd.getId(), payload);
+        }
+
+        String json = this.obj2Json(payload);
+        payload.forEach(NetworkMapNodeUrlEntity::clear);
+        payload.clear();
+
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(json);
+        return result;
+    }
+
+    private void queryChildrenRecursivelyFolder(BDBRepoHolder db, long nodeId, boolean isFolder, List<NetworkMapNodeFolderEntity> result) {
+        if (!isFolder) {
+            NetworkMapNodeUrlEntity urlEntity = db.getUrlById(nodeId);
+            if (urlEntity == null) {
+                return;
+            }
+            NetworkMapNodeFolderEntity folderEntity = new NetworkMapNodeFolderEntity();
+            folderEntity.copy(urlEntity);
+            folderEntity.setTitle(urlEntity.getUrl());
+            folderEntity.setLazy(false);
+            folderEntity.setFolder(false);
+
+            result.add(folderEntity);
+        } else {
+            NetworkMapNodeFolderEntity folder = db.getFolderById(nodeId);
+            if (folder == null) {
+                return;
+            }
+            if (folder.getSubUrlList() != null) {
+                for (long urlId : folder.getSubUrlList()) {
+                    queryChildrenRecursivelyFolder(db, urlId, false, result);
+                }
+            }
+            if (folder.getSubFolderList() != null) {
+                for (long folderId : folder.getSubUrlList()) {
+                    queryChildrenRecursivelyFolder(db, folderId, true, result);
+                }
+            }
+        }
+    }
+
+    @Override
+    public NetworkMapResult queryChildrenRecursivelyFolder(long job, int harvestResultNumber, List<ModifyRowFullData> nodes) {
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<NetworkMapNodeFolderEntity> payload = new ArrayList<>();
+        for (ModifyRowFullData nodeCmd : nodes) {
+            queryChildrenRecursivelyFolder(db, nodeCmd.getId(), nodeCmd.isFolder(), payload);
+        }
+
+        String json = this.obj2Json(payload);
+        payload.forEach(NetworkMapNodeFolderEntity::clear);
+        payload.clear();
+
+        NetworkMapResult result = new NetworkMapResult();
+        result.setPayload(json);
+        return result;
+    }
+
+
 }
 
 class CompiledSearchCommand {

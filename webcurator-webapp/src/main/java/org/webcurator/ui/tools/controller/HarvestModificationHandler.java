@@ -761,10 +761,12 @@ public class HarvestModificationHandler {
     }
 
 
-    public NetworkMapResult checkAndAppendModificationRows(long targetInstanceId, int harvestResultNumber, List<ModifyRowFullData> dataset) {
+    public NetworkMapResult checkAndAppendModificationRows(long targetInstanceId, int harvestResultNumber, String viewType, List<ModifyRowFullData> dataset) {
         if (dataset == null) {
             return NetworkMapResult.getBadRequestResult();
         }
+
+
 
         for (ModifyRowFullData row : dataset) {
             if (Utils.isEmpty(row.getOption()) || Utils.isEmpty(row.getUrl())) {
