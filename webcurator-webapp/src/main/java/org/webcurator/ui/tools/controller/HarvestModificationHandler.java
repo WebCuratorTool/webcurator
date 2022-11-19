@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -677,7 +678,25 @@ public class HarvestModificationHandler {
         return value;
     }
 
-    protected void exportData(long targetInstanceId, int harvestResultNumber, List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    protected void exportData(long targetInstanceId, int harvestResultNumber, String viewType, List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        NetworkMapResult networkMapResult = NetworkMapResult.getSuccessResult();
+        if (StringUtils.equalsIgnoreCase(viewType, "crawl")) {
+            networkMapResult = this.networkMapClient.queryChildrenRecursivelyCrawl(targetInstanceId, harvestResultNumber, dataset);
+        } else if (StringUtils.equalsIgnoreCase(viewType, "folder")) {
+            networkMapResult = this.networkMapClient.queryChildrenRecursivelyFolder(targetInstanceId, harvestResultNumber, dataset);
+        }
+
+        if (networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
+            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to read url list");
+        }
+
+        if (StringUtils.equalsIgnoreCase(viewType, "crawl") || StringUtils.equalsIgnoreCase(viewType, "folder")) {
+            String payload = networkMapResult.getPayload();
+            ObjectMapper objectMapper = new ObjectMapper();
+            dataset = objectMapper.readValue(payload, new TypeReference<List<ModifyRowFullData>>() {
+            });
+        }
+
         Resource resource = new ClassPathResource("bulk-modification-template.xlsx");
         Workbook workbook = new XSSFWorkbook(resource.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
@@ -760,13 +779,10 @@ public class HarvestModificationHandler {
         workbook.close();
     }
 
-
-    public NetworkMapResult checkAndAppendModificationRows(long targetInstanceId, int harvestResultNumber, String viewType, List<ModifyRowFullData> dataset) {
+    public NetworkMapResult checkAndAppendModificationRows(long targetInstanceId, int harvestResultNumber, List<ModifyRowFullData> dataset) {
         if (dataset == null) {
             return NetworkMapResult.getBadRequestResult();
         }
-
-
 
         for (ModifyRowFullData row : dataset) {
             if (Utils.isEmpty(row.getOption()) || Utils.isEmpty(row.getUrl())) {

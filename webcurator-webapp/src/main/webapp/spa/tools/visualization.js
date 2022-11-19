@@ -199,7 +199,7 @@ function contextMenuCallback(key, data, source, target){
   }else if(action==='import'){
     target.showImport(data);
   }else if(action==='prune' || action==='recrawl'){
-    target.modify(dataset, action);
+    target.modify_recursively(source, dataset, action);
   }else if(action==='browse'){
     browseUrl(data, scope);
   }else if(action==='download'){
@@ -209,9 +209,9 @@ function contextMenuCallback(key, data, source, target){
   }else if(action==='clear'){
     source.clear(dataset);
   }else if(action==='exportInspect'){
-    target.exportData(dataset);
+    target.exportData(source, dataset);
   }else if(action==='exportToBeModified'){
-    target.exportData(dataset);
+    target.exportData(source, dataset);
   }else if(action==='edit'){
     target.editImport(data);
   }else if(action==='copy'){

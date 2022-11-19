@@ -101,12 +101,12 @@ public class HarvestModificationController implements ModifyService {
     }
 
     @RequestMapping(path = "/curator/export/data", method = {RequestMethod.POST, RequestMethod.GET})
-    protected void exportData(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-        harvestModificationHandler.exportData(targetInstanceId, harvestResultNumber, dataset, req, rsp);
+    protected void exportData(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestParam("viewType") String viewType, @RequestBody List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        harvestModificationHandler.exportData(targetInstanceId, harvestResultNumber, viewType, dataset, req, rsp);
     }
 
     @RequestMapping(path = "/curator/check-and-append", method = {RequestMethod.POST, RequestMethod.GET})
-    public NetworkMapResult checkAndAppendModificationRows(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestParam("viewType") String viewType, @RequestBody List<ModifyRowFullData> dataset) {
-        return harvestModificationHandler.checkAndAppendModificationRows(targetInstanceId, harvestResultNumber, viewType,dataset);
+    public NetworkMapResult checkAndAppendModificationRows(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> dataset) {
+        return harvestModificationHandler.checkAndAppendModificationRows(targetInstanceId, harvestResultNumber, dataset);
     }
 }

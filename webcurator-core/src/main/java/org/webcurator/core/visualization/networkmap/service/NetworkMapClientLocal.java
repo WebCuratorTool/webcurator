@@ -474,19 +474,20 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return result;
     }
 
-    private void queryChildrenRecursivelyFolder(BDBRepoHolder db, long nodeId, boolean isFolder, List<NetworkMapNodeFolderEntity> result) {
+    private void queryChildrenRecursivelyFolder(BDBRepoHolder db, long nodeId, boolean isFolder, List<ModifyRowFullData> result) {
+        log.info("nodeId={}, isFolder={}, result.length={}", nodeId, isFolder, result.size());
         if (!isFolder) {
             NetworkMapNodeUrlEntity urlEntity = db.getUrlById(nodeId);
             if (urlEntity == null) {
                 return;
             }
-            NetworkMapNodeFolderEntity folderEntity = new NetworkMapNodeFolderEntity();
-            folderEntity.copy(urlEntity);
-            folderEntity.setTitle(urlEntity.getUrl());
-            folderEntity.setLazy(false);
-            folderEntity.setFolder(false);
+            ModifyRowFullData urlRow = new ModifyRowFullData();
+            urlRow.copy(urlEntity);
+            urlRow.setTitle(urlEntity.getUrl());
+//            urlRow.setLazy(false);
+            urlRow.setFolder(false);
 
-            result.add(folderEntity);
+            result.add(urlRow);
         } else {
             NetworkMapNodeFolderEntity folder = db.getFolderById(nodeId);
             if (folder == null) {
@@ -498,7 +499,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 }
             }
             if (folder.getSubFolderList() != null) {
-                for (long folderId : folder.getSubUrlList()) {
+                for (long folderId : folder.getSubFolderList()) {
                     queryChildrenRecursivelyFolder(db, folderId, true, result);
                 }
             }
@@ -512,13 +513,13 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<NetworkMapNodeFolderEntity> payload = new ArrayList<>();
+        List<ModifyRowFullData> payload = new ArrayList<>();
         for (ModifyRowFullData nodeCmd : nodes) {
             queryChildrenRecursivelyFolder(db, nodeCmd.getId(), nodeCmd.isFolder(), payload);
         }
 
         String json = this.obj2Json(payload);
-        payload.forEach(NetworkMapNodeFolderEntity::clear);
+        payload.forEach(ModifyRowFullData::clear);
         payload.clear();
 
         NetworkMapResult result = new NetworkMapResult();
