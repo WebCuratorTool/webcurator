@@ -18,9 +18,9 @@
             search(){
                 let flagOptionProxy = this.$refs.selectorFlag.getValue();
                 let searchCondition={
-                    'instanceId':this.instanceId,
+                    'targetInstanceId':this.instanceId,
                     'targetName':this.targetName,
-                    'flag':flagOptionProxy.f_oid,
+                    'flagId':flagOptionProxy.f_oid,
                 }
                 
                 this.$emit('btnSearch',searchCondition);

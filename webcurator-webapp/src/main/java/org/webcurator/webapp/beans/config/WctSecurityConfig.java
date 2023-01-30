@@ -16,6 +16,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.*;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.webcurator.auth.TransitionalPasswordEncoder;
 import org.webcurator.auth.WCTAuthenticationFailureHandler;
 import org.webcurator.auth.WCTAuthenticationSuccessHandler;
@@ -129,6 +131,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(WctCoordinatorPaths.ROOT_PATH + "/**").permitAll()
                 .antMatchers("**/digital-asset-store/**").permitAll()
                 .antMatchers("/spa/**").permitAll()
+                .antMatchers("/api/**").permitAll()
 //                .antMatchers("/visualization/**").permitAll()
                 .anyRequest().authenticated()
                 .and().formLogin()
@@ -678,4 +681,6 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
         LocalDateTime ldt = LocalDateTime.ofInstant(Instant.ofEpochMilli(milliseonds), zoneId);
         return ldt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
+
+
 }

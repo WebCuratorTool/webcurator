@@ -1,25 +1,31 @@
-<script setup lang="ts">
+<script lang="ts">
     import QueueFilterVue from '@/components/queue/QueueFilter.vue';
     import QueueSearchVue from '@/components/queue/QueueSearch.vue';
     import QueueResultVue from '@/components/queue/QueueResult.vue';
-    // export default{
-    //     data() {
-    //         return {
+
+    export default{
+        components:{QueueSearchVue, QueueFilterVue, QueueResultVue},
+        emits:["resultTable"],
+        data() {
+            return {
                 
-    //         }
-    //     },
-    //     methods: {
-    //         searchQueue(searchConditionData){
-    //             console.log(searchConditionData);
-    //         },
-    //         filter(){
-    //             console.log("Filtering");
-    //         }
-    //     }
-    // }
-    function searchQueue(searchConditionData){
-        console.log(searchConditionData);
+            }
+        },
+        methods: {
+            searchQueue(searchCondition: any){
+                console.log(searchCondition);
+                this.$refs.resultTable.getData(searchCondition);
+            },
+            filter(){
+                console.log("Filtering");
+            },           
+            filterResults(filterCondition: any){
+                console.log(filterCondition);
+                this.$refs.resultTable.filterTable(filterCondition);
+            }
+        }
     }
+    
 </script>
 
 <template>
@@ -28,12 +34,10 @@
         <div class="search-title">Query</div>
         <QueueSearchVue @btnSearch="searchQueue"/>
         <br/>
-        <QueueFilterVue />
+        <QueueFilterVue @btnFilter="filterResults" />
         <br/>
-        <QueueResultVue />
+        <QueueResultVue ref="resultTable"/>
     </div>
-
-    
 </template>
 
 <style scoped>

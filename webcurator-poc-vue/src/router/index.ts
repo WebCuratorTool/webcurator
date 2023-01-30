@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import QueueView from '@/views/QueueView.vue'
+import TargetInstanceView from '@/views/TargetInstanceView.vue'
+import TargetView from '@/views/TargetView.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,6 +57,17 @@ const router = createRouter({
       component: QueueView
     },
 
+    {
+      path: '/target_instance:oid',
+      name: 'target_instance',
+      component: TargetInstanceView
+    },
+
+    {
+      path: '/target:oid',
+      name: 'target',
+      component: TargetView
+    },
   ]
 })
 
