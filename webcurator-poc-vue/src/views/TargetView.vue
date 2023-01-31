@@ -2,7 +2,5 @@
 </script>
 
 <template>
-  <main>
-    <h3>Target View</h3>
-  </main>
+  <h3>Target View</h3>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+// import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 </script>
 
@@ -10,18 +10,19 @@ import HelloWorld from './components/HelloWorld.vue'
       <div class="sidebar">
         <img class="logo" src="./assets/wct_logo.png" height="75"/>
         <nav>
-          <RouterLink to="/"><i class="bi bi-house"></i>&emsp;Home</RouterLink>
-          <RouterLink to="/dashboard"><i class="bi bi-grid"></i>&emsp;Dashboard</RouterLink>
-          <RouterLink to="/queue"><i class="bi bi-stickies-fill"></i>&emsp;Queue</RouterLink>
-          <RouterLink to="/harvest-authorisations"><i class="fa-solid fa-file-circle-check"></i>&emsp;Harvest Authorisations</RouterLink>
-          <RouterLink to="/targets"><i class="bi bi-bullseye"></i>&emsp;Targets</RouterLink>
-          <RouterLink to="/groups"><i class="fa-solid fa-layer-group"></i>&emsp;Groups</RouterLink>
-          <RouterLink to="/management"><i class="fa-solid fa-user-gear"></i>&emsp;Management</RouterLink>
+          <router-link to="/"><i class="bi bi-house"></i>&emsp;Home</router-link>
+          <router-link to="/dashboard"><i class="bi bi-grid"></i>&emsp;Dashboard</router-link>
+          <router-link to="/queue"><i class="bi bi-stickies-fill"></i>&emsp;Queue</router-link>
+          <router-link to="/harvest-authorisations"><i class="fa-solid fa-file-circle-check"></i>&emsp;Harvest Authorisations</router-link>
+          <router-link to="/target"><i class="bi bi-bullseye"></i>&emsp;Targets</router-link>
+          <router-link to="/groups"><i class="fa-solid fa-layer-group"></i>&emsp;Groups</router-link>
+          <router-link to="/management"><i class="fa-solid fa-user-gear"></i>&emsp;Management</router-link>
         </nav>
       </div>
     </td>
     <td id="col-content">
-      <RouterView/>
+      <!-- <RouterView/> -->
+      <router-view></router-view>
     </td>
   </tr>
   </table>

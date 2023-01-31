@@ -58,13 +58,18 @@ const router = createRouter({
     },
 
     {
-      path: '/target_instance:oid',
+      path: '/target_instance',
       name: 'target_instance',
       component: TargetInstanceView
     },
 
+    // {
+    //   path: '/target/:oid',
+    //   name: 'target-oid',
+    //   component: TargetView
+    // },
     {
-      path: '/target:oid',
+      path: '/target',
       name: 'target',
       component: TargetView
     },
