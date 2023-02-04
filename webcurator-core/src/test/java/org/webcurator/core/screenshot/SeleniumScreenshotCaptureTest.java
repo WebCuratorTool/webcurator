@@ -16,9 +16,9 @@ import java.util.Set;
 import static org.junit.Assert.assertTrue;
 
 public class SeleniumScreenshotCaptureTest extends BaseWCTTest<ScreenshotGenerator> {
-    private final String windowSizeCommand = "filepath=%image.png% url=%url% width=%width% height=%height%";
-    private final String screenSizeCommand = "filepath=%image.png% url=%url% width=1400 height=800";
-    private final String fullpageSizeCommand = "filepath=%image.png% url=%url%";
+    private final String windowSizeCommand = "native filepath=%image.png% url=%url% width=%width% height=%height%";
+    private final String screenSizeCommand = "native filepath=%image.png% url=%url% width=1400 height=800";
+    private final String fullpageSizeCommand = "native filepath=%image.png% url=%url%";
     private final String baseDir = "/usr/local/wct/store";
     private final String harvestWaybackViewerBaseUrl = "https://www.google.com/";
 

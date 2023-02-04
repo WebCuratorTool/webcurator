@@ -117,10 +117,19 @@ public class ScreenshotGenerator {
 
     private boolean runCommand(String command) {
         log.info("Running command " + command);
+        List<String> commandList = Arrays.asList(command.split(" "));
+        if (commandList.size() < 2) {
+            log.error("Invalid commandList, the commandList has no enough arguments.");
+            return false;
+        }
+
+        if (StringUtils.equalsIgnoreCase(commandList.get(0), "native")) {
+            String[] args = commandList.toArray(new String[0]);
+            return SeleniumScreenshotCapture.callChromeDriver(args);
+        }
+
         Thread processThread = null;
         try {
-            List<String> commandList = Arrays.asList(command.split(" "));
-
             final Boolean[] threadFailed = {null};
             processThread = new Thread("processThread") {
                 public void run() {
