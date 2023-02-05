@@ -26,6 +26,7 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
     private String baseDir;
 
+
     /**
      * the window size screenshot command.
      */
@@ -177,5 +178,9 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
     public void setPywbWarcDeposit(PywbWarcDeposit pywbWarcDeposit) {
         this.pywbWarcDeposit = pywbWarcDeposit;
+    }
+
+    public void setScreenshotCommandWindowSize(String screenshotCommandWindowSize) {
+        this.screenshotCommandWindowSize = screenshotCommandWindowSize;
     }
 }
