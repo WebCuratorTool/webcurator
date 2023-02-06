@@ -50,7 +50,7 @@ public class SeleniumScreenshotCapture {
             BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
             Image scaledImage = sourceImage.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
             image.createGraphics().drawImage(scaledImage, 0, 0, null);
-            ImageIO.write(image, "jpg", new File(output));
+            ImageIO.write(image, "png", new File(output));
         } catch (Exception e) {
             System.out.println("Unable to create thumbnail: " + e);
         }
@@ -191,7 +191,7 @@ public class SeleniumScreenshotCapture {
                 generated = waitForFile(outputFile);
             } else if (filepath != null) { // for fullpage
                 Screenshot fullScreen = new AShot().shootingStrategy(ShootingStrategies.viewportPasting(1000)).takeScreenshot(driver);
-                ImageIO.write(fullScreen.getImage(), "jpg", new File(filepath));
+                ImageIO.write(fullScreen.getImage(), "png", new File(filepath));
                 generated = waitForFile(new File(filepath));
             }
             driver.quit();
