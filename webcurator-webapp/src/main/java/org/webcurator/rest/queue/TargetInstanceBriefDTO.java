@@ -10,7 +10,14 @@ public class TargetInstanceBriefDTO {
         this.oid = ti.getOid();
 
         this.flagged = ti.getFlagged();
-        this.flag = ti.getFlag();
+
+        if (ti.getFlag() != null) {
+            this.flag = new FlagDTO(ti.getFlag());
+            this.flagged = true;
+        } else {
+            this.flag = null;
+            this.flagged = false;
+        }
 
         if (ti.getTarget() != null) {
             this.targetOid = ti.getTarget().getOid();
@@ -27,8 +34,8 @@ public class TargetInstanceBriefDTO {
         if (ti.getStatus() != null) {
             this.statusElapsedTime = ti.getStatus().getElapsedTime();
             this.statusDataDownloadedString = ti.getStatus().getDataDownloadedString();
-            this.statusDownloadedUrls=ti.getStatus().getUrlsDownloaded();
-            this.statusFailedUrls=ti.getStatus().getUrlsFailed();
+            this.statusDownloadedUrls = ti.getStatus().getUrlsDownloaded();
+            this.statusFailedUrls = ti.getStatus().getUrlsFailed();
         }
     }
 
@@ -36,7 +43,7 @@ public class TargetInstanceBriefDTO {
     private Long oid;
 
     private boolean flagged;
-    private Flag flag;
+    private FlagDTO flag;
 
     private Long targetOid;
     private String targetName;
@@ -78,11 +85,11 @@ public class TargetInstanceBriefDTO {
         this.flagged = flagged;
     }
 
-    public Flag getFlag() {
+    public FlagDTO getFlag() {
         return flag;
     }
 
-    public void setFlag(Flag flag) {
+    public void setFlag(FlagDTO flag) {
         this.flag = flag;
     }
 
