@@ -17,7 +17,6 @@ package org.webcurator.core.screenshot;
  * Another optional argument is --wayback, which tells the tool to change the focus and remove the wayback banner.
  */
 
-import org.apache.commons.io.IOUtils;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -25,6 +24,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.util.ProcessBuilderUtils;
 import ru.yandex.qatools.ashot.AShot;
 import ru.yandex.qatools.ashot.Screenshot;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
@@ -33,12 +33,9 @@ import javax.imageio.ImageIO;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class SeleniumScreenshotCapture {
@@ -72,28 +69,6 @@ public class SeleniumScreenshotCapture {
         return false;
     }
 
-    private static String getFullPathOfChromeDriver() {
-        final List<String> ret = new ArrayList<>();
-        String command = "which chromedriver";
-        String[] commandList = command.split(" ");
-        try {
-            Process process = Runtime.getRuntime().exec(commandList);
-            int processStatus = process.waitFor();
-
-            if (processStatus != 0) {
-                log.error("Unable to process the command in a new thread, processStatus={}.", processStatus);
-            }
-            List<String> results = IOUtils.readLines(process.getInputStream(), Charset.defaultCharset());
-            ret.addAll(results);
-        } catch (Exception e) {
-            log.error("Unable to process the command in a new thread.", e);
-        }
-
-        if (ret.size() > 0 && ret.get(0).endsWith("chromedriver")) {
-            return ret.get(0);
-        }
-        return null;
-    }
 
     // Generate fullpage, screen-sized, and thumbnail screenshots for a given url
     // Should always have an argument for the url=%url% filepath=%image.jpg% output filepath
@@ -138,7 +113,7 @@ public class SeleniumScreenshotCapture {
         try {
             // Prepare the driver
 //            String chromeDriver = Paths.get("chromedriver").toFile().getAbsolutePath();
-            String chromeDriver = getFullPathOfChromeDriver();
+            String chromeDriver = ProcessBuilderUtils.getFullPathOfCommand("chromedriver");
             if (chromeDriver == null) {
                 log.error("Failed to get the path of chromedriver");
                 return false;

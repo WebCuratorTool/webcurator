@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 
 public class PywbWarcDepositTest extends BaseWCTTest<PywbWarcDeposit> {
     private final String baseDir = "/usr/local/wct/store";
-    private final long targetInstanceId = 3425L;
+    private final long targetInstanceId = 25L;
     private final int harvestResultNumber = 1;
     private final String baseUrl = "http://localhost:8080/wct";
     private WctCoordinatorClient wctClient;
@@ -46,7 +46,7 @@ public class PywbWarcDepositTest extends BaseWCTTest<PywbWarcDeposit> {
         SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO();
         seedHistoryDTO.setOid(3555);
         seedHistoryDTO.setPrimary(true);
-        seedHistoryDTO.setSeed("https://www.qq.com/");
+        seedHistoryDTO.setSeed("https://www.rnz.co.nz/news/");
         seedHistoryDTO.setTargetInstanceOid(targetInstanceId);
         Set<SeedHistoryDTO> seedHistoryDTOSet = new HashSet<>();
         seedHistoryDTOSet.add(seedHistoryDTO);
@@ -69,10 +69,10 @@ public class PywbWarcDepositTest extends BaseWCTTest<PywbWarcDeposit> {
     @Ignore
     @Test
     public void testGetTimestamp() throws UnsupportedEncodingException {
-        String seed = "https://www.qq.com/";
-        String from = "20220615000000", to = "20220615235959";
+        String seed = "https://www.rnz.co.nz/news/";
+        String from = "20220615000000", to = "20230215235959";
         Map<String, File> mappedWarcFiles = new HashMap<>();
-        mappedWarcFiles.put("IAH-20220615104459056-00000-173078~dev~8443.warc", null);
+        mappedWarcFiles.put("IAH-20230207222548929-00000-9907~I7~8443.warc", null);
 
         String timestamp = testInstance.getTimestampOfSeed(seed, from, to, mappedWarcFiles);
         assert timestamp != null;

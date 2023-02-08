@@ -9,6 +9,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.util.ProcessBuilderUtils;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
@@ -53,9 +54,15 @@ public class PywbWarcDeposit extends AbstractRestClient {
             throw new DigitalAssetStoreException(err);
         }
 
+        String wb_manager = ProcessBuilderUtils.getFullPathOfCommand("wb-manager");
+        if (wb_manager == null) {
+            log.error("The command tool [wb-manager] is not installed or not in the env PATH.");
+            return;
+        }
+
         //Added all warc files to the PYWB
         for (File warc : warcFiles) {
-            String[] commands = {"wb-manager", "add", pywbManagerColl, warc.getAbsolutePath()};
+            String[] commands = {wb_manager, "add", pywbManagerColl, warc.getAbsolutePath()};
             List<String> commandList = Arrays.asList(commands);
             ProcessBuilder processBuilder = new ProcessBuilder(commandList);
             processBuilder.directory(pywbManagerStoreDir);
