@@ -142,8 +142,12 @@ public class SeleniumScreenshotCapture {
                 // Remove pywb banner
                 try {
                     JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
-                    WebElement banner = driver.findElement(By.id("_wb_frame_top_banner"));
-                    jsExecutor.executeScript("arguments[0].parentNode.removeChild(arguments[0])", banner);
+//                    WebElement banner = driver.findElement(By.id("_wb_frame_top_banner"));
+//                    jsExecutor.executeScript("arguments[0].parentNode.removeChild(arguments[0])", banner);
+
+                    WebElement banner = driver.findElement(By.className("app"));
+                    jsExecutor.executeScript("arguments[0].style.visibility='hidden';", banner);
+//                    jsExecutor.executeScript("arguments[1].style.visibility='hidden';", banner);
 
                     // Modify iframe padding
                     WebElement frame = driver.findElement(By.id("wb_iframe_div"));

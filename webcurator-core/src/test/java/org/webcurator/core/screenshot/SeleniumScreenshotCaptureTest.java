@@ -1,60 +1,80 @@
 package org.webcurator.core.screenshot;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.webcurator.core.scheduler.MockTargetInstanceManager;
-import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.SeedHistory;
-import org.webcurator.domain.model.core.SeedHistoryDTO;
-import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.test.BaseWCTTest;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Set;
+import java.io.File;
+import java.io.IOException;
 
 import static org.junit.Assert.assertTrue;
 
-public class SeleniumScreenshotCaptureTest extends BaseWCTTest<ScreenshotGenerator> {
-    private final String windowSizeCommand = "native filepath=%image.png% url=%url% width=%width% height=%height%";
-    private final String screenSizeCommand = "native filepath=%image.png% url=%url% width=1400 height=800";
-    private final String fullpageSizeCommand = "native filepath=%image.png% url=%url%";
-    private final String baseDir = "/usr/local/wct/store";
-    private final String harvestWaybackViewerBaseUrl = "https://www.google.com/";
-
-    private TargetInstanceDAO tiDao;
-
-    private final long tiOid = 5000L;
-    private final int harvestNumber = 1;
-
-    public SeleniumScreenshotCaptureTest() {
-        super(ScreenshotGenerator.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
-    }
-
-    public void setUp() throws Exception {
-        super.setUp();
-        testInstance.setWindowSizeCommand(this.windowSizeCommand);
-        testInstance.setScreenSizeCommand(this.screenSizeCommand);
-        testInstance.setFullpageSizeCommand(this.fullpageSizeCommand);
-        testInstance.setBaseDir(this.baseDir);
-        testInstance.setHarvestWaybackViewerBaseUrl(this.harvestWaybackViewerBaseUrl);
-
-        MockTargetInstanceManager mockTargetInstanceManager = new MockTargetInstanceManager(testFile);
-        tiDao = mockTargetInstanceManager.getTargetInstanceDAO();
-    }
-
+public class SeleniumScreenshotCaptureTest {
+    @Ignore
     @Test
     public void testLiveScreenshot() {
-        TargetInstance ti = tiDao.load(tiOid);
-        HarvestResult hr = ti.getHarvestResult(harvestNumber);
+        String url = "https://www.rnz.co.nz/";
+        String imgFullPage = "5000_1_4001_live_fullpage.png", imgFullPageThumbnail = "5000_1_4001_live_fullpage-thumbnail.png";
+        String imgScreen = "5000_1_4001_live_screen.png", imgScreenThumbNail = "5000_1_4001_live_screen-thumbnail.png";
+        deleteFile(imgFullPage);
+        deleteFile(imgFullPageThumbnail);
+        deleteFile(imgScreen);
+        deleteFile(imgScreenThumbNail);
 
-        Set<SeedHistory> seedHistorySet = ti.getSeedHistory();
-        for (SeedHistory seedHistory : seedHistorySet) {
-            String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-            SeedHistoryDTO seedHistoryDTO=new SeedHistoryDTO(seedHistory);
-            seedHistoryDTO.setTimestamp(timestamp);
-            boolean rstScreenshot = testInstance.createScreenshots(seedHistoryDTO, tiOid, ScreenshotType.live, harvestNumber);
-            assertTrue(rstScreenshot);
+        boolean ret;
+
+        String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsFullPage);
+        assertTrue(ret);
+        assertTrue(isFileExisting(imgFullPage));
+        assertTrue(isFileExisting(imgFullPageThumbnail));
+
+        String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800"};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsScreen);
+        assertTrue(ret);
+        assertTrue(isFileExisting(imgScreen));
+        assertTrue(isFileExisting(imgScreenThumbNail));
+    }
+
+    @Ignore
+    @Test
+    public void testHarvestedScreenshot() {
+        String url = "http://localhost:9090/my-web-archive/20230208011028/https://www.rnz.co.nz/";
+        String imgFullPage = "5000_1_4001_harvested_fullpage.png", imgFullPageThumbnail = "5000_1_4001_harvested_fullpage-thumbnail.png";
+        String imgScreen = "5000_1_4001_harvested_screen.png", imgScreenThumbNail = "5000_1_4001_harvested_screen-thumbnail.png";
+        deleteFile(imgFullPage);
+        deleteFile(imgFullPageThumbnail);
+        deleteFile(imgScreen);
+        deleteFile(imgScreenThumbNail);
+
+        boolean ret;
+
+        String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage, "--wayback=true"};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsFullPage);
+        assertTrue(ret);
+        assertTrue(isFileExisting(imgFullPage));
+        assertTrue(isFileExisting(imgFullPageThumbnail));
+
+        String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800", "--wayback=true"};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsScreen);
+        assertTrue(ret);
+        assertTrue(isFileExisting(imgScreen));
+        assertTrue(isFileExisting(imgScreenThumbNail));
+    }
+
+    private boolean isFileExisting(String fileName) {
+        File f = new File("/tmp/" + fileName);
+        return f.exists();
+    }
+
+    private void deleteFile(String fileName) {
+        if (!isFileExisting(fileName)) {
+            return;
+        }
+        try {
+            FileUtils.forceDelete(new File("/tmp/" + fileName));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
