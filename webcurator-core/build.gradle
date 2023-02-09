@@ -55,7 +55,7 @@ dependencies {
     testCompile 'org.springframework.boot:spring-boot-starter-test:2.5.12'
     compileOnly 'javax.servlet.jsp:jsp-api:2.0'
     compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
-    implementation 'org.netpreserve:jwarc:0.19.0'
+    implementation 'org.netpreserve:jwarc:0.21.0'
     implementation group: 'joda-time', name: 'joda-time', version: '2.10.6'
     compile 'org.jsoup:jsoup:1.12.2'
 }
