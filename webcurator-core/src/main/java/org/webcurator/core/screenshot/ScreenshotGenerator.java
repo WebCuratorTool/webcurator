@@ -40,14 +40,6 @@ public class ScreenshotGenerator {
         return windowSizeCommand;
     }
 
-//    public ScreenshotGenerator(String windowSizeCommand, String screenSizeCommand, String fullpageSizeCommand, String baseDir, String harvestWaybackViewerBaseUrl) {
-//        this.windowSizeCommand = windowSizeCommand;
-//        this.screenSizeCommand = screenSizeCommand;
-//        this.fullpageSizeCommand = fullpageSizeCommand;
-//        this.baseDir = baseDir;
-//        this.harvestWaybackViewerBaseUrl = harvestWaybackViewerBaseUrl;
-//    }
-
     private void waitForScreenshot(File file) {
         try {
             for (int i = 0; i < 5; i++) {
@@ -208,15 +200,19 @@ public class ScreenshotGenerator {
     }
 
     private String getScreenshotToolName() {
+        String fullCommand = getFullpageSizeCommand();
+
         // Get the name of the tool used to get the screenshot
-        String toolUsed = getFullpageSizeCommand().split("\\s+")[0];
+        String toolUsed = fullCommand.split("\\s+")[0];
         // If using a default tool, specify as default
-        if (getFullpageSizeCommand().contains("SeleniumScreenshotCapture")) {
-            toolUsed = "default";
-            if (getFullpageSizeCommand().contains("python")) {
+        if (fullCommand.contains("native")) {
+            toolUsed = "default-builtin";
+        } else if (fullCommand.contains("SeleniumScreenshotCapture")) {
+            toolUsed = "customized";
+            if (fullCommand.contains(".py")) {
                 toolUsed = toolUsed + "-python";
             }
-            if (getFullpageSizeCommand().contains("java")) {
+            if (fullCommand.contains(".jar")) {
                 toolUsed = toolUsed + "-java";
             }
         }
@@ -225,6 +221,7 @@ public class ScreenshotGenerator {
         }
         return toolUsed;
     }
+
 
     public Boolean createScreenshots(SeedHistoryDTO seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber) {
         String outputPathString = baseDir + File.separator + ScreenshotPaths.getImagePath(tiOid, harvestNumber) + File.separator;
@@ -250,9 +247,7 @@ public class ScreenshotGenerator {
 
         // Populate the filenames and the placeholder values
         String fullpageFilename = ScreenshotPaths.getImageName(tiOid, harvestNumber, Long.toString(seed.getOid()), liveOrHarvested, "fullpage");
-        fullpageFilename = replaceSectionInFilename(fullpageFilename, Integer.toString(harvestNumber), 1);
-
-        String screenFilename = replaceSectionInFilename(fullpageFilename, "screen.png", 4);
+        String screenFilename = ScreenshotPaths.getImageName(tiOid, harvestNumber, Long.toString(seed.getOid()), liveOrHarvested, "screen");
         String imagePlaceholder = "%image.png%";
         String urlPlaceholder = "%url%";
 
@@ -265,69 +260,34 @@ public class ScreenshotGenerator {
 
         // Get the name of the tool used to get the screenshot
         String toolUsed = getScreenshotToolName();
-
         log.info("Generating screenshots for job " + tiOid + " using " + toolUsed + "...");
 
         try {
             // Generate fullpage screenshots only if live or not using the default SeleniumScreenshotCapture executable for harvested screenshot
             // The size of harvested screenshots will be compared next
-            if (liveOrHarvested == ScreenshotType.live || !commandFullpage.contains("SeleniumScreenshotCapture")) {
+            if (liveOrHarvested == ScreenshotType.live) {
                 if (runCommand(commandFullpage)) {
                     waitForScreenshot(new File(outputPathString + fullpageFilename));
                 } else {
                     log.error("Unable to run command: {}", commandFullpage);
                     return false;
                 }
-            }
-
-            String liveImageFilename = fullpageFilename;
-            String[] filenameSections = fullpageFilename.split("_");
-            if (filenameSections[3].equals("harvested")) {
-                liveImageFilename = replaceSectionInFilename(fullpageFilename, "live", 3);
-            }
-
-            File liveImageFile = new File(outputPathString + File.separator + liveImageFilename);
-            if (liveOrHarvested == ScreenshotType.harvested && !liveImageFile.exists()) {
-                log.info("Live image file " + liveImageFilename + " does not exist, nothing to compare against.");
-            }
-            if (liveOrHarvested == ScreenshotType.harvested && liveImageFile.exists()) {
+            } else if (liveOrHarvested == ScreenshotType.harvested) {
                 // Generate wayback commands
                 String commandWaybackFullpage = getWindowSizeCommand()
                         .replace(urlPlaceholder, seedUrl.replaceAll("\\s+", ""))
                         .replace(imagePlaceholder, outputPathString + fullpageFilename);
-
-                if (commandWaybackFullpage.contains("SeleniumScreenshotCapture")) {
-                    commandWaybackFullpage = commandWaybackFullpage.substring(0, commandWaybackFullpage.indexOf("width=")) + "--wayback";
-                    if (runCommand(commandWaybackFullpage)) {
-                        waitForScreenshot(new File(outputPathString + fullpageFilename));
-                    }
-                    // For non-default screenshot tools check the fullpage screenshot image size against the harvested screenshots
-                } else {
-                    if (!checkFullpageScreenshotSize(outputPathString, fullpageFilename, liveImageFile, seedUrl)) {
-                        log.error("Unable to check fullpage screenshot size");
-                        return false;
-                    }
+                commandWaybackFullpage = commandWaybackFullpage.substring(0, commandWaybackFullpage.indexOf("width=")) + "--wayback";
+                if (runCommand(commandWaybackFullpage)) {
+                    waitForScreenshot(new File(outputPathString + fullpageFilename));
                 }
-            }
 
-            // Generate the screen sized screenshot
-            if (liveOrHarvested == ScreenshotType.harvested && commandScreen.contains("SeleniumScreenshotCapture")) {
+                // Generate the screen sized screenshot
                 commandScreen = commandScreen.trim() + " --wayback";
             }
+
             if (runCommand(commandScreen)) {
                 waitForScreenshot(new File(outputPathString + screenFilename));
-            }
-
-            // Generate thumbnails screenshots if not using the default screenshot tool
-            if (!commandScreen.contains("SeleniumScreenshotCapture")) {
-                generateThumbnailOrScreenSizeScreenshot(fullpageFilename, outputPathString,
-                        "fullpage", "fullpage-thumbnail");
-                waitForScreenshot(new File(outputPathString +
-                        replaceSectionInFilename(fullpageFilename, "fullpage-thumbnail.png", 4)));
-                generateThumbnailOrScreenSizeScreenshot(screenFilename, outputPathString,
-                        "screen", "screen-thumbnail");
-                waitForScreenshot(new File(outputPathString +
-                        replaceSectionInFilename(screenFilename, "screen-thumbnail.png", 4)));
             }
 
             // Count the number of screenshots generated and add the tool name as a file attribute

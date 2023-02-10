@@ -84,9 +84,6 @@ public class SeleniumScreenshotCapture {
         // Assign variable values based on arguments
         for (String arg : args) {
             String[] keyValues = arg.split("=");
-            if (keyValues.length != 2) {
-                continue;
-            }
             switch (keyValues[0]) {
                 case "url":
                     url = keyValues[1];
@@ -104,8 +101,8 @@ public class SeleniumScreenshotCapture {
                     isWayback = true;
                     break;
                 default:
-                    log.error("Unrecognised argument '{}'.  Cannot generate screenshot.", arg);
-                    return false;
+                    log.debug("Unrecognised argument '{}'.  Cannot generate screenshot.", arg);
+                    break;
             }
         }
 
@@ -147,13 +144,21 @@ public class SeleniumScreenshotCapture {
 
                     WebElement banner = driver.findElement(By.className("app"));
                     jsExecutor.executeScript("arguments[0].style.visibility='hidden';", banner);
-//                    jsExecutor.executeScript("arguments[1].style.visibility='hidden';", banner);
+                    jsExecutor.executeScript("arguments[0].parentNode.removeChild(arguments[0])", banner);
+                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'padding:0')", banner);
+                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'margin:0')", banner);
+                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'border:0')", banner);
+                    log.info("Removed the banner of: url={}, filepath={}", url, filepath);
 
                     // Modify iframe padding
-                    WebElement frame = driver.findElement(By.id("wb_iframe_div"));
-                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'padding:0px 0px 0px 0px')", frame);
+                    WebElement frame = driver.findElement(By.id("replay_iframe"));
+                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'padding:0')", frame);
+                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'margin:0')", frame);
+                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'border:0')", frame);
+                } catch (NoSuchElementException e) {
+                    log.error("Failed to query the html element", e);
                 } catch (Exception e) {
-                    log.warn("Failed to crop the screenshot", e);
+                    log.error("Failed to kill the banner of the screenshot", e);
                 }
 
                 WebDriverWait wait = new WebDriverWait(driver, 4000);
