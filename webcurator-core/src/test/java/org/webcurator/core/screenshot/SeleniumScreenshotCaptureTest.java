@@ -36,10 +36,10 @@ public class SeleniumScreenshotCaptureTest {
         assertTrue(isFileExisting(imgScreenThumbNail));
     }
 
-    @Ignore
+//    @Ignore
     @Test
     public void testHarvestedScreenshot() {
-        String url = "http://localhost:9090/my-web-archive/20230208011028/https://www.rnz.co.nz/";
+        String url = "http://localhost:9090/my-web-archive/20230208222848/https://www.rnz.co.nz/";
         String imgFullPage = "5000_1_4001_harvested_fullpage.png", imgFullPageThumbnail = "5000_1_4001_harvested_fullpage-thumbnail.png";
         String imgScreen = "5000_1_4001_harvested_screen.png", imgScreenThumbNail = "5000_1_4001_harvested_screen-thumbnail.png";
         deleteFile(imgFullPage);

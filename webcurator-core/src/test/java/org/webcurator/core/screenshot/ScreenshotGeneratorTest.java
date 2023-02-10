@@ -17,11 +17,11 @@ import java.util.Set;
 import static org.junit.Assert.assertTrue;
 
 public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
-    private final String windowSizeCommand = "python /home/leefr/dia/webcurator/SeleniumScreenshotCapture/SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=%width% height=%height%";
-    private final String screenSizeCommand = "python /home/leefr/dia/webcurator/SeleniumScreenshotCapture/SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=1400 height=800";
-    private final String fullpageSizeCommand = "python /home/leefr/dia/webcurator/SeleniumScreenshotCapture/SeleniumScreenshotCapture.py filepath=%image.png% url=%url%";
+    private final String windowSizeCommand = "native filepath=%image.png% url=%url% width=%width% height=%height%";
+    private final String screenSizeCommand = "native filepath=%image.png% url=%url% width=1400 height=800";
+    private final String fullpageSizeCommand = "native filepath=%image.png% url=%url%";
     private final String baseDir = "/usr/local/wct/store";
-    private final String harvestWaybackViewerBaseUrl = "https://www.google.com/";
+    private final String harvestWaybackViewerBaseUrl = "http://localhost:9090/my-web-archive/";
 
     private TargetInstanceDAO tiDao;
 
@@ -53,7 +53,7 @@ public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
         Set<SeedHistory> seedHistorySet = ti.getSeedHistory();
         for (SeedHistory seedHistory : seedHistorySet) {
             String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-            SeedHistoryDTO seedHistoryDTO=new SeedHistoryDTO(seedHistory);
+            SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
             seedHistoryDTO.setTimestamp(timestamp);
             boolean rstScreenshot = testInstance.createScreenshots(seedHistoryDTO, tiOid, ScreenshotType.live, harvestNumber);
             assertTrue(rstScreenshot);
@@ -69,7 +69,7 @@ public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
         Set<SeedHistory> seedHistorySet = ti.getSeedHistory();
         for (SeedHistory seedHistory : seedHistorySet) {
             String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-            SeedHistoryDTO seedHistoryDTO=new SeedHistoryDTO(seedHistory);
+            SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
             seedHistoryDTO.setTimestamp(timestamp);
             boolean rstScreenshot = testInstance.createScreenshots(seedHistoryDTO, tiOid, ScreenshotType.harvested, harvestNumber);
             assertTrue(rstScreenshot);
