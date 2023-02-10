@@ -15,8 +15,6 @@
  */
 package org.webcurator.ui.target.controller;
 
-import java.util.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -24,17 +22,21 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
+import org.webcurator.common.ui.Constants;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.TargetInstance;
-import org.webcurator.common.ui.Constants;
 import org.webcurator.ui.target.command.LogReaderCommand;
 import org.webcurator.ui.target.validator.LogReaderValidator;
+
+import java.util.*;
 
 /**
  * The controller for handling the log viewer commands.

@@ -19,194 +19,328 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.webcurator.domain.Pagination;
-import org.webcurator.domain.TargetInstanceCriteria;
+import org.webcurator.core.notification.InTrayManager;
+import org.webcurator.core.notification.MessageType;
+import org.webcurator.core.util.Auditor;
+import org.webcurator.core.util.WctUtils;
+import org.webcurator.domain.*;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.dto.HarvestHistoryDTO;
+import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
+import org.webcurator.domain.model.dto.TargetInstanceDTO;
 
 /**
  * The interface for managing target instances.
  * @author nwaight
  */
-public interface TargetInstanceManager {
-	
-	/** 
-	 * Store the seed history in the SeedHistory table during prepareHarvest.
-	 * @return true to store seed history 
-	 */
-	public boolean getStoreSeedHistory();
+@SuppressWarnings("all")
+public class TargetInstanceManager {
+    /**
+     * The Data access object for target instances.
+     */
+    private TargetInstanceDAO targetInstanceDao;
+    /**
+     * The intray manager.
+     */
+    private InTrayManager inTrayManager;
+    /**
+     * The object for createing audit entries.
+     */
+    private Auditor auditor;
+    /**
+     * The Data access object for annotations.
+     */
+    private AnnotationDAO annotationDAO;
+    /**
+     * The Data access object for indicators.
+     */
+    private IndicatorDAO indicatorDAO;
+    /**
+     * The Data access object for indicator criterias.
+     */
+    private IndicatorCriteriaDAO indicatorCriteriaDAO;
+    /**
+     * The Data access object for indicator report lines.
+     */
+    private IndicatorReportLineDAO indicatorReportLineDAO;
+    /**
+     * The Data access object for profiles.
+     */
+    private ProfileDAO profileDAO;
+    /**
+     * Save seed history to the seed_history table during prepareHarvest
+     */
+    private boolean storeSeedHistory = true;
 
-	/** 
-	 * Return the first page of TargetInstances that meet the specified criteria.
-	 * @param aCriteria the criteria to return instances for
-	 * @return the first page of TargetInstances 
-	 */
-    Pagination search(final TargetInstanceCriteria aCriteria);
-    
-    /**
-     * Return the specified page of TargetInstances that meet the specified criteria.
-     * @param aCriteria the criteria to return instances for
-     * @param aPage the page number to return
-     * @param aPageSize the page size to use
-     * @return the page of TargetInstances
-     */
-    Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize);
-    
-    /**
-     * Return the TargetInstance with the specified primary key.
-     * @param aOid the unique id of the TargetInsrtance
-     * @return the TargetInstance
-     */
-    TargetInstance getTargetInstance(Long aOid);
-    
-    /**
-     * Return the TargetInstance with the specified primary key, 
-     * if the fully populate flag is set then load its related objects
-     * @param aOid the unique id of the TargetInsrtance
-     * @param aLoadFully flag to indicate that related objects should be loaded
-     * @return the TargetInstance
-     */
-    TargetInstance getTargetInstance(Long aOid, boolean aLoadFully);
-    
-    /**
-     * Return the the TargetInstance that is the next one off the queue.
-     * @return the TargetIntance to be harvested next.
-     */
-    TargetInstance getNextTargetInstanceToHarvest();
-    
-    /**
-     * Return the queue of target instances
-     * @return a <code>List</code> of queued <code>QueuedTargetInstanceDTO</code>s
-     */
-    List<QueuedTargetInstanceDTO> getQueue();
-    
-	/**
-	 * Return all future scheduled <code>TargetInstance</code>s for the specific <code>Target</code>
-	 * @param targetOid the oid of the <code>Target</code>
-	 * @return a <code>List</code> of <code>TargetInstances</code>s
-	 */
-	List<QueuedTargetInstanceDTO> getQueueForTarget(Long targetOid);
-	
-	/**
-	 * Return the count of all future scheduled <code>TargetInstance</code>s for the specific <code>Target</code>
-	 * @param targetOid the oid of the <code>Target</code>
-	 * @return a <code>List</code> of <code>TargetInstances</code>s
-	 */	
-	Long countQueueLengthForTarget(final Long targetOid);
-	
-    /**
-     * Return a list of annotations for the specified TargetInstance
-     * @param aTargetInstance the target instance to return annotations for
-     * @return the list of annotations
-     */
-    List<Annotation> getAnnotations(TargetInstance aTargetInstance);
-    
-    /**
-     * Fetch the <code>List</code> of <code>IndicatorCriteria</code> currently defined
-     * @return The <code>List</code> of <code>IndicatorCriteria</code>s
-     */
-    List<IndicatorCriteria> getIndicatorCriterias();
-    
-    /**
-     * Fetch the <code>List</code> of <code>IndicatorCriteria</code> currently defined for the specified <code>Agency</code>
-     * @param agencyOid the <code>Agency</code>'s unique identifier
-     * @return The <code>List</code> of <code>IndicatorCriteria</code>s
-     */
-	List<IndicatorCriteria> getIndicatorCriteriasByAgencyOid(Long agencyOid);
-    
-    /**
-     * Save the specified target instance.
-     * @param aTargetInstance the TargetInstance to save
-     */
-    void save(TargetInstance aTargetInstance);
+    public void setStoreSeedHistory(boolean storeSeedHistory) {
+        this.storeSeedHistory = storeSeedHistory;
+    }
+
+    public boolean getStoreSeedHistory() {
+        return storeSeedHistory;
+    }
+
+    public Pagination search(final TargetInstanceCriteria aCriteria) {
+        return search(aCriteria, 0, 10);
+    }
+
+    public Pagination search(final TargetInstanceCriteria aCriteria, final int aPage, final int aPageSize) {
+        return targetInstanceDao.search(aCriteria, aPage, aPageSize);
+    }
+
+    public TargetInstance getNextTargetInstanceToHarvest() {
+        List queue = targetInstanceDao.getQueue();
+        if (queue != null && !queue.isEmpty()) {
+            return (TargetInstance) queue.iterator().next();
+        }
+
+        return null;
+    }
+
+    public List<QueuedTargetInstanceDTO> getQueue() {
+        List<QueuedTargetInstanceDTO> queue = targetInstanceDao.getQueue();
+
+        return queue;
+    }
+
+    public List<QueuedTargetInstanceDTO> getQueueForTarget(Long targetOid) {
+        List<QueuedTargetInstanceDTO> queue = targetInstanceDao.getQueueForTarget(targetOid);
+
+        return queue;
+    }
+
+    public Long countQueueLengthForTarget(final Long targetOid) {
+        return targetInstanceDao.countQueueLengthForTarget(targetOid);
+    }
+
+    public TargetInstance getTargetInstance(Long aOid) {
+        return getTargetInstance(aOid, false);
+    }
+
+    public TargetInstance getTargetInstance(Long aOid, boolean aLoadFully) {
+        TargetInstance ti = targetInstanceDao.load(aOid);
+        if (aLoadFully) {
+            ti = targetInstanceDao.populate(ti);
+        }
+
+        return ti;
+    }
+
+    public void delete(TargetInstance aTargetInstance) {
+        aTargetInstance.setTarget(null);
+        //TODO: to be refined, uncessary remove from schedule entity
+//    	if(aTargetInstance.getSchedule() != null)
+//    	{
+        //remove this target instance from any schedules it is associated with
+//    		aTargetInstance.getSchedule().getTargetInstances().remove(aTargetInstance);
+//    	}
+
+        targetInstanceDao.delete(aTargetInstance);
+        auditor.audit(TargetInstance.class.getName(), aTargetInstance.getOid(), Auditor.ACTION_DELETE_TARGET_INSTANCE, "The TargetInstance '" + aTargetInstance.getOid() + "' has been deleted");
+    }
+
+    public void save(TargetInstance aTargetInstance) {
+        TargetInstanceDTO origTi = targetInstanceDao.getTargetInstanceDTO(aTargetInstance.getOid());
+
+        // we are moving to the running state
+        if (TargetInstance.STATE_RUNNING.equals(aTargetInstance.getState())) {
+
+            Profile currentProfile = aTargetInstance.getProfile();
+            if (!currentProfile.isLocked()) {
+                //Lock the profile
+                Profile newProfile = currentProfile.clone();
+                newProfile.setOrigOid(currentProfile.getOid());
+                newProfile.setName(newProfile.getName() + " Locked(v" + newProfile.getVersion() + ")");
+
+                //Look for a locked profile with this oid and version
+                ProfileDTO dto = profileDAO.getLockedDTO(newProfile.getOrigOid(),
+                        newProfile.getVersion());
+                if (dto == null) {
+                    //Save the new profile
+                    profileDAO.saveOrUpdate(newProfile);
+
+                    //Now load it in again - with an associated OID
+                    dto = profileDAO.getLockedDTO(newProfile.getOrigOid(),
+                            newProfile.getVersion());
+                }
+
+                aTargetInstance.setLockedProfile(profileDAO.load(dto.getOid()));
+
+                if (aTargetInstance.getOverrides() == null &&
+                        aTargetInstance.getTarget() != null &&
+                        aTargetInstance.getTarget().getOverrides() != null) {
+                    ProfileOverrides overrides = aTargetInstance.getTarget().getOverrides().copy();
+                    aTargetInstance.setOverrides(overrides);
+                }
+            }
+        }
+
+        targetInstanceDao.save(aTargetInstance);
+
+        if (aTargetInstance.getAnnotations() != null && !aTargetInstance.getAnnotations().isEmpty()) {
+            annotationDAO.saveAnnotations(aTargetInstance.getAnnotations());
+        }
+        if (aTargetInstance.getDeletedAnnotations() != null && !aTargetInstance.getDeletedAnnotations().isEmpty()) {
+            annotationDAO.deleteAnnotations(aTargetInstance.getDeletedAnnotations());
+        }
+
+        if (TargetInstance.STATE_ENDORSED.equals(aTargetInstance.getState())
+                || TargetInstance.STATE_REJECTED.equals(aTargetInstance.getState())
+                || TargetInstance.STATE_ARCHIVED.equals(aTargetInstance.getState())) {
+            inTrayManager.deleteTasks(aTargetInstance.getOid(), aTargetInstance.getResourceType(), MessageType.TARGET_INSTANCE_ENDORSE);
+        }
+
+        if (TargetInstance.STATE_HARVESTED.equals(origTi.getState()) && TargetInstance.STATE_ENDORSED.equals(aTargetInstance.getState())) {
+            inTrayManager.generateTask(Privilege.ARCHIVE_HARVEST, MessageType.TARGET_INSTANCE_ARCHIVE, aTargetInstance);
+        }
+
+        if (TargetInstance.STATE_ARCHIVED.equals(aTargetInstance.getState())) {
+            inTrayManager.deleteTasks(aTargetInstance.getOid(), aTargetInstance.getResourceType(), MessageType.TARGET_INSTANCE_ARCHIVE);
+        }
+    }
+
+    public void save(HarvestResult harvestResult) {
+        targetInstanceDao.save(harvestResult);
+    }
+
+    public void saveOrUpdate(Indicator indicator) {
+        indicatorDAO.saveOrUpdate(indicator);
+    }
+
+    public void saveOrUpdate(IndicatorReportLine indicatorReportLine) {
+        indicatorReportLineDAO.saveOrUpdate(indicatorReportLine);
+    }
+
+    public List<Annotation> getAnnotations(TargetInstance aTargetInstance) {
+        List<Annotation> annotations = null;
+        if (aTargetInstance.getOid() != null) {
+            annotations = annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(TargetInstance.class), aTargetInstance.getOid());
+        }
+
+        if (annotations == null) {
+            annotations = new ArrayList<Annotation>();
+        }
+
+        return annotations;
+    }
+
+    public long countTargetInstances(User aUser, ArrayList<String> aStates) {
+        return targetInstanceDao.countTargetInstances(aUser.getUsername(), aStates);
+    }
+
+    public long countTargetInstancesByTarget(Long Oid) {
+        return targetInstanceDao.countTargetInstancesByTarget(Oid);
+    }
 
     /**
-     * Save the specified HarvestResult.
-     * @param aArcHarvestResult the HarvestResult to save
+     * @param targetInstanceDao The targetInstanceDao to set.
      */
-    void save(HarvestResult aArcHarvestResult);
-    
+    public void setTargetInstanceDao(TargetInstanceDAO targetInstanceDao) {
+        this.targetInstanceDao = targetInstanceDao;
+    }
+
     /**
-     * Save the specified <code>Indicator</code>.
-     * @param indicator the <code>Indicator</code> to save
+     * @param auditor the auditor to set
      */
-    void saveOrUpdate(Indicator indicator);   
-    
+    public void setAuditor(Auditor auditor) {
+        this.auditor = auditor;
+    }
+
     /**
-     * Save the specified <code>IndicatorReportLine</code>.
-     * @param indicatorReportLine the <code>IndicatorReportLine</code> to save
+     * @param annotationDAO the annotationDAO to set
      */
-    void saveOrUpdate(IndicatorReportLine indicatorReportLine);
-    
+    public void setAnnotationDAO(AnnotationDAO annotationDAO) {
+        this.annotationDAO = annotationDAO;
+    }
+
     /**
-     * Delete the specified target instance.
-     * @param aTargetInstance the TargetInstance to delete
+     * @param profileDAO the profileDAO to set
      */
-    void delete(TargetInstance aTargetInstance);    
-    
+    public void setProfileDAO(ProfileDAO profileDAO) {
+        this.profileDAO = profileDAO;
+    }
+
+    /**
+     * @param inTrayManager the inTrayManager to set
+     */
+    public void setInTrayManager(InTrayManager inTrayManager) {
+        this.inTrayManager = inTrayManager;
+    }
+
     /**
      * Save all of the target instances in the collection.
+     *
      * @param aCollection A collection of target instances to be saved.
      */
-    void saveAll(Collection<TargetInstance> aCollection);
-    
+    public void saveAll(Collection<TargetInstance> aCollection) {
+        targetInstanceDao.saveAll(aCollection);
+    }
+
     /**
      * Delete TargetInstances for the specified Target and Schedule
-     * @param aTargetOid The target OID.
+     *
+     * @param aTargetOid   The target OID.
      * @param aScheduleOid The schedule OID.
      */
-    void deleteTargetInstances(Long aTargetOid, Long aScheduleOid);
-    
-    /**
-     * Delete all <code>IndicatorReportLine</code>s for the specified <code>Indicator</code> 
-     * @param indicator
-     */
-    void deleteIndicatorReportLines(Indicator indicator);
-     
-    /**
-     * Return a count of target instances owned by the specified user
-     * where the target instance is in one of the specified states
-     * @param aUser the owner of the target instances to count
-     * @param aStates the list of states to count
-     * @return the count of target instances
-     */
-    long countTargetInstances(User aUser, ArrayList<String> aStates);
-    
-    /**
-     * Return a count of target instances 'owned' by the specified Target
-     * @param Oid the oid of the target record from which the TI was derived
-     * @return the count of target instances 'owned'
-     */
-    long countTargetInstancesByTarget(Long Oid);
+    public void deleteTargetInstances(Long aTargetOid, Long aScheduleOid) {
+        targetInstanceDao.deleteScheduledInstances(aTargetOid, aScheduleOid);
+    }
 
-    /** 
-     * Get the HarvestHistory of a taget.
-     * @param targetOid The OID of the Target.
-     * @return A list of HarvestHistory objects.
-     */
-    List<HarvestHistoryDTO> getHarvestHistory(Long targetOid);
-    
-    /**
-     * Retrieve the list of HarvestResults associated with the Target Instance.
-     * @param targetInstanceOid The OID of the Target Instance
-     * @return A list of the HarvestResults.
-     */
-    List<HarvestResult> getHarvestResults(Long targetInstanceOid);
+    public List<HarvestHistoryDTO> getHarvestHistory(Long targetOid) {
+        return targetInstanceDao.getHarvestHistory(targetOid);
+    }
 
-    /**
-     * Retrieve the list of HarvestResults associated with the Target Instance.
-     * @param targetInstanceOid The OID of the Target Instance
-     * @param harvestResultNumber The Number of the Harvest Result
-     * @return A list of the HarvestResults.
-     */
-    HarvestResult getHarvestResult(Long targetInstanceOid, Integer harvestResultNumber);
+    public List<HarvestResult> getHarvestResults(Long targetInstanceOid) {
+        return targetInstanceDao.getHarvestResults(targetInstanceOid);
+    }
 
-    /**
-     * Set the purged flag and delete any harvest resources.
-     * @param aTargetInstance The Target Instance
-     */
-    void purgeTargetInstance(TargetInstance aTargetInstance);
+    public HarvestResult getHarvestResult(Long targetInstanceOid, Integer harvestResultNumber) {
+        TargetInstance ti = targetInstanceDao.load(targetInstanceOid);
+        if (ti == null) {
+            return null;
+        }
+        return ti.getHarvestResult(harvestResultNumber);
+    }
+
+    public void purgeTargetInstance(TargetInstance aTargetInstance) {
+        aTargetInstance.setPurged(true);
+        targetInstanceDao.save(aTargetInstance);
+    }
+
+    public void setIndicatorDAO(IndicatorDAO indicatorDAO) {
+        this.indicatorDAO = indicatorDAO;
+    }
+
+    public IndicatorDAO getIndicatorDAO() {
+        return indicatorDAO;
+    }
+
+    public IndicatorCriteriaDAO getIndicatorCriteriaDAO() {
+        return indicatorCriteriaDAO;
+    }
+
+    public List<IndicatorCriteria> getIndicatorCriterias() {
+        return indicatorCriteriaDAO.getIndicatorCriterias();
+    }
+
+    public List<IndicatorCriteria> getIndicatorCriteriasByAgencyOid(Long agencyOid) {
+        return indicatorCriteriaDAO.getIndicatorCriteriasByAgencyOid(agencyOid);
+    }
+
+    public void setIndicatorCriteriaDAO(IndicatorCriteriaDAO indicatorCriteriaDAO) {
+        this.indicatorCriteriaDAO = indicatorCriteriaDAO;
+    }
+
+    public void setIndicatorReportLineDAO(IndicatorReportLineDAO indicatorReportLineDAO) {
+        this.indicatorReportLineDAO = indicatorReportLineDAO;
+    }
+
+    public void deleteIndicatorReportLines(Indicator indicator) {
+        while (indicator.getIndicatorReportLines().size() > 0) {
+            indicatorReportLineDAO.delete(indicator.getIndicatorReportLines().get(0));
+        }
+    }
 }

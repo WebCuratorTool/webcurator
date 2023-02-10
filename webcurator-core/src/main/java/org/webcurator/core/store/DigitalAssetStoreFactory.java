@@ -2,22 +2,28 @@ package org.webcurator.core.store;
 
 import org.webcurator.core.reader.LogReader;
 
+
 /**
- * Interface for a factory to create instances of a DigitalAssetStore.
+ * Factory te instances of a DigitalAssetStore.
  * @author kurwin
  */
-public interface DigitalAssetStoreFactory {
+public class DigitalAssetStoreFactory {
+    private DigitalAssetStore digitalAssetStore;
+    private LogReader logReader;
 
-    /**
-     * Return an instance of the DigitalAssetStore.
-     * @return the DigitalAssetStore
-     */
-	   public DigitalAssetStore getDAS();    
+    public DigitalAssetStore getDAS() {
+        return this.digitalAssetStore;
+    }
 
-	    /**
-	     * Return an instance of the log reader for the DigitalAssetStore
-	     * @return the log reader
-	     */
-	    public LogReader getLogReader();       
+    public void setDAS(DigitalAssetStore digitalAssetStore){
+        this.digitalAssetStore = digitalAssetStore;
+    }
 
+    public LogReader getLogReader() {
+        return this.logReader;
+    }
+
+    public void setLogReader(LogReader logReader){
+        this.logReader = logReader;
+    }
 }

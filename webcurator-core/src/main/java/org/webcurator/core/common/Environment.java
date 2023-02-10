@@ -20,25 +20,73 @@ package org.webcurator.core.common;
  * This object can be obtained by the EnvironmentFactory.
  * @author bbeaumont
  */
-public interface Environment {
+public class Environment {
+	/** The number of days in advance to create target instances for. */
+	private int daysToSchedule = 10;
+	/** The number of schedules to be processed per batch when the createNewTargetInstancesTrigger is fired. */
+	private int schedulesPerBatch = 10;
+    /** the WCT version. */
+    private String applicationVersion;
+    /** the Heritrix version. */
+    private String heritrixVersion;
+	
+	/** Default Constructor. */
+	public Environment() {
+	}
+	
 	/**
 	 * @return Returns the daysToSchedule.
 	 */
-	public int getDaysToSchedule();
-    
+	public int getDaysToSchedule() {
+		return daysToSchedule;
+	}
+
+	/**
+	 * @param daysToSchedule The daysToSchedule to set.
+	 */
+	public void setDaysToSchedule(int daysToSchedule) {
+		this.daysToSchedule = daysToSchedule;
+	}
+
 	/**
 	 * @return Returns the schedulesPerBatch.
 	 */
-	public int getSchedulesPerBatch();
+	public int getSchedulesPerBatch() {
+		return schedulesPerBatch;
+	}
 
 	/**
-     * @return the WCT Application version, which defines the current version
-     * of the application.
-     */
-    public String getApplicationVersion();
-    /**
-     * @return the WCT Heritrix version, which defines the current version
-     * of Heritrix.
-     */
-    public String getHeritrixVersion();
+	 * @param schedulesPerBatch The schedulesPerBatch to set.
+	 */
+	public void setSchedulesPerBatch(int schedulesPerBatch) {
+		this.schedulesPerBatch = schedulesPerBatch;
+	}
+
+	/**
+	 * @return the applicationVersion
+	 */
+	public String getApplicationVersion() {
+		return applicationVersion;
+	}
+
+	/**
+	 * @param applicationVersion the applicationVersion to set
+	 */
+	public void setApplicationVersion(String applicationVersion) {
+		this.applicationVersion = applicationVersion;
+	}
+
+	/**
+	 * @param heritrixVersion the heritrixVersion to set
+	 */
+	public void setHeritrixVersion(String heritrixVersion) {
+		this.heritrixVersion = heritrixVersion;
+	}
+
+	/**
+	 * @return the heritrixVersion
+	 */
+	public String getHeritrixVersion() {
+		return heritrixVersion;
+	}
 }

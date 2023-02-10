@@ -6,7 +6,7 @@ import org.webcurator.domain.model.core.TargetInstance;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class MockArchiveAdapter implements ArchiveAdapter {
+public class MockArchiveAdapter extends ArchiveAdapter {
 
 	protected static Log log = LogFactory.getLog(MockArchiveAdapter.class);
 	

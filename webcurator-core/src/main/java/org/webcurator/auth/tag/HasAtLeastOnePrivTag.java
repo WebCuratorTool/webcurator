@@ -21,14 +21,13 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.auth.AuthorityManagerImpl;
 
 public class HasAtLeastOnePrivTag extends TagSupport {
 
     private static final long serialVersionUID = -1672856448368726571L;
     
     private String privileges = null;
-    private AuthorityManager authorityManager = new AuthorityManagerImpl();
+    private AuthorityManager authorityManager = new AuthorityManager();
     
     @Override
     public int doStartTag() throws JspException {  

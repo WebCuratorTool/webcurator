@@ -2,7 +2,7 @@ package org.webcurator.core.store;
 
 import org.webcurator.core.reader.*;
 
-public class MockDigitalAssetStoreFactory implements DigitalAssetStoreFactory 
+public class MockDigitalAssetStoreFactory extends DigitalAssetStoreFactory
 {
 	DigitalAssetStore store;
 	LogReader reader;

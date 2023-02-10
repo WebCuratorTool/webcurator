@@ -45,7 +45,7 @@ import org.webcurator.domain.model.core.Site;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-public class MockPermissionTemplateDAO implements PermissionTemplateDAO {
+public class MockPermissionTemplateDAO extends PermissionTemplateDAO {
 
 	private static Log log = LogFactory.getLog(MockPermissionTemplateDAO.class);
 	private Document theFile = null;

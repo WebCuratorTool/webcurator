@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.3.1.RELEASE'
+    id 'org.springframework.boot' version '2.5.12'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
     id 'maven-publish'
@@ -22,10 +22,15 @@ repositories {
     maven {
         url = 'http://www.datanucleus.org/downloads/maven2/'
     }
+
+    maven {
+        // For  com.cloudera.cdh:hadoop-root:0.20.2-cdh3u4
+        url = 'https://mvnrepository.com/repos/archive-builds'
+    }
 }
 
 group = 'org.webcurator'
-version = '3.1.0-SNAPSHOT'
+version = '3.1.4-SNAPSHOT'
 description = 'Web Curator Tool WebApp'
 
 apply plugin: 'eclipse'
@@ -89,7 +94,8 @@ dependencies {
 //    implementation 'org.archive.heritrix:heritrix-engine:3.4.0-SNAPSHOT'
 
     providedCompile 'org.apache.taglibs:taglibs-standard-impl:1.2.5'
-    providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'
+//    providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.21'
+    providedCompile 'org.apache.tomcat.embed:tomcat-embed-jasper:9.0.60'
 
 }
 

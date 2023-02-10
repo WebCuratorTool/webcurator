@@ -497,13 +497,17 @@ function toggleProvideOverrides(profilesList, harvesterTypeValueSelected, onPage
 
     <tr>
       <td class="annotationsLiteRow" valign="top">Block URLs</td>
-      <td class="annotationsLiteRow" valign="top"><textarea name="h3BlockedUrls" cols="80" rows="5"><c:out value="${command.h3BlockedUrls}"/></textarea></td>
+      <td class="annotationsLiteRow" valign="top">
+        <textarea name="h3BlockedUrls" placeholder="Use regular expressions to match multiple URLs, e.g. https://.*google\.com/.*" cols="80" rows="5"><c:out value="${command.h3BlockedUrls}"/></textarea>
+      </td>
       <td class="annotationsLiteRow" valign="top"><input type="checkbox" name="overrideH3BlockedUrls" ${command.overrideH3BlockedUrls ? 'checked' : ''}/></td>
     </tr>
 
     <tr>
       <td class="annotationsLiteRow" valign="top">Include URLs</td>
-      <td class="annotationsLiteRow" valign="top"><textarea name="h3IncludedUrls" cols="80" rows="5"><c:out value="${command.h3IncludedUrls}"/></textarea></td>
+      <td class="annotationsLiteRow" valign="top">
+        <textarea name="h3IncludedUrls" placeholder="Use regular expressions to match multiple URLs, e.g. https://.*google\.com/.*" cols="80" rows="5"><c:out value="${command.h3IncludedUrls}"/></textarea>
+      </td>
       <td class="annotationsLiteRow" valign="top"><input type="checkbox" name="overrideH3IncludedUrls" ${command.overrideH3IncludedUrls ? 'checked' : ''}/></td>
     </tr>
 </table>

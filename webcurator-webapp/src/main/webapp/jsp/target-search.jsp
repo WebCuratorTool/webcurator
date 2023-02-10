@@ -219,7 +219,7 @@
      		 		
 		 			<authority:hasPrivilege privilege="<%= Privilege.MANAGE_TARGET_INSTANCES %>" scope="<%= Privilege.SCOPE_AGENCY %>">
 		 			<img src="images/action-sep-line.gif" alt="" width="7" height="19" border="0" />
-     		 		<a href="curator/target/queue.html?type=target&targetname=<c:out value="${result.name}"/>"><img src="images/action-icon-target-instances.gif" title="View Target Instances" alt="click here to view TIs" border="0" /></a>
+     		 		<a href="curator/target/queue.html?type=target&targetoid=<c:out value="${result.oid}"/>"><img src="images/action-icon-target-instances.gif" title="View Target Instances" alt="click here to view TIs" border="0" /></a>
      		 		</authority:hasPrivilege>
 
      		 		<c:if test="${result.state == 1}">

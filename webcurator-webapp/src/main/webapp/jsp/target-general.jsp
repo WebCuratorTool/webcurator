@@ -43,7 +43,7 @@
     <td class="subBoxText">
     <c:choose>
     	<c:when test="${targetEditorContext.target.oid != null}">
-		<a class="subBoxText" href="<%=Constants.CNTRL_TI_QUEUE%>?<%=TargetInstanceCommand.REQ_TYPE%>=<%=TargetInstanceCommand.TYPE_TARGET%>&<%=TargetInstanceCommand.PARAM_TARGET_NAME%>=<c:out value="${command.encodedName}"/>">View Target Instances</a>
+		<a class="subBoxText" href="<%=Constants.CNTRL_TI_QUEUE%>?<%=TargetInstanceCommand.REQ_TYPE%>=<%=TargetInstanceCommand.TYPE_TARGET%>&<%=TargetInstanceCommand.PARAM_TARGET_OID%>=<c:out value="${targetEditorContext.target.oid}"/>">View Target Instances</a>
 		</c:when>
 		<c:otherwise>
 		&nbsp;

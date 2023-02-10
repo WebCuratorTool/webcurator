@@ -7,7 +7,7 @@ import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.Task;
 
-public class MockInTrayDAO implements InTrayDAO {
+public class MockInTrayDAO extends InTrayDAO {
 
 	public MockInTrayDAO(String filename) {
 		// TODO Auto-generated constructor stub

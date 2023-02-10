@@ -17,8 +17,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.core.archive.MockSipBuilder;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.targets.MockTargetManager;
@@ -35,7 +35,7 @@ import org.webcurator.ui.target.validator.MockHarvestNowValidator;
 public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> {
 
 	private TargetInstanceDAO tidao;
-	private WctCoordinatorImpl hc;
+	private WctCoordinator hc;
 	public HarvestNowControllerTest()
 	{
 		super(HarvestNowController.class,
@@ -56,13 +56,13 @@ public class HarvestNowControllerTest extends BaseWCTTest<HarvestNowController> 
 
 		tim.setTargetInstanceDao(tidao);
 
-		hc = new WctCoordinatorImpl();
+		hc = new WctCoordinator();
 
 		hc.setTargetInstanceManager(tim);
 		hc.setTargetManager(new MockTargetManager(testFile));
 		hc.setInTrayManager(new MockInTrayManager(testFile));
 		hc.setSipBuilder(new MockSipBuilder(testFile));
-		HarvestAgentManagerImpl harvestAgentManager = new HarvestAgentManagerImpl();
+		HarvestAgentManager harvestAgentManager = new HarvestAgentManager();
 		harvestAgentManager.setHarvestAgentFactory(new MockHarvestAgentFactory());
 		harvestAgentManager.setTargetInstanceManager(tim);
 		harvestAgentManager.setTargetInstanceDao(tidao);

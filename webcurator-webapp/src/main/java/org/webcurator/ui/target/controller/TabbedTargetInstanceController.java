@@ -40,8 +40,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.coordinator.WctCoordinator;
+import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.TargetInstance;
@@ -65,7 +65,7 @@ public class TabbedTargetInstanceController extends TabbedController {
     TargetInstanceManager targetInstanceManager;
     /** The harvest coordinator to use to update the profile overrides. */
     @Autowired
-    WctCoordinator wctCoordinator;
+	WctCoordinator wctCoordinator;
     /** The authority manager used to perform security checks */
     @Autowired
     AuthorityManager authorityManager;

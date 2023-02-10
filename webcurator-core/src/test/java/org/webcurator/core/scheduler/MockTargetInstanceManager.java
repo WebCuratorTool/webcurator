@@ -2,18 +2,11 @@ package org.webcurator.core.scheduler;
 
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.util.TestAuditor;
-import org.webcurator.domain.IndicatorCriteriaDAO;
-import org.webcurator.domain.IndicatorDAO;
-import org.webcurator.domain.MockAnnotationDAO;
-import org.webcurator.domain.MockIndicatorCriteriaDAO;
-import org.webcurator.domain.MockIndicatorDAO;
-import org.webcurator.domain.MockProfileDAO;
-import org.webcurator.domain.MockTargetInstanceDAO;
-import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.domain.*;
 
-public class MockTargetInstanceManager extends TargetInstanceManagerImpl {
+public class MockTargetInstanceManager extends TargetInstanceManager {
 
-	private TargetInstanceDAO mTargetInstanceDao = null;
+	private MockTargetInstanceDAO mTargetInstanceDao = null;
 	private MockIndicatorDAO mIndicatorDAO = null;
 	private MockIndicatorCriteriaDAO mIndicatorCriteriaDAO = null;
 	

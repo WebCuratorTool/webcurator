@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'org.springframework.boot' version '2.3.1.RELEASE'
+    id 'org.springframework.boot' version '2.5.12'
     id 'war'
 }
 
@@ -30,8 +30,7 @@ apply plugin: 'war'
 dependencies {
     compile 'commons-httpclient:commons-httpclient:3.1'
     compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
-    compile 'it.unimi.dsi:mg4j:2.0.1'
-    compile 'smalltext-0.1.4:smalltext-0.1.4:0.1.4'
+    compile 'jaxen:jaxen:1.2.0'
     compile('org.webcurator:webcurator-core:3.1.+') {
         exclude group: 'org.archive', module: 'heritrix'
     }
@@ -45,7 +44,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.0-SNAPSHOT'
+version = '3.1.4-SNAPSHOT'
 description = 'Web Curator Tool Digital Asset Store'
 sourceCompatibility = '1.8'
 

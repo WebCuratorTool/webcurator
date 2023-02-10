@@ -13,10 +13,6 @@ import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
 /**
  * The Server side implmentation of the HarvestAgentListener. This Service is deployed on the core and is used by the agents to send
  * messages to the core.

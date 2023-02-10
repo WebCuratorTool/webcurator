@@ -19,7 +19,7 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.core.agency.*;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.scheduler.*;
 import org.webcurator.domain.MockTargetInstanceDAO;
@@ -91,7 +91,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 
 	@Test
 	public final void testSetHarvestCoordinator() {
-		WctCoordinatorImpl hc = new WctCoordinatorImpl();
+		WctCoordinator hc = new WctCoordinator();
 		hc.setTargetInstanceManager(getTargetInstanceManager());
 		hc.setTargetInstanceDao(new MockTargetInstanceDAO(testFile));
 

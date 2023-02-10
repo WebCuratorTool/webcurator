@@ -1,28 +1,28 @@
 /**
  * nz.govt.natlib.ndha.wctdpsdepositor - Software License
- *
+ * <p>
  * Copyright 2007/2009 National Library of New Zealand.
  * All rights reserved.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0 
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * or the file "LICENSE.txt" included with the software.
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
- *
  */
 
 package nz.govt.natlib.ndha.wctdpsdepositor.extractor;
 
 //import nz.govt.natlib.ndha.common.FixityUtils;
+
 import nz.govt.natlib.ndha.wctdpsdepositor.CustomDepositField;
 import nz.govt.natlib.ndha.wctdpsdepositor.extractor.filefinder.FileArchiveBuilder;
 import org.apache.commons.logging.Log;
@@ -95,20 +95,20 @@ public class XPathWctMetsExtractor implements WctDataExtractor {
     private List<CustomDepositField> dcFieldsAdditional = new ArrayList<CustomDepositField>();
     private String cmsSection;
     private String cmsSystem;
-    
+
     private static final String XML_MIME_TYPE = "text/xml";
 
 
     static {
         /*
          * Temporary fix, until we find a permanent solution, to get rid of the following error from wct-store in Tomcat:
-         * 
-         * org.webcurator.core.archive.dps.DPSUploadException: java.lang.RuntimeException: 
-         * XPathFactory#newInstance() failed to create an XPathFactory for the default object 
-         * model: http://java.sun.com/jaxp/xpath/dom with the XPathFactoryConfigurationException: 
-         * javax.xml.xpath.XPathFactoryConfigurationException: No XPathFctory implementation 
+         *
+         * org.webcurator.core.archive.dps.DPSUploadException: java.lang.RuntimeException:
+         * XPathFactory#newInstance() failed to create an XPathFactory for the default object
+         * model: http://java.sun.com/jaxp/xpath/dom with the XPathFactoryConfigurationException:
+         * javax.xml.xpath.XPathFactoryConfigurationException: No XPathFctory implementation
          * found for the object model: http://java.sun.com/jaxp/xpath/dom
-         * 
+         *
          */
         System.setProperty("javax.xml.xpath.XPathFactory:http://java.sun.com/jaxp/xpath/dom", "com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl");
     }
@@ -176,7 +176,7 @@ public class XPathWctMetsExtractor implements WctDataExtractor {
      * @param xpath
      * @param fileBuilder
      */
-    protected void populateAdditional(Document doc, XPath xpath, FileArchiveBuilder fileBuilder)  throws XPathExpressionException {
+    protected void populateAdditional(Document doc, XPath xpath, FileArchiveBuilder fileBuilder) throws XPathExpressionException {
         // empty implementation
     }
 
@@ -264,7 +264,7 @@ public class XPathWctMetsExtractor implements WctDataExtractor {
 
         if (getWctMetsFile() != null)
             files.add(getWctMetsFile());
-        
+
         files.addAll(getHomeDirectoryFiles());
         files.addAll(getReportFiles());
         files.addAll(getLogFiles());
@@ -355,8 +355,13 @@ public class XPathWctMetsExtractor implements WctDataExtractor {
     public void cleanUpCdxFile() {
         String errorText = "WCT Target " + wctTargetInstanceID + ": Error deleting the arc index file ";// + file.getAbsolutePath() + " - it needs to be manually deleted";
         try {
-            String indexFilePath = ((FileSystemArchiveFile)arcIndex).generateFilePath();
-            errorText =  errorText + indexFilePath + " - ";
+            if (arcIndex == null) {
+                log.info("WCT Target " + wctTargetInstanceID + ": arcIndex is null");
+                return;
+            }
+
+            String indexFilePath = ((FileSystemArchiveFile) arcIndex).generateFilePath();
+            errorText = errorText + indexFilePath + " - ";
             File indexFile = new File(indexFilePath);
             if (indexFile.exists()) {
                 boolean status = indexFile.delete();
@@ -438,7 +443,7 @@ public class XPathWctMetsExtractor implements WctDataExtractor {
     }
 
     private void populateAccessRestrictions(Document doc, XPath xpath) throws XPathExpressionException {
-    	accessRestriction = (String) xpath.evaluate(accessRestrictionQuery, doc, XPathConstants.STRING);
+        accessRestriction = (String) xpath.evaluate(accessRestrictionQuery, doc, XPathConstants.STRING);
     }
 
     private void populateArchiveFiles(Document doc, XPath xpath, FileArchiveBuilder fileBuilder) throws XPathExpressionException {
@@ -487,14 +492,11 @@ public class XPathWctMetsExtractor implements WctDataExtractor {
             docFactory.setNamespaceAware(true);
             DocumentBuilder builder = docFactory.newDocumentBuilder();
             return builder.parse(wctMets);
-        }
-        catch (ParserConfigurationException pce) {
+        } catch (ParserConfigurationException pce) {
             throw new RuntimeException(pce);
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
             throw new RuntimeException(ioe);
-        }
-        catch (SAXException se) {
+        } catch (SAXException se) {
             throw new RuntimeException(se);
         }
     }

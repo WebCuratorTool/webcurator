@@ -54,6 +54,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -451,6 +452,15 @@ public class QueueController {
 		mav.addObject(Constants.GBL_MESSAGES, messageSource.getMessage(message, new Object[] {}, Locale.getDefault()));
 	}
 
+	private static Long toLong(String in) {
+		if (in==null) return -1L;
+		try {
+			return Long.parseLong(in);
+		} catch (NumberFormatException e) {
+			return -1L;
+		}
+	}
+
 	private TargetInstanceCommand createNewFilterCommand(HttpServletRequest aReq, TargetInstanceCriteria criteria,
 														 String currentPageSize) {
 		TargetInstanceCommand aCmd;
@@ -463,9 +473,9 @@ public class QueueController {
 		Set<String> states = new HashSet<String>();
 		String reqType = aReq.getParameter(TargetInstanceCommand.REQ_TYPE);
 		if (TargetInstanceCommand.TYPE_TARGET.equals(reqType)) {
-			String name = aReq.getParameter(TargetInstanceCommand.PARAM_TARGET_NAME);
-			criteria.setName(name);
-			aCmd.setName(name);
+			Long id = toLong(aReq.getParameter(TargetInstanceCommand.PARAM_TARGET_OID));
+			criteria.setTargetSearchOid(id);
+			aCmd.setTargetId(id);
 			aCmd.setStates(states);
 			aCmd.setSortorder(CommandConstants.TARGET_INSTANCE_COMMAND_SORT_DEFAULT);
 		} else if (TargetInstanceCommand.TYPE_HARVESTED.equals(reqType)) {

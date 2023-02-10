@@ -15,148 +15,154 @@
  */
 package org.webcurator.domain;
 
-import java.util.List;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.domain.model.auth.Role;
+import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.dto.UserDTO;
+
+import java.util.List;
 
 /**
  * The User Role DAO provides access to User, Role and Agency
  * data from the persistent data store. 
  * @author bprice
  */
-public interface UserRoleDAO {
-	/**
-	 * Save or update the specified object to the persistent data store.
-	 * @param aObject the object to save or update
-	 */
-    public void saveOrUpdate(Object aObject);
+@Repository
+@Transactional
+public class UserRoleDAO {
     
-    /**
-     * Remove the specified object from the persistent data store.
-     * @param aObject the object to remove
-     */
-    public void delete(Object aObject);
+    private Log log = LogFactory.getLog(UserRoleDAO.class);
+
+
+    SessionFactory sessionFactory;
+
+    public List getUserDTOs(Long agencyOid) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_ALL_USER_DTOS_BY_AGENCY);
+        q.setParameter(1, agencyOid);
+        return q.getResultList();
+    }
+
+    public List getUserDTOs() {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_ALL_USER_DTOS);
+        return q.getResultList();
+    }
+
+    public UserDTO getUserDTOByOid(final Long userOid) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTO_BY_OID);
+        q.setParameter(1, userOid);
+        return (UserDTO)q.uniqueResult();
+    }
+
+    public List getRoles() {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(Role.QRY_GET_ROLES);
+        return q.getResultList();
+    }
+
+    public List getRoles(Long agencyOid) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(Role.QRY_GET_ROLES_BY_AGENCY);
+        q.setParameter(1, agencyOid);
+        return q.getResultList();
+    }
+
+    public User getUserByOid(Long oid) {
+        return sessionFactory.getCurrentSession().get(User.class, oid);
+    }
+
+    public User getUserByName(String username) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_BY_NAME);
+        q.setParameter(1, username);
+        List results = q.getResultList();
+
+        if(results.size() == 1) {
+            return (User) results.get(0);
+        }
+        else {
+            return null;
+        }
+    }
+
+    public Agency getAgencyByOid(Long oid) {
+        return (Agency)sessionFactory.getCurrentSession().get(Agency.class, oid);
+    }
     
-    /**
-     * gets a List of RolePrivilege objects. The RolePrivilege contains both 
-     * the Privilege and the scope of the Privilege
-     * @param username the username
-     * @return a List of RolePrivileges
-     */
-    public List getUserPrivileges(String username);
+    public List getUserPrivileges(String username) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(RolePrivilege.QRY_GET_USER_PRIVILEGES);
+        q.setParameter(1, username);
+        return q.getResultList();
+    }
+
+    public void saveOrUpdate(final Object aObject) {
+        sessionFactory.getCurrentSession().saveOrUpdate(aObject);
+    }
     
-    /**
-     * gets a specific User based on the users login name
-     * @param username the login username
-     * @return a populated User object
-     */
-    public User getUserByName(String username);
+
+    public void delete(final Object aObject) {
+        sessionFactory.getCurrentSession().delete(aObject);
+    }
     
-    /**
-     * gets the specific user based on the provided oid
-     * @param oid the Users Oid 
-     * @return the populated User object
-     */
-    public User getUserByOid(Long oid);
+    public List getUsers() {
+        Query q = sessionFactory.getCurrentSession().createQuery("Select u from " + User.class.getCanonicalName()
+                                                                    + " u order by u.username");
+        return q.getResultList();
+    }
     
-    /**
-     * gets the Defined roles in the system
-     * @return a List of Roles
-     */
-    public List getRoles();
+    public List getUsers(Long agencyOid) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USERS_BY_AGENCY);
+        q.setParameter(1, agencyOid);
+        return q.getResultList();
+    }
+
+
+    public List getAgencies() {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(Agency.QRY_GET_ALL_AGENCIES);
+        return q.getResultList();
+    }
+
+    public List getAssociatedRolesForUser(Long userOid) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(Role.QRY_GET_ASSOCIATED_ROLES_BY_USER);
+        q.setParameter(1, userOid);
+        return q.getResultList();
+    }
+
+    public Role getRoleByOid(Long oid) {
+        return sessionFactory.getCurrentSession().get(Role.class, oid);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<UserDTO> getUserDTOsByPrivilege(String privilege) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE);
+        q.setParameter(1, privilege);
+        return q.getResultList();
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<UserDTO> getUserDTOsByPrivilege(String privilege, Long agencyOid) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_PRIVILEGE_FOR_AGENCY);
+        q.setParameter(1, privilege);
+        q.setParameter(2, agencyOid);
+        return q.getResultList();
+    }
     
-    /**
-     * gets a Defined list of roles for the specified agency
-     * @param agencyOid the oid of the agency
-     * @return a List of Roles
-     */
-    public List getRoles(Long agencyOid);
-    
-    /**
-     * gets the Roles associated with this user
-     * @param  userOid the users primary key
-     * @return a List of associated Roles for this user
-     */
-    public List getAssociatedRolesForUser(Long userOid);
-    
-    /**
-     * gets all users of the WTC system
-     * @return a List of full populated User objects
-     */
-    public List getUsers();
-    
-    /**
-     * gets the users of the WTC system for a selected Agency
-     * @param agencyOid the Oid of the AGency in which to search for users
-     * @return a List of full populated User objects
-     */
-    public List getUsers(Long agencyOid);
-    
-    /**
-     * gets a the WCT Users in the system, but only as Data Transfer Objects
-     * @return a List of UserDTO objects
-     */
-    public List getUserDTOs();
-    
-    /**
-     * gets a the WCT Users for a given agency, but only as Data Transfer Objects
-     * @param agencyOid a List of UserDTO objects
-     * @return a List of UserDTO objects for the agency
-     */
-    public List getUserDTOs(Long agencyOid);
-    
-    /**
-     * gets a UserDTO object based on the Users oid
-     * @param userOid the oid to load
-     * @return a populated UserDTO object
-     */
-    public UserDTO getUserDTOByOid(Long userOid);
-    
-    
-    /**
-     * gets all the Agencies defined within the WCT system
-     * @return a List of Agencies
-     */
-    public List getAgencies();
-    
-    /**
-     * gets an agency using its oid (primary key)
-     * @param oid the Agency Oid
-     * @return the populated Agency Object
-     */
-    public Agency getAgencyByOid(Long oid);
-    
-    /**
-     * gets a Role object based on its primary key
-     * @param oid the roles primary key
-     * @return the populated Role object
-     */
-    public Role getRoleByOid(Long oid);
-    
-    /**
-     * gets a List of UserDTO's that have this privilege across
-     * all Agencies
-     * @param privilege the Privilge code to look for
-     * @return  a List of UserDTO objects
-     */
-    public List<UserDTO> getUserDTOsByPrivilege(String privilege);
-    
-    /**
-     * gets a List of UserDTO's that have this privilege within the 
-     * specified Agency
-     * @param privilege the Privilge code to look for
-     * @param agencyOid the AGency to limit the search to
-     * @return a List of UserDTO objects
-     */
-    public List<UserDTO> getUserDTOsByPrivilege(String privilege, Long agencyOid);
-    
-    /**
-     * Get all the User DTOs who own targets associated with a given permission.
-     * @param permissionOid The OID of the permission.
-     * @return A list of UserDTOs.
-     */
-    public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid);
+    @SuppressWarnings("unchecked")
+	public List<UserDTO> getUserDTOsByTargetPrivilege(Long permissionOid) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USER_DTOS_BY_TARGET_PERMISSION);
+        q.setParameter(1, permissionOid);
+        return q.getResultList();
+    }
+
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 }

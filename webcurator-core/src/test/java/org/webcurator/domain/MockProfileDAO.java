@@ -20,7 +20,7 @@ import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.core.exceptions.WCTInvalidStateRuntimeException;
 
-public class MockProfileDAO implements ProfileDAO {
+public class MockProfileDAO extends ProfileDAO {
 
 	private static Log log = LogFactory.getLog(MockProfileDAO.class);
 	private Document theFile = null; 

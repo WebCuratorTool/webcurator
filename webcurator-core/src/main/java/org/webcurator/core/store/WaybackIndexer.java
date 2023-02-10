@@ -1,21 +1,17 @@
 package org.webcurator.core.store;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.HarvestResultDTO;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WaybackIndexer extends IndexerBase {
 
@@ -36,6 +32,7 @@ public class WaybackIndexer extends IndexerBase {
     private String waybackFailedFolder;
     private long waittime;
     private long timeout;
+    private boolean useSymLinks = false;
     private boolean enabled = false;
 
     //Internal variables
@@ -56,6 +53,7 @@ public class WaybackIndexer extends IndexerBase {
         waybackMergedFolder = original.waybackMergedFolder;
         waittime = original.waittime;
         timeout = original.timeout;
+        useSymLinks = original.useSymLinks;
         enabled = original.enabled;
     }
 
@@ -195,6 +193,14 @@ public class WaybackIndexer extends IndexerBase {
         return timeout;
     }
 
+    public boolean isUseSymLinks() {
+        return useSymLinks;
+    }
+
+    public void setUseSymLinks(boolean useSymLinks) {
+        this.useSymLinks = useSymLinks;
+    }
+
     private void buildIndexFileList() {
         indexFiles.clear();
 
@@ -255,7 +261,14 @@ public class WaybackIndexer extends IndexerBase {
                 if (!directory.exists()) {
                     directory.mkdirs();
                 }
-                copyFile(theFile, inputFile);
+                if (!useSymLinks) {
+                    copyFile(theFile, inputFile);
+                } else {
+                    // Create symbolic link instead of copy
+                    Path target = Paths.get(theFile.getAbsolutePath());
+                    Path link = Paths.get(inputFile.getAbsolutePath());
+                    Files.createSymbolicLink(link, target);
+                }
                 status = FileStatus.COPIED;
             } catch (IOException e) {
                 log.error("Unable to copy: " + theFile.getAbsolutePath() + " to: " + inputFile.getAbsolutePath(), e);

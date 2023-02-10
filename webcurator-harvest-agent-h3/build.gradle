@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'org.springframework.boot' version '2.1.7.RELEASE'
+    id 'org.springframework.boot' version '2.5.12'
     id 'war'
 }
 
@@ -27,6 +27,7 @@ dependencies {
     compile 'org.quartz-scheduler:quartz:2.3.1'
     compile 'com.sun.xml.bind:jaxb-impl:2.3.2'
     compile 'com.sun.xml.bind:jaxb-core:2.3.0'
+    compile 'javax.xml.bind:jaxb-api:2.3.0'
     compile 'org.webcurator:webcurator-core:3.1.+'
     compile 'org.netarchivesuite:heritrix3-wrapper:1.0.3'
     testCompile 'junit:junit:4.12'
@@ -34,7 +35,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.0-SNAPSHOT'
+version = '3.1.4-SNAPSHOT'
 description = 'Harvest Agent - Heritrix 3.x'
 sourceCompatibility = '1.8'
 
