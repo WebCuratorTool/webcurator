@@ -7,7 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.Pagination;
-import org.webcurator.domain.TargetDAOImpl;
+import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Target;
 
@@ -24,7 +24,7 @@ public class Targets {
     private static Log logger = LogFactory.getLog(Targets.class);
 
     @Autowired
-    private TargetDAOImpl targetDAO;
+    private TargetDAO targetDAO;
 
     @GetMapping(path = "")
     public ResponseEntity<?> get(@RequestParam(required = false) Long targetId, @RequestParam(required = false) String name,
@@ -57,8 +57,15 @@ public class Targets {
 
 
     @GetMapping(path = "/{targetId}")
-    public ResponseEntity<?> get(@RequestParam int targetId) {
-        return null;
+    public ResponseEntity<?> get(@PathVariable int targetId) {
+        Target target = targetDAO.load(targetId);
+        if (target == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            TargetFull targetFull = new TargetFull(target);
+            ResponseEntity<TargetFull> response = ResponseEntity.ok().body(targetFull);
+            return response;
+        }
     }
 
 
@@ -147,6 +154,14 @@ public class Targets {
         }
     }
 
+    /**
+     * Wraps all info (that we want to share) about a target, gets directly mapped to JSON
+     */
+    private class TargetFull extends TargetSummary {
+        TargetFull(Target t) {
+            super(t);
+        }
+    }
 
     /**
      * Wraps summary info about a target, gets directly mapped to JSON
