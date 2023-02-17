@@ -3,6 +3,7 @@ package org.webcurator.rest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Target;
+import org.webcurator.rest.auth.SessionManager;
 
 import java.util.*;
 
@@ -24,15 +26,24 @@ public class Targets {
     private static Log logger = LogFactory.getLog(Targets.class);
 
     @Autowired
+    SessionManager sessionManager;
+
+    @Autowired
     private TargetDAO targetDAO;
 
     @GetMapping(path = "")
-    public ResponseEntity<?> get(@RequestParam(required = false) Long targetId, @RequestParam(required = false) String name,
-                                 @RequestParam(required = false) String seed, @RequestParam(required = false) String agency,
-                                 @RequestParam(required = false) String userId, @RequestParam(required = false) String description,
-                                 @RequestParam(required = false) String groupName, @RequestParam(required = false) boolean nonDisplayOnly,
-                                 @RequestParam(required = false) Set<Integer> states, @RequestParam(required = false) String sortBy,
-                                 @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+    public ResponseEntity<?> get(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                @RequestParam(required = false) Long targetId, @RequestParam(required = false) String name,
+                                @RequestParam(required = false) String seed, @RequestParam(required = false) String agency,
+                                @RequestParam(required = false) String userId, @RequestParam(required = false) String description,
+                                @RequestParam(required = false) String groupName, @RequestParam(required = false) boolean nonDisplayOnly,
+                                @RequestParam(required = false) Set<Integer> states, @RequestParam(required = false) String sortBy,
+                                @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
+
+        if (sessionManager.isAuthorized(authorizationHeader, "LOGIN")) {
+
+        }
+
         Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
         try {
             List<TargetSummary> targetSummaries = search(filter, offset, limit, sortBy);
