@@ -3,39 +3,74 @@ package org.webcurator.rest.auth;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Just a look-up table containing existing session IDs and last-seen timestamps
+ * Basically a look-up table, containing a map of session IDs to session info structs
  */
 @Component
 public class Sessions {
 
-    private ConcurrentHashMap<String, Date> sessionMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, SessionInfo> sessionMap = new ConcurrentHashMap<>();
 
-    public void addSession(String id) {
+    /**
+     * Add session and remove any expired sessions while we're at it
+     */
+    public void addSession(String id, List<String> roles, long expireInterval) {
         if (sessionMap.containsKey(id)) {
             // Can't happen
             throw new RuntimeException(String.format("Session id %s already exists", id));
         }
-        sessionMap.put(id, new Date());
+        for (String key : sessionMap.keySet()) {
+            if (sessionMap.get(key).expired()) {
+                removeSession(id);
+            }
+        }
+        sessionMap.put(id, new SessionInfo(roles, expireInterval));
     }
 
     public void removeSession(String id) {
         sessionMap.remove(id);
     }
 
-    public void touchSession(String id, long expireInterval) throws InvalidSessionException {
-        if (!sessionMap.containsKey(id) || System.currentTimeMillis() - sessionMap.get(id).getTime() > expireInterval) {
+    /**
+     * Get the roles for this session if it's still valid and, if so, update the timestamp of last access
+     */
+    public List<String> getRoles(String id) throws InvalidSessionException {
+        if (!sessionMap.containsKey(id) || sessionMap.get(id).expired()) {
             sessionMap.remove(id);
             throw new InvalidSessionException(id);
         }
-        sessionMap.put(id, new Date());
+        sessionMap.get(id).touch();
+        return sessionMap.get(id).roles;
     }
 
     public class InvalidSessionException extends Exception {
         public InvalidSessionException(String id) {
-            super(String.format("Session with %d has expired", id));
+            super(String.format("Session with %s has expired", id));
+        }
+    }
+
+
+    // Struct used as the value in the kv pair representing a session
+    class SessionInfo {
+        Date modified;
+        List<String> roles;
+        long expireInterval;
+
+        public SessionInfo(List<String> roles, long expireInterval) {
+            modified = new Date();
+            this.roles = roles;
+            this.expireInterval = expireInterval;
+        }
+
+        boolean expired() {
+            return System.currentTimeMillis() - modified.getTime() > expireInterval;
+        }
+
+        void touch() {
+            modified = new Date();
         }
     }
 
