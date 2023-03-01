@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.Seed;
 import org.webcurator.domain.model.core.Target;
 import org.webcurator.rest.auth.SessionManager;
@@ -40,10 +42,13 @@ public class Targets {
                                 @RequestParam(required = false) Set<Integer> states, @RequestParam(required = false) String sortBy,
                                 @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
 
-        if (sessionManager.isAuthorized(authorizationHeader, "LOGIN")) {
-
+        // First the authorization stuff
+        SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
+        if (authorizationResult.failed) {
+            return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
         }
 
+        // The actual filtering
         Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
         try {
             List<TargetSummary> targetSummaries = search(filter, offset, limit, sortBy);
@@ -68,7 +73,16 @@ public class Targets {
 
 
     @GetMapping(path = "/{targetId}")
-    public ResponseEntity<?> get(@PathVariable int targetId) {
+    public ResponseEntity<?> get(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                 @PathVariable int targetId) {
+
+        // First the authorization stuff
+        SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
+        if (authorizationResult.failed) {
+            return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
+        }
+
+        // TODO Implement retrieval of more complete set of data pertaining to a target
         Target target = targetDAO.load(targetId);
         if (target == null) {
             return ResponseEntity.notFound().build();
