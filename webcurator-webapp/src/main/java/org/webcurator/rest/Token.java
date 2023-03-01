@@ -3,7 +3,9 @@ package org.webcurator.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.rest.auth.SessionManager;
 
 /**
@@ -21,24 +23,22 @@ public class Token {
      */
     @PostMapping(path = "")
     public ResponseEntity<?> post(@RequestParam String username, @RequestParam String password) {
-
         try {
-            String jwt = sessionManager.authenticate(username, password);
-            return ResponseEntity.ok(jwt);
-        } catch (SessionManager.AuthenticationException e) {
-            return ResponseEntity.status(403).body("Authentication failed");
+            String token = sessionManager.authenticate(username, password);
+            return ResponseEntity.ok(token);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(401).body("Authentication failed");
         }
     }
 
     /**
-     * Note: we don't add the token to the path, because the URL might become too large otherwise
+     * Logout
+     *
      */
-    @DeleteMapping(path = "")
-    public ResponseEntity<?> delete(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
-
-        sessionManager.invalidate(authorizationHeader);
-
-        // Note that we simply ignore tokens we don't know
+    @DeleteMapping(path = "/{token}")
+    public ResponseEntity<?> delete(@PathVariable String token) {
+        // We silently ignore invalid or nonexistent tokens
+        sessionManager.invalidate(token);
         return ResponseEntity.ok("Token has been invalidated");
     }
 }
