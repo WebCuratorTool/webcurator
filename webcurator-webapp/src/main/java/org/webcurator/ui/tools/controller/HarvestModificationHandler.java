@@ -38,10 +38,7 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.HarvestResultDTO;
-import org.webcurator.domain.model.core.LogFilePropertiesDTO;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.command.PatchingProgressCommand;
 
 import javax.servlet.http.HttpServletRequest;
@@ -104,7 +101,10 @@ public class HarvestModificationHandler {
     private String baseDir;
 
     @Value("${qualityReviewToolController.archiveUrl}")
-    private String openWayBack;
+    private String archiveUrl;
+
+    @Autowired
+    private HarvestResourceUrlMapper harvestResourceUrlMapper;
 
     @Autowired
     private BrowseHelper browseHelper;
@@ -602,7 +602,9 @@ public class HarvestModificationHandler {
         map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
         map.put("globalVersion", versionDTO.getGlobalVersion());
         map.put("currentVersion", versionDTO.getCurrentVersion());
-        map.put("openWayBack", openWayBack);
+        map.put("archiveUrl", archiveUrl);
+        HarvestResult harvestResult = targetInstanceDAO.getHarvestResult(harvestResultId);
+        map.put("accessToolUrl", harvestResourceUrlMapper.generateUrl(harvestResult));
         return map;
     }
 

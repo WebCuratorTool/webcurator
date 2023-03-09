@@ -253,7 +253,8 @@ var itemsRecrawlHarvest={
 var itemsBrowse={ 
   "browse-local": {name: "WCT Browse", icon: "far fa-dot-circle"},
   "browse-livesite": {name: "Live Site Browse", icon: "far fa-dot-circle"},
-  "browse-openwayback": {name: "OpenWayback Browse", icon: "far fa-dot-circle"},
+  "browse-accesstool": {name: "Access Tool Browse", icon: "far fa-dot-circle"},
+  "browse-archive": {name: "Archive Browse", icon: "far fa-dot-circle"},
 };
 
 var itemsExportLinks={

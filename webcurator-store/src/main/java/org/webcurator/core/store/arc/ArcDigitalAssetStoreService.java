@@ -524,22 +524,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return node;
     }
 
-    /**
-     * Search the passed in list for an item matching the passed in Url.
-     *
-     * @param hrs - A list of HarvestResourceDTO objects
-     * @param Url - The Url to check for.
-     * @return true if a list item's name is equal to the Url, or else false
-     */
-    private boolean listContainsURL(List<HarvestResourceDTO> hrs, String Url) {
-        for (Iterator<HarvestResourceDTO> it = hrs.iterator(); it.hasNext(); ) {
-            HarvestResourceDTO hr = it.next();
-            if (hr.getName().equals(Url)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     /**
      * @see org.webcurator.core.reader.LogProvider#getLogFile(java.lang.String,
