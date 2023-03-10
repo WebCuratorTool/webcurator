@@ -63,7 +63,6 @@ public class DasConfig {
     @Value("${arcDigitalAssetStoreService.baseDir}")
     private String arcDigitalAssetStoreServiceBaseDir;
 
-    // TODO need to confirm that this will actually instantiate the archive
     @Value("${arcDigitalAssetStoreService.archive}")
     private String arcDigitalAssetStoreServiceArchive;
 
@@ -99,8 +98,15 @@ public class DasConfig {
     @Value("${waybackIndexer.waybackFailedFolder}")
     private String waybackIndexerWaybackFailedFolder;
 
+    // Use soft links to warc files in the store instead of copies to save space
+    @Value("${waybackIndexer.useSymLinks}")
+    private boolean waybackIndexerUseSymLinks;
+
     @Value("${cdxIndexer.enabled}")
     private boolean cdxIndexerEnabled;
+
+    @Value("${cdxIndexer.format}")
+    private String cdxIndexerFormat;
 
     @Value("${fileArchive.archiveRepository}")
     private String fileArchiveArchiveRepository;
@@ -414,6 +420,7 @@ public class DasConfig {
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setWaittime(waybackIndexerWaitTime);
         bean.setTimeout(waybackIndexerTimeout);
+        bean.setUseSymLinks(waybackIndexerUseSymLinks);
         bean.setWaybackInputFolder(waybackIndexerWaybackInputFolder);
         bean.setWaybackMergedFolder(waybackIndexerWaybackMergedFolder);
         bean.setWaybackFailedFolder(waybackIndexerWaybackFailedFolder);
@@ -425,7 +432,7 @@ public class DasConfig {
     public CDXIndexer cdxIndexer() {
         CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(cdxIndexerEnabled);
-//        bean.setWsEndPoint(wctCoreWsEndpoint());
+        bean.setFormat(cdxIndexerFormat);
 
         return bean;
     }

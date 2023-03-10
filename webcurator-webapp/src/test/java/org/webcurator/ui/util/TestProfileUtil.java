@@ -22,7 +22,7 @@ public class TestProfileUtil {
             for (String item : urlsInvalid) {
                 List<String> list = new ArrayList<>();
                 list.add(item);
-                boolean isValid = ProfileUtil.rejectInvalidURLs(errors, "testField", list, "invalid");
+                boolean isValid = ProfileUtil.rejectInvalidRegexes(errors, "testField", list, "invalid");
                 assert !isValid;
             }
         }
@@ -38,7 +38,7 @@ public class TestProfileUtil {
             for (String item : urlsValid) {
                 List<String> list = new ArrayList<>();
                 list.add(item);
-                boolean isValid = ProfileUtil.rejectInvalidURLs(errors, "testField", list, "invalid");
+                boolean isValid = ProfileUtil.rejectInvalidRegexes(errors, "testField", list, "invalid");
                 assert isValid;
             }
         }
