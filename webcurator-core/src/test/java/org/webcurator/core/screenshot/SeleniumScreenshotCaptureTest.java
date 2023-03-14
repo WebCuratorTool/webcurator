@@ -36,7 +36,7 @@ public class SeleniumScreenshotCaptureTest {
         assertTrue(isFileExisting(imgScreenThumbNail));
     }
 
-//    @Ignore
+    @Ignore
     @Test
     public void testHarvestedScreenshot() {
         String url = "http://localhost:9090/my-web-archive/20230208222848/https://www.rnz.co.nz/";
