@@ -14,50 +14,38 @@ Curator Tool System Administrator Guide*, *Web Curator Tool Developer Guide*,
 accurate for the current release, the *Release Notes* can give some idea of
 how things have changed since the last major release.
 
-Contents of this document
--------------------------
+3.1.3
+=====
 
-Following this introduction, the Web Curator Tool Release Notes includes the
-following sections:
+Patch release, December 2022, including a few minor enhancements:
 
--   **Changes since 3.1.0** - Changes since the last official release *3.0.3*.
+- Update CDX format and allow users to specify an alternative format (fixes #70).
 
--   **3.1.0** - Release 3.1.0.
+- Enable the use of soft links (to warc files in store) in the QA wayback input directory.
 
--   **3.0.3** - Release 3.0.3.
+- Fix issue in block URLs regex in profiles and profile overrides (fixes #79).
 
--   **3.0.2** - Release 3.0.2.
+3.1.2
+=====
 
--   **3.0.1** - Release 3.0.1.
+Patch release, August 2022:
 
--   **3.0.0** - Release 3.0.0.
+- Fix issue with non-alphanumeric characters in target names.
 
--   **2.0.2** - Release 2.0.2.
+- Remove generation of sorted crawl logs (#52).
 
--   **2.0.1** - Release 2.0.1.
+- Remove redundant interfaces.
 
--   **2.0.0** - Release 2.0.0.
+- Fix for CVE-2022-22965.
 
--   **1.6.2** - Release 1.6.2.
+3.1.1
+=====
 
--   **1.6.1** - Release 1.6.1.
+Patch release, July 2022:
 
--   **1.6.0** - Release 1.6.0.
+- Support SFTP in Submit-to-Rosetta module.
 
--   **1.5.2** - Release 1.5.2.
-
--   **1.5.1** - Release 1.5.1
-
--   **1.5** - Release 1.5.
-
--   **Previous versions** - Versions prior to release 1.5.
-
-
-Changes since 3.1.0
-===================
-
-This is a placeholder for changes since the official *3.1.0* release. Please
-add notes here for changes and fixes as they are released into the master branch.
+- Integration with Rosetta 7.1 SDK and API in Submit-to-Rosetta module.
 
 3.1.0
 =====

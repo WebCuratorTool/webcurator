@@ -122,11 +122,11 @@ public class ProfilesOverridesValidator extends AbstractBaseValidator implements
 
             boolean isValidBlockUrls = true;
             if (command.isOverrideH3BlockedUrls()) {
-                isValidBlockUrls = ProfileUtil.rejectInvalidURLs(errors, "h3BlockedUrls", command.getH3BlockedUrls(), "Block Urls: each star(*) in the url pattern must start with a dot(.)");
+                isValidBlockUrls = ProfileUtil.rejectInvalidRegexes(errors, "h3BlockedUrls", command.getH3BlockedUrls());
             }
             boolean isValidIncludeUrls = true;
             if (command.isOverrideH3IncludedUrls()) {
-                isValidIncludeUrls = ProfileUtil.rejectInvalidURLs(errors, "h3IncludedUrls", command.getH3IncludedUrls(), "Include Urls: each star(*) in the url pattern must start with a dot(.)");
+                isValidIncludeUrls = ProfileUtil.rejectInvalidRegexes(errors, "h3IncludedUrls", command.getH3IncludedUrls());
             }
             if (!isValidBlockUrls || !isValidIncludeUrls) {
                 log.debug("Invalid urls");

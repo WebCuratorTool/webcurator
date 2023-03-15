@@ -68,3 +68,4 @@ local.properties
 # IntelliJ
 /out/
 /build/
+/webcurator-store/src/test/java/org/webcurator/core/store/warc/14055/1/_resource/00000000.jdb
