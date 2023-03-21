@@ -71,15 +71,15 @@ public class CDXIndexer extends IndexerBase {
                         record = reader.next().orElse(null);
                         long length = reader.position() - position;
 
-                        // we don't want the N-field to be SURT-formatted, so we supply our own value
-                        URI uri = capture.targetURI();
-                        String massagedUrl = null;
-                        if (uri != null) {
-                           massagedUrl = uri.toASCIIString().replaceAll("[^//]+://(www\\.)?", "");
-                        }
                         if (useSurt) {
                             cdxWriter.write(cdxFormat.format(capture, filename, position, length));
                         } else {
+                            // we don't want the N-field to be SURT-formatted, so we supply our own value
+                            URI uri = capture.targetURI();
+                            String massagedUrl = null;
+                            if (uri != null) {
+                                massagedUrl = uri.toASCIIString().replaceAll("[^//]+://(www\\.)?", "");
+                            }
                             cdxWriter.write(cdxFormat.format(capture, filename, position, length, massagedUrl));
                         }
                         cdxWriter.newLine();
