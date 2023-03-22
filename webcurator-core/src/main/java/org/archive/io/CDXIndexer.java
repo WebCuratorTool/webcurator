@@ -23,7 +23,6 @@ public class CDXIndexer extends IndexerBase {
     private HarvestResultDTO result;
     private File directory;
     private boolean enabled = false;
-    private String format = CdxFormat.CDX11.legend();
     private boolean useSurt = false;
 
     public CDXIndexer() {
@@ -37,7 +36,6 @@ public class CDXIndexer extends IndexerBase {
     protected CDXIndexer(CDXIndexer original) {
         super(original);
         enabled = original.enabled;
-        format = original.format;
         useSurt = original.useSurt;
     }
 
@@ -48,7 +46,7 @@ public class CDXIndexer extends IndexerBase {
      * @throws IOException
      */
     private void writeCDXIndex(File archiveFile) throws IOException {
-        CdxFormat cdxFormat = new CdxFormat(format);
+        CdxFormat cdxFormat = CdxFormat.CDX11;
         String cdxFilename = getCdxFilename(archiveFile);
         try (WarcReader reader = new WarcReader(archiveFile.toPath());
              BufferedWriter cdxWriter = new BufferedWriter(new FileWriter(cdxFilename))) {
@@ -57,7 +55,7 @@ public class CDXIndexer extends IndexerBase {
             String filename = archiveFile.getName();
 
             // Write cdx header
-            cdxWriter.write(" CDX " + format);
+            cdxWriter.write(" CDX " + cdxFormat.legend());
             cdxWriter.newLine();
             while (record != null) {
                 try {
@@ -158,14 +156,6 @@ public class CDXIndexer extends IndexerBase {
     @Override
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public String getFormat() {
-        return format;
-    }
-
-    public void setFormat(String format) {
-        this.format = format.trim();
     }
 
     public boolean useSurt() {
