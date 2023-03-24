@@ -25,6 +25,14 @@ import java.util.*;
 public class Targets {
 
 
+    private static final int DEFAULT_PAGE_LIMIT = 10;
+    private static final String DEFAULT_SORT_BY = "name,asc";
+
+    // Response field names that are used more than once
+    private static final String SORT_BY_FIELD = "sortBy";
+    private static final String OFFSET_FIELD = "offset";
+    private static final String LIMIT_FIELD = "limit";
+
     private static Log logger = LogFactory.getLog(Targets.class);
 
     @Autowired
@@ -56,14 +64,21 @@ public class Targets {
             responseMap.put("filter", filter);
             responseMap.put("targets", targetSummaries);
             if (sortBy != null) {
-                responseMap.put("sortBy", sortBy);
+                responseMap.put(SORT_BY_FIELD, sortBy);
+            } else {
+                responseMap.put(SORT_BY_FIELD, DEFAULT_SORT_BY);
             }
             if (limit != null) {
-                responseMap.put("limit", limit);
+                responseMap.put(LIMIT_FIELD, limit);
+            } else {
+                responseMap.put(LIMIT_FIELD, DEFAULT_PAGE_LIMIT);
             }
             if (offset != null) {
-                responseMap.put("offset", offset);
+                responseMap.put(OFFSET_FIELD, offset);
+            } else {
+                responseMap.put(OFFSET_FIELD, 0);
             }
+            responseMap.put("amount", targetSummaries.size());
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
@@ -97,7 +112,7 @@ public class Targets {
     private List<TargetSummary> search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
 
         // defaults
-        if (limit == null) { limit = 10; }
+        if (limit == null) { limit = DEFAULT_PAGE_LIMIT; }
         if (offset == null) { offset = 0; }
 
         // magic to comply with the sort spec of the TargetDao API
