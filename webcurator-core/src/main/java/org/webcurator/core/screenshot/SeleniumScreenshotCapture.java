@@ -36,6 +36,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 
 
 public class SeleniumScreenshotCapture {
@@ -110,16 +111,16 @@ public class SeleniumScreenshotCapture {
         try {
             // Prepare the driver
 //            String chromeDriver = Paths.get("chromedriver").toFile().getAbsolutePath();
-            String chromeDriver = ProcessBuilderUtils.getFullPathOfCommand("chromedriver");
-            if (chromeDriver == null) {
+            String pathOfChromeDriver = ProcessBuilderUtils.getFullPathOfCommand("chromedriver");
+            if (pathOfChromeDriver == null) {
                 log.error("Failed to get the path of chromedriver");
                 return false;
             }
 
-            System.setProperty("webdriver.chrome.driver", chromeDriver);
+            System.setProperty("webdriver.chrome.driver", pathOfChromeDriver);
 
             ChromeOptions chromeOptions = new ChromeOptions();
-            chromeOptions.addArguments("--headless");
+            chromeOptions.addArguments("--headless=new");
             chromeOptions.addArguments("--no-sandbox");
 
             if (imageHeight != null && imageWidth != null) {
@@ -132,38 +133,24 @@ public class SeleniumScreenshotCapture {
                 driver.manage().window().maximize();
             }
 
-            driver.get(url);
 
             // Change the focus out of the wayback banner
             if (isWayback) {
                 // Remove pywb banner
-                try {
-                    JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
-//                    WebElement banner = driver.findElement(By.id("_wb_frame_top_banner"));
-//                    jsExecutor.executeScript("arguments[0].parentNode.removeChild(arguments[0])", banner);
-
-                    WebElement banner = driver.findElement(By.className("app"));
-                    jsExecutor.executeScript("arguments[0].style.visibility='hidden';", banner);
-                    jsExecutor.executeScript("arguments[0].parentNode.removeChild(arguments[0])", banner);
-                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'padding:0')", banner);
-                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'margin:0')", banner);
-                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'border:0')", banner);
-                    log.info("Removed the banner of: url={}, filepath={}", url, filepath);
-
-                    // Modify iframe padding
-                    WebElement frame = driver.findElement(By.id("replay_iframe"));
-                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'padding:0')", frame);
-                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'margin:0')", frame);
-                    jsExecutor.executeScript("arguments[0].setAttribute('style', 'border:0')", frame);
-                } catch (NoSuchElementException e) {
-                    log.error("Failed to query the html element", e);
-                } catch (Exception e) {
-                    log.error("Failed to kill the banner of the screenshot", e);
-                }
-
-                WebDriverWait wait = new WebDriverWait(driver, 4000);
+                String html = "<!DOCTYPE html>\n" +
+                        "<html>\n" +
+                        "<body style='width: 100wh; height: 100vh; overflow: hidden;'>\n" +
+//                        "  <iframe id='replay_iframe' src='" + url + "' frameborder='0' style='overflow:hidden;height:100%;width:100%' />\n" +
+                        "<iframe id='replay_iframe' src='" +url + "' frameborder='0' seamless='seamless' scrolling='yes' class='wb_iframe' allow='autoplay; fullscreen'></iframe>\n" +
+                        "</body>\n" +
+                        "</html>";
+                driver.get("data:text/html;charset=utf-8," + html);
+//                driver.get(url);
+                WebDriverWait wait = new WebDriverWait(driver, 300);
                 wait.until(ExpectedConditions.visibilityOfElementLocated((By.id("replay_iframe"))));
                 driver.switchTo().frame("replay_iframe");
+            } else {
+                driver.get(url);
             }
 
             // Generate the screenshot
