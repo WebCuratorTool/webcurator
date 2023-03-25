@@ -27,6 +27,9 @@ public class ScreenshotGenerator {
     private String baseDir;
     private String harvestWaybackViewerBaseUrl;
 
+    private String waybackName = "pywb";
+    private String waybackVersion = "2.7.3";
+
 
     public String getFullpageSizeCommand() {
         return fullpageSizeCommand;
@@ -42,10 +45,10 @@ public class ScreenshotGenerator {
 
     private void waitForScreenshot(File file) {
         try {
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 50; i++) {
                 if (file.exists()) return;
                 log.info(file.getName() + " has not been created yet.  Waiting...");
-                Thread.sleep(10000);
+                Thread.sleep(1000);
             }
             log.info("Timed out waiting for file creation.");
         } catch (Exception e) {
@@ -117,7 +120,7 @@ public class ScreenshotGenerator {
 
         if (StringUtils.equalsIgnoreCase(commandList.get(0), "native")) {
             String[] args = commandList.toArray(new String[0]);
-            return SeleniumScreenshotCapture.callChromeDriver(args);
+            return SeleniumScreenshotCapture.callChromeDriver(this.waybackName, this.waybackVersion, args);
         }
 
         Thread processThread = null;
@@ -146,7 +149,6 @@ public class ScreenshotGenerator {
 
             processThread.start();
             processThread.join();
-//            processThread.stop();
 
             if (threadFailed[0]) return false;
         } catch (Exception e) {
@@ -193,7 +195,11 @@ public class ScreenshotGenerator {
         if (StringUtils.isEmpty(timestamp)) {
             result += seed;
         } else {
-            result += timestamp + "/" + seed;
+            if (this.waybackName.equalsIgnoreCase("pywb")) {
+                result += timestamp + "mp_/" + seed;
+            } else {
+                result += timestamp + "/" + seed;
+            }
         }
         log.info("Using harvest url {} to generate screenshots.", result);
         return result;
@@ -334,5 +340,15 @@ public class ScreenshotGenerator {
 
     public void setHarvestWaybackViewerBaseUrl(String harvestWaybackViewerBaseUrl) {
         this.harvestWaybackViewerBaseUrl = harvestWaybackViewerBaseUrl;
+    }
+
+
+    public void setWaybackName(String waybackName) {
+        this.waybackName = waybackName;
+    }
+
+
+    public void setWaybackVersion(String waybackVersion) {
+        this.waybackVersion = waybackVersion;
     }
 }

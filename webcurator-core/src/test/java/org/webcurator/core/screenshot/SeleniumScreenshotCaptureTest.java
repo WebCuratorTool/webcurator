@@ -1,11 +1,5 @@
 package org.webcurator.core.screenshot;
 
-//import io.netty.handler.codec.http.HttpResponse;
-//import net.lightbody.bmp.BrowserMobProxy;
-//import net.lightbody.bmp.BrowserMobProxyServer;
-//import net.lightbody.bmp.filters.ResponseFilter;
-//import net.lightbody.bmp.util.HttpMessageContents;
-//import net.lightbody.bmp.util.HttpMessageInfo;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
@@ -28,7 +22,7 @@ import java.io.IOException;
 import static org.junit.Assert.assertTrue;
 
 public class SeleniumScreenshotCaptureTest {
-//    @Ignore
+    //    @Ignore
     @Test
     public void testLiveScreenshot() {
         String url = "https://www.rnz.co.nz/";
@@ -42,13 +36,13 @@ public class SeleniumScreenshotCaptureTest {
         boolean ret;
 
         String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage};
-        ret = SeleniumScreenshotCapture.callChromeDriver(argsFullPage);
+        ret = SeleniumScreenshotCapture.callChromeDriver(null, null, argsFullPage);
         assertTrue(ret);
         assertTrue(isFileExisting(imgFullPage));
         assertTrue(isFileExisting(imgFullPageThumbnail));
 
         String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800"};
-        ret = SeleniumScreenshotCapture.callChromeDriver(argsScreen);
+        ret = SeleniumScreenshotCapture.callChromeDriver(null, null, argsScreen);
         assertTrue(ret);
         assertTrue(isFileExisting(imgScreen));
         assertTrue(isFileExisting(imgScreenThumbNail));
@@ -56,16 +50,8 @@ public class SeleniumScreenshotCaptureTest {
 
     //    @Ignore
     @Test
-    public void testHarvestedScreenshot() {
+    public void testHarvestedScreenshotOfPywb() {
         String url = "http://localhost:1080/my-web-archive/20230207222650mp_/https://www.rnz.co.nz/";
-//        String html = "<!DOCTYPE html>\n" +
-//                "<html>\n" +
-//                "<body style='width: 100wh; height: 100vh; overflow: hidden;'>\n" +
-//                "  <iframe id='wrapped_replay_iframe' src='" + url + "' frameborder='0' style='overflow:hidden;height:100%;width:100%' height='100%' width='100%'></iframe>\n" +
-//                "</body>\n" +
-//                "</html>";
-//        url = "data:text/html;charset=utf-8," + html;
-
         String imgFullPage = "5000_1_4001_harvested_fullpage.png", imgFullPageThumbnail = "5000_1_4001_harvested_fullpage-thumbnail.png";
         String imgScreen = "5000_1_4001_harvested_screen.png", imgScreenThumbNail = "5000_1_4001_harvested_screen-thumbnail.png";
         deleteFile(imgFullPage);
@@ -76,101 +62,47 @@ public class SeleniumScreenshotCaptureTest {
         boolean ret;
 
         String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage, "--wayback=true"};
-        ret = SeleniumScreenshotCapture.callChromeDriver(argsFullPage);
+        ret = SeleniumScreenshotCapture.callChromeDriver("pywb", "2.7.3", argsFullPage);
         assertTrue(ret);
         assertTrue(isFileExisting(imgFullPage));
         assertTrue(isFileExisting(imgFullPageThumbnail));
 
         String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800", "--wayback=true"};
-        ret = SeleniumScreenshotCapture.callChromeDriver(argsScreen);
+        ret = SeleniumScreenshotCapture.callChromeDriver("pywb", "2.7.3", argsScreen);
         assertTrue(ret);
         assertTrue(isFileExisting(imgScreen));
         assertTrue(isFileExisting(imgScreenThumbNail));
     }
 
-//    @Test
-//    public void testBrowserMobProxyMechanism() {
-//        InetAddress bindAddress;
-//        try {
-//            bindAddress = Inet4Address.getLocalHost();
-//        } catch (UnknownHostException e) {
-//            throw new RuntimeException(e);
-//        }
-//        if (bindAddress == null) {
-//            return;
-//        }
-//
-//        // start the proxy
-//        BrowserMobProxy proxy = new BrowserMobProxyServer();
-//        proxy.setTrustAllServers(true);
-//        proxy.start(1098, bindAddress);
-//
-//        ResponseFilter responseFilter = new ResponseFilter() {
-//            @Override
-//            public void filterResponse(HttpResponse response, HttpMessageContents contents, HttpMessageInfo messageInfo) {
-//                System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@");
-//                System.out.println(contents.getTextContents());
-//                System.out.println("==========================");
-//                System.out.println(response.getStatus());
-//            }
-//        };
-//        proxy.addResponseFilter(responseFilter);
-//
-//        String proxyStr = bindAddress.getHostAddress() + ":" + proxy.getPort();
-//
-//
-//        // get the Selenium proxy object
-////        Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
-////        seleniumProxy.setAutodetect(false);
-////        seleniumProxy.setHttpProxy(proxyStr);
-////        seleniumProxy.setSslProxy(proxyStr);
-////        proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
-//
-//        Proxy proxyServer = new Proxy();
-//        proxyServer.setAutodetect(false);
-//        proxyServer.setHttpProxy(proxyStr);
-//        proxyServer.setSslProxy(proxyStr);
-//
-//
-//        ChromeOptions chromeOptions = new ChromeOptions();
-//        chromeOptions.setCapability("proxy", proxyServer);
-//
-//        String chromeDriverPath = ProcessBuilderUtils.getFullPathOfCommand("chromedriver");
-//        if (chromeDriverPath == null) {
-//            return;
-//        } else {
-//            System.setProperty("webdriver.chrome.driver", chromeDriverPath);
-//        }
-//
-////        ChromeOptions chromeOptions = new ChromeOptions();
-////        chromeOptions.addArguments("--headless");
-////        chromeOptions.addArguments("--no-sandbox");
-//        WebDriver driver = new ChromeDriver(chromeOptions);
-//
-//
-//        driver.get("http://localhost:1080/my-web-archive/20230207222650/https://www.rnz.co.nz/");
-////        driver.get("https://www.google.com/");
-//
-//        driver.quit();
-//    }
+    @Test
+    public void testHarvestedScreenshotOfOpenWayback() {
+        String url = "http://localhost:8080/wayback/20230207222650mp_/https://www.rnz.co.nz/";
+        String imgFullPage = "5000_1_4001_harvested_fullpage_owb.png", imgFullPageThumbnail = "5000_1_4001_harvested_fullpage-thumbnail_owb.png";
+        String imgScreen = "5000_1_4001_harvested_screen_owb.png", imgScreenThumbNail = "5000_1_4001_harvested_screen-thumbnail_owb.png";
+        deleteFile(imgFullPage);
+        deleteFile(imgFullPageThumbnail);
+        deleteFile(imgScreen);
+        deleteFile(imgScreenThumbNail);
 
+        boolean ret;
+
+        String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage, "--wayback=true"};
+        ret = SeleniumScreenshotCapture.callChromeDriver("owb", "2.4.0", argsFullPage);
+        assertTrue(ret);
+        assertTrue(isFileExisting(imgFullPage));
+        assertTrue(isFileExisting(imgFullPageThumbnail));
+
+        String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800", "--wayback=true"};
+        ret = SeleniumScreenshotCapture.callChromeDriver("owb", "2.4.0", argsScreen);
+        assertTrue(ret);
+        assertTrue(isFileExisting(imgScreen));
+        assertTrue(isFileExisting(imgScreenThumbNail));
+    }
+
+
+    @Ignore
     @Test
     public void testProxyMechanism() throws IOException {
-//        ProxyServer proxyServer = new ProxyServer(1098);
-//        Thread t = new Thread(proxyServer);
-//        t.start();
-//        String proxyStr = "localhost:1098";
-//
-//        Proxy proxy = new Proxy();
-//        proxy.setAutodetect(false);
-//        proxy.setHttpProxy(proxyStr);
-//        proxy.setSslProxy(proxyStr);
-//
-//
-//        ChromeOptions chromeOptions = new ChromeOptions();
-////        chromeOptions.setCapability("proxy", proxy);
-//        chromeOptions.addArguments("--proxy-server=" + proxyStr);
-
         String chromeDriverPath = ProcessBuilderUtils.getFullPathOfCommand("chromedriver");
         if (chromeDriverPath == null) {
             return;
@@ -191,10 +123,6 @@ public class SeleniumScreenshotCaptureTest {
                 "</html>";
         driver.get("data:text/html;charset=utf-8," + html);
 
-//        driver.get("http://localhost:1080/my-web-archive/20230207222650/https://www.rnz.co.nz/");
-//        driver.get("https://www.google.com/");
-
-
         WebDriverWait wait = new WebDriverWait(driver, 4000);
         wait.until(ExpectedConditions.visibilityOfElementLocated((By.id("wrapped_replay_iframe"))));
 //        driver.switchTo().frame("wrapped_replay_iframe");
@@ -205,8 +133,6 @@ public class SeleniumScreenshotCaptureTest {
 
         driver.quit();
 
-//        proxyServer.stop();
-//        t.join();
     }
 
 

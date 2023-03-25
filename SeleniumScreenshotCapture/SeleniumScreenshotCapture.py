@@ -21,7 +21,7 @@ class WayBackType(Enum):
 wayback_type = WayBackType.pywb
 
 
-def createThumbnail(input, output):
+def create_thumbnail(input, output):
     sourceImage = Image.open(input)
     resized = sourceImage.resize((200, 150))
     resized.save(output)
@@ -62,34 +62,40 @@ def main(command_args):
     # file_directory.mkdir(parents=True, exist_ok=True)
 
     # Set up the web driver
-    chromeOptions = webdriver.ChromeOptions()
-    chromeOptions.headless = True
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.headless = True
     if server is not None:
-        driver = webdriver.Remote(command_executor=server, options=chromeOptions)
+        driver = webdriver.Remote(command_executor=server, options=chrome_options)
     else:
-        driver = webdriver.Chrome(options=chromeOptions)
-
-    driver.get(url)
+        driver = webdriver.Chrome(options=chrome_options)
 
     if is_wayback:
         if wayback_type == WayBackType.wayback or wayback_type == WayBackType.openwayback:
+            driver.get(url)
             # Remove wayback banner and modify the iframe
-            element = driver.find_element("wb_div")
-            driver.execute_script("return document.getElementsByTagName('wb_div')[0].remove();")
-            driver.execute_script("return document.getElementById('wb_iframe_div').setAttribute('style','padding:0px 0px 0px 0px');")
-
-            # Wait for frame to be ready then switch the focus to the frame
             wait = WebDriverWait(driver, 10)
-            replay_frame = wait.until(expected_conditions.visibility_of_element_located((By.ID, "replay_iframe")))
-            driver.switch_to.frame("replay_iframe")
+            wait.until(expected_conditions.visibility_of_element_located((By.ID, "wm-ipp")))
+            driver.execute_script("return document.getElementById('wm-ipp').style.display='none';")
         elif wayback_type == WayBackType.pywb:
-            driver.execute_script("return document.getElementById('_wb_frame_top_banner').style.visibility='hidden';")
-            WebDriverWait(driver, 10)
+            iframe_style = "display:block; overflow:hidden; height:100%; width:100%; margin:0px; border:0px; padding:0px;"
+            iframe_html = f"<iframe id='replay_iframe' src='{url}' frameborder='0' style='{iframe_style}'></iframe>"
+            html = f"""<!DOCTYPE html>
+                    <html style='width: 100wh; height: 100vh; margin:0px; border:0px; padding:0px; overflow: hidden;'>
+                    <body style='width: 100wh; height: 100vh; margin:0px; border:0px; padding:0px; overflow: hidden;'>
+                    {iframe_html}
+                    </body>
+                    </html>"""
+            driver.get(f"data:text/html;charset=utf-8,{html}")
+            wait = WebDriverWait(driver, 10)
+            wait.until(expected_conditions.visibility_of_element_located((By.ID, "replay_iframe")))
+            driver.switch_to.frame("replay_iframe")
+    else:
+        driver.get(url)
 
     # Set screenshot size
     if width is None and height is None:
-        S = lambda X: driver.execute_script('return document.body.parentNode.scroll' + X)
-        driver.set_window_size(S('Width'), S('Height'))
+        s = lambda x: driver.execute_script('return document.body.parentNode.scroll' + x)
+        driver.set_window_size(s('Width'), s('Height'))
     else:
         driver.set_window_size(width, height)
 
@@ -103,7 +109,7 @@ def main(command_args):
     elif "fullpage" in filepath:
         size = "fullpage"
 
-    createThumbnail(filepath, filepath.replace(size, size + "-thumbnail"))
+    create_thumbnail(filepath, filepath.replace(size, size + "-thumbnail"))
 
     sys.exit(0)
 
