@@ -1,69 +1,65 @@
-# import re
-# from base64 import b32encode
-# from hashlib import sha1
-
-# import altair as alt
-# import arrow
-# import pandas as pd
-import requests
-from selenium import webdriver
+import SeleniumScreenshotCapture as capture
 
 
-# from selenium.webdriver.common.by import By
+def screen_shot(url, file_path, wayback_options=None, fullpage_size=None):
+    command_args = ["SeleniumScreenshotCapture.py", f"url={url}", f"filepath={file_path}"]
+
+    if fullpage_size is not None:
+        width, height = fullpage_size
+        command_args.append(f"width={width}")
+        command_args.append(f"height={height}")
+
+    if wayback_options is not None:
+        wayback_type, wayback_version, wayback_url = wayback_options
+        command_args.append("--wayback")
+        command_args.append(f"wayback-type={wayback_type}")
+        command_args.append(f"wayback-version={wayback_version}")
+    capture.main(command_args)
+    print(command_args)
 
 
-# from tqdm.auto import tqdm
+def main():
+    fullpage_size = (1400, 800)
+    root_file_path = "/tmp"
+    seed_url = "https://www.rnz.co.nz/news"
 
-def get_latest_cdx():
-    params1 = {"url": "https://www.qq.com/", "limit": 10, "from": "20220613", "to": "20220617", "output": "json"}
-    params2 = {"url": "https://www.163.com/", "limit": 10}
+    file_path = f"{root_file_path}/live_screen.png"
+    screen_shot(seed_url, file_path)
 
-    response = requests.get("http://localhost:1080/my-web-archive/cdx", params=params1)
-    print(response.text)
+    file_path = f"{root_file_path}/live_fullpage.png"
+    screen_shot(seed_url, file_path, fullpage_size=fullpage_size)
+
+    all_wayback = [
+        ("pywb", "2.7.3", "http://localhost:1080/my-web-archive/20230207222650mp_"),
+        ("pywb", "2.6.7", "http://localhost:2080/my-web-archive/20230207222650mp_"),
+        ("owb", "2.4.0", "http://localhost:8080/wayback/20230207222650"),
+    ]
+
+    for wayback_options in all_wayback:
+        wayback_type, wayback_version, wayback_url = wayback_options
+
+        url = f"{wayback_url}/{seed_url}"
+        file_path = f"{root_file_path}/wayback_{wayback_type}_{wayback_version}_screen.png"
+        screen_shot(url, file_path, wayback_options=wayback_options, )
+
+        file_path = f"{root_file_path}/wayback_{wayback_type}_{wayback_version}_fullpage.png"
+        screen_shot(url, file_path, wayback_options=wayback_options, fullpage_size=fullpage_size)
 
 
-def screen_shot():
-    options = webdriver.ChromeOptions()
-    # options.add_argument("--headless=new")
+def pywb():
+    fullpage_size = (1400, 800)
+    root_file_path = "/tmp"
+    seed_url = "https://www.rnz.co.nz/news"
 
-    driver = webdriver.Chrome(options=options)
-
-    url = "http://localhost:1080/my-web-archive/20230207222650mp_/https://www.rnz.co.nz/"
-    html = f"""<!DOCTYPE html>
-    <html>
-    <body style='width: 100wh; height: 100vh; overflow: hidden;'>
-      <iframe id='wrapped_replay_iframe' src='{url}' frameborder='0' style='overflow:hidden;height:100%;width:100%' height='100%' width='100%'></iframe>
-    </body>
-    </html>"""
-
-    driver.get("data:text/html;charset=utf-8," + html)
-
-    # driver.get("https://www.selenium.dev/selenium/web/web-form.html")
-
-    # title = driver.title
-    # assert title == "Web form"
-    #
-    # driver.implicitly_wait(0.5)
-    #
-    # text_box = driver.find_element(by=By.NAME, value="my-text")
-    # submit_button = driver.find_element(by=By.CSS_SELECTOR, value="button")
-    #
-    # text_box.send_keys("Selenium")
-    # submit_button.click()
-    #
-    # message = driver.find_element(by=By.ID, value="message")
-    # value = message.text
-    # assert value == "Received!"
-
-    S = lambda X: driver.execute_script('return document.body.parentNode.scroll' + X)
-    a, b = S("Width"), S("Height")
-    driver.set_window_size(S('Width'), S('Height'))
-
-    driver.save_screenshot("/tmp/a.png")
-
-    driver.quit()
+    wayback_options = (
+        "pywb", "2.7.3", "http://localhost:1080/my-web-archive/20230207222650mp_"
+    )
+    wayback_type, wayback_version, wayback_url = wayback_options
+    url = f"{wayback_url}/{seed_url}"
+    file_path = f"{root_file_path}/wayback_{wayback_type}_{wayback_version}_screen.png"
+    screen_shot(url, file_path, wayback_options=wayback_options, )
 
 
 if __name__ == "__main__":
-    # get_latest_cdx()
-    screen_shot()
+    main()
+    # pywb()
