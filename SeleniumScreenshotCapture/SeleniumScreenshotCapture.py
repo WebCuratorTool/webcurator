@@ -46,7 +46,7 @@ def main(command_args):
             height = key_vals[1]
         elif key_vals[0] == "selenium-server":
             server = key_vals[1]
-        elif key_vals[0] == "wayback-type":
+        elif key_vals[0] == "wayback-name":
             wayback_type = key_vals[1]
         elif key_vals[0] == "wayback-version":
             wayback_version = key_vals[1]
@@ -121,7 +121,7 @@ def main(command_args):
 
     create_thumbnail(filepath, filepath.replace(size, size + "-thumbnail"))
 
-    # sys.exit(0)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
