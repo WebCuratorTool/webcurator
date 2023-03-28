@@ -123,10 +123,10 @@ public class PywbWarcDeposit extends AbstractRestClient {
 
                 String strTimestamp = line.substring(pos + 1, pos + 15);
                 LocalDateTime currTimestamp = LocalDateTime.parse(strTimestamp, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-                if (currTimestamp.compareTo(minTimestamp) < 0) {
+                if (currTimestamp.isBefore(minTimestamp)) {
                     minTimestamp = currTimestamp;
                 }
-                if (currTimestamp.compareTo(maxTimestamp) > 0) {
+                if (currTimestamp.isAfter(maxTimestamp)) {
                     maxTimestamp = currTimestamp;
                 }
             }
