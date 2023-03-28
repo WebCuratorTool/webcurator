@@ -59,10 +59,10 @@ public class Targets {
         // The actual filtering
         Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
         try {
-            List<TargetSummary> targetSummaries = search(filter, offset, limit, sortBy);
+            SearchResult searchResult = search(filter, offset, limit, sortBy);
             HashMap<String, Object> responseMap = new HashMap<>();
             responseMap.put("filter", filter);
-            responseMap.put("targets", targetSummaries);
+            responseMap.put("targets", searchResult.targetSummaries);
             if (sortBy != null) {
                 responseMap.put(SORT_BY_FIELD, sortBy);
             } else {
@@ -78,7 +78,7 @@ public class Targets {
             } else {
                 responseMap.put(OFFSET_FIELD, 0);
             }
-            responseMap.put("amount", targetSummaries.size());
+            responseMap.put("amount", searchResult.amount);
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
@@ -109,7 +109,7 @@ public class Targets {
     }
 
 
-    private List<TargetSummary> search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
+    private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
 
         // defaults
         if (limit == null) { limit = DEFAULT_PAGE_LIMIT; }
@@ -150,7 +150,7 @@ public class Targets {
         for (Target t : (List<Target>)pagination.getList()) {
             targetSummaries.add(new TargetSummary(t));
         }
-        return targetSummaries;
+        return new SearchResult(pagination.getTotal(), targetSummaries);
     }
 
 
@@ -200,6 +200,19 @@ public class Targets {
     private class TargetFull extends TargetSummary {
         TargetFull(Target t) {
             super(t);
+        }
+    }
+
+
+    /**
+     * Wraps search result data: a count of the total number of hits and a list of target summaries
+     */
+    private class SearchResult {
+        public long amount;
+        public List<TargetSummary> targetSummaries;
+        SearchResult(long amount, List<TargetSummary> targetSummaries) {
+            this.amount = amount;
+            this.targetSummaries = targetSummaries;
         }
     }
 
