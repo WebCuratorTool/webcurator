@@ -75,12 +75,14 @@ public class SeleniumScreenshotCapture {
     // Should always have an argument for the url=%url% filepath=%image.jpg% output filepath
     // For screen screenshot, inlcude width=val height=val arguments e.g. width=1400 height=800
     // For wayback fullpage screenshot, include --wayback argument
-    public static boolean callChromeDriver(String waybackName, String waybackVersion, String[] args) {
+    public static boolean callChromeDriver(String[] args) {
         String url = null;
         String filepath = null;
         String imageWidth = null;
         String imageHeight = null;
         boolean isWayback = false;
+        String waybackName = null;
+        String waybackVersion = null;
 
         // Assign variable values based on arguments
         for (String arg : args) {
@@ -97,6 +99,12 @@ public class SeleniumScreenshotCapture {
                     break;
                 case "height":
                     imageHeight = keyValues[1];
+                    break;
+                case "wayback-name":
+                    waybackName = keyValues[1];
+                    break;
+                case "wayback-version":
+                    waybackVersion = keyValues[1];
                     break;
                 case "--wayback":
                     isWayback = true;

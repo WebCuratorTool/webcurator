@@ -45,7 +45,7 @@ public class ScreenshotGenerator {
 
     private void waitForScreenshot(File file) {
         try {
-            for (int i = 0; i < 50; i++) {
+            for (int i = 0; i < 120; i++) {
                 if (file.exists()) return;
                 log.info(file.getName() + " has not been created yet.  Waiting...");
                 Thread.sleep(1000);
@@ -111,6 +111,7 @@ public class ScreenshotGenerator {
     }
 
     private boolean runCommand(String command) {
+        command = String.format("%s wayback-name=%s wayback-version=%s", command, this.waybackName, this.waybackVersion);
         log.info("Running command " + command);
         List<String> commandList = Arrays.asList(command.split(" "));
         if (commandList.size() < 2) {
@@ -120,7 +121,7 @@ public class ScreenshotGenerator {
 
         if (StringUtils.equalsIgnoreCase(commandList.get(0), "native")) {
             String[] args = commandList.toArray(new String[0]);
-            return SeleniumScreenshotCapture.callChromeDriver(this.waybackName, this.waybackVersion, args);
+            return SeleniumScreenshotCapture.callChromeDriver(args);
         }
 
         Thread processThread = null;

@@ -22,12 +22,12 @@ import java.io.IOException;
 import static org.junit.Assert.assertTrue;
 
 public class SeleniumScreenshotCaptureTest {
-    //    @Ignore
+    @Ignore
     @Test
     public void testLiveScreenshot() {
         String url = "https://www.rnz.co.nz/";
-        String imgFullPage = "5000_1_4001_live_fullpage.png", imgFullPageThumbnail = "5000_1_4001_live_fullpage-thumbnail.png";
-        String imgScreen = "5000_1_4001_live_screen.png", imgScreenThumbNail = "5000_1_4001_live_screen-thumbnail.png";
+        String imgFullPage = "ori_5000_1_4001_live_fullpage.png", imgFullPageThumbnail = "ori_5000_1_4001_live_fullpage-thumbnail.png";
+        String imgScreen = "ori_5000_1_4001_live_screen.png", imgScreenThumbNail = "ori_5000_1_4001_live_screen-thumbnail.png";
         deleteFile(imgFullPage);
         deleteFile(imgFullPageThumbnail);
         deleteFile(imgScreen);
@@ -36,24 +36,24 @@ public class SeleniumScreenshotCaptureTest {
         boolean ret;
 
         String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage};
-        ret = SeleniumScreenshotCapture.callChromeDriver(null, null, argsFullPage);
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsFullPage);
         assertTrue(ret);
         assertTrue(isFileExisting(imgFullPage));
         assertTrue(isFileExisting(imgFullPageThumbnail));
 
         String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800"};
-        ret = SeleniumScreenshotCapture.callChromeDriver(null, null, argsScreen);
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsScreen);
         assertTrue(ret);
         assertTrue(isFileExisting(imgScreen));
         assertTrue(isFileExisting(imgScreenThumbNail));
     }
 
-    //    @Ignore
+    @Ignore
     @Test
     public void testHarvestedScreenshotOfPywb() {
         String url = "http://localhost:1080/my-web-archive/20230207222650mp_/https://www.rnz.co.nz/";
-        String imgFullPage = "5000_1_4001_harvested_fullpage.png", imgFullPageThumbnail = "5000_1_4001_harvested_fullpage-thumbnail.png";
-        String imgScreen = "5000_1_4001_harvested_screen.png", imgScreenThumbNail = "5000_1_4001_harvested_screen-thumbnail.png";
+        String imgFullPage = "pywb_5000_1_4001_harvested_fullpage.png", imgFullPageThumbnail = "pywb_5000_1_4001_harvested_fullpage-thumbnail.png";
+        String imgScreen = "pywb_5000_1_4001_harvested_screen.png", imgScreenThumbNail = "pywb_5000_1_4001_harvested_screen-thumbnail.png";
         deleteFile(imgFullPage);
         deleteFile(imgFullPageThumbnail);
         deleteFile(imgScreen);
@@ -61,24 +61,25 @@ public class SeleniumScreenshotCaptureTest {
 
         boolean ret;
 
-        String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage, "--wayback=true"};
-        ret = SeleniumScreenshotCapture.callChromeDriver("pywb", "2.7.3", argsFullPage);
+        String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage, "--wayback=true", "wayback-name=pywb", "wayback-version=2.7.3"};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsFullPage);
         assertTrue(ret);
         assertTrue(isFileExisting(imgFullPage));
         assertTrue(isFileExisting(imgFullPageThumbnail));
 
-        String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800", "--wayback=true"};
-        ret = SeleniumScreenshotCapture.callChromeDriver("pywb", "2.7.3", argsScreen);
+        String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800", "--wayback=true", "wayback-name=pywb", "wayback-version=2.7.3"};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsScreen);
         assertTrue(ret);
         assertTrue(isFileExisting(imgScreen));
         assertTrue(isFileExisting(imgScreenThumbNail));
     }
 
+    @Ignore
     @Test
     public void testHarvestedScreenshotOfOpenWayback() {
-        String url = "http://localhost:8080/wayback/20230207222650mp_/https://www.rnz.co.nz/";
-        String imgFullPage = "5000_1_4001_harvested_fullpage_owb.png", imgFullPageThumbnail = "5000_1_4001_harvested_fullpage-thumbnail_owb.png";
-        String imgScreen = "5000_1_4001_harvested_screen_owb.png", imgScreenThumbNail = "5000_1_4001_harvested_screen-thumbnail_owb.png";
+        String url = "http://localhost:8080/wayback/20230207222650/https://www.rnz.co.nz/";
+        String imgFullPage = "owb_5000_1_4001_harvested_fullpage.png", imgFullPageThumbnail = "owb_5000_1_4001_harvested_fullpage-thumbnail.png";
+        String imgScreen = "owb_5000_1_4001_harvested_screen.png", imgScreenThumbNail = "owb_5000_1_4001_harvested_screen-thumbnail.png";
         deleteFile(imgFullPage);
         deleteFile(imgFullPageThumbnail);
         deleteFile(imgScreen);
@@ -86,14 +87,14 @@ public class SeleniumScreenshotCaptureTest {
 
         boolean ret;
 
-        String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage, "--wayback=true"};
-        ret = SeleniumScreenshotCapture.callChromeDriver("owb", "2.4.0", argsFullPage);
+        String[] argsFullPage = {"url=" + url, "filepath=/tmp/" + imgFullPage, "--wayback=true", "wayback-name=owb", "wayback-version=2.4.0"};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsFullPage);
         assertTrue(ret);
         assertTrue(isFileExisting(imgFullPage));
         assertTrue(isFileExisting(imgFullPageThumbnail));
 
-        String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800", "--wayback=true"};
-        ret = SeleniumScreenshotCapture.callChromeDriver("owb", "2.4.0", argsScreen);
+        String[] argsScreen = {"url=" + url, "filepath=/tmp/" + imgScreen, "width=1400", "height=800", "--wayback=true", "wayback-name=owb", "wayback-version=2.4.0"};
+        ret = SeleniumScreenshotCapture.callChromeDriver(argsScreen);
         assertTrue(ret);
         assertTrue(isFileExisting(imgScreen));
         assertTrue(isFileExisting(imgScreenThumbNail));
