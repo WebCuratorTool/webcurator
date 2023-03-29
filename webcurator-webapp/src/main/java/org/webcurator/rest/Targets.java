@@ -86,10 +86,9 @@ public class Targets {
         }
     }
 
-
     @GetMapping(path = "/{targetId}")
     public ResponseEntity<?> get(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                 @PathVariable int targetId) {
+                                 @PathVariable long targetId) {
 
         // First the authorization stuff
         SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
@@ -108,6 +107,29 @@ public class Targets {
         }
     }
 
+    @DeleteMapping(path = "/{targetId}")
+    public ResponseEntity<?> delete(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+                                 @PathVariable long targetId) {
+        // First the authorization stuff
+        SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.DELETE_TARGET);
+        if (authorizationResult.failed) {
+            return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
+        }
+
+        Target target = targetDAO.load(targetId);
+        if (target == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            if (target.getCrawls() > 0) {
+                return ResponseEntity.badRequest().body("Target could not be deleted because it has related target instances");
+            } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
+                return ResponseEntity.badRequest().body("Target could not be deleted because its state is not Rejected or Cancelled");
+            } else {
+                targetDAO.delete(target);
+                return ResponseEntity.ok().build();
+            }
+        }
+    }
 
     private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
 
