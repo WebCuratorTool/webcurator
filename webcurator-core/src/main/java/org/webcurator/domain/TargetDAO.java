@@ -19,12 +19,8 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
+import org.hibernate.*;
 import org.hibernate.query.Query;
-import org.hibernate.Session;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Order;
@@ -216,30 +212,34 @@ public class TargetDAO extends BaseDAO {
         return (Target) getHibernateTemplate().execute(new HibernateCallback() {
 
             public Object doInHibernate(Session aSession) throws HibernateException {
-                if (!fullyInitialise) {
-                    Target aTarget = (Target) aSession.load(Target.class, targetOid);
-                    aTarget.setDirty(false);
-                    return aTarget;
-                } else {
-                    // Initialise some more items that we'll need. This is used
-                    // to prevent lazy load exceptions, since we're doing things
-                    // across multiple sessions.
-                    Target t = (Target) aSession.load(Target.class, targetOid);
+                try {
+                    if (!fullyInitialise) {
+                        Target aTarget = (Target) aSession.load(Target.class, targetOid);
+                        aTarget.setDirty(false);
+                        return aTarget;
+                    } else {
+                        // Initialise some more items that we'll need. This is used
+                        // to prevent lazy load exceptions, since we're doing things
+                        // across multiple sessions.
+                        Target t = (Target) aSession.load(Target.class, targetOid);
 
-                    Hibernate.initialize(t.getSeeds());
-                    Hibernate.initialize(t.getSchedules());
-                    Hibernate.initialize(t.getOverrides());
-                    Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getCredentials());
+                        Hibernate.initialize(t.getSeeds());
+                        Hibernate.initialize(t.getSchedules());
+                        Hibernate.initialize(t.getOverrides());
+                        Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
+                        Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
+                        Hibernate.initialize(t.getOverrides().getCredentials());
 
-                    for (Seed s : t.getSeeds()) {
-                        Hibernate.initialize(s.getPermissions());
+                        for (Seed s : t.getSeeds()) {
+                            Hibernate.initialize(s.getPermissions());
+                        }
+
+                        t.setDirty(false);
+
+                        return t;
                     }
-
-                    t.setDirty(false);
-
-                    return t;
+                } catch (ObjectNotFoundException e) {
+                    return null;
                 }
             }
         });
