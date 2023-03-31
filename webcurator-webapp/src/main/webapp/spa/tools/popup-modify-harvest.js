@@ -590,7 +590,8 @@ class PopupModifyHarvest{
 			this.modify(dataset, option);
 			return;
 		}
-	
+
+	    disablePatchHarvestButton();
 		reqUrl+="?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
 		var treeInstance=this;
 		fetchHttp(reqUrl, dataset, function(response){
@@ -609,6 +610,7 @@ class PopupModifyHarvest{
 				map[i]=nodes[i];
 			}
 			treeInstance._moveHarvest2ToBeModifiedList(nodes, option);
+			enablePatchHarvestButton();
 		});
 	}
 

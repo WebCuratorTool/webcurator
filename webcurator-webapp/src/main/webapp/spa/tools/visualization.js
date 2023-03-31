@@ -645,3 +645,16 @@ function g_TurnOffOverlayLoading(){
     $('#main-tab-group .overlay').hide();
   }
 }
+
+function disablePatchHarvestButton(){
+    $("#btn-patch-harvest").attr('disabled','disabled');
+    $("#btn-patch-harvest-dropdown").attr('disabled','disabled');
+    $("#icon-patch-harvest-loading").show();
+    $("#text-patch-harvest-button").html("Loading ...");
+}
+function enablePatchHarvestButton(){
+    $("#btn-patch-harvest").removeAttr('disabled');
+    $("#btn-patch-harvest-dropdown").removeAttr('disabled');
+    $("#icon-patch-harvest-loading").hide();
+    $("#text-patch-harvest-button").html('<i class="fas fa-shopping-cart"> Patch Harvest </i>');
+}
