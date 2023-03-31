@@ -604,6 +604,7 @@ class PopupModifyHarvest{
 			for (var i = 0; i < nodes.length; i++) {
 				nodes[i].option=option;
 				nodes[i].flag='new';
+				nodes[i].existingFlag=true;
 				nodes[i].index=i;
 				map[i]=nodes[i];
 			}
