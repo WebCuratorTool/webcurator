@@ -4,8 +4,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.store.PywbWarcDeposit;
-import org.webcurator.domain.model.core.HarvestResultDTO;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,7 +17,6 @@ import java.util.Objects;
 public class ScreenshotClientLocal implements ScreenshotClient {
     private static final Logger log = LoggerFactory.getLogger(ScreenshotClientLocal.class);
 
-    private PywbWarcDeposit pywbWarcDeposit;
     private boolean enableScreenshots;
     private boolean abortHarvestOnScreenshotFailure;
     private ScreenshotGenerator screenshotGenerator;
@@ -44,11 +41,10 @@ public class ScreenshotClientLocal implements ScreenshotClient {
         }
 
         if (identifiers.getScreenshotType() == ScreenshotType.harvested) {
-            HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
-            harvestResultDTO.setTargetInstanceOid(identifiers.getTiOid());
-            harvestResultDTO.setHarvestNumber(identifiers.getHarvestNumber());
-            List<SeedHistoryDTO> seedWithTimestamp = pywbWarcDeposit.getSeedWithTimestamps(harvestResultDTO);
+            File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
+            List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractor.getSeedWithTimestamps(identifiers.getSeeds(), directory);
             if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
+                log.error("Failed to extract timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
                 return false;
             }
             identifiers.setSeeds(seedWithTimestamp);
@@ -176,9 +172,6 @@ public class ScreenshotClientLocal implements ScreenshotClient {
         this.unavailableImageScreen = unavailableImageScreen;
     }
 
-    public void setPywbWarcDeposit(PywbWarcDeposit pywbWarcDeposit) {
-        this.pywbWarcDeposit = pywbWarcDeposit;
-    }
 
     public void setScreenshotCommandWindowSize(String screenshotCommandWindowSize) {
         this.screenshotCommandWindowSize = screenshotCommandWindowSize;

@@ -22,15 +22,16 @@ import org.webcurator.test.WCTTestUtils;
 public class WaybackIndexerTest extends BaseWCTTest<WaybackIndexer> {
 
     private String archivePath = "/org/webcurator/domain/model/core/archiveFiles";
+//    private final static String archivePath = "/org/webcurator/core/store/archiveFiles";
 
     private Long hrOid = 54321L;
     private Long tiOid = 12345L;
     private int harvestNumber = 1;
 
-    private final File baseFolder = new File("C:/temp/WaybackIndexerTest");
-    private final File inputFolder = new File(baseFolder.getAbsolutePath() + "/input");
-    private final File mergedFolder = new File(baseFolder.getAbsolutePath() + "/merged");
-    private final File failedFolder = new File(baseFolder.getAbsolutePath() + "/failed");
+    private final File baseFolder = new File("/usr/local/wct/wayback-test");
+    private final File inputFolder = new File(baseFolder.getAbsolutePath() + "/store");
+    private final File mergedFolder = new File(baseFolder.getAbsolutePath() + "/index-data/merged");
+    private final File failedFolder = new File(baseFolder.getAbsolutePath() + "/index-data/failed");
 
     private class WaybackRunner implements Runnable {
         private boolean fail = false;

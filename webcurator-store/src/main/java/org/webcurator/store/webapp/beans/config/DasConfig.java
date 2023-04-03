@@ -278,7 +278,14 @@ public class DasConfig implements WebMvcConfigurer {
 
     @Value(("${visualization.dbVersion}"))
     private String visualizationDbVersion;
+
     // The commands used for generating screenshots
+    @Value("${wayback.name}")
+    private String waybackName;
+
+    @Value("${wayback.version}")
+    private String waybackVersion;
+
     @Value("${screenshotCommand.fullpage}")
     private String screenshotCommandFullpage;
 
@@ -297,24 +304,14 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${abortHarvestOnScreenshotFailure}")
     private boolean abortHarvestOnScreenshotFailure;
 
-    @Value("${wayback.name}")
-    private String waybackName;
+    @Value("${pywbIndexer.enable}")
+    private boolean pywbIndexerEnable;
 
-    @Value("${wayback.version}")
-    private String waybackVersion;
+    @Value("${pywbIndexer.wb-manager.store}")
+    private String pywbIndexerWaybackManagerStore;
 
-    @Value("${pywb.wb-manager.store}")
-    private String pywbWaybaclManagerStore;
-
-    @Value("${pywb.wb-manager.coll}")
-    private String pywbWaybaclManagerColl;
-
-    @Value("${pywb.service.cdx}")
-    private String pywbServiceCDXUrl;
-
-    @Value("${pywb.service.timeout}")
-    private long pywbServiceTimeout;
-
+    @Value("${pywbIndexer.wb-manager.coll}")
+    private String pywbIndexerWaybackManagerColl;
 
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
@@ -389,7 +386,6 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setAbortHarvestOnScreenshotFailure(abortHarvestOnScreenshotFailure);
         bean.setEnableScreenshots(enableScreenshots);
         bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
-        bean.setPywbWarcDeposit(pywbWarcDeposit());
         try {
             Resource resource = new ClassPathResource("image_unavailable_thumbnail.png");
             ByteArrayOutputStream unavailableImage = new ByteArrayOutputStream();
@@ -529,8 +525,9 @@ public class DasConfig implements WebMvcConfigurer {
     @Bean
     public PywbIndexer pywbIndexer() {
         PywbIndexer bean = new PywbIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        bean.setEnabled(waybackName.equalsIgnoreCase("pywb"));
-        bean.setPywbWarcDeposit(pywbWarcDeposit());
+        bean.setEnabled(pywbIndexerEnable);
+        bean.setPywbManagerColl(pywbIndexerWaybackManagerColl);
+        bean.setPywbManagerStoreDir(new File(pywbIndexerWaybackManagerStore));
         return bean;
     }
 
@@ -797,17 +794,5 @@ public class DasConfig implements WebMvcConfigurer {
             resourceDir = resourceDir + File.separator;
         }
         registry.addResourceHandler("/store/**").addResourceLocations("file:" + resourceDir);
-    }
-
-    public PywbWarcDeposit pywbWarcDeposit() {
-        PywbWarcDeposit bean = new PywbWarcDeposit(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        bean.setWctClient(wctCoordinatorClient());
-        bean.setRootStorePath(arcDigitalAssetStoreServiceBaseDir);
-        bean.setPywbEnabled(waybackName.equalsIgnoreCase("pywb"));
-        bean.setPywbManagerColl(pywbWaybaclManagerColl);
-        bean.setPywbManagerStoreDir(new File(pywbWaybaclManagerStore));
-        bean.setPywbCDXQueryUrl(pywbServiceCDXUrl);
-        bean.setMaxTrySeconds(pywbServiceTimeout);
-        return bean;
     }
 }

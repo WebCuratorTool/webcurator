@@ -4,12 +4,18 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.util.Arrays;
 import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
 
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +60,19 @@ public class ScreenshotGenerator {
         } catch (Exception e) {
             log.warn("Wakeup without unexpected", e);
         }
+    }
+
+    private boolean waitForIndex(List<SeedHistoryDTO> seeds) throws URISyntaxException, IOException {
+        for (SeedHistoryDTO seed : seeds) {
+            URI uri = new URI(String.format("%s/%s/%s", this.harvestWaybackViewerBaseUrl, seed.getTimestamp(), seed.getSeed()));
+            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+            conn.connect();
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                return false;
+            }
+            conn.disconnect();
+        }
+        return true;
     }
 
     // The wayback banner may be problematic when getting full page screenshots, check against the live image dimensions
@@ -193,6 +212,10 @@ public class ScreenshotGenerator {
     // Returns an empty string when it can't retrieve the timestamp for the url
     private String getWaybackUrl(String seed, String timestamp, String waybackBaseUrl) {
         String result = waybackBaseUrl;
+        if (!result.endsWith("/")) {
+            result += "/";
+        }
+
         if (StringUtils.isEmpty(timestamp)) {
             result += seed;
         } else {
