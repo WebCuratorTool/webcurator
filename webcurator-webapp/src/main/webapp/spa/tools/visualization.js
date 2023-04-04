@@ -34,7 +34,7 @@ function fetchHttp(url, req, callback){
     }
 
     if(response.headers && response.headers.get('Content-Type') && response.headers.get('Content-Type').startsWith('application/json')){
-      console.log('Fetch success and callback');
+      console.log('Fetch success and callback: ' + url);
       return response.json();
     }
   }).then((response) => {
@@ -111,6 +111,13 @@ function splitString2Array(s, separator){
   }
 
   return rst;
+}
+
+function urlComparator(url1, url2){
+    if(!url1 || !url2 || typeof url1!=="string" || typeof url2!=="string"){
+        return 0;
+    }
+    return url1.localeCompare(url2, "en", {sensitivity: "base"});
 }
 
 function getBrowserNameAndVersion(){
@@ -390,7 +397,7 @@ var gridOptionsCandidate={
           if(row.data.seedType===1){
             return '<span class="right badge badge-warning">S</span>&nbsp;' + row.data.url;
           }
-      }},
+      }, comparator: urlComparator},
       {headerName: "Type", field: "contentType", width: 200, filter: true},
       {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
       {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
@@ -489,7 +496,7 @@ var gridOptionsImportPrepare={
   columnDefs: [
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
-      {headerName: "Target", field: "url", width: 600, cellRenderer: cellRendererTarget},
+      {headerName: "Target", field: "url", width: 600, cellRenderer: cellRendererTarget, comparator: urlComparator},
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer: cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer: cellRendererModifiedDate},
@@ -531,7 +538,7 @@ var gridOptionsToBeModified={
     ]},
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
-      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},
+      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget, comparator: urlComparator},
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer:  cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  cellRendererModifiedDate},
@@ -568,7 +575,7 @@ var gridOptionsToBeModifiedVerified={
     // {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
-      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},
+      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget, comparator: urlComparator},
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer:  cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  cellRendererModifiedDate},

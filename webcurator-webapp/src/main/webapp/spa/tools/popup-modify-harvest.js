@@ -557,7 +557,7 @@ class PopupModifyHarvest{
 		$('.hierachy-tree td').removeClass("tree-row-file");
 		for(var key in toBeModifiedDataMap){
 			var classOfTreeRow=this.getTreeNodeStyle(toBeModifiedDataMap[key].option);
-			console.log('.hierachy-tree tr[idx="' + key + '"] td' + classOfTreeRow);
+			// console.log('.hierachy-tree tr[idx="' + key + '"] td' + classOfTreeRow);
 			$('.hierachy-tree tr[idx="' + key + '"] td').addClass(classOfTreeRow);
 		}
 
