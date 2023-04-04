@@ -32,7 +32,7 @@ def main():
     all_wayback = [
         ("pywb", "2.7.3", "http://localhost:1080/my-web-archive/20230207222650mp_"),
         ("pywb", "2.6.7", "http://localhost:2080/my-web-archive/20230207222650mp_"),
-        ("owb", "2.4.0", "http://localhost:8080/wayback/20230207222650"),
+        ("owb", "2.4.0", "http://localhost:9090/wayback/20230207222650"),
     ]
 
     for wayback_options in all_wayback:

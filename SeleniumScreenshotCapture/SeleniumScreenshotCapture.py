@@ -101,6 +101,8 @@ def main(command_args):
     else:
         driver.get(url)
 
+    driver.execute_script("window.scrollTo(0, 0)")
+
     # Set screenshot size
     if width is None and height is None:
         driver.fullscreen_window()
@@ -121,7 +123,7 @@ def main(command_args):
 
     create_thumbnail(filepath, filepath.replace(size, size + "-thumbnail"))
 
-    sys.exit(0)
+    # sys.exit(0)
 
 
 if __name__ == "__main__":

@@ -173,6 +173,8 @@ public class SeleniumScreenshotCapture {
                 driver.get(url);
             }
 
+            ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0)");
+
             // Generate the screenshot
             boolean generated = false;
             if (!isScrollable) {
