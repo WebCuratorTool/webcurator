@@ -6,7 +6,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
@@ -15,10 +14,10 @@ import java.util.List;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 
@@ -62,15 +61,30 @@ public class ScreenshotGenerator {
         }
     }
 
-    private boolean waitForIndex(List<SeedHistoryDTO> seeds) throws URISyntaxException, IOException {
+    private boolean waitForIndex(List<SeedHistoryDTO> seeds) {
+        //The wb-manager is used to add the WARC files to collections, and index synchronized.
+        if (this.waybackName.equalsIgnoreCase("pywb")) {
+            return true;
+        }
+
         for (SeedHistoryDTO seed : seeds) {
-            URI uri = new URI(String.format("%s/%s/%s", this.harvestWaybackViewerBaseUrl, seed.getTimestamp(), seed.getSeed()));
-            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
-            conn.connect();
-            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            String targetUrl = getWaybackUrl(seed.getSeed(), seed.getTimestamp(), this.harvestWaybackViewerBaseUrl);
+            try {
+                URI uri = new URI(targetUrl);
+                HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+
+                conn.connect();
+
+                boolean is_indexed = conn.getResponseCode() == HttpURLConnection.HTTP_OK;
+                conn.disconnect();
+
+                if (!is_indexed) {
+                    return false;
+                }
+            } catch (IOException | URISyntaxException e) {
+                log.error("Failed to connect to: {}", targetUrl, e);
                 return false;
             }
-            conn.disconnect();
         }
         return true;
     }
@@ -252,8 +266,45 @@ public class ScreenshotGenerator {
         return toolUsed;
     }
 
+    public Boolean createScreenshots(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
+        if (identifiers.getScreenshotType() == ScreenshotType.harvested) {
+            File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
+            List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractor.getSeedWithTimestamps(identifiers.getSeeds(), directory);
+            if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
+                log.error("Failed to extract timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
+                return false;
+            }
+            identifiers.setSeeds(seedWithTimestamp);
 
-    public Boolean createScreenshots(SeedHistoryDTO seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber) {
+            for (int count = 0; count < 60; count++) {
+                if (this.waitForIndex(seedWithTimestamp)) {
+                    break;
+                }
+                try {
+                    Thread.sleep(30 * 1000);
+                } catch (InterruptedException e) {
+                    log.error("Sleep was interrupted");
+                    return false;
+                }
+            }
+        }
+
+        boolean screenshotsSucceeded = Boolean.FALSE;
+        try {
+            for (SeedHistoryDTO seed : identifiers.getSeeds()) {
+                screenshotsSucceeded = this.createScreenshots(seed, identifiers.getTiOid(), identifiers.getScreenshotType(), identifiers.getHarvestNumber());
+                if (!screenshotsSucceeded) {
+                    break;
+                }
+            }
+            screenshotsSucceeded = Boolean.TRUE;
+        } catch (Exception e) {
+            log.error("Failed to create screenshot.", e);
+        }
+        return screenshotsSucceeded;
+    }
+
+    private Boolean createScreenshots(SeedHistoryDTO seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber) {
         String outputPathString = baseDir + File.separator + ScreenshotPaths.getImagePath(tiOid, harvestNumber) + File.separator;
 
         // Make sure output path exists

@@ -4,14 +4,12 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.List;
 import java.util.Objects;
 
 public class ScreenshotClientLocal implements ScreenshotClient {
@@ -40,28 +38,7 @@ public class ScreenshotClientLocal implements ScreenshotClient {
             return false;
         }
 
-        if (identifiers.getScreenshotType() == ScreenshotType.harvested) {
-            File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
-            List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractor.getSeedWithTimestamps(identifiers.getSeeds(), directory);
-            if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
-                log.error("Failed to extract timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
-                return false;
-            }
-            identifiers.setSeeds(seedWithTimestamp);
-        }
-
-        Boolean screenshotsSucceeded = Boolean.FALSE;
-        try {
-            for (SeedHistoryDTO seed : identifiers.getSeeds()) {
-                screenshotsSucceeded = screenshotGenerator.createScreenshots(seed, identifiers.getTiOid(), identifiers.getScreenshotType(), identifiers.getHarvestNumber());
-                if (!screenshotsSucceeded) {
-                    break;
-                }
-            }
-            screenshotsSucceeded = Boolean.TRUE;
-        } catch (Exception e) {
-            log.error("Failed to create screenshot.", e);
-        }
+        boolean screenshotsSucceeded = screenshotGenerator.createScreenshots(identifiers);
 
         if (!abortHarvestOnScreenshotFailure) return true;
 

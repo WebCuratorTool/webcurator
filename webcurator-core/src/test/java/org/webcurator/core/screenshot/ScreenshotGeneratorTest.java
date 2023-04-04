@@ -1,32 +1,28 @@
 package org.webcurator.core.screenshot;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.webcurator.core.scheduler.MockTargetInstanceManager;
-import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.SeedHistory;
+import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
-import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.test.BaseWCTTest;
+import org.webcurator.test.WCTTestUtils;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Set;
+import java.io.*;
+import java.nio.file.Files;
 
 import static org.junit.Assert.assertTrue;
 
 public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
-    private final String windowSizeCommand = "/home/lql/dia/webcurator/SeleniumScreenshotCapture/SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=%width% height=%height%";
-    private final String screenSizeCommand = "/home/lql/dia/webcurator/SeleniumScreenshotCapture/SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=1400 height=800";
-    private final String fullpageSizeCommand = "/home/lql/dia/webcurator/SeleniumScreenshotCapture/SeleniumScreenshotCapture.py filepath=%image.png% url=%url%";
-    private final String baseDir = "/usr/local/wct/store";
-    private final String harvestWaybackViewerBaseUrl = "http://localhost:1080/my-web-archive/";
-
-    private TargetInstanceDAO tiDao;
+    private final static String archivePath = "/org/webcurator/core/store/archiveFiles";
+    private final static String windowSizeCommand = "native filepath=%image.png% url=%url% width=%width% height=%height%";
+    private final static String screenSizeCommand = "native filepath=%image.png% url=%url% width=1400 height=800";
+    private final static String fullpageSizeCommand = "native filepath=%image.png% url=%url%";
+    private final static String baseDir = "/usr/local/wct/store";
+//    private final String harvestWaybackViewerBaseUrl = "http://localhost:1080/my-web-archive/";
 
     private final long tiOid = 5000L;
-    private final int harvestNumber = 1;
+//    private final int harvestNumber = 1;
 
     public ScreenshotGeneratorTest() {
         super(ScreenshotGenerator.class, "/org/webcurator/core/harvester/coordinator/HarvestCoordinatorImplTest.xml");
@@ -34,47 +30,61 @@ public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
 
     public void setUp() throws Exception {
         super.setUp();
-        testInstance.setWindowSizeCommand(this.windowSizeCommand);
-        testInstance.setScreenSizeCommand(this.screenSizeCommand);
-        testInstance.setFullpageSizeCommand(this.fullpageSizeCommand);
-        testInstance.setBaseDir(this.baseDir);
-        testInstance.setHarvestWaybackViewerBaseUrl(this.harvestWaybackViewerBaseUrl);
-
-        MockTargetInstanceManager mockTargetInstanceManager = new MockTargetInstanceManager(testFile);
-        tiDao = mockTargetInstanceManager.getTargetInstanceDAO();
+        testInstance.setWindowSizeCommand(windowSizeCommand);
+        testInstance.setScreenSizeCommand(screenSizeCommand);
+        testInstance.setFullpageSizeCommand(fullpageSizeCommand);
+        testInstance.setBaseDir(baseDir);
     }
 
     @Ignore
     @Test
-    public void testLiveScreenshot() {
-        TargetInstance ti = tiDao.load(tiOid);
-        HarvestResult hr = ti.getHarvestResult(harvestNumber);
+    public void testLiveScreenshot() throws DigitalAssetStoreException {
+        ScreenshotIdentifierCommand identifier = new ScreenshotIdentifierCommand();
+        identifier.setTiOid(tiOid);
+        identifier.setHarvestNumber(0);
+        identifier.setScreenshotType(ScreenshotType.live);
+        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO();
+        seedHistoryDTO.setSeed("https://www.rnz.co.nz/news");
+        identifier.addSeed(seedHistoryDTO);
 
-        Set<SeedHistory> seedHistorySet = ti.getSeedHistory();
-        for (SeedHistory seedHistory : seedHistorySet) {
-            String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-            SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
-            seedHistoryDTO.setTimestamp(timestamp);
-            seedHistoryDTO.setSeed("https://www.rnz.co.nz/news");
-            boolean rstScreenshot = testInstance.createScreenshots(seedHistoryDTO, tiOid, ScreenshotType.live, harvestNumber);
-            assertTrue(rstScreenshot);
-        }
+        boolean rstScreenshot = testInstance.createScreenshots(identifier);
+        assertTrue(rstScreenshot);
     }
 
     @Ignore
     @Test
-    public void testHarvestedScreenshot() {
-        TargetInstance ti = tiDao.load(tiOid);
-        HarvestResult hr = ti.getHarvestResult(harvestNumber);
+    public void testHarvestedScreenshot() throws DigitalAssetStoreException, IOException {
+        callWayback(1, "owb", "2.4.0", "http://localhost:9090/wayback/");
+        callWayback(2, "pywb", "2.7.3", "http://localhost:1080/my-web-archive/");
+        callWayback(3, "pywb", "2.6.7", "http://localhost:2080/my-web-archive/");
+        callWayback(4, "pywb", "2.3.0", "http://localhost:3080/my-web-archive/");
+    }
 
-        Set<SeedHistory> seedHistorySet = ti.getSeedHistory();
-        for (SeedHistory seedHistory : seedHistorySet) {
-            String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
-            SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
-            seedHistoryDTO.setTimestamp(timestamp);
-            seedHistoryDTO.setSeed("https://www.rnz.co.nz/news");
-            boolean rstScreenshot = testInstance.createScreenshots(seedHistoryDTO, tiOid, ScreenshotType.harvested, harvestNumber);
-            assertTrue(rstScreenshot);
+    private void callWayback(int harvestNumber, String waybackName, String waybackVersion, String waybackViewUrl) throws DigitalAssetStoreException, IOException {
+        String warcFile = "IAH-20230205231545437-00000-3211~I7~8443.warc";
+        File inputDirectory = WCTTestUtils.getResourceAsFile(archivePath);
+        File inputFile = new File(inputDirectory, warcFile);
+        File outputDirectory = new File(baseDir + File.separator + tiOid + File.separator + harvestNumber);
+        if (!outputDirectory.exists()) {
+            boolean ret = outputDirectory.mkdir();
+            assertTrue(ret);
         }
+        File outputFile = new File(outputDirectory, warcFile);
+        IOUtils.copy(Files.newInputStream(inputFile.toPath()), Files.newOutputStream(outputFile.toPath()));
+
+        ScreenshotIdentifierCommand identifier = new ScreenshotIdentifierCommand();
+        identifier.setTiOid(tiOid);
+        identifier.setHarvestNumber(harvestNumber);
+        identifier.setScreenshotType(ScreenshotType.harvested);
+        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO();
+        seedHistoryDTO.setSeed("https://www.rnz.co.nz/news");
+        identifier.addSeed(seedHistoryDTO);
+
+        testInstance.setWaybackName(waybackName);
+        testInstance.setWaybackVersion(waybackVersion);
+        testInstance.setHarvestWaybackViewerBaseUrl(waybackViewUrl);
+
+        boolean rstScreenshot = testInstance.createScreenshots(identifier);
+        assertTrue(rstScreenshot);
     }
 }

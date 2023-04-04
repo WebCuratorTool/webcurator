@@ -51,4 +51,9 @@ public class ScreenshotIdentifierCommand {
         this.seeds.forEach(seed -> joined_seeds.append(seed.getSeed()).append(","));
         return String.format("seed=%s tiOid=%d, screenshotType=%s, harvestNumber=%d", joined_seeds, this.tiOid, this.screenshotType.name(), this.harvestNumber);
     }
+
+    @JsonIgnore
+    public void addSeed(SeedHistoryDTO seed) {
+        this.seeds.add(seed);
+    }
 }
