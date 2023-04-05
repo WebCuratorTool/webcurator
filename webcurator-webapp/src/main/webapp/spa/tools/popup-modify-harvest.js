@@ -596,6 +596,7 @@ class PopupModifyHarvest{
 		var treeInstance=this;
 		fetchHttp(reqUrl, dataset, function(response){
 			if (response.rspCode !=0) {
+			    enablePatchHarvestButton();
 				alert(response.rspMsg);
 				return;
 			}
@@ -801,8 +802,8 @@ class PopupModifyHarvest{
 		fetchHttp(url, searchCondition, function(response){
 			if (response.rspCode != 0) {
 				g_TurnOffOverlayLoading();
-				alert(response.rspMsg);
-				return;	 
+			    alert(response.rspMsg);
+                return;
 	        }
 
 			var data=JSON.parse(response.payload);

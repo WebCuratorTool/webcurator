@@ -132,7 +132,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         } else {
             List<NetworkMapNodeUrlEntity> searchedNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
             if (searchedNetworkMapNodes.size() > MAX_SEARCH_SIZE) {
-                String warning = String.format("More than %d number of URLs were found, please narrow the search conditions", MAX_SEARCH_SIZE);
+                String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
                 log.warn(warning);
                 result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
                 result.setRspMsg(warning);
@@ -222,13 +222,18 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
-
+        NetworkMapResult result = new NetworkMapResult();
         List<NetworkMapNodeUrlEntity> urls = searchUrlDTOs(db, searchCommand);
+        if (urls.size() > MAX_SEARCH_SIZE) {
+            String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+            log.warn(warning);
+            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+            result.setRspMsg(warning);
+        }
 
         String json = this.obj2Json(urls);
         urls.clear();
 
-        NetworkMapResult result = new NetworkMapResult();
         result.setPayload(json);
         return result;
     }
@@ -441,6 +446,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
 
     private void queryChildrenRecursivelyCrawl(BDBRepoHolder db, long nodeId, List<NetworkMapNodeUrlEntity> result) {
+        if (result.size() > MAX_SEARCH_SIZE) {
+            return;
+        }
+
         NetworkMapNodeUrlEntity node = db.getUrlById(nodeId);
         if (node == null) {
             return;
@@ -465,17 +474,28 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             queryChildrenRecursivelyCrawl(db, nodeCmd.getId(), payload);
         }
 
+        NetworkMapResult result = new NetworkMapResult();
+        if (payload.size() > MAX_SEARCH_SIZE) {
+            String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+            log.warn(warning);
+            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+            result.setRspMsg(warning);
+        }
+
         String json = this.obj2Json(payload);
         payload.forEach(NetworkMapNodeUrlEntity::clear);
         payload.clear();
 
-        NetworkMapResult result = new NetworkMapResult();
         result.setPayload(json);
         return result;
     }
 
     private void queryChildrenRecursivelyFolder(BDBRepoHolder db, long nodeId, boolean isFolder, List<ModifyRowFullData> result) {
-        log.info("nodeId={}, isFolder={}, result.length={}", nodeId, isFolder, result.size());
+        //log.info("nodeId={}, isFolder={}, result.length={}", nodeId, isFolder, result.size());
+        if (result.size() > MAX_SEARCH_SIZE) {
+            return;
+        }
+
         if (!isFolder) {
             NetworkMapNodeUrlEntity urlEntity = db.getUrlById(nodeId);
             if (urlEntity == null) {
@@ -518,11 +538,18 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             queryChildrenRecursivelyFolder(db, nodeCmd.getId(), nodeCmd.isFolder(), payload);
         }
 
+        NetworkMapResult result = new NetworkMapResult();
+        if (payload.size() > MAX_SEARCH_SIZE) {
+            String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+            log.warn(warning);
+            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+            result.setRspMsg(warning);
+        }
+
         String json = this.obj2Json(payload);
         payload.forEach(ModifyRowFullData::clear);
         payload.clear();
 
-        NetworkMapResult result = new NetworkMapResult();
         result.setPayload(json);
         return result;
     }
