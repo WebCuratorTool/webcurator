@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class NetworkMapClientLocal implements NetworkMapClient {
-    private static final int MAX_SEARCH_SIZE = 32 * 1024;
+    private static final int MAX_SEARCH_SIZE = 32000;
     private final BDBNetworkMapPool pool;
     private final VisualizationProcessorManager visualizationProcessorManager;
     private final FolderTreeViewMgmt folderMgmt;
@@ -126,12 +126,18 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             } else {
                 listFolderEntity = this.folderMgmt.queryFolderList(job, harvestResultNumber, folderId);
             }
+            if (listFolderEntity.size() >= MAX_SEARCH_SIZE) {
+                String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+                log.warn(warning);
+                result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+                result.setRspMsg(warning);
+            }
             result.setPayload(this.obj2Json(listFolderEntity));
             listFolderEntity.forEach(NetworkMapNodeFolderEntity::clear);
             listFolderEntity.clear();
         } else {
             List<NetworkMapNodeUrlEntity> searchedNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
-            if (searchedNetworkMapNodes.size() > MAX_SEARCH_SIZE) {
+            if (searchedNetworkMapNodes.size() >= MAX_SEARCH_SIZE) {
                 String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
                 log.warn(warning);
                 result.setRspCode(NetworkMapResult.RSP_CODE_WARN);

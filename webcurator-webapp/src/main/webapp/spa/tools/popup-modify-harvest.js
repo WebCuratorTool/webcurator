@@ -263,11 +263,13 @@ const treeOptionsCascadedPath=Object.assign({
 
         fetchHttp(urlSubFolders, {}, function(response){
             var dataset=[];
-            if (response.rspCode != 0) {
-                alert(response.rspMsg);
-            }else{
-                dataset=JSON.parse(response.payload);
+            if(response.rspCode === 1){
+                toastr.warning(response.rspMsg);
+            }else if(response.rspCode !== 0){
+                toastr.error(response.rspMsg);
+                return;
             }
+            dataset=JSON.parse(response.payload);
             deferredResult.resolve(dataset);
         });
 

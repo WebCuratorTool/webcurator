@@ -14,6 +14,7 @@ import java.util.List;
 
 public class FolderTreeViewMgmt {
     private final static Logger log = LoggerFactory.getLogger(FolderTreeViewMgmt.class);
+    private static final int MAX_SEARCH_SIZE = 32000;
     private final BDBNetworkMapPool pool;
 
     public FolderTreeViewMgmt(BDBNetworkMapPool pool) {
@@ -72,6 +73,10 @@ public class FolderTreeViewMgmt {
             folderEntity.setLazy(true);
             folderEntity.setFolder(true);
             listFolderDTO.add(folderEntity);
+            if (listFolderDTO.size() >= MAX_SEARCH_SIZE) {
+                log.warn("Exceeds the MAX_SEARCH_SIZE");
+                break;
+            }
         }
 
         for (long id : parentFolderEntity.getSubUrlList()) {
@@ -82,6 +87,10 @@ public class FolderTreeViewMgmt {
             folderEntity.setLazy(false);
             folderEntity.setFolder(false);
             listFolderDTO.add(folderEntity);
+            if (listFolderDTO.size() >= MAX_SEARCH_SIZE) {
+                log.warn("Exceeds the MAX_SEARCH_SIZE");
+                break;
+            }
         }
         return listFolderDTO;
     }
