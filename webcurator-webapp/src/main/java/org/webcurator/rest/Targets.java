@@ -36,6 +36,15 @@ public class Targets {
     private static final String OVERRIDE_UNIT_FIELD = "unit";
     private static final String OVERRIDE_ENABLED_FIELD = "enabled";
 
+    // names of target subsections
+    private static final String TARGET_GENERAL = "general";
+    private static final String TARGET_SEEDS = "seeds";
+    private static final String TARGET_PROFILE = "profile";
+    private static final String TARGET_SCHEDULE = "schedule";
+    private static final String TARGET_ANNOTATIONS = "annotations";
+    private static final String TARGET_DESCRIPTION = "description";
+    private static final String TARGET_GROUPS = "groups";
+    private static final String TARGET_ACCESS = "access";
 
     private static Log logger = LogFactory.getLog(Targets.class);
 
@@ -90,36 +99,59 @@ public class Targets {
         }
     }
 
-    @GetMapping(path = "/{targetId}")
+    /**
+     * GET handler for individual targets and target sections
+     */
+    @GetMapping(path = {"/{id}", "/{id}/{section}"})
     public ResponseEntity<?> get(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                 @PathVariable long targetId) {
-
+                                 @PathVariable long id, @PathVariable(required = false) String section) {
         // First the authorization stuff
         SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
         if (authorizationResult.failed) {
             return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
         }
 
-        Target target = targetDAO.load(targetId, true);
+        Target target = targetDAO.load(id, true);
         if (target == null) {
             return ResponseEntity.notFound().build();
         } else {
-            HashMap<String, Object> targetResponse = createTarget(target);
-            ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(targetResponse);
-            return response;
+            if (section == null) {
+                return ResponseEntity.ok().body(createTarget(target));
+            }
+            switch (section) {
+                case TARGET_ACCESS:
+                    return ResponseEntity.ok().body(createTargetAccess(target));
+                case TARGET_ANNOTATIONS:
+                    return ResponseEntity.ok().body(createTargetAnnotations(target));
+                case TARGET_DESCRIPTION:
+                    return ResponseEntity.ok().body(createTargetDescription(target));
+                case TARGET_GENERAL:
+                    return ResponseEntity.ok().body(createTargetGeneral(target));
+                case TARGET_GROUPS:
+                    return ResponseEntity.ok().body(createTargetGroups(target));
+                case TARGET_PROFILE:
+                    return ResponseEntity.ok().body(createTargetProfile(target));
+                case TARGET_SCHEDULE:
+                    return ResponseEntity.ok().body(createTargetSchedule(target));
+                case TARGET_SEEDS:
+                    return ResponseEntity.ok().body(createTargetSeeds(target));
+                default:
+                    return ResponseEntity.badRequest().body(String.format("No such target section: %s", section));
+            }
         }
     }
 
-    @DeleteMapping(path = "/{targetId}")
+
+    @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> delete(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                    @PathVariable long targetId) {
+                                    @PathVariable long id) {
         // First the authorization stuff
         SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.DELETE_TARGET);
         if (authorizationResult.failed) {
             return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
         }
 
-        Target target = targetDAO.load(targetId);
+        Target target = targetDAO.load(id);
         if (target == null) {
             return ResponseEntity.notFound().build();
         } else {
@@ -134,6 +166,10 @@ public class Targets {
         }
     }
 
+
+    /**
+     * Handle the actual search using the old Target DAO search API
+     */
     private SearchResult search(Filter filter, Integer offset, Integer limit, String sortBy) throws BadRequestError {
 
         // defaults
@@ -212,14 +248,14 @@ public class Targets {
         target.put("id", t.getOid());
         target.put("creationDate", t.getCreationDate());
         target.put("name", t.getName());
-        target.put("general", createTargetGeneral(t));
-        target.put("seeds", createTargetSeeds(t));
-        target.put("profile", createTargetProfile(t));
-        target.put("schedule", createTargetSchedule(t));
-        target.put("annotations", createTargetAnnotations(t));
-        target.put("description", createTargetDescription(t));
-        target.put("groups", createTargetGroups(t));
-        target.put("access", createTargetAccess(t));
+        target.put(TARGET_GENERAL, createTargetGeneral(t));
+        target.put(TARGET_SEEDS, createTargetSeeds(t));
+        target.put(TARGET_PROFILE, createTargetProfile(t));
+        target.put(TARGET_SCHEDULE, createTargetSchedule(t));
+        target.put(TARGET_ANNOTATIONS, createTargetAnnotations(t));
+        target.put(TARGET_DESCRIPTION, createTargetDescription(t));
+        target.put(TARGET_GROUPS, createTargetGroups(t));
+        target.put(TARGET_ACCESS, createTargetAccess(t));
         return target;
     }
 
@@ -444,8 +480,8 @@ public class Targets {
     /**
      * Create the description section of an individual target
      */
-    private HashMap<String, String> createTargetDescription(Target t) {
-        HashMap<String,String> description = new HashMap<>();
+    private HashMap<String, Object> createTargetDescription(Target t) {
+        HashMap<String, Object> description = new HashMap<>();
         DublinCore metadata = t.getDublinCoreMetaData();
         description.put("identifier", metadata.getIdentifier());
         description.put("description", metadata.getDescription());
