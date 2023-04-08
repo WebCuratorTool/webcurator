@@ -159,7 +159,13 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})
     public void save(@RequestBody DigitalAssetStoreHarvestSaveDTO dto) throws DigitalAssetStoreException {
         log.debug("Save harvest, {}", dto.toString());
+
         File f = new File(dto.getFilePath());
+        if (arcDigitalAssetStoreService.isFileExists(dto.getTargetInstanceName(), dto.getDirectory(), f.getName())) {
+            log.info("The file do exist: {}", f.getName());
+            return;
+        }
+
         if (dto.getFileUploadMode().equalsIgnoreCase(FILE_UPLOAD_MODE_STREAM)) {
             String link = String.format("%s%s?filePath=%s", dto.getHarvestBaseUrl(), WctCoordinatorPaths.DOWNLOAD, dto.getFilePath());
             URLConnection conn = null;
