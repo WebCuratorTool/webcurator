@@ -137,7 +137,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         writerDF.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
-    public boolean isFileExists(String targetInstanceName, String directory, String fileName) {
+    public boolean isFileExisting(String targetInstanceName, String directory, String fileName) {
         if (directory == null || directory.trim().length() == 0) {
             directory = "1";
         }

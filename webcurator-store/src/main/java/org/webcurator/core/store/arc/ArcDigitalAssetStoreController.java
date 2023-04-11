@@ -161,7 +161,7 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
         log.debug("Save harvest, {}", dto.toString());
 
         File f = new File(dto.getFilePath());
-        if (arcDigitalAssetStoreService.isFileExists(dto.getTargetInstanceName(), dto.getDirectory(), f.getName())) {
+        if (arcDigitalAssetStoreService.isFileExisting(dto.getTargetInstanceName(), dto.getDirectory(), f.getName())) {
             log.info("The file do exist: {}", f.getName());
             return;
         }
