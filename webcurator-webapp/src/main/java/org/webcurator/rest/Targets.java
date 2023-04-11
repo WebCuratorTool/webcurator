@@ -265,12 +265,12 @@ public class Targets {
     private HashMap<String, Object> createTargetGeneral(Target t) {
         HashMap<String, Object> general = new HashMap<>();
         general.put("description", t.getDescription());
-        general.put("referenceNumber", t.getReferenceNumber());
+        general.put("referenceNumber", t.getReferenceNumber() == null ? "" : t.getReferenceNumber());
         general.put("runOnApproval", t.isRunOnApproval());
         general.put("owner", t.getOwner().getNiceName());
         general.put("state", t.getState());
         general.put("referenceCrawl", t.isAutoDenoteReferenceCrawl());
-        general.put("requestToArchivists", t.getRequestToArchivists());
+        general.put("requestToArchivists", t.getRequestToArchivists() == null ? "" : t.getRequestToArchivists());
         return general;
     }
 
@@ -435,14 +435,10 @@ public class Targets {
            sched.put("id", s.getOid());
            sched.put("cron", s.getCronPattern());
            sched.put("startDate", s.getStartDate());
-           if (s.getEndDate() != null) {
-               sched.put("endDate", s.getEndDate());
-           }
+           sched.put("endDate", s.getEndDate() == null ? "" : s.getEndDate());
            sched.put("type", s.getScheduleType());
            sched.put("nextExecutionDate", s.getNextExecutionDate());
-           if (s.getLastProcessedDate() != null) {
-               sched.put("lastProcessedDate", s.getLastProcessedDate());
-           }
+           sched.put("lastProcessedDate", s.getLastProcessedDate() == null ? "" : s.getLastProcessedDate());
            // FIXME in the current UI the "nice name" is used, but maybe we should use the userId
            // FIXME everywhere instead and leave the translation to "nice name" up to the client?
            sched.put("owner", s.getOwningUser().getNiceName());
@@ -459,11 +455,11 @@ public class Targets {
         HashMap<String, Object> annotations = new HashMap<>();
         HashMap<String, Object> selection = new HashMap<>();
         selection.put("date", t.getSelectionDate());
-        selection.put("type", t.getSelectionType());
-        selection.put("note", t.getSelectionNote());
+        selection.put("type", t.getSelectionType() == null ? "" : t.getSelectionType());
+        selection.put("note", t.getSelectionNote() == null ? "" : t.getSelectionNote());
         annotations.put("selection", selection);
-        annotations.put("evalutionNote", t.getEvaluationNote());
-        annotations.put("harvestType", t.getHarvestType());
+        annotations.put("evalutionNote", t.getEvaluationNote() == null ? "" : t.getEvaluationNote());
+        annotations.put("harvestType", t.getHarvestType() == null ? "" : t.getHarvestType());
         ArrayList<HashMap<String, Object>> annotationList = new ArrayList<>();
         for (Annotation a : t.getAnnotations()) {
             HashMap<String, Object> annotation = new HashMap<>();
@@ -483,20 +479,20 @@ public class Targets {
     private HashMap<String, Object> createTargetDescription(Target t) {
         HashMap<String, Object> description = new HashMap<>();
         DublinCore metadata = t.getDublinCoreMetaData();
-        description.put("identifier", metadata.getIdentifier());
-        description.put("description", metadata.getDescription());
-        description.put("subject", metadata.getSubject());
-        description.put("creator", metadata.getCreator());
-        description.put("publisher", metadata.getPublisher());
-        description.put("contributor", metadata.getContributor());
-        description.put("type", metadata.getType());
-        description.put("format",metadata.getFormat());
-        description.put("source",metadata.getSource());
-        description.put("language", metadata.getLanguage());
-        description.put("relation", metadata.getRelation());
-        description.put("coverage", metadata.getCoverage());
-        description.put("issn", metadata.getIssn());
-        description.put("isbn", metadata.getIsbn());
+        description.put("identifier", metadata.getIdentifier() == null ? "" : metadata.getIdentifier());
+        description.put("description", metadata.getDescription() == null ? "" : metadata.getDescription());
+        description.put("subject", metadata.getSubject() == null ? "" : metadata.getSubject());
+        description.put("creator", metadata.getCreator() == null ? "" : metadata.getCreator());
+        description.put("publisher", metadata.getPublisher() == null ? "" : metadata.getPublisher());
+        description.put("contributor", metadata.getContributor() == null ? "" : metadata.getContributor());
+        description.put("type", metadata.getType() == null ? "" : metadata.getType());
+        description.put("format",metadata.getFormat() == null ? "" : metadata.getFormat());
+        description.put("source",metadata.getSource() == null ? "" : metadata.getSource());
+        description.put("language", metadata.getLanguage() == null ? "" : metadata.getLanguage());
+        description.put("relation", metadata.getRelation() == null ? "" : metadata.getRelation());
+        description.put("coverage", metadata.getCoverage() == null ? "" : metadata.getCoverage());
+        description.put("issn", metadata.getIssn() == null ? "" : metadata.getIssn());
+        description.put("isbn", metadata.getIsbn() == null ? "" : metadata.getIsbn());
         return description;
     }
 
@@ -521,8 +517,8 @@ public class Targets {
         HashMap<String, Object> access = new HashMap<>();
         access.put("accessZone", t.getAccessZone());
         access.put("accessZoneText", t.getAccessZoneText());
-        access.put("displayChangeReason", t.getDisplayChangeReason());
-        access.put("displayNote", t.getDisplayNote());
+        access.put("displayChangeReason", t.getDisplayChangeReason() == null ? "" : t.getDisplayChangeReason());
+        access.put("displayNote", t.getDisplayNote() == null ? "" : t.getDisplayNote());
         return access;
     }
 
