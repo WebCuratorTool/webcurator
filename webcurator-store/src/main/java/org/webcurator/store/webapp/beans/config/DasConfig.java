@@ -105,6 +105,9 @@ public class DasConfig {
     @Value("${cdxIndexer.enabled}")
     private boolean cdxIndexerEnabled;
 
+    @Value("${cdxIndexer.format}")
+    private String cdxIndexerFormat;
+
     @Value("${cdxIndexer.useSurt}")
     private boolean cdxIndexerUseSurt;
 
@@ -432,6 +435,7 @@ public class DasConfig {
     public CDXIndexer cdxIndexer() {
         CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(cdxIndexerEnabled);
+        bean.setFormat(cdxIndexerFormat);
         bean.setUseSurt(cdxIndexerUseSurt);
         return bean;
     }

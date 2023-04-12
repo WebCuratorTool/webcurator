@@ -23,6 +23,8 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 	private String TestCARC_CDX = "IAH-20080610152724-00000-test.cdx";
 	private String TestCWARC_CDX = "IAH-20080610152754-00000-test.cdx";
 
+	private String format = "N a b";
+
 	private long NumARCResources = 77;
 	private long NumWARCResources = 72;
 	
@@ -38,6 +40,7 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 	public void setUp() throws Exception {
 		super.setUp();
 		HarvestResultDTO result = new HarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
+		testInstance.setFormat(format);
 		testInstance.initialise(result, WCTTestUtils.getResourceAsFile(archivePath));
 	}
 
@@ -62,6 +65,8 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 		    DataInputStream in = new DataInputStream(fstream);
 		    BufferedReader br = new BufferedReader(new InputStreamReader(in));
 		    String header = br.readLine();
+		    // Verify the header
+		    assertEquals(" CDX " + format, header);
 		    // Count the non-header lines
 		    while (br.readLine() != null)   {
 		      count++;
@@ -80,6 +85,8 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 		    in = new DataInputStream(fstream);
 		    br = new BufferedReader(new InputStreamReader(in));
 			header = br.readLine();
+			// Verify the header
+			assertEquals(" CDX " + format, header);
 			// Count the non-header lines
 			while (br.readLine() != null)   {
 		      count++;

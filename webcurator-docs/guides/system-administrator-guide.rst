@@ -969,13 +969,14 @@ The following are common configuration options for the DAS adjusted via the **ap
 
    **CDXIndexer** generates a CDX index file in the same folder as the ARC/WARC files. When a target
    instance is submitted to the archive, the CDX index will be copied along with the ARC/WARC file(s).
-   This indexer is enabled by default. ::
+   The CDX format can be specified using the **format** variable. The default format is supported by the
+   most commonly used tools. This indexer is enabled by default. ::
 
       # CDXIndexer
       # Enable this indexer
       cdxIndexer.enabled=true
-      # Do we want to use SURT-format in the N field?
-      cdxIndexer.useSurt=false
+      # Set the cdx format (most common nowadays is the 11-field format: N b a m s k r M S V g)
+      cdxIndexer.format=N b a m s k r M S V g
 
 
 -  Archive Type
