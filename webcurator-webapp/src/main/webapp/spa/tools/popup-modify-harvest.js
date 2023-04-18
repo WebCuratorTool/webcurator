@@ -641,16 +641,19 @@ class PopupModifyHarvest{
 	}
 
 	_appendAndMoveHarvest2ToBeModifiedList(data, callback){
+	    disablePatchHarvestButton();
 		var popupModifyHarvestInstance=this;
 		var url="/check-and-append?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
 		fetchHttp(url, data, function(rsp){
 			if (rsp.rspCode!==0) {
-				alert(rsp.rspMsg);
+				toastr.error(rsp.rspMsg);
+				enablePatchHarvestButton();
 				return;
 			}
 
 			var dataset=JSON.parse(rsp.payload);
 			callback(dataset);
+			enablePatchHarvestButton();
 		});
 	}
 
