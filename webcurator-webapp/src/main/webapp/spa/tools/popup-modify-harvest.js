@@ -380,16 +380,19 @@ class HierarchyTree{
 	getSelectedNodes(){
 		var selData=[];
 		var selNodes = $.ui.fancytree.getTree(this.container).getSelectedNodes();
-		var map={};
+		// var map={};
 		for(var i=0; i<selNodes.length; i++){
 			var treeNode=selNodes[i];
 			var nodeData=this._getDataFromNode(treeNode);
-			var key=this._getKeyFromNode(treeNode);
-			map[key]=true;
+			// var key=this._getKeyFromNode(treeNode);
+			// map[key]=true;
 
-			var keyParent=this._getKeyFromNode(treeNode.parent);
-			if(keyParent in map){
-				continue;
+			// var keyParent=this._getKeyFromNode(treeNode.parent);
+			// if(keyParent in map){
+			//	continue;
+			//}
+			if(nodeData.id <= 0){
+			    continue;
 			}
 			
 			selData.push(nodeData);
@@ -599,7 +602,7 @@ class PopupModifyHarvest{
 		fetchHttp(reqUrl, dataset, function(response){
 			if (response.rspCode !=0) {
 			    enablePatchHarvestButton();
-				alert(response.rspMsg);
+				toastr.error(response.rspMsg);
 				return;
 			}
 
@@ -804,7 +807,7 @@ class PopupModifyHarvest{
 		fetchHttp(url, searchCondition, function(response){
 			if (response.rspCode != 0) {
 				g_TurnOffOverlayLoading();
-			    alert(response.rspMsg);
+			    toastr.error(response.rspMsg);
                 return;
 	        }
 

@@ -127,7 +127,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 listFolderEntity = this.folderMgmt.queryFolderList(job, harvestResultNumber, folderId);
             }
             if (listFolderEntity.size() >= MAX_SEARCH_SIZE) {
-                String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+                String warning = "Cannot display all URLs for this node. Please reduce the results using the advanced search.";
                 log.warn(warning);
                 result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
                 result.setRspMsg(warning);
@@ -138,7 +138,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         } else {
             List<NetworkMapNodeUrlEntity> searchedNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
             if (searchedNetworkMapNodes.size() >= MAX_SEARCH_SIZE) {
-                String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+                String warning = "Cannot display all URLs for this node. Please reduce the results using the advanced search.";
                 log.warn(warning);
                 result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
                 result.setRspMsg(warning);
@@ -231,7 +231,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         NetworkMapResult result = new NetworkMapResult();
         List<NetworkMapNodeUrlEntity> urls = searchUrlDTOs(db, searchCommand);
         if (urls.size() > MAX_SEARCH_SIZE) {
-            String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+            String warning = "Cannot display all URLs, please reduce the results using narrow search conditions.";
             log.warn(warning);
             result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
             result.setRspMsg(warning);
@@ -482,7 +482,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         NetworkMapResult result = new NetworkMapResult();
         if (payload.size() > MAX_SEARCH_SIZE) {
-            String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+            String warning = "Cannot modify all selected URLs, please reduce the results.";
             log.warn(warning);
             result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
             result.setRspMsg(warning);
@@ -546,7 +546,8 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
         NetworkMapResult result = new NetworkMapResult();
         if (payload.size() > MAX_SEARCH_SIZE) {
-            String warning = String.format("More than %d number of URLs were found, please narrow down the conditions", MAX_SEARCH_SIZE);
+            String warning = "Cannot modify all selected URLs, please reduce the results.";
+
             log.warn(warning);
             result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
             result.setRspMsg(warning);
