@@ -115,13 +115,14 @@ public class IndexProcessorWarc extends IndexProcessor {
             }
             String statusLine = EncodingUtil.getString(statusBytes, 0,
                     statusBytes.length - eolCharCount, WARCConstants.DEFAULT_ENCODING);
-            if (!StatusLine.startsWithHTTP(statusLine)) {
-                String err = "Failed parse of http status line.";
-                this.writeLog(err);
-                throw new RecoverableIOException(err);
+
+            if (StatusLine.startsWithHTTP(statusLine)) {
+                StatusLine status = new StatusLine(statusLine);
+                res.setStatusCode(status.getStatusCode());
+            } else {
+                res.setStatusCode(0);
             }
-            StatusLine status = new StatusLine(statusLine);
-            res.setStatusCode(status.getStatusCode());
+
 
             // Calculate the length.
             long length = header.getLength() - header.getContentBegin();
