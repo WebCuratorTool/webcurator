@@ -12,7 +12,7 @@ import org.webcurator.rest.auth.SessionManager;
  * Handlers for the token endpoint
  */
 @RestController
-@RequestMapping(path = "/api/{version}/token")
+@RequestMapping(path = "/auth/{version}/token")
 public class Token {
 
     @Autowired
