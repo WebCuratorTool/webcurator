@@ -3,16 +3,11 @@ package org.webcurator.rest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.core.profiles.ProfileDataUnit;
-import org.webcurator.core.profiles.ProfileTimeUnit;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
-import org.webcurator.domain.model.auth.Privilege;
 import org.webcurator.domain.model.core.*;
-import org.webcurator.rest.auth.SessionManager;
 
 import java.util.*;
 
@@ -46,29 +41,19 @@ public class Targets {
     private static final String TARGET_GROUPS = "groups";
     private static final String TARGET_ACCESS = "access";
 
-    private static Log logger = LogFactory.getLog(Targets.class);
+    private static final Log logger = LogFactory.getLog(Targets.class);
 
-    @Autowired
-    SessionManager sessionManager;
 
     @Autowired
     private TargetDAO targetDAO;
 
     @GetMapping(path = "")
-    public ResponseEntity<?> get(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                 @RequestParam(required = false) Long targetId, @RequestParam(required = false) String name,
+    public ResponseEntity<?> get(@RequestParam(required = false) Long targetId, @RequestParam(required = false) String name,
                                  @RequestParam(required = false) String seed, @RequestParam(required = false) String agency,
                                  @RequestParam(required = false) String userId, @RequestParam(required = false) String description,
                                  @RequestParam(required = false) String groupName, @RequestParam(required = false) boolean nonDisplayOnly,
                                  @RequestParam(required = false) Set<Integer> states, @RequestParam(required = false) String sortBy,
                                  @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
-
-        // First the authorization stuff
-        SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
-        if (authorizationResult.failed) {
-            return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
-        }
-
         // The actual filtering
         Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
         try {
@@ -103,14 +88,7 @@ public class Targets {
      * GET handler for individual targets and target sections
      */
     @GetMapping(path = {"/{id}", "/{id}/{section}"})
-    public ResponseEntity<?> get(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                 @PathVariable long id, @PathVariable(required = false) String section) {
-        // First the authorization stuff
-        SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);
-        if (authorizationResult.failed) {
-            return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
-        }
-
+    public ResponseEntity<?> get(@PathVariable long id, @PathVariable(required = false) String section) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
             return ResponseEntity.notFound().build();
@@ -143,14 +121,7 @@ public class Targets {
 
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<?> delete(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-                                    @PathVariable long id) {
-        // First the authorization stuff
-        SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.DELETE_TARGET);
-        if (authorizationResult.failed) {
-            return ResponseEntity.status(authorizationResult.status).body(authorizationResult.message);
-        }
-
+    public ResponseEntity<?> delete(@PathVariable long id) {
         Target target = targetDAO.load(id);
         if (target == null) {
             return ResponseEntity.notFound().build();
@@ -427,25 +398,25 @@ public class Targets {
      * Create the schedule section of an individual target
      */
     private HashMap<String, Object> createTargetSchedule(Target t) {
-       HashMap<String, Object> schedule = new HashMap<>();
-       schedule.put("harvestOptimization", t.isAllowOptimize());
-       ArrayList<HashMap<String, Object>> schedules = new ArrayList<>();
-       for (Schedule s : t.getSchedules()) {
-           HashMap<String, Object> sched = new HashMap<>();
-           sched.put("id", s.getOid());
-           sched.put("cron", s.getCronPattern());
-           sched.put("startDate", s.getStartDate());
-           sched.put("endDate", s.getEndDate());
-           sched.put("type", s.getScheduleType());
-           sched.put("nextExecutionDate", s.getNextExecutionDate());
-           sched.put("lastProcessedDate", s.getLastProcessedDate());
-           // FIXME in the current UI the "nice name" is used, but maybe we should use the userId
-           // FIXME everywhere instead and leave the translation to "nice name" up to the client?
-           sched.put("owner", s.getOwningUser().getNiceName());
-           schedules.add(sched);
-       }
-       schedule.put("schedules", schedules);
-       return schedule;
+        HashMap<String, Object> schedule = new HashMap<>();
+        schedule.put("harvestOptimization", t.isAllowOptimize());
+        ArrayList<HashMap<String, Object>> schedules = new ArrayList<>();
+        for (Schedule s : t.getSchedules()) {
+            HashMap<String, Object> sched = new HashMap<>();
+            sched.put("id", s.getOid());
+            sched.put("cron", s.getCronPattern());
+            sched.put("startDate", s.getStartDate());
+            sched.put("endDate", s.getEndDate());
+            sched.put("type", s.getScheduleType());
+            sched.put("nextExecutionDate", s.getNextExecutionDate());
+            sched.put("lastProcessedDate", s.getLastProcessedDate());
+            // FIXME in the current UI the "nice name" is used, but maybe we should use the userId
+            // FIXME everywhere instead and leave the translation to "nice name" up to the client?
+            sched.put("owner", s.getOwningUser().getNiceName());
+            schedules.add(sched);
+        }
+        schedule.put("schedules", schedules);
+        return schedule;
     }
 
     /**
@@ -486,8 +457,8 @@ public class Targets {
         description.put("publisher", metadata.getPublisher());
         description.put("contributor", metadata.getContributor());
         description.put("type", metadata.getType());
-        description.put("format",metadata.getFormat());
-        description.put("source",metadata.getSource());
+        description.put("format", metadata.getFormat());
+        description.put("source", metadata.getSource());
         description.put("language", metadata.getLanguage());
         description.put("relation", metadata.getRelation());
         description.put("coverage", metadata.getCoverage());

@@ -130,6 +130,7 @@ public class WctSecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/api/**").permitAll() // The ResT API has its own authentication
+                .antMatchers("/auth/**").permitAll() // The ResT API has its own authentication
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/curator/**").hasRole("LOGIN")
 //                .antMatchers("/curator/**").permitAll()
