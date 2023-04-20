@@ -17,7 +17,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.*;
@@ -83,7 +83,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 	{
 		if(agencyUserManager == null)
 		{
-			agencyUserManager = new MockAgencyUserManagerImpl(testFile);
+			agencyUserManager = new MockAgencyUserManager(testFile);
 		}
 
 		return agencyUserManager;
@@ -113,7 +113,7 @@ public class TargetInstanceGeneralHandlerTest extends BaseWCTTest<TargetInstance
 
 	@Test
 	public final void testSetAuthorityManager() {
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 	}
 
 	@Test

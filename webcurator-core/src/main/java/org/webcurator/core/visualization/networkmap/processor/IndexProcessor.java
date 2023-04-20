@@ -2,6 +2,7 @@ package org.webcurator.core.visualization.networkmap.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sleepycat.je.Transaction;
 import org.archive.io.*;
 import org.archive.io.warc.WARCConstants;
 import org.slf4j.Logger;
@@ -11,30 +12,30 @@ import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationStatisticItem;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.*;
-import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
 public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     protected static final Logger log = LoggerFactory.getLogger(IndexProcessor.class);
     protected static final int MAX_URL_LENGTH = 1020;
 
-    protected Map<String, NetworkMapNode> urls = new Hashtable<>();
-    protected BDBNetworkMap db;
+    protected Map<String, NetworkMapNodeUrlDTO> urls = new Hashtable<>();
+    protected BDBRepoHolder db;
     protected AtomicLong atomicIdGeneratorUrl = new AtomicLong(0);
-    protected AtomicLong atomicIdGeneratorPath = new AtomicLong(0);
+    protected AtomicLong atomicIdGeneratorFolder = new AtomicLong(0);
     protected Map<String, Boolean> seeds = new HashMap<>();
     protected BDBNetworkMapPool pool;
+    protected List<String> fileWarcNames = new ArrayList<>();
 
     public IndexProcessor(BDBNetworkMapPool pool, long targetInstanceId, int harvestResultNumber) throws DigitalAssetStoreException {
         super(targetInstanceId, harvestResultNumber);
@@ -78,12 +79,17 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
             this.tryBlock();
 
-            extractRecord(record, fileName);
+            try {
+                extractRecord(record, fileName);
+            } catch (Exception e) {
+                log.warn("Failed to extract record", e);
+                break;
+            } finally {
+                record.close();
+            }
             progressItem.setCurLength(record.getHeader().getOffset());
-            record.close();
-
-            log.debug("Extracting, results.size:{}", urls.size());
-            log.debug(progressItem.toString());
+//            log.debug("Extracting, results.size:{}", urls.size());
+//            log.debug(progressItem.toString());
             writeLog(progressItem.toString());
 
             statisticItem.increaseSucceedRecords();
@@ -100,8 +106,9 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     abstract protected void extractRecord(ArchiveRecord rec, String fileName) throws IOException;
 
-    private void statAndSave() {
+    public void statAndSave() {
         this.tryBlock();
+        NetworkMapAccessPropertyEntity accProp = new NetworkMapAccessPropertyEntity();
 
         AtomicLong domainIdGenerator = new AtomicLong();
         NetworkMapDomainManager domainManager = new NetworkMapDomainManager();
@@ -121,7 +128,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             NetworkMapDomain domainNodeHigh = domainManager.getHighDomain(node);
             NetworkMapDomain domainNodeLower = domainManager.getLowerDomain(node);
             node.setDomainId(domainNodeLower.getId());
-            if (node.isSeed() && (node.getSeedType() == NetworkMapNode.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNode.SEED_TYPE_SECONDARY)) {
+            if (node.isSeed() && (node.getSeedType() == NetworkMapNodeUrlDTO.SEED_TYPE_PRIMARY || node.getSeedType() == NetworkMapNodeUrlDTO.SEED_TYPE_SECONDARY)) {
                 domainNodeHigh.setSeed(true);
                 domainNodeLower.setSeed(true);
             }
@@ -130,7 +137,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             if (viaUrl == null || !this.urls.containsKey(viaUrl)) {
                 node.setParentId(-1);
             } else {
-                NetworkMapNode parentNode = this.urls.get(viaUrl);
+                NetworkMapNodeUrlDTO parentNode = this.urls.get(viaUrl);
                 parentNode.addOutlink(node);
 
                 NetworkMapDomain parentDomainNodeHigh = domainManager.getHighDomain(parentNode);
@@ -144,46 +151,56 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
                 parentDomainNodeLower.addOutlink(domainNodeLower.getId());
             }
         });
-        db.putRootDomain(rootDomainNode);
+        String strRootDomain = getJson(rootDomainNode);
+        log.debug(strRootDomain);
+        accProp.setRootDomain(strRootDomain);
         this.writeLog("Finished storing domain nodes");
+        rootDomainNode.clear();
 
-        //Saving the links of each domain
-        Map<Long, List<NetworkMapNode>> groupedByDomain = this.urls.values().stream().collect(Collectors.groupingBy(NetworkMapNode::getDomainId));
-        groupedByDomain.forEach((k, v) -> {
-            this.tryBlock();
-            List<Long> listUrlIDs = v.stream().map(NetworkMapNode::getId).collect(Collectors.toList());
-            db.putIndividualDomainIdList(k, listUrlIDs);
-        });
-
-        //Create the treeview, permenit the paths and set parentPathId for all networkmap nodes.
-        NetworkMapTreeNodeDTO rootTreeNode = this.classifyTreePaths();
-        this.permenitCascadePath(rootTreeNode, -1);
-        rootTreeNode.destroy();
 
         //Process and save url
         List<Long> rootUrls = new ArrayList<>();
         List<Long> malformedUrls = new ArrayList<>();
-        this.urls.values().forEach(e -> {
+        //Using the transaction to improve the performance of bulk insert
+        Transaction txn = db.env.beginTransaction(null, null);
+        AtomicInteger batch_num = new AtomicInteger(0);
+        for (NetworkMapNodeUrlDTO e : this.urls.values()) {
             this.tryBlock();
+            NetworkMapNodeUrlEntity urlEntity = new NetworkMapNodeUrlEntity();
+            urlEntity.copy(e);
+            db.tblUrl.primaryId.putNoReturn(txn, urlEntity);
 
-            db.putUrl(e); //Indexed by ID, ID->NODE
-            db.putUrlNamePairUrlId(e.getUrl(), e.getId());//Indexed by URL, URL->ID->NODE
             if (e.isSeed() || e.getParentId() <= 0) {
                 rootUrls.add(e.getId());
             }
-
             if (!e.isFinished()) {
                 malformedUrls.add(e.getId());
             }
-        });
-        db.putRootUrlIdList(rootUrls);
+
+            if (batch_num.incrementAndGet() % 1000 == 0) {
+                txn.commit();
+                txn = db.env.beginTransaction(null, null);
+                log.debug("Saved: {} rootUrls={}, malformedUrls={}", batch_num.get(), rootUrls.size(), malformedUrls.size());
+            }
+            urlEntity.clear();
+        }
+        txn.commit();
+        this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
+        this.urls.clear();
+
+        //Create the folder treeview, permenit the paths and set parentPathId for all networkmap nodes.
+        long rootFolderNodeId = FolderTreeViewGenerator.classifyTreePaths(db);
+        accProp.setRootFolderNode(rootFolderNodeId);
+        log.debug("rootTreeNode: {}", accProp.getRootFolderNode());
+
+        accProp.setSeedUrlIDs(rootUrls);
+        accProp.setMalformedUrlIDs(malformedUrls);
+        db.insertAccProp(accProp);
+        this.writeLog("Finished storing url nodes");
         rootUrls.clear();
-        db.putMalformedUrlIdList(malformedUrls);
         malformedUrls.clear();
 
-        db.putUrlCount(atomicIdGeneratorUrl.incrementAndGet());
-
-        this.writeLog("Finished storing url nodes");
+        pool.shutdownRepo(db);
     }
 
     private boolean isWarcFormat(String name) {
@@ -192,56 +209,10 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     }
 
     public void clear() {
-        this.urls.values().forEach(NetworkMapNode::clear);
+        this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
         this.urls.clear();
     }
 
-    private NetworkMapTreeNodeDTO classifyTreePaths() {
-        List<NetworkMapTreeNodeDTO> allTreeNodes = this.urls.values().parallelStream().map(networkMapNode -> {
-            NetworkMapTreeNodeDTO treeNodeDTO = new NetworkMapTreeNodeDTO();
-            treeNodeDTO.setId(networkMapNode.getId());
-            treeNodeDTO.setViewType(NetworkMapTreeNodeDTO.VIEW_TYPE_DOMAIN);
-            treeNodeDTO.setUrl(networkMapNode.getUrl());
-            treeNodeDTO.setContentType(networkMapNode.getContentType());
-            treeNodeDTO.setStatusCode(networkMapNode.getStatusCode());
-            treeNodeDTO.setContentLength(networkMapNode.getContentLength());
-            treeNodeDTO.setFolder(false);
-            treeNodeDTO.setLazy(false);
-            treeNodeDTO.accumulate();
-            return treeNodeDTO;
-        }).collect(Collectors.toList());
-
-        NetworkMapTreeNodeDTO rootTreeNode = new NetworkMapTreeNodeDTO();
-        rootTreeNode.setChildren(allTreeNodes);
-
-        NetworkMapCascadePath cascadeProcessor = new NetworkMapCascadePath();
-        cascadeProcessor.classifyTreePaths(rootTreeNode);
-
-        return rootTreeNode;
-    }
-
-    private void permenitCascadePath(NetworkMapTreeNodeDTO rootTreeNode, long parentPathId) {
-        //
-        if (rootTreeNode.getChildren().size() == 0) {
-            if (rootTreeNode.getUrl() != null) {
-                NetworkMapNode networkMapNode = this.urls.get(rootTreeNode.getUrl());
-                if (networkMapNode != null) {
-                    networkMapNode.setParentPathId(parentPathId);
-                }
-            }
-        } else {
-            NetworkMapTreeViewPath path = new NetworkMapTreeViewPath();
-            path.setId(atomicIdGeneratorPath.incrementAndGet());
-            path.setParentPathId(parentPathId);
-            path.setTitle(rootTreeNode.getTitle());
-
-            db.putTreeViewPath(path);
-
-            for (NetworkMapTreeNodeDTO subTreeNode : rootTreeNode.getChildren()) {
-                permenitCascadePath(subTreeNode, path.getId());
-            }
-        }
-    }
 
     @Override
     protected String getProcessorStage() {
@@ -250,66 +221,78 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
 
     @Override
     public void processInternal() throws Exception {
-        File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
+        try {
+            File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
 
-        List<File> fileList = PatchUtil.listWarcFiles(directory);
-        if (fileList == null || fileList.size() == 0) {
-            log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
-            return;
-        }
-
-        VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
-        for (File f : fileList) {
-            if (this.status == HarvestResult.STATUS_TERMINATED) {
-                log.info("Terminated when indexing");
-                break;
+            List<File> fileList = PatchUtil.listWarcFiles(directory);
+            if (fileList == null || fileList.size() == 0) {
+                log.error("Could not find any archive files in directory: {}", directory.getAbsolutePath());
+                return;
             }
-
-            if (!isWarcFormat(f.getName())) {
-                continue;
-            }
-            VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
-            progressItem.setMaxLength(f.length());
-            progressItemStat.setMaxLength(progressItemStat.getMaxLength() + f.length());
-        }
-
-        log.debug(progressBar.toString());
-        for (File f : fileList) {
-            if (this.status == HarvestResult.STATUS_TERMINATED) {
-                log.info("Terminated when indexing");
-                break;
-            }
-
-            if (!isWarcFormat(f.getName())) {
-                this.writeLog("Skipped unknown file: " + f.getName());
-                continue;
-            }
-            ArchiveReader reader = null;
-            try {
-                reader = ArchiveReaderFactory.get(f);
-                indexFile(reader, f.getName());
-            } catch (Exception e) {
-                String err = "Failed to open archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
-                log.error(err, e);
-                this.writeLog(err);
-            } finally {
-                if (reader != null) {
-                    reader.close();
+            fileList.sort(new Comparator<File>() {
+                @Override
+                public int compare(File f0, File f1) {
+                    return f0.getName().compareTo(f1.getName());
                 }
+            });
+
+            VisualizationProgressBar.ProgressItem progressItemStat = progressBar.getProgressItem("STAT");
+            for (File f : fileList) {
+                if (this.status == HarvestResult.STATUS_TERMINATED) {
+                    log.info("Terminated when indexing");
+                    break;
+                }
+
+                if (!isWarcFormat(f.getName())) {
+                    continue;
+                }
+                this.fileWarcNames.add(f.getName());
+
+                VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
+                progressItem.setMaxLength(f.length());
+                progressItemStat.setMaxLength(progressItemStat.getMaxLength() + f.length());
             }
 
-            VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
-            progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
+            log.debug(progressBar.toString());
+            for (File f : fileList) {
+                if (this.status == HarvestResult.STATUS_TERMINATED) {
+                    log.info("Terminated when indexing");
+                    break;
+                }
+
+                if (!isWarcFormat(f.getName())) {
+                    this.writeLog("Skipped unknown file: " + f.getName());
+                    continue;
+                }
+                ArchiveReader reader = null;
+                try {
+                    reader = ArchiveReaderFactory.get(f);
+                    indexFile(reader, f.getName());
+                } catch (Exception e) {
+                    String err = "Failed to extract archive file: " + f.getAbsolutePath() + " with exception: " + e.getMessage();
+                    log.error(err, e);
+                    this.writeLog(err);
+                } finally {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                }
+
+                VisualizationProgressBar.ProgressItem progressItem = progressBar.getProgressItem(f.getName());
+                progressItem.setCurLength(progressItem.getMaxLength()); //Set all finished
+            }
+
+            this.statAndSave();
+
+            this.writeReport();
+            progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
+
+            this.status = HarvestResult.STATUS_FINISHED;
+        } finally {
+            this.urls.values().forEach(NetworkMapNodeUrlDTO::clear);
+            this.urls.clear();
+            this.pool.shutdownRepo(db);
         }
-
-        this.statAndSave();
-
-        db.putDbVersionStamp(pool.getDbVersion());
-
-        this.writeReport();
-        progressItemStat.setCurLength(progressItemStat.getMaxLength());//Set all finished
-
-        this.status = HarvestResult.STATUS_FINISHED;
     }
 
     @Override
@@ -351,6 +334,14 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
             e.printStackTrace();
         }
         return json;
+    }
+
+    public Map<String, NetworkMapNodeUrlDTO> getUrls() {
+        return urls;
+    }
+
+    public void setUrls(Map<String, NetworkMapNodeUrlDTO> urls) {
+        this.urls = urls;
     }
 
     static class StatisticItem implements VisualizationStatisticItem {

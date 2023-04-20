@@ -24,12 +24,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.auth.AuthorityManager;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.coordinator.MockWctCoordinator;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
-import org.webcurator.core.notification.InTrayManagerImpl;
+import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStoreClient;
@@ -67,8 +67,8 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
         tabGeneral.setValidator(new TargetInstanceValidator());
 
         TargetInstanceGeneralHandler genHandler = new TargetInstanceGeneralHandler();
-        genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
-        genHandler.setAuthorityManager(new AuthorityManagerImpl());
+        genHandler.setAgencyUserManager(new MockAgencyUserManager(testFile));
+        genHandler.setAuthorityManager(new AuthorityManager());
         genHandler.setTargetInstanceManager(targetInstanceManager);
         genHandler.setWctCoordinator(new WctCoordinator());
         tabGeneral.setTabHandler(genHandler);
@@ -108,14 +108,14 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
         testInstance.setTargetInstanceManager(targetInstanceManager);
         testInstance.setWctCoordinator(coordinator);
         testInstance.setDigitalAssetStore(digitalAssetStore);
-        testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+        testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 
         //DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http://wctstore.natlib.govt.nz:19090", new RestTemplateBuilder());
         DigitalAssetStoreClient mockDasClient = mock(DigitalAssetStoreClient.class);
         mockDasClient.setBaseUrl("http://wctstore.natlib.govt.nz:19090");
         mockDasClient.setRestTemplateBuilder(new RestTemplateBuilder());
 
-        InTrayManagerImpl mockInTrayManager = new InTrayManagerImpl();
+        InTrayManager mockInTrayManager = new InTrayManager();
         mockInTrayManager.setWctBaseUrl("http://${core.host}:${core.port}/");
         ReflectionTestUtils.setField(testInstance, "digitalAssetStore", mockDasClient);
         ReflectionTestUtils.setField(testInstance, "inTrayManager", mockInTrayManager);
@@ -195,7 +195,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 
         testInstance.setTargetInstanceManager(targetInstanceManager);
         testInstance.setWctCoordinator(coordinator);
-        testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+        testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
         TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
         //Leave only one result
@@ -249,7 +249,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 
         testInstance.setTargetInstanceManager(targetInstanceManager);
         testInstance.setWctCoordinator(coordinator);
-        testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+        testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
         TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
         //Leave only one result
@@ -302,7 +302,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 
         testInstance.setTargetInstanceManager(targetInstanceManager);
         testInstance.setWctCoordinator(coordinator);
-        testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+        testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 
         TargetInstance targetInstance = targetInstanceManager.getTargetInstance(5000L);
         List<HarvestResult> results = targetInstanceManager.getHarvestResults(targetInstance.getOid());
@@ -388,7 +388,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 //        DigitalAssetStoreClient mockDasClient = new DigitalAssetStoreClient("http://wctstore.natlib.govt.nz:19090", new RestTemplateBuilder());
         DigitalAssetStoreClient mockDasClient = mock(DigitalAssetStoreClient.class);
 
-        InTrayManagerImpl mockInTrayManager = new InTrayManagerImpl();
+        InTrayManager mockInTrayManager = new InTrayManager();
         mockInTrayManager.setWctBaseUrl("http://${core.host}:${core.port}/");
         ReflectionTestUtils.setField(testInstance, "digitalAssetStore", mockDasClient);
         ReflectionTestUtils.setField(testInstance, "inTrayManager", mockInTrayManager);
@@ -414,7 +414,7 @@ public class TargetInstanceResultHandlerTest extends BaseWCTTest<TargetInstanceR
 
         targetInstance.setState(TargetInstance.STATE_ENDORSED);
         testInstance.setDigitalAssetStore(mockDasClient);
-        testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+        testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
         mav = mockTabbedModelAndView(targetInstanceManager);
         aReq = new MockHttpServletRequest();
         testInstance.buildCustomDepositFormDetails(aReq, null, targetInstance, mav);

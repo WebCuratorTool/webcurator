@@ -156,15 +156,11 @@ public class QualityReviewToolController {
             }
 
             if (attr.harvestResourceUrlMapper != null) {
-                //TODO
-                HarvestResourceDTO hRsr = new HarvestResourceDTO();
-                hRsr.setName(seed.getSeed());
                 if (attr.enableAccessTool) {
-                    element.setAccessUrl(attr.harvestResourceUrlMapper.generateUrl(result, hRsr));
+                    element.setAccessUrl(attr.harvestResourceUrlMapper.generateUrl(result) + seed.getSeed());
                 }
             }
             seedMap.add(element);
         }
-
     }
 }

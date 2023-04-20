@@ -27,7 +27,7 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.reader.LogReaderImpl;
@@ -282,7 +282,7 @@ public class DasConfig {
         arcDigitalAssetStoreService.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         arcDigitalAssetStoreService.setFileArchive(createFileArchive());
 
-        NetworkMapNode.setTopDomainParse(networkMapDomainSuffix());
+        NetworkMapNodeUrlDTO.setTopDomainParse(networkMapDomainSuffix());
     }
 
     private NetworkMapDomainSuffix networkMapDomainSuffix() {

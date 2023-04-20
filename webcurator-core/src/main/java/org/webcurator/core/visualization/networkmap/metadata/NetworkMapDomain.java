@@ -1,17 +1,22 @@
 package org.webcurator.core.visualization.networkmap.metadata;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sleepycat.persist.model.Entity;
+import com.sleepycat.persist.model.PrimaryKey;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+@Entity
 public class NetworkMapDomain {
     public static final int DOMAIN_NAME_LEVEL_ROOT = 0; //All
     public static final int DOMAIN_NAME_LEVEL_HIGH = 1;
     public static final int DOMAIN_NAME_LEVEL_LOWER = 2;
     public static final int DOMAIN_NAME_LEVEL_STAT = 9;
 
+
+    @PrimaryKey
     private long id;
     private String title;
     private String contentType;
@@ -38,6 +43,9 @@ public class NetworkMapDomain {
 
     private List<NetworkMapDomain> statData = new ArrayList<>();
 
+    public NetworkMapDomain() {
+    }
+
     public NetworkMapDomain(int level, long id) {
         this.level = level;
         this.id = id;
@@ -51,13 +59,13 @@ public class NetworkMapDomain {
     }
 
     @JsonIgnore
-    public void addChildren(Collection<NetworkMapNode> list, AtomicLong idGenerator, NetworkMapDomainManager domainManager) {
-        Map<String, List<NetworkMapNode>> mapGroupByDomainTitle = new HashMap<>();
+    public void addChildren(Collection<NetworkMapNodeUrlDTO> list, AtomicLong idGenerator, NetworkMapDomainManager domainManager) {
+        Map<String, List<NetworkMapNodeUrlDTO>> mapGroupByDomainTitle = new HashMap<>();
 
         if (this.level == DOMAIN_NAME_LEVEL_ROOT) {
-            mapGroupByDomainTitle = list.stream().collect(Collectors.groupingBy(NetworkMapNode::getTopDomain));
+            mapGroupByDomainTitle = list.stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getTopDomain));
         } else if (this.level == DOMAIN_NAME_LEVEL_HIGH) {
-            mapGroupByDomainTitle = list.stream().collect(Collectors.groupingBy(NetworkMapNode::getDomain));
+            mapGroupByDomainTitle = list.stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getDomain));
         } else {
             return;
         }
@@ -77,12 +85,12 @@ public class NetworkMapDomain {
     }
 
     @JsonIgnore
-    public void addStatData(Collection<NetworkMapNode> list) {
+    public void addStatData(Collection<NetworkMapNodeUrlDTO> list) {
         this.accumulate(list);
 
-        Map<String, List<NetworkMapNode>> mapGroupByContentType = list.stream().collect(Collectors.groupingBy(NetworkMapNode::getContentType));
+        Map<String, List<NetworkMapNodeUrlDTO>> mapGroupByContentType = list.stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getContentType));
         mapGroupByContentType.forEach((contentType, contentTypeList) -> {
-            Map<Integer, List<NetworkMapNode>> mapGroupByStatusCode = contentTypeList.stream().collect(Collectors.groupingBy(NetworkMapNode::getStatusCode));
+            Map<Integer, List<NetworkMapNodeUrlDTO>> mapGroupByStatusCode = contentTypeList.stream().collect(Collectors.groupingBy(NetworkMapNodeUrlDTO::getStatusCode));
             mapGroupByStatusCode.forEach((k, v) -> {
                 NetworkMapDomain domain = new NetworkMapDomain(DOMAIN_NAME_LEVEL_STAT, 0);
                 domain.setTitle(this.getTitle());
@@ -101,7 +109,7 @@ public class NetworkMapDomain {
     }
 
     @JsonIgnore
-    private void accumulate(Collection<NetworkMapNode> list) {
+    private void accumulate(Collection<NetworkMapNodeUrlDTO> list) {
         list.forEach(e -> {
             if (e.isSuccess(e.getStatusCode())) {
                 this.totSuccess += 1;

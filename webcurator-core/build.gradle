@@ -9,15 +9,20 @@ repositories {
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
-    maven {
-        url='http://builds.archive.org/maven2'
-    }
+    // maven {
+    //     url='http://builds.archive.org/maven2'
+    // }
+    // maven{
+    //     url = 'http://download.oracle.com/maven/'
+    // }
     maven{
-        url = 'http://download.oracle.com/maven/'
+        url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
 }
 dependencies {
-    compile 'org.netpreserve.commons:webarchive-commons:1.1.8'
+    compile ('org.netpreserve.commons:webarchive-commons:1.1.8') {
+        exclude group: 'org.apache.hadoop.thirdparty.guava', module: 'guava'
+    }
     compile('org.archive:heritrix:1.14.2-webcuratortool-2.0.2') {
         exclude group: 'javax.servlet', module: 'servlet-api'
         exclude group: 'commons-pool', module: 'commons-pool'
@@ -33,7 +38,7 @@ dependencies {
     compile 'com.ibm:ibmjsse:1.0'
     compile 'com.google.guava:guava:14.0.1'
     compile 'net.sf:jargs:1.0'
-    compile 'com.sleepycat:je:4.1.6'
+    compile 'com.sleepycat:je:18.3.12'
     compile 'javax.mail:mail:1.4.7'
     compile 'javax.validation:validation-api:2.0.1.Final'
     compile 'mysql:mysql-connector-java:5.1.6'
@@ -61,7 +66,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.3'
+version = '3.1.4-SNAPSHOT'
 description = 'Web Curator Tool Core'
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'

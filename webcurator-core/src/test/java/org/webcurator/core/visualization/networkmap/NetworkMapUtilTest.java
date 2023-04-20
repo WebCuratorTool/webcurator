@@ -6,13 +6,13 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.webcurator.core.visualization.BaseVisualizationTest;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapTreeNodeDTO;
+import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderDTO;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
-import org.webcurator.core.visualization.networkmap.service.NetworkMapCascadePath;
+import org.webcurator.core.visualization.networkmap.processor.FolderTreeViewGenerator;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapServiceSearchCommand;
 
@@ -34,7 +34,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
         } catch (Exception e) {
             log.error("Load domain suffix file failed.", e);
         }
-        NetworkMapNode.setTopDomainParse(suffixParser);
+        NetworkMapNodeUrlDTO.setTopDomainParse(suffixParser);
 
         String dbPath = pool.getDbPath(targetInstanceId, harvestResultNumber);
         File f = new File(dbPath);
@@ -49,14 +49,14 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
     @Test
     public void testClassifyTreeViewByPathName() {
         NetworkMapClientLocal localClient = new NetworkMapClientLocal(pool, processorManager);
-        BDBNetworkMap db = pool.getInstance(targetInstanceId, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(targetInstanceId, harvestResultNumber);
 
         NetworkMapServiceSearchCommand searchCommand = new NetworkMapServiceSearchCommand();
-        List<NetworkMapNodeDTO> networkMapNodeDTOList = localClient.searchUrlDTOs(db, targetInstanceId, harvestResultNumber, searchCommand);
+        List<NetworkMapNodeUrlEntity> networkMapNodeUrlEntityList = localClient.searchUrlDTOs(db, searchCommand);
 
-        NetworkMapTreeNodeDTO rootTreeNodeDTO = new NetworkMapTreeNodeDTO();
-        networkMapNodeDTOList.forEach(node -> {
-            NetworkMapTreeNodeDTO treeNodeDTO = new NetworkMapTreeNodeDTO();
+        NetworkMapNodeFolderDTO rootTreeNodeDTO = new NetworkMapNodeFolderDTO();
+        networkMapNodeUrlEntityList.forEach(node -> {
+            NetworkMapNodeFolderDTO treeNodeDTO = new NetworkMapNodeFolderDTO();
             treeNodeDTO.setUrl(node.getUrl());
             treeNodeDTO.setContentType(node.getContentType());
             treeNodeDTO.setStatusCode(node.getStatusCode());
@@ -65,7 +65,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
             rootTreeNodeDTO.getChildren().add(treeNodeDTO);
         });
 
-        NetworkMapCascadePath cascadePath = new NetworkMapCascadePath();
+        FolderTreeViewGenerator cascadePath = new FolderTreeViewGenerator();
         cascadePath.classifyTreePaths(rootTreeNodeDTO);
 
         log.debug("Size: {}", rootTreeNodeDTO.getChildren().size());
@@ -75,11 +75,11 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
 
     @Test
     public void testClassifyTreeViewByPathName2() {
-        NetworkMapCascadePath cascadePath = new NetworkMapCascadePath();
+        FolderTreeViewGenerator cascadePath = new FolderTreeViewGenerator();
         int first_level = 0;
 
         {
-            NetworkMapTreeNodeDTO rootTreeNodeDTO = new NetworkMapTreeNodeDTO();
+            NetworkMapNodeFolderDTO rootTreeNodeDTO = new NetworkMapNodeFolderDTO();
             insertNode(rootTreeNodeDTO, "http://a.b.c/d/e/f?x=1", 3);
 
             cascadePath.classifyTreePaths(rootTreeNodeDTO);
@@ -87,7 +87,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
         }
 
         {
-            NetworkMapTreeNodeDTO rootTreeNodeDTO = new NetworkMapTreeNodeDTO();
+            NetworkMapNodeFolderDTO rootTreeNodeDTO = new NetworkMapNodeFolderDTO();
             insertNode(rootTreeNodeDTO, "http://a.b.c/d/e/f?x=1", 3);
             insertNode(rootTreeNodeDTO, "http://a.b.c/d/u/v?x=1", 5);
 
@@ -96,7 +96,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
         }
 
         {
-            NetworkMapTreeNodeDTO rootTreeNodeDTO = new NetworkMapTreeNodeDTO();
+            NetworkMapNodeFolderDTO rootTreeNodeDTO = new NetworkMapNodeFolderDTO();
             insertNode(rootTreeNodeDTO, "http://a.b.c/d/e/f?x=1", 3);
             insertNode(rootTreeNodeDTO, "http://a.b.c/d/u/v?x=1", 5);
             insertNode(rootTreeNodeDTO, "http://a.b.c/", 5);
@@ -106,7 +106,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
         }
 
         {
-            NetworkMapTreeNodeDTO rootTreeNodeDTO = new NetworkMapTreeNodeDTO();
+            NetworkMapNodeFolderDTO rootTreeNodeDTO = new NetworkMapNodeFolderDTO();
             insertNode(rootTreeNodeDTO, "http://a.b.c/d/e/f?x=1", 3);
             insertNode(rootTreeNodeDTO, "http://a.b.c/d/u/v?x=1", 5);
             insertNode(rootTreeNodeDTO, "http://a.b.c/", 5);
@@ -118,8 +118,8 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
         log.debug("Finished");
     }
 
-    private void insertNode(NetworkMapTreeNodeDTO rootTreeNodeDTO, String url, long contentLength) {
-        NetworkMapTreeNodeDTO node = new NetworkMapTreeNodeDTO();
+    private void insertNode(NetworkMapNodeFolderDTO rootTreeNodeDTO, String url, long contentLength) {
+        NetworkMapNodeFolderDTO node = new NetworkMapNodeFolderDTO();
         node.setUrl(url);
         node.setContentType("N/A");
         node.setStatusCode(200);
@@ -131,7 +131,7 @@ public class NetworkMapUtilTest extends BaseVisualizationTest {
 
     @Test
     public void testGetNextTitle() {
-        NetworkMapCascadePath cascadePath = new NetworkMapCascadePath();
+        FolderTreeViewGenerator cascadePath = new FolderTreeViewGenerator();
         {
             String url = "http://a.b.c/d/u/v?x=1";
             String parentTitle = null;

@@ -206,7 +206,7 @@ public class GroupSearchControllerTest extends BaseWCTTest<GroupSearchController
 
 	@Test
 	public final void testSetAgencyUserManager() {
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 	}
 
 	@Test

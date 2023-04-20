@@ -30,11 +30,11 @@ public class NetworkMapDomainManager {
         return this.indexDomainMap.get("lower_" + key);
     }
 
-    public NetworkMapDomain getHighDomain(NetworkMapNode node) {
+    public NetworkMapDomain getHighDomain(NetworkMapNodeUrlDTO node) {
         return this.indexDomainMap.get("high_" + node.getTopDomain());
     }
 
-    public NetworkMapDomain getLowerDomain(NetworkMapNode node) {
+    public NetworkMapDomain getLowerDomain(NetworkMapNodeUrlDTO node) {
         return this.indexDomainMap.get("lower_" + node.getDomain());
     }
 

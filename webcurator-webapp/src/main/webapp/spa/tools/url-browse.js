@@ -1,14 +1,22 @@
-var _browse_openwayback='http://localhost:8090/wayback/*/';
+var _browse_archive='http://localhost:8090/wayback/*/';
+var _browse_access_tool='http://localhost:8090/wayback/*/';
 
-function browseUrl(data, _browse_type){
+function browseUrl(data, _browse_type) {
 	_browse_type=_browse_type.toUpperCase();
 	var url;
-	if (_browse_type==='LOCAL') {
-		url=webContextPath+'/curator/tools/browse/' + harvestResultId + '/?url='+btoa(data.url);
-	} else if(_browse_type==='LIVESITE'){
-		url=data.url;
-	}else{
-		url=_browse_openwayback + data.url;
+	switch(_browse_type) {
+	    case 'LOCAL':
+		    url=webContextPath+'/curator/tools/browse/' + harvestResultId + '/?url='+btoa(data.url);
+		    break;
+		case 'LIVESITE':
+		    url=data.url;
+		    break;
+		case 'ACCESSTOOL':
+		    url=_browse_access_tool + data.url;
+		    break;
+		case 'ARCHIVE':
+		    url=_browse_archive + data.url;
+		    break;
 	}
 	window.open(url);
 }

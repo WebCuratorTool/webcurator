@@ -15,9 +15,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.domain.model.auth.Agency;
 import org.webcurator.test.BaseWCTTest;
 import org.webcurator.ui.admin.command.*;
@@ -56,7 +56,7 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 	public final void testShowForm() {
 		try
 		{
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 			testInstance.showForm();
 		}
@@ -112,7 +112,7 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 	public final void testSetAgencyUserManager() {
 		try
 		{
-			AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+			AgencyUserManager manager = new MockAgencyUserManager(testFile);
 			testInstance.setAgencyUserManager(manager);
 		}
 		catch(Exception e)
@@ -127,7 +127,7 @@ public class ChangePasswordControllerTest extends BaseWCTTest<ChangePasswordCont
 	public final void testSetAuthorityManager() {
 		try
 		{
-			AuthorityManager manager = new AuthorityManagerImpl();
+			AuthorityManager manager = new AuthorityManager();
 			testInstance.setAuthorityManager(manager);
 		}
 		catch(Exception e)

@@ -163,7 +163,6 @@ const treeOptionsBasic={
 	selectMode: 3,
 	renderColumns: function(event, treeNode) {
 		var nodeData=treeNode.node.data;
-
 		var $tdList = $(treeNode.node.tr).find(">td");
 
 		if (nodeData.contentType && nodeData.contentType!=='unknown') {
@@ -184,9 +183,13 @@ const treeOptionsBasic={
 		$tdList.eq(8).text(formatContentLength(nodeData.totSize));
 
 		$(treeNode.node.tr).attr("key", ""+treeNode.node.key);
+		if(!isActualFolder){
+			$(treeNode.node.tr).attr("url-key", ""+treeNode.node.key);
+		}
 
+		var isActualFolder = nodeData && nodeData.subFolderList && nodeData.subUrlList && (nodeData.subFolderList.length > 0 || nodeData.subUrlList.length > 0);
 		// $(treeNode.node.tr).attr("data", JSON.stringify(nodeData));
-		if (nodeData.id > 0) {
+		if (!isActualFolder && nodeData.id > 0) {
 			$(treeNode.node.tr).attr("idx", ""+nodeData.id);
 
 			var toBeModifiedNode=gPopupModifyHarvest.gridToBeModified.getNodeByDataId(nodeData.id);
@@ -250,7 +253,28 @@ const treeOptionsCascadedPath=Object.assign({
 			return "fas fa-link text-link";
 		}
 	},
+    lazyLoad: function(event, data) {
+        var nodeData=data.node.data;
+        var deferredResult = jQuery.Deferred();
+        var result = [];
+        var isDomain=nodeData.isDomain;
+        var viewType=nodeData.viewType;
+        var urlSubFolders = "/networkmap/get/urls/cascaded-by-path?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + "&folderId=" + nodeData.id;
 
+        fetchHttp(urlSubFolders, {}, function(response){
+            var dataset=[];
+            if(response.rspCode === 1){
+                toastr.warning(response.rspMsg);
+            }else if(response.rspCode !== 0){
+                toastr.error(response.rspMsg);
+                return;
+            }
+            dataset=JSON.parse(response.payload);
+            deferredResult.resolve(dataset);
+        });
+
+        data.result = deferredResult;
+    },
 }, treeOptionsBasic);
 
 
@@ -287,6 +311,19 @@ class HierarchyTree{
 		nodeData.folder=treeNode.folder;
 		return nodeData;
 	}
+
+	_getKeyFromNode(treeNode){
+		if(!treeNode){
+			return "null";
+		}
+		var nodeData=treeNode.data;
+		if(treeNode.folder){
+			return "folder-"+nodeData.id;
+		}else{
+			return "url-"+nodeData.id;
+		}
+	}
+
 
 	draw(dataset){
 		dataset=formatLazyloadData(dataset);
@@ -343,43 +380,48 @@ class HierarchyTree{
 	getSelectedNodes(){
 		var selData=[];
 		var selNodes = $.ui.fancytree.getTree(this.container).getSelectedNodes();
+		// var map={};
 		for(var i=0; i<selNodes.length; i++){
 			var treeNode=selNodes[i];
 			var nodeData=this._getDataFromNode(treeNode);
-			if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
-			|| (this.container==='#hierachy-tree-harvest-struct' && (!treeNode.folder || treeNode.folder===false))) {
-				selData.push(nodeData);
+			// var key=this._getKeyFromNode(treeNode);
+			// map[key]=true;
+
+			// var keyParent=this._getKeyFromNode(treeNode.parent);
+			// if(keyParent in map){
+			//	continue;
+			//}
+			if(nodeData.id <= 0){
+			    continue;
 			}
-			// selData.push(selNodes[i].data);
-			// $.ui.fancytree.getTree(this.container).applyCommand('indent', selNodes[i]);
+			
+			selData.push(nodeData);
 		}
 
-		// console.log(selData);
 		return selData;
 	}
 
 	getAllNodes(){
+		var map={};
 		var dataset=[];
 		var rootNode= $.ui.fancytree.getTree(this.container).getRootNode();
-		this._walkAllNodes(dataset, rootNode);
+		this._walkAllNodes(map, dataset, rootNode);
+		
 		return dataset;
 	}
 
-	_walkAllNodes(dataset, treeNode){
+	_walkAllNodes(map, dataset, treeNode){
 		var nodeData=this._getDataFromNode(treeNode);
 
-		if ((this.container==='#hierachy-tree-url-names' && treeNode.folder!=null && treeNode.folder===false)
-			|| (this.container==='#hierachy-tree-harvest-struct' && treeNode.folder!==null)) {
-			dataset.push(nodeData);
-		}
+		var key=this._getKeyFromNode(treeNode);
+		map[key]=true;
 
-		var childrenNodes=treeNode.children;
-		if (!childrenNodes) {
+		var keyParent=this._getKeyFromNode(treeNode.parent);
+		if(keyParent in map){
 			return;
 		}
-		for(var i=0; i<childrenNodes.length; i++){
-			this._walkAllNodes(dataset, childrenNodes[i]);
-		}
+
+		dataset.push(nodeData);
 	}
 
 	clearAll(){
@@ -520,7 +562,7 @@ class PopupModifyHarvest{
 		$('.hierachy-tree td').removeClass("tree-row-file");
 		for(var key in toBeModifiedDataMap){
 			var classOfTreeRow=this.getTreeNodeStyle(toBeModifiedDataMap[key].option);
-			console.log('.hierachy-tree tr[idx="' + key + '"] td' + classOfTreeRow);
+			// console.log('.hierachy-tree tr[idx="' + key + '"] td' + classOfTreeRow);
 			$('.hierachy-tree tr[idx="' + key + '"] td').addClass(classOfTreeRow);
 		}
 
@@ -538,8 +580,44 @@ class PopupModifyHarvest{
 
 	undo(data, source){
 		this.gridToBeModified.clear(data);
-		this.gridToBeModifiedVerified.clear(data);
+		// this.gridToBeModifiedVerified.clear(data);
+		this.gridToBeModifiedVerified.gridOptions.api.redrawRows(true);
 		this.setRowStyle();
+	}
+
+	modify_recursively(source, dataset, option){
+		var reqUrl="";
+		if (source.container && source.container==='#hierachy-tree-url-names') {
+			reqUrl="/networkmap/query-children-recursively/folder";
+		}else if (source.container && source.container==='#hierachy-tree-harvest-struct') {
+			reqUrl="/networkmap/query-children-recursively/crawl";
+		}else{
+			this.modify(dataset, option);
+			return;
+		}
+
+	    disablePatchHarvestButton();
+		reqUrl+="?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber;
+		var treeInstance=this;
+		fetchHttp(reqUrl, dataset, function(response){
+			if (response.rspCode !=0) {
+			    enablePatchHarvestButton();
+				toastr.error(response.rspMsg);
+				return;
+			}
+
+			var nodes=JSON.parse(response.payload);
+			var map={};
+			for (var i = 0; i < nodes.length; i++) {
+				nodes[i].option=option;
+				nodes[i].flag='new';
+				nodes[i].existingFlag=true;
+				nodes[i].index=i;
+				map[i]=nodes[i];
+			}
+			treeInstance._moveHarvest2ToBeModifiedList(nodes, option);
+			enablePatchHarvestButton();
+		});
 	}
 
 	modify(dataset, option){
@@ -563,16 +641,19 @@ class PopupModifyHarvest{
 	}
 
 	_appendAndMoveHarvest2ToBeModifiedList(data, callback){
+	    disablePatchHarvestButton();
 		var popupModifyHarvestInstance=this;
 		var url="/check-and-append?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
 		fetchHttp(url, data, function(rsp){
 			if (rsp.rspCode!==0) {
-				alert(rsp.rspMsg);
+				toastr.error(rsp.rspMsg);
+				enablePatchHarvestButton();
 				return;
 			}
 
 			var dataset=JSON.parse(rsp.payload);
 			callback(dataset);
+			enablePatchHarvestButton();
 		});
 	}
 
@@ -729,8 +810,8 @@ class PopupModifyHarvest{
 		fetchHttp(url, searchCondition, function(response){
 			if (response.rspCode != 0) {
 				g_TurnOffOverlayLoading();
-				alert(response.rspMsg);
-				return;	 
+			    toastr.error(response.rspMsg);
+                return;
 	        }
 
 			var data=JSON.parse(response.payload);
@@ -784,7 +865,7 @@ class PopupModifyHarvest{
 	}
 
 	initFolderTreeView(searchCommand){
-		var reqUrl = "/networkmap/get/urls/cascaded-by-path?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + '&title=';
+		var reqUrl = "/networkmap/get/urls/cascaded-by-path?job=" + jobId + "&harvestResultNumber=" + harvestResultNumber + '&folderId=-1';
 		var popupModifyHarvestInstance=this;
 		g_TurnOnOverlayLoading();
 		fetchHttp(reqUrl, searchCommand, function(response){
@@ -801,15 +882,17 @@ class PopupModifyHarvest{
 		});
 	}
 
-	exportData(req){
+	exportData(source, req){
 		g_TurnOnOverlayLoading();
-		// var req=[];
-		// for (var i = 0; i< data.length; i++) {
-		// 	var node=data[i];
-		// 	if (node.viewType && node.viewType===2 && ) {}
-		// 	data[i]
-		// }
-		var url=webContextPath+"/curator/export/data?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber;
+
+		var viewType="common";
+		if (source.container && source.container==='#hierachy-tree-url-names') {
+			viewType="folder";
+		}else if (source.container && source.container==='#hierachy-tree-harvest-struct') {
+			viewType="crawl";
+		}
+
+		var url=webContextPath+"/curator/export/data?targetInstanceOid=" + this.jobId + "&harvestNumber=" + this.harvestResultNumber + "&viewType=" + viewType;
 		fetch(url, { 
 		    method: 'POST',
 		    redirect: 'follow',

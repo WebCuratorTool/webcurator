@@ -7,11 +7,15 @@ public class NetworkMapResult {
     private static final Logger log = LoggerFactory.getLogger(NetworkMapResult.class);
 
     public static final int RSP_CODE_SUCCESS = 0;
-    public static final int RSP_ERROR_DATA_NOT_EXIST = 1;
+
+    public static final int RSP_CODE_WARN = 1;
 
     public static final int RSP_ERROR_DB_NOT_FOUND = -1;
     public static final int RSP_ERROR_BAD_REQUEST = -2;
     public static final int RSP_ERROR_INITIAL_EXTRACTOR_FAILED = -3;
+
+    public static final int RSP_ERROR_DATA_NOT_EXIST = -4;
+
     public static final int RSP_ERROR_SYSTEM = -9;
 
     private int rspCode = RSP_CODE_SUCCESS;

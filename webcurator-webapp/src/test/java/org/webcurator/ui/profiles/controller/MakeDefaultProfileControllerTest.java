@@ -10,7 +10,7 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.BaseWCTTest;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.agency.*;
 import org.webcurator.core.profiles.*;
 import org.webcurator.domain.model.auth.Privilege;
@@ -58,8 +58,8 @@ public class MakeDefaultProfileControllerTest extends BaseWCTTest<MakeDefaultPro
 		ProfileListCommand command = null;
 		ProfileManager profileManager = new MockProfileManager(testFile);
 		testInstance.setProfileManager(profileManager);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
-		testInstance.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		testInstance.setAuthorityManager(new AuthorityManager());
+		testInstance.setAgencyUserManager(new MockAgencyUserManager(testFile));
 
 		try
 		{

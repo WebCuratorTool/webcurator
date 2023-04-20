@@ -14,8 +14,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.auth.AuthorityManager;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.core.targets.MockTargetManager;
 import org.webcurator.core.targets.TargetManager;
@@ -57,8 +57,8 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 		tabGeneral.setValidator(new GeneralValidator());
 
 		GeneralHandler genHandler = new GeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
-		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
+		genHandler.setAuthorityManager(new AuthorityManager());
+		genHandler.setAgencyUserManager(new MockAgencyUserManager(testFile));
 		genHandler.setTargetManager(tm);
 		genHandler.setSubGroupSeparator(" > ");
 		genHandler.setSubGroupTypeName("Sub-Group");
@@ -348,7 +348,7 @@ public class MoveTargetsControllerTest extends BaseWCTTest<MoveTargetsController
 	public final void testSetAuthorityManager() {
 		try
 		{
-			testInstance.setAuthorityManager(new AuthorityManagerImpl());
+			testInstance.setAuthorityManager(new AuthorityManager());
 		}
 		catch(Exception e)
 		{
