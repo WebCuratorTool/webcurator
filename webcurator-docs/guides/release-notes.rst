@@ -14,6 +14,31 @@ Curator Tool System Administrator Guide*, *Web Curator Tool Developer Guide*,
 accurate for the current release, the *Release Notes* can give some idea of
 how things have changed since the last major release.
 
+3.1.4
+=====
+
+Patch release, April 2023:
+
+- Harvest Visualization and Analysis uplift
+
+  - Tree views now allow operations on selected URLs and their children.
+  - Data within tree view folders is now lazy loaded.
+  - Reduced the loop time of the network map adjustment.
+  - Refactored  URL, Folder and Domain entities to speed up iteration of data.
+  - Limited the size of the customized search result datasets. If the number of URLs exceeds 32K,
+    it will warn Users to narrow the search conditions.
+  - Berkley DB upgraded to latest version to reduce size of BDB files.
+  - Browse context menu now has link to Access Tool
+
+- Some repository URLs updated that were not reachable (Oracle JDBC driver, webarchive-commons).
+
+- The redundant HarvestResourceDTO class has been removed.
+
+- CDX format now configurable. By default files now also generated with a non-SURT formatted URL in the N-field.
+
+- Fix added for Harvest Agents that fail to transfer harvests completely, which result in a Target Instance stuck in the
+  Stopping state.
+
 3.1.3
 =====
 
