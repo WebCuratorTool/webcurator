@@ -137,6 +137,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         writerDF.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
+    public boolean isFileExisting(String targetInstanceName, String directory, String fileName) {
+        if (directory == null || directory.trim().length() == 0) {
+            directory = "1";
+        }
+
+        // Target destination is always baseDir plus targetInstanceName.
+        File targetDir = new File(baseDir, String.format("%s%s%s%s%s", targetInstanceName, File.separator, directory, File.separator, fileName));
+        return targetDir.exists();
+    }
+
     /**
      * Read data from HTTP API and save to storage of store component
      *
