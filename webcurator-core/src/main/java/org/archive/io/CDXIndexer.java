@@ -24,7 +24,7 @@ public class CDXIndexer extends IndexerBase {
     private File directory;
     private boolean enabled = false;
     private String format = CdxFormat.CDX11.legend();
-
+    private boolean useSurt = false;
 
     public CDXIndexer() {
         super();
@@ -38,6 +38,7 @@ public class CDXIndexer extends IndexerBase {
         super(original);
         enabled = original.enabled;
         format = original.format;
+        useSurt = original.useSurt;
     }
 
     /**
@@ -70,7 +71,17 @@ public class CDXIndexer extends IndexerBase {
                         record = reader.next().orElse(null);
                         long length = reader.position() - position;
 
-                        cdxWriter.write(cdxFormat.format(capture, filename, position, length));
+                        if (useSurt) {
+                            cdxWriter.write(cdxFormat.format(capture, filename, position, length));
+                        } else {
+                            // we don't want the N-field to be SURT-formatted, so we supply our own value
+                            URI uri = capture.targetURI();
+                            String massagedUrl = null;
+                            if (uri != null) {
+                                massagedUrl = uri.toASCIIString().replaceAll("[^//]+://(www\\.)?", "");
+                            }
+                            cdxWriter.write(cdxFormat.format(capture, filename, position, length, massagedUrl));
+                        }
                         cdxWriter.newLine();
                     } else {
                         record = reader.next().orElse(null);
@@ -156,4 +167,14 @@ public class CDXIndexer extends IndexerBase {
     public void setFormat(String format) {
         this.format = format.trim();
     }
+
+    public boolean useSurt() {
+        return useSurt;
+    }
+
+    public void setUseSurt(boolean useSurt) {
+        this.useSurt = useSurt;
+    }
+
+
 }

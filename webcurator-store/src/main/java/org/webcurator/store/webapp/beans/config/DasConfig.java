@@ -108,6 +108,9 @@ public class DasConfig {
     @Value("${cdxIndexer.format}")
     private String cdxIndexerFormat;
 
+    @Value("${cdxIndexer.useSurt}")
+    private boolean cdxIndexerUseSurt;
+
     @Value("${fileArchive.archiveRepository}")
     private String fileArchiveArchiveRepository;
 
@@ -433,7 +436,7 @@ public class DasConfig {
         CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(cdxIndexerEnabled);
         bean.setFormat(cdxIndexerFormat);
-
+        bean.setUseSurt(cdxIndexerUseSurt);
         return bean;
     }
 
