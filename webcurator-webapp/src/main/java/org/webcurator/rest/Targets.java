@@ -3,6 +3,7 @@ package org.webcurator.rest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.Pagination;
@@ -47,15 +48,15 @@ public class Targets {
     @Autowired
     private TargetDAO targetDAO;
 
-    @GetMapping(path = "")
-    public ResponseEntity<?> get(@RequestParam(required = false) Long targetId, @RequestParam(required = false) String name,
-                                 @RequestParam(required = false) String seed, @RequestParam(required = false) String agency,
-                                 @RequestParam(required = false) String userId, @RequestParam(required = false) String description,
-                                 @RequestParam(required = false) String groupName, @RequestParam(required = false) boolean nonDisplayOnly,
-                                 @RequestParam(required = false) Set<Integer> states, @RequestParam(required = false) String sortBy,
-                                 @RequestParam(required = false) Integer offset, @RequestParam(required = false) Integer limit) {
-        // The actual filtering
-        Filter filter = new Filter(targetId, name, seed, agency, userId, description, groupName, nonDisplayOnly, states);
+    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
+        if (searchParams == null) {
+            searchParams = new SearchParams();
+        }
+        Filter filter = searchParams.getFilter();
+        Integer offset = searchParams.getOffset();
+        Integer limit = searchParams.getLimit();
+        String sortBy = searchParams.getSortBy();
         try {
             SearchResult searchResult = search(filter, offset, limit, sortBy);
             HashMap<String, Object> responseMap = new HashMap<>();
@@ -500,30 +501,136 @@ public class Targets {
         }
     }
 
+
+    /**
+     * POJO that the framework maps the JSON query data into
+     */
+    private static class SearchParams {
+        private Filter filter;
+        private Integer offset;
+        private Integer limit;
+        private String sortBy;
+
+        SearchParams() {
+            filter = new Filter();
+        }
+
+        public Filter getFilter() {
+            return filter;
+        }
+
+        public void setFilter(Filter filter) {
+            this.filter = filter;
+        }
+
+        public Integer getOffset() {
+            return offset;
+        }
+
+        public void setOffset(Integer offset) {
+            this.offset = offset;
+        }
+
+        public Integer getLimit() {
+            return limit;
+        }
+
+        public void setLimit(Integer limit) {
+            this.limit = limit;
+        }
+
+        public String getSortBy() {
+            return sortBy;
+        }
+
+        public void setSortBy(String sortBy) {
+            this.sortBy = sortBy;
+        }
+    }
+
     /**
      * Wrapper for the search filter
      */
-    private class Filter {
-        public Long targetId;
-        public String name;
-        public String seed;
-        public String agency;
-        public String userId;
-        public String description;
-        public String groupName;
-        public boolean nonDisplayOnly;
-        public Set<Integer> states;
+    private static class Filter {
+        private Long targetId;
+        private String name;
+        private String seed;
+        private String agency;
+        private String userId;
+        private String description;
+        private String groupName;
+        private boolean nonDisplayOnly;
+        private Set<Integer> states;
 
-        Filter(Long targetId, String name, String seed, String agency, String userId, String description,
-               String groupName, boolean nonDisplayOnly, Set<Integer> states) {
+        public Long getTargetId() {
+            return targetId;
+        }
+
+        public void setTargetId(Long targetId) {
             this.targetId = targetId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
             this.name = name;
+        }
+
+        public String getSeed() {
+            return seed;
+        }
+
+        public void setSeed(String seed) {
             this.seed = seed;
+        }
+
+        public String getAgency() {
+            return agency;
+        }
+
+        public void setAgency(String agency) {
             this.agency = agency;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
             this.userId = userId;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
             this.description = description;
+        }
+
+        public String getGroupName() {
+            return groupName;
+        }
+
+        public void setGroupName(String groupName) {
             this.groupName = groupName;
+        }
+
+        public boolean isNonDisplayOnly() {
+            return nonDisplayOnly;
+        }
+
+        public void setNonDisplayOnly(boolean nonDisplayOnly) {
             this.nonDisplayOnly = nonDisplayOnly;
+        }
+
+        public Set<Integer> getStates() {
+            return states;
+        }
+
+        public void setStates(Set<Integer> states) {
             this.states = states;
         }
     }
