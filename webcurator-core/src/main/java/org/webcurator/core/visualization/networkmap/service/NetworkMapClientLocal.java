@@ -4,6 +4,7 @@ import com.sleepycat.persist.EntityCursor;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.URLResolverFunc;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationProgressView;
@@ -24,11 +25,17 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     private final BDBNetworkMapPool pool;
     private final VisualizationProcessorManager visualizationProcessorManager;
     private final FolderTreeViewMgmt folderMgmt;
+    private final VisualizationDirectoryManager visualizationDirectoryManager;
 
     public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorManager visualizationProcessorManager) {
         this.pool = pool;
         this.folderMgmt = new FolderTreeViewMgmt(this.pool);
         this.visualizationProcessorManager = visualizationProcessorManager;
+        if (visualizationProcessorManager != null) {
+            visualizationDirectoryManager = visualizationProcessorManager.getVisualizationDirectoryManager();
+        } else {
+            visualizationDirectoryManager = null;
+        }
     }
 
     @Override
@@ -561,7 +568,21 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return result;
     }
 
-
+    @Override
+    public Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber) {
+        NetworkMapResult resultDbVersion = this.getDbVersion(targetInstanceId, harvestResultNumber);
+        NetworkDbVersionDTO versionDTO = this.getDbVersionDTO(resultDbVersion.getPayload());
+        Map<String, String> map = new HashMap<>();
+        map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
+        map.put("globalVersion", versionDTO.getGlobalVersion());
+        map.put("currentVersion", versionDTO.getCurrentVersion());
+        if (this.visualizationDirectoryManager != null) {
+            map.put("openWayBack", this.visualizationDirectoryManager.getOpenWayBack());
+        } else {
+            map.put("openWayBack", "unknown");
+        }
+        return map;
+    }
 }
 
 class CompiledSearchCommand {

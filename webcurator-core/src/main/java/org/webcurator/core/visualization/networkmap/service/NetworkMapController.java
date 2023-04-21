@@ -3,16 +3,20 @@ package org.webcurator.core.visualization.networkmap.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class NetworkMapController implements NetworkMapService {
     @Autowired
     private NetworkMapClient client;
+    @Autowired
+    private VisualizationDirectoryManager visualizationDirectoryManager;
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_INITIAL_INDEX, method = {RequestMethod.POST}, produces = "application/json")
@@ -144,5 +148,11 @@ public class NetworkMapController implements NetworkMapService {
     @RequestMapping(path = VisualizationConstants.PATH_QUERY_CHILDREN_RECURSIVELY_FOLDER, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult queryChildrenRecursivelyFolder(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> nodes) {
         return client.queryChildrenRecursivelyFolder(job, harvestResultNumber, nodes);
+    }
+
+    @Override
+    @RequestMapping(path = VisualizationConstants.GLOBAL_SETTINGS, method = {RequestMethod.POST, RequestMethod.GET})
+    public Map<String, String> getGlobalSettings(@RequestParam("targetInstanceOid") long targetInstanceId, @RequestParam("harvestResultId") long harvestResultId, @RequestParam("harvestNumber") int harvestResultNumber) {
+        return client.getGlobalSettings(targetInstanceId, harvestResultId, harvestResultNumber);
     }
 }

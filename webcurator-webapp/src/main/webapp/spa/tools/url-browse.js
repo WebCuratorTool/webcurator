@@ -6,7 +6,7 @@ function browseUrl(data, _browse_type) {
 	var url;
 	switch(_browse_type) {
 	    case 'LOCAL':
-		    url=webContextPath+'/curator/tools/browse/' + harvestResultId + '/?url='+btoa(data.url);
+		    url=webContextPath+'/curator/tools/browse/' + jobId + '/' + harvestResultNumber + '/?url='+btoa(data.url);
 		    break;
 		case 'LIVESITE':
 		    url=data.url;
@@ -22,7 +22,7 @@ function browseUrl(data, _browse_type) {
 }
 
 function downloadUrl(data){
-	var url=webContextPath+'/curator/tools/download/'+harvestResultId+'/?url='+btoa(data.url);
+	var url=webContextPath+'/curator/tools/download/' + jobId + '/' + harvestResultNumber + '/?url='+btoa(data.url);
 	downloadRemote(url, data.url);
 }
 

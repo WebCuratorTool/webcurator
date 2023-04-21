@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -32,7 +31,6 @@ import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
@@ -47,12 +45,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -105,9 +100,6 @@ public class HarvestModificationHandler {
 
     @Autowired
     private HarvestResourceUrlMapper harvestResourceUrlMapper;
-
-    @Autowired
-    private BrowseHelper browseHelper;
 
     public void clickStart(long targetInstanceId, int harvestResultNumber) throws WCTRuntimeException, DigitalAssetStoreException {
         HarvestResultDTO hrDTO = harvestResultManager.getHarvestResultDTO(targetInstanceId, harvestResultNumber);
@@ -419,159 +411,6 @@ public class HarvestModificationHandler {
         result.put(key, pair);
     }
 
-    public void handleDownload(Long hrOid, String url, HttpServletRequest req, HttpServletResponse rsp) throws IOException, DigitalAssetStoreException {
-        url = new String(Base64.getDecoder().decode(url));
-
-        // Build a command with the items from the URL.
-        // Load the HarvestResourceDTO from the quality review facade.
-        HarvestResult hr = targetInstanceDAO.getHarvestResult(hrOid);
-        if (hr == null) {        // If the resource is not found, go to an error page.
-            log.error("Resource not found: {}", url);
-            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-
-        TargetInstance ti = hr.getTargetInstance();
-        if (ti == null) {        // If the resource is not found, go to an error page.
-            log.error("Resource not found: {}", url);
-            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-
-        List<Header> headers = new ArrayList<>();
-        try {        // catch any DigitalAssetStoreException and log assumptions
-            headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), url);
-        } catch (Exception e) {
-            log.error("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
-        }
-
-        String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
-        if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        int statusCode = Integer.parseInt(strStatusCode);
-
-        // Send the headers for a redirect.
-        if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
-            rsp.setStatus(statusCode);
-            String location = getHeaderValue(headers, "Location");
-            if (!Utils.isEmpty(location) && !location.startsWith("http")) {
-                location = url + location;
-            }
-            String encodedLocation = Base64.getEncoder().encodeToString(location.getBytes());
-            rsp.setHeader("Location", String.format("/curator/tools/browse/%d/?url=%s", hrOid, encodedLocation));
-        } else {
-            // Get the content type.
-            rsp.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
-            Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), url);
-            IOUtils.copy(Files.newInputStream(path), rsp.getOutputStream());
-        }
-    }
-
-
-    public void handleBrowse(Long hrOid, String url, HttpServletRequest req, HttpServletResponse rsp) throws IOException, DigitalAssetStoreException {
-        if (!Utils.isEmpty(url) && url.startsWith("/")) {
-            url = url.substring(1);
-        }
-        String baseUrl = new String(Base64.getDecoder().decode(url));
-
-        // Build a command with the items from the URL.
-        // Load the HarvestResourceDTO from the quality review facade.
-        HarvestResult hr = targetInstanceDAO.getHarvestResult(hrOid);
-        if (hr == null) {        // If the resource is not found, go to an error page.
-            log.error("Resource not found: {}", baseUrl);
-            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return;
-        }
-
-        TargetInstance ti = hr.getTargetInstance();
-        if (ti == null) {        // If the resource is not found, go to an error page.
-            log.error("Resource not found: {}", baseUrl);
-            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return;
-        }
-
-        List<Header> headers = new ArrayList<>();
-        try {        // catch any DigitalAssetStoreException and log assumptions
-            headers = digitalAssetStore.getHeaders(ti.getOid(), hr.getHarvestNumber(), baseUrl);
-        } catch (Exception e) {
-            log.warn("Unexpected exception encountered when retrieving WARC headers for ti " + ti.getOid());
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        // Get the content type.
-        String realContentType = getHeaderValue(headers, "Content-Type");
-        String simpleContentType = this.getSimpleContentType(realContentType);
-
-        String charset = null;
-        if (realContentType != null) {
-            Matcher charsetMatcher = CHARSET_PATTERN.matcher(realContentType);
-            if (charsetMatcher.find()) {
-                charset = charsetMatcher.group(1);
-                log.debug("Desired charset: " + charset + " for " + baseUrl);
-            } else {
-                log.debug("No charset for: " + baseUrl);
-                charset = CHARSET_LATIN_1.name();
-                realContentType += ";charset=" + charset;
-            }
-        }
-
-        String strStatusCode = getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE");
-        if (headers.size() == 0 || Utils.isEmpty(strStatusCode)) {
-            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        int statusCode = Integer.parseInt(getHeaderValue(headers, "HTTP-RESPONSE-STATUS-CODE"));
-        // Send the headers for a redirect.
-        if (statusCode == HttpServletResponse.SC_MOVED_TEMPORARILY || statusCode == HttpServletResponse.SC_MOVED_PERMANENTLY) {
-            rsp.setStatus(statusCode);
-            String location = getHeaderValue(headers, "Location");
-            if (!Utils.isEmpty(location) && !location.startsWith("http")) {
-                location = baseUrl + location;
-            }
-            String encodedLocation = Base64.getEncoder().encodeToString(location.getBytes());
-            rsp.setHeader("Location", browseHelper.getResourcePrefix(hrOid) + encodedLocation);
-            return;
-        }
-
-        // Get the content type.
-        rsp.setHeader("Content-Type", getHeaderValue(headers, "Content-Type"));
-
-        Path path = digitalAssetStore.getResource(ti.getOid(), hr.getHarvestNumber(), baseUrl);
-        if (!browseHelper.isReplaceable(simpleContentType)) {
-            IOUtils.copy(Files.newInputStream(path), rsp.getOutputStream());
-            path.toFile().delete();
-            return;
-        }
-
-        int fileLength = (int) path.toFile().length();
-        byte[] buf = new byte[fileLength];
-        IOUtils.read(Files.newInputStream(path), buf);
-        path.toFile().delete();
-
-        StringBuilder content = new StringBuilder(new String(buf, charset));
-
-        Pattern baseUrlGetter = BrowseHelper.getTagMagixPattern("BASE", "HREF");
-        Matcher m = baseUrlGetter.matcher(content);
-        if (m.find()) {
-            String u = m.group(1);
-            if (u.startsWith("\"") && u.endsWith("\"") || u.startsWith("'") && u.endsWith("'")) {
-                // Ensure the detected Base HREF is not commented
-                // out (unusual case, but we have seen it).
-                int lastEndComment = content.lastIndexOf("-->", m.start());
-                int lastStartComment = content.lastIndexOf("<!--", m.start());
-                if (lastStartComment < 0 || lastEndComment > lastStartComment) {
-                    baseUrl = u.substring(1, u.length() - 1);
-                }
-            }
-        }
-        browseHelper.fix(content, simpleContentType, hrOid, baseUrl);
-
-        rsp.getOutputStream().write(content.toString().getBytes(charset));
-    }
 
     private String getHeaderValue(List<Header> headers, String key) {
         if (headers != null) {
@@ -582,30 +421,6 @@ public class HarvestModificationHandler {
             }
         }
         return null;
-    }
-
-    /**
-     * Get everything before the semi-colon.
-     *
-     * @param realContentType The full content type from the Heritrix ARC file.
-     * @return The part of the content type before the semi-colon.
-     */
-    private String getSimpleContentType(String realContentType) {
-        return (realContentType == null || realContentType.indexOf(';') < 0) ? realContentType
-                : realContentType.substring(0, realContentType.indexOf(';'));
-    }
-
-    public Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber) {
-        NetworkMapResult resultDbVersion = networkMapClient.getDbVersion(targetInstanceId, harvestResultNumber);
-        NetworkDbVersionDTO versionDTO = networkMapClient.getDbVersionDTO(resultDbVersion.getPayload());
-        Map<String, String> map = new HashMap<>();
-        map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
-        map.put("globalVersion", versionDTO.getGlobalVersion());
-        map.put("currentVersion", versionDTO.getCurrentVersion());
-        map.put("archiveUrl", archiveUrl);
-        HarvestResult harvestResult = targetInstanceDAO.getHarvestResult(harvestResultId);
-        map.put("accessToolUrl", harvestResourceUrlMapper.generateUrl(harvestResult));
-        return map;
     }
 
     public NetworkMapResult bulkImportParse(long targetInstanceId, int harvestResultNumber, ModifyRowFullData cmd) throws IOException, DigitalAssetStoreException {

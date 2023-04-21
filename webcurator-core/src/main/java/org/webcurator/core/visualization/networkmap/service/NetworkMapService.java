@@ -7,6 +7,7 @@ import org.webcurator.core.visualization.networkmap.metadata.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public interface NetworkMapService extends VisualizationServiceInterface {
     NetworkMapResult initialIndex(long job, int harvestResultNumber);
@@ -81,4 +82,6 @@ public interface NetworkMapService extends VisualizationServiceInterface {
 
         return null;
     }
+
+    Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber);
 }

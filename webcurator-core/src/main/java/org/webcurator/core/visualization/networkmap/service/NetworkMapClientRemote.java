@@ -13,6 +13,7 @@ import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlComman
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 public class NetworkMapClientRemote extends AbstractRestClient implements NetworkMapClient {
     public NetworkMapClientRemote(String baseUrl, RestTemplateBuilder restTemplateBuilder) {
@@ -309,6 +310,21 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
 
         NetworkMapResult result;
         result = restTemplate.postForObject(uri, request, NetworkMapResult.class);
+        return result;
+    }
+
+    @Override
+    public Map<String, String> getGlobalSettings(long targetInstanceId, long harvestResultId, int harvestResultNumber) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.GLOBAL_SETTINGS))
+                .queryParam("targetInstanceOid", targetInstanceId)
+                .queryParam("harvestResultId", harvestResultId)
+                .queryParam("harvestNumber", harvestResultNumber);
+        URI uri = uriComponentsBuilder.build().toUri();
+
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        Map<String, String> result;
+        result = restTemplate.postForObject(uri, null, Map.class);
         return result;
     }
 }

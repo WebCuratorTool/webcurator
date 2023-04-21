@@ -25,6 +25,8 @@ import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
+import org.webcurator.core.visualization.browser.VisWayBackClient;
+import org.webcurator.core.visualization.browser.VisWayBackClientLocal;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
@@ -313,14 +315,14 @@ public class DasConfig {
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
-    public VisualizationDirectoryManager visualizationManager() {
+    public VisualizationDirectoryManager visualizationDirectoryManager() {
         return new VisualizationDirectoryManager(arcDigitalAssetStoreServiceBaseDir, Constants.DIR_LOGS, Constants.DIR_REPORTS);
     }
 
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public VisualizationProcessorManager visualizationProcessorQueue() {
-        return new VisualizationProcessorManager(visualizationManager(),
+        return new VisualizationProcessorManager(visualizationDirectoryManager(),
                 wctCoordinatorClient(),
                 maxConcurrencyModThreads);
     }
@@ -592,6 +594,16 @@ public class DasConfig {
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public NetworkMapClient networkMapLocalClient() {
         return new NetworkMapClientLocal(bdbDatabasePool(), visualizationProcessorQueue());
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    public VisWayBackClient visWayBackClient() {
+        VisWayBackClientLocal bean = new VisWayBackClientLocal();
+        bean.setBaseDir(arcDigitalAssetStoreServiceBaseDir);
+        bean.setDirectoryManager(visualizationDirectoryManager());
+        bean.setNetworkMapClient(networkMapLocalClient());
+        return bean;
     }
 
     public CustomDepositField depositFieldDctermsBibliographicCitation() {

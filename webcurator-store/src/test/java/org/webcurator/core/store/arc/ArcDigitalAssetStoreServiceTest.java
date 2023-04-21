@@ -1,11 +1,9 @@
 package org.webcurator.core.store.arc;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.util.*;
 
 import org.junit.BeforeClass;
@@ -25,7 +23,6 @@ import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLoca
 import org.webcurator.domain.model.core.SeedHistoryDTO;
 import org.webcurator.test.BaseWCTStoreTest;
 import org.webcurator.core.store.MockIndexer;
-import org.apache.commons.httpclient.Header;
 
 public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigitalAssetStoreService> {
 
@@ -100,70 +97,6 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         testInstance.setNetworkMapClient(networkMapClient);
     }
 
-    @Ignore
-    @Test
-    public final void testARCGetResource() throws Exception {
-        long length = 7109;
-        long offset = 6865980;
-        String name = "https://www.kiwisaver.govt.nz/";
-
-        Path res = testInstance.getResource(targetInstanceOid, harvestResultNumber, name);
-        assertNotNull(res);
-        assertEquals(res.toFile().length(), length);
-    }
-
-    @Test
-    public final void testWARCGetResource() throws Exception {
-        long resLength = 18295;
-        String name = "https://www.kiwisaver.govt.nz/";
-
-        Path res = testInstance.getResource(targetInstanceOid, harvestResultNumber, name);
-        assertNotNull(res);
-        assertEquals(res.toFile().length(), resLength);
-    }
-
-    @Ignore
-    @Test
-    public final void testARCGetSmallResource() throws Exception {
-        long length = 7109;
-        long offset = 6865980;
-        String name = "https://www.kiwisaver.govt.nz/";
-
-        byte[] res = testInstance.getSmallResource(targetInstanceOid, harvestResultNumber, name);
-        assertNotNull(res);
-        assertEquals(res.length, length);
-    }
-
-    @Test
-    public final void testWARCGetSmallResource() throws Exception {
-        long resLength = 18295;
-        String name = "https://www.kiwisaver.govt.nz/";
-
-        byte[] res = testInstance.getSmallResource(targetInstanceOid, harvestResultNumber, name);
-        assertNotNull(res);
-        assertEquals(res.length, resLength);
-    }
-
-    @Ignore
-    @Test
-    public final void testARCGetHeaders() throws Exception {
-        long length = 7109;
-        long offset = 6865980;
-        String name = "https://www.kiwisaver.govt.nz/";
-
-        List<Header> headers = testInstance.getHeaders(targetInstanceOid, harvestResultNumber, name);
-        assertNotNull(headers);
-        assertEquals(4, headers.size());
-    }
-
-    @Test
-    public final void testWARCGetHeaders() throws Exception {
-        String name = "https://www.kiwisaver.govt.nz/";
-
-        List<Header> headers = testInstance.getHeaders(targetInstanceOid, harvestResultNumber, name);
-        assertNotNull(headers);
-        assertEquals(13, headers.size());
-    }
 
     private static void copy(String fromFileName, String toFileName) throws IOException {
         File fromFile = new File(fromFileName);
@@ -254,7 +187,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
     @Test
     public void testGetDownloadFileURL() {
         try {
-            File f = File.createTempFile("download",".temp");
+            File f = File.createTempFile("download", ".temp");
             f = testInstance.getDownloadFileURL("team.png", f);
             assert f.exists();
 

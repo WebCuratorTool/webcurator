@@ -11,7 +11,9 @@ public class VisualizationDirectoryManager {
     private String baseDir = null;
     private String baseLogDir = null;
     private String baseReportDir = null;
-
+    private String archiveRepository = null;
+    private String archiveArcDirectory = null;
+    private String openWayBack = null;
 
     public VisualizationDirectoryManager(String baseDir, String baseLogDir, String baseReportDir) {
         this.baseDir = baseDir;
@@ -50,39 +52,35 @@ public class VisualizationDirectoryManager {
         return s;
     }
 
-    public String getPatchLogFileName(String prefix, int harvestResultNumber){
-       return String.format("%s-%d-running.log", prefix, harvestResultNumber);
+    public String getPatchLogFileName(String prefix, int harvestResultNumber) {
+        return String.format("%s-%d-running.log", prefix, harvestResultNumber);
     }
 
-    public String getPatchReportFileName(String prefix, int harvestResultNumber){
+    public String getPatchReportFileName(String prefix, int harvestResultNumber) {
         return String.format("%s-%d-report.txt", prefix, harvestResultNumber);
     }
 
-//    public String getPatchLogDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-//        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber, prefix);
-//        File f = new File(s);
-//        if (!f.exists()) {
-//            f.mkdirs();
-//        }
-//        return s;
-//    }
-//
-//    public String getPatchReportDir(String prefix, long targetInstanceId, int harvestResultNumber) {
-//        String s = String.format(TEMPLATE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber, prefix);
-//        File f = new File(s);
-//        if (!f.exists()) {
-//            f.mkdirs();
-//        }
-//        return s;
-//    }
-//
-//    public File getBasePatchLogDir(long targetInstanceId, int harvestResultNumber){
-//        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseLogDir(targetInstanceId), harvestResultNumber);
-//        return new File(s);
-//    }
-//
-//    public File getBasePatchReportDir(long targetInstanceId, int harvestResultNumber){
-//        String s = String.format(TEMPLATE_BASE_PATCH_LOG_REPORT, getBaseReportDir(targetInstanceId), harvestResultNumber);
-//        return new File(s);
-//    }
+    public String getArchiveRepository() {
+        return archiveRepository;
+    }
+
+    public void setArchiveRepository(String archiveRepository) {
+        this.archiveRepository = archiveRepository;
+    }
+
+    public String getArchiveArcDirectory() {
+        return archiveArcDirectory;
+    }
+
+    public void setArchiveArcDirectory(String archiveArcDirectory) {
+        this.archiveArcDirectory = archiveArcDirectory;
+    }
+
+    public String getOpenWayBack() {
+        return openWayBack;
+    }
+
+    public void setOpenWayBack(String openWayBack) {
+        this.openWayBack = openWayBack;
+    }
 }

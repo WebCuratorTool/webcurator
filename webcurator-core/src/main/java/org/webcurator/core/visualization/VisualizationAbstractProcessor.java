@@ -244,7 +244,9 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void updateHarvestResultStatus() {
-        wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+        if (wctClient!=null){
+            wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
+        }
     }
 
     public HarvestResultDTO getHarvestResultDTO() {

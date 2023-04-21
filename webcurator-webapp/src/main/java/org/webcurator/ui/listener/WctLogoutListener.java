@@ -27,7 +27,6 @@ import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.ui.tools.controller.BrowseController;
 
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
@@ -39,7 +38,7 @@ import java.util.Date;
  */
 public class WctLogoutListener implements HttpSessionListener {
 	/** Logger for the BrowseController. **/
-	private static Log log = LogFactory.getLog(BrowseController.class);
+	private static Log log = LogFactory.getLog(WctLogoutListener.class);
 
 	/** The LockManager **/
 	LockManager lockManager = null;
