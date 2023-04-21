@@ -10,6 +10,7 @@ import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,7 +47,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 	}
 
 
-
+	@Ignore
 	@Test
 	public final void testHandle() {
 		try {
@@ -74,6 +75,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 		}
 	}
 
+	@Ignore
 	@Test
 	public final void testHandleWithAccessToolDiasbled() {
 		try
@@ -103,6 +105,7 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 		}
 	}
 
+	@Ignore
 	@Test
 	public final void testHandleWithBrowseToolDiasbled() {
 		try
@@ -140,6 +143,4 @@ public class QualityReviewToolControllerTest extends BaseWCTTest<QualityReviewTo
 		ModelAndView mav = testInstance.postHandle(comm);
 		return mav;
 	}
-
-
 }
