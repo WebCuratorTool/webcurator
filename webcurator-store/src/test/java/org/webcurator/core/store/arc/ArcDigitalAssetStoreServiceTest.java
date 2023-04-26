@@ -74,7 +74,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         NetworkMapDomainSuffix aTopDomainParser = new NetworkMapDomainSuffix();
         NetworkMapNodeUrlDTO.setTopDomainParse(aTopDomainParser);
 
-        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir, dbVersion);
+        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(directoryManager, dbVersion);
 
         NetworkMapClient networkMapClient = new NetworkMapClientLocal(dbPool, null);
 
@@ -85,8 +85,8 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
 
     public void setUp() throws Exception {
         super.setUp();
-        BDBNetworkMapPool bdbNetworkMapPool = new BDBNetworkMapPool(baseDir, dbVersion);
         VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, "logs", "report");
+        BDBNetworkMapPool bdbNetworkMapPool = new BDBNetworkMapPool(directoryManager, dbVersion);
         WctCoordinatorClient wctCoordinatorClient = new WctCoordinatorClient("http://localhost:8080/", new RestTemplateBuilder());
         NetworkMapClient networkMapClient = new NetworkMapClientLocal(bdbNetworkMapPool, null);
         VisualizationProcessorManager processorManager = new VisualizationProcessorManager(directoryManager, wctCoordinatorClient, 1);

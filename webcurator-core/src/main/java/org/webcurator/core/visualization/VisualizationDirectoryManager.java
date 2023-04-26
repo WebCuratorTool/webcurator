@@ -25,6 +25,14 @@ public class VisualizationDirectoryManager {
         return this.baseDir;
     }
 
+    public String getDbName(long job, int harvestResultNumber) {
+        return String.format("%d_%d", job, harvestResultNumber);
+    }
+
+    public String getDbPath(long job, int harvestResultNumber){
+        return String.format("%s%s%d%s%d%s_resource", this.baseDir, File.separator, job, File.separator, harvestResultNumber, File.separator);
+    }
+
     public String getUploadDir(long targetInstanceId) {
         String s = String.format(TEMPLATE_UPLOAD, baseDir, targetInstanceId);
         File f = new File(s);

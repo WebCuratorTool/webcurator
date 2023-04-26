@@ -5,6 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeFolderEntity;
@@ -23,7 +24,8 @@ public class FolderTreeViewGeneratorTest {
 
     @BeforeClass
     public static void initTest() throws Exception {
-        pool = new BDBNetworkMapPool(baseDir, "dbVersion");
+        VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, baseLogDir, baseReportDir);
+        pool = new BDBNetworkMapPool(directoryManager, "dbVersion");
     }
 
 

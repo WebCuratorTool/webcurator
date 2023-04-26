@@ -3,6 +3,7 @@ package org.webcurator.core.visualization.networkmap.bdb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.util.WctUtils;
+import org.webcurator.core.visualization.VisualizationDirectoryManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,11 +14,11 @@ public class BDBNetworkMapPool {
     private final static Logger log = LoggerFactory.getLogger(BDBNetworkMapPool.class);
     private final List<BDBRepoHolder> queue = new ArrayList<>();
     private final Map<String, BDBRepoHolder> map = new Hashtable<>();
-    private final String dbRootPath;
+    private final VisualizationDirectoryManager visDirMgmt;
     private final String dbVersion;
 
-    public BDBNetworkMapPool(String dbRootPath, String dbVersion) {
-        this.dbRootPath = dbRootPath;
+    public BDBNetworkMapPool(VisualizationDirectoryManager visDirMgmt, String dbVersion) {
+        this.visDirMgmt = visDirMgmt;
         this.dbVersion = dbVersion;
     }
 
@@ -122,11 +123,11 @@ public class BDBNetworkMapPool {
     }
 
     public String getDbPath(long job, int harvestResultNumber) {
-        return String.format("%s%s%d%s%d%s_resource", this.dbRootPath, File.separator, job, File.separator, harvestResultNumber, File.separator);
+        return this.visDirMgmt.getDbPath(job, harvestResultNumber);
     }
 
     public String getDbName(long job, int harvestResultNumber) {
-        return String.format("%d_%d", job, harvestResultNumber);
+        return this.visDirMgmt.getDbName(job, harvestResultNumber);
     }
 
     public String getDbVersion() {

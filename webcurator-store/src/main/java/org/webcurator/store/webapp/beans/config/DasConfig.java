@@ -586,7 +586,7 @@ public class DasConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     public BDBNetworkMapPool bdbDatabasePool() {
-        BDBNetworkMapPool pool = new BDBNetworkMapPool(arcDigitalAssetStoreServiceBaseDir, visualizationDbVersion);
+        BDBNetworkMapPool pool = new BDBNetworkMapPool(visualizationDirectoryManager(), visualizationDbVersion);
         return pool;
     }
 

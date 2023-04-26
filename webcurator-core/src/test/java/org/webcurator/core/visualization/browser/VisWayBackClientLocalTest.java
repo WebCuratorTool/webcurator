@@ -38,7 +38,7 @@ public class VisWayBackClientLocalTest {
         }
         VisualizationDirectoryManager directoryManager = new VisualizationDirectoryManager(baseDir, "logs", "reports");
 
-        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir, dbVersion);
+        BDBNetworkMapPool dbPool = new BDBNetworkMapPool(directoryManager, dbVersion);
         NetworkMapClient networkMapClient = new NetworkMapClientLocal(dbPool, null);
         testInstance.setBaseDir(baseDir);
         testInstance.setNetworkMapClient(networkMapClient);

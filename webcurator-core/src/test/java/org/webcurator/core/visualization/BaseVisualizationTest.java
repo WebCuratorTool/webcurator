@@ -50,7 +50,7 @@ public class BaseVisualizationTest {
         FileUtils.copyDirectory(arcDir, destDir);
 
         directoryManager = new VisualizationDirectoryManager(baseDir, baseLogDir, baseReportDir);
-        pool = new BDBNetworkMapPool(baseDir, dbVersion);
+        pool = new BDBNetworkMapPool(directoryManager, dbVersion);
 
         SeedHistoryDTO seedHistoryPrimary = new SeedHistoryDTO(1, "http://www.google.com/", targetInstanceId, true);
         SeedHistoryDTO seedHistorySecondary = new SeedHistoryDTO(2, "http://www.baidu.com/", targetInstanceId, false);
