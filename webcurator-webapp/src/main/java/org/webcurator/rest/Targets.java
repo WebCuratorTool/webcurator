@@ -217,9 +217,6 @@ public class Targets {
      */
     private HashMap<String, Object> createTarget(Target t) {
         HashMap<String, Object> target = new HashMap<>();
-        target.put("id", t.getOid());
-        target.put("creationDate", t.getCreationDate());
-        target.put("name", t.getName());
         target.put(TARGET_GENERAL, createTargetGeneral(t));
         target.put(TARGET_SEEDS, createTargetSeeds(t));
         target.put(TARGET_PROFILE, createTargetProfile(t));
@@ -236,6 +233,9 @@ public class Targets {
      */
     private HashMap<String, Object> createTargetGeneral(Target t) {
         HashMap<String, Object> general = new HashMap<>();
+        general.put("id", t.getOid());
+        general.put("creationDate", t.getCreationDate());
+        general.put("name", t.getName());
         general.put("description", t.getDescription());
         general.put("referenceNumber", t.getReferenceNumber());
         general.put("runOnApproval", t.isRunOnApproval());
