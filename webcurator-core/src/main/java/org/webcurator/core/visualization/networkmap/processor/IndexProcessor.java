@@ -59,7 +59,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         cmd.setTargetInstanceId(this.targetInstanceId);
         cmd.setHarvestResultNumber(this.harvestResultNumber);
         cmd.setNewHarvestResultNumber(this.harvestResultNumber);
-        PatchUtil.indexer.savePatchJob(this.baseDir, cmd);
+        PatchUtil.indexer.savePatchJob(this.directoryManager.getBaseDir(), cmd);
     }
 
     public void indexFile(ArchiveReader reader, String fileName) throws IOException {
@@ -224,7 +224,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     @Override
     public void processInternal() throws Exception {
         try {
-            File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
+            File directory = this.directoryManager.getHarvestResultFolder(targetInstanceId, harvestResultNumber);
 
             List<File> fileList = PatchUtil.listWarcFiles(directory);
             if (fileList == null || fileList.size() == 0) {
@@ -305,7 +305,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
     @Override
     public void deleteInternal() {
         //delete indexing data
-        File directory = new File(this.baseDir, targetInstanceId + File.separator + harvestResultNumber);
+        File directory = this.directoryManager.getHarvestResultFolder(targetInstanceId, harvestResultNumber);
         this.delete(directory.getAbsolutePath(), "_resource");
     }
 

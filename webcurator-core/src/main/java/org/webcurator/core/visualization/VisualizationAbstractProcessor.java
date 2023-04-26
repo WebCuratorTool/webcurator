@@ -27,12 +27,13 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     protected final int harvestResultNumber;
     protected int state = HarvestResult.STATE_UNASSESSED;
     protected int status = HarvestResult.STATUS_SCHEDULED;
-    protected String baseDir; //Harvest WARC files dir
+//    protected String baseDir; //Harvest WARC files dir
     protected String fileDir; //Upload files
     protected String logsDir; //log dir
     protected String reportsDir; //report dir
     protected VisualizationProgressBar progressBar;
     protected VisualizationProcessorManager processorManager;
+    protected VisualizationDirectoryManager directoryManager;
     protected String flag; //MOD or IDX
     protected String reportTitle;
     protected FileWriter logWriter;
@@ -52,7 +53,8 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     public void init(VisualizationProcessorManager processorManager, VisualizationDirectoryManager directoryManager, WctCoordinatorClient wctClient, NetworkMapService networkMapClient) throws IOException {
         this.progressBar = new VisualizationProgressBar(getProcessorStage(), targetInstanceId, harvestResultNumber);
         this.processorManager = processorManager;
-        this.baseDir = directoryManager.getBaseDir();
+        this.directoryManager = directoryManager;
+//        this.baseDir = directoryManager.getBaseDir();
         this.fileDir = directoryManager.getUploadDir(targetInstanceId);
         this.logsDir = directoryManager.getBaseLogDir(targetInstanceId);
         this.reportsDir = directoryManager.getBaseReportDir(targetInstanceId);
@@ -244,7 +246,7 @@ public abstract class VisualizationAbstractProcessor implements Callable<Boolean
     }
 
     public void updateHarvestResultStatus() {
-        if (wctClient!=null){
+        if (wctClient != null) {
             wctClient.dasUpdateHarvestResultStatus(getHarvestResultDTO());
         }
     }

@@ -20,7 +20,6 @@ import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
-import java.io.File;
 import java.io.IOException;
 
 @SuppressWarnings("all")
@@ -46,11 +45,10 @@ public class IndexProcessorWarc extends IndexProcessor {
             log.warn("Could not get Indexer instance from ApplicationContext.");
             return;
         }
-        String directory = this.baseDir + File.separator + targetInstanceId + File.separator + harvestResultNumber;
         HarvestResultDTO hrDTO = new HarvestResultDTO();
         hrDTO.setHarvestNumber(this.harvestResultNumber);
         hrDTO.setTargetInstanceOid(this.targetInstanceId);
-        indexer.runIndex(hrDTO, new File(directory));
+        indexer.runIndex(hrDTO, this.directoryManager.getHarvestResultFolder(targetInstanceId, harvestResultNumber));
     }
 
     @Override

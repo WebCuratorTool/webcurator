@@ -53,10 +53,10 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
 
     @Override
     protected void initInternal() throws IOException {
-        PatchUtil.modifier.savePatchJob(baseDir, cmd);
+        PatchUtil.modifier.savePatchJob(this.directoryManager.getBaseDir(), cmd);
 
         // Calculate the source and destination directories.
-        File destDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getNewHarvestResultNumber());
+        File destDir = new File(this.directoryManager.getBaseDir(), cmd.getTargetInstanceId() + File.separator + cmd.getNewHarvestResultNumber());
         // Ensure the destination directory exists.
         if (!destDir.exists() && !destDir.mkdirs()) {
             log.error("Make dir failed, path: {}", destDir.getAbsolutePath());
@@ -76,11 +76,11 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
     @Override
     public void processInternal() throws Exception {
         //Initial derived archive file list
-        File derivedDir = new File(baseDir, cmd.getTargetInstanceId() + File.separator + cmd.getHarvestResultNumber());
+        File derivedDir = new File(this.directoryManager.getBaseDir(), cmd.getTargetInstanceId() + File.separator + cmd.getHarvestResultNumber());
         List<File> derivedArchiveFiles = PatchUtil.listWarcFiles(derivedDir);
 
         //Initial patching archive file list
-        File patchHarvestDir = new File(this.baseDir, String.format("%s%s1", PatchUtil.getPatchJobName(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber()), File.separator));
+        File patchHarvestDir = new File(this.directoryManager.getBaseDir(), String.format("%s%s1", PatchUtil.getPatchJobName(cmd.getTargetInstanceId(), cmd.getNewHarvestResultNumber()), File.separator));
         List<File> patchArchiveFiles = PatchUtil.listWarcFiles(patchHarvestDir);
 
         //Initial to be pruned and to be imported list
@@ -174,10 +174,10 @@ public abstract class ModifyProcessor extends VisualizationAbstractProcessor {
     @Override
     public void deleteInternal() {
         //delete modification result
-        this.delete(baseDir + File.separator + targetInstanceId, Integer.toString(harvestResultNumber));
+        this.delete(this.directoryManager.getBaseDir() + File.separator + targetInstanceId, Integer.toString(harvestResultNumber));
 
         //delete patching harvest result
-        this.delete(baseDir, PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
+        this.delete(this.directoryManager.getBaseDir(), PatchUtil.getPatchJobName(targetInstanceId, harvestResultNumber));
     }
 
     public File downloadFile(long job, int harvestResultNumber, ModifyRowFullData metadata) throws IOException, DigitalAssetStoreException {
