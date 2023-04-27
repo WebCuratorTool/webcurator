@@ -155,7 +155,7 @@ public class IndexProcessorWarc extends IndexProcessor {
                     } else if (seeds.size() != 0) {
                         res.setSeedType(NetworkMapNodeUrlDTO.SEED_TYPE_OTHER); //Other kind Seed Url. e.g. patching source urls.}
                     } else {
-                        res.setSeedType(NetworkMapNodeUrlDTO.SEED_TYPE_PRIMARY); //For visualization standalone app which not able to query seeds from webapp}
+                        res.setSeedType(NetworkMapNodeUrlDTO.SEED_TYPE_SECONDARY); //For visualization standalone app which not able to query seeds from webapp}
                     }
                 } else {
                     res.setViaUrl(httpHeaders.getValue("via"));
