@@ -43,6 +43,7 @@ public class BDBRepoHolder {
         environmentConfig.setAllowCreate(true);
         environmentConfig.setTransactional(true);
         environmentConfig.setConfigParam("je.log.fileMax", MAX_DB_FILE_SIZE);
+        environmentConfig.setConfigParam("je.freeDisk","0");
         File file = new File(repo.dbPath);
         if (!file.exists() || !file.isDirectory()) {
             if (!file.mkdirs()) {
