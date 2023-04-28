@@ -54,8 +54,7 @@ public class VisWayBackClientLocal implements VisWayBackClient {
         File source = null;
         File dest = null;
         try {
-            source = new File(this.baseDir, "/" + targetInstanceId + "/"
-                    + harvestResultNumber + "/" + resourceNode.getFileName());
+            source = new File(directoryManager.getHarvestResultFolder(targetInstanceId,harvestResultNumber), resourceNode.getFileName());
 
             try {
                 reader = ArchiveReaderFactory.get(source);
@@ -152,8 +151,7 @@ public class VisWayBackClientLocal implements VisWayBackClient {
         ArchiveReader reader = null;
         File source = null;
         try {
-            source = new File(this.baseDir, "/" + targetInstanceId + "/"
-                    + harvestResultNumber + "/" + resourceNode.getFileName());
+            source = new File(directoryManager.getHarvestResultFolder(targetInstanceId,harvestResultNumber), resourceNode.getFileName());
             try {
                 reader = ArchiveReaderFactory.get(source);
 
@@ -237,8 +235,7 @@ public class VisWayBackClientLocal implements VisWayBackClient {
 
         log.debug("Determining the filename");
 
-        File source = new File(this.baseDir, "/" + targetInstanceId + "/"
-                + harvestResultNumber + "/" + resourceNode.getFileName());
+        File source = new File(directoryManager.getHarvestResultFolder(targetInstanceId,harvestResultNumber), resourceNode.getFileName());
 
         try {
             log.debug("Create the Archive File Reader");
