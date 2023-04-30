@@ -44,6 +44,7 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         this.reportTitle = StatisticItem.getPrintTitle();
         this.state = HarvestResult.STATE_INDEXING;
         this.db = pool.createInstance(targetInstanceId, harvestResultNumber);
+        log.debug("IndexProcessor is created.");
     }
 
     @Override
@@ -60,6 +61,8 @@ public abstract class IndexProcessor extends VisualizationAbstractProcessor {
         cmd.setHarvestResultNumber(this.harvestResultNumber);
         cmd.setNewHarvestResultNumber(this.harvestResultNumber);
         PatchUtil.indexer.savePatchJob(this.directoryManager.getBaseDir(), cmd);
+
+        log.debug("IndexProcessor is initialed.");
     }
 
     public void indexFile(ArchiveReader reader, String fileName) throws IOException {

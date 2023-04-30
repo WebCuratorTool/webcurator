@@ -21,10 +21,12 @@ public class NetworkMapController implements NetworkMapService {
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_INITIAL_INDEX, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult initialIndex(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
+        log.debug("Received initialIndex request.");
         NetworkMapResult result = null;
         try {
             result = client.initialIndex(job, harvestResultNumber);
         } catch (Throwable e) {
+            log.error("Failed to index: {} {}", job, harvestResultNumber, e);
             result = NetworkMapResult.getSystemError();
         }
         return result;

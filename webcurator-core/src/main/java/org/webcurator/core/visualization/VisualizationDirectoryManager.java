@@ -1,8 +1,13 @@
 package org.webcurator.core.visualization;
 
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 
 public class VisualizationDirectoryManager {
+    protected static final Logger log = LoggerFactory.getLogger(VisualizationDirectoryManager.class);
     private static final String TEMPLATE_UPLOAD = "%s" + File.separator + "uploadedFiles" + File.separator + "%d";
     private static final String TEMPLATE_BASE_LOG_REPORT = "%s" + File.separator + "%d" + File.separator + "%s";
 //    private static final String TEMPLATE_PATCH_LOG_REPORT = "%s" + File.separator + "attached" + File.separator + "%d" + File.separator + "%s";
@@ -30,7 +35,9 @@ public class VisualizationDirectoryManager {
     }
 
     public File getHarvestResultFolder(long job, int harvestResultNumber) {
-        return new File(this.baseDir, getSubHarvestResultFolder(job, harvestResultNumber));
+        File hrFolder = new File(this.baseDir, getSubHarvestResultFolder(job, harvestResultNumber));
+        log.debug("Harvest Result Folder: {}", hrFolder.getAbsolutePath());
+        return hrFolder;
     }
 
     public String getDbName(long job, int harvestResultNumber) {
@@ -38,7 +45,15 @@ public class VisualizationDirectoryManager {
     }
 
     public String getDbPath(long job, int harvestResultNumber) {
-        return String.format("%s%s%s%s_resource", this.baseDir, File.separator, getSubHarvestResultFolder(job, harvestResultNumber), File.separator);
+        String subFolder = getSubHarvestResultFolder(job, harvestResultNumber);
+        File dbPath;
+        if (StringUtils.isEmpty(subFolder)) {
+            dbPath = new File(this.getBaseDir(), "_resource");
+        } else {
+            dbPath = new File(new File(this.getBaseDir(), subFolder), "_resource");
+        }
+        log.debug("DB Folder: {}", dbPath.getAbsolutePath());
+        return dbPath.getAbsolutePath();
     }
 
 
