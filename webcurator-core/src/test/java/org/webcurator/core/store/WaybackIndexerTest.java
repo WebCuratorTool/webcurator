@@ -28,7 +28,8 @@ public class WaybackIndexerTest extends BaseWCTTest<WaybackIndexer> {
     private Long tiOid = 12345L;
     private int harvestNumber = 1;
 
-    private final File baseFolder = new File("/usr/local/wct/wayback-test");
+    private String tmpDir = System.getProperty("java.io.tmpdir");
+    private final File baseFolder = new File(tmpDir + "/wayback-indexer-test");
     private final File inputFolder = new File(baseFolder.getAbsolutePath() + "/store");
     private final File mergedFolder = new File(baseFolder.getAbsolutePath() + "/index-data/merged");
     private final File failedFolder = new File(baseFolder.getAbsolutePath() + "/index-data/failed");
@@ -86,6 +87,7 @@ public class WaybackIndexerTest extends BaseWCTTest<WaybackIndexer> {
     private boolean deleteAll(File f) {
         if (f.isDirectory() && f.exists()) {
             File[] fileList = f.listFiles();
+            if (fileList == null) return true;
             for (int i = 0; i < fileList.length; i++) {
                 deleteAll(fileList[i]);
             }
