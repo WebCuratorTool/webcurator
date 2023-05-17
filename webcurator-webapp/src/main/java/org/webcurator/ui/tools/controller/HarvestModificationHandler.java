@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -32,15 +33,12 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.modification.metadata.ModifyApplyCommand;
 import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkDbVersionDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceDAO;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.HarvestResultDTO;
-import org.webcurator.domain.model.core.LogFilePropertiesDTO;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.command.PatchingProgressCommand;
 
 import javax.servlet.http.HttpServletRequest;
@@ -103,7 +101,10 @@ public class HarvestModificationHandler {
     private String baseDir;
 
     @Value("${qualityReviewToolController.archiveUrl}")
-    private String openWayBack;
+    private String archiveUrl;
+
+    @Autowired
+    private HarvestResourceUrlMapper harvestResourceUrlMapper;
 
     @Autowired
     private BrowseHelper browseHelper;
@@ -379,7 +380,7 @@ public class HarvestModificationHandler {
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
-        List<NetworkMapNodeDTO> listUrlNodes = objectMapper.readValue(urlsResult.getPayload(), new TypeReference<List<NetworkMapNodeDTO>>() {
+        List<NetworkMapNodeUrlEntity> listUrlNodes = objectMapper.readValue(urlsResult.getPayload(), new TypeReference<List<NetworkMapNodeUrlEntity>>() {
         });
         listUrlNodes.forEach(urlNode -> {
             mapIndexedUrlNodes.put(urlNode.getUrl(), true);
@@ -601,7 +602,9 @@ public class HarvestModificationHandler {
         map.put("retrieveResult", Integer.toString(versionDTO.getRetrieveResult()));
         map.put("globalVersion", versionDTO.getGlobalVersion());
         map.put("currentVersion", versionDTO.getCurrentVersion());
-        map.put("openWayBack", openWayBack);
+        map.put("archiveUrl", archiveUrl);
+        HarvestResult harvestResult = targetInstanceDAO.getHarvestResult(harvestResultId);
+        map.put("accessToolUrl", harvestResourceUrlMapper.generateUrl(harvestResult));
         return map;
     }
 
@@ -677,7 +680,25 @@ public class HarvestModificationHandler {
         return value;
     }
 
-    protected void exportData(long targetInstanceId, int harvestResultNumber, List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    protected void exportData(long targetInstanceId, int harvestResultNumber, String viewType, List<ModifyRowFullData> dataset, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+        NetworkMapResult networkMapResult = NetworkMapResult.getSuccessResult();
+        if (StringUtils.equalsIgnoreCase(viewType, "crawl")) {
+            networkMapResult = this.networkMapClient.queryChildrenRecursivelyCrawl(targetInstanceId, harvestResultNumber, dataset);
+        } else if (StringUtils.equalsIgnoreCase(viewType, "folder")) {
+            networkMapResult = this.networkMapClient.queryChildrenRecursivelyFolder(targetInstanceId, harvestResultNumber, dataset);
+        }
+
+        if (networkMapResult.getRspCode() != NetworkMapResult.RSP_CODE_SUCCESS) {
+            rsp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to read url list");
+        }
+
+        if (StringUtils.equalsIgnoreCase(viewType, "crawl") || StringUtils.equalsIgnoreCase(viewType, "folder")) {
+            String payload = networkMapResult.getPayload();
+            ObjectMapper objectMapper = new ObjectMapper();
+            dataset = objectMapper.readValue(payload, new TypeReference<List<ModifyRowFullData>>() {
+            });
+        }
+
         Resource resource = new ClassPathResource("bulk-modification-template.xlsx");
         Workbook workbook = new XSSFWorkbook(resource.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
@@ -694,7 +715,7 @@ public class HarvestModificationHandler {
                 colOption.setCellValue(rowMetadata.getOption());
             }
 
-            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
+            NetworkMapUrlCommand networkMapUrl = new NetworkMapUrlCommand();
             networkMapUrl.setUrlName(rowMetadata.getUrl());
             NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
             if (result.getRspCode() == NetworkMapResult.RSP_ERROR_DATA_NOT_EXIST) {
@@ -704,7 +725,7 @@ public class HarvestModificationHandler {
                 Cell colExistingFlag = rowExcel.createCell(2);
                 colExistingFlag.setCellValue("Yes");
 
-                NetworkMapNodeDTO nodeDTO = networkMapClient.getNodeEntity(result.getPayload());
+                NetworkMapNodeUrlEntity nodeDTO = networkMapClient.getNodeEntity(result.getPayload());
                 if (nodeDTO == null) {
                     Cell colTarget = rowExcel.createCell(1);
                     colTarget.setCellValue(rowMetadata.getUrl());
@@ -760,7 +781,6 @@ public class HarvestModificationHandler {
         workbook.close();
     }
 
-
     public NetworkMapResult checkAndAppendModificationRows(long targetInstanceId, int harvestResultNumber, List<ModifyRowFullData> dataset) {
         if (dataset == null) {
             return NetworkMapResult.getBadRequestResult();
@@ -771,7 +791,7 @@ public class HarvestModificationHandler {
                 return NetworkMapResult.getBadRequestResult("Option field and target field can not be empty.");
             }
 
-            NetworkMapUrl networkMapUrl = new NetworkMapUrl();
+            NetworkMapUrlCommand networkMapUrl = new NetworkMapUrlCommand();
             networkMapUrl.setUrlName(row.getUrl());
             NetworkMapResult networkMapResult = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, networkMapUrl);
 
@@ -786,7 +806,7 @@ public class HarvestModificationHandler {
                 row.setUrl(row.getUrl());
             } else if (networkMapResult.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS) {
                 String json = (String) networkMapResult.getPayload();
-                NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+                NetworkMapNodeUrlEntity node = networkMapClient.getNodeEntity(json);
                 if (node == null) {
                     log.warn(err);
                     return NetworkMapResult.getBadRequestResult(err);

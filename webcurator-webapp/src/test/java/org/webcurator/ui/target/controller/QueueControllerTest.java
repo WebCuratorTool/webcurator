@@ -36,9 +36,9 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.archive.MockSipBuilder;
-import org.webcurator.core.common.EnvironmentImpl;
+import org.webcurator.core.common.Environment;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
@@ -107,11 +107,11 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 
 		testInstance.setWctCoordinator(hc);
 		testInstance.setTargetInstanceManager(new MockTargetInstanceManager(testFile));
-		MockAgencyUserManagerImpl mockUserAgencyManager = new MockAgencyUserManagerImpl(testFile);
+		MockAgencyUserManager mockUserAgencyManager = new MockAgencyUserManager(testFile);
 		FlagDAO mockFlagDao = mock(FlagDAO.class);
 		mockUserAgencyManager.setFlagDAO(mockFlagDao);
 		testInstance.setAgencyUserManager(mockUserAgencyManager);
-		testInstance.setEnvironment(new EnvironmentImpl());
+		testInstance.setEnvironment(new Environment());
 
 		mockRequest = new MockHttpServletRequest();
 		mockResponse = new MockHttpServletResponse();
@@ -173,7 +173,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testShowFormTarget() throws Exception {
 
 		mockRequest.addParameter(TargetInstanceCommand.REQ_TYPE, TargetInstanceCommand.TYPE_TARGET);
-		mockRequest.addParameter(TargetInstanceCommand.PARAM_TARGET_NAME, "TestName");
+		mockRequest.addParameter(TargetInstanceCommand.PARAM_TARGET_OID, "2112");
 
 		ModelAndView mav = testInstance.showForm(mockRequest, mockResponse, errors);
 		assertNotNull(mav);
@@ -182,7 +182,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		assertFalse(command.getFlagged());
 		assertTrue(mav.getViewName().equals(Constants.VIEW_TARGET_INSTANCE_QUEUE));
 		assertFalse(errors.hasErrors());
-		assertEquals(command.getName(), "TestName");
+		assertEquals(command.getTargetid().longValue(), 2112L);
 		assertEquals(0, command.getStates().size());
 	}
 

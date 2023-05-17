@@ -24,7 +24,7 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 	private String TestCWARC_CDX = "IAH-20080610152754-00000-test.cdx";
 
 	private String format = "N a b";
-	
+
 	private long NumARCResources = 77;
 	private long NumWARCResources = 72;
 	

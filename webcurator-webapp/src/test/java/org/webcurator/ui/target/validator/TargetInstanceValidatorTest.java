@@ -20,7 +20,7 @@ import org.webcurator.ui.target.command.*;
 import org.webcurator.core.agency.*;
 import org.webcurator.ui.util.*;
 import org.webcurator.core.scheduler.*;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
 import org.webcurator.core.harvester.coordinator.*;

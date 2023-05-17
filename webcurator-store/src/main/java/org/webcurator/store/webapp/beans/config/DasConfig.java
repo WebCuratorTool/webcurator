@@ -27,7 +27,7 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.reader.LogReaderImpl;
@@ -107,6 +107,9 @@ public class DasConfig {
 
     @Value("${cdxIndexer.format}")
     private String cdxIndexerFormat;
+
+    @Value("${cdxIndexer.useSurt}")
+    private boolean cdxIndexerUseSurt;
 
     @Value("${fileArchive.archiveRepository}")
     private String fileArchiveArchiveRepository;
@@ -282,7 +285,7 @@ public class DasConfig {
         arcDigitalAssetStoreService.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         arcDigitalAssetStoreService.setFileArchive(createFileArchive());
 
-        NetworkMapNode.setTopDomainParse(networkMapDomainSuffix());
+        NetworkMapNodeUrlDTO.setTopDomainParse(networkMapDomainSuffix());
     }
 
     private NetworkMapDomainSuffix networkMapDomainSuffix() {
@@ -433,7 +436,7 @@ public class DasConfig {
         CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(cdxIndexerEnabled);
         bean.setFormat(cdxIndexerFormat);
-
+        bean.setUseSurt(cdxIndexerUseSurt);
         return bean;
     }
 

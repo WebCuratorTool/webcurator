@@ -1,5 +1,6 @@
 package org.webcurator.core.visualization.modification.processor;
 
+import org.apache.commons.io.FileUtils;
 import org.archive.format.warc.WARCConstants;
 import org.archive.io.ArchiveReader;
 import org.archive.io.ArchiveReaderFactory;
@@ -117,7 +118,8 @@ public class ModifyProcessorWarc extends ModifyProcessor {
             //Copy file directly
             File destDir = this.dirs.get(0);
             File fileTo = new File(destDir, fileFrom.getName());
-            org.apache.hadoop.thirdparty.guava.common.io.Files.copy(fileFrom, fileTo);
+            FileUtils.copyFile(fileFrom, fileTo);
+            //org.apache.hadoop.thirdparty.guava.common.io.Files.copy(fileFrom, fileTo);
             return;
         }
 

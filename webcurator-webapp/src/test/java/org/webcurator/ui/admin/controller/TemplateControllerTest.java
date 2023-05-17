@@ -11,8 +11,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.test.*;
 import org.webcurator.ui.admin.command.*;
-import org.webcurator.auth.AuthorityManagerImpl;
-import org.webcurator.core.admin.PermissionTemplateManagerImpl;
+import org.webcurator.auth.AuthorityManager;
+import org.webcurator.core.admin.PermissionTemplateManager;
 import org.webcurator.core.agency.*;
 import org.webcurator.domain.MockPermissionTemplateDAO;
 import org.webcurator.domain.MockUserRoleDAO;
@@ -58,18 +58,18 @@ public class TemplateControllerTest extends BaseWCTTest<TemplateController> {
 
 	private void setUpController() {
 
-		AgencyUserManagerImpl aum = new AgencyUserManagerImpl();
+		AgencyUserManager aum = new AgencyUserManager();
 		MockUserRoleDAO murDao = new MockUserRoleDAO("/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
 		aum.setUserRoleDAO(murDao);
-		aum.setAuthorityManager(new AuthorityManagerImpl());
+		aum.setAuthorityManager(new AuthorityManager());
 		testInstance.setAgencyUserManager(aum);
 
 		testInstance.setMessageSource(new MockMessageSource());
 
 		MockPermissionTemplateDAO ptDAO = new MockPermissionTemplateDAO("/org/webcurator/ui/admin/controller/TemplateControllerTest.xml");
-		PermissionTemplateManagerImpl ptm = new PermissionTemplateManagerImpl();
+		PermissionTemplateManager ptm = new PermissionTemplateManager();
 		ptm.setPermissionTemplateDAO(ptDAO);
-		ptm.setAuthorityManager(new AuthorityManagerImpl());
+		ptm.setAuthorityManager(new AuthorityManager());
 		testInstance.setPermissionTemplateManager(ptm);
 
 	}

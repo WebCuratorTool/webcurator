@@ -22,8 +22,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.auth.AuthorityManager;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -106,8 +106,8 @@ public class TargetInstanceAnnotationHandlerTest extends BaseWCTTest<TargetInsta
 		tabGeneral.setValidator(new TargetInstanceValidator());
 
 		TargetInstanceGeneralHandler genHandler = new TargetInstanceGeneralHandler();
-		genHandler.setAgencyUserManager(new MockAgencyUserManagerImpl(testFile));
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAgencyUserManager(new MockAgencyUserManager(testFile));
+		genHandler.setAuthorityManager(new AuthorityManager());
 		genHandler.setTargetInstanceManager(targetInstanceManager);
 		genHandler.setWctCoordinator(new WctCoordinator());
 		tabGeneral.setTabHandler(genHandler);

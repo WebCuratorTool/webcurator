@@ -22,7 +22,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.sites.MockSiteManagerImpl;
+import org.webcurator.core.sites.MockSiteManager;
 import org.webcurator.core.sites.SiteManager;
 import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.model.core.Annotation;
@@ -115,7 +115,7 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 		try
 		{
 			HttpServletRequest aReq = new MockHttpServletRequest();
-			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			SiteManager siteManager = new MockSiteManager(testFile);
 			testInstance.setSiteManager(siteManager);
 			Site site = siteManager.getSite(9000L, true);
 			List<Annotation> list = createAnnotationList();
@@ -152,7 +152,7 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 		try
 		{
 			HttpServletRequest aReq = new MockHttpServletRequest();
-			SiteManager siteManager = new MockSiteManagerImpl(testFile);
+			SiteManager siteManager = new MockSiteManager(testFile);
 			testInstance.setSiteManager(siteManager);
 			Site site = siteManager.getSite(9000L, true);
 			List<Annotation> list = createAnnotationList();
@@ -238,7 +238,7 @@ public class SiteGeneralHandlerTest extends BaseWCTTest<SiteGeneralHandler>{
 	@Test
 	public final void testProcessTab() throws Exception {
 		HttpServletRequest aReq = new MockHttpServletRequest();
-		SiteManager siteManager = new MockSiteManagerImpl(testFile);
+		SiteManager siteManager = new MockSiteManager(testFile);
 		testInstance.setSiteManager(siteManager);
 		Site site = siteManager.getSite(9000L, true);
 		List<Annotation> list = createAnnotationList();

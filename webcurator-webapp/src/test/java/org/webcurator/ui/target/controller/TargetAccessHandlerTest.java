@@ -19,7 +19,7 @@ import org.webcurator.ui.target.command.*;
 import org.webcurator.common.ui.target.TargetEditorContext;
 import org.webcurator.core.targets.*;
 import org.webcurator.ui.util.*;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.target.validator.*;
 
@@ -48,7 +48,7 @@ public class TargetAccessHandlerTest extends BaseWCTTest<TargetAccessHandler> {
 		tabGeneral.setValidator(new TargetGeneralValidator());
 
 		TargetGeneralHandler genHandler = new TargetGeneralHandler();
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		tabGeneral.setTabHandler(genHandler);
 
 		tabs.add(tabGeneral);
@@ -71,7 +71,7 @@ public class TargetAccessHandlerTest extends BaseWCTTest<TargetAccessHandler> {
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		Target target = targetManager.load(4000L);
 		TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
 		aReq.getSession().setAttribute(TabbedTargetController.EDITOR_CONTEXT, targetEditorContext);
@@ -108,7 +108,7 @@ public class TargetAccessHandlerTest extends BaseWCTTest<TargetAccessHandler> {
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		Target target = targetManager.load(4000L);
 		TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
 		aReq.getSession().setAttribute(TabbedTargetController.EDITOR_CONTEXT, targetEditorContext);
@@ -143,7 +143,7 @@ public class TargetAccessHandlerTest extends BaseWCTTest<TargetAccessHandler> {
 
 		HttpServletRequest aReq = new MockHttpServletRequest();
 		TargetManager targetManager = new MockTargetManager(testFile);
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 		Target target = targetManager.load(4000L);
 		TargetEditorContext targetEditorContext = new TargetEditorContext(targetManager,target,true);
 		aReq.getSession().setAttribute(TabbedTargetController.EDITOR_CONTEXT, targetEditorContext);
@@ -189,6 +189,6 @@ public class TargetAccessHandlerTest extends BaseWCTTest<TargetAccessHandler> {
 
 	@Test
 	public final void testSetAuthorityManager() {
-		testInstance.setAuthorityManager(new AuthorityManagerImpl());
+		testInstance.setAuthorityManager(new AuthorityManager());
 	}
 }

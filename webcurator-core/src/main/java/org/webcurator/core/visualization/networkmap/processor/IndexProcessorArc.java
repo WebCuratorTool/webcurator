@@ -8,7 +8,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.core.util.URLResolverFunc;
 
 import java.io.ByteArrayOutputStream;
@@ -52,7 +52,7 @@ public class IndexProcessorArc extends IndexProcessor {
             return;
         }
 
-        NetworkMapNode res = new NetworkMapNode(atomicIdGeneratorUrl.getAndIncrement());
+        NetworkMapNodeUrlDTO res = new NetworkMapNodeUrlDTO(atomicIdGeneratorUrl.getAndIncrement());
         res.setUrlAndDomain(header.getUrl());
         res.setOffset(header.getOffset());
         res.setStatusCode(record.getStatusCode());

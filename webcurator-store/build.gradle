@@ -8,20 +8,23 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = 'http://builds.archive.org:8080/maven2'
-    }
+    // maven {
+    //     url = 'http://builds.archive.org:8080/maven2'
+    // }
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
     maven {
         url = 'https://repo1.maven.org/maven2'
     }
-    maven {
-        url = 'http://download.oracle.com/maven/'
-    }
-    maven {
-        url = 'http://builds.archive.org/maven2/'
+    // maven {
+    //     url = 'http://download.oracle.com/maven/'
+    // }
+    // maven {
+    //     url = 'http://builds.archive.org/maven2/'
+    // }
+    maven{
+        url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
 }
 
@@ -44,7 +47,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.4-SNAPSHOT'
+version = '3.1.4'
 description = 'Web Curator Tool Digital Asset Store'
 sourceCompatibility = '1.8'
 

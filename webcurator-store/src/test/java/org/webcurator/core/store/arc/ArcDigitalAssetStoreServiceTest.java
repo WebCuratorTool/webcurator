@@ -17,7 +17,7 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
@@ -75,7 +75,7 @@ public class ArcDigitalAssetStoreServiceTest extends BaseWCTStoreTest<ArcDigital
         when(wctClient.getSeedUrls(targetInstanceOid, harvestResultNumber)).thenReturn(seedHistoryDTOS);
 
         NetworkMapDomainSuffix aTopDomainParser = new NetworkMapDomainSuffix();
-        NetworkMapNode.setTopDomainParse(aTopDomainParser);
+        NetworkMapNodeUrlDTO.setTopDomainParse(aTopDomainParser);
 
         BDBNetworkMapPool dbPool = new BDBNetworkMapPool(baseDir, dbVersion);
 

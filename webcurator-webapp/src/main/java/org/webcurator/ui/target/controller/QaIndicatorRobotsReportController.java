@@ -47,7 +47,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.util.AuthUtil;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.IndicatorDAO;
@@ -142,7 +142,7 @@ public class QaIndicatorRobotsReportController {
             log.warn(networkMapResult.getRspMsg());
             return;
         }
-        List<NetworkMapNodeDTO> robotUrls = networkMapClient.getArrayListOfNetworkMapNode((String)networkMapResult.getPayload());;
+        List<NetworkMapNodeUrlEntity> robotUrls = networkMapClient.getArrayListOfNetworkMapNode((String)networkMapResult.getPayload());;
         List<String> lines = new ArrayList<String>();
         robotUrls.forEach(resourceUrl -> {
             try {

@@ -34,7 +34,7 @@ function fetchHttp(url, req, callback){
     }
 
     if(response.headers && response.headers.get('Content-Type') && response.headers.get('Content-Type').startsWith('application/json')){
-      console.log('Fetch success and callback');
+      console.log('Fetch success and callback: ' + url);
       return response.json();
     }
   }).then((response) => {
@@ -113,6 +113,13 @@ function splitString2Array(s, separator){
   return rst;
 }
 
+function urlComparator(url1, url2){
+    if(!url1 || !url2 || typeof url1!=="string" || typeof url2!=="string"){
+        return 0;
+    }
+    return url1.localeCompare(url2, "en", {sensitivity: "base"});
+}
+
 function getBrowserNameAndVersion(){
   var ua = navigator.userAgent, tem, M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
   if(/trident/i.test(M[1])){
@@ -171,9 +178,33 @@ function formatContentLengthAg(params){
     return formatContentLength(params.value);
 }
 
+function copyToClipboard(textToCopy) {
+    // Navigator clipboard api needs a secure context (https)
+    // Use the 'out of viewport hidden text area' trick
+    const textArea = document.createElement("textarea");
+    textArea.value = textToCopy;
+
+    // Move textarea out of the viewport so it's not visible
+    textArea.style.position = "absolute";
+    textArea.style.left = "-999999px";
+
+    document.body.prepend(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        document.execCommand('copy');
+    } catch (error) {
+        console.error(error);
+    } finally {
+        textArea.remove();
+    }
+}
+
 function copyUrlToClipboard(data){
   if(!$.isEmptyObject(data) && !$.isEmptyObject(data.url)){
-    navigator.clipboard.writeText(data.url);
+    // navigator.clipboard.writeText(data.url);
+    copyToClipboard(data.url);
   }
 }
 
@@ -199,7 +230,7 @@ function contextMenuCallback(key, data, source, target){
   }else if(action==='import'){
     target.showImport(data);
   }else if(action==='prune' || action==='recrawl'){
-    target.modify(dataset, action);
+    target.modify_recursively(source, dataset, action);
   }else if(action==='browse'){
     browseUrl(data, scope);
   }else if(action==='download'){
@@ -209,9 +240,9 @@ function contextMenuCallback(key, data, source, target){
   }else if(action==='clear'){
     source.clear(dataset);
   }else if(action==='exportInspect'){
-    target.exportData(dataset);
+    target.exportData(source, dataset);
   }else if(action==='exportToBeModified'){
-    target.exportData(dataset);
+    target.exportData(source, dataset);
   }else if(action==='edit'){
     target.editImport(data);
   }else if(action==='copy'){
@@ -253,7 +284,8 @@ var itemsRecrawlHarvest={
 var itemsBrowse={ 
   "browse-local": {name: "WCT Browse", icon: "far fa-dot-circle"},
   "browse-livesite": {name: "Live Site Browse", icon: "far fa-dot-circle"},
-  "browse-openwayback": {name: "OpenWayback Browse", icon: "far fa-dot-circle"},
+  "browse-accesstool": {name: "Access Tool Browse", icon: "far fa-dot-circle"},
+  "browse-archive": {name: "Archive Browse", icon: "far fa-dot-circle"},
 };
 
 var itemsExportLinks={
@@ -361,7 +393,7 @@ var gridOptionsCandidate={
           if(row.data.seedType===1){
             return '<span class="right badge badge-warning">S</span>&nbsp;' + row.data.url;
           }
-      }},
+      }, comparator: urlComparator},
       {headerName: "Type", field: "contentType", width: 200, filter: true},
       {headerName: "Status", field: "statusCode", width: 100, filter: 'agNumberColumnFilter'},
       {headerName: "Size", field: "contentLength", width: 100, filter: 'agNumberColumnFilter', valueFormatter: formatContentLengthAg},
@@ -460,7 +492,7 @@ var gridOptionsImportPrepare={
   columnDefs: [
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
-      {headerName: "Target", field: "url", width: 600, cellRenderer: cellRendererTarget},
+      {headerName: "Target", field: "url", width: 600, cellRenderer: cellRendererTarget, comparator: urlComparator},
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer: cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer: cellRendererModifiedDate},
@@ -502,7 +534,7 @@ var gridOptionsToBeModified={
     ]},
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
-      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},
+      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget, comparator: urlComparator},
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer:  cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  cellRendererModifiedDate},
@@ -539,7 +571,7 @@ var gridOptionsToBeModifiedVerified={
     // {headerName: "", width:45, pinned: "left", headerCheckboxSelection: true, headerCheckboxSelectionFilteredOnly: true, checkboxSelection: true},
     {headerName: "Normal", children:[
       {headerName: "Option", field: "option", width:80, cellRenderer: cellRendererOption},
-      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget},
+      {headerName: "Target", field: "url", width: 800, cellRenderer: cellRendererTarget, comparator: urlComparator},
       {headerName: "File", field: "uploadFileName", width: 200, cellRenderer: cellRendererFile},
       {headerName: "Modified Mode", field: "modifiedMode", width: 150, cellRenderer:  cellRendererModifiedMode},
       {headerName: "ModifyDate", field: "lastModified", width: 160, cellRenderer:  cellRendererModifiedDate},
@@ -643,4 +675,17 @@ function g_TurnOffOverlayLoading(){
   if (overlayLoadingReferedNumber === 0) {
     $('#main-tab-group .overlay').hide();
   }
+}
+
+function disablePatchHarvestButton(){
+    $("#btn-patch-harvest").attr('disabled','disabled');
+    $("#btn-patch-harvest-dropdown").attr('disabled','disabled');
+    $("#icon-patch-harvest-loading").show();
+    $("#text-patch-harvest-button").html("Loading ...");
+}
+function enablePatchHarvestButton(){
+    $("#btn-patch-harvest").removeAttr('disabled');
+    $("#btn-patch-harvest-dropdown").removeAttr('disabled');
+    $("#icon-patch-harvest-loading").hide();
+    $("#text-patch-harvest-button").html('<i class="fas fa-shopping-cart"> Patch Harvest </i>');
 }

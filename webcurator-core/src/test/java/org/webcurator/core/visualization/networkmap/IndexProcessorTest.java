@@ -8,9 +8,9 @@ import org.webcurator.core.util.PatchUtil;
 import org.webcurator.core.visualization.BaseVisualizationTest;
 import org.webcurator.core.visualization.VisualizationConstants;
 import org.webcurator.core.visualization.VisualizationProgressBar;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessor;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class IndexProcessorTest extends BaseVisualizationTest {
-    private IndexProcessor indexer;
+    protected IndexProcessor indexer;
 
     @Before
     public void initTest() throws Exception {
@@ -39,7 +39,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         } catch (Exception e) {
             log.error("Load domain suffix file failed.", e);
         }
-        NetworkMapNode.setTopDomainParse(suffixParser);
+        NetworkMapNodeUrlDTO.setTopDomainParse(suffixParser);
 
         String dbPath = pool.getDbPath(targetInstanceId, harvestResultNumber);
         File f = new File(dbPath);
@@ -71,14 +71,14 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         assert warcFileFrom != null;
         List<String> listToBePrunedUrl = getRandomUrlsFromWarcFile(warcFileFrom);
         listToBePrunedUrl.forEach(actualUrl -> {
-            NetworkMapUrl url = new NetworkMapUrl();
+            NetworkMapUrlCommand url = new NetworkMapUrlCommand();
             url.setUrlName(actualUrl);
             NetworkMapResult result = localClient.getUrlByName(targetInstanceId, harvestResultNumber, url);
             assert result != null;
             assert result.getRspCode() == VisualizationConstants.RESP_CODE_SUCCESS;
             assert result.getPayload() != null;
 
-            NetworkMapNodeDTO urlNode = localClient.getNodeEntity(result.getPayload());
+            NetworkMapNodeUrlEntity urlNode = localClient.getNodeEntity(result.getPayload());
 
             assert urlNode != null;
             assert urlNode.getUrl().equals(actualUrl);
@@ -98,8 +98,8 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         assert seedsResult.getRspCode() == VisualizationConstants.RESP_CODE_SUCCESS;
         assert seedsResult.getPayload() != null;
 
-        List<NetworkMapNodeDTO> indexedSeedUrls = localClient.getArrayListOfNetworkMapNode(seedsResult.getPayload());
-        Map<String, NetworkMapNodeDTO> indexedSeedUrlsMap = new HashMap<>();
+        List<NetworkMapNodeUrlEntity> indexedSeedUrls = localClient.getArrayListOfNetworkMapNode(seedsResult.getPayload());
+        Map<String, NetworkMapNodeUrlEntity> indexedSeedUrlsMap = new HashMap<>();
         indexedSeedUrls.forEach(e -> {
             indexedSeedUrlsMap.put(e.getUrl(), e);
         });
@@ -107,8 +107,8 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         assert indexedSeedUrls.size() >= seedsHistory.size();
         seedsHistory.forEach(seed -> {
             String seedUrl = seed.getSeed();
-            int seedType = seed.isPrimary() ? NetworkMapNodeDTO.SEED_TYPE_PRIMARY : NetworkMapNodeDTO.SEED_TYPE_SECONDARY;
-            NetworkMapNodeDTO seedNode = indexedSeedUrlsMap.get(seedUrl);
+            int seedType = seed.isPrimary() ? NetworkMapNodeUrlEntity.SEED_TYPE_PRIMARY : NetworkMapNodeUrlEntity.SEED_TYPE_SECONDARY;
+            NetworkMapNodeUrlEntity seedNode = indexedSeedUrlsMap.get(seedUrl);
 
             assert seedNode != null;
             assert seedNode.getParentId() <= 0;
@@ -126,7 +126,7 @@ public class IndexProcessorTest extends BaseVisualizationTest {
         assert invalidUrlResult.getRspCode() == VisualizationConstants.RESP_CODE_SUCCESS;
         assert invalidUrlResult.getPayload() != null;
 
-        List<NetworkMapNodeDTO> indexedInvalidUrls = localClient.getArrayListOfNetworkMapNode(invalidUrlResult.getPayload());
+        List<NetworkMapNodeUrlEntity> indexedInvalidUrls = localClient.getArrayListOfNetworkMapNode(invalidUrlResult.getPayload());
         assert indexedInvalidUrls.size() == 0;
     }
 

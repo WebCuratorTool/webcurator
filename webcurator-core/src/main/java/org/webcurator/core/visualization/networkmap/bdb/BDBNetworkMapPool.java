@@ -11,8 +11,8 @@ import java.util.*;
 public class BDBNetworkMapPool {
     private final static int MAX_SIZE = 10;
     private final static Logger log = LoggerFactory.getLogger(BDBNetworkMapPool.class);
-    private final List<BDBNetworkMap> queue = new ArrayList<>();
-    private final Map<String, BDBNetworkMap> map = new Hashtable<>();
+    private final List<BDBRepoHolder> queue = new ArrayList<>();
+    private final Map<String, BDBRepoHolder> map = new Hashtable<>();
     private final String dbRootPath;
     private final String dbVersion;
 
@@ -22,17 +22,17 @@ public class BDBNetworkMapPool {
     }
 
     //Create and open a DB
-    synchronized public BDBNetworkMap createInstance(long job, int harvestResultNumber) {
+    synchronized public BDBRepoHolder createInstance(long job, int harvestResultNumber) {
         String dbName = getDbName(job, harvestResultNumber);
         if (map.containsKey(dbName)) {
-            BDBNetworkMap oldDb = map.get(dbName);
+            BDBRepoHolder oldDb = map.get(dbName);
             oldDb.shutdownDB();
             queue.remove(oldDb);
             map.remove(dbName);
         }
 
         if (queue.size() >= MAX_SIZE) {
-            BDBNetworkMap oldDb = queue.get(0);
+            BDBRepoHolder oldDb = queue.get(0);
             queue.remove(0);
             map.remove(oldDb.getDbName());
             oldDb.shutdownDB();
@@ -47,9 +47,9 @@ public class BDBNetworkMapPool {
             log.warn("Recover db files: {}", dbPath);
         }
 
-        BDBNetworkMap db = new BDBNetworkMap();
+        BDBRepoHolder db;
         try {
-            db.initializeDB(dbPath, dbName, dbVersion);
+            db = BDBRepoHolder.createInstance(dbPath, dbName);
             queue.add(db);
             map.put(dbName, db);
         } catch (IOException e) {
@@ -62,7 +62,7 @@ public class BDBNetworkMapPool {
     }
 
     //Open with read mode
-    synchronized public BDBNetworkMap getInstance(long job, int harvestResultNumber) {
+    synchronized public BDBRepoHolder getInstance(long job, int harvestResultNumber) {
         String dbPath = this.getDbPath(job, harvestResultNumber);
         File dbPathFile = new File(dbPath);
         if (!dbPathFile.exists()) {  //
@@ -75,15 +75,15 @@ public class BDBNetworkMapPool {
         }
 
         if (queue.size() >= MAX_SIZE) {
-            BDBNetworkMap oldDb = queue.get(0);
+            BDBRepoHolder oldDb = queue.get(0);
             queue.remove(0);
             map.remove(oldDb.getDbName());
             oldDb.shutdownDB();
         }
 
-        BDBNetworkMap db = new BDBNetworkMap();
+        BDBRepoHolder db;
         try {
-            db.initializeDB(dbPath, dbName, dbVersion);
+            db = BDBRepoHolder.getInstance(dbPath, dbName);
             queue.add(db);
             map.put(dbName, db);
         } catch (IOException e) {
@@ -95,10 +95,26 @@ public class BDBNetworkMapPool {
         return db;
     }
 
+    synchronized public void shutdownRepo(BDBRepoHolder db) {
+        db.shutdownDB();
+        String dbName = db.getDbName();
+        BDBRepoHolder oldDb = null;
+        for (BDBRepoHolder e : queue) {
+            if (e.getDbName().equals(dbName)) {
+                oldDb = e;
+                break;
+            }
+        }
+        if (oldDb != null) {
+            queue.remove(oldDb);
+        }
+        map.remove(dbName);
+    }
+
     public void close(long job, int harvestResultNumber) {
         String dbName = getDbName(job, harvestResultNumber);
         if (map.containsKey(dbName)) {
-            BDBNetworkMap oldDb = map.get(dbName);
+            BDBRepoHolder oldDb = map.get(dbName);
             oldDb.shutdownDB();
             queue.remove(oldDb);
             map.remove(dbName);
