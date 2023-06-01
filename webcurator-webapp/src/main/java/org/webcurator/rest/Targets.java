@@ -3,14 +3,20 @@ package org.webcurator.rest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.domain.Pagination;
-import org.webcurator.domain.TargetDAO;
+import org.webcurator.domain.*;
+import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.rest.dto.TargetDTO;
+import static org.webcurator.rest.dto.TargetDTO.Profile.OverrideWithUnit;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -32,6 +38,16 @@ public class Targets {
 
     @Autowired
     private TargetDAO targetDAO;
+
+    @Autowired
+    private UserRoleDAO userRoleDAO;
+
+    @Autowired
+    private ProfileDAO profileDAO;
+
+    @Autowired
+    private SiteDAO siteDAO;
+
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
@@ -107,7 +123,6 @@ public class Targets {
         }
     }
 
-
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> delete(@PathVariable long id) {
         Target target = targetDAO.load(id);
@@ -127,9 +142,147 @@ public class Targets {
 
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@RequestBody TargetDTO targetDTO) {
-        return null;
-    }
+        User owner = userRoleDAO.getUserByName(targetDTO.getGeneral().getOwner());
+        Target target = new Target();
+        target.setCreationDate(new Date());
+        target.setName(targetDTO.getGeneral().getName());
+        target.setDescription(targetDTO.getGeneral().getDescription());
+        target.setReferenceNumber(targetDTO.getGeneral().getReferenceNumber());
+        target.setRunOnApproval(targetDTO.getGeneral().isRunOnApproval());
+        target.setOwner(owner);
+        target.setState(targetDTO.getGeneral().getState());
+        target.setAutoDenoteReferenceCrawl(targetDTO.getGeneral().isReferenceCrawl());
+        target.setRequestToArchivists(targetDTO.getGeneral().getRequestToArchivists());
 
+        Set<Schedule> schedules = new HashSet<>();
+        target.setAllowOptimize(targetDTO.getSchedule().isHarvestOptimization());
+        for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
+            Schedule schedule = new Schedule();
+            schedule.setCronPattern(s.getCron());
+            schedule.setStartDate(s.getStartDate());
+            schedule.setEndDate(s.getEndDate());
+            schedule.setScheduleType(s.getType());
+            schedule.setOwningUser(owner);
+        }
+        target.setSchedules(schedules);
+
+        target.setAccessZone(targetDTO.getAccess().getAccessZone());
+        target.setDisplayChangeReason(targetDTO.getAccess().getDisplayChangeReason());
+        target.setDisplayNote(targetDTO.getAccess().getDisplayNote());
+
+        ArrayList<Seed> seeds = new ArrayList<>();
+        for (TargetDTO.Seed s : targetDTO.getSeeds()) {
+            Seed seed = new Seed();
+            seed.setSeed(s.getSeed());
+            seed.setPrimary(s.isPrimary());
+            Set<Permission> permissions = new HashSet<>();
+            for (long authorisation : s.getAuthorisations()) {
+               Permission p = siteDAO.loadPermission(authorisation);
+               permissions.add(p);
+            }
+            seed.setPermissions(permissions);
+        }
+
+        Profile profile = profileDAO.load(targetDTO.getProfile().getId());
+        if (!profile.isHeritrix3Profile()) {
+            return ResponseEntity.badRequest().body("Only Heritrix 3 profiles are supported");
+        }
+        target.setProfile(profile);
+
+        // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
+        ProfileOverrides profileOverrides = new ProfileOverrides();
+        for (TargetDTO.Profile.Override override : targetDTO.getProfile().getOverrides()) {
+            String id = override.getId();
+            id = id.substring(0,1).toUpperCase() + id.substring(1); // camel case
+            String methodNameSetValue = "setH3" + id;
+            String methodNameSetEnabled = "setOverrideH3" + id;
+            String methodNameSetUnit = "setH3" + id + "Unit";
+            try {
+                if (override.getValue() != null) {
+                    Class valueClass = override.getValue().getClass();
+                    Object value = override.getValue();
+                    if (value instanceof Integer) { // Spring assumes Integer where it should be Long
+                        valueClass = Long.class;
+                        value = Long.valueOf((Integer)value);
+                    }
+                    if (value instanceof Boolean) { // Boolean setters use primitive type
+                        valueClass = boolean.class;
+                        value = Boolean.valueOf((Boolean)value);
+                    }
+                    if (value instanceof ArrayList) { // List setters use the interface class
+                        valueClass = List.class;
+                    }
+                    Method setValue = ProfileOverrides.class.getMethod(methodNameSetValue, valueClass);
+                    setValue.invoke(profileOverrides, value);
+                }
+                Method setEnabled = ProfileOverrides.class.getMethod(methodNameSetEnabled, boolean.class);
+                setEnabled.invoke(profileOverrides, override.isEnabled());
+                if (override instanceof TargetDTO.Profile.OverrideWithUnit) {
+                    if (((OverrideWithUnit) override).getUnit() != null) {
+                        Method setUnit = ProfileOverrides.class.getMethod(methodNameSetUnit, ((OverrideWithUnit) override).getUnit().getClass());
+                        setUnit.invoke(profileOverrides, ((OverrideWithUnit) override).getUnit());
+                    }
+                }
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                return ResponseEntity.internalServerError().body(e.getMessage());
+            }
+        }
+        target.setOverrides(profileOverrides);
+
+        target.setSelectionDate(targetDTO.getAnnotations().getSelection().getDate());
+        target.setSelectionNote(targetDTO.getAnnotations().getSelection().getNote());
+        target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
+        target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
+        target.setHarvestType(targetDTO.getAnnotations().getHarvestType());
+        ArrayList<Annotation> annotations = new ArrayList<>();
+        for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
+            Annotation annotation = new Annotation();
+            annotation.setDate(a.getDate());
+            annotation.setNote(a.getNote());
+            annotation.setUser(userRoleDAO.getUserByName(a.getUser()));
+            annotation.setAlertable(a.isAlert());
+            annotations.add(annotation);
+        }
+        target.setAnnotations(annotations);
+
+        DublinCore metadata = new DublinCore();
+        metadata.setIdentifier(targetDTO.getDescription().getIdentifier());
+        metadata.setDescription(targetDTO.getDescription().getDescription());
+        metadata.setSubject(targetDTO.getDescription().getSubject());
+        metadata.setCreator(targetDTO.getDescription().getCreator());
+        metadata.setPublisher(targetDTO.getDescription().getPublisher());
+        metadata.setType(targetDTO.getDescription().getType());
+        metadata.setFormat(targetDTO.getDescription().getFormat());
+        metadata.setSource(targetDTO.getDescription().getSource());
+        metadata.setRelation(targetDTO.getDescription().getRelation());
+        metadata.setCoverage(targetDTO.getDescription().getCoverage());
+        metadata.setIssn(targetDTO.getDescription().getIssn());
+        metadata.setIsbn(targetDTO.getDescription().getIsbn());
+        target.setDublinCoreMetaData(metadata);
+
+        Set<GroupMember> groups = new HashSet<>();
+        for (TargetDTO.Group g : targetDTO.getGroups()) {
+            GroupMember groupMember = new GroupMember();
+            groupMember.setOid(g.getId());
+            groups.add(groupMember);
+        }
+        target.setParents(groups);
+
+        try {
+            targetDAO.save(target);
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+
+        try {
+            String targetUrl = "http://localhost:8080/wct/api/v1/targets/" + target.getOid(); // FIXME hardcoded URL
+            return ResponseEntity.created(new URI(targetUrl)).build();
+        } catch (URISyntaxException e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
 
 
     /**
@@ -192,7 +345,7 @@ public class Targets {
         targetSummary.put("creationDate", t.getCreationDate());
         targetSummary.put("name", t.getName());
         targetSummary.put("agency", t.getOwner().getAgency().getName());
-        targetSummary.put("owner", t.getOwner().getNiceName());
+        targetSummary.put("owner", t.getOwner().getUsername());
         targetSummary.put("state", t.getState());
         ArrayList<HashMap<String, Object>> seeds = new ArrayList<>();
         for (Seed s : t.getSeeds()) {

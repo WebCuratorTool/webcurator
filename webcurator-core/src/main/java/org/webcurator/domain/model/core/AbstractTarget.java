@@ -536,10 +536,9 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
 	
 	
 	/**
-	 * Private setter for Hibernate access.
 	 * @param state The state of the object.
 	 */
-	protected void setState(int state) {
+	public void setState(int state) {
 		this.state = state;
 		if(originalState == -1) {
 			originalState = state;
