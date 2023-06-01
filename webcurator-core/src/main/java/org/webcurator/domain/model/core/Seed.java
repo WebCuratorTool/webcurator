@@ -85,7 +85,7 @@ public class Seed extends AbstractIdentityObject {
      * components. This class should be instantiated by the
      * BusinessObjectFactory.
      */
-    protected Seed() {
+    public Seed() {
     }
 
 
