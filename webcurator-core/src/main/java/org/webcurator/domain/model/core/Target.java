@@ -105,7 +105,7 @@ public class Target extends AbstractTarget implements Optimizable {
      * Protected constructor - all instances should be created through the
      * <code>BusinessObjectFactory</code>.
      */
-    protected Target() {
+    public Target() {
     	super(AbstractTarget.TYPE_TARGET);
     }
     
