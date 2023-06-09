@@ -88,7 +88,7 @@ public class Targets {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
         }
     }
 
@@ -124,7 +124,7 @@ public class Targets {
                 case "seeds":
                     return ResponseEntity.ok().body(targetDTO.getSeeds());
                 default:
-                    return ResponseEntity.badRequest().body(String.format("No such target section: %s", section));
+                    return ResponseEntity.badRequest().body(errorMessage(String.format("No such target section: %s", section)));
             }
         }
     }
@@ -136,9 +136,9 @@ public class Targets {
             return ResponseEntity.notFound().build();
         } else {
             if (target.getCrawls() > 0) {
-                return ResponseEntity.badRequest().body("Target could not be deleted because it has related target instances");
+                return ResponseEntity.badRequest().body(errorMessage("Target could not be deleted because it has related target instances"));
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
-                return ResponseEntity.badRequest().body("Target could not be deleted because its state is not Rejected or Cancelled");
+                return ResponseEntity.badRequest().body(errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
             } else {
                 targetDAO.delete(target);
                 return ResponseEntity.ok().build();
@@ -197,14 +197,14 @@ public class Targets {
         // FIXME deal with non-existent profile
         Profile profile = profileDAO.load(targetDTO.getProfile().getId());
         if (!profile.isHeritrix3Profile()) {
-            return ResponseEntity.badRequest().body("Only Heritrix v3 profiles are supported");
+            return ResponseEntity.badRequest().body(errorMessage("Only Heritrix v3 profiles are supported"));
         }
         target.setProfile(profile);
 
         ProfileOverrides profileOverrides = new ProfileOverrides();
         ArrayList<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
         if (!profile.isImported() && overrides.isEmpty()) {
-            return ResponseEntity.badRequest().body("A target with a non-imported profile requires profile overrides");
+            return ResponseEntity.badRequest().body(errorMessage("A target with a non-imported profile requires profile overrides"));
         }
         // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
         for (TargetDTO.Profile.Override override : overrides) {
@@ -240,7 +240,7 @@ public class Targets {
                     }
                 }
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                return ResponseEntity.internalServerError().body(e.getMessage());
+                return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
             }
         }
         target.setOverrides(profileOverrides);
@@ -288,29 +288,43 @@ public class Targets {
         try {
             targetDAO.save(target);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
+            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
         }
 
         try {
             String targetUrl = "http://localhost:8080/wct/api/v1/targets/" + target.getOid(); // FIXME hardcoded URL
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
+            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
         }
     }
 
+    /**
+     * Handler used by the validation API to generate error messages
+     */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class})
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public HashMap<String, Map<String, String>> errorMessage(MethodArgumentNotValidException ex) {
+        HashMap<String, Map<String, String>> map = new HashMap<>();
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
                                                 String fieldName = ((FieldError) error).getField();
                                                 String errorMessage = error.getDefaultMessage();
                                                 errors.put(fieldName, errorMessage);
                                             });
-        return errors;
+        map.put("Error", errors);
+        return map;
+    }
+
+    /**
+     * Error message formatter used in situations other than exceptions thrown by the validation API
+     */
+    private HashMap<String, Object> errorMessage(Object msg) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("Error", msg);
+        return map;
     }
 
     /**
