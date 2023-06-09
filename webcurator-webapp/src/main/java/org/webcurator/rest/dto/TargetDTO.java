@@ -1,7 +1,10 @@
 package org.webcurator.rest.dto;
 
+import org.hibernate.validator.constraints.Range;
 import org.webcurator.domain.model.core.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,13 +14,22 @@ import java.util.List;
  */
 public class TargetDTO {
 
+    @Valid
+    @NotNull(message = "General section is required")
     General general;
+    @Valid
     Scheduling schedule;
+    @Valid
     Access access;
+    @Valid
     ArrayList<Seed> seeds;
+    @Valid
     Profile profile;
+    @Valid
     Annotations annotations;
+    @Valid
     Description description;
+    @Valid
     ArrayList<Group> groups;
 
     public TargetDTO() {
@@ -107,13 +119,22 @@ public class TargetDTO {
     public static class General {
         long id;
         Date creationDate;
+        @NotBlank(message = "name is required")
         String name;
         String description;
         String referenceNumber;
-        boolean runOnApproval;
+        @NotNull(message = "runOnApproval is required")
+        Boolean runOnApproval = false;
+        @NotNull(message = "automatedQA is required")
+        boolean automatedQA = false;
+        @NotBlank(message = "owner is required")
         String owner;
+        @NotNull(message = "state is required")
         Integer state;
-        boolean referenceCrawl;
+        @NotNull(message = "autoPrune is required")
+        Boolean autoPrune = false;
+        @NotNull(message = "referenceCrawl is required")
+        Boolean referenceCrawl = false;
         String requestToArchivists;
 
         public General() {
@@ -126,8 +147,10 @@ public class TargetDTO {
             description = target.getDescription();
             referenceNumber = target.getReferenceNumber();
             runOnApproval = target.isRunOnApproval();
+            automatedQA = target.isUseAQA();
             owner = target.getOwner().getUsername();
             state = target.getState();
+            autoPrune = target.isAutoPrune();
             referenceCrawl = target.isAutoDenoteReferenceCrawl();
             requestToArchivists = target.getRequestToArchivists();
         }
@@ -180,6 +203,14 @@ public class TargetDTO {
             this.runOnApproval = runOnApproval;
         }
 
+        public boolean isAutomatedQA() {
+            return automatedQA;
+        }
+
+        public void setAutomatedQA(boolean automatedQA) {
+            this.automatedQA = automatedQA;
+        }
+
         public String getOwner() {
             return owner;
         }
@@ -194,6 +225,14 @@ public class TargetDTO {
 
         public void setState(Integer state) {
             this.state = state;
+        }
+
+        public boolean isAutoPrune() {
+            return autoPrune;
+        }
+
+        public void setAutoPrune(boolean autoPrune) {
+            this.autoPrune = autoPrune;
         }
 
         public boolean isReferenceCrawl() {
@@ -216,6 +255,7 @@ public class TargetDTO {
     public static class Scheduling {
 
         boolean harvestOptimization;
+        @Valid
         ArrayList<Schedule> schedules;
 
         public Scheduling() {
@@ -233,8 +273,6 @@ public class TargetDTO {
                 schedule.setType(s.getScheduleType());
                 schedule.setNextExecutionDate(s.getNextExecutionDate());
                 schedule.setLastProcessedDate(s.getLastProcessedDate());
-                // FIXME in the current UI the "nice name" is used, but maybe we should use the userId
-                // FIXME everywhere instead and leave the translation to "nice name" up to the client? <-- Yes!
                 schedule.setOwner(s.getOwningUser().getUsername());
                 schedules.add(schedule);
             }
@@ -258,12 +296,19 @@ public class TargetDTO {
 
         public static class Schedule {
             long id;
+            @NotBlank(message = "cron is required")
             String cron;
+            @NotNull(message = "startDate is required")
             Date startDate;
             Date endDate;
-            int type;
+            @NotNull(message = "type is required")
+            @Min(value = org.webcurator.domain.model.core.Schedule.TYPE_ANNUALLY, message = "invalid schedule type")
+            @Max(value = org.webcurator.domain.model.core.Schedule.CUSTOM_SCHEDULE, message = "invalid schedule type")
+            Integer type;
+            @NotNull(message = "nextExecutionDate is required")
             Date nextExecutionDate;
             Date lastProcessedDate;
+            @NotNull(message = "owner is required")
             String owner;
 
             public Schedule() {
@@ -336,7 +381,12 @@ public class TargetDTO {
     }
 
     public static class Access {
-        int accessZone;
+        @NotNull(message = "displayTarget is required")
+        Boolean displayTarget;
+        @NotNull(message = "accessZone is required")
+        @Min(value = AbstractTarget.AccessZone.PUBLIC, message = "invalid accessZone")
+        @Max(value = AbstractTarget.AccessZone.RESTRICTED, message = "invalid accessZone")
+        Integer accessZone;
         String accessZoneText;
         String displayChangeReason;
         String displayNote;
@@ -349,6 +399,14 @@ public class TargetDTO {
             accessZoneText = target.getAccessZoneText();
             displayChangeReason = target.getDisplayChangeReason();
             displayNote = target.getDisplayNote();
+        }
+
+        public Boolean getDisplayTarget() {
+            return displayTarget;
+        }
+
+        public void setDisplayTarget(Boolean displayTarget) {
+            this.displayTarget = displayTarget;
         }
 
         public int getAccessZone() {
@@ -386,8 +444,11 @@ public class TargetDTO {
 
     public static class Seed {
         long id;
+        @NotBlank(message = "seed is required")
         String seed;
-        boolean primary;
+        @NotNull(message = "primary is required")
+        Boolean primary;
+        @NotEmpty(message = "authorisations may not be empty")
         ArrayList<Long> authorisations;
 
         public Seed() {
@@ -419,11 +480,11 @@ public class TargetDTO {
             this.seed = seed;
         }
 
-        public boolean isPrimary() {
+        public Boolean getPrimary() {
             return primary;
         }
 
-        public void setPrimary(boolean primary) {
+        public void setPrimary(Boolean primary) {
             this.primary = primary;
         }
 
@@ -438,10 +499,15 @@ public class TargetDTO {
 
     public static class Profile {
 
+        @NotNull(message = "harvesterType is required")
         String harvesterType;
-        long id;
-        boolean imported;
+        @NotNull(message = "id is required")
+        Long id;
+        @NotNull(message = "imported is required")
+        Boolean imported;
+        @NotBlank(message = "name is required")
         String name;
+        @Valid
         ArrayList<Override> overrides;
 
 
@@ -456,19 +522,19 @@ public class TargetDTO {
             this.harvesterType = harvesterType;
         }
 
-        public long getId() {
+        public Long getId() {
             return id;
         }
 
-        public void setId(long id) {
+        public void setId(Long id) {
             this.id = id;
         }
 
-        public boolean isImported() {
+        public Boolean getImported() {
             return imported;
         }
 
-        public void setImported(boolean imported) {
+        public void setImported(Boolean imported) {
             this.imported = imported;
         }
 
@@ -609,13 +675,14 @@ public class TargetDTO {
                 credentials.setEnabled(o.isOverrideCredentials());
                 overrides.add(credentials);
             }
-
         }
 
         public static class Override {
+            @NotBlank(message = "id is required")
             String id;
             Object value;
-            boolean enabled;
+            @NotNull(message = "enabled is required")
+            Boolean enabled;
 
             public Override() {
             }
@@ -636,16 +703,17 @@ public class TargetDTO {
                 this.value = value;
             }
 
-            public boolean isEnabled() {
+            public Boolean getEnabled() {
                 return enabled;
             }
 
-            public void setEnabled(boolean enabled) {
+            public void setEnabled(Boolean enabled) {
                 this.enabled = enabled;
             }
         }
 
         public static class OverrideWithUnit extends Override {
+            @NotBlank(message = "unit is required")
             String unit;
 
             public OverrideWithUnit() {
@@ -663,9 +731,11 @@ public class TargetDTO {
 
     public static class Annotations {
 
+        @Valid
+        @NotNull(message = "selection is required")
         Selection selection;
         String evaluationNote;
-        String harvestType;
+        String harvestType; // FIXME validate against list of harvestTypes in ListsConfig.java
         ArrayList<Annotation> annotations;
 
         public Annotations() {}
@@ -721,7 +791,9 @@ public class TargetDTO {
         }
 
         public static class Selection {
+            @NotNull(message = "date is required")
             Date date;
+            // FIXME validate type against list in ListsConfig.java
             String type;
             String note;
 
@@ -925,7 +997,8 @@ public class TargetDTO {
     }
 
     public static class Group {
-        long id;
+        @NotNull(message = "id is required")
+        Long id;
         String name;
 
         public Group() {}
@@ -935,11 +1008,11 @@ public class TargetDTO {
             name = m.getParent().getName();
         }
 
-        public long getId() {
+        public Long getId() {
             return id;
         }
 
-        public void setId(long id) {
+        public void setId(Long id) {
             this.id = id;
         }
 

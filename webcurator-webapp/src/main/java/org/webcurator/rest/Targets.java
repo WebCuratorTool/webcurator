@@ -4,13 +4,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.rest.dto.TargetDTO;
+
+import javax.validation.Valid;
+
 import static org.webcurator.rest.dto.TargetDTO.Profile.OverrideWithUnit;
 
 import java.lang.reflect.InvocationTargetException;
@@ -141,7 +147,8 @@ public class Targets {
     }
 
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> post(@RequestBody TargetDTO targetDTO) {
+    public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO) {
+        // FIXME deal with non-existent user
         User owner = userRoleDAO.getUserByName(targetDTO.getGeneral().getOwner());
         Target target = new Target();
         target.setCreationDate(new Date());
@@ -149,8 +156,10 @@ public class Targets {
         target.setDescription(targetDTO.getGeneral().getDescription());
         target.setReferenceNumber(targetDTO.getGeneral().getReferenceNumber());
         target.setRunOnApproval(targetDTO.getGeneral().isRunOnApproval());
+        target.setUseAQA(targetDTO.getGeneral().isAutomatedQA());
         target.setOwner(owner);
         target.setState(targetDTO.getGeneral().getState());
+        target.setAutoPrune(targetDTO.getGeneral().isAutoPrune());
         target.setAutoDenoteReferenceCrawl(targetDTO.getGeneral().isReferenceCrawl());
         target.setRequestToArchivists(targetDTO.getGeneral().getRequestToArchivists());
 
@@ -158,6 +167,7 @@ public class Targets {
         target.setAllowOptimize(targetDTO.getSchedule().isHarvestOptimization());
         for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
             Schedule schedule = new Schedule();
+            // FIXME validate cron expression
             schedule.setCronPattern(s.getCron());
             schedule.setStartDate(s.getStartDate());
             schedule.setEndDate(s.getEndDate());
@@ -174,26 +184,32 @@ public class Targets {
         for (TargetDTO.Seed s : targetDTO.getSeeds()) {
             Seed seed = new Seed();
             seed.setSeed(s.getSeed());
-            seed.setPrimary(s.isPrimary());
+            seed.setPrimary(s.getPrimary());
             Set<Permission> permissions = new HashSet<>();
             for (long authorisation : s.getAuthorisations()) {
-               Permission p = siteDAO.loadPermission(authorisation);
-               permissions.add(p);
+                // FIXME deal with non-existent permission
+                Permission p = siteDAO.loadPermission(authorisation);
+                permissions.add(p);
             }
             seed.setPermissions(permissions);
         }
 
+        // FIXME deal with non-existent profile
         Profile profile = profileDAO.load(targetDTO.getProfile().getId());
         if (!profile.isHeritrix3Profile()) {
-            return ResponseEntity.badRequest().body("Only Heritrix 3 profiles are supported");
+            return ResponseEntity.badRequest().body("Only Heritrix v3 profiles are supported");
         }
         target.setProfile(profile);
 
-        // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
         ProfileOverrides profileOverrides = new ProfileOverrides();
-        for (TargetDTO.Profile.Override override : targetDTO.getProfile().getOverrides()) {
+        ArrayList<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
+        if (!profile.isImported() && overrides.isEmpty()) {
+            return ResponseEntity.badRequest().body("A target with a non-imported profile requires profile overrides");
+        }
+        // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
+        for (TargetDTO.Profile.Override override : overrides) {
             String id = override.getId();
-            id = id.substring(0,1).toUpperCase() + id.substring(1); // camel case
+            id = id.substring(0, 1).toUpperCase() + id.substring(1); // camel case
             String methodNameSetValue = "setH3" + id;
             String methodNameSetEnabled = "setOverrideH3" + id;
             String methodNameSetUnit = "setH3" + id + "Unit";
@@ -203,11 +219,11 @@ public class Targets {
                     Object value = override.getValue();
                     if (value instanceof Integer) { // Spring assumes Integer where it should be Long
                         valueClass = Long.class;
-                        value = Long.valueOf((Integer)value);
+                        value = Long.valueOf((Integer) value);
                     }
                     if (value instanceof Boolean) { // Boolean setters use primitive type
                         valueClass = boolean.class;
-                        value = Boolean.valueOf((Boolean)value);
+                        value = Boolean.valueOf((Boolean) value);
                     }
                     if (value instanceof ArrayList) { // List setters use the interface class
                         valueClass = List.class;
@@ -216,7 +232,7 @@ public class Targets {
                     setValue.invoke(profileOverrides, value);
                 }
                 Method setEnabled = ProfileOverrides.class.getMethod(methodNameSetEnabled, boolean.class);
-                setEnabled.invoke(profileOverrides, override.isEnabled());
+                setEnabled.invoke(profileOverrides, override.getEnabled());
                 if (override instanceof TargetDTO.Profile.OverrideWithUnit) {
                     if (((OverrideWithUnit) override).getUnit() != null) {
                         Method setUnit = ProfileOverrides.class.getMethod(methodNameSetUnit, ((OverrideWithUnit) override).getUnit().getClass());
@@ -239,6 +255,7 @@ public class Targets {
             Annotation annotation = new Annotation();
             annotation.setDate(a.getDate());
             annotation.setNote(a.getNote());
+            // FIXME deal with non-existent user
             annotation.setUser(userRoleDAO.getUserByName(a.getUser()));
             annotation.setAlertable(a.isAlert());
             annotations.add(annotation);
@@ -284,6 +301,17 @@ public class Targets {
         }
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler({MethodArgumentNotValidException.class})
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+                                                String fieldName = ((FieldError) error).getField();
+                                                String errorMessage = error.getDefaultMessage();
+                                                errors.put(fieldName, errorMessage);
+                                            });
+        return errors;
+    }
 
     /**
      * Handle the actual search using the old Target DAO search API
