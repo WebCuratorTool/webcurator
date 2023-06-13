@@ -19,7 +19,7 @@ import org.xml.sax.SAXParseException;
 
 
 
-public class MockRejReasonDAO implements RejReasonDAO {
+public class MockRejReasonDAO extends RejReasonDAO {
 
 	private static Log log = LogFactory.getLog(MockUserRoleDAO.class);
 	private Document theFile = null; 

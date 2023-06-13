@@ -4,10 +4,6 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
-
-import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
-import static org.quartz.TriggerBuilder.newTrigger;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,26 +23,27 @@ import org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
-import org.webcurator.core.admin.PermissionTemplateManagerImpl;
-import org.webcurator.core.agency.AgencyUserManagerImpl;
-import org.webcurator.core.archive.ArchiveAdapterImpl;
+import org.webcurator.core.admin.PermissionTemplateManager;
+import org.webcurator.core.agency.AgencyUserManager;
+import org.webcurator.core.archive.ArchiveAdapter;
 import org.webcurator.core.archive.SipBuilder;
 import org.webcurator.core.check.CheckProcessor;
 import org.webcurator.core.check.Checker;
 import org.webcurator.core.check.CoreCheckNotifier;
 import org.webcurator.core.common.Environment;
 import org.webcurator.core.common.EnvironmentFactory;
-import org.webcurator.core.common.EnvironmentImpl;
 import org.webcurator.core.coordinator.HarvestResultManager;
-import org.webcurator.core.coordinator.HarvestResultManagerImpl;
 import org.webcurator.core.coordinator.WctCoordinator;
-import org.webcurator.core.harvester.agent.HarvestAgentFactoryImpl;
-import org.webcurator.core.harvester.coordinator.*;
-import org.webcurator.core.notification.InTrayManagerImpl;
-import org.webcurator.core.notification.MailServerImpl;
-import org.webcurator.core.permissionmapping.HierPermMappingDAOImpl;
+import org.webcurator.core.harvester.agent.HarvestAgentFactory;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
+import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.harvester.coordinator.HarvestQaManager;
+import org.webcurator.core.harvester.coordinator.PatchingHarvestLogManager;
+import org.webcurator.core.notification.InTrayManager;
+import org.webcurator.core.notification.MailServer;
+import org.webcurator.core.permissionmapping.HierPermMappingDAO;
 import org.webcurator.core.permissionmapping.HierarchicalPermissionMappingStrategy;
 import org.webcurator.core.permissionmapping.PermMappingSiteListener;
 import org.webcurator.core.permissionmapping.PermissionMappingStrategy;
@@ -55,15 +52,15 @@ import org.webcurator.core.profiles.ProfileManager;
 import org.webcurator.core.reader.LogReader;
 import org.webcurator.core.reader.LogReaderClient;
 import org.webcurator.core.reader.LogReaderImpl;
-import org.webcurator.core.report.LogonDurationDAOImpl;
-import org.webcurator.core.rules.QaRecommendationServiceImpl;
+import org.webcurator.core.report.LogonDurationDAO;
+import org.webcurator.core.rules.QaRecommendationService;
 import org.webcurator.core.scheduler.ScheduleJob;
-import org.webcurator.core.scheduler.TargetInstanceManagerImpl;
-import org.webcurator.core.sites.SiteManagerImpl;
+import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.sites.SiteManager;
 import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
-import org.webcurator.core.store.DigitalAssetStoreFactoryImpl;
-import org.webcurator.core.targets.TargetManagerImpl;
+import org.webcurator.core.store.DigitalAssetStoreFactory;
+import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.LockManager;
@@ -74,11 +71,15 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 import org.webcurator.domain.model.core.HarvestResult;
 import org.webcurator.domain.model.core.SchedulePattern;
-import org.webcurator.ui.tools.controller.*;
+import org.webcurator.ui.tools.controller.HarvestResourceUrlMapper;
+import org.webcurator.ui.tools.controller.QualityReviewToolControllerAttribute;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.*;
+
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
 
 /**
  * Contains configuration that used to be found in {@code wct-core.xml}. This
@@ -416,8 +417,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public DigitalAssetStoreFactoryImpl digitalAssetStoreFactory() {
-        DigitalAssetStoreFactoryImpl bean = new DigitalAssetStoreFactoryImpl();
+    public DigitalAssetStoreFactory digitalAssetStoreFactory() {
+        DigitalAssetStoreFactory bean = new DigitalAssetStoreFactory();
         bean.setDAS(digitalAssetStore());
         bean.setLogReader(new LogReaderClient(digitalAssetStoreBaseUrl, restTemplateBuilder));
         return bean;
@@ -433,8 +434,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public QaRecommendationServiceImpl qaRecommendationService() {
-        QaRecommendationServiceImpl bean = new QaRecommendationServiceImpl();
+    public QaRecommendationService qaRecommendationService() {
+        QaRecommendationService bean = new QaRecommendationService();
         // The state that will be used to denote a failure within the Rules Engine (eg: an unexpected exception).
         // This state will be returned to the user as the state of the failed indicator along with the exception.
         bean.setStateFailed("Failed");
@@ -471,8 +472,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public TargetInstanceDAOImpl targetInstanceDao() {
-        TargetInstanceDAOImpl bean = new TargetInstanceDAOImpl();
+    public TargetInstanceDAO targetInstanceDao() {
+        TargetInstanceDAO bean = new TargetInstanceDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
         bean.setAuditor(audit());
@@ -482,7 +483,7 @@ public class BaseConfig {
 
     @Bean
     public UserRoleDAO userRoleDAO() {
-        UserRoleDAOImpl bean = new UserRoleDAOImpl();
+        UserRoleDAO bean = new UserRoleDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         //bean.setTxTemplate(transactionTemplate());
 
@@ -491,7 +492,7 @@ public class BaseConfig {
 
     @Bean
     public RejReasonDAO rejReasonDAO() {
-        RejReasonDAOImpl bean = new RejReasonDAOImpl();
+        RejReasonDAO bean = new RejReasonDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -500,7 +501,7 @@ public class BaseConfig {
 
     @Bean
     public IndicatorDAO indicatorDAO() {
-        IndicatorDAOImpl bean = new IndicatorDAOImpl();
+        IndicatorDAO bean = new IndicatorDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -509,7 +510,7 @@ public class BaseConfig {
 
     @Bean
     public IndicatorCriteriaDAO indicatorCriteriaDAO() {
-        IndicatorCriteriaDAOImpl bean = new IndicatorCriteriaDAOImpl();
+        IndicatorCriteriaDAO bean = new IndicatorCriteriaDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -518,7 +519,7 @@ public class BaseConfig {
 
     @Bean
     public IndicatorReportLineDAO indicatorReportLineDAO() {
-        IndicatorReportLineDAOImpl bean = new IndicatorReportLineDAOImpl();
+        IndicatorReportLineDAO bean = new IndicatorReportLineDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -527,7 +528,7 @@ public class BaseConfig {
 
     @Bean
     public FlagDAO flagDAO() {
-        FlagDAOImpl bean = new FlagDAOImpl();
+        FlagDAO bean = new FlagDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -536,7 +537,7 @@ public class BaseConfig {
 
     @Bean
     public TargetDAO targetDao() {
-        TargetDAOImpl bean = new TargetDAOImpl();
+        TargetDAO bean = new TargetDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -545,7 +546,7 @@ public class BaseConfig {
 
     @Bean
     public SiteDAO siteDao() {
-        SiteDAOImpl bean = new SiteDAOImpl();
+        SiteDAO bean = new SiteDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -554,14 +555,14 @@ public class BaseConfig {
 
     @Bean
     public PermissionDAO permissionDAO() {
-        PermissionDAOImpl bean = new PermissionDAOImpl();
+        PermissionDAO bean = new PermissionDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         return bean;
     }
 
     @Bean
     public ProfileDAO profileDao() {
-        ProfileDAOImpl bean = new ProfileDAOImpl();
+        ProfileDAO bean = new ProfileDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -570,7 +571,7 @@ public class BaseConfig {
 
     @Bean
     public InTrayDAO inTrayDao() {
-        InTrayDAOImpl bean = new InTrayDAOImpl();
+        InTrayDAO bean = new InTrayDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -579,7 +580,7 @@ public class BaseConfig {
 
     @Bean
     public HeatmapDAO heatmapConfigDao() {
-        HeatmapDAOImpl bean = new HeatmapDAOImpl();
+        HeatmapDAO bean = new HeatmapDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -588,7 +589,7 @@ public class BaseConfig {
 
     @Bean
     public PermissionTemplateDAO permissionTemplateDao() {
-        PermissionTemplateDAOImpl bean = new PermissionTemplateDAOImpl();
+        PermissionTemplateDAO bean = new PermissionTemplateDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -606,15 +607,15 @@ public class BaseConfig {
 
     @Bean
     public HarvestResultManager harvestResultManager() {
-        HarvestResultManagerImpl bean = new HarvestResultManagerImpl();
+        HarvestResultManager bean = new HarvestResultManager();
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setNetworkMapClient(networkMapClientReomote());
         return bean;
     }
 
     @Bean
-    public HarvestAgentManagerImpl harvestAgentManager() {
-        HarvestAgentManagerImpl bean = new HarvestAgentManagerImpl();
+    public HarvestAgentManager harvestAgentManager() {
+        HarvestAgentManager bean = new HarvestAgentManager();
         bean.setHarvestAgentFactory(harvestAgentFactory());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
@@ -623,9 +624,9 @@ public class BaseConfig {
     }
 
     @Bean
-    public HarvestLogManagerImpl harvestLogManager() {
-        HarvestLogManagerImpl bean = new HarvestLogManagerImpl();
-        bean.setHarvestAgentManager(harvestAgentManager());
+    public HarvestLogManager harvestLogManager() {
+        HarvestLogManager bean = new HarvestLogManager();
+        bean.setHarvestAgentManagerImpl(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
 
         return bean;
@@ -633,7 +634,7 @@ public class BaseConfig {
 
     @Bean(name = HarvestResult.PATCH_STAGE_TYPE_CRAWLING)
     public PatchingHarvestLogManager patchingHarvestLogManagerNormal() {
-        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        PatchingHarvestLogManager bean = new PatchingHarvestLogManager();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setType(HarvestResult.PATCH_STAGE_TYPE_CRAWLING);
@@ -642,7 +643,7 @@ public class BaseConfig {
 
     @Bean(name = HarvestResult.PATCH_STAGE_TYPE_MODIFYING)
     public PatchingHarvestLogManager patchingHarvestLogManagerModification() {
-        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        PatchingHarvestLogManager bean = new PatchingHarvestLogManager();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setType(HarvestResult.PATCH_STAGE_TYPE_MODIFYING);
@@ -651,7 +652,7 @@ public class BaseConfig {
 
     @Bean(name = HarvestResult.PATCH_STAGE_TYPE_INDEXING)
     public PatchingHarvestLogManager patchingHarvestLogManagerIndex() {
-        PatchingHarvestLogManagerImpl bean = new PatchingHarvestLogManagerImpl();
+        PatchingHarvestLogManager bean = new PatchingHarvestLogManager();
         bean.setHarvestAgentManager(harvestAgentManager());
         bean.setDigitalAssetStoreFactory(digitalAssetStoreFactory());
         bean.setType(HarvestResult.PATCH_STAGE_TYPE_INDEXING);
@@ -660,7 +661,7 @@ public class BaseConfig {
 
     @Bean
     public HarvestQaManager harvestQaManager() {
-        HarvestQaManagerImpl bean = new HarvestQaManagerImpl();
+        HarvestQaManager bean = new HarvestQaManager();
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setAutoQAUrl(autoQAUrl);
@@ -673,8 +674,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public TargetInstanceManagerImpl targetInstanceManager() {
-        TargetInstanceManagerImpl bean = new TargetInstanceManagerImpl();
+    public TargetInstanceManager targetInstanceManager() {
+        TargetInstanceManager bean = new TargetInstanceManager();
         bean.setTargetInstanceDao(targetInstanceDao());
         bean.setAuditor(audit());
         bean.setAnnotationDAO(annotationDao());
@@ -698,8 +699,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public SiteManagerImpl siteManager() {
-        SiteManagerImpl bean = new SiteManagerImpl();
+    public SiteManager siteManager() {
+        SiteManager bean = new SiteManager();
         bean.setSiteDao(siteDao());
         bean.setAnnotationDAO(annotationDao());
 
@@ -720,8 +721,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public TargetManagerImpl targetManager() {
-        TargetManagerImpl bean = new TargetManagerImpl();
+    public TargetManager targetManager() {
+        TargetManager bean = new TargetManager();
         bean.setTargetDao(targetDao());
         bean.setSiteDao(siteDao());
         bean.setAnnotationDAO(annotationDao());
@@ -761,8 +762,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public LogonDurationDAOImpl logonDuration() {
-        LogonDurationDAOImpl bean = new LogonDurationDAOImpl();
+    public LogonDurationDAO logonDuration() {
+        LogonDurationDAO bean = new LogonDurationDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -772,13 +773,13 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public HarvestAgentFactoryImpl harvestAgentFactory() {
-        return new HarvestAgentFactoryImpl();
+    public HarvestAgentFactory harvestAgentFactory() {
+        return new HarvestAgentFactory();
     }
 
     @Bean
     public Environment environmentWCT() {
-        EnvironmentImpl bean = new EnvironmentImpl();
+        Environment bean = new Environment();
         bean.setDaysToSchedule(harvestAgentDaysToSchedule);
         bean.setSchedulesPerBatch(targetInstancesTriggerSchedulesPerBatch);
         bean.setApplicationVersion(projectVersion);
@@ -820,8 +821,8 @@ public class BaseConfig {
     }
 
     @Bean
-    public HierPermMappingDAOImpl permMappingDao() {
-        HierPermMappingDAOImpl bean = new HierPermMappingDAOImpl();
+    public HierPermMappingDAO permMappingDao() {
+        HierPermMappingDAO bean = new HierPermMappingDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -877,8 +878,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public AgencyUserManagerImpl agencyUserManager() {
-        AgencyUserManagerImpl bean = new AgencyUserManagerImpl();
+    public AgencyUserManager agencyUserManager() {
+        AgencyUserManager bean = new AgencyUserManager();
         bean.setUserRoleDAO(userRoleDAO());
         bean.setRejReasonDAO(rejReasonDAO());
         bean.setIndicatorCriteriaDAO(indicatorCriteriaDAO());
@@ -893,8 +894,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public AuthorityManagerImpl authorityManager() {
-        return new AuthorityManagerImpl();
+    public AuthorityManager authorityManager() {
+        return new AuthorityManager();
     }
 
     @Bean
@@ -908,8 +909,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public AnnotationDAOImpl annotationDao() {
-        AnnotationDAOImpl bean = new AnnotationDAOImpl();
+    public AnnotationDAO annotationDao() {
+        AnnotationDAO bean = new AnnotationDAO();
         bean.setSessionFactory(sessionFactory().getObject());
         bean.setTxTemplate(transactionTemplate());
 
@@ -919,13 +920,13 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public MailServerImpl mailServer() {
+    public MailServer mailServer() {
         Properties properties = new Properties();
         properties.put("mail.transport.protocol", mailProtocol);
         properties.put("mail.smtp.host", mailServerSmtpHost);
         properties.put("mail.smtp.port", mailSmtpPort);
 
-        MailServerImpl bean = new MailServerImpl(properties);
+        MailServer bean = new MailServer(properties);
 
         return bean;
     }
@@ -1032,8 +1033,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public InTrayManagerImpl inTrayManager() {
-        InTrayManagerImpl bean = new InTrayManagerImpl();
+    public InTrayManager inTrayManager() {
+        InTrayManager bean = new InTrayManager();
         bean.setInTrayDAO(inTrayDao());
         bean.setUserRoleDAO(userRoleDAO());
         bean.setAgencyUserManager(agencyUserManager());
@@ -1049,8 +1050,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public PermissionTemplateManagerImpl permissionTemplateManager() {
-        PermissionTemplateManagerImpl bean = new PermissionTemplateManagerImpl();
+    public PermissionTemplateManager permissionTemplateManager() {
+        PermissionTemplateManager bean = new PermissionTemplateManager();
         bean.setPermissionTemplateDAO(permissionTemplateDao());
         bean.setAuthorityManager(authorityManager());
 
@@ -1110,8 +1111,8 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
-    public ArchiveAdapterImpl archiveAdapter() {
-        ArchiveAdapterImpl bean = new ArchiveAdapterImpl();
+    public ArchiveAdapter archiveAdapter() {
+        ArchiveAdapter bean = new ArchiveAdapter();
         bean.setDigitalAssetStore(digitalAssetStore());
         bean.setTargetInstanceManager(targetInstanceManager());
         bean.setTargetManager(targetManager());

@@ -116,7 +116,7 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
      * Protected constructor - all schedules should be constructed by 
      * the BusinessObjectFactory.
      */
-    protected Schedule() {}
+    public Schedule() {}
     
     /**
      * Gets the database OID of the schedule.

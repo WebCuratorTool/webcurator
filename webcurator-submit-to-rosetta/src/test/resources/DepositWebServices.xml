@@ -1,0 +1,258 @@
+<?xml version='1.0' encoding='UTF-8'?><wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://dps.exlibris.com/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ns1="http://schemas.xmlsoap.org/soap/http" name="DepositWebServices" targetNamespace="http://dps.exlibris.com/">
+  <wsdl:types>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://dps.exlibris.com/" attributeFormDefault="unqualified" elementFormDefault="unqualified" targetNamespace="http://dps.exlibris.com/">
+  <xs:complexType name="getDepositActivityBySubmitDateByMaterialFlow">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg1" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg2" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg3" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg4" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg5" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg6" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg7" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg8" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getDepositActivityBySubmitDateByMaterialFlowResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="submitDateResultByMF" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getDepositActivityByUpdateDate">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg1" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg2" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg3" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg4" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg5" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg6" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg7" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getDepositActivityByUpdateDateResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="updateDateResult" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getHeartBit">
+    <xs:sequence/>
+  </xs:complexType>
+  <xs:complexType name="getHeartBitResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="return" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getDepositActivityBySubmitDate">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg1" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg2" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg3" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg4" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg5" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg6" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg7" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getDepositActivityBySubmitDateResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="submitDateResult" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="submitDepositActivity">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg1" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg2" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg3" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg4" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="submitDepositActivityResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="depositResult" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getDepositActivityByUpdateDateByMaterialFlow">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="arg0" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg1" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg2" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg3" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg4" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg5" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg6" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg7" type="xs:string"/>
+      <xs:element minOccurs="0" name="arg8" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="getDepositActivityByUpdateDateByMaterialFlowResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="updateDateResultByMF" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="getDepositActivityBySubmitDateByMaterialFlow" nillable="true" type="getDepositActivityBySubmitDateByMaterialFlow"/>
+  <xs:element name="getDepositActivityBySubmitDateByMaterialFlowResponse" nillable="true" type="getDepositActivityBySubmitDateByMaterialFlowResponse"/>
+  <xs:element name="getDepositActivityByUpdateDate" nillable="true" type="getDepositActivityByUpdateDate"/>
+  <xs:element name="getDepositActivityByUpdateDateResponse" nillable="true" type="getDepositActivityByUpdateDateResponse"/>
+  <xs:element name="getHeartBit" nillable="true" type="getHeartBit"/>
+  <xs:element name="getHeartBitResponse" nillable="true" type="getHeartBitResponse"/>
+  <xs:element name="getDepositActivityBySubmitDate" nillable="true" type="getDepositActivityBySubmitDate"/>
+  <xs:element name="getDepositActivityBySubmitDateResponse" nillable="true" type="getDepositActivityBySubmitDateResponse"/>
+  <xs:element name="submitDepositActivity" nillable="true" type="submitDepositActivity"/>
+  <xs:element name="submitDepositActivityResponse" nillable="true" type="submitDepositActivityResponse"/>
+  <xs:element name="getDepositActivityByUpdateDateByMaterialFlow" nillable="true" type="getDepositActivityByUpdateDateByMaterialFlow"/>
+  <xs:element name="getDepositActivityByUpdateDateByMaterialFlowResponse" nillable="true" type="getDepositActivityByUpdateDateByMaterialFlowResponse"/>
+</xs:schema>
+  </wsdl:types>
+  <wsdl:message name="submitDepositActivityResponse">
+    <wsdl:part element="tns:submitDepositActivityResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityBySubmitDateByMaterialFlow">
+    <wsdl:part element="tns:getDepositActivityBySubmitDateByMaterialFlow" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityByUpdateDate">
+    <wsdl:part element="tns:getDepositActivityByUpdateDate" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityByUpdateDateResponse">
+    <wsdl:part element="tns:getDepositActivityByUpdateDateResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getHeartBit">
+    <wsdl:part element="tns:getHeartBit" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityBySubmitDateByMaterialFlowResponse">
+    <wsdl:part element="tns:getDepositActivityBySubmitDateByMaterialFlowResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityBySubmitDate">
+    <wsdl:part element="tns:getDepositActivityBySubmitDate" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getHeartBitResponse">
+    <wsdl:part element="tns:getHeartBitResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityBySubmitDateResponse">
+    <wsdl:part element="tns:getDepositActivityBySubmitDateResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityByUpdateDateByMaterialFlowResponse">
+    <wsdl:part element="tns:getDepositActivityByUpdateDateByMaterialFlowResponse" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="submitDepositActivity">
+    <wsdl:part element="tns:submitDepositActivity" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getDepositActivityByUpdateDateByMaterialFlow">
+    <wsdl:part element="tns:getDepositActivityByUpdateDateByMaterialFlow" name="parameters">
+    </wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="DepositWebServices">
+    <wsdl:operation name="getDepositActivityBySubmitDateByMaterialFlow">
+      <wsdl:input message="tns:getDepositActivityBySubmitDateByMaterialFlow" name="getDepositActivityBySubmitDateByMaterialFlow">
+    </wsdl:input>
+      <wsdl:output message="tns:getDepositActivityBySubmitDateByMaterialFlowResponse" name="getDepositActivityBySubmitDateByMaterialFlowResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDepositActivityByUpdateDate">
+      <wsdl:input message="tns:getDepositActivityByUpdateDate" name="getDepositActivityByUpdateDate">
+    </wsdl:input>
+      <wsdl:output message="tns:getDepositActivityByUpdateDateResponse" name="getDepositActivityByUpdateDateResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getHeartBit">
+      <wsdl:input message="tns:getHeartBit" name="getHeartBit">
+    </wsdl:input>
+      <wsdl:output message="tns:getHeartBitResponse" name="getHeartBitResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDepositActivityBySubmitDate">
+      <wsdl:input message="tns:getDepositActivityBySubmitDate" name="getDepositActivityBySubmitDate">
+    </wsdl:input>
+      <wsdl:output message="tns:getDepositActivityBySubmitDateResponse" name="getDepositActivityBySubmitDateResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="submitDepositActivity">
+      <wsdl:input message="tns:submitDepositActivity" name="submitDepositActivity">
+    </wsdl:input>
+      <wsdl:output message="tns:submitDepositActivityResponse" name="submitDepositActivityResponse">
+    </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDepositActivityByUpdateDateByMaterialFlow">
+      <wsdl:input message="tns:getDepositActivityByUpdateDateByMaterialFlow" name="getDepositActivityByUpdateDateByMaterialFlow">
+    </wsdl:input>
+      <wsdl:output message="tns:getDepositActivityByUpdateDateByMaterialFlowResponse" name="getDepositActivityByUpdateDateByMaterialFlowResponse">
+    </wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="DepositWebServicesSoapBinding" type="tns:DepositWebServices">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="getDepositActivityBySubmitDateByMaterialFlow">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getDepositActivityBySubmitDateByMaterialFlow">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getDepositActivityBySubmitDateByMaterialFlowResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDepositActivityByUpdateDate">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getDepositActivityByUpdateDate">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getDepositActivityByUpdateDateResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getHeartBit">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getHeartBit">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getHeartBitResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDepositActivityBySubmitDate">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getDepositActivityBySubmitDate">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getDepositActivityBySubmitDateResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="submitDepositActivity">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="submitDepositActivity">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="submitDepositActivityResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getDepositActivityByUpdateDateByMaterialFlow">
+      <soap:operation soapAction="" style="document"/>
+      <wsdl:input name="getDepositActivityByUpdateDateByMaterialFlow">
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output name="getDepositActivityByUpdateDateByMaterialFlowResponse">
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="DepositWebServices">
+    <wsdl:port binding="tns:DepositWebServicesSoapBinding" name="DepositWebServicesPort">
+      <soap:address location="https://rosetta.exlibrisgroup.com/dpsws/deposit/DepositWebServices"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -15,26 +15,13 @@
  */
 package org.webcurator.core.store.arc;
 
-import static org.webcurator.core.archive.Constants.ARC_FILE;
-import static org.webcurator.core.archive.Constants.LOG_FILE;
-import static org.webcurator.core.archive.Constants.REPORT_FILE;
-import static org.webcurator.core.archive.Constants.ROOT_FILE;
-
-import it.unipi.di.util.ExternalSort;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Path;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpParser;
 import org.apache.commons.io.FileUtils;
 import org.archive.format.warc.WARCConstants;
-import org.archive.io.*;
+import org.archive.io.ArchiveReader;
+import org.archive.io.ArchiveReaderFactory;
+import org.archive.io.ArchiveRecord;
 import org.archive.io.arc.ARCRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +37,10 @@ import org.webcurator.core.archive.ArchiveFile;
 import org.webcurator.core.archive.file.FileArchive;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.coordinator.WctCoordinatorPaths;
-import org.webcurator.core.rest.AbstractRestClient;
-import org.webcurator.core.store.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.reader.LogProvider;
+import org.webcurator.core.rest.AbstractRestClient;
+import org.webcurator.core.store.Constants;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.store.Indexer;
 import org.webcurator.core.util.WctUtils;
@@ -65,12 +52,22 @@ import org.webcurator.core.visualization.modification.metadata.ModifyApplyComman
 import org.webcurator.core.visualization.modification.metadata.ModifyResult;
 import org.webcurator.core.visualization.modification.processor.ModifyProcessorWarc;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.model.core.*;
+
+import java.io.*;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static org.webcurator.core.archive.Constants.*;
 
 /**
  * The ArcDigitalAssetStoreService is used for storing and accessing the
@@ -138,6 +135,16 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     static {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         writerDF.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+
+    public boolean isFileExisting(String targetInstanceName, String directory, String fileName) {
+        if (directory == null || directory.trim().length() == 0) {
+            directory = "1";
+        }
+
+        // Target destination is always baseDir plus targetInstanceName.
+        File targetDir = new File(baseDir, String.format("%s%s%s%s%s", targetInstanceName, File.separator, directory, File.separator, fileName));
+        return targetDir.exists();
     }
 
     /**
@@ -238,7 +245,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
     @SuppressWarnings("finally")
     public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeUrlEntity resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         FileOutputStream fos = null;
         ArchiveReader reader = null;
@@ -341,7 +348,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
      */
     public byte[] getSmallResource(long targetInstanceId, int harvestResultNumber, String resourceUrl)
             throws DigitalAssetStoreException {
-        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeUrlEntity resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         ArchiveRecord record = null;
         ArchiveReader reader = null;
@@ -425,7 +432,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             throws DigitalAssetStoreException {
         log.debug("Start of getHeaders()");
 
-        NetworkMapNodeDTO resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
+        NetworkMapNodeUrlEntity resourceNode = this.queryUrlNode(targetInstanceId, harvestResultNumber, resourceUrl);
 
         List<Header> headers = new ArrayList<>();
         ArchiveRecord record = null;
@@ -506,8 +513,8 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return null;
     }
 
-    private NetworkMapNodeDTO queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
-        NetworkMapUrl url = new NetworkMapUrl();
+    private NetworkMapNodeUrlEntity queryUrlNode(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
+        NetworkMapUrlCommand url = new NetworkMapUrlCommand();
         url.setUrlName(resourceUrl);
         NetworkMapResult result = networkMapClient.getUrlByName(targetInstanceId, harvestResultNumber, url);
 
@@ -518,7 +525,7 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         }
 
         String json = (String) result.getPayload();
-        NetworkMapNodeDTO node = networkMapClient.getNodeEntity(json);
+        NetworkMapNodeUrlEntity node = networkMapClient.getNodeEntity(json);
         if (node == null) {
             log.warn(err);
             throw new DigitalAssetStoreException(err);
@@ -527,22 +534,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
         return node;
     }
 
-    /**
-     * Search the passed in list for an item matching the passed in Url.
-     *
-     * @param hrs - A list of HarvestResourceDTO objects
-     * @param Url - The Url to check for.
-     * @return true if a list item's name is equal to the Url, or else false
-     */
-    private boolean listContainsURL(List<HarvestResourceDTO> hrs, String Url) {
-        for (Iterator<HarvestResourceDTO> it = hrs.iterator(); it.hasNext(); ) {
-            HarvestResourceDTO hr = it.next();
-            if (hr.getName().equals(Url)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     /**
      * @see org.webcurator.core.reader.LogProvider#getLogFile(java.lang.String,
@@ -557,11 +548,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             File targetDir = new File(baseDir, jobItem.getJobName());
             File logsDir = new File(targetDir, Constants.DIR_LOGS);
             file = new File(logsDir, aFileName);
-            if (!file.exists() && aFileName.equalsIgnoreCase(Constants.SORTED_CRAWL_LOG_FILE)) {
-                // we need to create sorted crawl.log from crawl.log.
-                createSortedCrawlLogFile(logsDir);
-                file = new File(logsDir, aFileName);
-            }
             if (!file.exists()) {
                 logsDir = new File(targetDir, Constants.DIR_REPORTS);
                 file = new File(logsDir, aFileName);
@@ -581,62 +567,6 @@ public class ArcDigitalAssetStoreService extends AbstractRestClient implements D
             file = null;
         }
         return file;
-    }
-
-    private void createSortedCrawlLogFile(File logsDir) {
-
-        // sort the crawl.log file to create a sorted crawl.log file in the same
-        // directory.
-
-        // write new 'stripped' crawl.log, replacing multiple spaces with a
-        // single space in each record..
-        try {
-
-            BufferedReader inputStream = new BufferedReader(new FileReader(
-                    logsDir.getAbsolutePath() + File.separator
-                            + Constants.CRAWL_LOG_FILE));
-            PrintWriter outputStream = new PrintWriter(new FileWriter(
-                    logsDir.getAbsolutePath() + File.separator
-                            + Constants.STRIPPED_CRAWL_LOG_FILE));
-
-            String inLine = null;
-
-            while ((inLine = inputStream.readLine()) != null) {
-                outputStream.println(inLine.replaceAll(" +", " "));
-            }
-
-            outputStream.close();
-            inputStream.close();
-
-        } catch (IOException e) {
-            return;
-        }
-
-        // sort the 'stripped' crawl.log file to create a 'sorted' crawl.log
-        // file...
-        ExternalSort sort = new ExternalSort();
-        try {
-            sort.setInFile(logsDir.getAbsolutePath() + File.separator
-                    + Constants.STRIPPED_CRAWL_LOG_FILE);
-        } catch (FileNotFoundException e1) {
-            return;
-        }
-        try {
-            sort.setOutFile(logsDir.getAbsolutePath() + File.separator
-                    + Constants.SORTED_CRAWL_LOG_FILE);
-        } catch (FileNotFoundException e1) {
-            return;
-        }
-        // sort on fourth column (url) then first column (timestamp)..
-        int[] cols = {3, 0};
-        sort.setColumns(cols);
-        sort.setSeparator(' '); // space
-
-        try {
-            sort.run();
-        } catch (IOException e1) {
-            return;
-        }
     }
 
     /**

@@ -1,5 +1,7 @@
 package org.webcurator.core.visualization.networkmap.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.List;
 
 public class NetworkMapServiceSearchCommand {
@@ -47,5 +49,20 @@ public class NetworkMapServiceSearchCommand {
 
     public void setStatusCodes(List<Integer> statusCodes) {
         this.statusCodes = statusCodes;
+    }
+
+    @JsonIgnore
+    public boolean isFilterable() {
+        if (domainNames != null && domainNames.size() > 0) {
+            return true;
+        } else if (urlNames != null && urlNames.size() > 0) {
+            return true;
+        } else if (contentTypes != null && contentTypes.size() > 0) {
+            return true;
+        } else if (statusCodes != null && statusCodes.size() > 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.MockMessageSource;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.core.common.WCTTreeSet;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
@@ -15,14 +15,14 @@ import org.webcurator.domain.MockTargetDAO;
 import org.webcurator.domain.MockTargetInstanceDAO;
 import org.webcurator.domain.model.core.BusinessObjectFactory;
 
-public class MockTargetManager extends TargetManagerImpl {
+public class MockTargetManager extends TargetManager {
 
 	public MockTargetManager(String fileName) {
 		this.setTargetDao(new MockTargetDAO(fileName));
 		this.setSiteDao(new MockSiteDAO(fileName));
 		this.setAnnotationDAO(new MockAnnotationDAO(fileName));
 		this.setTargetInstanceDao(new MockTargetInstanceDAO(fileName));
-		this.setAuthMgr(new AuthorityManagerImpl());
+		this.setAuthMgr(new AuthorityManager());
 		this.setInstanceManager(new MockTargetInstanceManager(fileName));
 		this.setIntrayManager(new MockInTrayManager(fileName));
 		this.setAuditor(new TestAuditor());

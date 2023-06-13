@@ -1,20 +1,18 @@
 package org.webcurator.core.visualization.networkmap.service;
 
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
-import org.webcurator.common.util.Utils;
+import com.sleepycat.persist.EntityCursor;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.util.URLResolverFunc;
 import org.webcurator.core.visualization.VisualizationAbstractProcessor;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.VisualizationProgressBar;
 import org.webcurator.core.visualization.VisualizationProgressView;
-import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMap;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
+import org.webcurator.core.visualization.networkmap.bdb.BDBRepoHolder;
 import org.webcurator.core.visualization.networkmap.metadata.*;
 import org.webcurator.core.visualization.networkmap.processor.IndexProcessorWarc;
+import org.webcurator.core.visualization.networkmap.processor.FolderTreeViewMgmt;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.IOException;
@@ -22,18 +20,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class NetworkMapClientLocal implements NetworkMapClient {
-    private final static String regex = "\\d+";
+    private static final int MAX_SEARCH_SIZE = 32000;
     private final BDBNetworkMapPool pool;
     private final VisualizationProcessorManager visualizationProcessorManager;
+    private final FolderTreeViewMgmt folderMgmt;
 
     public NetworkMapClientLocal(BDBNetworkMapPool pool, VisualizationProcessorManager visualizationProcessorManager) {
         this.pool = pool;
+        this.folderMgmt = new FolderTreeViewMgmt(this.pool);
         this.visualizationProcessorManager = visualizationProcessorManager;
     }
 
     @Override
     public NetworkMapResult initialIndex(long job, int harvestResultNumber) {
-        VisualizationAbstractProcessor processor = null;
+        VisualizationAbstractProcessor processor;
         try {
             processor = new IndexProcessorWarc(pool, job, harvestResultNumber);
             visualizationProcessorManager.startTask(processor);
@@ -47,21 +47,27 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     public NetworkMapResult getDbVersion(long job, int harvestResultNumber) {
         NetworkDbVersionDTO versionDTO = new NetworkDbVersionDTO();
         versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_SUCCESS);
-        versionDTO.setGlobalVersion(pool.getDbVersion());
+        versionDTO.setGlobalVersion(NetworkMapAccessPropertyEntity.getGlobalDbVersion());
 
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db;
+        try {
+            db = pool.getInstance(job, harvestResultNumber);
+        } catch (Exception e) {
+            db = null;
+        }
+
         String currentVersion = "0.0.0";
         if (db == null) {
             versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_DB_NOT_EXIT);
         } else {
-            String version = db.getDbVersionStamp();
-            currentVersion = version == null ? "0.0.0" : version;
-        }
-
-        if (!currentVersion.equalsIgnoreCase(pool.getDbVersion())) {
-            versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_NEED_REINDEX);
+            currentVersion = db.getDbVersionStamp();
         }
         versionDTO.setCurrentVersion(currentVersion);
+
+        if (!versionDTO.getCurrentVersion().equalsIgnoreCase(versionDTO.getGlobalVersion())) {
+            versionDTO.setRetrieveResult(NetworkDbVersionDTO.RESULT_NEED_REINDEX);
+        }
+
 
         String payload = this.obj2Json(versionDTO);
 
@@ -71,37 +77,27 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return result;
     }
 
-//    @Override
-//    public NetworkMapResult get(long job, int harvestResultNumber, String key) {
-//        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-//        if (db == null) {
-//            return NetworkMapResult.getDBMissingErrorResult();
-//        }
-//        NetworkMapResult result = new NetworkMapResult();
-//        result.setPayload(db.get(key));
-//        return result;
-//    }
 
     @Override
     public NetworkMapResult getNode(long job, int harvestResultNumber, long id) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
         NetworkMapResult result = new NetworkMapResult();
-        NetworkMapNodeDTO networkMapNode = db.getUrl(id);
+        NetworkMapNodeUrlEntity networkMapNode = db.getUrlById(id);
         result.setPayload(obj2Json(networkMapNode));
         return result;
     }
 
     @Override
     public NetworkMapResult getOutlinks(long job, int harvestResultNumber, long parentId) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        NetworkMapNodeDTO parentNode = db.getUrl(parentId);
+        NetworkMapNodeUrlEntity parentNode = db.getUrlById(parentId);
         if (parentNode == null) {
             return NetworkMapResult.getDataNotExistResult("Could not find parent node, id: " + parentId);
         }
@@ -119,70 +115,74 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         return new NetworkMapResult();
     }
 
+
     @Override
-    public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, String title, NetworkMapServiceSearchCommand searchCommand) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        if (db == null) {
-            return NetworkMapResult.getDBMissingErrorResult();
-        }
-        if (searchCommand == null) {
-            searchCommand = new NetworkMapServiceSearchCommand();
-        }
-
-        if (!Utils.isEmpty(title)) {
-            title = new String(Base64.getDecoder().decode(title));
-        }
-
-        NetworkMapTreeNodeDTO rootTreeNode = this.searchUrlTreeNodes(job, harvestResultNumber, searchCommand);
-        if (rootTreeNode == null) {
-            return NetworkMapResult.getDataNotExistResult();
-        }
-
-//        NetworkMapCascadePath networkMapCascadePathProcessor = new NetworkMapCascadePath();
-//        networkMapCascadePathProcessor.classifyTreePaths(rootTreeNode);
-
-        List<NetworkMapTreeNodeDTO> returnedTreeNodes = new ArrayList<>();
-        if (Utils.isEmpty(rootTreeNode.getTitle()) && rootTreeNode.getChildren().size() == 0) {
-            returnedTreeNodes.add(rootTreeNode);
-        } else {
-            returnedTreeNodes = rootTreeNode.getChildren();
-        }
-
+    public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, long folderId, NetworkMapServiceSearchCommand searchCommand) {
         NetworkMapResult result = new NetworkMapResult();
-        result.setPayload(this.obj2Json(returnedTreeNodes));
-        return result;
-    }
-
-
-    private NetworkMapTreeNodeDTO statisticTreeNodes(List<NetworkMapTreeNodeDTO> treeNodeDTOS) {
-        final NetworkMapTreeNodeDTO result = new NetworkMapTreeNodeDTO();
-        treeNodeDTOS.forEach(node -> {
-            result.accumulate(node.getStatusCode(), node.getContentLength(), node.getContentType());
-        });
-
+        if (searchCommand == null || !searchCommand.isFilterable()) {
+            List<NetworkMapNodeFolderEntity> listFolderEntity;
+            if (folderId < 0) {
+                listFolderEntity = this.folderMgmt.queryRootFolderList(job, harvestResultNumber);
+            } else {
+                listFolderEntity = this.folderMgmt.queryFolderList(job, harvestResultNumber, folderId);
+            }
+            if (listFolderEntity.size() >= MAX_SEARCH_SIZE) {
+                String warning = "Cannot display all URLs for this node. Please reduce the results using the advanced search.";
+                log.warn(warning);
+                result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+                result.setRspMsg(warning);
+            }
+            result.setPayload(this.obj2Json(listFolderEntity));
+            listFolderEntity.forEach(NetworkMapNodeFolderEntity::clear);
+            listFolderEntity.clear();
+        } else {
+            List<NetworkMapNodeUrlEntity> searchedNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
+            if (searchedNetworkMapNodes.size() >= MAX_SEARCH_SIZE) {
+                String warning = "Cannot display all URLs for this node. Please reduce the results using the advanced search.";
+                log.warn(warning);
+                result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+                result.setRspMsg(warning);
+            }
+            NetworkMapNodeFolderDTO rootTreeNode = this.folderMgmt.createFolderTreeView(searchedNetworkMapNodes);
+            if (rootTreeNode == null) {
+                return NetworkMapResult.getDataNotExistResult();
+            }
+            List<NetworkMapNodeFolderDTO> listFolderDTO = rootTreeNode.getChildren();
+            result.setPayload(this.obj2Json(listFolderDTO));
+            listFolderDTO.forEach(NetworkMapNodeFolderDTO::clear);
+            listFolderDTO.clear();
+        }
         return result;
     }
 
     @Override
     public NetworkMapResult getAllDomains(long job, int harvestResultNumber) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
-
+        NetworkMapAccessPropertyEntity accProp = db.getAccProp();
+        if (accProp == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
         NetworkMapResult result = new NetworkMapResult();
-        result.setPayload(db.getRootDomainString());
+        result.setPayload(accProp.getRootDomain());
         return result;
     }
 
     @Override
     public NetworkMapResult getSeedUrls(long job, int harvestResultNumber) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<Long> ids = db.getRootUrlIdList();
+        NetworkMapAccessPropertyEntity accProp = db.getAccProp();
+        if (accProp == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<Long> ids = accProp.getSeedUrlIDs();
         if (ids == null) {
             return NetworkMapResult.getDataNotExistResult("Could not find seed urls");
         }
@@ -196,12 +196,17 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getMalformedUrls(long job, int harvestResultNumber) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<Long> ids = db.getMalformedUrlIdList();
+        NetworkMapAccessPropertyEntity accProp = db.getAccProp();
+        if (accProp == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<Long> ids = accProp.getMalformedUrlIDs();
         if (ids == null) {
             return NetworkMapResult.getDataNotExistResult("Could not find malformed urls");
         }
@@ -219,109 +224,56 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getBadRequestResult("Search command could not be null");
         }
 
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
-
-        List<NetworkMapNodeDTO> urls = searchUrlDTOs(db, job, harvestResultNumber, searchCommand);
+        NetworkMapResult result = new NetworkMapResult();
+        List<NetworkMapNodeUrlEntity> urls = searchUrlDTOs(db, searchCommand);
+        if (urls.size() > MAX_SEARCH_SIZE) {
+            String warning = "Cannot display all URLs, please reduce the results using narrow search conditions.";
+            log.warn(warning);
+            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+            result.setRspMsg(warning);
+        }
 
         String json = this.obj2Json(urls);
         urls.clear();
 
-        NetworkMapResult result = new NetworkMapResult();
         result.setPayload(json);
         return result;
     }
 
-    public NetworkMapTreeNodeDTO searchUrlTreeNodes(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return null;
         }
 
-        Map<Long, NetworkMapTreeNodeDTO> map = new HashMap<>();
-        NetworkMapTreeNodeDTO rootTreeNode = new NetworkMapTreeNodeDTO();
-        map.put((long) -1, rootTreeNode);
-
-        List<NetworkMapNodeDTO> allNetworkMapNodes = this.searchUrlDTOs(job, harvestResultNumber, searchCommand);
-        for (NetworkMapNodeDTO networkMapNode : allNetworkMapNodes) {
-            NetworkMapTreeNodeDTO treeNode = new NetworkMapTreeNodeDTO();
-            treeNode.copy(networkMapNode);
-            treeNode.setUrl(networkMapNode.getUrl());
-            treeNode.setTitle(networkMapNode.getUrl());
-            long parentPathId = networkMapNode.getParentPathId();
-            while (true) {
-                NetworkMapTreeNodeDTO parentTreeNode;
-                if (map.containsKey(parentPathId)) {
-                    parentTreeNode = map.get(parentPathId);
-                    parentTreeNode.getChildren().add(treeNode);
-                    break;
-                }
-
-                NetworkMapTreeViewPath path = db.getTreeViewPath(parentPathId);
-                if (path == null) {
-                    log.error("parentPath does not exist, parentPathId={}", parentPathId);
-                    break;
-                }
-                parentTreeNode = new NetworkMapTreeNodeDTO();
-                parentTreeNode.setTitle(path.getTitle());
-                parentTreeNode.getChildren().add(treeNode);
-
-                map.put(parentPathId, parentTreeNode);
-
-                parentPathId = path.getParentPathId();
-                treeNode = parentTreeNode;
-            }
-        }
-        map.clear();
-
-        if (Utils.isEmpty(rootTreeNode.getTitle()) && rootTreeNode.getChildren().size() == 1) {
-            rootTreeNode = rootTreeNode.getChildren().get(0);
-        }
-
-        NetworkMapCascadePath cascadePathProcessor = new NetworkMapCascadePath();
-        cascadePathProcessor.summarize(rootTreeNode);
-
-        return rootTreeNode;
+        return searchUrlDTOs(db, searchCommand);
     }
 
-    public List<NetworkMapNodeDTO> searchUrlDTOs(long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
-        if (db == null) {
-            return null;
+    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(BDBRepoHolder db, NetworkMapServiceSearchCommand searchCommand) {
+        if (searchCommand == null) {
+            searchCommand = new NetworkMapServiceSearchCommand();
         }
-
-        return searchUrlDTOs(db, job, harvestResultNumber, searchCommand);
-    }
-
-    public List<NetworkMapNodeDTO> searchUrlDTOs(BDBNetworkMap db, long job, int harvestResultNumber, NetworkMapServiceSearchCommand searchCommand) {
         CompiledSearchCommand compiledSearchCommand = CompiledSearchCommand.getInstance(searchCommand);
 
         long startTime = System.currentTimeMillis();
 
-        final List<NetworkMapNodeDTO> urls = new ArrayList<>();
-        long maxUrlSize = db.getUrlCount();
-        for (long urlId = 0; urlId < maxUrlSize; urlId++) {
-            String unl = db.getUrlString(urlId);
-            if (Utils.isEmpty(unl)) {
+        final List<NetworkMapNodeUrlEntity> urls = new ArrayList<>();
+        EntityCursor<NetworkMapNodeUrlEntity> cursor = db.openUrlCursor();
+        for (NetworkMapNodeUrlEntity urlEntity : cursor) {
+            if (!compiledSearchCommand.isInclude(urlEntity)) {
                 continue;
             }
-            if (!compiledSearchCommand.isInclude(unl)) {
-                continue;
+            urls.add(urlEntity);
+            if (urls.size() > MAX_SEARCH_SIZE) {
+                break;
             }
-            NetworkMapNodeDTO networkMapNode = new NetworkMapNodeDTO();
-            try {
-                networkMapNode.toObjectFromUnl(unl);
-            } catch (Exception e) {
-                log.error("Failed to initial NetworkMapNodeDTO from unl: {}", unl, e);
-                continue;
-            }
-            urls.add(networkMapNode);
         }
-
+        cursor.close();
         long endTime = System.currentTimeMillis();
-
         log.debug("Search URLs time used: " + (endTime - startTime));
         return urls;
     }
@@ -332,7 +284,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getBadRequestResult("substring could not be null");
         }
 
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
@@ -340,25 +292,15 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         List<String> urlNameList = new ArrayList<>();
 
         // Open the cursor.
-        Cursor cursor = db.openCursor();
-        DatabaseEntry foundKey = new DatabaseEntry();
-        DatabaseEntry foundData = new DatabaseEntry();
-        while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-            String keyString = new String(foundKey.getData());
-            if (!keyString.startsWith("url_")) {
-                continue;
-            }
-            keyString = keyString.substring(4);
-
-            if (keyString.toUpperCase().contains(substring.toUpperCase())) {
-                urlNameList.add(keyString);
+        EntityCursor<NetworkMapNodeUrlEntity> cursor = db.openUrlCursor();
+        for (NetworkMapNodeUrlEntity urlEntity : cursor) {
+            if (urlEntity.getUrl().contains(substring)) {
+                urlNameList.add(urlEntity.getUrl());
             }
         }
-        //Close the cursor
         cursor.close();
 
         String json = obj2Json(urlNameList);
-
         NetworkMapResult result = new NetworkMapResult();
         result.setPayload(json);
         return result;
@@ -366,24 +308,24 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getHopPath(long job, int harvestResultNumber, long id) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<NetworkMapNodeDTO> listHopPath = new ArrayList<>();
-        NetworkMapNodeDTO curNode = db.getUrl(id);
+        List<NetworkMapNodeUrlEntity> listHopPath = new ArrayList<>();
+        NetworkMapNodeUrlEntity curNode = db.getUrlById(id);
         while (curNode != null) {
             listHopPath.add(curNode);
             long parentId = curNode.getParentId();
             if (parentId <= 0) {
                 break;
             }
-            curNode = db.getUrl(parentId);
+            curNode = db.getUrlById(parentId);
         }
         String json = this.obj2Json(listHopPath);
 
-        listHopPath.forEach(NetworkMapNodeDTO::clear);
+        listHopPath.forEach(NetworkMapNodeUrlEntity::clear);
         listHopPath.clear();
 
         NetworkMapResult result = new NetworkMapResult();
@@ -393,26 +335,26 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getHierarchy(long job, int harvestResultNumber, List<Long> ids) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
-        List<NetworkMapNodeDTO> hierarchyLinks = new ArrayList<>();
+        List<NetworkMapNodeUrlEntity> hierarchyLinks = new ArrayList<>();
         for (long urlId : ids) {
-            NetworkMapNodeDTO node = db.getUrl(urlId);
+            NetworkMapNodeUrlEntity node = db.getUrlById(urlId);
             if (node == null) {
                 continue;
             }
             hierarchyLinks.add(node);
             for (long outlinkId : node.getOutlinks()) {
-                NetworkMapNodeDTO outlink = db.getUrl(outlinkId);
+                NetworkMapNodeUrlEntity outlink = db.getUrlById(outlinkId);
                 node.putChild(outlink);
             }
         }
 
         String json = this.obj2Json(hierarchyLinks);
-        hierarchyLinks.forEach(NetworkMapNodeDTO::clear);
+        hierarchyLinks.forEach(NetworkMapNodeUrlEntity::clear);
         hierarchyLinks.clear();
 
         NetworkMapResult result = new NetworkMapResult();
@@ -421,14 +363,14 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     }
 
     @Override
-    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrl url) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrlCommand url) {
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
 
         String urlName = url.getUrlName();
-        NetworkMapNodeDTO networkMapNode = db.getUrlByUrlName(urlName);
+        NetworkMapNodeUrlEntity networkMapNode = db.getUrlByName(urlName);
         if (networkMapNode == null) {
             return NetworkMapResult.getDataNotExistResult();
         }
@@ -440,7 +382,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
 
     @Override
     public NetworkMapResult getUrlsByNames(long job, int harvestResultNumber, List<String> urlNameList) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
         if (db == null) {
             return NetworkMapResult.getDBMissingErrorResult();
         }
@@ -449,10 +391,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getBadRequestResult();
         }
 
-        List<NetworkMapNodeDTO> urlList = new ArrayList<>();
+        List<NetworkMapNodeUrlEntity> urlList = new ArrayList<>();
         for (String urlName : urlNameList) {
-            NetworkMapNodeDTO node = db.getUrlByUrlName(urlName);
-            if (node!=null){
+            NetworkMapNodeUrlEntity node = db.getUrlByName(urlName);
+            if (node != null) {
                 urlList.add(node);
             }
         }
@@ -462,21 +404,21 @@ public class NetworkMapClientLocal implements NetworkMapClient {
     }
 
     private String combineUrlResultFromArrayIDs(long job, int harvestResultNumber, List<Long> ids) {
-        BDBNetworkMap db = pool.getInstance(job, harvestResultNumber);
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
 
         if (ids == null || db == null) {
             return null;
         }
 
-        final List<NetworkMapNodeDTO> result = new ArrayList<>();
+        final List<NetworkMapNodeUrlEntity> result = new ArrayList<>();
         ids.forEach(childId -> {
-            NetworkMapNodeDTO networkMapNode = db.getUrl(childId);
+            NetworkMapNodeUrlEntity networkMapNode = db.getUrlById(childId);
             if (networkMapNode != null) {
                 result.add(networkMapNode);
             }
         });
 
-        result.sort(Comparator.comparing(NetworkMapNodeDTO::getUrl));
+        result.sort(Comparator.comparing(NetworkMapNodeUrlEntity::getUrl));
 
         String json = this.obj2Json(result);
         result.clear();
@@ -507,6 +449,119 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         result.setPayload(this.obj2Json(hrDTO));
         return result;
     }
+
+
+    private void queryChildrenRecursivelyCrawl(BDBRepoHolder db, long nodeId, List<NetworkMapNodeUrlEntity> result) {
+        if (result.size() > MAX_SEARCH_SIZE) {
+            return;
+        }
+
+        NetworkMapNodeUrlEntity node = db.getUrlById(nodeId);
+        if (node == null) {
+            return;
+        }
+        result.add(node);
+        if (node.getOutlinks() != null) {
+            for (long outLinkId : node.getOutlinks()) {
+                queryChildrenRecursivelyCrawl(db, outLinkId, result);
+            }
+        }
+    }
+
+    @Override
+    public NetworkMapResult queryChildrenRecursivelyCrawl(long job, int harvestResultNumber, List<ModifyRowFullData> nodes) {
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<NetworkMapNodeUrlEntity> payload = new ArrayList<>();
+        for (ModifyRowFullData nodeCmd : nodes) {
+            queryChildrenRecursivelyCrawl(db, nodeCmd.getId(), payload);
+        }
+
+        NetworkMapResult result = new NetworkMapResult();
+        if (payload.size() > MAX_SEARCH_SIZE) {
+            String warning = "Cannot modify all selected URLs, please reduce the results.";
+            log.warn(warning);
+            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+            result.setRspMsg(warning);
+        }
+
+        String json = this.obj2Json(payload);
+        payload.forEach(NetworkMapNodeUrlEntity::clear);
+        payload.clear();
+
+        result.setPayload(json);
+        return result;
+    }
+
+    private void queryChildrenRecursivelyFolder(BDBRepoHolder db, long nodeId, boolean isFolder, List<ModifyRowFullData> result) {
+        //log.info("nodeId={}, isFolder={}, result.length={}", nodeId, isFolder, result.size());
+        if (result.size() > MAX_SEARCH_SIZE) {
+            return;
+        }
+
+        if (!isFolder) {
+            NetworkMapNodeUrlEntity urlEntity = db.getUrlById(nodeId);
+            if (urlEntity == null) {
+                return;
+            }
+            ModifyRowFullData urlRow = new ModifyRowFullData();
+            urlRow.copy(urlEntity);
+            urlRow.setTitle(urlEntity.getUrl());
+//            urlRow.setLazy(false);
+            urlRow.setFolder(false);
+
+            result.add(urlRow);
+        } else {
+            NetworkMapNodeFolderEntity folder = db.getFolderById(nodeId);
+            if (folder == null) {
+                return;
+            }
+            if (folder.getSubUrlList() != null) {
+                for (long urlId : folder.getSubUrlList()) {
+                    queryChildrenRecursivelyFolder(db, urlId, false, result);
+                }
+            }
+            if (folder.getSubFolderList() != null) {
+                for (long folderId : folder.getSubFolderList()) {
+                    queryChildrenRecursivelyFolder(db, folderId, true, result);
+                }
+            }
+        }
+    }
+
+    @Override
+    public NetworkMapResult queryChildrenRecursivelyFolder(long job, int harvestResultNumber, List<ModifyRowFullData> nodes) {
+        BDBRepoHolder db = pool.getInstance(job, harvestResultNumber);
+        if (db == null) {
+            return NetworkMapResult.getDBMissingErrorResult();
+        }
+
+        List<ModifyRowFullData> payload = new ArrayList<>();
+        for (ModifyRowFullData nodeCmd : nodes) {
+            queryChildrenRecursivelyFolder(db, nodeCmd.getId(), nodeCmd.isFolder(), payload);
+        }
+
+        NetworkMapResult result = new NetworkMapResult();
+        if (payload.size() > MAX_SEARCH_SIZE) {
+            String warning = "Cannot modify all selected URLs, please reduce the results.";
+
+            log.warn(warning);
+            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+            result.setRspMsg(warning);
+        }
+
+        String json = this.obj2Json(payload);
+        payload.forEach(ModifyRowFullData::clear);
+        payload.clear();
+
+        result.setPayload(json);
+        return result;
+    }
+
+
 }
 
 class CompiledSearchCommand {
@@ -541,21 +596,16 @@ class CompiledSearchCommand {
         return compiledSearchCommand;
     }
 
-    public boolean isInclude(String unl) {
-        String[] items = unl.split(NetworkMapNodeDTO.UNL_FIELDS_SEPARATOR);
-        if (items.length != NetworkMapNodeDTO.UNL_FIELDS_COUNT_MAX) {
-            return false;
-        }
-
-        boolean isInclude = isIncludedByUrlName(items[1]) &&
-                isIncludedByContentType(items[9]) &&
-                isIncludedByStatusCode(Integer.parseInt(items[10]));
+    public boolean isInclude(NetworkMapNodeUrlEntity urlEntity) {
+        boolean isInclude = isIncludedByUrlName(urlEntity.getUrl()) &&
+                isIncludedByContentType(urlEntity.getContentType()) &&
+                isIncludedByStatusCode(urlEntity.getStatusCode());
 
         if (!isInclude) {
             return false;
         }
 
-        String domainName = domainLevel != null && domainLevel.equals("high") ? NetworkMapNode.getTopDomainName(items[1]) : URLResolverFunc.url2domain(items[1]);
+        String domainName = domainLevel != null && domainLevel.equals("high") ? NetworkMapNodeUrlDTO.getTopDomainName(urlEntity.getUrl()) : URLResolverFunc.url2domain(urlEntity.getUrl());
         return isIncludedByDomainName(domainName);
     }
 

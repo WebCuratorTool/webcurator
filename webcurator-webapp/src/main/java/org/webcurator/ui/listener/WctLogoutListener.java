@@ -15,11 +15,6 @@
  */
 package org.webcurator.ui.listener;
 
-import java.util.Date;
-
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
@@ -27,13 +22,16 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.webcurator.core.report.LogonDurationDAO;
-import org.webcurator.core.report.LogonDurationDAOImpl;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.Auditor;
 import org.webcurator.core.util.LockManager;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.ui.tools.controller.BrowseController;
+
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
+import java.util.Date;
 
 /**
  * The a session listener that logs the user out when the session expires.
@@ -94,7 +92,7 @@ public class WctLogoutListener implements HttpSessionListener {
 
             // logout for duration
             String sessionId = event.getSession().getId();
-            LogonDurationDAO logonDurationDAO = ctx.getBean(LogonDurationDAOImpl.class);
+            LogonDurationDAO logonDurationDAO = ctx.getBean(LogonDurationDAO.class);
             logonDurationDAO.setLoggedOut(sessionId, new Date());
         }
 

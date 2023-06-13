@@ -16,10 +16,10 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.auth.AuthorityManagerImpl;
+import org.webcurator.auth.AuthorityManager;
 import org.webcurator.common.util.DateUtils;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.coordinator.MockWctCoordinator;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -55,7 +55,7 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 
 		TargetInstanceGeneralHandler genHandler = new TargetInstanceGeneralHandler();
 		genHandler.setAgencyUserManager(getAgencyUserManager());
-		genHandler.setAuthorityManager(new AuthorityManagerImpl());
+		genHandler.setAuthorityManager(new AuthorityManager());
 		genHandler.setTargetInstanceManager(getTargetInstanceManager());
 		genHandler.setWctCoordinator(new MockWctCoordinator());
 		tabGeneral.setTabHandler(genHandler);
@@ -90,7 +90,7 @@ public class TargetInstanceProfileHandlerTest extends BaseWCTTest<TargetInstance
 	{
 		if(agencyUserManager == null)
 		{
-			agencyUserManager = new MockAgencyUserManagerImpl(testFile);
+			agencyUserManager = new MockAgencyUserManager(testFile);
 		}
 
 		return agencyUserManager;

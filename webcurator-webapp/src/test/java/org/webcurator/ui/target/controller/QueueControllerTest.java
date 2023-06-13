@@ -36,14 +36,13 @@ import org.springframework.web.bind.ServletRequestDataBinder;
 import org.springframework.web.servlet.ModelAndView;
 import org.webcurator.common.ui.CommandConstants;
 import org.webcurator.core.agency.AgencyUserManager;
-import org.webcurator.core.agency.MockAgencyUserManagerImpl;
+import org.webcurator.core.agency.MockAgencyUserManager;
 import org.webcurator.core.archive.MockSipBuilder;
-import org.webcurator.core.common.EnvironmentImpl;
+import org.webcurator.core.common.Environment;
 import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.agent.MockHarvestAgentFactory;
-import org.webcurator.core.harvester.coordinator.HarvestAgentManagerImpl;
-import org.webcurator.core.coordinator.WctCoordinatorImpl;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.notification.MockInTrayManager;
 import org.webcurator.core.scheduler.MockTargetInstanceManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -89,7 +88,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		// add the extra bits
 		DateUtils.get().setMessageSource(new MockMessageSource());
 
-		WctCoordinatorImpl hc = new WctCoordinatorImpl();
+		WctCoordinator hc = new WctCoordinator();
 		mockTargetInstanceManager = new MockTargetInstanceManager(testFile);
 		MockTargetInstanceDAO tidao = new MockTargetInstanceDAO(testFile);
 
@@ -99,7 +98,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		hc.setTargetManager(new MockTargetManager(testFile));
 		hc.setInTrayManager(new MockInTrayManager(testFile));
 		hc.setSipBuilder(new MockSipBuilder(testFile));
-		HarvestAgentManagerImpl harvestAgentManager = new HarvestAgentManagerImpl();
+		HarvestAgentManager harvestAgentManager = new HarvestAgentManager();
 		harvestAgentManager.setHarvestAgentFactory(new MockHarvestAgentFactory());
 		harvestAgentManager.setTargetInstanceManager(mockTargetInstanceManager);
 		harvestAgentManager.setTargetInstanceDao(tidao);
@@ -108,11 +107,11 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 
 		testInstance.setWctCoordinator(hc);
 		testInstance.setTargetInstanceManager(new MockTargetInstanceManager(testFile));
-		MockAgencyUserManagerImpl mockUserAgencyManager = new MockAgencyUserManagerImpl(testFile);
+		MockAgencyUserManager mockUserAgencyManager = new MockAgencyUserManager(testFile);
 		FlagDAO mockFlagDao = mock(FlagDAO.class);
 		mockUserAgencyManager.setFlagDAO(mockFlagDao);
 		testInstance.setAgencyUserManager(mockUserAgencyManager);
-		testInstance.setEnvironment(new EnvironmentImpl());
+		testInstance.setEnvironment(new Environment());
 
 		mockRequest = new MockHttpServletRequest();
 		mockResponse = new MockHttpServletResponse();
@@ -174,7 +173,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testShowFormTarget() throws Exception {
 
 		mockRequest.addParameter(TargetInstanceCommand.REQ_TYPE, TargetInstanceCommand.TYPE_TARGET);
-		mockRequest.addParameter(TargetInstanceCommand.PARAM_TARGET_NAME, "TestName");
+		mockRequest.addParameter(TargetInstanceCommand.PARAM_TARGET_OID, "2112");
 
 		ModelAndView mav = testInstance.showForm(mockRequest, mockResponse, errors);
 		assertNotNull(mav);
@@ -183,7 +182,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 		assertFalse(command.getFlagged());
 		assertTrue(mav.getViewName().equals(Constants.VIEW_TARGET_INSTANCE_QUEUE));
 		assertFalse(errors.hasErrors());
-		assertEquals(command.getName(), "TestName");
+		assertEquals(command.getTargetid().longValue(), 2112L);
 		assertEquals(0, command.getStates().size());
 	}
 
@@ -268,7 +267,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionPause() throws Exception {
 		final long tiOid = 5002L;
 
-		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		WctCoordinator mockHCI = mock(WctCoordinator.class);
 		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_PAUSE);
@@ -282,7 +281,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionResume() throws Exception {
 		final long tiOid = 5002L;
 
-		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		WctCoordinator mockHCI = mock(WctCoordinator.class);
 		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_RESUME);
@@ -296,7 +295,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionAbort() throws Exception {
 		final long tiOid = 5002L;
 
-		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		WctCoordinator mockHCI = mock(WctCoordinator.class);
 		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_ABORT);
@@ -310,7 +309,7 @@ public class QueueControllerTest extends BaseWCTTest<QueueController> {
 	public final void testProcessFormSubmissionStop() throws Exception {
 		final long tiOid = 5002L;
 
-		WctCoordinatorImpl mockHCI = mock(WctCoordinatorImpl.class);
+		WctCoordinator mockHCI = mock(WctCoordinator.class);
 		testInstance.setWctCoordinator(mockHCI);
 
 		command.setCmd(TargetInstanceCommand.ACTION_STOP);

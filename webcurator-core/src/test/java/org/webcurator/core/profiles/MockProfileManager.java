@@ -10,7 +10,7 @@ public class MockProfileManager extends ProfileManager
 	{
 		super();
 		setAuditor(new TestAuditor());
-		setAuthorityManager(new AuthorityManagerImpl());
+		setAuthorityManager(new AuthorityManager());
 		setProfileDao(new MockProfileDAO(filename));
 	}
 	

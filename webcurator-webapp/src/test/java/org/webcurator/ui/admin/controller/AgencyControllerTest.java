@@ -59,7 +59,7 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController> {
     @Test
     public final void testShowForm() {
         try {
-            AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+            AgencyUserManager manager = new MockAgencyUserManager(testFile);
             testInstance.setAgencyUserManager(manager);
             testInstance.showForm();
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class AgencyControllerTest extends BaseWCTTest<AgencyController> {
     @Test
     public final void testSetAgencyUserManager() {
         try {
-            AgencyUserManager manager = new MockAgencyUserManagerImpl(testFile);
+            AgencyUserManager manager = new MockAgencyUserManager(testFile);
             testInstance.setAgencyUserManager(manager);
 
             AgencyValidator agencyValidator = new AgencyValidator();

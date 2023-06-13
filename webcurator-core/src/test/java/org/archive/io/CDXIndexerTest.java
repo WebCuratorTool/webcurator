@@ -22,8 +22,10 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 	private String archivePath = "/org/webcurator/domain/model/core/archiveFiles";
 	private String TestCARC_CDX = "IAH-20080610152724-00000-test.cdx";
 	private String TestCWARC_CDX = "IAH-20080610152754-00000-test.cdx";
-	
-	private long NumARCResources = 83;
+
+	private String format = "N a b";
+
+	private long NumARCResources = 77;
 	private long NumWARCResources = 72;
 	
 	private Long hrOid = 54321L;
@@ -38,81 +40,61 @@ public class CDXIndexerTest extends BaseWCTTest<CDXIndexer>{
 	public void setUp() throws Exception {
 		super.setUp();
 		HarvestResultDTO result = new HarvestResultDTO(hrOid, tiOid, new Date(), harvestNumber, "");
+		testInstance.setFormat(format);
 		testInstance.initialise(result, WCTTestUtils.getResourceAsFile(archivePath));
 	}
 
-	//TODO Test doesn't work, test itself also does not appear to test anything worthwhile 
-	@Ignore
+	/**
+     * Generates CDX files for a warc and an arc file and verifies:
+	 * * whether the expected header was generated in both cases
+	 * * whether the number of lines in each CDX file matches the number of HTTP resources in the
+	 *   corresponding (w)arc file
+	 */
 	@Test
 	public final void testIndexFiles() {
 		try {
 			testInstance.indexFiles(testInstance.getResult().getOid());
 			
-			//Check the ARC CDX index was generated
+			// Check whether the ARC CDX index was generated
 			File cdxFile = WCTTestUtils.getResourceAsFile(archivePath+"/"+TestCARC_CDX); // new File(archivePath+"/"+TestCARC_CDX);
 			assertTrue(cdxFile.exists());
 	
-			//Check the number of records in the CDX matches the arc file
+			// Check whether the header and the number of records in the CDX matches the arc file
 			int count = 0;
 		    FileInputStream fstream = new FileInputStream(cdxFile);
 		    DataInputStream in = new DataInputStream(fstream);
 		    BufferedReader br = new BufferedReader(new InputStreamReader(in));
-		    //Read File Line By Line
+		    String header = br.readLine();
+		    // Verify the header
+		    assertEquals(" CDX " + format, header);
+		    // Count the non-header lines
 		    while (br.readLine() != null)   {
 		      count++;
 		    }
 		    in.close();
-		    
-		    //Ignore the CDX header line
-		    assertEquals(NumARCResources, count-1);
+		    assertEquals(NumARCResources, count);
 			cdxFile.delete();
 	
-			//Check the CDX index was generated
-			cdxFile = new File(archivePath+"/"+TestCWARC_CDX);
+			// Check whether the WARC CDX index was generated
+			cdxFile = WCTTestUtils.getResourceAsFile(archivePath+"/"+TestCWARC_CDX);
 			assertTrue(cdxFile.exists());
 	
-			//Check the number of records in the CDX matches the warc file
+			// Check whether the header and the number of records in the CDX matches the warc file
 			count = 0;
 		    fstream = new FileInputStream(cdxFile);
 		    in = new DataInputStream(fstream);
 		    br = new BufferedReader(new InputStreamReader(in));
-		    //Read File Line By Line
-		    while (br.readLine() != null)   {
+			header = br.readLine();
+			// Verify the header
+			assertEquals(" CDX " + format, header);
+			// Count the non-header lines
+			while (br.readLine() != null)   {
 		      count++;
 		    }
 		    in.close();
-		    
-		    //Ignore:
-		    //	CDX header line
-		    //	WARC header line
-		    //	DNS line
-		    //There are 3 lines per record:
-		    //	application/http;msgtype=request 
-		    //  application/http;msgtype=response
-		    //  text/anvl
-		    assertEquals(NumWARCResources, (count-3)/3);
+		    assertEquals(NumWARCResources, count);
 			cdxFile.delete();
 		
-		} catch (Exception e) {
-			fail(e.getMessage());
-		}
-		
-		
-	}
-
-	@Test
-	public final void testBegin() {
-		try {
-			assertEquals(hrOid, testInstance.begin());
-		} catch (Exception e) {
-			fail(e.getMessage());
-		}
-	}
-
-	@Test
-	public final void testGetName() {
-		try {
-			assertEquals(testInstance.getClass().getCanonicalName(), testInstance.getName());
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}

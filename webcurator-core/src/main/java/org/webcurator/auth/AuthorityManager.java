@@ -16,10 +16,19 @@
 package org.webcurator.auth;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.webcurator.core.exceptions.NoPrivilegeException;
+import org.webcurator.core.exceptions.WCTRuntimeException;
+import org.webcurator.core.util.AuthUtil;
 import org.webcurator.domain.AgencyOwnable;
 import org.webcurator.domain.UserOwnable;
+import org.webcurator.domain.model.auth.Privilege;
+import org.webcurator.domain.model.auth.Role;
+import org.webcurator.domain.model.auth.RolePrivilege;
 import org.webcurator.domain.model.auth.User;
 
 /**
@@ -28,87 +37,160 @@ import org.webcurator.domain.model.auth.User;
  * certain actions based on their privileges.
  * @author bprice
  */
-public interface AuthorityManager {
+public class AuthorityManager {
 
-    /**
-     * checks whether the logged in user has the appropriate privilege on the ownable
-     * object. 
-     * @param object the WCT object to verify ownership of. The object must
-     * implement the AgencyOwnable Interface
-     * @param privilege the privilege to check for
-     * @return true if the scoped privilege is found, otherwise false
-     */
-    boolean hasPrivilege(AgencyOwnable object, String privilege);
+    private Log log = null;
     
-    /**
-     * checks whether a user has the appropriate privilege on the ownable
-     * object. 
-     * @param object the WCT object to verify ownership of. The object must
-     * implement the AgencyOwnable Interface
-     * @param privilege the privilege to check for
-     * @return true if the scoped privilege is found, otherwise false
-     */
-    boolean hasPrivilege(User user, AgencyOwnable object, String privilege);
+    public AuthorityManager() {
+        log = LogFactory.getLog(AuthorityManager.class);
+    }
+
+    public boolean hasPrivilege(String privilege, int scope) {
+        User user = AuthUtil.getRemoteUserObject();
+        return hasPrivilege(user,privilege,scope);
+    }
     
+    public boolean hasPrivilege(User user, String privilege, int scope) {
+        HashMap<String,RolePrivilege> privs = getPrivilegesForUser(user);
+        
+        RolePrivilege testRolePriv = privs.get(privilege);
+        if (testRolePriv != null) {
+          return testRolePriv.getPrivilegeScope() <= scope;
+        }
+        return false;
+    }
     
-    /**
-     * checks whether the logged in user has the appropriate privilege on the ownable
-     * object. 
-     * @param object the WCT object to verify ownership of. The object must
-     * implement the UserOwnable Interface
-     * @param privilege the privilege to check for
-     * @return true if the scoped privilege is found, otherwise false
-     */
-    boolean hasPrivilege(UserOwnable object, String privilege);
+    public int getPrivilegeScope(String privilege) throws NoPrivilegeException {
+        User user = AuthUtil.getRemoteUserObject();
+        return getPrivilegeScope(user,privilege);
+    }
     
-    /**
-     * checks whether a user has the appropriate privilege on the ownable
-     * object. 
-     * @param object the WCT object to verify ownership of. The object must
-     * implement the UserOwnable Interface
-     * @param privilege the privilege to check for
-     * @return true if the scoped privilege is found, otherwise false
-     */
-    boolean hasPrivilege(User user, UserOwnable object, String privilege);
+    public int getPrivilegeScope(User user, String privilege) throws NoPrivilegeException {
+        if (user == null) {
+            throw new WCTRuntimeException("User was null");
+        }
+        HashMap<String,RolePrivilege> privs = getPrivilegesForUser(user);
+        RolePrivilege testRolePriv = privs.get(privilege);
+        if (testRolePriv == null) {
+            throw new NoPrivilegeException("The user "+user.getUsername()+" does not have the privilege "+privilege);
+        }
+        return testRolePriv.getPrivilegeScope();
+    }
     
-    /**
-     * determines if the specified user has the
-     * correct privilege. For a Privilege to match it must
-     * be of the same scope.
-     * @param user the User object
-     * @param privilege the privilege to check for
-     * @param scope the scope of the Privilege to check for
-     * @return true if this user has the correctly scoped privilege
-     */
-    boolean hasPrivilege(User user, String privilege, int scope);
+    public int getPrivilegeScopeNE(String privilege) {
+        User user = AuthUtil.getRemoteUserObject();
+        return getPrivilegeScopeNE(user,privilege);
+    } 
     
-    /**
-     * determines if the logged in user has the
-     * correct privilege. For a Privilege to match it must
-     * be of the same scope.
-     * @param privilege the privilege to check for
-     * @param scope the scope of the Privilege to check for
-     * @return true if this user has the correctly scoped privilege
-     */
-    boolean hasPrivilege(String privilege, int scope);
+    public int getPrivilegeScopeNE(User user, String privilege) {
+        if (user == null) {
+            throw new WCTRuntimeException("User was null");
+        }
+        HashMap<String,RolePrivilege> privs = getPrivilegesForUser(user);
+        RolePrivilege testRolePriv = privs.get(privilege);
+        if (testRolePriv == null) {
+            return Privilege.SCOPE_NONE;
+        }
+        return testRolePriv.getPrivilegeScope();
+    }    
     
-    /**
-     * gets a single Map of Privileges that this User has
-     * based on their Role membership. The HashMap will contain
-     * the Privilege the user has with the broadest scope.
-     * @param user the User object
-     * @return a HashMap of all Privileges this user has keyed by the Privilege code
-     */
-    HashMap getPrivilegesForUser(User user);
+    public HashMap<String,RolePrivilege> getPrivilegesForUser(User user) {
+        
+        HashMap<String,RolePrivilege> allRolePrivileges = new HashMap<String,RolePrivilege>();
+        Set roles = user.getRoles();
+        if (roles != null) {
+            Iterator it = roles.iterator();
+            while (it.hasNext()) {             
+                Role role = (Role) it.next();
+                // log.debug("User "+user.getUsername()+" has a Role of "+role.getName());
+                Set rolePrivileges = role.getRolePrivileges();
+                if (rolePrivileges != null) {
+                    // log.debug("RolePrivilege list for Role is "+rolePrivileges.toString());
+                    Iterator it2 = rolePrivileges.iterator();
+                    while (it2.hasNext()) {
+                        RolePrivilege rp = (RolePrivilege) it2.next();
+                        String key = rp.getPrivilege();
+                        
+                        if (allRolePrivileges.containsKey(key)) {
+                            //work out which privilege has the broadest scope
+                            RolePrivilege currentRP = allRolePrivileges.get(key);
+                            //log.debug("found a possibly conflicting RolePrivilege scope between "+rp.toString()+" and "+currentRP.toString());
+                            allRolePrivileges.put(key, findBroadestScope(currentRP, rp));
+                        } else {
+                            allRolePrivileges.put(key, rp); 
+                        }   
+                    }
+                }
+            }
+        }
+        // log.debug("User "+user.getUsername()+" has the following complete set of Privileges: "+allRolePrivileges.toString());
+        return allRolePrivileges;
+    }
     
-    /**
-     * checks if the user has one of the specified privileges
-     * independant of the privilege scope.
-     * @param privilege a String array of Privilege codes to look for
-     * @return true if the User has at least one privilege in the set
-     */
-    boolean hasAtLeastOnePrivilege(String[] privilege);
+
+    private RolePrivilege findBroadestScope(RolePrivilege rp1, RolePrivilege rp2) {
+        int rp1scope = rp1.getPrivilegeScope();
+        int rp2scope = rp2.getPrivilegeScope();
+        
+        return rp1scope <= rp2scope?rp1:rp2;
+    }
     
+    public boolean hasPrivilege(AgencyOwnable object, String privilege) {
+        User user = AuthUtil.getRemoteUserObject();
+        return hasPrivilege(user,object, privilege);
+    }
+
+
+    public boolean hasPrivilege(User user, AgencyOwnable object, String privilege) {
+        HashMap<String,RolePrivilege> userPrivs = getPrivilegesForUser(user);
+        
+        RolePrivilege rp = userPrivs.get(privilege);
+        if (rp != null) {
+            int scope = rp.getPrivilegeScope();
+            switch (scope) {
+            case Privilege.SCOPE_ALL:
+                    return true;
+            case Privilege.SCOPE_AGENCY:
+                    return object.getOwningAgency().equals(user.getAgency());
+            }
+        }
+        return false;
+    }
+
+    public boolean hasPrivilege(User user, UserOwnable object, String privilege) {
+        HashMap<String,RolePrivilege> userPrivs = getPrivilegesForUser(user);
+        
+        RolePrivilege rp = userPrivs.get(privilege);
+        if (rp != null) {
+            int scope = rp.getPrivilegeScope();
+            switch (scope) {
+            case Privilege.SCOPE_ALL:
+                return true;
+            case Privilege.SCOPE_AGENCY:
+                return object.getOwningUser().getAgency().equals(user.getAgency());
+            case Privilege.SCOPE_OWNER:
+                return object.getOwningUser().equals(user);
+            }
+        }
+        return false;
+    }
+
+    public boolean hasPrivilege(UserOwnable object, String privilege) {
+        User user = AuthUtil.getRemoteUserObject();
+        return hasPrivilege(user,object,privilege);
+    }
+
+    public boolean hasAtLeastOnePrivilege(String[] privileges) {
+        User user = AuthUtil.getRemoteUserObject();
+        HashMap userPrivs = getPrivilegesForUser(user);
+        for (int i=0; i < privileges.length; i++) {
+            boolean found = userPrivs.containsKey(privileges[i]);
+            if (found == true) {
+                return true;
+            }
+        }
+        return false;
+    }
     
     /**
      * checks if the user has one of the specified privileges
@@ -117,7 +199,14 @@ public interface AuthorityManager {
      * @param subject   The subject to check permissions against.
      * @return true if the User has at least one privilege in the set
      */
-    boolean hasAtLeastOnePrivilege(UserOwnable subject, String... privileges);  
+    public boolean hasAtLeastOnePrivilege(AgencyOwnable subject, String... privileges) {
+        for (int i=0; i < privileges.length; i++) {
+            if(hasPrivilege(subject, privileges[i])) {
+            	return true;
+            }
+        }
+        return false;    	
+    }
     
     /**
      * checks if the user has one of the specified privileges
@@ -126,39 +215,35 @@ public interface AuthorityManager {
      * @param subject   The subject to check permissions against.
      * @return true if the User has at least one privilege in the set
      */
-    boolean hasAtLeastOnePrivilege(AgencyOwnable subject, String... privileges);        
-    
-    /**
-     * gets the Logged In Users scope for the specified Privilege
-     * @param privilege the Privilege
-     * @return the Scope of the specified privilege
-     * @throws NoPrivilegeException thrown if the user does not have the specified privilege
-     */
-    int getPrivilegeScope(String privilege) throws NoPrivilegeException;
-    
-    /**
-     * gets the Logged In Users scope for the specified Privilege without throwing
-     * exceptions.
-     * @param privilege the Privilege
-     * @return the Scope of the specified privilege, none if the user does not
-     *         have the privilege.
-     */
-    int getPrivilegeScopeNE(String privilege);    
-    
-    /**
-     * gets the Users scope for the specified Privilege
-     * @param user the User object
-     * @param privilege the Privilege
-     * @return the Scope of the specified privilege
-     * @throws NoPrivilegeException thrown if the user does not have the specified privilege
-     */
-    int getPrivilegeScope(User user, String privilege) throws NoPrivilegeException;
-    
+    public boolean hasAtLeastOnePrivilege(UserOwnable subject, String... privileges) {
+        for (int i=0; i < privileges.length; i++) {
+            if(hasPrivilege(subject, privileges[i])) {
+            	return true;
+            }
+        }
+        return false;    	
+    }
     
     /**
      * Retrieves the profile level for the currently logged in user.
      * @return The maximum level that the logged in user has access to.
      */
-    int getProfileLevel();
+    public int getProfileLevel() {
+    	int level = 0;
+    	
+    	if(hasPrivilege(Privilege.SET_HARVEST_PROFILE_LV1, Privilege.SCOPE_NONE)) {
+    		level = 1;
+    	}
+    	
+    	if(hasPrivilege(Privilege.SET_HARVEST_PROFILE_LV2, Privilege.SCOPE_NONE)) {
+    		level = 2;
+    	}
+    	
+    	if(hasPrivilege(Privilege.SET_HARVEST_PROFILE_LV3, Privilege.SCOPE_NONE)) {
+    		level = 3;
+    	}
+    	
+    	return level;
+    }
 
 }

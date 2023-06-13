@@ -168,12 +168,16 @@
 
   <tr>
     <td class="subBoxTextHdr" valign=top>Block URLs:</td>
-    <td class="subBoxText"><textarea cols="80" rows="5" name="blockUrls"><c:out value="${command.blockUrls}"/></textarea></td>
+    <td class="subBoxText">
+        <textarea placeholder="Use regular expressions to match multiple URLs, e.g. https://.*google\.com/.*" cols="80" rows="5" name="blockUrls"><c:out value="${command.blockUrls}"/></textarea>
+    </td>
   </tr>
 
   <tr>
     <td class="subBoxTextHdr" valign=top>Include URLs:</td>
-    <td class="subBoxText"><textarea cols="80" rows="5" name="includeUrls"><c:out value="${command.includeUrls}"/></textarea></td>
+    <td class="subBoxText">
+        <textarea placeholder="Use regular expressions to match multiple URLs, e.g. https://.*google\.com/.*" cols="80" rows="5" name="includeUrls"><c:out value="${command.includeUrls}"/></textarea>
+    </td>
   </tr>
 
   <tr>

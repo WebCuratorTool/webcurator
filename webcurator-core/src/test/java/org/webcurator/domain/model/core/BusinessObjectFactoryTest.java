@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.webcurator.test.*;
 import org.webcurator.core.profiles.*;
-import org.webcurator.core.util.*;
 import org.webcurator.domain.*;
 import java.util.*;
 

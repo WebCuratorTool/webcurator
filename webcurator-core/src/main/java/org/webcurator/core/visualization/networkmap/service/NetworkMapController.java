@@ -3,8 +3,9 @@ package org.webcurator.core.visualization.networkmap.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 
 import java.util.List;
 
@@ -57,8 +58,8 @@ public class NetworkMapController implements NetworkMapService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_URLS_CASCADED_BY_PATH, method = {RequestMethod.POST}, produces = "application/json")
-    public NetworkMapResult searchUrl2CascadePaths(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("title") String title, @RequestBody NetworkMapServiceSearchCommand searchCommand) {
-        return client.searchUrl2CascadePaths(job, harvestResultNumber, title, searchCommand);
+    public NetworkMapResult searchUrl2CascadePaths(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestParam("folderId") long folderId, @RequestBody NetworkMapServiceSearchCommand searchCommand) {
+        return client.searchUrl2CascadePaths(job, harvestResultNumber, folderId, searchCommand);
     }
 
     @Override
@@ -111,7 +112,7 @@ public class NetworkMapController implements NetworkMapService {
 
     @Override
     @RequestMapping(path = VisualizationConstants.PATH_GET_URL_BY_NAME, method = {RequestMethod.POST}, produces = "application/json")
-    public NetworkMapResult getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody NetworkMapUrl url) {
+    public NetworkMapResult getUrlByName(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody NetworkMapUrlCommand url) {
         return client.getUrlByName(job, harvestResultNumber, url);
     }
 
@@ -131,5 +132,17 @@ public class NetworkMapController implements NetworkMapService {
     @RequestMapping(path = VisualizationConstants.PATH_GET_PROCESSING_HARVEST_RESULT, method = {RequestMethod.POST}, produces = "application/json")
     public NetworkMapResult getProcessingHarvestResultDTO(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber) {
         return client.getProcessingHarvestResultDTO(job, harvestResultNumber);
+    }
+
+    @Override
+    @RequestMapping(path = VisualizationConstants.PATH_QUERY_CHILDREN_RECURSIVELY_CRAWL, method = {RequestMethod.POST}, produces = "application/json")
+    public NetworkMapResult queryChildrenRecursivelyCrawl(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> nodes) {
+        return client.queryChildrenRecursivelyCrawl(job, harvestResultNumber, nodes);
+    }
+
+    @Override
+    @RequestMapping(path = VisualizationConstants.PATH_QUERY_CHILDREN_RECURSIVELY_FOLDER, method = {RequestMethod.POST}, produces = "application/json")
+    public NetworkMapResult queryChildrenRecursivelyFolder(@RequestParam("job") long job, @RequestParam("harvestResultNumber") int harvestResultNumber, @RequestBody List<ModifyRowFullData> nodes) {
+        return client.queryChildrenRecursivelyFolder(job, harvestResultNumber, nodes);
     }
 }

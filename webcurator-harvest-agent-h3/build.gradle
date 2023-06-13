@@ -1,22 +1,26 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'org.springframework.boot' version '2.1.7.RELEASE'
+    id 'org.springframework.boot' version '2.5.12'
     id 'war'
 }
 
 repositories {
     mavenLocal()
-    maven {
-        url = 'http://builds.archive.org:8080/maven2'
-    }
+    // maven {
+    //     url = 'http://builds.archive.org:8080/maven2'
+    // }
 
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
 
-    maven {
-        url = 'http://download.oracle.com/maven/'
+    // maven {
+    //     url = 'http://download.oracle.com/maven/'
+    // }
+
+    maven{
+        url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
 }
 
@@ -27,6 +31,7 @@ dependencies {
     compile 'org.quartz-scheduler:quartz:2.3.1'
     compile 'com.sun.xml.bind:jaxb-impl:2.3.2'
     compile 'com.sun.xml.bind:jaxb-core:2.3.0'
+    compile 'javax.xml.bind:jaxb-api:2.3.0'
     compile 'org.webcurator:webcurator-core:3.1.+'
     compile 'org.netarchivesuite:heritrix3-wrapper:1.0.3'
     testCompile 'junit:junit:4.12'
@@ -34,7 +39,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.0-SNAPSHOT'
+version = '3.1.4'
 description = 'Harvest Agent - Heritrix 3.x'
 sourceCompatibility = '1.8'
 

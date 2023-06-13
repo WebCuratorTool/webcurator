@@ -19,7 +19,7 @@ class NetworkMapGraph{
         timestep: 0.35,
         stabilization: {
             enabled:true,
-            iterations:300,
+            iterations:50,
             updateInterval:25,
             onlyDynamicEdges: false,
             fit: true
@@ -372,7 +372,7 @@ class NetworkMapGraph{
 
     // this.viewOptions.scale=this.network.getScale();
     this.stabilized=false;
-    this.options.physics.stabilization.iterations=300;
+    this.options.physics.stabilization.iterations=50;
     this.network.setOptions(this.options);
     this.draw(this.originalData);
   }

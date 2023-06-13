@@ -27,7 +27,7 @@ import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
 import org.webcurator.core.visualization.networkmap.bdb.BDBNetworkMapPool;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNode;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlDTO;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClientLocal;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.core.reader.LogReaderImpl;
@@ -63,7 +63,6 @@ public class DasConfig {
     @Value("${arcDigitalAssetStoreService.baseDir}")
     private String arcDigitalAssetStoreServiceBaseDir;
 
-    // TODO need to confirm that this will actually instantiate the archive
     @Value("${arcDigitalAssetStoreService.archive}")
     private String arcDigitalAssetStoreServiceArchive;
 
@@ -99,27 +98,18 @@ public class DasConfig {
     @Value("${waybackIndexer.waybackFailedFolder}")
     private String waybackIndexerWaybackFailedFolder;
 
-    @Value("${crawlLogIndexer.enabled}")
-    private boolean crawlLogIndexerEnabled;
-
-    // Logs sub-folder name.
-    @Value("${crawlLogIndexer.logsSubFolder}")
-    private String crawlLogIndexerLogsSubFolder;
-
-    // Name of the crawl.log file.
-    @Value("${crawlLogIndexer.crawlLogFileName}")
-    private String crawlLogIndexerCrawlLogFileName;
-
-    // Name of the stripped crawl.log file.
-    @Value("${crawlLogIndexer.strippedLogFileName}")
-    private String crawlLogIndexerStrippedLogFileName;
-
-    // ame of the sorted crawl.log file.
-    @Value("${crawlLogIndexer.sortedLogFileName}")
-    private String crawlLogIndexerSortedLogFileName;
+    // Use soft links to warc files in the store instead of copies to save space
+    @Value("${waybackIndexer.useSymLinks}")
+    private boolean waybackIndexerUseSymLinks;
 
     @Value("${cdxIndexer.enabled}")
     private boolean cdxIndexerEnabled;
+
+    @Value("${cdxIndexer.format}")
+    private String cdxIndexerFormat;
+
+    @Value("${cdxIndexer.useSurt}")
+    private boolean cdxIndexerUseSurt;
 
     @Value("${fileArchive.archiveRepository}")
     private String fileArchiveArchiveRepository;
@@ -295,7 +285,7 @@ public class DasConfig {
         arcDigitalAssetStoreService.setAqaReportPrefix(arcDigitalAssetStoreServiceAqaReportPrefix);
         arcDigitalAssetStoreService.setFileArchive(createFileArchive());
 
-        NetworkMapNode.setTopDomainParse(networkMapDomainSuffix());
+        NetworkMapNodeUrlDTO.setTopDomainParse(networkMapDomainSuffix());
     }
 
     private NetworkMapDomainSuffix networkMapDomainSuffix() {
@@ -419,7 +409,6 @@ public class DasConfig {
         List<RunnableIndex> sourceList = new ArrayList<>();
 //        sourceList.add(wctIndexer());
         sourceList.add(waybackIndexer());
-        sourceList.add(crawlLogIndexer());
         sourceList.add(cdxIndexer());
 
         bean.setSourceList(sourceList);
@@ -434,6 +423,7 @@ public class DasConfig {
 //        bean.setWsEndPoint(wctCoreWsEndpoint());
         bean.setWaittime(waybackIndexerWaitTime);
         bean.setTimeout(waybackIndexerTimeout);
+        bean.setUseSymLinks(waybackIndexerUseSymLinks);
         bean.setWaybackInputFolder(waybackIndexerWaybackInputFolder);
         bean.setWaybackMergedFolder(waybackIndexerWaybackMergedFolder);
         bean.setWaybackFailedFolder(waybackIndexerWaybackFailedFolder);
@@ -442,24 +432,11 @@ public class DasConfig {
     }
 
     @Bean
-    public CrawlLogIndexer crawlLogIndexer() {
-        CrawlLogIndexer bean = new CrawlLogIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
-        bean.setEnabled(crawlLogIndexerEnabled);
-//        bean.setWsEndPoint(wctCoreWsEndpoint());
-        bean.setLogsSubFolder(crawlLogIndexerLogsSubFolder);
-        bean.setCrawlLogFileName(crawlLogIndexerCrawlLogFileName);
-        bean.setStrippedLogFileName(crawlLogIndexerStrippedLogFileName);
-        bean.setSortedLogFileName(crawlLogIndexerSortedLogFileName);
-
-        return bean;
-    }
-
-    @Bean
     public CDXIndexer cdxIndexer() {
         CDXIndexer bean = new CDXIndexer(wctCoreWsEndpointBaseUrl, restTemplateBuilder);
         bean.setEnabled(cdxIndexerEnabled);
-//        bean.setWsEndPoint(wctCoreWsEndpoint());
-
+        bean.setFormat(cdxIndexerFormat);
+        bean.setUseSurt(cdxIndexerUseSurt);
         return bean;
     }
 

@@ -6,29 +6,39 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = 'http://builds.archive.org:8080/maven2'
-    }
+    // maven {
+    //     url = 'http://builds.archive.org:8080/maven2'
+    // }
     maven {
         url = 'https://repo1.maven.org/maven2'
     }
-    maven {
-        url = 'http://download.oracle.com/maven/'
+    // maven {
+    //     url = 'http://download.oracle.com/maven/'
+    // }
+    maven{
+        url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
 }
 
 dependencies {
-    compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
+    //compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
+    implementation ('org.netpreserve.commons:webarchive-commons:1.1.8') {
+        exclude group: 'org.apache.hadoop.thirdparty.guava', module: 'guava'
+    }
+    compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    compile 'com.exlibris:dps-sdk:7.1.0'
+    compile 'com.exlibris:dps-sdk-deposit-api:7.1.0'
     compile 'org.webcurator:webcurator-core:3.1.+'
     compile 'dom4j:dom4j:1.6.1'
     compile 'com.google.code.guice:guice:1.0'
     compile 'org.apache.xmlbeans:xmlbeans:2.3.0'
     compile 'commons-logging:commons-logging:1.2'
     compile 'commons-lang:commons-lang:2.3'
-    compile 'org.netpreserve.commons:webarchive-commons:1.1.8'
+    // compile 'org.netpreserve.commons:webarchive-commons:1.1.8'
     compile 'commons-net:commons-net:1.4.1'
     compile 'log4j:log4j:1.2.17'
     compile 'com.sun.xml.ws:jaxws-ri:2.3.2'
+    compile 'com.jcraft:jsch:0.1.55'
     testCompile 'org.jmock:jmock:2.4.0'
     testCompile 'junit:junit:4.12'
     testCompile 'jmock:jmock-cglib:1.2.0'
@@ -37,7 +47,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.0-SNAPSHOT'
+version = '3.1.4'
 description = 'Web Curator Tool Submit-to-Rosetta'
 sourceCompatibility = '1.8'
 

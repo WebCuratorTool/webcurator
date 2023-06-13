@@ -6,8 +6,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.visualization.VisualizationConstants;
+import org.webcurator.core.visualization.modification.metadata.ModifyRowFullData;
 import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrl;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapSimpleNodeCommand;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapUrlCommand;
 
 import java.net.URI;
 import java.util.List;
@@ -61,11 +63,11 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
 //    }
 
     @Override
-    public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, String title, NetworkMapServiceSearchCommand searchCommand) {
+    public NetworkMapResult searchUrl2CascadePaths(long job, int harvestResultNumber, long folderId, NetworkMapServiceSearchCommand searchCommand) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_URLS_CASCADED_BY_PATH))
                 .queryParam("job", job)
                 .queryParam("harvestResultNumber", harvestResultNumber)
-                .queryParam("title", title);
+                .queryParam("folderId", folderId);
         URI uri = uriComponentsBuilder.build().toUri();
 
         HttpEntity<String> request = createHttpRequestEntity(searchCommand);
@@ -227,7 +229,7 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
     }
 
     @Override
-    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrl url) {
+    public NetworkMapResult getUrlByName(long job, int harvestResultNumber, NetworkMapUrlCommand url) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_GET_URL_BY_NAME))
                 .queryParam("job", job)
                 .queryParam("harvestResultNumber", harvestResultNumber);
@@ -279,6 +281,34 @@ public class NetworkMapClientRemote extends AbstractRestClient implements Networ
 
         NetworkMapResult result;
         result = restTemplate.postForObject(uri, null, NetworkMapResult.class);
+        return result;
+    }
+
+    @Override
+    public NetworkMapResult queryChildrenRecursivelyCrawl(long job, int harvestResultNumber, List<ModifyRowFullData> nodes) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_QUERY_CHILDREN_RECURSIVELY_CRAWL))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber);
+        URI uri = uriComponentsBuilder.build().toUri();
+        HttpEntity<String> request = createHttpRequestEntity(nodes);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        NetworkMapResult result;
+        result = restTemplate.postForObject(uri, request, NetworkMapResult.class);
+        return result;
+    }
+
+    @Override
+    public NetworkMapResult queryChildrenRecursivelyFolder(long job, int harvestResultNumber, List<ModifyRowFullData> nodes) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(VisualizationConstants.PATH_QUERY_CHILDREN_RECURSIVELY_FOLDER))
+                .queryParam("job", job)
+                .queryParam("harvestResultNumber", harvestResultNumber);
+        URI uri = uriComponentsBuilder.build().toUri();
+        HttpEntity<String> request = createHttpRequestEntity(nodes);
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        NetworkMapResult result;
+        result = restTemplate.postForObject(uri, request, NetworkMapResult.class);
         return result;
     }
 }

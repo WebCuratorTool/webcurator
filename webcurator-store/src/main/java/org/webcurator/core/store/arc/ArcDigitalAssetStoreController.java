@@ -49,26 +49,21 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                              HttpServletRequest req,
                              HttpServletResponse rsp) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        Path path = getResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
-        if (path == null) {
-            return;
-        }
         try {
+            Path path = getResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
+            if (path == null) {
+                return;
+            }
             WctUtils.copy(Files.newInputStream(path), rsp.getOutputStream());
             Files.deleteIfExists(path);
-        } catch (IOException e) {
-            throw new DigitalAssetStoreException(e.getMessage());
+        } catch (Exception e) {
+            log.warn(e.getMessage());
         }
     }
 
     @Override
-    public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) {
-        try {
-            return arcDigitalAssetStoreService.getResource(targetInstanceId, harvestResultNumber, resourceUrl);
-        } catch (DigitalAssetStoreException e) {
-            log.info(e.getMessage());
-        }
-        return null;
+    public Path getResource(long targetInstanceId, int harvestResultNumber, String resourceUrl) throws DigitalAssetStoreException {
+        return arcDigitalAssetStoreService.getResource(targetInstanceId, harvestResultNumber, resourceUrl);
     }
 
     @PostMapping(path = DigitalAssetStorePaths.SMALL_RESOURCE)
@@ -76,7 +71,12 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                                            @RequestParam(value = "harvest-result-number") int harvestResultNumber,
                                            @RequestParam(value = "resource-url") String resourceUrl) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        return getSmallResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
+        try {
+            return getSmallResource(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+        return null;
     }
 
     @Override
@@ -89,7 +89,12 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
                                            @RequestParam(value = "harvest-result-number") int harvestResultNumber,
                                            @RequestParam(value = "resource-url") String resourceUrl) throws DigitalAssetStoreException {
         log.debug("Get resource, target-instance-id: {}, harvest-result-number: {}, resource-url: {}", targetInstanceId, harvestResultNumber, resourceUrl);
-        return getHeaders(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
+        try {
+            return getHeaders(targetInstanceId, harvestResultNumber, URLDecoder.decode(resourceUrl));
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+        return null;
     }
 
     @Override
@@ -159,7 +164,13 @@ public class ArcDigitalAssetStoreController implements DigitalAssetStore {
     @RequestMapping(path = DigitalAssetStorePaths.SAVE, method = {RequestMethod.POST, RequestMethod.GET})
     public void save(@RequestBody DigitalAssetStoreHarvestSaveDTO dto) throws DigitalAssetStoreException {
         log.debug("Save harvest, {}", dto.toString());
+
         File f = new File(dto.getFilePath());
+        if (arcDigitalAssetStoreService.isFileExisting(dto.getTargetInstanceName(), dto.getDirectory(), f.getName())) {
+            log.info("The file do exist: {}", f.getName());
+            return;
+        }
+
         if (dto.getFileUploadMode().equalsIgnoreCase(FILE_UPLOAD_MODE_STREAM)) {
             String link = String.format("%s%s?filePath=%s", dto.getHarvestBaseUrl(), WctCoordinatorPaths.DOWNLOAD, dto.getFilePath());
             URLConnection conn = null;

@@ -14,50 +14,63 @@ Curator Tool System Administrator Guide*, *Web Curator Tool Developer Guide*,
 accurate for the current release, the *Release Notes* can give some idea of
 how things have changed since the last major release.
 
-Contents of this document
--------------------------
+3.1.4
+=====
 
-Following this introduction, the Web Curator Tool Release Notes includes the
-following sections:
+Patch release, April 2023:
 
--   **Changes since 3.1.0** - Changes since the last official release *3.0.3*.
+- Harvest Visualization and Analysis uplift
 
--   **3.1.0** - Release 3.1.0.
+  - Tree views now allow operations on selected URLs and their children.
+  - Data within tree view folders is now lazy loaded.
+  - Reduced the loop time of the network map adjustment.
+  - Refactored  URL, Folder and Domain entities to speed up iteration of data.
+  - Limited the size of the customized search result datasets. If the number of URLs exceeds 32K,
+    it will warn Users to narrow the search conditions.
+  - Berkley DB upgraded to latest version to reduce size of BDB files.
+  - Browse context menu now has link to Access Tool
 
--   **3.0.3** - Release 3.0.3.
+- Some repository URLs updated that were not reachable (Oracle JDBC driver, webarchive-commons).
 
--   **3.0.2** - Release 3.0.2.
+- The redundant HarvestResourceDTO class has been removed.
 
--   **3.0.1** - Release 3.0.1.
+- CDX format now configurable. By default files now also generated with a non-SURT formatted URL in the N-field.
 
--   **3.0.0** - Release 3.0.0.
+- Fix added for Harvest Agents that fail to transfer harvests completely, which result in a Target Instance stuck in the
+  Stopping state.
 
--   **2.0.2** - Release 2.0.2.
+3.1.3
+=====
 
--   **2.0.1** - Release 2.0.1.
+Patch release, December 2022, including a few minor enhancements:
 
--   **2.0.0** - Release 2.0.0.
+- Update CDX format and allow users to specify an alternative format (fixes #70).
 
--   **1.6.2** - Release 1.6.2.
+- Enable the use of soft links (to warc files in store) in the QA wayback input directory.
 
--   **1.6.1** - Release 1.6.1.
+- Fix issue in block URLs regex in profiles and profile overrides (fixes #79).
 
--   **1.6.0** - Release 1.6.0.
+3.1.2
+=====
 
--   **1.5.2** - Release 1.5.2.
+Patch release, August 2022:
 
--   **1.5.1** - Release 1.5.1
+- Fix issue with non-alphanumeric characters in target names.
 
--   **1.5** - Release 1.5.
+- Remove generation of sorted crawl logs (#52).
 
--   **Previous versions** - Versions prior to release 1.5.
+- Remove redundant interfaces.
 
+- Fix for CVE-2022-22965.
 
-Changes since 3.1.0
-===================
+3.1.1
+=====
 
-This is a placeholder for changes since the official *3.1.0* release. Please
-add notes here for changes and fixes as they are released into the master branch.
+Patch release, July 2022:
+
+- Support SFTP in Submit-to-Rosetta module.
+
+- Integration with Rosetta 7.1 SDK and API in Submit-to-Rosetta module.
 
 3.1.0
 =====

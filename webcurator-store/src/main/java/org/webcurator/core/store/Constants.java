@@ -37,8 +37,4 @@ public final class Constants {
 
     /* the name of the crawl.log file. */
     public static final String CRAWL_LOG_FILE = "crawl.log";
-    /* the name of the 'stripped' crawl.log file. */
-    public static final String STRIPPED_CRAWL_LOG_FILE = "strippedcrawl.log";
-    /* the name of the 'sorteded' crawl.log file. */
-    public static final String SORTED_CRAWL_LOG_FILE = "sortedcrawl.log";
 }

@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 @SuppressWarnings("all")
-public class MockTargetInstanceDAO implements TargetInstanceDAO {
+public class MockTargetInstanceDAO extends TargetInstanceDAO {
 
 	private static Log log = LogFactory.getLog(MockTargetInstanceDAO.class);
 	private Document theFile = null; 

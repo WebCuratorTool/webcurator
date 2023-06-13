@@ -19,7 +19,7 @@
 <!--
 BODY TAG OPTIONS:
 =================
-Apply one or more of the following classes to to the body tag
+Apply one or more of the following classes to the body tag
 to get the desired effect
 |---------------------------------------------------------|
 |LAYOUT OPTIONS | sidebar-collapse                        |
@@ -82,8 +82,13 @@ to get the desired effect
 
       <!-- Patch Harvest: Cart -->
       <div class="btn-group">
-        <button type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide(); $('#popup-window-modification').show();"><i class="fas fa-shopping-cart">&nbsp; Patch Harvest</i></button>
-        <button type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
+        <button id="btn-patch-harvest" type="button" class="btn btn-flat btn-success" onclick="$('#popup-window-modification .flag-apply').show(); $('#popup-window-modification .flag-submit').hide(); $('#popup-window-modification').show();">
+          <span id="icon-patch-harvest-loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display:none;"></span>
+          <span id="text-patch-harvest-button">
+            <i class="fas fa-shopping-cart"> Patch Harvest </i>
+          </span>
+        </button>
+        <button id="btn-patch-harvest-dropdown" type="button" class="btn btn-flat btn-success dropdown-toggle dropdown-icon" data-toggle="dropdown">
           <span class="sr-only">Toggle Dropdown</span>
           <div class="dropdown-menu" role="menu">
             <a class="dropdown-item" href="#" onclick="gPopupModifyHarvest.showRecrawl();"><i class="fas fa-link text-info"></i> &nbsp; Import URL</a>
@@ -686,7 +691,8 @@ to get the desired effect
         var currentVersion=rsp.currentVersion;
         var globalVersion=rsp.globalVersion;
         if (rsp.retrieveResult === "0") {
-          _browse_openwayback=rsp.openWayBack;
+          _browse_archive=rsp.archiveUrl;
+          _browse_access_tool=rsp.accessToolUrl;
           initData();
         }else if(rsp.retrieveResult === "9" && confirm("Index file is missing or need to be updated. Would you reindex the harvest result?")) {        //If could not get the BDB version or the BDB does not exit, then prompt with users to confim redex.
           reindex();
@@ -699,6 +705,24 @@ to get the desired effect
         console.log(parent);
         
         toggleScreenSize();
+
+        toastr.options = {
+          "closeButton": true,
+          "debug": false,
+          "newestOnTop": false,
+          "progressBar": false,
+          "positionClass": "toast-top-center",
+          "preventDuplicates": false,
+          "onclick": null,
+          "showDuration": "300",
+          "hideDuration": "1000",
+          "timeOut": "60000",
+          "extendedTimeOut": "60000",
+          "showEasing": "swing",
+          "hideEasing": "linear",
+          "showMethod": "fadeIn",
+          "hideMethod": "fadeOut"
+        }
 
         initUI();
 

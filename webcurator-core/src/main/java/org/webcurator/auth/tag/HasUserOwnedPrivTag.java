@@ -19,7 +19,6 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import org.webcurator.auth.AuthorityManager;
-import org.webcurator.auth.AuthorityManagerImpl;
 import org.webcurator.domain.UserOwnable;
 
 public class HasUserOwnedPrivTag extends TagSupport {
@@ -29,7 +28,7 @@ public class HasUserOwnedPrivTag extends TagSupport {
     private String privilege = null;
     private int scope = 1000;
     private UserOwnable ownedObject = null;
-    private AuthorityManager authorityManager = new AuthorityManagerImpl();
+    private AuthorityManager authorityManager = new AuthorityManager();
     
     @Override
     public int doStartTag() throws JspException {

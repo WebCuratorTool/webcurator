@@ -3,7 +3,7 @@ package org.webcurator.core.visualization.modification.metadata;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.webcurator.common.util.Utils;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeDTO;
+import org.webcurator.core.visualization.networkmap.metadata.NetworkMapNodeUrlEntity;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -13,12 +13,13 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 
-public class ModifyRowFullData extends NetworkMapNodeDTO {
+public class ModifyRowFullData extends NetworkMapNodeUrlEntity {
     protected static final SimpleDateFormat writerDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     private long index;
     private boolean existingFlag;
     private String option;
+    private boolean folder;
 
     private String uploadFileName;
     private String uploadFileContent;
@@ -106,6 +107,14 @@ public class ModifyRowFullData extends NetworkMapNodeDTO {
 
     public void setOption(String option) {
         this.option = option;
+    }
+
+    public boolean isFolder() {
+        return folder;
+    }
+
+    public void setFolder(boolean folder) {
+        this.folder = folder;
     }
 
     public String getModifiedMode() {

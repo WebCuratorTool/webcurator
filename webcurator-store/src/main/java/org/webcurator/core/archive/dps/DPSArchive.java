@@ -21,6 +21,7 @@
 
 package org.webcurator.core.archive.dps;
 
+import com.exlibris.dps.ProducerWebServices_Service;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -52,7 +53,8 @@ import org.apache.xmlbeans.XmlException;
 import com.exlibris.digitool.deposit.service.xmlbeans.DepositDataDocument;
 import com.exlibris.digitool.deposit.service.xmlbeans.DepositDataDocument.DepositData;
 //import com.exlibris.digitool.locator.WebServiceLocator;
-import com.exlibris.dps.sdk.producer.ProducerWebServices;
+//import com.exlibris.dps.sdk.producer.ProducerWebServices;
+import com.exlibris.dps.ProducerWebServices;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -70,7 +72,7 @@ import javax.xml.ws.Service;
 
 /**
  * A specific DPS-based archiver for the National Library of New Zealand's DPS archival system.
- *=======
+ * =======
  */
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -82,9 +84,9 @@ public class DPSArchive extends BaseArchive {
     /**
      * A very light-weight version of the com.exlibris.digitool.deposit.service.xmlbeans.DepData
      * class, so that this can be stored in the cache much more efficiently and with less
-     * memory. 
-     * @author pushpar
+     * memory.
      *
+     * @author pushpar
      */
     public static class DepData {
         public final String id;
@@ -451,10 +453,13 @@ public class DPSArchive extends BaseArchive {
             log.error("Failed to build WSDL URL from " + wsdlUrlStr + " - Web service lookup of " + serviceEndpointInterfaceName + " will fail", e);
             e.printStackTrace();
         }
-        QName serviceName = new QName("http://dps.exlibris.com/", serviceEndpointInterfaceName);
-        Service service = Service.create(wsdlUrl, serviceName);
-        QName portName = new QName("http://dps.exlibris.com/", (new StringBuilder()).append(serviceEndpointInterfaceName).append("Port").toString());
-        return service.getPort(portName, ProducerWebServices.class);
+//        QName serviceName = new QName("http://dps.exlibris.com/", serviceEndpointInterfaceName);
+//        Service service = Service.create(wsdlUrl, serviceName);
+//        QName portName = new QName("http://dps.exlibris.com/", (new StringBuilder()).append(serviceEndpointInterfaceName).append("Port").toString());
+//        return service.getPort(portName, ProducerWebServices.class);
+
+        ProducerWebServices producerWebServices = (new ProducerWebServices_Service(wsdlUrl, new QName("http://dps.exlibris.com/", "ProducerWebServices"))).getProducerWebServicesPort();
+        return producerWebServices;
     }
 
     private DepData[] sortByDescription(DepositData depositData) {
@@ -598,8 +603,8 @@ public class DPSArchive extends BaseArchive {
     }
 
     /**
-     Method takes String argument and converts to Boolean if not empty. This allows setting to be optional
-     in wct-das.properties, as a blank String value will just be passed through if it is missing.
+     * Method takes String argument and converts to Boolean if not empty. This allows setting to be optional
+     * in wct-das.properties, as a blank String value will just be passed through if it is missing.
      */
     public void setRestrictHTMLSerialAgenciesToHTMLSerialTypes(String restrictHTMLSerialAgenciesToHTMLSerialTypes) {
         if (restrictHTMLSerialAgenciesToHTMLSerialTypes.isEmpty()) {
@@ -706,9 +711,10 @@ public class DPSArchive extends BaseArchive {
     }
 
     /**
-     * Makes a case-insensitive search inside <code>aList</code> to see 
+     * Makes a case-insensitive search inside <code>aList</code> to see
      * if <code>aValue</code> is present in the list, and returns the index
-     * of the item. 
+     * of the item.
+     *
      * @param aList
      * @param aValue
      * @return Index of the item if it is present in the list, -1 otherwise
@@ -721,8 +727,9 @@ public class DPSArchive extends BaseArchive {
     }
 
     /**
-     * Makes a case-insensitive search inside <code>aList</code> to see 
-     * if <code>aValue</code> is present in the list. 
+     * Makes a case-insensitive search inside <code>aList</code> to see
+     * if <code>aValue</code> is present in the list.
+     *
      * @param aList
      * @param aValue
      * @return
