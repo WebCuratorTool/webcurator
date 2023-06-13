@@ -58,7 +58,7 @@
                     mode: 'cors',
                     body: JSON.stringify(searchCondition),
                 }
-                const res = await fetch("http://localhost:8080/wct/api/1.0/queue",reqData);
+                const res = await fetch("http://localhost:8080/wct/api/v1/targets",reqData);
                 const finalRes = await res.json();
                 this.setData(finalRes);
             },
