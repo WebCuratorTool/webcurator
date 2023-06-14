@@ -1,32 +1,57 @@
-<script setup lang="ts">
-// import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <table style="width:100vw;">
-  <tr>
-    <td id="col-sidebar">
-      <div class="sidebar">
-        <img class="logo" src="./assets/wct_logo.png" height="75"/>
-        <nav>
-          <router-link to="/"><i class="bi bi-house"></i>&emsp;Home</router-link>
-          <router-link to="/dashboard"><i class="bi bi-grid"></i>&emsp;Dashboard</router-link>
-          <router-link to="/queue"><i class="bi bi-stickies-fill"></i>&emsp;Queue</router-link>
-          <router-link to="/harvest-authorisations"><i class="fa-solid fa-file-circle-check"></i>&emsp;Harvest Authorisations</router-link>
-          <router-link to="/target"><i class="bi bi-bullseye"></i>&emsp;Targets</router-link>
-          <router-link to="/groups"><i class="fa-solid fa-layer-group"></i>&emsp;Groups</router-link>
-          <router-link to="/management"><i class="fa-solid fa-user-gear"></i>&emsp;Management</router-link>
-        </nav>
-      </div>
-    </td>
-    <td id="col-content">
-      <!-- <RouterView/> -->
-      <router-view></router-view>
-    </td>
-  </tr>
-  </table>
+  <span v-if="userStore.getters.isLoggedIn">
+    <table style="width:100vw;">
+      <tr>
+        <td id="col-sidebar">
+          <div class="sidebar">
+            <img class="logo" src="./assets/wct_logo.png" height="75"/>
+            <nav>
+              <router-link to="/"><i class="bi bi-house"></i>&emsp;Home</router-link>
+              <router-link to="/dashboard"><i class="bi bi-grid"></i>&emsp;Dashboard</router-link>
+              <router-link to="/queue"><i class="bi bi-stickies-fill"></i>&emsp;Queue</router-link>
+              <router-link to="/harvest-authorisations"><i class="fa-solid fa-file-circle-check"></i>&emsp;Harvest Authorisations</router-link>
+              <router-link to="/target"><i class="bi bi-bullseye"></i>&emsp;Targets</router-link>
+              <router-link to="/groups"><i class="fa-solid fa-layer-group"></i>&emsp;Groups</router-link>
+              <router-link to="/management"><i class="fa-solid fa-user-gear"></i>&emsp;Management</router-link>
+            </nav>
+          </div>
+        </td>
+        <td id="col-content">
+          <!-- <RouterView/> -->
+          <router-view></router-view>
+        </td>
+      </tr>
+    </table>
+  </span>
+  <span v-else>
+    <login-view></login-view>
+  </span>
 </template>
+
+<script lang="ts">
+import { defineComponent } from 'vue'
+import userStore from '@/stores/user'
+import LoginView from './views/LoginView.vue';
+
+export default defineComponent({
+    setup() {
+        const store = userStore.getUser();
+        // do stuff
+        return {
+            userStore,
+        };
+    },
+    components: { LoginView }
+})
+
+// export default defineComponent({
+//   name: 'App',
+//   setup() {
+//     onMounted(userStore.getUser)
+//     return { userStore }
+//   }
+// })
+</script>
 
 <style scoped>
 header {
@@ -82,7 +107,4 @@ nav a.router-link-exact-active:hover {
   background: #2D6EA9;
   color: #E3EBF3;
 }
-
-
-
 </style>

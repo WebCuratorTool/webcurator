@@ -10,7 +10,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap'
 import 'vue-multiselect'
 // import 'tabulator-tables/dist/js/tabulator.min.js'
-// import 'tabulator-tables/dist/css/tabulator.min.css'
+// import 'tabulator-tables/dist/css/tabulator.min.css'\
 
 const app = createApp(App)
 
