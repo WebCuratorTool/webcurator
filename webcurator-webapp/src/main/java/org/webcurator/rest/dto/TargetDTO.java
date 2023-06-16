@@ -1,6 +1,5 @@
 package org.webcurator.rest.dto;
 
-import org.hibernate.validator.constraints.Range;
 import org.webcurator.domain.model.core.*;
 
 import javax.validation.Valid;
@@ -735,7 +734,9 @@ public class TargetDTO {
         @NotNull(message = "selection is required")
         Selection selection;
         String evaluationNote;
-        String harvestType; // FIXME validate against list of harvestTypes in ListsConfig.java
+        @Pattern(regexp = "Subject|Event|Theme", message = "invalid harvestType")
+        String harvestType;
+        @Valid
         ArrayList<Annotation> annotations;
 
         public Annotations() {}
@@ -793,7 +794,8 @@ public class TargetDTO {
         public static class Selection {
             @NotNull(message = "date is required")
             Date date;
-            // FIXME validate type against list in ListsConfig.java
+            @Pattern(regexp = "Producer type|Publication type|Collection|Area|Other collections",
+                    message = "invalid selection type")
             String type;
             String note;
 
@@ -828,7 +830,7 @@ public class TargetDTO {
             Date date;
             String user;
             String note;
-            boolean alert;
+            Boolean alert;
 
             public Annotation() {}
 
@@ -856,11 +858,11 @@ public class TargetDTO {
                 this.note = note;
             }
 
-            public boolean isAlert() {
+            public Boolean getAlert() {
                 return alert;
             }
 
-            public void setAlert(boolean alert) {
+            public void setAlert(Boolean alert) {
                 this.alert = alert;
             }
         }

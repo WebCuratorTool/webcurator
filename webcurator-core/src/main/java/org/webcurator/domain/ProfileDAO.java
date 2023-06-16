@@ -55,6 +55,10 @@ public class ProfileDAO extends BaseDAO {
 		return (Profile) getHibernateTemplate().load(Profile.class, oid);
 	}
 
+	public Profile get (Long oid) {
+		return (Profile) getHibernateTemplate().get(Profile.class, oid);
+	}
+
 	public void saveOrUpdate(final Profile aProfile) {
 		txTemplate.execute(
 				new TransactionCallback() {
