@@ -2,7 +2,11 @@ package org.webcurator.rest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.HibernateException;
+import org.hibernate.ObjectNotFoundException;
+import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +19,7 @@ import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.rest.dto.TargetDTO;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import static org.webcurator.rest.dto.TargetDTO.Profile.OverrideWithUnit;
@@ -23,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -147,9 +153,13 @@ public class Targets {
     }
 
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO) {
-        // FIXME deal with non-existent user
-        User owner = userRoleDAO.getUserByName(targetDTO.getGeneral().getOwner());
+    public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
+        String ownerStr = targetDTO.getGeneral().getOwner();
+        User owner = userRoleDAO.getUserByName(ownerStr);
+        if (owner == null) {
+            return ResponseEntity.badRequest().body(errorMessage(
+                                                        String.format("Owner with username %s unknown", ownerStr)));
+        }
         Target target = new Target();
         target.setCreationDate(new Date());
         target.setName(targetDTO.getGeneral().getName());
@@ -167,11 +177,22 @@ public class Targets {
         target.setAllowOptimize(targetDTO.getSchedule().isHarvestOptimization());
         for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
             Schedule schedule = new Schedule();
-            // FIXME validate cron expression
-            schedule.setCronPattern(s.getCron());
+            // we support classic cron, without the prepended SECONDS field expected by Quartz
+            String cronExpression = "0 " + s.getCron();
+            try {
+                new CronExpression(cronExpression);
+            } catch (ParseException ex) {
+                return ResponseEntity.badRequest().body(String.format("Invalid cron expression: %s", ex.getMessage()));
+            }
+            schedule.setCronPattern(cronExpression);
             schedule.setStartDate(s.getStartDate());
             schedule.setEndDate(s.getEndDate());
             schedule.setScheduleType(s.getType());
+            owner = userRoleDAO.getUserByName(s.getOwner());
+            if (owner == null) {
+                return ResponseEntity.badRequest().body(errorMessage(String.format("Owner with username %s unknown",
+                        targetDTO.getGeneral().getOwner())));
+            }
             schedule.setOwningUser(owner);
         }
         target.setSchedules(schedules);
@@ -187,19 +208,27 @@ public class Targets {
             seed.setPrimary(s.getPrimary());
             Set<Permission> permissions = new HashSet<>();
             for (long authorisation : s.getAuthorisations()) {
-                // FIXME deal with non-existent permission
-                Permission p = siteDAO.loadPermission(authorisation);
-                permissions.add(p);
+                try {
+                    Permission p = siteDAO.loadPermission(authorisation);
+                    permissions.add(p);
+                } catch (ObjectNotFoundException e) {
+                    return ResponseEntity.badRequest().body(errorMessage(
+                            String.format("Uknown authorisation: %s", authorisation)));
+                }
             }
             seed.setPermissions(permissions);
         }
 
-        // FIXME deal with non-existent profile
-        Profile profile = profileDAO.load(targetDTO.getProfile().getId());
+        long profileId = targetDTO.getProfile().getId();
+        Profile profile = profileDAO.get(profileId);
+        if (profile == null) {
+            return ResponseEntity.badRequest().body(errorMessage(String.format("Profile with id %s does not exist", profileId)));
+        }
         if (!profile.isHeritrix3Profile()) {
             return ResponseEntity.badRequest().body(errorMessage("Only Heritrix v3 profiles are supported"));
         }
         target.setProfile(profile);
+
 
         ProfileOverrides profileOverrides = new ProfileOverrides();
         ArrayList<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
@@ -255,9 +284,13 @@ public class Targets {
             Annotation annotation = new Annotation();
             annotation.setDate(a.getDate());
             annotation.setNote(a.getNote());
-            // FIXME deal with non-existent user
-            annotation.setUser(userRoleDAO.getUserByName(a.getUser()));
-            annotation.setAlertable(a.isAlert());
+            String userName = a.getUser();
+            User user = userRoleDAO.getUserByName(userName);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(errorMessage(String.format("User %s does not exist", userName)));
+            }
+            annotation.setUser(user);
+            annotation.setAlertable(a.getAlert());
             annotations.add(annotation);
         }
         target.setAnnotations(annotations);
@@ -294,7 +327,11 @@ public class Targets {
         }
 
         try {
-            String targetUrl = "http://localhost:8080/wct/api/v1/targets/" + target.getOid(); // FIXME hardcoded URL
+            String targetUrl = request.getRequestURL().toString();
+            if (!targetUrl.endsWith("/")) {
+                targetUrl += "/";
+            }
+            targetUrl += target.getOid();
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
             return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
@@ -310,10 +347,10 @@ public class Targets {
         HashMap<String, Map<String, String>> map = new HashMap<>();
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
-                                                String fieldName = ((FieldError) error).getField();
-                                                String errorMessage = error.getDefaultMessage();
-                                                errors.put(fieldName, errorMessage);
-                                            });
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
         map.put("Error", errors);
         return map;
     }
