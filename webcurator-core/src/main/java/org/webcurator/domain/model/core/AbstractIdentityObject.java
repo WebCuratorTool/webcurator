@@ -42,7 +42,7 @@ public abstract class AbstractIdentityObject implements HasDatabaseIdentity {
 	 * accessible only and should only be used by the BusinessObjectFactory.
 	 * @param anIdentity
 	 */
-	void setIdentity(String anIdentity) {
+	public void setIdentity(String anIdentity) {
 		identity = anIdentity;
 	}
 	
