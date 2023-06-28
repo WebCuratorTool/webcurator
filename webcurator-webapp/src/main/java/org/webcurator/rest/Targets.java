@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.rest.dto.TargetDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,6 +60,9 @@ public class Targets {
 
     @Autowired
     private SiteDAO siteDAO;
+
+    @Autowired
+    private BusinessObjectFactory businessObjectFactory;
 
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -158,7 +162,7 @@ public class Targets {
         User owner = userRoleDAO.getUserByName(ownerStr);
         if (owner == null) {
             return ResponseEntity.badRequest().body(errorMessage(
-                                                        String.format("Owner with username %s unknown", ownerStr)));
+                    String.format("Owner with username %s unknown", ownerStr)));
         }
         Target target = new Target();
         target.setCreationDate(new Date());
@@ -173,151 +177,174 @@ public class Targets {
         target.setAutoDenoteReferenceCrawl(targetDTO.getGeneral().isReferenceCrawl());
         target.setRequestToArchivists(targetDTO.getGeneral().getRequestToArchivists());
 
-        Set<Schedule> schedules = new HashSet<>();
-        target.setAllowOptimize(targetDTO.getSchedule().isHarvestOptimization());
-        for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
-            Schedule schedule = new Schedule();
-            // we support classic cron, without the prepended SECONDS field expected by Quartz
-            String cronExpression = "0 " + s.getCron();
-            try {
-                new CronExpression(cronExpression);
-            } catch (ParseException ex) {
-                return ResponseEntity.badRequest().body(String.format("Invalid cron expression: %s", ex.getMessage()));
-            }
-            schedule.setCronPattern(cronExpression);
-            schedule.setStartDate(s.getStartDate());
-            schedule.setEndDate(s.getEndDate());
-            schedule.setScheduleType(s.getType());
-            owner = userRoleDAO.getUserByName(s.getOwner());
-            if (owner == null) {
-                return ResponseEntity.badRequest().body(errorMessage(String.format("Owner with username %s unknown",
-                        targetDTO.getGeneral().getOwner())));
-            }
-            schedule.setOwningUser(owner);
-        }
-        target.setSchedules(schedules);
-
-        target.setAccessZone(targetDTO.getAccess().getAccessZone());
-        target.setDisplayChangeReason(targetDTO.getAccess().getDisplayChangeReason());
-        target.setDisplayNote(targetDTO.getAccess().getDisplayNote());
-
-        ArrayList<Seed> seeds = new ArrayList<>();
-        for (TargetDTO.Seed s : targetDTO.getSeeds()) {
-            Seed seed = new Seed();
-            seed.setSeed(s.getSeed());
-            seed.setPrimary(s.getPrimary());
-            Set<Permission> permissions = new HashSet<>();
-            for (long authorisation : s.getAuthorisations()) {
+        if (targetDTO.getSchedule() != null) {
+            Set<Schedule> schedules = new HashSet<>();
+            target.setAllowOptimize(targetDTO.getSchedule().isHarvestOptimization());
+            for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
+                Schedule schedule = businessObjectFactory.newSchedule(target);
+                // we support classic cron, without the prepended SECONDS field expected by Quartz
+                String cronExpression = "0 " + s.getCron();
                 try {
-                    Permission p = siteDAO.loadPermission(authorisation);
-                    permissions.add(p);
-                } catch (ObjectNotFoundException e) {
-                    return ResponseEntity.badRequest().body(errorMessage(
-                            String.format("Uknown authorisation: %s", authorisation)));
+                    new CronExpression(cronExpression);
+                } catch (ParseException ex) {
+                    return ResponseEntity.badRequest().body(String.format("Invalid cron expression: %s", ex.getMessage()));
                 }
+                schedule.setCronPattern(cronExpression);
+                schedule.setStartDate(s.getStartDate());
+                schedule.setEndDate(s.getEndDate());
+                schedule.setScheduleType(s.getType());
+                owner = userRoleDAO.getUserByName(s.getOwner());
+                if (owner == null) {
+                    return ResponseEntity.badRequest().body(errorMessage(String.format("Owner with username %s unknown",
+                            targetDTO.getGeneral().getOwner())));
+                }
+                schedule.setOwningUser(owner);
+                schedules.add(schedule);
             }
-            seed.setPermissions(permissions);
+            target.setSchedules(schedules);
         }
 
-        long profileId = targetDTO.getProfile().getId();
-        Profile profile = profileDAO.get(profileId);
-        if (profile == null) {
-            return ResponseEntity.badRequest().body(errorMessage(String.format("Profile with id %s does not exist", profileId)));
+        if (targetDTO.getAccess() != null) {
+            target.setAccessZone(targetDTO.getAccess().getAccessZone());
+            target.setDisplayChangeReason(targetDTO.getAccess().getDisplayChangeReason());
+            target.setDisplayNote(targetDTO.getAccess().getDisplayNote());
         }
-        if (!profile.isHeritrix3Profile()) {
-            return ResponseEntity.badRequest().body(errorMessage("Only Heritrix v3 profiles are supported"));
-        }
-        target.setProfile(profile);
 
-
-        ProfileOverrides profileOverrides = new ProfileOverrides();
-        ArrayList<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
-        if (!profile.isImported() && overrides.isEmpty()) {
-            return ResponseEntity.badRequest().body(errorMessage("A target with a non-imported profile requires profile overrides"));
-        }
-        // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
-        for (TargetDTO.Profile.Override override : overrides) {
-            String id = override.getId();
-            id = id.substring(0, 1).toUpperCase() + id.substring(1); // camel case
-            String methodNameSetValue = "setH3" + id;
-            String methodNameSetEnabled = "setOverrideH3" + id;
-            String methodNameSetUnit = "setH3" + id + "Unit";
-            try {
-                if (override.getValue() != null) {
-                    Class valueClass = override.getValue().getClass();
-                    Object value = override.getValue();
-                    if (value instanceof Integer) { // Spring assumes Integer where it should be Long
-                        valueClass = Long.class;
-                        value = Long.valueOf((Integer) value);
-                    }
-                    if (value instanceof Boolean) { // Boolean setters use primitive type
-                        valueClass = boolean.class;
-                        value = Boolean.valueOf((Boolean) value);
-                    }
-                    if (value instanceof ArrayList) { // List setters use the interface class
-                        valueClass = List.class;
-                    }
-                    Method setValue = ProfileOverrides.class.getMethod(methodNameSetValue, valueClass);
-                    setValue.invoke(profileOverrides, value);
-                }
-                Method setEnabled = ProfileOverrides.class.getMethod(methodNameSetEnabled, boolean.class);
-                setEnabled.invoke(profileOverrides, override.getEnabled());
-                if (override instanceof TargetDTO.Profile.OverrideWithUnit) {
-                    if (((OverrideWithUnit) override).getUnit() != null) {
-                        Method setUnit = ProfileOverrides.class.getMethod(methodNameSetUnit, ((OverrideWithUnit) override).getUnit().getClass());
-                        setUnit.invoke(profileOverrides, ((OverrideWithUnit) override).getUnit());
+        if (targetDTO.getSeeds() != null) {
+            Set<Seed> seeds = new HashSet<>();
+            for (TargetDTO.Seed s : targetDTO.getSeeds()) {
+                Seed seed = businessObjectFactory.newSeed(target);
+                seed.setSeed(s.getSeed());
+                seed.setPrimary(s.getPrimary());
+                Set<Permission> permissions = new HashSet<>();
+                for (long authorisation : s.getAuthorisations()) {
+                    try {
+                        Permission p = siteDAO.loadPermission(authorisation);
+                        permissions.add(p);
+                    } catch (ObjectNotFoundException e) {
+                        return ResponseEntity.badRequest().body(errorMessage(
+                                String.format("Uknown authorisation: %s", authorisation)));
                     }
                 }
-            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+                seed.setPermissions(permissions);
+                seeds.add(seed);
             }
+            target.setSeeds(seeds);
         }
-        target.setOverrides(profileOverrides);
 
-        target.setSelectionDate(targetDTO.getAnnotations().getSelection().getDate());
-        target.setSelectionNote(targetDTO.getAnnotations().getSelection().getNote());
-        target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
-        target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
-        target.setHarvestType(targetDTO.getAnnotations().getHarvestType());
-        ArrayList<Annotation> annotations = new ArrayList<>();
-        for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
-            Annotation annotation = new Annotation();
-            annotation.setDate(a.getDate());
-            annotation.setNote(a.getNote());
-            String userName = a.getUser();
-            User user = userRoleDAO.getUserByName(userName);
-            if (user == null) {
-                return ResponseEntity.badRequest().body(errorMessage(String.format("User %s does not exist", userName)));
+        if (targetDTO.getProfile() != null) {
+            long profileId = targetDTO.getProfile().getId();
+            Profile profile = profileDAO.get(profileId);
+            if (profile == null) {
+                return ResponseEntity.badRequest().body(errorMessage(String.format("Profile with id %s does not exist", profileId)));
             }
-            annotation.setUser(user);
-            annotation.setAlertable(a.getAlert());
-            annotations.add(annotation);
+            if (!profile.isHeritrix3Profile()) {
+                return ResponseEntity.badRequest().body(errorMessage("Only Heritrix v3 profiles are supported"));
+            }
+            target.setProfile(profile);
+
+            ProfileOverrides profileOverrides = new ProfileOverrides();
+            ArrayList<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
+            if (!profile.isImported() && overrides.isEmpty()) {
+                return ResponseEntity.badRequest().body(errorMessage("A target with a non-imported profile requires profile overrides"));
+            }
+            // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
+            for (TargetDTO.Profile.Override override : overrides) {
+                String id = override.getId();
+                id = id.substring(0, 1).toUpperCase() + id.substring(1); // camel case
+                String methodNameSetValue = "setH3" + id;
+                String methodNameSetEnabled = "setOverrideH3" + id;
+                String methodNameSetUnit = "setH3" + id + "Unit";
+                try {
+                    if (override.getValue() != null) {
+                        Class valueClass = override.getValue().getClass();
+                        Object value = override.getValue();
+                        if (value instanceof Integer) { // Spring assumes Integer where it should be Long
+                            valueClass = Long.class;
+                            value = Long.valueOf((Integer) value);
+                        }
+                        if (value instanceof Boolean) { // Boolean setters use primitive type
+                            valueClass = boolean.class;
+                            value = Boolean.valueOf((Boolean) value);
+                        }
+                        if (value instanceof ArrayList) { // List setters use the interface class
+                            valueClass = List.class;
+                        }
+                        Method setValue = ProfileOverrides.class.getMethod(methodNameSetValue, valueClass);
+                        setValue.invoke(profileOverrides, value);
+                    }
+                    Method setEnabled = ProfileOverrides.class.getMethod(methodNameSetEnabled, boolean.class);
+                    setEnabled.invoke(profileOverrides, override.getEnabled());
+                    if (override instanceof TargetDTO.Profile.OverrideWithUnit) {
+                        if (((OverrideWithUnit) override).getUnit() != null) {
+                            Method setUnit = ProfileOverrides.class.getMethod(methodNameSetUnit, ((OverrideWithUnit) override).getUnit().getClass());
+                            setUnit.invoke(profileOverrides, ((OverrideWithUnit) override).getUnit());
+                        }
+                    }
+                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                    return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+                }
+            }
+            target.setOverrides(profileOverrides);
+        } else {
+            target.setProfile(profileDAO.getDefaultProfile(owner.getAgency()));
         }
-        target.setAnnotations(annotations);
 
-        DublinCore metadata = new DublinCore();
-        metadata.setIdentifier(targetDTO.getDescription().getIdentifier());
-        metadata.setDescription(targetDTO.getDescription().getDescription());
-        metadata.setSubject(targetDTO.getDescription().getSubject());
-        metadata.setCreator(targetDTO.getDescription().getCreator());
-        metadata.setPublisher(targetDTO.getDescription().getPublisher());
-        metadata.setType(targetDTO.getDescription().getType());
-        metadata.setFormat(targetDTO.getDescription().getFormat());
-        metadata.setSource(targetDTO.getDescription().getSource());
-        metadata.setRelation(targetDTO.getDescription().getRelation());
-        metadata.setCoverage(targetDTO.getDescription().getCoverage());
-        metadata.setIssn(targetDTO.getDescription().getIssn());
-        metadata.setIsbn(targetDTO.getDescription().getIsbn());
-        target.setDublinCoreMetaData(metadata);
-
-        Set<GroupMember> groups = new HashSet<>();
-        for (TargetDTO.Group g : targetDTO.getGroups()) {
-            GroupMember groupMember = new GroupMember();
-            groupMember.setOid(g.getId());
-            groups.add(groupMember);
+        // FIXME The List of Annotations is transient so I have no idea how they're supposed to be persisted (and indeed, this does not work)
+        if (targetDTO.getAnnotations() != null) {
+            target.setSelectionDate(targetDTO.getAnnotations().getSelection().getDate());
+            target.setSelectionNote(targetDTO.getAnnotations().getSelection().getNote());
+            target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
+            target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
+            target.setHarvestType(targetDTO.getAnnotations().getHarvestType());
+            ArrayList<Annotation> annotations = new ArrayList<>();
+            for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
+                Annotation annotation = new Annotation();
+                annotation.setDate(a.getDate());
+                annotation.setNote(a.getNote());
+                String userName = a.getUser();
+                User user = userRoleDAO.getUserByName(userName);
+                if (user == null) {
+                    return ResponseEntity.badRequest().body(errorMessage(String.format("User %s does not exist", userName)));
+                }
+                annotation.setUser(user);
+                annotation.setAlertable(a.getAlert());
+                annotation.setObjectType(Target.class.getName());
+                annotation.setObjectOid(null);
+                annotations.add(annotation);
+            }
+            target.setAnnotations(annotations);
         }
-        target.setParents(groups);
 
+        if (targetDTO.getDescription() != null) {
+            DublinCore metadata = new DublinCore();
+            metadata.setIdentifier(targetDTO.getDescription().getIdentifier());
+            metadata.setDescription(targetDTO.getDescription().getDescription());
+            metadata.setSubject(targetDTO.getDescription().getSubject());
+            metadata.setCreator(targetDTO.getDescription().getCreator());
+            metadata.setPublisher(targetDTO.getDescription().getPublisher());
+            metadata.setType(targetDTO.getDescription().getType());
+            metadata.setFormat(targetDTO.getDescription().getFormat());
+            metadata.setSource(targetDTO.getDescription().getSource());
+            metadata.setLanguage(targetDTO.getDescription().getLanguage());
+            metadata.setRelation(targetDTO.getDescription().getRelation());
+            metadata.setCoverage(targetDTO.getDescription().getCoverage());
+            metadata.setIssn(targetDTO.getDescription().getIssn());
+            metadata.setIsbn(targetDTO.getDescription().getIsbn());
+            target.setDublinCoreMetaData(metadata);
+        }
+
+        // FIXME handle saving of group membership
+//        if (targetDTO.getGroups() != null) {
+//            List<GroupMemberDTO> groups = new ArrayList<>();
+//            for (TargetDTO.Group g : targetDTO.getGroups()) {
+//                GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
+//                groups.add(groupMemberDTO);
+//            }
+//            targetDAO.save(target, groups);
+//        }
+
+        // Finally persist the target
         try {
             targetDAO.save(target);
         } catch (DataIntegrityViolationException e) {

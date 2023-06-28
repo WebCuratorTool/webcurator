@@ -21,7 +21,7 @@ public class TargetDTO {
     @Valid
     Access access;
     @Valid
-    ArrayList<Seed> seeds;
+    ArrayList<Seed> seeds = new ArrayList<>();
     @Valid
     Profile profile;
     @Valid
@@ -29,7 +29,7 @@ public class TargetDTO {
     @Valid
     Description description;
     @Valid
-    ArrayList<Group> groups;
+    ArrayList<Group> groups = new ArrayList<>();
 
     public TargetDTO() {
     }
@@ -38,14 +38,12 @@ public class TargetDTO {
         general = new General(target);
         schedule = new Scheduling(target);
         access = new Access(target);
-        seeds = new ArrayList<>();
         for (org.webcurator.domain.model.core.Seed s : target.getSeeds()) {
             seeds.add(new Seed(s));
         }
         profile = new Profile(target);
         annotations = new Annotations(target);
         description = new Description(target);
-        groups = new ArrayList<>();
         for (GroupMember m: target.getParents()) {
             groups.add(new Group(m));
         }
@@ -255,14 +253,13 @@ public class TargetDTO {
 
         boolean harvestOptimization;
         @Valid
-        ArrayList<Schedule> schedules;
+        ArrayList<Schedule> schedules = new ArrayList<>();
 
         public Scheduling() {
         }
 
         public Scheduling(Target target) {
             harvestOptimization = target.isAllowOptimize();
-            schedules = new ArrayList<>();
             for (org.webcurator.domain.model.core.Schedule s : target.getSchedules()) {
                 Schedule schedule = new Schedule();
                 schedule.setId(s.getOid());
@@ -507,7 +504,7 @@ public class TargetDTO {
         @NotBlank(message = "name is required")
         String name;
         @Valid
-        ArrayList<Override> overrides;
+        ArrayList<Override> overrides = new ArrayList<>();
 
 
         public Profile() {
@@ -563,7 +560,6 @@ public class TargetDTO {
 
             // FIXME what do we do in the case of an imported profile (which doesn't have overrides, but is overridden entirely by a new profile)?
             ProfileOverrides o = target.getProfileOverrides();
-            overrides = new ArrayList<>();
             if (p.isHeritrix3Profile()) {
                 Override documentLimit = new Override();
                 documentLimit.setId("documentLimit");
@@ -737,7 +733,7 @@ public class TargetDTO {
         @Pattern(regexp = "Subject|Event|Theme", message = "invalid harvestType")
         String harvestType;
         @Valid
-        ArrayList<Annotation> annotations;
+        ArrayList<Annotation> annotations = new ArrayList<>();
 
         public Annotations() {}
 
@@ -748,7 +744,6 @@ public class TargetDTO {
             selection.setType(target.getSelectionType());
             evaluationNote = target.getEvaluationNote();
             harvestType = target.getHarvestType();
-            annotations = new ArrayList<>();
             for (org.webcurator.domain.model.core.Annotation a : target.getAnnotations()) {
                 Annotation annotation = new Annotation();
                 annotation.setDate(a.getDate());
@@ -877,6 +872,7 @@ public class TargetDTO {
         String publisher;
         String type;
         String format;
+        String language;
         String source;
         String relation;
         String coverage;
@@ -887,18 +883,21 @@ public class TargetDTO {
 
         public Description(Target target) {
             DublinCore metadata = target.getDublinCoreMetaData();
-            identifier = metadata.getIdentifier();
-            description = metadata.getDescription();
-            subject = metadata.getSubject();
-            creator = metadata.getCreator();
-            publisher = metadata.getPublisher();
-            type = metadata.getType();
-            format = metadata.getFormat();
-            source = metadata.getSource();
-            relation = metadata.getRelation();
-            coverage = metadata.getCoverage();
-            issn = metadata.getIssn();
-            isbn = metadata.getIsbn();
+            if (metadata != null) {
+                identifier = metadata.getIdentifier();
+                description = metadata.getDescription();
+                subject = metadata.getSubject();
+                creator = metadata.getCreator();
+                publisher = metadata.getPublisher();
+                type = metadata.getType();
+                format = metadata.getFormat();
+                source = metadata.getSource();
+                language = metadata.getLanguage();
+                relation = metadata.getRelation();
+                coverage = metadata.getCoverage();
+                issn = metadata.getIssn();
+                isbn = metadata.getIsbn();
+            }
         }
 
         public String getIdentifier() {
@@ -963,6 +962,14 @@ public class TargetDTO {
 
         public void setSource(String source) {
             this.source = source;
+        }
+
+        public String getLanguage() {
+            return language;
+        }
+
+        public void setLanguage(String language) {
+            this.language = language;
         }
 
         public String getRelation() {
