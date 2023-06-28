@@ -111,12 +111,12 @@ public class Schedule extends AbstractIdentityObject implements UserOwnable {
     /** The first date after the currently assigned period on which this schedule should run */
     @Transient
     private boolean savedInThisSession = false;
-    
+
     /**
-     * Protected constructor - all schedules should be constructed by 
+     * Protected constructor - all schedules should be constructed by
      * the BusinessObjectFactory.
      */
-    public Schedule() {}
+    protected Schedule() {}
     
     /**
      * Gets the database OID of the schedule.
