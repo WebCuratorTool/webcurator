@@ -62,6 +62,9 @@ public class Targets {
     private SiteDAO siteDAO;
 
     @Autowired
+    private AnnotationDAO annotationDAO;
+
+    @Autowired
     private BusinessObjectFactory businessObjectFactory;
 
 
@@ -205,6 +208,7 @@ public class Targets {
         }
 
         if (targetDTO.getAccess() != null) {
+            target.setDisplayTarget(targetDTO.getAccess().getDisplayTarget());
             target.setAccessZone(targetDTO.getAccess().getAccessZone());
             target.setDisplayChangeReason(targetDTO.getAccess().getDisplayChangeReason());
             target.setDisplayNote(targetDTO.getAccess().getDisplayNote());
@@ -290,30 +294,12 @@ public class Targets {
             target.setProfile(profileDAO.getDefaultProfile(owner.getAgency()));
         }
 
-        // FIXME The List of Annotations is transient so I have no idea how they're supposed to be persisted (and indeed, this does not work)
         if (targetDTO.getAnnotations() != null) {
             target.setSelectionDate(targetDTO.getAnnotations().getSelection().getDate());
             target.setSelectionNote(targetDTO.getAnnotations().getSelection().getNote());
             target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
             target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
             target.setHarvestType(targetDTO.getAnnotations().getHarvestType());
-            ArrayList<Annotation> annotations = new ArrayList<>();
-            for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
-                Annotation annotation = new Annotation();
-                annotation.setDate(a.getDate());
-                annotation.setNote(a.getNote());
-                String userName = a.getUser();
-                User user = userRoleDAO.getUserByName(userName);
-                if (user == null) {
-                    return ResponseEntity.badRequest().body(errorMessage(String.format("User %s does not exist", userName)));
-                }
-                annotation.setUser(user);
-                annotation.setAlertable(a.getAlert());
-                annotation.setObjectType(Target.class.getName());
-                annotation.setObjectOid(null);
-                annotations.add(annotation);
-            }
-            target.setAnnotations(annotations);
         }
 
         if (targetDTO.getDescription() != null) {
@@ -334,23 +320,52 @@ public class Targets {
             target.setDublinCoreMetaData(metadata);
         }
 
-        // FIXME handle saving of group membership
-//        if (targetDTO.getGroups() != null) {
-//            List<GroupMemberDTO> groups = new ArrayList<>();
-//            for (TargetDTO.Group g : targetDTO.getGroups()) {
-//                GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
-//                groups.add(groupMemberDTO);
-//            }
-//            targetDAO.save(target, groups);
-//        }
-
-        // Finally persist the target
+        // Persist the target
         try {
             targetDAO.save(target);
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+        }
+
+        // Now that we have a target with an id, we can add the annotations and groups (if any)
+        if (targetDTO.getAnnotations() != null) {
+            ArrayList<Annotation> annotations = new ArrayList<>();
+            for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
+                Annotation annotation = new Annotation();
+                annotation.setDate(a.getDate());
+                annotation.setNote(a.getNote());
+                String userName = a.getUser();
+                User user = userRoleDAO.getUserByName(userName);
+                if (user == null) {
+                    return ResponseEntity.badRequest().body(errorMessage(String.format("User %s does not exist", userName)));
+                }
+                annotation.setUser(user);
+                annotation.setAlertable(a.getAlert());
+                annotation.setObjectType(Target.class.getName());
+                annotation.setObjectOid(target.getOid());
+                annotations.add(annotation);
+            }
+            try {
+                annotationDAO.saveAnnotations(annotations);
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            }
+        }
+
+        if (targetDTO.getGroups() != null) {
+            List<GroupMemberDTO> groupMemberDTOs = new ArrayList<>();
+            for (TargetDTO.Group g : targetDTO.getGroups()) {
+                GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
+                groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
+                groupMemberDTOs.add(groupMemberDTO);
+            }
+            try {
+                targetDAO.save(target, groupMemberDTOs);
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            }
         }
 
         try {
