@@ -109,8 +109,10 @@ public class SeleniumScreenshotCapture {
                 case "--wayback":
                     isWayback = true;
                     break;
+                case "native":
+                    break;
                 default:
-                    log.debug("Unrecognised argument '{}'.  Cannot generate screenshot.", arg);
+                    log.debug("Ignored unknown argument '{}'.", arg);
                     break;
             }
         }
