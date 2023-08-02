@@ -152,7 +152,12 @@ index files, and it runs on a separate Gevent server.  *If you intend to use PyW
 *you might want to either configure the waybackIndexer.waybackInputFolder within application.properties to the*
 *initialised PyWB archive directory collections/collectionName/archive or symlink the initialised PyWB archive*
 *directory with the directory you have used for waybackIndexer.waybackInputFolder.*  This way PyWB will always
-get a copy of the warc files that are being generated.
+get a copy of the warc files that are being generated. Note, with this way Store is not able to know when the new
+indexing is finished. The screenshot should be taken from the another Wayback.
+
+If PyWB is used as the main Wayback tool. It's recommended to deposit the WARC files to Pywb with **wb-manager**
+command. **wb-manager** is a command line tool for managing common collection operations. After installing pywb
+tool-suite, **wb-manager** is made available (in the Python binary directory or current environment).
 
 When you run the PyWB server you can specify the port using -p.  Using -a will ensure that the initialised
 PyWB archive directory is checked every 30 seconds for new warcs to index.  Any warc files that are manually
@@ -249,4 +254,3 @@ The following guides can provide additional information:
    :width: 620.0px
    :height: 231.0px
    :alt: Config and links for multiple review tools
-
