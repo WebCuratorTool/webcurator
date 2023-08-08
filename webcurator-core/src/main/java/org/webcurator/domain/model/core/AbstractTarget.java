@@ -112,7 +112,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @Column(name = "AT_DESC")
     private String description;
     /** The schedules related to the target. */
-	@OneToMany(cascade = CascadeType.ALL) // default fetch type is LAZY {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true) // default fetch type is LAZY {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH}
 	@JoinColumn(name = "S_ABSTRACT_TARGET_ID")
     private Set<Schedule> schedules = new HashSet<Schedule>();
     /** Owner of the target **/
@@ -156,7 +156,7 @@ public abstract class AbstractTarget extends AbstractIdentityObject implements U
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
     /** The parents of this group */
-    @OneToMany // default fetch type is LAZY
+    @OneToMany(orphanRemoval = true) // default fetch type is LAZY
     @JoinColumn(name = "GM_CHILD_ID")
     private Set<GroupMember> parents = new HashSet<GroupMember>();
     /** Flag to state if the object is "dirty" */

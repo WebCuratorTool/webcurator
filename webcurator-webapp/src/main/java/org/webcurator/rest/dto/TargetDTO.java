@@ -1,5 +1,8 @@
 package org.webcurator.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.webcurator.domain.model.core.*;
 
 import javax.validation.Valid;
@@ -21,7 +24,7 @@ public class TargetDTO {
     @Valid
     Access access;
     @Valid
-    ArrayList<Seed> seeds = new ArrayList<>();
+    List<Seed> seeds = new ArrayList<>();
     @Valid
     Profile profile;
     @Valid
@@ -29,7 +32,7 @@ public class TargetDTO {
     @Valid
     Description description;
     @Valid
-    ArrayList<Group> groups = new ArrayList<>();
+    List<Group> groups = new ArrayList<>();
 
     public TargetDTO() {
     }
@@ -77,7 +80,7 @@ public class TargetDTO {
         return seeds;
     }
 
-    public void setSeeds(ArrayList<Seed> seeds) {
+    public void setSeeds(List<Seed> seeds) {
         this.seeds = seeds;
     }
 
@@ -105,11 +108,11 @@ public class TargetDTO {
         this.description = description;
     }
 
-    public ArrayList<Group> getGroups() {
+    public List<Group> getGroups() {
         return groups;
     }
 
-    public void setGroups(ArrayList<Group> groups) {
+    public void setGroups(List<Group> groups) {
         this.groups = groups;
     }
 
@@ -123,7 +126,7 @@ public class TargetDTO {
         @NotNull(message = "runOnApproval is required")
         Boolean runOnApproval = false;
         @NotNull(message = "automatedQA is required")
-        boolean automatedQA = false;
+        Boolean automatedQA = false;
         @NotBlank(message = "owner is required")
         String owner;
         @NotNull(message = "state is required")
@@ -192,19 +195,19 @@ public class TargetDTO {
             this.referenceNumber = referenceNumber;
         }
 
-        public boolean isRunOnApproval() {
+        public Boolean getRunOnApproval() {
             return runOnApproval;
         }
 
-        public void setRunOnApproval(boolean runOnApproval) {
+        public void setRunOnApproval(Boolean runOnApproval) {
             this.runOnApproval = runOnApproval;
         }
 
-        public boolean isAutomatedQA() {
+        public Boolean getAutomatedQA() {
             return automatedQA;
         }
 
-        public void setAutomatedQA(boolean automatedQA) {
+        public void setAutomatedQA(Boolean automatedQA) {
             this.automatedQA = automatedQA;
         }
 
@@ -224,19 +227,19 @@ public class TargetDTO {
             this.state = state;
         }
 
-        public boolean isAutoPrune() {
+        public Boolean getAutoPrune() {
             return autoPrune;
         }
 
-        public void setAutoPrune(boolean autoPrune) {
+        public void setAutoPrune(Boolean autoPrune) {
             this.autoPrune = autoPrune;
         }
 
-        public boolean isReferenceCrawl() {
+        public Boolean getReferenceCrawl() {
             return referenceCrawl;
         }
 
-        public void setReferenceCrawl(boolean referenceCrawl) {
+        public void setReferenceCrawl(Boolean referenceCrawl) {
             this.referenceCrawl = referenceCrawl;
         }
 
@@ -251,9 +254,9 @@ public class TargetDTO {
 
     public static class Scheduling {
 
-        boolean harvestOptimization;
+        Boolean harvestOptimization;
         @Valid
-        ArrayList<Schedule> schedules = new ArrayList<>();
+        List<Schedule> schedules = new ArrayList<>();
 
         public Scheduling() {
         }
@@ -274,19 +277,19 @@ public class TargetDTO {
             }
         }
 
-        public boolean isHarvestOptimization() {
+        public Boolean getHarvestOptimization() {
             return harvestOptimization;
         }
 
-        public void setHarvestOptimization(boolean harvestOptimization) {
+        public void setHarvestOptimization(Boolean harvestOptimization) {
             this.harvestOptimization = harvestOptimization;
         }
 
-        public ArrayList<Schedule> getSchedules() {
+        public List<Schedule> getSchedules() {
             return schedules;
         }
 
-        public void setSchedules(ArrayList<Schedule> schedules) {
+        public void setSchedules(List<Schedule> schedules) {
             this.schedules = schedules;
         }
 
@@ -342,11 +345,11 @@ public class TargetDTO {
                 this.endDate = endDate;
             }
 
-            public int getType() {
+            public Integer getType() {
                 return type;
             }
 
-            public void setType(int type) {
+            public void setType(Integer type) {
                 this.type = type;
             }
 
@@ -391,6 +394,7 @@ public class TargetDTO {
         }
 
         public Access(Target target) {
+            displayTarget = target.isDisplayTarget();
             accessZone = target.getAccessZone();
             accessZoneText = target.getAccessZoneText();
             displayChangeReason = target.getDisplayChangeReason();
@@ -405,11 +409,11 @@ public class TargetDTO {
             this.displayTarget = displayTarget;
         }
 
-        public int getAccessZone() {
+        public Integer getAccessZone() {
             return accessZone;
         }
 
-        public void setAccessZone(int accessZone) {
+        public void setAccessZone(Integer accessZone) {
             this.accessZone = accessZone;
         }
 
@@ -445,7 +449,7 @@ public class TargetDTO {
         @NotNull(message = "primary is required")
         Boolean primary;
         @NotEmpty(message = "authorisations may not be empty")
-        ArrayList<Long> authorisations;
+        List<Long> authorisations = new ArrayList<>();
 
         public Seed() {
         }
@@ -454,7 +458,6 @@ public class TargetDTO {
             id = s.getOid();
             seed = s.getSeed();
             primary = s.isPrimary();
-            authorisations = new ArrayList<>();
             for (Permission p : s.getPermissions()) {
                 authorisations.add(p.getOid());
             }
@@ -484,27 +487,24 @@ public class TargetDTO {
             this.primary = primary;
         }
 
-        public ArrayList<Long> getAuthorisations() {
+        public List<Long> getAuthorisations() {
             return authorisations;
         }
 
-        public void setAuthorisations(ArrayList<Long> authorisations) {
+        public void setAuthorisations(List<Long> authorisations) {
             this.authorisations = authorisations;
         }
     }
 
     public static class Profile {
 
-        @NotNull(message = "harvesterType is required")
         String harvesterType;
         @NotNull(message = "id is required")
         Long id;
-        @NotNull(message = "imported is required")
         Boolean imported;
-        @NotBlank(message = "name is required")
         String name;
         @Valid
-        ArrayList<Override> overrides = new ArrayList<>();
+        List<Override> overrides = new ArrayList<>();
 
 
         public Profile() {
@@ -542,11 +542,11 @@ public class TargetDTO {
             this.name = name;
         }
 
-        public ArrayList<Override> getOverrides() {
+        public List<Override> getOverrides() {
             return overrides;
         }
 
-        public void setOverrides(ArrayList<Override> overrides) {
+        public void setOverrides(List<Override> overrides) {
             this.overrides = overrides;
         }
 
@@ -566,13 +566,13 @@ public class TargetDTO {
                 documentLimit.setValue(o.getH3DocumentLimit());
                 documentLimit.setEnabled(o.isOverrideH3DocumentLimit());
                 overrides.add(documentLimit);
-                OverrideWithUnit dataLimit = new OverrideWithUnit();
+                Override dataLimit = new Override();
                 dataLimit.setId("dataLimit");
                 dataLimit.setValue(o.getH3DataLimit());
                 dataLimit.setUnit(o.getH3DataLimitUnit());
                 dataLimit.setEnabled(o.isOverrideH3DataLimit());
                 overrides.add(dataLimit);
-                OverrideWithUnit timeLimit = new OverrideWithUnit();
+                Override timeLimit = new Override();
                 timeLimit.setId("timeLimit");
                 timeLimit.setValue(o.getH3TimeLimit());
                 timeLimit.setUnit(o.getH3TimeLimitUnit());
@@ -678,6 +678,9 @@ public class TargetDTO {
             Object value;
             @NotNull(message = "enabled is required")
             Boolean enabled;
+            // FIXME we need better validation of the unit attribute
+            @JsonInclude(JsonInclude.Include.NON_NULL)
+            String unit;
 
             public Override() {
             }
@@ -705,14 +708,6 @@ public class TargetDTO {
             public void setEnabled(Boolean enabled) {
                 this.enabled = enabled;
             }
-        }
-
-        public static class OverrideWithUnit extends Override {
-            @NotBlank(message = "unit is required")
-            String unit;
-
-            public OverrideWithUnit() {
-            }
 
             public String getUnit() {
                 return unit;
@@ -733,7 +728,7 @@ public class TargetDTO {
         @Pattern(regexp = "Subject|Event|Theme", message = "invalid harvestType")
         String harvestType;
         @Valid
-        ArrayList<Annotation> annotations = new ArrayList<>();
+        List<Annotation> annotations = new ArrayList<>();
 
         public Annotations() {}
 
@@ -778,11 +773,11 @@ public class TargetDTO {
             this.harvestType = harvestType;
         }
 
-        public ArrayList<Annotation> getAnnotations() {
+        public List<Annotation> getAnnotations() {
             return annotations;
         }
 
-        public void setAnnotations(ArrayList<Annotation> annotations) {
+        public void setAnnotations(List<Annotation> annotations) {
             this.annotations = annotations;
         }
 
@@ -875,6 +870,7 @@ public class TargetDTO {
         String language;
         String source;
         String relation;
+        String contributor;
         String coverage;
         String issn;
         String isbn;
@@ -894,6 +890,7 @@ public class TargetDTO {
                 source = metadata.getSource();
                 language = metadata.getLanguage();
                 relation = metadata.getRelation();
+                contributor = metadata.getContributor();
                 coverage = metadata.getCoverage();
                 issn = metadata.getIssn();
                 isbn = metadata.getIsbn();
@@ -978,6 +975,14 @@ public class TargetDTO {
 
         public void setRelation(String relation) {
             this.relation = relation;
+        }
+
+        public String getContributor() {
+            return contributor;
+        }
+
+        public void setContributor(String contributor) {
+            this.contributor = contributor;
         }
 
         public String getCoverage() {
