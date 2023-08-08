@@ -2,11 +2,9 @@ package org.webcurator.rest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.common.util.SafeSimpleDateFormat;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
@@ -21,15 +21,13 @@ import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.rest.dto.TargetDTO;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import javax.validation.*;
 
-import static org.webcurator.rest.dto.TargetDTO.Profile.OverrideWithUnit;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -48,6 +46,9 @@ public class Targets {
     private static final String LIMIT_FIELD = "limit";
 
     private static final Log logger = LogFactory.getLog(Targets.class);
+
+    private ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private Validator validator = factory.getValidator();
 
     @Autowired
     private TargetDAO targetDAO;
@@ -114,6 +115,8 @@ public class Targets {
         if (target == null) {
             return ResponseEntity.notFound().build();
         } else {
+            // Annotations are managed differently from normal associated entities
+            target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
             TargetDTO targetDTO = new TargetDTO(target);
             if (section == null) {
                 // Return the entire target
@@ -154,6 +157,8 @@ public class Targets {
                 return ResponseEntity.badRequest().body(errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
             } else {
                 targetDAO.delete(target);
+                // Annotations are managed differently from normal associated entities
+                annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
                 return ResponseEntity.ok().build();
             }
         }
@@ -161,28 +166,86 @@ public class Targets {
 
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
+        Target target = new Target();
+        try {
+            upsert(target, targetDTO);
+        } catch (BadRequestError e) {
+            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+        }
+
+        try {
+            String targetUrl = request.getRequestURL().toString();
+            if (!targetUrl.endsWith("/")) {
+                targetUrl += "/";
+            }
+            targetUrl += target.getOid();
+            return ResponseEntity.created(new URI(targetUrl)).build();
+        } catch (URISyntaxException e) {
+            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+        }
+    }
+
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
+        Target target = targetDAO.load(id);
+        if (target == null) {
+            return ResponseEntity.badRequest().body(errorMessage(String.format("Target with id %s does not exist", id)));
+        }
+        // Create DTO based on the current data in the database
+        TargetDTO targetDTO = new TargetDTO(target);
+        // Then update the DTO with data from the supplied JSON
+        try {
+            updateTargetDTO(targetDTO, targetMap, targetDTO);
+        } catch (BadRequestError e) {
+            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+        }
+
+        // Validate updated DTO
+        Set<ConstraintViolation<TargetDTO>> violations = validator.validate(targetDTO);
+        if (!violations.isEmpty()) {
+            // Return the first violation we find
+            ConstraintViolation<TargetDTO> constraintViolation = violations.iterator().next();
+            return ResponseEntity.badRequest().body(errorMessage(constraintViolation.getMessage()));
+        }
+
+        // Finally, map the DTO to the entity and update the database
+        try {
+            upsert(target, targetDTO);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestError e) {
+            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+        }
+    }
+
+    /**
+     * The actual mapping of TargetDTO to Target and upsert of the latter
+     */
+    private void upsert(Target target, TargetDTO targetDTO) throws BadRequestError {
+
         String ownerStr = targetDTO.getGeneral().getOwner();
         User owner = userRoleDAO.getUserByName(ownerStr);
         if (owner == null) {
-            return ResponseEntity.badRequest().body(errorMessage(
-                    String.format("Owner with username %s unknown", ownerStr)));
+            throw new BadRequestError(String.format("Owner with username %s unknown", ownerStr));
         }
-        Target target = new Target();
         target.setCreationDate(new Date());
         target.setName(targetDTO.getGeneral().getName());
         target.setDescription(targetDTO.getGeneral().getDescription());
         target.setReferenceNumber(targetDTO.getGeneral().getReferenceNumber());
-        target.setRunOnApproval(targetDTO.getGeneral().isRunOnApproval());
-        target.setUseAQA(targetDTO.getGeneral().isAutomatedQA());
+        target.setRunOnApproval(targetDTO.getGeneral().getRunOnApproval());
+        target.setUseAQA(targetDTO.getGeneral().getAutomatedQA());
         target.setOwner(owner);
         target.setState(targetDTO.getGeneral().getState());
-        target.setAutoPrune(targetDTO.getGeneral().isAutoPrune());
-        target.setAutoDenoteReferenceCrawl(targetDTO.getGeneral().isReferenceCrawl());
+        target.setAutoPrune(targetDTO.getGeneral().getAutoPrune());
+        target.setAutoDenoteReferenceCrawl(targetDTO.getGeneral().getReferenceCrawl());
         target.setRequestToArchivists(targetDTO.getGeneral().getRequestToArchivists());
 
         if (targetDTO.getSchedule() != null) {
             Set<Schedule> schedules = new HashSet<>();
-            target.setAllowOptimize(targetDTO.getSchedule().isHarvestOptimization());
+            target.setAllowOptimize(targetDTO.getSchedule().getHarvestOptimization());
             for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
                 // we support classic cron, without the prepended SECONDS field expected by Quartz
@@ -190,7 +253,7 @@ public class Targets {
                 try {
                     new CronExpression(cronExpression);
                 } catch (ParseException ex) {
-                    return ResponseEntity.badRequest().body(String.format("Invalid cron expression: %s", ex.getMessage()));
+                    throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
                 }
                 schedule.setCronPattern(cronExpression);
                 schedule.setStartDate(s.getStartDate());
@@ -198,13 +261,14 @@ public class Targets {
                 schedule.setScheduleType(s.getType());
                 owner = userRoleDAO.getUserByName(s.getOwner());
                 if (owner == null) {
-                    return ResponseEntity.badRequest().body(errorMessage(String.format("Owner with username %s unknown",
-                            targetDTO.getGeneral().getOwner())));
+                    throw new BadRequestError(String.format("Owner with username %s unknown",
+                            targetDTO.getGeneral().getOwner()));
                 }
                 schedule.setOwningUser(owner);
                 schedules.add(schedule);
             }
-            target.setSchedules(schedules);
+            target.getSchedules().clear();
+            target.getSchedules().addAll(schedules);
         }
 
         if (targetDTO.getAccess() != null) {
@@ -226,31 +290,31 @@ public class Targets {
                         Permission p = siteDAO.loadPermission(authorisation);
                         permissions.add(p);
                     } catch (ObjectNotFoundException e) {
-                        return ResponseEntity.badRequest().body(errorMessage(
-                                String.format("Uknown authorisation: %s", authorisation)));
+                        throw new BadRequestError(String.format("Uknown authorisation: %s", authorisation));
                     }
                 }
                 seed.setPermissions(permissions);
                 seeds.add(seed);
             }
-            target.setSeeds(seeds);
+            target.getSeeds().clear();
+            target.getSeeds().addAll(seeds);
         }
 
         if (targetDTO.getProfile() != null) {
             long profileId = targetDTO.getProfile().getId();
             Profile profile = profileDAO.get(profileId);
             if (profile == null) {
-                return ResponseEntity.badRequest().body(errorMessage(String.format("Profile with id %s does not exist", profileId)));
+                throw new BadRequestError(String.format("Profile with id %s does not exist", profileId));
             }
             if (!profile.isHeritrix3Profile()) {
-                return ResponseEntity.badRequest().body(errorMessage("Only Heritrix v3 profiles are supported"));
+                throw new BadRequestError("Only Heritrix v3 profiles are supported");
             }
             target.setProfile(profile);
 
             ProfileOverrides profileOverrides = new ProfileOverrides();
-            ArrayList<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
+            List<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
             if (!profile.isImported() && overrides.isEmpty()) {
-                return ResponseEntity.badRequest().body(errorMessage("A target with a non-imported profile requires profile overrides"));
+                throw new BadRequestError("A target with a non-imported profile requires profile overrides");
             }
             // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
             for (TargetDTO.Profile.Override override : overrides) {
@@ -265,13 +329,13 @@ public class Targets {
                         Object value = override.getValue();
                         if (value instanceof Integer) { // Spring assumes Integer where it should be Long
                             valueClass = Long.class;
-                            value = Long.valueOf((Integer) value);
+                            value = Long.valueOf((Integer)value);
                         }
                         if (value instanceof Boolean) { // Boolean setters use primitive type
                             valueClass = boolean.class;
-                            value = Boolean.valueOf((Boolean) value);
+                            value = Boolean.valueOf((Boolean)value);
                         }
-                        if (value instanceof ArrayList) { // List setters use the interface class
+                        if (value instanceof List) { // List setters use the interface class
                             valueClass = List.class;
                         }
                         Method setValue = ProfileOverrides.class.getMethod(methodNameSetValue, valueClass);
@@ -279,14 +343,16 @@ public class Targets {
                     }
                     Method setEnabled = ProfileOverrides.class.getMethod(methodNameSetEnabled, boolean.class);
                     setEnabled.invoke(profileOverrides, override.getEnabled());
-                    if (override instanceof TargetDTO.Profile.OverrideWithUnit) {
-                        if (((OverrideWithUnit) override).getUnit() != null) {
-                            Method setUnit = ProfileOverrides.class.getMethod(methodNameSetUnit, ((OverrideWithUnit) override).getUnit().getClass());
-                            setUnit.invoke(profileOverrides, ((OverrideWithUnit) override).getUnit());
+                    if (override.getUnit() != null) {
+                        try {
+                            Method setUnit = ProfileOverrides.class.getMethod(methodNameSetUnit, override.getUnit().getClass());
+                            setUnit.invoke(profileOverrides, override.getUnit());
+                        } catch (NoSuchMethodException e) {
+                            throw new BadRequestError(String.format("Unit %s does not exist or has the wrong type", override.getUnit()));
                         }
                     }
                 } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                    return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+                    throw new BadRequestError(String.format("Bad override with id %s", override.getId()));
                 }
             }
             target.setOverrides(profileOverrides);
@@ -324,14 +390,12 @@ public class Targets {
         try {
             targetDAO.save(target);
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            throw new BadRequestError(e.getMessage());
         }
 
         // Now that we have a target with an id, we can add the annotations and groups (if any)
         if (targetDTO.getAnnotations() != null) {
-            ArrayList<Annotation> annotations = new ArrayList<>();
+            List<Annotation> annotations = new ArrayList<>();
             for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
                 Annotation annotation = new Annotation();
                 annotation.setDate(a.getDate());
@@ -339,7 +403,7 @@ public class Targets {
                 String userName = a.getUser();
                 User user = userRoleDAO.getUserByName(userName);
                 if (user == null) {
-                    return ResponseEntity.badRequest().body(errorMessage(String.format("User %s does not exist", userName)));
+                    throw new BadRequestError(String.format("User %s does not exist", userName));
                 }
                 annotation.setUser(user);
                 annotation.setAlertable(a.getAlert());
@@ -348,9 +412,11 @@ public class Targets {
                 annotations.add(annotation);
             }
             try {
+                // We have to explicitly delete the old annotations because they are not handled like a regular associated entity
+                annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), target.getOid()));
                 annotationDAO.saveAnnotations(annotations);
             } catch (Exception e) {
-                return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+                throw new RuntimeException(e.getMessage());
             }
         }
 
@@ -361,24 +427,122 @@ public class Targets {
                 groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
                 groupMemberDTOs.add(groupMemberDTO);
             }
-            try {
-                targetDAO.save(target, groupMemberDTOs);
-            } catch (Exception e) {
-                return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
-            }
-        }
-
-        try {
-            String targetUrl = request.getRequestURL().toString();
-            if (!targetUrl.endsWith("/")) {
-                targetUrl += "/";
-            }
-            targetUrl += target.getOid();
-            return ResponseEntity.created(new URI(targetUrl)).build();
-        } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            target.getParents().clear();
+            targetDAO.save(target, groupMemberDTOs);
         }
     }
+
+    /**
+     * Traverses the supplied HashMap recursively, mapping any data it finds to the right setter in the supplied
+     * TargetDTO.
+     */
+    private void updateTargetDTO(TargetDTO targetDTO, HashMap<String, Object> map, Object parent) throws BadRequestError {
+
+        for (String key : map.keySet()) {
+            Object value = map.get(key);
+            String getMethodName = "get" + key.substring(0, 1).toUpperCase() + key.substring(1);
+            Object child = null;
+            Method getMethod = null;
+            try {
+                getMethod = parent.getClass().getMethod(getMethodName, null);
+            } catch (NoSuchMethodException e) {
+                throw new BadRequestError(String.format("Uknown key %s", key));
+            }
+            try {
+                child = getMethod.invoke(parent);
+            } catch (InvocationTargetException | IllegalAccessException e) { throw new BadRequestError(e.getMessage()); }
+            Class childType = getMethod.getReturnType(); // child.getClass() may return a narrower type
+            if (value instanceof HashMap) { // recurse
+                updateTargetDTO(targetDTO, (HashMap<String, Object>) value, child);
+            } else if (value instanceof List) {
+                if (key.equals("overrides")) { // The list of overrides is fixed, so we can locate and update its elements
+                    for (Object element : (List) value) {
+                        if (!(element instanceof HashMap)) {
+                            throw new BadRequestError("Bad item in list of profile overrides");
+                        }
+                        TargetDTO.Profile.Override overrideToBeUpdated = null;
+                        for (TargetDTO.Profile.Override override : (List<TargetDTO.Profile.Override>) child) {
+                            if (override.getId().equals(((HashMap) element).get("id"))) {
+                                overrideToBeUpdated = override;
+                                break;
+                            }
+                        }
+                        if (overrideToBeUpdated == null) {
+                            throw new BadRequestError(String.format("Uknown override with id %s", ((HashMap)element).get("id")));
+                        }
+                        updateTargetDTO(targetDTO, (HashMap<String, Object>) element, overrideToBeUpdated);
+                    }
+                } else { // For all other types of lists: clear the list and fill it with the new supplied data
+                    ((List) child).clear();
+                    Type genericChildType = getMethod.getGenericReturnType();
+                    Type elementType;
+                    if (genericChildType instanceof ParameterizedType) {
+                        elementType = ((ParameterizedType) genericChildType).getActualTypeArguments()[0];
+                    } else { // A non-parameterized List is guaranteed to be a list with Strings (URL Strings in overrides)
+                        elementType = (Type) String.class;
+                    }
+                    for (Object element : (List) value) {
+                        if (element instanceof HashMap) {
+                            try {
+                                Constructor constructor = ((Class<?>) elementType).getDeclaredConstructor();
+                                constructor.setAccessible(true);
+                                Object newArrayItem = constructor.newInstance();
+                                ((List) child).add(newArrayItem);
+                                updateTargetDTO(targetDTO, (HashMap<String, Object>) element, newArrayItem);
+                            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                                throw new BadRequestError(String.format("Cannot map list from key %s", key));
+                            }
+                        } else {
+                            // Since the list doesn't contain HashMaps, it contains Numbers or Strings
+                            if (elementType.equals(Long.class)  && element instanceof Integer) {
+                                element = ((Number) element).longValue();
+                            } else if (elementType.equals(Integer.class) && element instanceof Long) {
+                                element = ((Number) element).intValue();
+                            }
+                            if (!elementType.equals(element.getClass())) {
+                                throw new BadRequestError(String.format("Bad type in key %s", key));
+                            }
+                            ((List) child).add(element);
+                        }
+                    }
+                }
+            } else {
+                if (key.contains("Date") || key.contains("date")) {
+                    List<String> patterns = Arrays.asList("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd HH:mm:ss.SSSX",
+                                                            "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                                                            "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss");
+                    for (String pattern : patterns) {
+                        try {
+                            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+                            sdf.setLenient(false);
+                            value = sdf.parse((String) value);
+                            break;
+                        } catch (ParseException e) {
+                        }
+                    }
+                    if (!(value instanceof Date)) {
+                        throw new BadRequestError(String.format("Badly formatted date in key %s", key));
+                    }
+                } else if (childType == Long.class && value instanceof Integer) {
+                    value = ((Number) value).longValue();
+                } else if (childType == Integer.class && value instanceof Long) {
+                    value = ((Number) value).intValue();
+                }
+                String setMethodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
+                try {
+                    Method setMethod = parent.getClass().getMethod(setMethodName, childType);
+                    try {
+                        setMethod.invoke(parent, value);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new BadRequestError(e.getMessage());
+                    }
+                } catch (NoSuchMethodException e) {
+                    throw new BadRequestError(String.format("Unknown key or bad type in key %s", key));
+                }
+            }
+        }
+    }
+
 
     /**
      * Handler used by the validation API to generate error messages
