@@ -145,6 +145,9 @@ public class Targets {
         }
     }
 
+    /**
+     * Handler for deleting individual targets
+     */
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> delete(@PathVariable long id) {
         Target target = targetDAO.load(id);
@@ -164,6 +167,9 @@ public class Targets {
         }
     }
 
+    /**
+     * Handler for creating new targets
+     */
     @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
         Target target = new Target();
@@ -187,6 +193,9 @@ public class Targets {
         }
     }
 
+    /**
+     * Handler for updating individual targets
+     */
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
         Target target = targetDAO.load(id);
@@ -220,6 +229,23 @@ public class Targets {
             return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
         }
     }
+
+    /**
+     * Returns an overview of all possible target states
+     */
+    @GetMapping(path = "/states")
+    public ResponseEntity getStates() {
+        HashMap<Integer, String> states = new HashMap<>();
+        states.put(Target.STATE_PENDING, "Pending");
+        states.put(Target.STATE_REINSTATED, "Reinstated");
+        states.put(Target.STATE_NOMINATED, "Nominated");
+        states.put(Target.STATE_REJECTED, "Rejected");
+        states.put(Target.STATE_APPROVED, "Approved");
+        states.put(Target.STATE_CANCELLED, "Cancelled");
+        states.put(Target.STATE_COMPLETED, "Completed");
+        return ResponseEntity.ok().body(states);
+    }
+
 
     /**
      * The actual mapping of TargetDTO to Target and upsert of the latter
