@@ -12,7 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.common.util.SafeSimpleDateFormat;
+import org.webcurator.core.targets.TargetManager;
+import org.webcurator.core.targets.TargetManager2;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
@@ -22,7 +23,6 @@ import org.webcurator.rest.dto.TargetDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.*;
-
 import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,6 +52,9 @@ public class Targets {
 
     @Autowired
     private TargetDAO targetDAO;
+
+    @Autowired
+    private TargetManager2 targetManager;
 
     @Autowired
     private UserRoleDAO userRoleDAO;
@@ -293,7 +296,6 @@ public class Targets {
                 schedule.setOwningUser(owner);
                 schedules.add(schedule);
             }
-            target.getSchedules().clear();
             target.getSchedules().addAll(schedules);
         }
 
@@ -337,7 +339,7 @@ public class Targets {
             }
             target.setProfile(profile);
 
-            ProfileOverrides profileOverrides = new ProfileOverrides();
+            ProfileOverrides profileOverrides = target.getProfileOverrides();
             List<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
             if (!profile.isImported() && overrides.isEmpty()) {
                 throw new BadRequestError("A target with a non-imported profile requires profile overrides");
@@ -355,11 +357,11 @@ public class Targets {
                         Object value = override.getValue();
                         if (value instanceof Integer) { // Spring assumes Integer where it should be Long
                             valueClass = Long.class;
-                            value = Long.valueOf((Integer)value);
+                            value = Long.valueOf((Integer) value);
                         }
                         if (value instanceof Boolean) { // Boolean setters use primitive type
                             valueClass = boolean.class;
-                            value = Boolean.valueOf((Boolean)value);
+                            value = Boolean.valueOf((Boolean) value);
                         }
                         if (value instanceof List) { // List setters use the interface class
                             valueClass = List.class;
@@ -381,7 +383,6 @@ public class Targets {
                     throw new BadRequestError(String.format("Bad override with id %s", override.getId()));
                 }
             }
-            target.setOverrides(profileOverrides);
         } else {
             target.setProfile(profileDAO.getDefaultProfile(owner.getAgency()));
         }
@@ -392,6 +393,25 @@ public class Targets {
             target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
             target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
             target.setHarvestType(targetDTO.getAnnotations().getHarvestType());
+            if (target.getOid() != null) {
+                target.getDeletedAnnotations().addAll( // Make sure existing annotations are removed
+                        annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), target.getOid()));
+            }
+            for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
+                Annotation annotation = new Annotation();
+                annotation.setDate(a.getDate());
+                annotation.setNote(a.getNote());
+                String userName = a.getUser();
+                User user = userRoleDAO.getUserByName(userName);
+                if (user == null) {
+                    throw new BadRequestError(String.format("User %s does not exist", userName));
+                }
+                annotation.setUser(user);
+                annotation.setAlertable(a.getAlert());
+                annotation.setObjectType(Target.class.getName());
+                annotation.setObjectOid(target.getOid());
+                target.addAnnotation(annotation);
+            }
         }
 
         if (targetDTO.getDescription() != null) {
@@ -414,47 +434,20 @@ public class Targets {
 
         // Persist the target
         try {
-            targetDAO.save(target);
+            if (targetDTO.getGroups() != null) {
+                target.getParents().clear(); // Remove existing parents
+                List<GroupMemberDTO> groupMemberDTOs = new ArrayList<>();
+                for (TargetDTO.Group g : targetDTO.getGroups()) {
+                    GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
+                    groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
+                    groupMemberDTOs.add(groupMemberDTO);
+                }
+                targetManager.save(target, groupMemberDTOs);
+            } else {
+                targetManager.save(target);
+            }
         } catch (DataIntegrityViolationException e) {
             throw new BadRequestError(e.getMessage());
-        }
-
-        // Now that we have a target with an id, we can add the annotations and groups (if any)
-        if (targetDTO.getAnnotations() != null) {
-            List<Annotation> annotations = new ArrayList<>();
-            for (TargetDTO.Annotations.Annotation a : targetDTO.getAnnotations().getAnnotations()) {
-                Annotation annotation = new Annotation();
-                annotation.setDate(a.getDate());
-                annotation.setNote(a.getNote());
-                String userName = a.getUser();
-                User user = userRoleDAO.getUserByName(userName);
-                if (user == null) {
-                    throw new BadRequestError(String.format("User %s does not exist", userName));
-                }
-                annotation.setUser(user);
-                annotation.setAlertable(a.getAlert());
-                annotation.setObjectType(Target.class.getName());
-                annotation.setObjectOid(target.getOid());
-                annotations.add(annotation);
-            }
-            try {
-                // We have to explicitly delete the old annotations because they are not handled like a regular associated entity
-                annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), target.getOid()));
-                annotationDAO.saveAnnotations(annotations);
-            } catch (Exception e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        }
-
-        if (targetDTO.getGroups() != null) {
-            List<GroupMemberDTO> groupMemberDTOs = new ArrayList<>();
-            for (TargetDTO.Group g : targetDTO.getGroups()) {
-                GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
-                groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
-                groupMemberDTOs.add(groupMemberDTO);
-            }
-            target.getParents().clear();
-            targetDAO.save(target, groupMemberDTOs);
         }
     }
 
@@ -476,7 +469,9 @@ public class Targets {
             }
             try {
                 child = getMethod.invoke(parent);
-            } catch (InvocationTargetException | IllegalAccessException e) { throw new BadRequestError(e.getMessage()); }
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new BadRequestError(e.getMessage());
+            }
             Class childType = getMethod.getReturnType(); // child.getClass() may return a narrower type
             if (value instanceof HashMap) { // recurse
                 updateTargetDTO(targetDTO, (HashMap<String, Object>) value, child);
@@ -494,7 +489,7 @@ public class Targets {
                             }
                         }
                         if (overrideToBeUpdated == null) {
-                            throw new BadRequestError(String.format("Uknown override with id %s", ((HashMap)element).get("id")));
+                            throw new BadRequestError(String.format("Uknown override with id %s", ((HashMap) element).get("id")));
                         }
                         updateTargetDTO(targetDTO, (HashMap<String, Object>) element, overrideToBeUpdated);
                     }
@@ -515,12 +510,13 @@ public class Targets {
                                 Object newArrayItem = constructor.newInstance();
                                 ((List) child).add(newArrayItem);
                                 updateTargetDTO(targetDTO, (HashMap<String, Object>) element, newArrayItem);
-                            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e) {
+                            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException |
+                                     InstantiationException e) {
                                 throw new BadRequestError(String.format("Cannot map list from key %s", key));
                             }
                         } else {
                             // Since the list doesn't contain HashMaps, it contains Numbers or Strings
-                            if (elementType.equals(Long.class)  && element instanceof Integer) {
+                            if (elementType.equals(Long.class) && element instanceof Integer) {
                                 element = ((Number) element).longValue();
                             } else if (elementType.equals(Integer.class) && element instanceof Long) {
                                 element = ((Number) element).intValue();
@@ -535,8 +531,8 @@ public class Targets {
             } else {
                 if (key.contains("Date") || key.contains("date")) {
                     List<String> patterns = Arrays.asList("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd HH:mm:ss.SSSX",
-                                                            "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                                                            "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss");
+                            "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                            "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss");
                     for (String pattern : patterns) {
                         try {
                             SimpleDateFormat sdf = new SimpleDateFormat(pattern);
