@@ -1,12 +1,12 @@
 import React from 'react';
-import logo from './logo.svg';
+import logo from './assets/wct_logo.png';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import StackedExample from './views/app/AppSideBar'
 
 function App() {
   return (
-    <div className="App">
+    <div className="">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
@@ -21,9 +21,17 @@ function App() {
           Learn React
         </a>
 
-        <StackedExample/>
+        
       </header>
+      <Sidebar>
+        <div>
+          <img src={logo} height="75" />
+          <StackedExample/>
+        </div> 
+      </Sidebar>
     </div>
+    
+     
   );
 }
 
