@@ -117,34 +117,33 @@ public class Targets {
         Target target = targetDAO.load(id, true);
         if (target == null) {
             return ResponseEntity.notFound().build();
-        } else {
-            // Annotations are managed differently from normal associated entities
-            target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
-            TargetDTO targetDTO = new TargetDTO(target);
-            if (section == null) {
-                // Return the entire target
-                return ResponseEntity.ok().body(targetDTO);
-            }
-            switch (section) {
-                case "access":
-                    return ResponseEntity.ok().body(targetDTO.getAccess());
-                case "annotation":
-                    return ResponseEntity.ok().body(targetDTO.getAnnotations());
-                case "description":
-                    return ResponseEntity.ok().body(targetDTO.getDescription());
-                case "general":
-                    return ResponseEntity.ok().body(targetDTO.getGeneral());
-                case "groups":
-                    return ResponseEntity.ok().body(targetDTO.getGroups());
-                case "profile":
-                    return ResponseEntity.ok().body(targetDTO.getProfile());
-                case "schedule":
-                    return ResponseEntity.ok().body(targetDTO.getSchedule());
-                case "seeds":
-                    return ResponseEntity.ok().body(targetDTO.getSeeds());
-                default:
-                    return ResponseEntity.badRequest().body(errorMessage(String.format("No such target section: %s", section)));
-            }
+        }
+        // Annotations are managed differently from normal associated entities
+        target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
+        TargetDTO targetDTO = new TargetDTO(target);
+        if (section == null) {
+            // Return the entire target
+            return ResponseEntity.ok().body(targetDTO);
+        }
+        switch (section) {
+            case "access":
+                return ResponseEntity.ok().body(targetDTO.getAccess());
+            case "annotation":
+                return ResponseEntity.ok().body(targetDTO.getAnnotations());
+            case "description":
+                return ResponseEntity.ok().body(targetDTO.getDescription());
+            case "general":
+                return ResponseEntity.ok().body(targetDTO.getGeneral());
+            case "groups":
+                return ResponseEntity.ok().body(targetDTO.getGroups());
+            case "profile":
+                return ResponseEntity.ok().body(targetDTO.getProfile());
+            case "schedule":
+                return ResponseEntity.ok().body(targetDTO.getSchedule());
+            case "seeds":
+                return ResponseEntity.ok().body(targetDTO.getSeeds());
+            default:
+                return ResponseEntity.badRequest().body(errorMessage(String.format("No such target section: %s", section)));
         }
     }
 
@@ -201,10 +200,12 @@ public class Targets {
      */
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
-        Target target = targetDAO.load(id);
+        Target target = targetDAO.load(id, true);
         if (target == null) {
             return ResponseEntity.badRequest().body(errorMessage(String.format("Target with id %s does not exist", id)));
         }
+        // Annotations are managed differently from normal associated entities
+        target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         // Create DTO based on the current data in the database
         TargetDTO targetDTO = new TargetDTO(target);
         // Then update the DTO with data from the supplied JSON
@@ -260,7 +261,9 @@ public class Targets {
         if (owner == null) {
             throw new BadRequestError(String.format("Owner with username %s unknown", ownerStr));
         }
-        target.setCreationDate(new Date());
+        if (target.isNew()) {
+            target.setCreationDate(new Date());
+        }
         target.setName(targetDTO.getGeneral().getName());
         target.setDescription(targetDTO.getGeneral().getDescription());
         target.setReferenceNumber(targetDTO.getGeneral().getReferenceNumber());
@@ -296,6 +299,7 @@ public class Targets {
                 schedule.setOwningUser(owner);
                 schedules.add(schedule);
             }
+            target.getSchedules().clear();
             target.getSchedules().addAll(schedules);
         }
 
@@ -393,7 +397,7 @@ public class Targets {
             target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
             target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
             target.setHarvestType(targetDTO.getAnnotations().getHarvestType());
-            if (target.getOid() != null) {
+            if (!target.isNew()) {
                 target.getDeletedAnnotations().addAll( // Make sure existing annotations are removed
                         annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), target.getOid()));
             }
@@ -463,7 +467,7 @@ public class Targets {
             Object child = null;
             Method getMethod = null;
             try {
-                getMethod = parent.getClass().getMethod(getMethodName, null);
+                getMethod = parent.getClass().getMethod(getMethodName);
             } catch (NoSuchMethodException e) {
                 throw new BadRequestError(String.format("Uknown key %s", key));
             }
