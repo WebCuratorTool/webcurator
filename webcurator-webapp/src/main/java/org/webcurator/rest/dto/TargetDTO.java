@@ -266,7 +266,8 @@ public class TargetDTO {
             for (org.webcurator.domain.model.core.Schedule s : target.getSchedules()) {
                 Schedule schedule = new Schedule();
                 schedule.setId(s.getOid());
-                schedule.setCron(s.getCronPattern());
+                // We only support classic cron, without the prepended SECONDS field used by Quartz
+                schedule.setCron(s.getCronPatternWithoutSeconds());
                 schedule.setStartDate(s.getStartDate());
                 schedule.setEndDate(s.getEndDate());
                 schedule.setType(s.getScheduleType());
