@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.core.targets.TargetManager;
 import org.webcurator.core.targets.TargetManager2;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
@@ -70,6 +69,9 @@ public class Targets {
 
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
+
+    @Autowired
+    private SchedulePatternFactory schedulePatternFactory;
 
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -239,7 +241,7 @@ public class Targets {
      */
     @GetMapping(path = "/states")
     public ResponseEntity getStates() {
-        HashMap<Integer, String> states = new HashMap<>();
+        Map<Integer, String> states = new TreeMap<>();
         states.put(Target.STATE_PENDING, "Pending");
         states.put(Target.STATE_REINSTATED, "Reinstated");
         states.put(Target.STATE_NOMINATED, "Nominated");
@@ -248,6 +250,24 @@ public class Targets {
         states.put(Target.STATE_CANCELLED, "Cancelled");
         states.put(Target.STATE_COMPLETED, "Completed");
         return ResponseEntity.ok().body(states);
+    }
+
+    /**
+     * Returns an overview of all possible schedule types
+     */
+    @GetMapping(path = "/schedule-types")
+    public ResponseEntity getScheduleTypes() {
+        Map<Integer, String> scheduleTypes = new TreeMap<>();
+        scheduleTypes.put(Schedule.TYPE_ANNUALLY, "Annually");
+        scheduleTypes.put(Schedule.TYPE_HALF_YEARLY, "Half-yearly");
+        scheduleTypes.put(Schedule.TYPE_QUARTERLY, "Quarterly");
+        scheduleTypes.put(Schedule.TYPE_BI_MONTHLY, "Bimonthly");
+        scheduleTypes.put(Schedule.TYPE_MONTHLY, "Monthly");
+        scheduleTypes.put(Schedule.TYPE_WEEKLY, "Weekly");
+        scheduleTypes.put(Schedule.TYPE_DAILY, "Daily");
+        scheduleTypes.put(Schedule.CUSTOM_SCHEDULE, "Custom");
+        scheduleTypes.put(1, "Every Monday at 9:00pm"); // This is a special schedule added at config time, apparently
+        return ResponseEntity.ok().body(scheduleTypes);
     }
 
 
@@ -280,12 +300,26 @@ public class Targets {
             target.setAllowOptimize(targetDTO.getSchedule().getHarvestOptimization());
             for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
-                // we support classic cron, without the prepended SECONDS field expected by Quartz
-                String cronExpression = "0 " + s.getCron();
-                try {
-                    new CronExpression(cronExpression);
-                } catch (ParseException ex) {
-                    throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
+                String cronExpression = s.getCron();
+                int scheduleType = s.getType();
+                if (scheduleType == Schedule.CUSTOM_SCHEDULE) {
+                    if (cronExpression == null) {
+                        throw new BadRequestError(String.format("Custom schedule type requires cron expression"));
+                    } else {
+                        // we support classic cron, without the prepended SECONDS field expected by Quartz
+                        cronExpression = "0 " + s.getCron();
+                        try {
+                            new CronExpression(cronExpression);
+                        } catch (ParseException ex) {
+                            throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
+                        }
+                    }
+                } else {
+                    SchedulePattern pattern = schedulePatternFactory.getPattern(scheduleType);
+                    if (pattern == null) {
+                        throw new BadRequestError(String.format("Unknown schedule type: %d", scheduleType));
+                    }
+                    cronExpression = pattern.getCronPattern();
                 }
                 schedule.setCronPattern(cronExpression);
                 schedule.setStartDate(s.getStartDate());
