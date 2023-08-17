@@ -296,14 +296,14 @@ public class TargetDTO {
 
         public static class Schedule {
             long id;
-            @NotBlank(message = "cron is required")
+            //@NotBlank(message = "cron is required")
             String cron;
             @NotNull(message = "startDate is required")
             Date startDate;
             Date endDate;
             @NotNull(message = "type is required")
-            @Min(value = org.webcurator.domain.model.core.Schedule.TYPE_ANNUALLY, message = "invalid schedule type")
-            @Max(value = org.webcurator.domain.model.core.Schedule.CUSTOM_SCHEDULE, message = "invalid schedule type")
+            @Min(value = -7, message = "invalid schedule type")
+            @Max(value = 1, message = "invalid schedule type")
             Integer type;
             @NotNull(message = "nextExecutionDate is required")
             Date nextExecutionDate;
