@@ -2,7 +2,7 @@ import './Dashboard.css';
 
 function DashboardView() {
   return (
-    <div className='app-sidebar'>
+    <div className='main-content'>
       This is a dashboard
     </div>
   );

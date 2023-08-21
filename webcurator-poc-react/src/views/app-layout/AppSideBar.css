@@ -1,3 +1,36 @@
+.main-page{
+    background-color: beige;
+}
 .app-sidebar{
-    background-color: blueviolet;
+    height: 100vh;
+    background-color: #1F5384;
+    color: white;
+}
+
+.app-sidebar .header{
+    margin: 2em 2.2em;
+}
+
+.app-sidebar a {
+    display: block;
+    padding: 1em  1rem;
+    border-left: 1px solid var(--color-border);
+    color: #E4F0F5;
+    font-size: 1.2em;
+    text-decoration: none;
+}
+
+.app-sidebar a:hover{
+    background: #2D6EA9;
+    color: #E3EBF3;
+}
+
+.app-sidebar a.router-link-exact-active {
+    background: #2D6EA9;
+    color: #E3EBF3;
+}
+
+.app-sidebar a.router-link-exact-active:hover {
+    background: #2D6EA9;
+    color: #E3EBF3;
 }
