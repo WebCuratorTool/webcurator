@@ -2,36 +2,33 @@ import React from 'react';
 import logo from './assets/wct_logo.png';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import StackedExample from './views/app/AppSideBar'
+import AppSideBar from './views/app-sidebar/AppSideBar'
+import DashboardView from './views/dashboard/Dashboard'
+
+import { Row ,Col } from 'react-bootstrap';
+import { BrowserRouter,Routes,Route } from "react-router-dom";
+
 
 function App() {
   return (
-    <div className="">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-
-        
-      </header>
-      <Sidebar>
-        <div>
-          <img src={logo} height="75" />
-          <StackedExample/>
-        </div> 
-      </Sidebar>
+    <div className='App'>
+      <Row>
+        <Col md={3}>
+            <div>
+              <img src={logo} height="75" />
+              <AppSideBar/>
+            </div>
+        </Col>
+        <Col>
+          {/* <BrowserRouter  basename="/app"> */}
+            <Routes>
+              {/* <Route path="/" element={<Home />} /> */}
+              <Route path="/dashboard" element={<DashboardView />} />
+            </Routes>
+          {/* </BrowserRouter> */}
+        </Col>
+      </Row>
     </div>
-    
-     
   );
 }
 
