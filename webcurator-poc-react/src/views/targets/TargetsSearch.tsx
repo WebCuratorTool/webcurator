@@ -14,25 +14,32 @@ const options = [
 function TargetsSearchView() {
   return (
     <Form>
-        <Stack direction="horizontal" gap={3}>
-            <WctFormControlGroup controlId="targetId" labelName="ID"  type="text" placeholder="" value="323"/>
-            <WctFormControlGroup controlId="targetName" labelName="Name"  type="text" placeholder="" value="rnz"/>
-            <WctFormControlGroup controlId="targetSeed" labelName="Seed"  type="text" placeholder="" value="https://"/>
-            <WctDropdownSelect labelName="Agency" options={[]} />
-            <Button variant="outline-primary">Archive</Button>
-            <Button variant="primary">Search</Button>
-        </Stack>
-        <Table>
-            <tbody>
-                <tr>
-                <td>
-                    
-                </td>                   
-                <td style={{width:"10%", background:"red"}}></td>
-                <td style={{width:"20%", background: "green"}}> </td>
-                </tr>
-            </tbody>
-        </Table>
+        <div className="d-flex align-items-center mb-3">
+            <div className="p-2 bd-highlight">
+                <WctFormControlGroup controlId="targetId" labelName="ID"  type="text" placeholder="" value="323"/>
+            </div>
+            <div className="p-2 bd-highlight">
+                <WctFormControlGroup controlId="targetName" labelName="Name"  type="text" placeholder="" value="rnz"/>
+            </div>
+            <div className="p-2 bd-highlight">
+                <WctFormControlGroup controlId="targetSeed" labelName="Seed"  type="text" placeholder="" value="https://"/>
+            </div>
+            <div className="p-2 bd-highlight">
+                <WctDropdownSelect labelName="Agency" options={[]} />
+            </div>
+            <div className="p-2 bd-highlight">
+                <div className="mb-3">
+                    <label htmlFor="formGroupExampleInput" className="form-label"> &nbsp; </label>
+                    <Button className="form-control" variant="outline-primary">Archive</Button>
+                </div>
+            </div>
+            <div className="ms-auto p-2 bd-highlight">
+                <div className="mb-3">
+                    <label htmlFor="formGroupExampleInput" className="form-label"> &nbsp;  </label>
+                    <Button className="form-control" variant="primary">Search</Button>
+                </div>
+            </div>
+        </div>
     </Form>
   );
 }

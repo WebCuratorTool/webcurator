@@ -1,11 +1,9 @@
-import { Form } from 'react-bootstrap';
-
 function WctFormControlGroup(props:any) {
     return (
-        <Form.Group className="mb-3" controlId={props.controlId}>
-            <Form.Label>{props.labelName}</Form.Label>
-            <Form.Control type={props.type} placeholder={props.placeholder} />
-        </Form.Group>
+        <div className="mb-3">
+            <label htmlFor="formGroupExampleInput" className="form-label">{props.labelName}</label>
+            <input type={props.type} className="form-control" id={props.controlId} placeholder={props.placeholder} />
+        </div>
     );
 }
 
