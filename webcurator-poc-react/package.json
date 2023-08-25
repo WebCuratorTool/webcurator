@@ -10,6 +10,7 @@
     "@types/node": "^16.18.40",
     "@types/react": "^18.2.19",
     "@types/react-dom": "^18.2.7",
+    "admin-lte": "file:../../AdminLTE",
     "bootstrap": "^5.3.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.8.0",
@@ -19,6 +20,7 @@
     "react-scripts": "^5.0.1",
     "react-select": "^5.7.4",
     "react-tabulator": "^0.18.1",
+    "sass": "^1.66.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
     "webpack": "^4.19.1"

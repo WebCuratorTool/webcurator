@@ -1,6 +1,5 @@
 import React from 'react';
-import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.scss';
 import AppSideBar from './views/app-layout/AppSideBar'
 import DashboardView from './views/dashboard/Dashboard'
 import TargetsView from './views/targets/Targets';

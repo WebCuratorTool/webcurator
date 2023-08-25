@@ -5,7 +5,7 @@ import TargetsSearchView from './TargetsSearch';
 function TargetsView() {
   return (
     <div className='main-content'>
-      <MainContentTitle mainContentTitle='Targets' />
+        <MainContentTitle mainContentTitle='Targets' />
 
         <div className="queue-search">
             <div className="search-title">Query</div>

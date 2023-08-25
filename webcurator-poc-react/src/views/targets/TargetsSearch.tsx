@@ -1,7 +1,9 @@
-import './TargetsSearch.css';
-import { Form, Row, Col, Button } from 'react-bootstrap';
+import './TargetsSearch.scss';
+import { Form, Table, Button, Stack } from 'react-bootstrap';
 
 import Select from 'react-select'
+import WctFormControlGroup from "../../components/WctFormControlGroup"
+import WctDropdownSelect from '../../components/WctDropdownSelect';
 
 const options = [
   { value: 'chocolate', label: 'Chocolate' },
@@ -12,38 +14,25 @@ const options = [
 function TargetsSearchView() {
   return (
     <Form>
-        <Row>
-            <Col>
-                <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-                    <Form.Label>ID</Form.Label>
-                    <Form.Control type="text" placeholder="" />
-                </Form.Group>
-            </Col>
-            <Col>
-                <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-                    <Form.Label>Name</Form.Label>
-                    <Form.Control type="text" placeholder="name@example.com" />
-                </Form.Group>
-            </Col>
-            <Col>
-                <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-                    <Form.Label>Seed</Form.Label>
-                    <Form.Control type="text" placeholder="name@example.com" />
-                </Form.Group>
-            </Col>
-            <Col>
-                <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
-                    <Form.Label>Agency</Form.Label>
-                    <Select options={options} />
-                </Form.Group>
-            </Col>
-            <Col>
-                <Button variant="primary">Primary</Button>
-            </Col>
-            <Col>
-                <Button variant="primary">Primary</Button>
-            </Col>
-        </Row>
+        <Stack direction="horizontal" gap={3}>
+            <WctFormControlGroup controlId="targetId" labelName="ID"  type="text" placeholder="" value="323"/>
+            <WctFormControlGroup controlId="targetName" labelName="Name"  type="text" placeholder="" value="rnz"/>
+            <WctFormControlGroup controlId="targetSeed" labelName="Seed"  type="text" placeholder="" value="https://"/>
+            <WctDropdownSelect labelName="Agency" options={[]} />
+            <Button variant="outline-primary">Archive</Button>
+            <Button variant="primary">Search</Button>
+        </Stack>
+        <Table>
+            <tbody>
+                <tr>
+                <td>
+                    
+                </td>                   
+                <td style={{width:"10%", background:"red"}}></td>
+                <td style={{width:"20%", background: "green"}}> </td>
+                </tr>
+            </tbody>
+        </Table>
     </Form>
   );
 }

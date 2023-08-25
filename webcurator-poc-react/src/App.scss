@@ -1,0 +1,45 @@
+@import "bootstrap/scss/bootstrap.scss";
+html,body,canvas{
+  border: 0;
+  margin: 0; 
+  padding: 0; 
+  height: 100%; 
+  overflow: hidden;
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Old versions of Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	-o-user-select: none; /* Non-prefixed version, currently
+	user-select: none; /* Non-prefixed version, currently  supported by Chrome, Opera and Firefox */
+}
+
+div,input,select{
+    -webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Old versions of Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	-o-user-select: none; /* Non-prefixed version, currently
+	user-select: none; /* Non-prefixed version, currently  supported by Chrome, Opera and Firefox */
+}
+
+*:focus {
+    outline: none;
+}
+input:focus {
+    outline: none;
+}
+
+.form-control:focus, .form-select:focus {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+	border-color: $dark;
+}
+
+.form-control, .form-select, .btn{
+	border: solid 0.5px;
+	border-color: $secondary;
+	padding: 1px;
+	min-width: 120px;
+}

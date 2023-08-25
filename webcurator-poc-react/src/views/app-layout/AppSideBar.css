@@ -1,6 +1,20 @@
-.main-page{
-    background-color: beige;
+table,tbody,tr,td{
+    padding: 0;
+    margin: 0;
+    border-spacing: 0;
+    vertical-align: top;
 }
+
+/* .main-page{
+    background-color: beige;
+} */
+
+.main-page-table{
+    padding: 0;
+    margin: 0;
+    border-spacing: 0;
+}
+
 .app-sidebar{
     height: 100vh;
     background-color: #1F5384;
@@ -8,7 +22,7 @@
 }
 
 .app-sidebar .header{
-    margin: 2em 2.2em;
+    margin: 0em 0em;
 }
 
 .app-sidebar a {
@@ -33,4 +47,15 @@
 .app-sidebar a.router-link-exact-active:hover {
     background: #2D6EA9;
     color: #E3EBF3;
+}
+
+/* .row, .col{
+    margin: 0;
+    padding: 0;
+} */
+.main-content-container{
+    width: 85vw;
+    height: 100vh;
+    background:linear-gradient(to bottom, #dfe1e2 10em, #ffffff 10em 100%);
+    padding-left: 3em;
 }
