@@ -74,7 +74,7 @@ public class Targets {
     private SchedulePatternFactory schedulePatternFactory;
 
 
-    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST}, path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();

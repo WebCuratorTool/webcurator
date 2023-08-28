@@ -8,6 +8,46 @@ import {TabulatorFull as Tabulator} from "tabulator-tables"; //import Tabulator 
 import 'react-tabulator/css/bootstrap/tabulator_bootstrap.css';
 
 
+var gUrl=null, gReq=null, gCallback=null;
+function fetchHttp(url, req, callback){
+  // var ROOT_URL=webContextPath+'/curator';
+  // var reqUrl=ROOT_URL + url;
+  var reqUrl=url;
+  var reqBodyPayload="{}";
+  if(req !== null){
+    reqBodyPayload = JSON.stringify(req);
+  }
+  console.log('Fetch url:' + url);
+
+  fetch(reqUrl, { 
+    method: 'POST',
+    redirect: 'follow',
+    mode: "no-cors",
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'E9E4FDE318C1799A771131CEA8969CE9'
+    },
+    body: reqBodyPayload
+  }).then((response) => {
+    if (response.redirected) {
+      console.log('Need authentication');
+      gUrl=url;
+      gReq=req;
+      gCallback=callback;
+      // gParentHarvestResultViewTab.popupLoginWindow();
+      return null;
+    }
+
+    if(response.headers && response.headers.get('Content-Type') && response.headers.get('Content-Type').startsWith('application/json')){
+      console.log('Fetch success and callback: ' + url);
+      return response.json();
+    }
+  }).then((response) => {   
+    callback(response);
+  });
+}
+
+
 const options = [
   { oid: 'chocolate', name: 'Chocolate' },
   { oid: 'strawberry', name: 'Strawberry' },
@@ -91,7 +131,24 @@ function TargetsView() {
   }, []);
 
   const search=(targetId,targetName,targetSeed,targetAgency)=>{
-    console.log("targetId=" + targetId);
+    // console.log("targetId=" + targetId);
+    var filter={
+      "targetId":targetId,
+      "name":targetName,
+      "seed":targetSeed,
+      "agency": targetAgency,
+    };
+    var searchParams={
+      "filter": filter,
+      "offset":0,
+      "limit":50,
+      "sortBy":"name",
+    };
+
+    fetchHttp("http://localhost:8080/wct/api/1.0/targets", searchParams, (rsp)=>{
+      console.log(rsp);
+    });
+
   };
 
   return (

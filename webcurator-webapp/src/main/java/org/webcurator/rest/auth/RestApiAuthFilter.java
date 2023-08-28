@@ -11,6 +11,7 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Enumeration;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -30,6 +31,12 @@ public class RestApiAuthFilter implements Filter {
         String contentUri = req.getContextPath();
         String url = req.getRequestURI().substring(contentUri.length());
         if (url.startsWith("/api")) {
+            Enumeration<String>  headerNames= req.getHeaderNames();
+            while (headerNames.hasMoreElements()){
+                String key=headerNames.nextElement();
+                String value=req.getHeader(key);
+                System.out.println(key + ":" + value);
+            }
             String authorizationHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
             // FIXME now someone with only LOGIN privilege can still do everything (including DELETE, POST and PUT)
             SessionManager.AuthorizationResult authorizationResult = sessionManager.authorize(authorizationHeader, Privilege.LOGIN);

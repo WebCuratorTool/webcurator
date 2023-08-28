@@ -76,8 +76,8 @@ dependencies {
     implementation 'javax.validation:validation-api'
 
     implementation 'com.h2database:h2:1.4.199'
-    implementation 'mysql:mysql-connector-java:5.1.6'
-//    implementation 'mysql:mysql-connector-java:8.0.21'
+//    implementation 'mysql:mysql-connector-java:5.1.6'
+    implementation 'mysql:mysql-connector-java:8.0.21'
     implementation 'oracle:ojdbc6:11.2.0.3'
     implementation 'org.postgresql:postgresql:42.2.19'
 
