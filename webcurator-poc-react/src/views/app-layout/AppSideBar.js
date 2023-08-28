@@ -16,7 +16,7 @@ function AppSideBar() {
               <div className='app-sidebar'>
                 <div className='header'>
                   <Container>
-                    <Image width={171} height={180} src={logo}  fluid />
+                    <Image width={171} src={logo}  fluid />
                   </Container>
                 </div>
                 <div>

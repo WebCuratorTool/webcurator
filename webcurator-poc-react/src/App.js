@@ -1,15 +1,13 @@
-import React from 'react';
 import './App.scss';
-import AppSideBar from './views/app-layout/AppSideBar'
-import DashboardView from './views/dashboard/Dashboard'
+import AppSideBar from './views/app-layout/AppSideBar';
+import DashboardView from './views/dashboard/Dashboard';
 import TargetsView from './views/targets/Targets';
 
 import { BrowserRouter,Routes,Route } from "react-router-dom";
 
-
 function App() {
   return (
-      <BrowserRouter>
+    <BrowserRouter>
         <Routes>
           <Route path="/" element={<AppSideBar />}>
             <Route path="/dashboard" element={<DashboardView />} />

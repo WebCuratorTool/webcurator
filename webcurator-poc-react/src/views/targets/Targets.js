@@ -4,10 +4,8 @@ import WctFormControlGroup from "../../components/WctFormControlGroup"
 import WctDropdownSelect from '../../components/WctDropdownSelect';
 import { useState,useEffect, useRef } from 'react';
 import { BsX, BsXLg, BsFilter, BsSearch } from 'react-icons/bs'; 
-// import { ReactTabulator } from "react-tabulator";
-// import {TabulatorFull as Tabulator} from 'tabulator-tables/dist/js/tabulator.js';
-// import {Tabulator} from 'react-tabulator/lib/ReactTabulator';
-import { TabulatorFull as Tabulator } from 'react-tabulator/lib/types/TabulatorTypes';
+import {TabulatorFull as Tabulator} from "tabulator-tables"; //import Tabulator library
+import 'react-tabulator/css/bootstrap/tabulator_bootstrap.css';
 
 
 const options = [
@@ -16,20 +14,29 @@ const options = [
   { oid: 'vanilla', name: 'Vanilla' }
 ]
 
-function TargetsSearchTile() {
+function TargetsSearchTile(props) {
+  const [targetId,setTargetId]=useState("");
+  const [targetName,setTargetName]=useState("");
+  const [targetSeed,setTargetSeed]=useState("");
+  const [targetAgency,setTargetAgency]=useState("");
+  const search=e=>{
+    console.log('agency=' + targetAgency);
+    props.callbackSearch(targetId,targetName,targetSeed,targetAgency);
+  };
+
   return (
     <div className="d-flex align-items-center mb-3" style={{width: "85%", height: "100%"}}>
-        <WctFormControlGroup controlId="targetId" labelName="ID"  type="text" placeholder="" value="323"/>
-        <WctFormControlGroup controlId="targetName" labelName="Name"  type="text" placeholder="" value="rnz"/>
-        <WctFormControlGroup controlId="targetSeed" labelName="Seed"  type="text" placeholder="" value="https://"/>
-        <WctDropdownSelect labelName="Agency" options={options} />
+        <WctFormControlGroup controlId="targetId" labelName="ID"  type="text" placeholder="" value="323" onTextChange={setTargetId} />
+        <WctFormControlGroup controlId="targetName" labelName="Name"  type="text" placeholder="" value="rnz" onTextChange={setTargetName} />
+        <WctFormControlGroup controlId="targetSeed" labelName="Seed"  type="text" placeholder="" value="https://" onTextChange={setTargetSeed} />
+        <WctDropdownSelect labelName="Agency" options={options} onTextChange={setTargetAgency}/>
         <div className="p-1">
             <label className="form-label"> &nbsp; </label>
             <button className="form-control btn btn-outline-primary">Archive</button>
         </div>
         <div className="ms-auto">
             <label className="form-label"> &nbsp;  </label>
-            <button className="form-control btn btn-primary">Search &ensp; <BsSearch /> </button>
+            <button className="form-control btn btn-primary" onClick={search}>Search &ensp; <BsSearch /> </button>
         </div>
     </div>
   );
@@ -67,16 +74,25 @@ function TargetFilterTile(){
 }
 
 function TargetsView() {
-  let targetTable:Tabulator;
+  var tblTargets;
   // let targetTableElement=useRef();
-  const columns={
-
-  };
+  const columnsTblTargets=[
+    {title:"Name", field:"name"},
+    {title:"Progress", field:"progress", hozAlign:"right", sorter:"number"},
+    {title:"Gender", field:"gender"},
+    {title:"Rating", field:"rating", hozAlign:"center"},
+    {title:"Favourite Color", field:"col"},
+    {title:"Date Of Birth", field:"dob", hozAlign:"center", sorter:"date"},
+    {title:"Driver", field:"car", hozAlign:"center"},
+  ];
 
   useEffect(() => {
-      t=new Tabulator('#tbl-targets',{height:props.height,data:[],layout:"fitColumns",columns:props.columns});
+    tblTargets=new Tabulator('#tbl-targets',{height:500,data:[],layout:"fitColumns",columns:columnsTblTargets});
   }, []);
 
+  const search=(targetId,targetName,targetSeed,targetAgency)=>{
+    console.log("targetId=" + targetId);
+  };
 
   return (
     <div className='main-content'>
@@ -84,7 +100,7 @@ function TargetsView() {
 
         <div className="queue-search">
             <div className="search-title">Query</div>
-            <TargetsSearchTile />
+            <TargetsSearchTile callbackSearch={search} />
             <TargetFilterTile/>
             <br/>
             <div id="tbl-targets"></div>
