@@ -61,6 +61,7 @@ import org.webcurator.core.sites.SiteManagerListener;
 import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.targets.TargetManager;
+import org.webcurator.core.targets.TargetManager2;
 import org.webcurator.core.util.ApplicationContextFactory;
 import org.webcurator.core.util.AuditDAOUtil;
 import org.webcurator.core.util.LockManager;
@@ -723,6 +724,28 @@ public class BaseConfig {
     @Lazy(false)
     public TargetManager targetManager() {
         TargetManager bean = new TargetManager();
+        bean.setTargetDao(targetDao());
+        bean.setSiteDao(siteDao());
+        bean.setAnnotationDAO(annotationDao());
+        bean.setAuthMgr(authorityManager());
+        bean.setTargetInstanceDao(targetInstanceDao());
+        bean.setInstanceManager(targetInstanceManager());
+        bean.setIntrayManager(inTrayManager());
+        bean.setMessageSource(messageSource());
+        bean.setAuditor(audit());
+        bean.setBusinessObjectFactory(businessObjectFactory());
+        bean.setAllowMultiplePrimarySeeds(allowMultiplePrimarySeeds);
+        bean.setSubGroupParentTypesList(listsConfig.subGroupParentTypesList());
+        bean.setSubGroupTypeName(groupTypesSubgroup);
+
+        return bean;
+    }
+
+    @Bean
+    @Scope(BeanDefinition.SCOPE_SINGLETON)
+    @Lazy(false)
+    public TargetManager2 targetManager2() {
+        TargetManager2 bean = new TargetManager2();
         bean.setTargetDao(targetDao());
         bean.setSiteDao(siteDao());
         bean.setAnnotationDAO(annotationDao());
