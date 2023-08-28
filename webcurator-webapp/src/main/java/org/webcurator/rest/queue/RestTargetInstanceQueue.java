@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.domain.FlagDAOImpl;
+import org.webcurator.domain.FlagDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetInstanceCriteria;
-import org.webcurator.domain.TargetInstanceDAOImpl;
+import org.webcurator.domain.TargetInstanceDAO;
 import org.webcurator.domain.model.core.*;
 
 
@@ -20,10 +20,10 @@ public class RestTargetInstanceQueue {
     private static final Log logger = LogFactory.getLog(RestTargetInstanceQueue.class);
 
     @Autowired
-    private TargetInstanceDAOImpl targetInstanceDAO;
+    private TargetInstanceDAO targetInstanceDAO;
 
     @Autowired
-    private FlagDAOImpl flagDAO;
+    private FlagDAO flagDAO;
 
     @RequestMapping(path = "/api/{version}/queue", method = {RequestMethod.GET, RequestMethod.POST})
     public List<TargetInstanceBriefDTO> post(@RequestBody Filter filter) throws BadRequestError {

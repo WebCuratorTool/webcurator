@@ -3,17 +3,16 @@ import HomeView from '../views/HomeView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import QueueView from '@/views/QueueView.vue'
 import TargetInstanceView from '@/views/TargetInstanceView.vue'
+import TargetsView from '@/views/TargetsView.vue'
 import TargetView from '@/views/TargetView.vue'
+import LoginView from '@/views/LoginView.vue'
 
+import { useAuthStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      name: 'login',
-      component: HomeView
-    },
     {
       path: '/about',
       name: 'about',
@@ -23,7 +22,7 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue')
     },
     {
-      path: '/dashboard',
+      path: '/',
       name: 'dashboard',
       component: DashboardView
     },
@@ -40,9 +39,15 @@ const router = createRouter({
     },
 
     {
+      path: '/target/:id',
+      name: 'target',
+      component: TargetView
+    },
+
+    {
       path: '/targets',
       name: 'targets',
-      component: QueueView
+      component: TargetsView
     },
 
     {
@@ -69,11 +74,21 @@ const router = createRouter({
     //   component: TargetView
     // },
     {
-      path: '/target',
-      name: 'target',
-      component: TargetView
+      path: '/login',
+      name: 'login',
+      component: LoginView
     },
   ]
+})
+
+router.beforeEach(async (to) => {
+  const publicPages = ['/login']
+  const authRequired = !publicPages.includes(to.path)
+  const auth = useAuthStore()
+  if (authRequired && !auth.isLoggedIn) {
+    auth.returnUrl = to.fullPath
+    return '/login'
+  }
 })
 
 export default router

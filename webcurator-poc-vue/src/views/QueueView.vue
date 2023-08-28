@@ -30,7 +30,7 @@
 
 <template>
     <div class="page-title">Queue</div>
-    <div class="queue-search">
+    <div class="page-container">
         <div class="search-title">Query</div>
         <QueueSearchVue @btnSearch="searchQueue"/>
         <br/>

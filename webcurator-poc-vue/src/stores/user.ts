@@ -1,42 +1,48 @@
-import { computed, reactive } from 'vue'
+import { defineStore } from 'pinia'
 import * as Request from '@/requests'
+import router  from '@/router'
 
-const state = reactive({
-  name: '',
-  username: '',
+export const useAuthStore = defineStore({
+  id: 'auth',
+  state: () => ({
+    token: '',
+    error: '',
+    returnUrl: '',
+  }),
+  persist: true,
 
-  error: ''
-})
-
-const getters = reactive({
-  isLoggedIn: computed(() => state.username !== '')
-})
-
-const actions = {
-  async getUser() {
-    const user = await Request.getUser()
-    if (user == null) return
-
-    state.name = user.name
-    state.username = user.username
+  getters: {
+    isLoggedIn: (state) => state.token !== ''
   },
-  async login(username: string, password: string) {
-    const user = await Request.login(username, password)
-    if (user == null) {
-      state.error = 'Could not find user.'
-      return false
+
+  actions: {
+    async login(username: string, password: string) {
+      this.token = ''
+      this.error = ''
+
+      const request = {
+        method: "POST",
+        body: new URLSearchParams({ username, password })
+      }
+      try {
+        const response = await fetch('auth', request)
+        if (response.status != 200) {
+          this.error = 'Authentication failed'
+        } else {
+          this.token = await response.text()
+          router.push(this.returnUrl || '/')
+          this.returnUrl = ''
+        }
+      } catch (e) {
+        this.error = 'Error logging in'
+        this.returnUrl = ''
+      } 
+    },
+    async logout() {
+      this.token = ''
+      this.error = ''
+      this.returnUrl = ''
+      router.push('/login')
     }
-
-    state.name = user.name
-    state.username = username
-    state.error = ''
-
-    return true
-  },
-  async logout() {
-    state.name = ''
-    state.username = ''
   }
-}
-
-export default { state, getters, ...actions }
+})
