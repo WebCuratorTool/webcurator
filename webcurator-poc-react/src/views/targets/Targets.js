@@ -8,8 +8,22 @@ import {TabulatorFull as Tabulator} from "tabulator-tables"; //import Tabulator 
 import 'react-tabulator/css/bootstrap/tabulator_bootstrap.css';
 
 
+async function auth(){
+  var url="/wct/auth/v1/token?username=lql&password=1qaz@WSX";
+  const response = await fetch(url, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+  });
+  return response.text();
+}
+
+
+
 var gUrl=null, gReq=null, gCallback=null;
-function fetchHttp(url, req, callback){
+function fetchHttp(url, token, req, callback){
   // var ROOT_URL=webContextPath+'/curator';
   // var reqUrl=ROOT_URL + url;
   var reqUrl=url;
@@ -22,10 +36,10 @@ function fetchHttp(url, req, callback){
   fetch(reqUrl, { 
     method: 'POST',
     redirect: 'follow',
-    mode: "no-cors",
+    // mode: "no-cors",
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'E9E4FDE318C1799A771131CEA8969CE9'
+      'Authorization': token,
     },
     body: reqBodyPayload
   }).then((response) => {
@@ -49,9 +63,9 @@ function fetchHttp(url, req, callback){
 
 
 const options = [
-  { oid: 'chocolate', name: 'Chocolate' },
-  { oid: 'strawberry', name: 'Strawberry' },
-  { oid: 'vanilla', name: 'Vanilla' }
+  { oid: '', name: '' },
+  { oid: 'bootstrap', name: 'bootstrap' },
+  { oid: 'foo', name: 'foo' },
 ]
 
 function TargetsSearchTile(props) {
@@ -113,17 +127,29 @@ function TargetFilterTile(){
   );
 }
 
+function formatSeed(cell){
+  var data=cell.getData();
+  var seeds=data["seeds"];
+  for(var i=0;i<seeds.length;i++){
+    var s=seeds[i];
+    if(s.primary){
+      return s.seed;
+    }
+  }
+  return "";
+}
+
+
 function TargetsView() {
   var tblTargets;
   // let targetTableElement=useRef();
   const columnsTblTargets=[
+    {title:"ID", field:"id"},
     {title:"Name", field:"name"},
-    {title:"Progress", field:"progress", hozAlign:"right", sorter:"number"},
-    {title:"Gender", field:"gender"},
-    {title:"Rating", field:"rating", hozAlign:"center"},
-    {title:"Favourite Color", field:"col"},
-    {title:"Date Of Birth", field:"dob", hozAlign:"center", sorter:"date"},
-    {title:"Driver", field:"car", hozAlign:"center"},
+    {title:"Owner", field:"owner"},
+    {title:"Agency", field:"agency"},
+    {title:"State", field:"state"},
+    {title:"Primary Seed", field:"seeds", formatter: formatSeed},    
   ];
 
   useEffect(() => {
@@ -142,13 +168,18 @@ function TargetsView() {
       "filter": filter,
       "offset":0,
       "limit":50,
-      "sortBy":"name",
+      "sortBy":"name,asc",
     };
 
-    fetchHttp("http://localhost:8080/wct/api/1.0/targets", searchParams, (rsp)=>{
-      console.log(rsp);
+    auth().then(token=>{
+      console.log(token);
+      fetchHttp("/wct/api/v1/targets", token, searchParams, (rsp)=>{
+        var targets=rsp["targets"];
+        console.log(targets);
+        tblTargets.clearData();
+        tblTargets.addData(targets);
+      });
     });
-
   };
 
   return (

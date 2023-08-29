@@ -174,7 +174,7 @@ public class Targets {
     /**
      * Handler for creating new targets
      */
-    @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
         Target target = new Target();
         try {

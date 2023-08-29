@@ -58,4 +58,5 @@ table,tbody,tr,td{
     height: 100vh;
     background:linear-gradient(to bottom, #dfe1e2 10em, #ffffff 10em 100%);
     padding-left: 3em;
+    padding-right: 5em;
 }

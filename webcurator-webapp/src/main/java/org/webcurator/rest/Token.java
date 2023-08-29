@@ -21,7 +21,7 @@ public class Token {
     /**
      * Login
      */
-    @PostMapping(path = "")
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST}, path = "")
     public ResponseEntity<?> post(@RequestParam String username, @RequestParam String password) {
         try {
             String token = sessionManager.authenticate(username, password);
@@ -33,7 +33,6 @@ public class Token {
 
     /**
      * Logout
-     *
      */
     @DeleteMapping(path = "/{token}")
     public ResponseEntity<?> delete(@PathVariable String token) {
