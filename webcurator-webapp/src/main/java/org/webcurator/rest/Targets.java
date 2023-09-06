@@ -107,7 +107,7 @@ public class Targets {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         }
     }
 
@@ -145,7 +145,7 @@ public class Targets {
             case "seeds":
                 return ResponseEntity.ok().body(targetDTO.getSeeds());
             default:
-                return ResponseEntity.badRequest().body(errorMessage(String.format("No such target section: %s", section)));
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
         }
     }
 
@@ -159,9 +159,9 @@ public class Targets {
             return ResponseEntity.notFound().build();
         } else {
             if (target.getCrawls() > 0) {
-                return ResponseEntity.badRequest().body(errorMessage("Target could not be deleted because it has related target instances"));
+                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because it has related target instances"));
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
-                return ResponseEntity.badRequest().body(errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
+                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
             } else {
                 targetDAO.delete(target);
                 // Annotations are managed differently from normal associated entities
@@ -180,9 +180,9 @@ public class Targets {
         try {
             upsert(target, targetDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
 
         try {
@@ -193,7 +193,7 @@ public class Targets {
             targetUrl += target.getOid();
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
     }
 
@@ -204,7 +204,7 @@ public class Targets {
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.badRequest().body(errorMessage(String.format("Target with id %s does not exist", id)));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
         }
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
@@ -214,7 +214,7 @@ public class Targets {
         try {
             updateTargetDTO(targetDTO, targetMap, targetDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         }
 
         // Validate updated DTO
@@ -222,7 +222,7 @@ public class Targets {
         if (!violations.isEmpty()) {
             // Return the first violation we find
             ConstraintViolation<TargetDTO> constraintViolation = violations.iterator().next();
-            return ResponseEntity.badRequest().body(errorMessage(constraintViolation.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(constraintViolation.getMessage()));
         }
 
         // Finally, map the DTO to the entity and update the database
@@ -230,9 +230,9 @@ public class Targets {
             upsert(target, targetDTO);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
     }
 
@@ -609,26 +609,16 @@ public class Targets {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class})
-    public HashMap<String, Map<String, String>> errorMessage(MethodArgumentNotValidException ex) {
-        HashMap<String, Map<String, String>> map = new HashMap<>();
+    public HashMap<String, Object> errorMessage(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        map.put("Error", errors);
-        return map;
+        return Utils.errorMessage(errors);
     }
 
-    /**
-     * Error message formatter used in situations other than exceptions thrown by the validation API
-     */
-    private HashMap<String, Object> errorMessage(Object msg) {
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("Error", msg);
-        return map;
-    }
 
     /**
      * Handle the actual search using the old Target DAO search API
@@ -701,13 +691,6 @@ public class Targets {
         }
         targetSummary.put("seeds", seeds);
         return targetSummary;
-    }
-
-
-    private class BadRequestError extends Exception {
-        BadRequestError(String msg) {
-            super(msg);
-        }
     }
 
 
