@@ -46,7 +46,7 @@ import org.webcurator.domain.model.dto.PermissionSeedDTO;
 import java.util.*;
 
 /**
- * This class a copy of TargetManager, with some tweaks to make it usable
+ * This class is a copy of TargetManager, with some tweaks to make it usable
  * by the ReST API. Once the new front end is finished TargetManager can be
  * removed.
  */
