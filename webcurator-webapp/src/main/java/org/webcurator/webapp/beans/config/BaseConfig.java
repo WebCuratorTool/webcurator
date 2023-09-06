@@ -722,6 +722,7 @@ public class BaseConfig {
     @Bean
     @Scope(BeanDefinition.SCOPE_SINGLETON)
     @Lazy(false)
+    @Primary // Make sure we only get the subclass TargetManager2 when we explicitly request it
     public TargetManager targetManager() {
         TargetManager bean = new TargetManager();
         bean.setTargetDao(targetDao());
