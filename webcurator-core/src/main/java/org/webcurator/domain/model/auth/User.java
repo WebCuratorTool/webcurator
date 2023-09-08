@@ -36,6 +36,8 @@ import java.util.Set;
                 query = "SELECT usr FROM User usr WHERE usr.username=?1 "),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUsersByAgency",
                 query = "SELECT usr FROM User usr WHERE usr.agency.oid=?1 ORDER BY usr.username"),
+        @NamedQuery(name = "org.webcurator.domain.model.auth.User.getUsersByAgencyName",
+                query = "SELECT usr FROM User usr WHERE usr.agency.name=?1 ORDER BY usr.username"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOs",
                 query = "SELECT new org.webcurator.domain.model.dto.UserDTO(usr.oid, usr.username, usr.email, usr.notificationsByEmail, usr.tasksByEmail, usr.title, usr.firstname, usr.lastname, usr.phone, usr.address, usr.active, usr.agency.name, usr.notifyOnHarvestWarnings, usr.notifyOnGeneral) FROM User usr ORDER BY usr.agency.name, usr.username"),
         @NamedQuery(name = "org.webcurator.domain.model.auth.User.getAllUserDTOsByAgency",
@@ -64,6 +66,10 @@ public class User implements Serializable {
      * Query key for retrieving User objects by agency OID
      */
     public static final String QRY_GET_USERS_BY_AGENCY = "org.webcurator.domain.model.auth.User.getUsersByAgency";
+    /**
+     * Query key for retrieving User objects by agency name
+     */
+    public static final String QRY_GET_USERS_BY_AGENCY_NAME = "org.webcurator.domain.model.auth.User.getUsersByAgencyName";
     /**
      * Query key for retrieving all User DTO objects
      */

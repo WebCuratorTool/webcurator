@@ -119,6 +119,11 @@ public class UserRoleDAO {
         return q.getResultList();
     }
 
+    public List getUsers(String agencyName) {
+        Query q = sessionFactory.getCurrentSession().createNamedQuery(User.QRY_GET_USERS_BY_AGENCY_NAME);
+        q.setParameter(1, agencyName);
+        return q.getResultList();
+    }
 
     public List getAgencies() {
         Query q = sessionFactory.getCurrentSession().createNamedQuery(Agency.QRY_GET_ALL_AGENCIES);
