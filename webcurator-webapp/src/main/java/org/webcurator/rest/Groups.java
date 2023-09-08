@@ -62,8 +62,6 @@ public class Groups {
     }
 
 
-    // TODO Maybe refactor the search stuff (this was mostly copied over from Targets.java)?
-
     /**
      * Handle the actual search using the old Target DAO search API
      */
@@ -109,7 +107,6 @@ public class Groups {
         private Filter filter;
         private Integer offset;
         private Integer limit;
-        private String sortBy;
 
         SearchParams() {
             filter = new Filter();
@@ -139,13 +136,6 @@ public class Groups {
             this.limit = limit;
         }
 
-        public String getSortBy() {
-            return sortBy;
-        }
-
-        public void setSortBy(String sortBy) {
-            this.sortBy = sortBy;
-        }
     }
 
     /**
