@@ -18,6 +18,7 @@ package org.webcurator.domain.model.dto;
 import java.util.HashSet;
 
 import org.webcurator.domain.model.core.Permission;
+import org.webcurator.domain.model.core.Seed;
 
 /**
  * DTO object for grouping seeds with their permissions
@@ -29,12 +30,12 @@ public class PermissionSeedDTO {
 	/** the permission associated. */
 	private Permission permission;
 	/** the seed urls associated with the permission. */
-	private HashSet<String> seeds;
+	private HashSet<Seed> seeds;
 	
 	public PermissionSeedDTO(Permission aPermission) {
 		permissionOid = aPermission.getOid();
 		permission = aPermission;
-		seeds = new HashSet<String>();
+		seeds = new HashSet<Seed>();
 		
 		permission.getSite();
 		permission.getAuthorisingAgent();
@@ -67,13 +68,13 @@ public class PermissionSeedDTO {
 	/**
 	 * @return the seeds
 	 */
-	public HashSet<String> getSeeds() {
+	public HashSet<Seed> getSeeds() {
 		return seeds;
 	}
 	/**
 	 * @param seeds the seeds to set
 	 */
-	public void setSeeds(HashSet<String> seeds) {
+	public void setSeeds(HashSet<Seed> seeds) {
 		this.seeds = seeds;
 	}	
 }

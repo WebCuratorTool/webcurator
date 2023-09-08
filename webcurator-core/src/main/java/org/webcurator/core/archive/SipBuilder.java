@@ -175,6 +175,9 @@ public class SipBuilder {
 		
 		buff.append("  <wct:Seeds>\n");
 		for(Seed seed: targetManager.getSeeds(inst)) {
+			if (!seed.isPrimary()){
+				continue;
+			}
 			buff.append("    <wct:Seed>\n");
 			buff.append("      <wct:SeedURL>" + es(seed.getSeed()) + "</wct:SeedURL>\n");
 			buff.append("      <wct:SeedType>" + es(seed.isPrimary() ? "Primary" : "Secondary") + "</wct:SeedType>\n");
@@ -260,8 +263,11 @@ public class SipBuilder {
 			
 			
 			buff.append("    <wct:SeedsURLs>\n");
-			for(String seed : perm.getSeeds()) {
-				buff.append("      <wct:SeedURL>" + es(seed) + "</wct:SeedURL>\n");				
+			for(Seed seed : perm.getSeeds()) {
+				if (!seed.isPrimary()){
+					continue;
+				}
+				buff.append("      <wct:SeedURL>" + es(seed.getSeed()) + "</wct:SeedURL>\n");
 			}
 			buff.append("    </wct:SeedsURLs>\n");
 			
