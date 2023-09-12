@@ -222,7 +222,8 @@ public class Targets {
         if (!violations.isEmpty()) {
             // Return the first violation we find
             ConstraintViolation<TargetDTO> constraintViolation = violations.iterator().next();
-            return ResponseEntity.badRequest().body(Utils.errorMessage(constraintViolation.getMessage()));
+            String message = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return ResponseEntity.badRequest().body(Utils.errorMessage(message));
         }
 
         // Finally, map the DTO to the entity and update the database
