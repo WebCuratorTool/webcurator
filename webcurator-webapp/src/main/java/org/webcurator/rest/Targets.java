@@ -70,11 +70,8 @@ public class Targets {
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
 
-    @Autowired
-    private SchedulePatternFactory schedulePatternFactory;
 
-
-    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
@@ -107,7 +104,7 @@ public class Targets {
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
             return response;
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         }
     }
 
@@ -145,7 +142,7 @@ public class Targets {
             case "seeds":
                 return ResponseEntity.ok().body(targetDTO.getSeeds());
             default:
-                return ResponseEntity.badRequest().body(errorMessage(String.format("No such target section: %s", section)));
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
         }
     }
 
@@ -159,9 +156,9 @@ public class Targets {
             return ResponseEntity.notFound().build();
         } else {
             if (target.getCrawls() > 0) {
-                return ResponseEntity.badRequest().body(errorMessage("Target could not be deleted because it has related target instances"));
+                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because it has related target instances"));
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
-                return ResponseEntity.badRequest().body(errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
+                return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
             } else {
                 targetDAO.delete(target);
                 // Annotations are managed differently from normal associated entities
@@ -180,9 +177,9 @@ public class Targets {
         try {
             upsert(target, targetDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
 
         try {
@@ -193,7 +190,7 @@ public class Targets {
             targetUrl += target.getOid();
             return ResponseEntity.created(new URI(targetUrl)).build();
         } catch (URISyntaxException e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
     }
 
@@ -204,7 +201,7 @@ public class Targets {
     public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
-            return ResponseEntity.badRequest().body(errorMessage(String.format("Target with id %s does not exist", id)));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
         }
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
@@ -214,7 +211,7 @@ public class Targets {
         try {
             updateTargetDTO(targetDTO, targetMap, targetDTO);
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         }
 
         // Validate updated DTO
@@ -222,7 +219,8 @@ public class Targets {
         if (!violations.isEmpty()) {
             // Return the first violation we find
             ConstraintViolation<TargetDTO> constraintViolation = violations.iterator().next();
-            return ResponseEntity.badRequest().body(errorMessage(constraintViolation.getMessage()));
+            String message = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return ResponseEntity.badRequest().body(Utils.errorMessage(message));
         }
 
         // Finally, map the DTO to the entity and update the database
@@ -230,9 +228,9 @@ public class Targets {
             upsert(target, targetDTO);
             return ResponseEntity.ok().build();
         } catch (BadRequestError e) {
-            return ResponseEntity.badRequest().body(errorMessage(e.getMessage()));
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(errorMessage(e.getMessage()));
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
     }
 
@@ -301,25 +299,12 @@ public class Targets {
             for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
                 String cronExpression = s.getCron();
-                int scheduleType = s.getType();
-                if (scheduleType == Schedule.CUSTOM_SCHEDULE) {
-                    if (cronExpression == null) {
-                        throw new BadRequestError(String.format("Custom schedule type requires cron expression"));
-                    } else {
-                        // we support classic cron, without the prepended SECONDS field expected by Quartz
-                        cronExpression = "0 " + s.getCron();
-                        try {
-                            new CronExpression(cronExpression);
-                        } catch (ParseException ex) {
-                            throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
-                        }
-                    }
-                } else {
-                    SchedulePattern pattern = schedulePatternFactory.getPattern(scheduleType);
-                    if (pattern == null) {
-                        throw new BadRequestError(String.format("Unknown schedule type: %d", scheduleType));
-                    }
-                    cronExpression = pattern.getCronPattern();
+                // we support classic cron, without the prepended SECONDS field expected by Quartz
+                cronExpression = "0 " + s.getCron();
+                try {
+                    new CronExpression(cronExpression);
+                } catch (ParseException ex) {
+                    throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
                 }
                 schedule.setCronPattern(cronExpression);
                 schedule.setStartDate(s.getStartDate());
@@ -426,7 +411,6 @@ public class Targets {
         }
 
         if (targetDTO.getAnnotations() != null) {
-            target.setSelectionDate(targetDTO.getAnnotations().getSelection().getDate());
             target.setSelectionNote(targetDTO.getAnnotations().getSelection().getNote());
             target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
             target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
@@ -609,26 +593,16 @@ public class Targets {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class})
-    public HashMap<String, Map<String, String>> errorMessage(MethodArgumentNotValidException ex) {
-        HashMap<String, Map<String, String>> map = new HashMap<>();
+    public HashMap<String, Object> errorMessage(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        map.put("Error", errors);
-        return map;
+        return Utils.errorMessage(errors);
     }
 
-    /**
-     * Error message formatter used in situations other than exceptions thrown by the validation API
-     */
-    private HashMap<String, Object> errorMessage(Object msg) {
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("Error", msg);
-        return map;
-    }
 
     /**
      * Handle the actual search using the old Target DAO search API
@@ -701,13 +675,6 @@ public class Targets {
         }
         targetSummary.put("seeds", seeds);
         return targetSummary;
-    }
-
-
-    private class BadRequestError extends Exception {
-        BadRequestError(String msg) {
-            super(msg);
-        }
     }
 
 
