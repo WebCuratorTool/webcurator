@@ -70,9 +70,6 @@ public class Targets {
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
 
-    @Autowired
-    private SchedulePatternFactory schedulePatternFactory;
-
 
     @PatchMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
@@ -302,25 +299,12 @@ public class Targets {
             for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
                 String cronExpression = s.getCron();
-                int scheduleType = s.getType();
-                if (scheduleType == Schedule.CUSTOM_SCHEDULE) {
-                    if (cronExpression == null) {
-                        throw new BadRequestError(String.format("Custom schedule type requires cron expression"));
-                    } else {
-                        // we support classic cron, without the prepended SECONDS field expected by Quartz
-                        cronExpression = "0 " + s.getCron();
-                        try {
-                            new CronExpression(cronExpression);
-                        } catch (ParseException ex) {
-                            throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
-                        }
-                    }
-                } else {
-                    SchedulePattern pattern = schedulePatternFactory.getPattern(scheduleType);
-                    if (pattern == null) {
-                        throw new BadRequestError(String.format("Unknown schedule type: %d", scheduleType));
-                    }
-                    cronExpression = pattern.getCronPattern();
+                // we support classic cron, without the prepended SECONDS field expected by Quartz
+                cronExpression = "0 " + s.getCron();
+                try {
+                    new CronExpression(cronExpression);
+                } catch (ParseException ex) {
+                    throw new BadRequestError(String.format("Invalid cron expression: %s", ex.getMessage()));
                 }
                 schedule.setCronPattern(cronExpression);
                 schedule.setStartDate(s.getStartDate());
@@ -427,7 +411,6 @@ public class Targets {
         }
 
         if (targetDTO.getAnnotations() != null) {
-            target.setSelectionDate(targetDTO.getAnnotations().getSelection().getDate());
             target.setSelectionNote(targetDTO.getAnnotations().getSelection().getNote());
             target.setSelectionType(targetDTO.getAnnotations().getSelection().getType());
             target.setEvaluationNote(targetDTO.getAnnotations().getEvaluationNote());
