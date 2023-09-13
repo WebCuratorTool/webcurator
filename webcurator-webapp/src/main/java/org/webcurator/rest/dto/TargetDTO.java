@@ -296,14 +296,14 @@ public class TargetDTO {
 
         public static class Schedule {
             long id;
-            //@NotBlank(message = "cron is required")
+            @NotBlank(message = "cron is required")
             String cron;
             @NotNull(message = "startDate is required")
             Date startDate;
             Date endDate;
             @NotNull(message = "type is required")
-            @Min(value = -7, message = "invalid schedule type")
-            @Max(value = 1, message = "invalid schedule type")
+            @Min(value = -7, message = "invalid schedule type: value should be between -7 and 1")
+            @Max(value = 1, message = "invalid schedule type: value should be between -7 and 1")
             Integer type;
             @NotNull(message = "nextExecutionDate is required")
             Date nextExecutionDate;
@@ -783,7 +783,6 @@ public class TargetDTO {
         }
 
         public static class Selection {
-            @NotNull(message = "date is required")
             Date date;
             @Pattern(regexp = "Producer type|Publication type|Collection|Area|Other collections",
                     message = "invalid selection type")
