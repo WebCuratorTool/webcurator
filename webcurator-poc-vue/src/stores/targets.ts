@@ -17,10 +17,13 @@ export const useTargetsStore = defineStore({
             this.loading = true
             this.targets = []
 
-            const headers = { Authorization: 'Bearer ' + token, ContentType: "application/json" }
+            const headers = { Authorization: 'Bearer ' + token, "Content-Type": "application/json","X-HTTP-Method-Override": "GET" }
             const body = JSON.stringify({ filter: searchTerms })
             
-            const response = await fetch('/api/targets', { headers })
+            const response = await fetch('/api/targets', {
+                method: "POST",
+                body, 
+                headers })
 
             if (response.status == 200) {
                 const targets = await response.json()

@@ -1,6 +1,6 @@
 <template>
     <div class="d-flex">
-        <input :value="searchTerms.id" @input="event => searchTerms.id = event.target.value" />
+        <input :value="searchTerms.targetId" @input="event => searchTerms.targetId = event.target.value" />
         <button @click="onSearch">Search</button>
     </div>
 </template>
@@ -11,10 +11,10 @@ import { ref } from 'vue'
 const emit = defineEmits(['on-search'])
 
 const onSearch = () => {
-    emit('on-search', searchTerms)
+    emit('on-search', searchTerms.value)
 }
 
 const searchTerms = ref({
-    id: ''
+    targetId: ''
 })
 </script>
