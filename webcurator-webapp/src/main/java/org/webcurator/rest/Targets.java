@@ -18,6 +18,8 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
+import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -71,7 +73,8 @@ public class Targets {
     private BusinessObjectFactory businessObjectFactory;
 
 
-    @PatchMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    //@PatchMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
