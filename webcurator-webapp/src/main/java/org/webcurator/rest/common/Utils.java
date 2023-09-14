@@ -1,4 +1,4 @@
-package org.webcurator.rest;
+package org.webcurator.rest.common;
 
 import java.util.HashMap;
 

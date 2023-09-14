@@ -3,11 +3,10 @@ package org.webcurator.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.domain.Pagination;
-import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.UserRoleDAO;
 import org.webcurator.domain.model.auth.User;
-import org.webcurator.domain.model.core.TargetGroup;
+import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
