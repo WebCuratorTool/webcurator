@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
 import org.webcurator.domain.model.core.TargetGroup;
+import org.webcurator.rest.common.BadRequestError;
+import org.webcurator.rest.common.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +30,7 @@ public class Groups {
     @Autowired
     TargetDAO targetDAO;
 
-    @PatchMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
        if (searchParams == null) {
             searchParams = new SearchParams();
