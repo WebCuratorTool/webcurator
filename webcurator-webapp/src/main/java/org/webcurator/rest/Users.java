@@ -1,6 +1,7 @@
 package org.webcurator.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.UserRoleDAO;
@@ -22,12 +23,16 @@ public class Users {
     @Autowired
     UserRoleDAO userRoleDAO;
 
-    @GetMapping(path = "")
-    public ResponseEntity get(@RequestParam(required = false) String agency) {
+    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
+        if (searchParams == null) {
+            searchParams = new SearchParams();
+        }
+        Filter filter = searchParams.getFilter();
         try {
-            SearchResult searchResult = search(agency);
+            SearchResult searchResult = search(filter);
             HashMap<String, Object> responseMap = new HashMap<>();
-            responseMap.put("agency", agency);
+            responseMap.put("filter", filter);
             responseMap.put("users", searchResult.users);
             responseMap.put("amount", searchResult.amount);
             ResponseEntity<HashMap<String, Object>> response = ResponseEntity.ok().body(responseMap);
@@ -41,13 +46,13 @@ public class Users {
     /**
      * Handle the actual search using the old DAO API
      */
-    private SearchResult search(String agency) throws BadRequestError {
+    private SearchResult search(Filter filter) throws BadRequestError {
         List<HashMap<String, Object>> users = new ArrayList<>();
         List<User> result;
-        if (agency == null) {
+        if (filter.agency == null) {
             result = userRoleDAO.getUsers();
         } else {
-            result = userRoleDAO.getUsers(agency);
+            result = userRoleDAO.getUsers(filter.agency);
         }
         for (User u : result) {
             HashMap<String, Object> user = new HashMap<>();
@@ -60,6 +65,36 @@ public class Users {
             users.add(user);
         }
         return new SearchResult(users.size(), users);
+    }
+
+
+    /**
+     * POJO that the framework maps the JSON query data into
+     */
+    private static class SearchParams {
+        private Filter filter;
+        SearchParams() {
+            filter = new Filter();
+        }
+        public Filter getFilter() {
+            return filter;
+        }
+        public void setFilter(Filter filter) {
+            this.filter = filter;
+        }
+    }
+
+    /**
+     * Wrapper for the search filter
+     */
+    private static class Filter {
+        private String agency;
+        public String getAgency() {
+            return agency;
+        }
+        public void setAgency(String agency) {
+            this.agency = agency;
+        }
     }
 
     /**
