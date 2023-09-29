@@ -73,7 +73,6 @@ public class Targets {
     private BusinessObjectFactory businessObjectFactory;
 
 
-    //@PatchMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
@@ -163,6 +162,7 @@ public class Targets {
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
                 return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
             } else {
+                // FIXME Maybe replace this with targetManager.delete() since that also cleans up group memberships?
                 targetDAO.delete(target);
                 // Annotations are managed differently from normal associated entities
                 annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
