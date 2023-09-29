@@ -208,7 +208,7 @@ public class Groups {
     }
 
     /**
-     * Wraps search result data: a count of the total number of hits and a list of target summaries
+     * Wraps search result data: a count of the total number of hits and a list of groups
      * for the current result page
      */
     private class SearchResult {
