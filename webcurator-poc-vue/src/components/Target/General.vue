@@ -1,5 +1,8 @@
 <template>
-    <p class="heading">References</p>
+    <div class="d-flex justify-content-between">
+        <p class="heading">References</p>
+        <button @click="onEdit">Edit</button>
+    </div>
     <div class="d-flex justify-content-between w-50">
         <div class="d-flex justify-content-between w-25">
             <p class="me-1 text-muted">ID</p>
@@ -39,6 +42,12 @@ const fields = [
   {display: 'ID', value:'id'}, 
   {display: 'Seed', value: 'seed'},
 ]
+
+const emit = defineEmits(['on-edit'])
+
+const onEdit = () => {
+    emit('on-edit', 'general')
+}
 </script>
 
 <style>

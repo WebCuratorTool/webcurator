@@ -9,6 +9,10 @@
             <p class="me-1 text-muted">Name*</p>
             <input :value="editedGeneral.name" @input="event => editedGeneral.name = event.target.value" />
         </div>
+        <div class="d-flex justify-content-between w-25">
+            <p class="me-1 text-muted">Owner</p>
+            <input :value="editedGeneral.owner" @input="event => editedGeneral.owner = event.target.value" />
+        </div>
     </div>
     <button @click="onSave">Save</button>
     <button @click="onCancel">Cancel</button>
@@ -22,7 +26,10 @@ const props = defineProps<{
     general: General,
 }>()
 
-const editedGeneral = ref({...props.general})
+const editedGeneral = ref({
+    name: props.general.name,
+    owner: props.general.owner
+})
 
 const emit = defineEmits(['on-edit', 'on-save'])
 

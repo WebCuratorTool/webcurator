@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import QueueView from '@/views/QueueView.vue'
 import TargetInstanceView from '@/views/TargetInstanceView.vue'
