@@ -162,7 +162,7 @@ public class Targets {
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
                 return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
             } else {
-                // FIXME Maybe replace this with targetManager.delete() since that also cleans up group memberships?
+                // FIXME This does not delete group memberships
                 targetDAO.delete(target);
                 // Annotations are managed differently from normal associated entities
                 annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
@@ -215,6 +215,8 @@ public class Targets {
             updateTargetDTO(targetDTO, targetMap, targetDTO);
         } catch (BadRequestError e) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
 
         // Validate updated DTO
@@ -341,8 +343,10 @@ public class Targets {
                 Set<Permission> permissions = new HashSet<>();
                 for (long authorisation : s.getAuthorisations()) {
                     try {
-                        Permission p = siteDAO.loadPermission(authorisation);
-                        permissions.add(p);
+                        Site site = siteDAO.load(authorisation);
+                        for (Permission p : site.getPermissions()) {
+                            permissions.add(p);
+                        }
                     } catch (ObjectNotFoundException e) {
                         throw new BadRequestError(String.format("Uknown authorisation: %s", authorisation));
                     }
@@ -476,6 +480,7 @@ public class Targets {
         }
     }
 
+
     /**
      * Traverses the supplied HashMap recursively, mapping any data it finds to the right setter in the supplied
      * TargetDTO.
@@ -554,7 +559,7 @@ public class Targets {
                     }
                 }
             } else {
-                if (key.contains("Date") || key.contains("date")) {
+                if (value != null && (key.contains("Date") || key.contains("date"))) {
                     List<String> patterns = Arrays.asList("yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd HH:mm:ss.SSSX",
                             "yyyy-MM-dd HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss.SSS",
                             "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss");
@@ -574,13 +579,19 @@ public class Targets {
                     value = ((Number) value).longValue();
                 } else if (childType == Integer.class && value instanceof Long) {
                     value = ((Number) value).intValue();
+                } else if (childType == Long.class && value instanceof String) {
+                    value = Long.valueOf((String)value);
+                } else if (childType == Integer.class && value instanceof String) {
+                    value = Integer.valueOf((String)value);
+                } else if (childType == Boolean.class && value instanceof String) {
+                    value = Boolean.valueOf((String) value);
                 }
                 String setMethodName = "set" + key.substring(0, 1).toUpperCase() + key.substring(1);
                 try {
                     Method setMethod = parent.getClass().getMethod(setMethodName, childType);
                     try {
                         setMethod.invoke(parent, value);
-                    } catch (IllegalAccessException | InvocationTargetException e) {
+                    } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException e) {
                         throw new BadRequestError(e.getMessage());
                     }
                 } catch (NoSuchMethodException e) {

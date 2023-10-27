@@ -460,7 +460,10 @@ public class TargetDTO {
             seed = s.getSeed();
             primary = s.isPrimary();
             for (Permission p : s.getPermissions()) {
-                authorisations.add(p.getOid());
+                Long authorisation = p.getSite().getOid();
+                if (!authorisations.contains(authorisation)) {
+                    authorisations.add(p.getSite().getOid());
+                }
             }
         }
 
