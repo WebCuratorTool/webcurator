@@ -134,7 +134,7 @@ public class SummaryTargetSchedulesReport extends HibernateDaoSupport implements
     		Object[] obj    = (Object[])it.next();
     		String agency   = (String)obj[0];
     		String schedule = (String)obj[1];
-    		Integer count   = (Integer)obj[2];
+    		Long count   = (Long)obj[2];
     		
     		if (schedule.equals(displayableFields[0])) {
     			int col = agencies.indexOf(agency);
