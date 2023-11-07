@@ -229,13 +229,13 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getDBMissingErrorResult();
         }
         NetworkMapResult result = new NetworkMapResult();
-        List<NetworkMapNodeUrlEntity> urls = searchUrlDTOs(db, searchCommand);
-        if (urls.size() > MAX_SEARCH_SIZE) {
-            String warning = "Cannot display all URLs, please reduce the results using narrow search conditions.";
-            log.warn(warning);
-            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
-            result.setRspMsg(warning);
-        }
+        List<NetworkMapNodeUrlEntity> urls = searchUrlDTOs(db, searchCommand, true);
+//        if (urls.size() > MAX_SEARCH_SIZE) {
+//            String warning = "Cannot display all URLs, please reduce the results using narrow search conditions.";
+//            log.warn(warning);
+//            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+//            result.setRspMsg(warning);
+//        }
 
         String json = this.obj2Json(urls);
         urls.clear();
@@ -250,10 +250,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return null;
         }
 
-        return searchUrlDTOs(db, searchCommand);
+        return searchUrlDTOs(db, searchCommand, true);
     }
 
-    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(BDBRepoHolder db, NetworkMapServiceSearchCommand searchCommand) {
+    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(BDBRepoHolder db, NetworkMapServiceSearchCommand searchCommand, boolean allowBigDatasets) {
         if (searchCommand == null) {
             searchCommand = new NetworkMapServiceSearchCommand();
         }
@@ -268,7 +268,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 continue;
             }
             urls.add(urlEntity);
-            if (urls.size() > MAX_SEARCH_SIZE) {
+            if (!allowBigDatasets && urls.size() > MAX_SEARCH_SIZE) {
                 break;
             }
         }
@@ -481,12 +481,12 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
 
         NetworkMapResult result = new NetworkMapResult();
-        if (payload.size() > MAX_SEARCH_SIZE) {
-            String warning = "Cannot modify all selected URLs, please reduce the results.";
-            log.warn(warning);
-            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
-            result.setRspMsg(warning);
-        }
+//        if (payload.size() > MAX_SEARCH_SIZE) {
+//            String warning = "Cannot modify all selected URLs, please reduce the results.";
+//            log.warn(warning);
+//            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+//            result.setRspMsg(warning);
+//        }
 
         String json = this.obj2Json(payload);
         payload.forEach(NetworkMapNodeUrlEntity::clear);
@@ -545,13 +545,13 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
 
         NetworkMapResult result = new NetworkMapResult();
-        if (payload.size() > MAX_SEARCH_SIZE) {
-            String warning = "Cannot modify all selected URLs, please reduce the results.";
-
-            log.warn(warning);
-            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
-            result.setRspMsg(warning);
-        }
+//        if (payload.size() > MAX_SEARCH_SIZE) {
+//            String warning = "Cannot modify all selected URLs, please reduce the results.";
+//
+//            log.warn(warning);
+//            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
+//            result.setRspMsg(warning);
+//        }
 
         String json = this.obj2Json(payload);
         payload.forEach(ModifyRowFullData::clear);
@@ -578,19 +578,19 @@ class CompiledSearchCommand {
     public static CompiledSearchCommand getInstance(NetworkMapServiceSearchCommand searchCommand) {
         CompiledSearchCommand compiledSearchCommand = new CompiledSearchCommand(searchCommand.getDomainLevel());
 
-        if (searchCommand.getDomainNames() != null && searchCommand.getDomainNames().size() > 0) {
+        if (searchCommand.getDomainNames() != null && !searchCommand.getDomainNames().isEmpty()) {
             compiledSearchCommand.domainNameCondition = searchCommand.getDomainNames().stream().map(SearchCommandItem::new).collect(Collectors.toList());
         }
 
-        if (searchCommand.getUrlNames() != null && searchCommand.getUrlNames().size() > 0) {
+        if (searchCommand.getUrlNames() != null && !searchCommand.getUrlNames().isEmpty()) {
             compiledSearchCommand.urlNameCondition = searchCommand.getUrlNames().stream().map(SearchCommandItem::new).collect(Collectors.toList());
         }
 
-        if (searchCommand.getContentTypes() != null && searchCommand.getContentTypes().size() > 0) {
+        if (searchCommand.getContentTypes() != null && !searchCommand.getContentTypes().isEmpty()) {
             compiledSearchCommand.contentTypeCondition = searchCommand.getContentTypes().stream().map(SearchCommandItem::new).collect(Collectors.toList());
         }
 
-        if (searchCommand.getStatusCodes() != null && searchCommand.getStatusCodes().size() > 0) {
+        if (searchCommand.getStatusCodes() != null && !searchCommand.getStatusCodes().isEmpty()) {
             compiledSearchCommand.statusCodeCondition = new ArrayList<>(searchCommand.getStatusCodes());
         }
         return compiledSearchCommand;
@@ -610,7 +610,7 @@ class CompiledSearchCommand {
     }
 
     private boolean isIncludedByDomainName(String domainName) {
-        if (domainNameCondition.size() == 0) {
+        if (domainNameCondition.isEmpty()) {
             return true;
         }
 
@@ -623,7 +623,7 @@ class CompiledSearchCommand {
     }
 
     private boolean isIncludedByUrlName(String urlName) {
-        if (urlNameCondition.size() == 0) {
+        if (urlNameCondition.isEmpty()) {
             return true;
         }
 
@@ -636,7 +636,7 @@ class CompiledSearchCommand {
     }
 
     private boolean isIncludedByContentType(String contentType) {
-        if (contentTypeCondition.size() == 0) {
+        if (contentTypeCondition.isEmpty()) {
             return true;
         }
 
@@ -649,7 +649,7 @@ class CompiledSearchCommand {
     }
 
     private boolean isIncludedByStatusCode(int statusCode) {
-        if (statusCodeCondition.size() == 0) {
+        if (statusCodeCondition.isEmpty()) {
             return true;
         }
 
