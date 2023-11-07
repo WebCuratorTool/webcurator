@@ -592,7 +592,7 @@ class PopupModifyHarvest{
 		}else if (source.container && source.container==='#hierachy-tree-harvest-struct') {
 			reqUrl="/networkmap/query-children-recursively/crawl";
 		}else{
-			this.modify(dataset, option);
+			this.modify_directly(dataset, option);
 			return;
 		}
 
@@ -620,6 +620,15 @@ class PopupModifyHarvest{
 		});
 	}
 
+	modify_directly(dataset, option){
+        for (var i = 0; i < dataset.length; i++) {
+            dataset[i].option=option;
+            dataset[i].flag='new';
+        }
+        this._moveHarvest2ToBeModifiedList(dataset);
+    }
+
+    //To expect only be used by import prune or import recrawl
 	modify(dataset, option){
 		var map={};
 		for (var i = 0; i < dataset.length; i++) {
@@ -1065,5 +1074,41 @@ class PopupModifyHarvest{
 		});
 
 		reader.readAsDataURL(toBeUploadedNodes[idx].uploadFile);
+	}
+
+	bulkPrune(searchCondition, flag){
+	    if(!searchCondition || !flag){
+            console.log('Invalid input, searchCondition='+searchCondition+', flag='+flag);
+            return;
+        }
+
+        var popupModifyHarvestInstance=this;
+        var url="/networkmap/search/urls?job=" + this.jobId + "&harvestResultNumber=" + this.harvestResultNumber;
+        if (flag==='inspect') {
+            currentMainTab = 'candidate-query';
+            $('#btn-group-main-tabs label[name="candidate-query"]').trigger('click');
+        }
+
+        disablePatchHarvestButton();
+        var popupModifyHarvestInstance=this;
+        fetchHttp(url, searchCondition, function(response){
+            if (!response || response.rspCode != 0) {
+                enablePatchHarvestButton();
+                toastr.error(response.rspMsg);
+                return;
+            }
+
+            var dataset=JSON.parse(response.payload);
+
+            for (var i = 0; i < dataset.length; i++) {
+                dataset[i].option=flag;
+                dataset[i].flag='new';
+                dataset[i].index=i;
+            }
+
+            popupModifyHarvestInstance._moveHarvest2ToBeModifiedList(dataset);
+
+            enablePatchHarvestButton();
+        });
 	}
 }
