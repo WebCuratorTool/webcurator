@@ -13,6 +13,7 @@ import org.webcurator.rest.common.Utils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Handlers for the groups endpoint
@@ -84,7 +85,7 @@ public class Groups {
         // The TargetDao API only supports offsets that are a multiple of limit
         int pageNumber = offset / limit;
 
-        Pagination pagination = targetDAO.searchGroups(pageNumber, limit, filter.groupId, filter.name,
+        Pagination pagination = targetDAO.searchGroups(pageNumber, limit, filter.groupId, filter.name, filter.states,
                 filter.userId, filter.agency, filter.memberOf, filter.type, filter.nonDisplayOnly);
         List<HashMap<String, Object>> groups = new ArrayList<>();
         for (TargetGroup g : (List<TargetGroup>) pagination.getList()) {
@@ -94,7 +95,7 @@ public class Groups {
             group.put("type", g.getType());
             group.put("agency", g.getOwningUser().getAgency().getName());
             group.put("owner", g.getOwningUser().getUsername());
-            group.put("status", g.getState());
+            group.put("state", g.getState());
             groups.add(group);
         }
         return new SearchResult(pagination.getTotal(), groups);
@@ -149,6 +150,7 @@ public class Groups {
         private String memberOf;
         private String type;
         private boolean nonDisplayOnly;
+        private Set<Integer> states;
 
         public String getName() {
             return name;
@@ -204,6 +206,14 @@ public class Groups {
 
         public void setType(String type) {
             this.type = type;
+        }
+
+        public Set<Integer> getStates() {
+            return states;
+        }
+
+        public void setStates(Set<Integer> states) {
+            this.states = states;
         }
     }
 
