@@ -472,7 +472,15 @@ public class TargetDAO extends BaseDAO {
         );
     }
 
-    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name, final String owner, final String agency, final String memberOf, final String groupType, final boolean nondisplayonly) {
+    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name,
+                                   final String owner, final String agency, final String memberOf, final String groupType,
+                                   final boolean nondisplayonly) {
+        return searchGroups(pageNumber, pageSize, searchOid, name, null, owner, agency, memberOf, groupType, nondisplayonly);
+    }
+
+    public Pagination searchGroups(final int pageNumber, final int pageSize, final Long searchOid, final String name,
+                                   final Set<Integer> states, final String owner, final String agency, final String memberOf,
+                                   final String groupType, final boolean nondisplayonly) {
         return (Pagination) getHibernateTemplate().execute(
                 new HibernateCallback() {
                     public Object doInHibernate(Session session) {
@@ -485,6 +493,15 @@ public class TargetDAO extends BaseDAO {
                         if (name != null && !"".equals(name.trim())) {
                             query.add(Restrictions.ilike("name", name, MatchMode.START));
                             cntQuery.add(Restrictions.ilike("name", name, MatchMode.START));
+                        }
+
+                        if (states != null && states.size() > 0) {
+                            Disjunction stateDisjunction = Restrictions.disjunction();
+                            for (Integer i : states) {
+                                stateDisjunction.add(Restrictions.eq("state", i));
+                            }
+                            query.add(stateDisjunction);
+                            cntQuery.add(stateDisjunction);
                         }
 
                         if (!Utils.isEmpty(owner)) {
