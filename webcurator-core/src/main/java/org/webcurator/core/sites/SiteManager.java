@@ -175,7 +175,7 @@ public class SiteManager {
                 }
             }
 
-            if (p.hasChangedState() && p.getStatus() == Permission.STATUS_DENIED) {
+            if (p.hasChangedState() && p.getStatus() == Permission.STATUS_REJECTED) {
                 intrayManager.deleteTask(p.getOid(), p.getResourceType(), MessageType.TASK_SEEK_PERMISSON);
 
                 List<UserDTO> users = agencyUserManager.getUserDTOsByTargetPrivilege(p.getOid());

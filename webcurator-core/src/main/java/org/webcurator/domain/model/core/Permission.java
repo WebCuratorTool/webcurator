@@ -71,7 +71,7 @@ public class Permission extends AbstractIdentityObject implements Annotatable, A
     /**
      * Status constant for a permission that has been denied by the agency.
      */
-    public static int STATUS_DENIED = 3;
+    public static int STATUS_REJECTED = 3;
 
     /**
      * Status constant for a permission that is approved for a period in the future.
