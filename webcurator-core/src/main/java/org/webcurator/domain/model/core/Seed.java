@@ -184,7 +184,7 @@ public class Seed extends AbstractIdentityObject {
 
         for (Permission p : permissions) {
             if (p.containsTime(dt)) {
-                if (p.getStatus() == Permission.STATUS_DENIED) {
+                if (p.getStatus() == Permission.STATUS_REJECTED) {
                     return false;
                 } else if (p.getStatus() == Permission.STATUS_APPROVED) {
                     approved = true;
