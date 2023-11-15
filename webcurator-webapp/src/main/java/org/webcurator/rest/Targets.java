@@ -129,7 +129,7 @@ public class Targets {
         switch (section) {
             case "access":
                 return ResponseEntity.ok().body(targetDTO.getAccess());
-            case "annotation":
+            case "annotations":
                 return ResponseEntity.ok().body(targetDTO.getAnnotations());
             case "description":
                 return ResponseEntity.ok().body(targetDTO.getDescription());
