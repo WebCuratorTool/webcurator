@@ -72,6 +72,17 @@ public class Targets {
     @Autowired
     private BusinessObjectFactory businessObjectFactory;
 
+    private Map<Integer, String> stateMap = new TreeMap<>();
+
+    public Targets() {
+        stateMap.put(Target.STATE_PENDING, "Pending");
+        stateMap.put(Target.STATE_REINSTATED, "Reinstated");
+        stateMap.put(Target.STATE_NOMINATED, "Nominated");
+        stateMap.put(Target.STATE_REJECTED, "Rejected");
+        stateMap.put(Target.STATE_APPROVED, "Approved");
+        stateMap.put(Target.STATE_CANCELLED, "Cancelled");
+        stateMap.put(Target.STATE_COMPLETED, "Completed");
+    }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
@@ -244,15 +255,7 @@ public class Targets {
      */
     @GetMapping(path = "/states")
     public ResponseEntity getStates() {
-        Map<Integer, String> states = new TreeMap<>();
-        states.put(Target.STATE_PENDING, "Pending");
-        states.put(Target.STATE_REINSTATED, "Reinstated");
-        states.put(Target.STATE_NOMINATED, "Nominated");
-        states.put(Target.STATE_REJECTED, "Rejected");
-        states.put(Target.STATE_APPROVED, "Approved");
-        states.put(Target.STATE_CANCELLED, "Cancelled");
-        states.put(Target.STATE_COMPLETED, "Completed");
-        return ResponseEntity.ok().body(states);
+        return ResponseEntity.ok().body(stateMap);
     }
 
     /**
