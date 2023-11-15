@@ -10,10 +10,7 @@ import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Handlers for the groups endpoint
@@ -30,6 +27,14 @@ public class Groups {
 
     @Autowired
     TargetDAO targetDAO;
+
+    private Map<Integer, String> stateMap = new TreeMap();
+
+    public Groups() {
+        stateMap.put(TargetGroup.STATE_PENDING, "Pending");
+        stateMap.put(TargetGroup.STATE_ACTIVE, "Active");
+        stateMap.put(TargetGroup.STATE_INACTIVE, "Inactive");
+    }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
@@ -60,6 +65,14 @@ public class Groups {
         } catch (BadRequestError e) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         }
+    }
+
+    /**
+     * Returns an overview of all possible group states
+     */
+    @GetMapping(path = "/states")
+    public ResponseEntity getStates() {
+        return ResponseEntity.ok().body(stateMap);
     }
 
 
