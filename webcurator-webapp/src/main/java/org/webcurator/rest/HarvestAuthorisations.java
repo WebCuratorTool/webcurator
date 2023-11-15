@@ -36,6 +36,15 @@ public class HarvestAuthorisations {
     @Autowired
     SiteDAO siteDAO;
 
+    private Map<Integer, String> stateMap = new TreeMap<>();
+
+    public HarvestAuthorisations() {
+        stateMap.put(Permission.STATUS_PENDING, "Pending");
+        stateMap.put(Permission.STATUS_REQUESTED, "Requested");
+        stateMap.put(Permission.STATUS_APPROVED, "Approved");
+        stateMap.put(Permission.STATUS_REJECTED, "Rejected");
+    }
+
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
@@ -72,6 +81,13 @@ public class HarvestAuthorisations {
         }
     }
 
+    /**
+     * Returns an overview of all possible group states
+     */
+    @GetMapping(path = "/states")
+    public ResponseEntity getStates() {
+        return ResponseEntity.ok().body(stateMap);
+    }
 
     /**
      * Handle the actual search using the old DAO API

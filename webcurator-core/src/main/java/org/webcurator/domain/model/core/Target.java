@@ -208,7 +208,7 @@ public class Target extends AbstractTarget implements Optimizable {
     			Iterator<Permission> permIt = s.getPermissions().iterator();
     			while(permIt.hasNext() && approvable) {
     				Permission p = permIt.next();
-    				if(p.getStatus() == Permission.STATUS_DENIED) {
+    				if(p.getStatus() == Permission.STATUS_REJECTED) {
     					approvable = false;
     				}
     			}
