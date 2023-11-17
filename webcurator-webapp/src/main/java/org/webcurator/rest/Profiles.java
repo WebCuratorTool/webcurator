@@ -55,9 +55,9 @@ public class Profiles {
         List<HashMap<String, Object>>profiles = new ArrayList<>();
         List<ProfileDTO> result;
         if (filter.agency != null) {
-            result = profileDAO.getAgencyNameDTOs(filter.agency, filter.showInactive, filter.profileType);
+            result = profileDAO.getAgencyNameDTOs(filter.agency, !filter.showOnlyActive, filter.profileType);
         } else {
-            result = profileDAO.getDTOs(filter.showInactive, filter.profileType);
+            result = profileDAO.getDTOs(!filter.showOnlyActive, filter.profileType);
         }
         for (ProfileDTO p : result) {
             HashMap<String, Object> profile = new HashMap<>();
@@ -97,16 +97,16 @@ public class Profiles {
      * Wrapper for the search filter
      */
     private static class Filter {
-        private boolean showInactive;
+        private boolean showOnlyActive = true;
         private String agency;
         private String profileType;
 
-        public boolean isShowInactive() {
-            return showInactive;
+        public boolean isShowOnlyActive() {
+            return showOnlyActive;
         }
 
-        public void setShowInactive(boolean showInactive) {
-            this.showInactive = showInactive;
+        public void setShowOnlyActive(boolean showOnlyActive) {
+            this.showOnlyActive = showOnlyActive;
         }
 
         public String getAgency() {
