@@ -57,6 +57,14 @@ import javax.persistence.*;
 				query = "SELECT new org.webcurator.domain.model.dto.ProfileDTO(p.oid, p.name, p.description, p.status, p.requiredLevel, p.owningAgency, p.defaultProfile, p.origOid, p.harvesterType, p.dataLimitUnit, p.maxFileSizeUnit, p.timeLimitUnit, p.imported, p.profile) FROM Profile p WHERE p.owningAgency.oid = :agencyOid AND p.status = 1 order by p.owningAgency, upper(p.name)"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.Profile.getActiveAgencyDTOsByType",
 				query = "SELECT new org.webcurator.domain.model.dto.ProfileDTO(p.oid, p.name, p.description, p.status, p.requiredLevel, p.owningAgency, p.defaultProfile, p.origOid, p.harvesterType, p.dataLimitUnit, p.maxFileSizeUnit, p.timeLimitUnit, p.imported, p.profile) FROM Profile p WHERE p.owningAgency.oid = :agencyOid AND p.status = 1 AND p.harvesterType = :harvesterType order by p.owningAgency, upper(p.name)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.Profile.getAgencyNameDTOs",
+				query = "SELECT new org.webcurator.domain.model.dto.ProfileDTO(p.oid, p.name, p.description, p.status, p.requiredLevel, p.owningAgency, p.defaultProfile, p.origOid, p.harvesterType, p.dataLimitUnit, p.maxFileSizeUnit, p.timeLimitUnit, p.imported, p.profile) FROM Profile p WHERE p.owningAgency.name = :agencyName order by p.owningAgency, upper(p.name)"),
+			@NamedQuery(name = "org.webcurator.domain.model.core.Profile.getAgencyNameDTOsByType",
+				query = "SELECT new org.webcurator.domain.model.dto.ProfileDTO(p.oid, p.name, p.description, p.status, p.requiredLevel, p.owningAgency, p.defaultProfile, p.origOid, p.harvesterType, p.dataLimitUnit, p.maxFileSizeUnit, p.timeLimitUnit, p.imported, p.profile) FROM Profile p WHERE p.owningAgency.name = :agencyName AND p.harvesterType = :harvesterType order by p.owningAgency, upper(p.name)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.Profile.getActiveAgencyNameDTOs",
+				query = "SELECT new org.webcurator.domain.model.dto.ProfileDTO(p.oid, p.name, p.description, p.status, p.requiredLevel, p.owningAgency, p.defaultProfile, p.origOid, p.harvesterType, p.dataLimitUnit, p.maxFileSizeUnit, p.timeLimitUnit, p.imported, p.profile) FROM Profile p WHERE p.owningAgency.name = :agencyName AND p.status = 1 order by p.owningAgency, upper(p.name)"),
+		@NamedQuery(name = "org.webcurator.domain.model.core.Profile.getActiveAgencyNameDTOsByType",
+				query = "SELECT new org.webcurator.domain.model.dto.ProfileDTO(p.oid, p.name, p.description, p.status, p.requiredLevel, p.owningAgency, p.defaultProfile, p.origOid, p.harvesterType, p.dataLimitUnit, p.maxFileSizeUnit, p.timeLimitUnit, p.imported, p.profile) FROM Profile p WHERE p.owningAgency.name = :agencyName AND p.status = 1 AND p.harvesterType = :harvesterType order by p.owningAgency, upper(p.name)"),
 		@NamedQuery(name = "org.webcurator.domain.model.core.Profile.getLockedDTO",
 				query = "SELECT new org.webcurator.domain.model.dto.ProfileDTO(p.oid, p.name, p.description, p.status, p.requiredLevel, p.owningAgency, p.defaultProfile, p.origOid, p.harvesterType, p.dataLimitUnit, p.maxFileSizeUnit, p.timeLimitUnit, p.imported, p.profile) FROM Profile p WHERE p.origOid = :origOid and p.version = :version")
 })
@@ -84,6 +92,18 @@ public class Profile implements AgencyOwnable {
 
 	/** Constant for named query to retrieve all active DTOs for a specified agency and harvester type. */
 	public static final String QRY_GET_ACTIVE_AGENCY_DTOS_BY_TYPE = "org.webcurator.domain.model.core.Profile.getActiveAgencyDTOsByType";
+
+	/** Constant for named query to retrieve all DTOs for a specified agency (by name). */
+	public static final String QRY_GET_AGENCY_NAME_DTOS = "org.webcurator.domain.model.core.Profile.getAgencyNameDTOs";
+
+	/** Constant for named query to retrieve all DTOs for a specified agency (by name). */
+	public static final String QRY_GET_AGENCY_NAME_DTOS_BY_TYPE = "org.webcurator.domain.model.core.Profile.getAgencyNameDTOsByType";
+
+	/** Constant for named query to retrieve all active DTOs for a specified agency (by name). */
+	public static final String QRY_GET_ACTIVE_AGENCY_NAME_DTOS = "org.webcurator.domain.model.core.Profile.getActiveAgencyNameDTOs";
+
+	/** Constant for named query to retrieve all active DTOs for a specified agency (by name) and harvester type. */
+	public static final String QRY_GET_ACTIVE_AGENCY_NAME_DTOS_BY_TYPE = "org.webcurator.domain.model.core.Profile.getActiveAgencyNameDTOsByType";
 
 	public static final String QRY_GET_AVAIL_DTOS = "org.webcurator.domain.model.core.Profile.getAvailableProfileDTOs";
 	

@@ -143,6 +143,38 @@ public class ProfileDAO extends BaseDAO {
 								.list());
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<ProfileDTO> getAgencyNameDTOs(String agencyName, boolean showInactive, String type) {
+		if(showInactive) {
+		    if (StringUtils.isEmpty(type)) {
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_AGENCY_NAME_DTOS)
+							.setParameter("agencyName", agencyName)
+							.list());
+			} else {
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_AGENCY_NAME_DTOS_BY_TYPE)
+								.setParameter("agencyName", agencyName)
+								.setParameter("harvesterType", type)
+								.list());
+			}
+		}
+		else {
+		    if (StringUtils.isEmpty(type)) {
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_ACTIVE_AGENCY_NAME_DTOS)
+								.setParameter("agencyName", agencyName)
+								.list());
+			} else {
+				return getHibernateTemplate().execute(session ->
+						session.getNamedQuery(Profile.QRY_GET_ACTIVE_AGENCY_NAME_DTOS_BY_TYPE)
+								.setParameter("agencyName", agencyName)
+								.setParameter("harvesterType", type)
+								.list());
+			}
+		}
 	}		
 	
 	@SuppressWarnings("unchecked")

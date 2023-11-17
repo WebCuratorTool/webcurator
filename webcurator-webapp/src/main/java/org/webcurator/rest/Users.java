@@ -99,7 +99,6 @@ public class Users {
 
     /**
      * Wraps search result data: a count of the total number of hits and a list of users
-     * for the current result page
      */
     private class SearchResult {
         public long amount;
