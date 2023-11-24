@@ -55,9 +55,9 @@ public class Profiles {
         List<HashMap<String, Object>>profiles = new ArrayList<>();
         List<ProfileDTO> result;
         if (filter.agency != null) {
-            result = profileDAO.getAgencyNameDTOs(filter.agency, !filter.showOnlyActive, filter.profileType);
+            result = profileDAO.getAgencyNameDTOs(filter.agency, !filter.showOnlyActive, filter.type);
         } else {
-            result = profileDAO.getDTOs(!filter.showOnlyActive, filter.profileType);
+            result = profileDAO.getDTOs(!filter.showOnlyActive, filter.type);
         }
         for (ProfileDTO p : result) {
             HashMap<String, Object> profile = new HashMap<>();
@@ -66,7 +66,7 @@ public class Profiles {
             profile.put("default", p.isDefaultProfile());
             profile.put("description", p.getDescription());
             profile.put("type", p.getHarvesterType());
-            profile.put("status", p.getStatus());
+            profile.put("state", p.getStatus());
             profile.put("agency", p.getOwningAgency().getName());
             profiles.add(profile);
         }
@@ -99,7 +99,7 @@ public class Profiles {
     private static class Filter {
         private boolean showOnlyActive = true;
         private String agency;
-        private String profileType;
+        private String type;
 
         public boolean isShowOnlyActive() {
             return showOnlyActive;
@@ -117,12 +117,12 @@ public class Profiles {
             this.agency = agency;
         }
 
-        public String getProfileType() {
-            return profileType;
+        public String getType() {
+            return type;
         }
 
-        public void setProfileType(String profileType) {
-            this.profileType = profileType;
+        public void setType(String type) {
+            this.type = type;
         }
     }
 
