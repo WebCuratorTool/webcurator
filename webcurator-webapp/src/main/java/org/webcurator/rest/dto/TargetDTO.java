@@ -1,8 +1,6 @@
 package org.webcurator.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.webcurator.domain.model.core.*;
 
 import javax.validation.Valid;

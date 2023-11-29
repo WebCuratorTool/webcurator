@@ -9,14 +9,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.webcurator.domain.FlagDAO;
-import org.webcurator.domain.Pagination;
-import org.webcurator.domain.TargetInstanceCriteria;
-import org.webcurator.domain.TargetInstanceDAO;
+import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.util.WctUtils;
+import org.webcurator.domain.*;
 import org.webcurator.domain.model.core.Flag;
+import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
+import org.webcurator.rest.dto.TargetInstanceDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validation;
@@ -49,11 +50,18 @@ public class TargetInstances {
     private TargetInstanceDAO targetInstanceDAO;
 
     @Autowired
+    private AnnotationDAO annotationDAO;
+
+    @Autowired
     private FlagDAO flagDAO;
 
-    private Map<Integer, String> stateMap;
+    @Autowired
+    private HarvestLogManager harvestLogManager;
 
-    public TargetInstances() {
+    // The back end uses Strings, but the API should use numerical state values, so we need this look-up table
+    public static Map<Integer, String> stateMap;
+
+    static {
         stateMap = new TreeMap<>();
         stateMap.put(1, TargetInstance.STATE_SCHEDULED);
         stateMap.put(2, TargetInstance.STATE_QUEUED);
@@ -65,6 +73,9 @@ public class TargetInstances {
         stateMap.put(8, TargetInstance.STATE_REJECTED);
         stateMap.put(9, TargetInstance.STATE_ARCHIVED);
         stateMap.put(10, TargetInstance.STATE_ARCHIVING);
+    }
+
+    public TargetInstances() {
     }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -105,12 +116,60 @@ public class TargetInstances {
     }
 
     /**
-     * GET handler for individual targets instances and target instances sections
+     * GET handler for individual target instances and target instances sections
      */
     @GetMapping(path = {"/{id}", "/{id}/{section}"})
     public ResponseEntity<?> get(@PathVariable long id, @PathVariable(required = false) String section) {
-        // FIXME implement
-        return ResponseEntity.badRequest().body(Utils.errorMessage("Not implemented yet"));
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        // Annotations are managed differently from normal associated entities
+        targetInstance.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
+
+        TargetInstanceDTO targetInstanceDTO = new TargetInstanceDTO(targetInstance);
+
+        // Information about logs is retrieved via a separate log manager component
+        List<LogFilePropertiesDTO> logsProperties;
+        try {
+            logsProperties = harvestLogManager.listLogFileAttributes(targetInstance);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(
+                                            String.format("Error getting log file info from store or agent, message: %s",
+                                                          e.getMessage())));
+        }
+        List<TargetInstanceDTO.Log> logs = new ArrayList<>();
+        for (LogFilePropertiesDTO l : logsProperties) {
+            TargetInstanceDTO.Log log = new TargetInstanceDTO.Log();
+            log.setLogFile(l.getName());
+            log.setLocation(l.getPath());
+            log.setSize(l.getLengthString());
+            logs.add(log);
+        }
+        targetInstanceDTO.setLogs(logs);
+
+        if (section == null) {
+            // Return the entire target
+            return ResponseEntity.ok().body(targetInstanceDTO);
+        }
+        switch (section) {
+            case "annotations":
+                return ResponseEntity.ok().body(targetInstanceDTO.getAnnotations());
+            case "display":
+                return ResponseEntity.ok().body(targetInstanceDTO.getDisplay());
+            case "general":
+                return ResponseEntity.ok().body(targetInstanceDTO.getGeneral());
+            case "harvest-results":
+                return ResponseEntity.ok().body(targetInstanceDTO.getHarvestResults());
+            case "harvest-state":
+                return ResponseEntity.ok().body(targetInstanceDTO.getHarvestState());
+            case "logs":
+                return ResponseEntity.ok().body(targetInstanceDTO.getLogs());
+            case "profile":
+                return ResponseEntity.ok().body(targetInstanceDTO.getProfile());
+            default:
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
+        }
     }
 
     /**
@@ -261,15 +320,15 @@ public class TargetInstances {
         }
         targetInstanceSummary.put("runTime", runTime);
         targetInstanceSummary.put("dataDownloaded", dataDownloaded);
-        targetInstanceSummary.put("amountUrls", amountUrls); // FIXME the spec says "URLs" instead of "Urls"
-        targetInstanceSummary.put("percentageFailed", percentageFailed); // FIXME spec says "pFailed"
+        targetInstanceSummary.put("amountUrls", amountUrls);
+        targetInstanceSummary.put("percentageFailed", percentageFailed);
         targetInstanceSummary.put("amountCrawls", t.getTarget().getCrawls());
         targetInstanceSummary.put("qaRecommendation", t.getRecommendation());
         Long flagId = null;
         if (t.getFlag() != null) {
             flagId = t.getFlag().getOid();
         }
-        targetInstanceSummary.put("flagId", flagId); // FIXME the spec says "flag"
+        targetInstanceSummary.put("flagId", flagId);
         return targetInstanceSummary;
     }
 
