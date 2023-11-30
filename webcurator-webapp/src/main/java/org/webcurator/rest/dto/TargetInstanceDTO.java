@@ -34,14 +34,18 @@ public class TargetInstanceDTO {
         this();
         general = new General(targetInstance);
         profile = new Profile(targetInstance);
-        harvestState = new HarvestState(targetInstance);
+        if (targetInstance.getStatus() != null) {
+            harvestState = new HarvestState(targetInstance);
+        }
         harvestResults = new ArrayList<>();
         for (org.webcurator.domain.model.core.HarvestResult r : targetInstance.getHarvestResults()) {
             HarvestResult harvestResult = new HarvestResult();
             harvestResult.setId(r.getOid());
             harvestResult.setNumber(r.getHarvestNumber());
             harvestResult.setCreationDate(r.getCreationDate());
-            harvestResult.setDerivedFrom(r.getDerivedFrom());
+            if (r.getDerivedFrom() != 0) { // derivedFrom is actually null if this getter returns 0
+                harvestResult.setDerivedFrom(r.getDerivedFrom());
+            }
             harvestResult.setOwner(r.getOwningUser().getUsername());
             harvestResult.setNote(r.getProvenanceNote());
             harvestResult.setState(r.getState());
@@ -469,17 +473,20 @@ public class TargetInstanceDTO {
         public HarvestState() {}
 
         public HarvestState(TargetInstance targetInstance) {
-            wctVersion = targetInstance.getStatus().getApplicationVersion();
-            captureSystem = targetInstance.getStatus().getHeritrixVersion();
             harvestServer = targetInstance.getHarvestServer();
-            job = targetInstance.getStatus().getJobName();
-            status = targetInstance.getStatus().getStatus();
-            averageKbsPerSecond = targetInstance.getStatus().getAverageKBs();
-            averageUrisPerSecond = targetInstance.getStatus().getAverageURIs();
-            urlsDownloaded = targetInstance.getStatus().getUrlsDownloaded();
-            urlsFailed = targetInstance.getStatus().getUrlsFailed();
-            dataDownloaded = targetInstance.getStatus().getDataDownloadedString();
-            elapsedTime = targetInstance.getStatus().getElapsedTimeString();
+            HarvesterStatus harvesterStatus = targetInstance.getStatus();
+            if (harvesterStatus != null) {
+                wctVersion = harvesterStatus.getApplicationVersion();
+                captureSystem = harvesterStatus.getHeritrixVersion();
+                job = harvesterStatus.getJobName();
+                status = harvesterStatus.getStatus();
+                averageKbsPerSecond = harvesterStatus.getAverageKBs();
+                averageUrisPerSecond = harvesterStatus.getAverageURIs();
+                urlsDownloaded = harvesterStatus.getUrlsDownloaded();
+                urlsFailed = harvesterStatus.getUrlsFailed();
+                dataDownloaded = harvesterStatus.getDataDownloadedString();
+                elapsedTime = harvesterStatus.getElapsedTimeString();
+            }
         }
 
         public String getWctVersion() {
