@@ -17,7 +17,7 @@ import org.webcurator.domain.model.core.HarvestResultDTO;
 
 public class Indexer {
     private static Log log = LogFactory.getLog(Indexer.class);
-	private static final Map<String, Map<Long, RunnableIndex>> runningIndexes = new HashMap<String, Map<Long, RunnableIndex>>();
+    private static final Map<String, Map<Long, RunnableIndex>> runningIndexes = new HashMap<String, Map<Long, RunnableIndex>>();
     public static final Object lock = new Object();
 
     public static void addRunningIndex(RunnableIndex indexer, Long harvestResultOid) {
@@ -188,17 +188,18 @@ public class Indexer {
             int hrnum = Integer.parseInt(cl.getArg("hrnum"));
 
 
-            File dir = new File(cl.getArg("baseDir"));
+            File baseDir = new File(cl.getArg("baseDir"));
 
-            if (host == null || dir == null) {
+            if (host == null || baseDir == null) {
                 if (host == null) System.out.println("Host must be specified");
-                if (dir == null) System.out.println("Directory must be specified");
+                if (baseDir == null) System.out.println("Directory must be specified");
                 syntax();
             }
-            if (!dir.exists()) {
+            if (!baseDir.exists()) {
                 System.out.println("Directory does not exist");
                 syntax();
             }
+            File dir = new File(baseDir, targetInstanceOid + "/" + hrnum);
 
             HarvestResultDTO dto = new HarvestResultDTO();
             dto.setTargetInstanceOid(targetInstanceOid);
@@ -209,10 +210,17 @@ public class Indexer {
             String baseUrl = String.format("http://%s:%d", host, port);
 
             Indexer indexer = new Indexer(true);
-            WCTIndexer wctIndexer = new WCTIndexer(baseUrl, new RestTemplateBuilder());
-            wctIndexer.setDoCreate(true);
+            WaybackIndexer waybackIndexer = new WaybackIndexer(baseUrl, new RestTemplateBuilder());
+            waybackIndexer.setEnabled(true);
+            waybackIndexer.setWaittime(1000);
+            waybackIndexer.setTimeout(3000);
+            waybackIndexer.setUseSymLinks(false);
+            waybackIndexer.setWaybackInputFolder("/usr/local/wct/pywb/archive");
+            waybackIndexer.setWaybackMergedFolder("/usr/local/wct/pywb");
+            waybackIndexer.setWaybackFailedFolder("/usr/local/wct/pywb");
+
             List<RunnableIndex> indexers = new ArrayList<RunnableIndex>();
-            indexers.add(wctIndexer);
+            indexers.add(waybackIndexer);
             indexer.setIndexers(indexers);
             indexer.runIndex(dto, dir);
         } catch (Exception ex) {
