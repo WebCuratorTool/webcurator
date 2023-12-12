@@ -9,13 +9,15 @@
             <p class="me-1 text-muted">Name*</p>
             <input :value="editedGeneral.name" @input="event => editedGeneral.name = event.target.value" />
         </div>
-        <div class="d-flex justify-content-between w-25">
+        <div class="d-flex justify-content-between w-25 mt-1">
             <p class="me-1 text-muted">Owner</p>
             <input :value="editedGeneral.owner" @input="event => editedGeneral.owner = event.target.value" />
         </div>
     </div>
-    <button @click="onSave">Save</button>
-    <button @click="onCancel">Cancel</button>
+    <div class="button-box">
+        <button class="button-black" @click="onSave">Save</button>
+        <button class="button-white" @click="onCancel">Cancel</button>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -42,3 +44,12 @@ const onSave = () => {
     emit('on-edit', '')
 }
 </script>
+
+<style>
+.button-box{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    width: 140px;
+}
+</style>

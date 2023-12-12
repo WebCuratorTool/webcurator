@@ -1,7 +1,7 @@
 <template>
-    <div class="d-flex">
-        <input :value="searchTerms.targetId" @input="event => searchTerms.targetId = event.target.value" />
-        <button @click="onSearch">Search</button>
+    <div class="d-flex mb-4">
+        <input class="w-100" :value="searchTerms.targetId" @input="event => searchTerms.targetId = event.target.value" />
+        <button class="button-black ms-2" @click="onSearch">Search</button>
     </div>
 </template>
 

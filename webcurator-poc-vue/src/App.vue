@@ -36,7 +36,7 @@ header {
   max-height: 100vh;
 }
 
-table, tr, td{
+table, tr, td {
   border: 0;
   margin: 0;
   padding: 0;
@@ -66,4 +66,5 @@ nav a.router-link-exact-active:hover {
   background: #2D6EA9;
   color: #E3EBF3;
 }
+
 </style>

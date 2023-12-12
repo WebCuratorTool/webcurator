@@ -1,7 +1,7 @@
 <template>
     <div class="d-flex justify-content-between">
         <p class="heading">References</p>
-        <button @click="onEdit">Edit</button>
+        <button class="edit-button" @click="onEdit">Edit</button>
     </div>
     <div class="d-flex justify-content-between w-50">
         <div class="d-flex justify-content-between w-25">
@@ -51,6 +51,12 @@ const onEdit = () => {
 </script>
 
 <style>
+    .edit-button {
+        all: unset;
+        text-decoration: underline;
+        font-size: medium;
+    }
+
     .heading {
         font-weight: bold;
         font-size: medium;
