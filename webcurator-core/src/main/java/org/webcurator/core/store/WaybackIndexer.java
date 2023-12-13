@@ -16,11 +16,11 @@ import java.util.List;
 public class WaybackIndexer extends IndexerBase {
 
     //Static variables
-    private static Logger log = LoggerFactory.getLogger(WaybackIndexer.class);
+    private final static Logger log = LoggerFactory.getLogger(WaybackIndexer.class);
+    private final static String extensionRegex = "((\\.arc)|(\\.arc.gz)|(\\.warc)|(\\.warc.gz))$";
 
-    public static enum FileStatus {INITIAL, COPIED, INDEXED, REMOVED, FAILED}
+    public enum FileStatus {INITIAL, COPIED, INDEXED, REMOVED, FAILED}
 
-    ;
 
     //Passed in variables
     private HarvestResultDTO result;
@@ -36,10 +36,10 @@ public class WaybackIndexer extends IndexerBase {
     private boolean enabled = false;
 
     //Internal variables
-    private List<MonitoredFile> indexFiles = new ArrayList<MonitoredFile>();
+    private final List<MonitoredFile> indexFiles = new ArrayList<>();
     private boolean allIndexed = false;
 
-    public WaybackIndexer(){
+    public WaybackIndexer() {
         super();
     }
 
@@ -51,6 +51,7 @@ public class WaybackIndexer extends IndexerBase {
         super(original);
         waybackInputFolder = original.waybackInputFolder;
         waybackMergedFolder = original.waybackMergedFolder;
+        waybackFailedFolder = original.waybackFailedFolder;
         waittime = original.waittime;
         timeout = original.timeout;
         useSymLinks = original.useSymLinks;
@@ -80,18 +81,36 @@ public class WaybackIndexer extends IndexerBase {
 
     @Override
     public void indexFiles(Long harvestResultOid) {
+        long tiId = getResult().getTargetInstanceOid();
+
         //Copy the Archive files to the Wayback input folder
         log.info("Generating indexes for " + getResult().getTargetInstanceOid());
         boolean failed = false;
         allIndexed = false;
-        if (indexFiles.size() <= 0) {
-            log.error("Could not find any archive files in directory: " + directory.getAbsolutePath());
+        log.trace("{}, in directory {}, indexFiles.size={}", tiId, this.directory, indexFiles.size());
+        if (indexFiles.isEmpty()) {
+            log.error("Could not find any archive files in directory: " + this.directory);
         } else {
+            log.trace("{}, going to copy files.", tiId);
             for (MonitoredFile f : indexFiles) {
+                log.trace("{}, going to copy file: {} {}", tiId, f.theFile, f.status.name());
                 if (f.getStatus() == FileStatus.INITIAL) {
+                    log.trace("{}, the file {} is going to be copied: {}", tiId, f.theFile, f.status.name());
                     f.copyToInput();
+                    log.trace("{}, copied the file: {} {}", tiId, f.theFile, f.status.name());
                 }
             }
+        }
+
+        log.trace("{}, inspecting file copying result: {} -> {}", tiId, this.directory, this.waybackInputFolder);
+        File[] originalFileList = this.directory.listFiles(new ARCFilter());
+        if (originalFileList == null) {
+            log.error("{}, Nothing found in directory: {}", tiId, this.directory);
+            return;
+        }
+        for (File f : originalFileList) {
+            File fInWaybackInputDirectory = new File(this.waybackInputFolder, getVersionedName(f.getName(), result.getHarvestNumber()));
+            log.trace("{}, file copying result: {} -> {}, exists={}", tiId, f, fInWaybackInputDirectory, fInWaybackInputDirectory.exists());
         }
 
         MonitoredFile lastFileNotIndexed = null;
@@ -212,6 +231,16 @@ public class WaybackIndexer extends IndexerBase {
         }
     }
 
+    public static String getVersionedName(String fileName, int hrNum) {
+        String[] splitName = fileName.split(extensionRegex);
+        if (splitName.length > 0) {
+            String extension = fileName.substring(splitName[0].length());
+            return splitName[0] + ".ver" + hrNum + extension;
+        } else {
+            return fileName;
+        }
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -224,11 +253,11 @@ public class WaybackIndexer extends IndexerBase {
     protected class MonitoredFile {
         private File theFile;
         private FileStatus status = FileStatus.INITIAL;
-        private final String extensionRegex = "((\\.arc)|(\\.arc.gz)|(\\.warc)|(\\.warc.gz))$";
 
         protected MonitoredFile(File theFile) {
             this.theFile = theFile;
             checkStatus(); //set the initial status
+            log.trace("Created monitored file: {}, status: {}", this.theFile, this.status);
         }
 
         protected FileStatus getStatus() {
@@ -241,37 +270,43 @@ public class WaybackIndexer extends IndexerBase {
 
         protected String getVersionedName() {
             String fileName = theFile.getName();
-            String[] splitName = fileName.split(extensionRegex);
-            if (splitName.length > 0) {
-                String extension = fileName.substring(splitName[0].length(), fileName.length());
-                return splitName[0] + ".ver" + result.getHarvestNumber() + extension;
-            } else {
-                return fileName;
-            }
+            int hrNum = result.getHarvestNumber();
+            return WaybackIndexer.getVersionedName(fileName, hrNum);
         }
+
 
         protected String getPath() {
             return theFile.getPath();
         }
 
         protected void copyToInput() {
+            long tiId = getResult().getTargetInstanceOid();
             File inputFile = new File(waybackInputFolder + "/" + getVersionedName());
+            log.trace("inputFile:{}", inputFile.getAbsolutePath());
             try {
-                File directory = inputFile.getParentFile();
-                if (!directory.exists()) {
-                    directory.mkdirs();
+                File parentDirectory = inputFile.getParentFile();
+                if (!parentDirectory.exists()) {
+                    boolean ret = directory.mkdirs();
+                    log.info("{}, tried to make the directory: {} {}", tiId, parentDirectory, ret);
                 }
+                log.trace("{}, useSymLinks={}", tiId, useSymLinks);
                 if (!useSymLinks) {
+                    log.trace("{}, try to copy file: {} -> {}", tiId, theFile, inputFile);
                     copyFile(theFile, inputFile);
                 } else {
                     // Create symbolic link instead of copy
                     Path target = Paths.get(theFile.getAbsolutePath());
                     Path link = Paths.get(inputFile.getAbsolutePath());
+                    log.trace("{}, tried to make link: {} -> {}", tiId, link, target);
                     Files.createSymbolicLink(link, target);
                 }
-                status = FileStatus.COPIED;
+                this.status = FileStatus.COPIED;
             } catch (IOException e) {
                 log.error("Unable to copy: " + theFile.getAbsolutePath() + " to: " + inputFile.getAbsolutePath(), e);
+            } catch (Throwable e) {
+                log.error("{}, failed to copy file: {} -> {}", tiId, theFile, inputFile, e);
+            } finally {
+                log.trace("{}, copied file: {} -> {}, status: {}", tiId, theFile, inputFile, this.status);
             }
         }
 
@@ -301,10 +336,10 @@ public class WaybackIndexer extends IndexerBase {
         }
 
         private void copyFile(File source, File destination) throws IOException {
-            log.debug("Copy file: {} --> {}", source.getAbsolutePath(), destination.getAbsolutePath());
+            log.debug("Copy file: {} -> {}", source.getAbsolutePath(), destination.getAbsolutePath());
 
-            InputStream is = new BufferedInputStream(new FileInputStream(source));
-            OutputStream os = new BufferedOutputStream(new FileOutputStream(destination));
+            InputStream is = new BufferedInputStream(Files.newInputStream(source.toPath()));
+            OutputStream os = new BufferedOutputStream(Files.newOutputStream(destination.toPath()));
 
             WctUtils.copy(is, os);
         }
