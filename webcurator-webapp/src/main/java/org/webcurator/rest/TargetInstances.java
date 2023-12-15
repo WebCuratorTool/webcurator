@@ -10,11 +10,11 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
+import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
-import org.webcurator.domain.model.core.Flag;
-import org.webcurator.domain.model.core.LogFilePropertiesDTO;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.domain.model.auth.User;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetInstanceDTO;
@@ -50,6 +50,9 @@ public class TargetInstances {
     private TargetInstanceDAO targetInstanceDAO;
 
     @Autowired
+    private UserRoleDAO userRoleDAO;
+
+    @Autowired
     private AnnotationDAO annotationDAO;
 
     @Autowired
@@ -57,6 +60,9 @@ public class TargetInstances {
 
     @Autowired
     private HarvestLogManager harvestLogManager;
+
+    @Autowired
+    private TargetInstanceManager targetInstanceManager;
 
     // The back end uses Strings, but the API should use numerical state values, so we need this look-up table
     public static Map<Integer, String> stateMap;
@@ -185,9 +191,85 @@ public class TargetInstances {
      * Handler for updating individual target instances
      */
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
-        // FIXME implement
-        return ResponseEntity.badRequest().body(Utils.errorMessage("Not implemented yet"));
+    public ResponseEntity<?> put(@PathVariable long id, @RequestBody TargetInstanceDTO targetInstanceDTO, HttpServletRequest request) {
+
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target instance with id %s does not exist", id)));
+        }
+
+        // Annotations are managed differently from normal associated entities
+        targetInstance.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
+
+        if (targetInstanceDTO.getGeneral() != null) {
+            String owner = targetInstanceDTO.getGeneral().getOwner();
+            Long flagId = targetInstanceDTO.getGeneral().getFlagId();
+           if (owner != null) {
+               targetInstance.setOwner(userRoleDAO.getUserByName(owner));
+           }
+           if (flagId != null) {
+               targetInstance.setFlag(flagDAO.getFlagByOid(flagId));
+           }
+        }
+
+        if (targetInstanceDTO.getHarvestResults() != null) {
+            for (TargetInstanceDTO.HarvestResult h : targetInstanceDTO.getHarvestResults()) {
+                if (h.getNumber() == null) {
+                    return ResponseEntity.badRequest().body(Utils.errorMessage(
+                                                            "Missing required attribute harvestResult.number"));
+                }
+                HarvestResult harvestResult = targetInstance.getHarvestResult(h.getNumber());
+                if (h.getState() == HarvestResult.STATE_ENDORSED || h.getState() == HarvestResult.STATE_REJECTED) {
+                    harvestResult.setState(h.getState());
+                } else {
+                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("State may only be %d or %d",
+                                                        HarvestResult.STATE_ENDORSED, HarvestResult.STATE_REJECTED)));
+                }
+            }
+        }
+
+        if (targetInstanceDTO.getAnnotations() != null) {
+            targetInstance.getDeletedAnnotations().addAll( // Make sure existing annotations are removed
+                        annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()),
+                                                    targetInstance.getOid()));
+            for (TargetInstanceDTO.Annotation a : targetInstanceDTO.getAnnotations()) {
+                Annotation annotation = new Annotation();
+                annotation.setDate(a.getDate());
+                annotation.setNote(a.getNote());
+                String userName = a.getUser();
+                User user = userRoleDAO.getUserByName(userName);
+                if (user == null) {
+                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Unknown user %s", userName)));
+                }
+                annotation.setUser(user);
+                annotation.setAlertable(a.getAlert());
+                annotation.setObjectType(TargetInstance.class.getName());
+                annotation.setObjectOid(targetInstance.getOid());
+                targetInstance.addAnnotation(annotation);
+            }
+        }
+
+        if (targetInstanceDTO.getDisplay() != null) {
+            Boolean displayTargetInstance = targetInstanceDTO.getDisplay().getDisplayTargetInstance();
+            String displayChangeReason = targetInstanceDTO.getDisplay().getDisplayChangeReason();
+            String displayNote = targetInstanceDTO.getDisplay().getDisplayNote();
+            if (displayTargetInstance != null) {
+                targetInstance.setDisplay(displayTargetInstance);
+            }
+            if (displayChangeReason != null) {
+                targetInstance.setDisplayChangeReason(displayChangeReason);
+            }
+            if (displayNote != null) {
+                targetInstance.setDisplayNote(displayNote);
+            }
+        }
+
+        try {
+            targetInstanceManager.save(targetInstance);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+        }
     }
 
     /**
