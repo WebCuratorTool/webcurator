@@ -14,7 +14,11 @@
 
 post_target_file_template=post-target-template.json
 put_target_file=put-target.json
+put_target_instance_file=put-target-instance.json
 . ./credentials
+
+post_target_file="/tmp/post-target-file-$RANDOM.json"
+put_target_instance_revert_file="/tmp/put-target-instance-revert-file-$RANDOM.json"
 
 echo "Getting token"
 echo "curl http://localhost:8080/wct/auth/v1/token -d'username=$user&password=****'"
@@ -51,7 +55,6 @@ then
 fi
 
 # Replace placeholders with values we've just found
-post_target_file="/tmp/post-target-file-$RANDOM.json"
 date=`date -Iseconds`
 cat $post_target_file_template | sed s/\$username/$first_user_name/g \
 					| sed s/\$groupId/$first_group_id/g \
@@ -88,7 +91,27 @@ echo "Cleaning up target $id"
 echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id" 
 curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id
 
+echo "Getting target instances"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/" 
+first_target_instance_id=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/ | jq '.targetInstances[0].id'`
+
+echo "Getting target instance with id $first_target_id"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id > $put_target_instance_revert_file
+
+echo "Updating target instance with id $first_target_instance_id"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_file"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_file
+
+echo "Getting updated target instance"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id | jq .
+
+echo "Reverting changes to target instance $first_target_instance_id"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_revert_file"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_revert_file
+
 echo "Cleaning up temp files"
-rm $post_target_file
+rm $post_target_file $put_target_instance_revert_file
 echo "Done"
 exit 0

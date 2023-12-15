@@ -6,7 +6,7 @@ import org.webcurator.rest.TargetInstances;
 import java.util.*;
 
 /**
- * This class is used for mapping between the Target entity and the JSON representation of a target instance in the API.
+ * This class is used for mapping between the TargetInstance entity and the JSON representation of a target instance in the API.
  */
 public class TargetInstanceDTO {
 
@@ -128,7 +128,7 @@ public class TargetInstanceDTO {
         String owner;
         String agency;
         Integer state;
-        Boolean automatedQA = false;
+        Boolean automatedQA = null;
         Integer bandwidthPercentage;
         Long flagId;
 
@@ -720,6 +720,8 @@ public class TargetInstanceDTO {
         Boolean displayTargetInstance;
         String displayChangeReason;
         String displayNote;
+
+        public Display() {}
 
         public Display(TargetInstance targetInstance) {
             displayTargetInstance = targetInstance.getDisplay();
