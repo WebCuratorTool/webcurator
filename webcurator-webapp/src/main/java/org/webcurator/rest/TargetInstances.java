@@ -368,6 +368,7 @@ public class TargetInstances {
             }
         }
         targetInstanceCriteria.setFlag(flag);
+        targetInstanceCriteria.setTargetSearchOid(filter.targetId);
         targetInstanceCriteria.setSortorder(magicSortStringForDao);
         Pagination pagination = targetInstanceDAO.search(targetInstanceCriteria, pageNumber, limit);
         List<HashMap<String, Object>> targetInstanceSummaries = new ArrayList<>();
@@ -503,6 +504,7 @@ public class TargetInstances {
         private Set<Integer> states;
         private Set<String> qaRecommendations; // FIXME the spec says these are supposed to be numbers
         private Long flagId;
+        private Long targetId;
 
         public Long getTargetInstanceId() {
             return targetInstanceId;
@@ -582,6 +584,14 @@ public class TargetInstances {
 
         public void setFlagId(Long flagId) {
             this.flagId = flagId;
+        }
+
+        public Long getTargetId() {
+            return targetId;
+        }
+
+        public void setTargetId(Long targetId) {
+            this.targetId = targetId;
         }
     }
 
