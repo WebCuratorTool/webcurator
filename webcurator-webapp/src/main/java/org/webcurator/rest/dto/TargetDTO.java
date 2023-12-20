@@ -252,6 +252,7 @@ public class TargetDTO {
 
     public static class Scheduling {
 
+        Boolean harvestNow;
         Boolean harvestOptimization;
         @Valid
         List<Schedule> schedules = new ArrayList<>();
@@ -260,6 +261,7 @@ public class TargetDTO {
         }
 
         public Scheduling(Target target) {
+            harvestNow = target.isHarvestNow();
             harvestOptimization = target.isAllowOptimize();
             for (org.webcurator.domain.model.core.Schedule s : target.getSchedules()) {
                 Schedule schedule = new Schedule();
@@ -274,6 +276,14 @@ public class TargetDTO {
                 schedule.setOwner(s.getOwningUser().getUsername());
                 schedules.add(schedule);
             }
+        }
+
+        public Boolean getHarvestNow() {
+            return harvestNow;
+        }
+
+        public void setHarvestNow(Boolean harvestNow) {
+            this.harvestNow = harvestNow;
         }
 
         public Boolean getHarvestOptimization() {

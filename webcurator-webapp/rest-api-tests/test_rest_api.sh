@@ -6,7 +6,8 @@
 # Requirements:
 #
 # 1) jq version 1.6 or newer
-# 2) make sure there's a file called "credentials" in your working directory, containing the 
+# 2) GNU coreutils
+# 3) make sure there's a file called "credentials" in your working directory, containing the 
 #    following lines:
 #    user=<your WCT username>
 #    password=<your WCT password>
@@ -87,29 +88,39 @@ echo "Getting updated target"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id" 
 curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id | jq .  
 
-echo "Cleaning up target $id"
-echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id" 
-curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id
+echo "Creating target instance for target $id"
+data="{\"general\": {\"state\":5}, \"schedule\": {\"harvestNow\": true, \"schedules\": []}}"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id -d '$data'"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id -d "$data"
 
-echo "Getting target instances"
-echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/" 
-first_target_instance_id=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/ | jq '.targetInstances[0].id'`
+# Get target name (once we can get target instances by target, we can drop this bit)
+target_name=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id | jq -r '.general.name'` 
 
-echo "Getting target instance with id $first_target_id"
-echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id" 
-curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id > $put_target_instance_revert_file
+echo "Getting target instance for target $id"
+echo "curl -XGET -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/ -d'{\"filter\": {\"name\" : \"$target_name\"}}'" 
+target_instance_id=`curl -XGET -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/ -d"{\"filter\": {\"name\" : \"$target_name\"}}" | jq '.targetInstances[0].id'`
 
-echo "Updating target instance with id $first_target_instance_id"
-echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_file"
-curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_file
+echo "Getting target instance with id $target_instance_id"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id > $put_target_instance_revert_file
+
+echo "Updating target instance with id $target_instance_id"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id -d @$put_target_instance_file"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id -d @$put_target_instance_file
 
 echo "Getting updated target instance"
-echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id" 
-curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id | jq .
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id | jq .
 
-echo "Reverting changes to target instance $first_target_instance_id"
-echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_revert_file"
-curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$first_target_instance_id -d @$put_target_instance_revert_file
+# Delete it, once we have an API call for that
+echo "Reverting changes to target instance $target_instance_id"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id -d @$put_target_instance_revert_file"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id -d @$put_target_instance_revert_file
+
+# This will fail until we're able to delete target instances
+echo "Cleaning up target $id"
+echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id" 
+#curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id
 
 echo "Cleaning up temp files"
 rm $post_target_file $put_target_instance_revert_file
