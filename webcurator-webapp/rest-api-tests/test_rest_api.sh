@@ -93,12 +93,9 @@ data="{\"general\": {\"state\":5}, \"schedule\": {\"harvestNow\": true, \"schedu
 echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id -d '$data'"
 curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id -d "$data"
 
-# Get target name (once we can get target instances by target, we can drop this bit)
-target_name=`curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id | jq -r '.general.name'` 
-
 echo "Getting target instance for target $id"
-echo "curl -XGET -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/ -d'{\"filter\": {\"name\" : \"$target_name\"}}'" 
-target_instance_id=`curl -XGET -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/ -d"{\"filter\": {\"name\" : \"$target_name\"}}" | jq '.targetInstances[0].id'`
+echo "curl -XGET -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/ -d'{\"filter\": {\"targetId\" : \"$id\"}}'" 
+target_instance_id=`curl -XGET -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/ -d"{\"filter\": {\"targetId\" : \"$id\"}}" | jq '.targetInstances[0].id'`
 
 echo "Getting target instance with id $target_instance_id"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id" 
