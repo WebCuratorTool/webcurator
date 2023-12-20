@@ -303,7 +303,12 @@ public class Targets {
 
         if (targetDTO.getSchedule() != null) {
             Set<Schedule> schedules = new HashSet<>();
-            target.setAllowOptimize(targetDTO.getSchedule().getHarvestOptimization());
+            if (targetDTO.getSchedule().getHarvestOptimization() != null) {
+                target.setAllowOptimize(targetDTO.getSchedule().getHarvestOptimization());
+            }
+            if (targetDTO.getSchedule().getHarvestNow() != null) {
+                target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
+            }
             for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
                 String cronExpression = s.getCron();
