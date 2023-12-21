@@ -21,12 +21,9 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
+import org.hibernate.*;
 import org.hibernate.criterion.*;
 import org.hibernate.query.Query;
-import org.hibernate.Session;
 import org.springframework.orm.hibernate5.HibernateCallback;
 import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.transaction.TransactionStatus;
@@ -222,7 +219,13 @@ public class TargetInstanceDAO extends HibernateDaoSupport {
 
 
     public TargetInstance load(final long targetInstanceOid) {
-        return (TargetInstance) getHibernateTemplate().load(TargetInstance.class, targetInstanceOid);
+        try {
+            TargetInstance t = (TargetInstance) getHibernateTemplate().load(TargetInstance.class, targetInstanceOid);
+            t.getState(); // Workaround for bug in HibernateTemplate: its load method does not throw an exception, but returns a defunct entity
+            return t;
+        } catch (LazyInitializationException e) {
+            return null;
+        }
     }
 
 
