@@ -183,8 +183,25 @@ public class TargetInstances {
      */
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> delete(@PathVariable long id) {
-        // FIXME implement
-        return ResponseEntity.badRequest().body(Utils.errorMessage("Not implemented yet"));
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            // TODO Rejected target instances typically have resources on disk, so those should be deleted as well
+            if (targetInstance.getState().equals(TargetInstance.STATE_ABORTED) || targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)
+                                                     || targetInstance.getState().equals(TargetInstance.STATE_REJECTED)) {
+                targetInstance.setTarget(null); // tell Hibernate not to delete the target (yeah, it looks sus)
+                targetInstanceDAO.delete(targetInstance);
+                annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
+            } else {
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target instance could not be deleted, because it is in state %s",
+                        targetInstance.getState())));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+        }
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -204,12 +221,12 @@ public class TargetInstances {
         if (targetInstanceDTO.getGeneral() != null) {
             String owner = targetInstanceDTO.getGeneral().getOwner();
             Long flagId = targetInstanceDTO.getGeneral().getFlagId();
-           if (owner != null) {
-               targetInstance.setOwner(userRoleDAO.getUserByName(owner));
-           }
-           if (flagId != null) {
-               targetInstance.setFlag(flagDAO.getFlagByOid(flagId));
-           }
+            if (owner != null) {
+                targetInstance.setOwner(userRoleDAO.getUserByName(owner));
+            }
+            if (flagId != null) {
+                targetInstance.setFlag(flagDAO.getFlagByOid(flagId));
+            }
         }
 
         if (targetInstanceDTO.getHarvestResults() != null) {
@@ -279,7 +296,6 @@ public class TargetInstances {
     public ResponseEntity getStates() {
         return ResponseEntity.ok().body(stateMap);
     }
-
 
 
     /**
@@ -396,10 +412,10 @@ public class TargetInstances {
         Long amountUrls = null;
         Float percentageFailed = null;
         if (t.getStatus() != null) {
-           runTime = t.getStatus().getElapsedTimeString();
-           dataDownloaded = t.getStatus().getDataDownloadedString();
-           amountUrls = t.getStatus().getUrlsSucceeded();
-           percentageFailed = t.getStatus().getPercentageUrlsFailed();
+            runTime = t.getStatus().getElapsedTimeString();
+            dataDownloaded = t.getStatus().getDataDownloadedString();
+            amountUrls = t.getStatus().getUrlsSucceeded();
+            percentageFailed = t.getStatus().getPercentageUrlsFailed();
         }
         targetInstanceSummary.put("runTime", runTime);
         targetInstanceSummary.put("dataDownloaded", dataDownloaded);

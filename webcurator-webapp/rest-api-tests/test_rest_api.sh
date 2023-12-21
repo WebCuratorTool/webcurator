@@ -19,7 +19,19 @@ put_target_instance_file=put-target-instance.json
 . ./credentials
 
 post_target_file="/tmp/post-target-file-$RANDOM.json"
-put_target_instance_revert_file="/tmp/put-target-instance-revert-file-$RANDOM.json"
+
+
+
+delete_target() {
+	echo "Setting state to 4 for target $target_id, so we can delete it"
+	data="{\"general\": {\"state\":4}}"
+	echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id -d \"$data\""
+	curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id -d "$data"
+
+	echo "Cleaning up target $target_id"
+	echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id" 
+	curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id
+}
 
 echo "Getting token"
 echo "curl http://localhost:8080/wct/auth/v1/token -d'username=$user&password=****'"
@@ -67,39 +79,48 @@ cat $post_target_file_template | sed s/\$username/$first_user_name/g \
 
 echo "Posting target example"
 echo "curl -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/ -d @$post_target_file"
-id=`curl -v -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/ -d @$post_target_file 2>&1 | grep "Location:" | tr -d '\r' | sed 's/.*\/\([0-9]\+\)$/\1/'`
+target_id=`curl -v -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/ -d @$post_target_file 2>&1 | grep "Location:" | tr -d '\r' | sed 's/.*\/\([0-9]\+\)$/\1/'`
 
-if [ -z $id ]
+if [ -z $target_id ]
 then
 	echo "POST of $post_target_file failed"
 	exit 1
 fi
 
-echo "POST succeeded: there's a new target with id $id"
-echo "Getting newly created target with id $id"
-echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id" 
-curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id | jq .  
+echo "POST succeeded: there's a new target with id $target_id"
+echo "Getting newly created target with id $target_id"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id | jq .  
 
-echo "Updating target with id $id"
-echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id -d @$put_target_file"
-curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id -d @$put_target_file
+echo "Updating target with id $target_id"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id -d @$put_target_file"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id -d @$put_target_file
 
 echo "Getting updated target"
-echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id" 
-curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id | jq .  
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id | jq .  
 
-echo "Creating target instance for target $id"
+echo "Creating target instance for target $target_id"
 data="{\"general\": {\"state\":5}, \"schedule\": {\"harvestNow\": true, \"schedules\": []}}"
-echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id -d '$data'"
-curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id -d "$data"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id -d '$data'"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id -d "$data"
 
-echo "Getting target instance for target $id"
-echo "curl -XGET -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/ -d'{\"filter\": {\"targetId\" : \"$id\"}}'" 
-target_instance_id=`curl -XGET -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/ -d"{\"filter\": {\"targetId\" : \"$id\"}}" | jq '.targetInstances[0].id'`
+echo "Finding target instance for target $target_id"
+echo "curl -XGET -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/ -d'{\"filter\": {\"targetId\" : \"$target_id\"}}'" 
+target_instance_id=`curl -XGET -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/ -d"{\"filter\": {\"targetId\" : \"$target_id\"}}" | jq '.targetInstances[0].id'`
+
+if [ "$target_instance_id" == "null" ]
+then
+	echo "Warning: did not find any target instances for target $target_id"
+	delete_target
+	exit 1
+else
+	echo "Found target instance $target_instance_id"
+fi
 
 echo "Getting target instance with id $target_instance_id"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id" 
-curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id > $put_target_instance_revert_file
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id | jq .
 
 echo "Updating target instance with id $target_instance_id"
 echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id -d @$put_target_instance_file"
@@ -109,17 +130,13 @@ echo "Getting updated target instance"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id" 
 curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id | jq .
 
-# Delete it, once we have an API call for that
-echo "Reverting changes to target instance $target_instance_id"
-echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id -d @$put_target_instance_revert_file"
-curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id -d @$put_target_instance_revert_file
+echo "Cleaning up target instance $target_instance_id"
+echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id" 
+curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id 
 
-# This will fail until we're able to delete target instances
-echo "Cleaning up target $id"
-echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$id" 
-#curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$id
+delete_target
 
 echo "Cleaning up temp files"
-rm $post_target_file $put_target_instance_revert_file
+rm $post_target_file 
 echo "Done"
 exit 0
