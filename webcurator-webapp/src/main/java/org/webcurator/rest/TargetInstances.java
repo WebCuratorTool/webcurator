@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.store.DigitalAssetStoreClient;
 import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
@@ -64,8 +65,13 @@ public class TargetInstances {
     @Autowired
     private TargetInstanceManager targetInstanceManager;
 
+    @Autowired
+    private DigitalAssetStoreClient digitalAssetStoreClient;
+
     // The back end uses Strings, but the API should use numerical state values, so we need this look-up table
     public static Map<Integer, String> stateMap;
+
+    public static Map<Integer, String> harvestResultStateMap;
 
     static {
         stateMap = new TreeMap<>();
@@ -79,6 +85,15 @@ public class TargetInstances {
         stateMap.put(8, TargetInstance.STATE_REJECTED);
         stateMap.put(9, TargetInstance.STATE_ARCHIVED);
         stateMap.put(10, TargetInstance.STATE_ARCHIVING);
+
+        harvestResultStateMap = new TreeMap<>();
+        harvestResultStateMap.put(HarvestResult.STATE_UNASSESSED, "Unassessed");
+        harvestResultStateMap.put(HarvestResult.STATE_ENDORSED, "Endorsed");
+        harvestResultStateMap.put(HarvestResult.STATE_REJECTED, "Rejected");
+        harvestResultStateMap.put(HarvestResult.STATE_INDEXING, "Indexing");
+        harvestResultStateMap.put(HarvestResult.STATE_ABORTED, "Aborted");
+        harvestResultStateMap.put(HarvestResult.STATE_CRAWLING, "Crawling");
+        harvestResultStateMap.put(HarvestResult.STATE_MODIFYING, "Modifying");
     }
 
     public TargetInstances() {
@@ -188,10 +203,19 @@ public class TargetInstances {
             return ResponseEntity.notFound().build();
         }
         try {
-            // TODO Rejected target instances typically have resources on disk, so those should be deleted as well
             if (targetInstance.getState().equals(TargetInstance.STATE_ABORTED) || targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)
                                                      || targetInstance.getState().equals(TargetInstance.STATE_REJECTED)) {
-                targetInstance.setTarget(null); // tell Hibernate not to delete the target (yeah, it looks sus)
+                if (targetInstance.getState().equals(TargetInstance.STATE_ABORTED) && !targetInstance.isPurged()) {
+                    // Aborted target instances are purged periodically by the system, we can only delete it if it has been purged
+                    return ResponseEntity.badRequest().body(
+                            Utils.errorMessage("Aborted target instance could not be deleted, because it has not been purged"));
+                } else if (targetInstance.getState().equals(TargetInstance.STATE_REJECTED)) {
+                    // Remove files from store
+                    //digitalAssetStoreClient.purge((List<String>)new ArrayList<String>(Arrays.asList(targetInstance.getJobName())));
+                    return ResponseEntity.badRequest().body(
+                            Utils.errorMessage("Currently, rejected target instances can not be deleted"));
+                }
+                targetInstance.setTarget(null); // make sure Hibernate does not delete the target
                 targetInstanceDAO.delete(targetInstance);
                 annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
             } else {
@@ -297,6 +321,13 @@ public class TargetInstances {
         return ResponseEntity.ok().body(stateMap);
     }
 
+    /**
+     * Returns an overview of all possible harvest result states
+     */
+    @GetMapping(path = "/harvest-result-states")
+    public ResponseEntity getHarvestResultStates() {
+        return ResponseEntity.ok().body(harvestResultStateMap);
+    }
 
     /**
      * Handler used by the validation API to generate error messages
