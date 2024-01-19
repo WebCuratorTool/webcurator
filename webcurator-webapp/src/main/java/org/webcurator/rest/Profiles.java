@@ -9,13 +9,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.webcurator.domain.ProfileDAO;
+import org.webcurator.domain.model.core.Profile;
 import org.webcurator.domain.model.dto.ProfileDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Handlers for the profiles endpoint
@@ -27,6 +26,14 @@ public class Profiles {
     @Autowired
     ProfileDAO profileDAO;
 
+    private static Map<Integer, String> states;
+
+    static {
+        states = new TreeMap<>();
+        states.put(Profile.STATUS_INACTIVE, "Inactive");
+        states.put(Profile.STATUS_ACTIVE, "Active");
+        states.put(Profile.STATUS_LOCKED, "Locked");
+    }
 
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
@@ -47,6 +54,10 @@ public class Profiles {
         }
     }
 
+    @GetMapping(path = "/states")
+    public ResponseEntity getStates() {
+        return ResponseEntity.ok().body(states);
+    }
 
     /**
      * Handle the actual search using the old DAO API
