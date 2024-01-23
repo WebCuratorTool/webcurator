@@ -100,8 +100,16 @@ public class FlagDAO extends HibernateDaoSupport {
 
     public List<Flag> getFlagsByAgencyOid(Long agencyOid) {
         List<Flag> results = getHibernateTemplate().execute(session ->
-                session.getNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY)
+                session.getNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY_OID)
                     .setParameter(1, agencyOid)
+                    .list());
+        return results;
+    }
+
+    public List<Flag> getFlagsByAgencyName(String agencyName) {
+        List<Flag> results = getHibernateTemplate().execute(session ->
+                session.getNamedQuery(Flag.QRY_GET_FLAGS_BY_AGENCY_NAME)
+                    .setParameter(1, agencyName)
                     .list());
         return results;
     }

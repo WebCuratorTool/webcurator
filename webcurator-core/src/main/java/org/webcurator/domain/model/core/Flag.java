@@ -1,6 +1,5 @@
 package org.webcurator.domain.model.core;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.webcurator.domain.model.auth.Agency;
 
 import javax.validation.constraints.NotNull;
@@ -18,8 +17,10 @@ import javax.persistence.*;
 @NamedQueries({
         @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlags",
                 query = "SELECT f FROM Flag f ORDER BY f_agc_oid, f.name"),
-        @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagsByAgency",
+        @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagsByAgencyOid",
                 query = "SELECT f FROM Flag f WHERE f.agency.oid=?1 ORDER BY f.name"),
+        @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagsByAgencyName",
+                query = "SELECT f FROM Flag f WHERE f.agency.name=?1 ORDER BY f.name"),
         @NamedQuery(name = "org.webcurator.domain.model.core.Flag.getFlagByOid",
                 query = "SELECT f FROM Flag f WHERE f_oid=?1")
 })
@@ -30,7 +31,9 @@ public class Flag {
 	/** Query key for retrieving a flag objects by oid*/
     public static final String QRY_GET_FLAG_BY_OID = "org.webcurator.domain.model.core.Flag.getFlagByOid";
 	/** Query key for retrieving reason objects by agency OID */
-    public static final String QRY_GET_FLAGS_BY_AGENCY = "org.webcurator.domain.model.core.Flag.getFlagsByAgency";
+    public static final String QRY_GET_FLAGS_BY_AGENCY_OID = "org.webcurator.domain.model.core.Flag.getFlagsByAgencyOid";
+    /** Query key for retrieving reason objects by agency name */
+    public static final String QRY_GET_FLAGS_BY_AGENCY_NAME = "org.webcurator.domain.model.core.Flag.getFlagsByAgencyName";
 
 	/** unique identifier **/
     @Id
