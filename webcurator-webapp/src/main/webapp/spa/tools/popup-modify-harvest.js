@@ -435,7 +435,7 @@ class HierarchyTree{
 		var filterFunc = tree.filterNodes; //tree.filterBranches
 		var option={
 				autoApply: false,   // Re-apply last filter if lazy data is loaded
-				autoExpand: true, // Expand all branches that contain matches while filtered
+				autoExpand: false, // Expand all branches that contain matches while filtered
 				counter: true,     // Show a badge with number of matching child nodes near parent icons
 				fuzzy: false,      // Match single characters in order, e.g. 'fb' will match 'FooBar'
 				hideExpandedCounter: true,  // Hide counter badge if parent is expanded
