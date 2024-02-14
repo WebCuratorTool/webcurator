@@ -378,8 +378,9 @@ class HierarchyTree{
 	}
 
 	getSelectedNodes(){
+		var treeView=$.ui.fancytree.getTree(this.container);
 		var selData=[];
-		var selNodes = $.ui.fancytree.getTree(this.container).getSelectedNodes();
+		var selNodes = treeView.getSelectedNodes();
 		// var map={};
 		for(var i=0; i<selNodes.length; i++){
 			var treeNode=selNodes[i];
@@ -557,13 +558,13 @@ class PopupModifyHarvest{
 		});
 
 		//Set class for tree view
-		$('.hierachy-tree td').removeClass("tree-row-delete");
-		$('.hierachy-tree td').removeClass("tree-row-recrawl");
-		$('.hierachy-tree td').removeClass("tree-row-file");
+		$('.hierachy-tree tr').removeClass("tree-row-delete");
+		$('.hierachy-tree tr').removeClass("tree-row-recrawl");
+		$('.hierachy-tree tr').removeClass("tree-row-file");
 		for(var key in toBeModifiedDataMap){
 			var classOfTreeRow=this.getTreeNodeStyle(toBeModifiedDataMap[key].option);
 			// console.log('.hierachy-tree tr[idx="' + key + '"] td' + classOfTreeRow);
-			$('.hierachy-tree tr[idx="' + key + '"] td').addClass(classOfTreeRow);
+			$('.hierachy-tree tr[idx="' + key + '"]').addClass(classOfTreeRow);
 		}
 
 		//Set class for grid candidate
