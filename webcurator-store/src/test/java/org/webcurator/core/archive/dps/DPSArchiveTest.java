@@ -64,6 +64,8 @@ public class DPSArchiveTest {
         String customFormUrl_eManuscript = "/some/nice/url/eManuscript";
         String customFormUrl_Blog = "/some/nice/url/blog";
         String customFormUrls = customFormUrl_eJournal + ", " + customFormUrl_eManuscript + ", " + customFormUrl_Blog;
+        String customFormSubmitUrls = customFormUrls;
+
         DPSArchive archiver;
         CustomDepositFormResultDTO result;
         CustomDepositFormCriteriaDTO criteria;
@@ -73,6 +75,7 @@ public class DPSArchiveTest {
         // Expect true for the isCustomDepositFormRequired(), a proper value for the URL of custom form.
         archiver = new DPSArchive();
         archiver.setCustomDepositFormURLsForHtmlSerialIngest(customFormUrls);
+        archiver.setCustomDepositFormSubmitURLsForHtmlSerialIngest(customFormSubmitUrls);
         archiver.setTargetDCTypesOfHtmlSerials("HTML Serial Type 1 - eJournals, HTML Serial Type 2 - Manuscripts , HTML Serial Type 3 - Blogs    ");
         archiver.setAgenciesResponsibleForHtmlSerials("   Electronic Journals   ,  Electronic Serials     ");
         criteria = new CustomDepositFormCriteriaDTO();
@@ -89,6 +92,7 @@ public class DPSArchiveTest {
         // Expect true for the isCustomDepositFormRequired(), and "invalid dc type JSP" for the URL of custom form.
         archiver = new DPSArchive();
         archiver.setCustomDepositFormURLsForHtmlSerialIngest(customFormUrls);
+        archiver.setCustomDepositFormSubmitURLsForHtmlSerialIngest(customFormSubmitUrls);
         archiver.setTargetDCTypesOfHtmlSerials("HTML Serial Type 1 - eJournals, HTML Serial Type 2 - Manuscripts , HTML Serial Type 3 - Blogs    ");
         archiver.setAgenciesResponsibleForHtmlSerials("   Electronic Journals   ,  Electronic Serials     ");
         archiver.setRestrictHTMLSerialAgenciesToHTMLSerialTypes("true");
@@ -106,6 +110,7 @@ public class DPSArchiveTest {
         // Expect true for the isCustomDepositFormRequired(), a proper value for the URL of custom form.
         archiver = new DPSArchive();
         archiver.setCustomDepositFormURLsForHtmlSerialIngest(customFormUrls);
+        archiver.setCustomDepositFormSubmitURLsForHtmlSerialIngest(customFormSubmitUrls);
         archiver.setTargetDCTypesOfHtmlSerials("HTML Serial Type 1 - eJournals, HTML Serial Type 2 - Manuscripts , HTML Serial Type 3 - Blogs    ");
         archiver.setAgenciesResponsibleForHtmlSerials("   Electronic Journals   ,  Electronic Serials     ");
         criteria = new CustomDepositFormCriteriaDTO();
@@ -121,6 +126,7 @@ public class DPSArchiveTest {
         // Expect false for the isCustomDepositFormRequired(), null for the URL and HTML of custom form.
         archiver = new DPSArchive();
         archiver.setCustomDepositFormURLsForHtmlSerialIngest(customFormUrls);
+        archiver.setCustomDepositFormSubmitURLsForHtmlSerialIngest(customFormSubmitUrls);
         archiver.setTargetDCTypesOfHtmlSerials("HTML Serial Type 1 - eJournals, HTML Serial Type 2 - Manuscripts , HTML Serial Type 3 - Blogs    ");
         archiver.setAgenciesResponsibleForHtmlSerials("   Electronic Journals   ,  Electronic Serials     ");
         criteria = new CustomDepositFormCriteriaDTO();
@@ -135,6 +141,7 @@ public class DPSArchiveTest {
         // Null criteria object
         archiver = new DPSArchive();
         archiver.setCustomDepositFormURLsForHtmlSerialIngest(customFormUrls);
+        archiver.setCustomDepositFormSubmitURLsForHtmlSerialIngest(customFormSubmitUrls);
         archiver.setTargetDCTypesOfHtmlSerials("HTML Serial Type 1 - eJournals, HTML Serial Type 2 - Manuscripts , HTML Serial Type 3 - Blogs    ");
         archiver.setAgenciesResponsibleForHtmlSerials("   Electronic Journals   ,  Electronic Serials     ");
         criteria = null;
