@@ -222,6 +222,9 @@ public class DasConfig {
     @Value("${dpsArchive.htmlSerials.customDepositFormURLs}")
     private String dpsArchiveHtmlSerialsCustomDepositFormURLs;
 
+    @Value("${dpsArchive.htmlSerials.customDepositFormSubmitURLs}")
+    private String dpsArchiveHtmlSerialsCustomDepositFormSubmitURLs;
+
     @Value("${dpsArchive.dnx_open_access}")
     private String dpsArchiveDnxOpenAccess;
 
@@ -525,6 +528,7 @@ public class DasConfig {
         bean.setProducerIdsOfHtmlSerials(dpsArchiveHtmlSerialsProducerIds);
         bean.setIeEntityTypesOfHtmlSerials(dpsArchiveHtmlSerialsIeEntityTypes);
         bean.setCustomDepositFormURLsForHtmlSerialIngest(dpsArchiveHtmlSerialsCustomDepositFormURLs);
+        bean.setCustomDepositFormSubmitURLsForHtmlSerialIngest(dpsArchiveHtmlSerialsCustomDepositFormSubmitURLs);
         bean.setCustomDepositFormMapping(customDepositFormFieldMappings());
         bean.setOmsOpenAccess(dpsArchiveDnxOpenAccess);
         bean.setOmsPublishedRestricted(dpsArchiveDnxPublishedRestricted);

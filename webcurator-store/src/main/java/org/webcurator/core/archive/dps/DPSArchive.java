@@ -132,6 +132,7 @@ public class DPSArchive extends BaseArchive {
     private List<String> producerIdsOfHtmlSerials = new ArrayList<String>();
     private List<String> ieEntityTypesOfHtmlSerials = new ArrayList<String>();
     private List<String> customDepositFormURLsForHtmlSerialIngest;
+    private List<String> customDepositFormSubmitURLsForHtmlSerialIngest;
     private boolean restrictHTMLSerialAgenciesToHTMLSerialTypes;
     //    private Map<String, Map<String, String>> customDepositFormFieldMaps = new HashMap<String, Map<String, String>>();
     private CustomDepositFormMapping customDepositFormMapping;
@@ -242,6 +243,9 @@ public class DPSArchive extends BaseArchive {
                 response.setCustomDepositFormRequired(true);
                 response.setUrlForCustomDepositForm("/customDepositForms/rosetta_custom_deposit_form_invalid_dctype.jsp");
             }
+        }
+        if (targetTypeIndex >= 0) {
+            response.setUrlForCustomDepositFormSubmit(customDepositFormSubmitURLsForHtmlSerialIngest.get(targetTypeIndex));
         }
         return response;
     }
@@ -600,6 +604,10 @@ public class DPSArchive extends BaseArchive {
 
     public void setCustomDepositFormURLsForHtmlSerialIngest(String customDepositFormURLsForHtmlSerialIngest) {
         this.customDepositFormURLsForHtmlSerialIngest = toList(customDepositFormURLsForHtmlSerialIngest);
+    }
+
+    public void setCustomDepositFormSubmitURLsForHtmlSerialIngest(String customDepositFormSubmitURLsForHtmlSerialIngest) {
+        this.customDepositFormSubmitURLsForHtmlSerialIngest = toList(customDepositFormSubmitURLsForHtmlSerialIngest);
     }
 
     /**

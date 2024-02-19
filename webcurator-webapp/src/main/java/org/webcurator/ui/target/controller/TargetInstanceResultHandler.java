@@ -365,12 +365,14 @@ public class TargetInstanceResultHandler extends TabHandler {
                 if (response != null && response.isCustomDepositFormRequired()) {
                     String customDepositFormHTMLContent = response.getHTMLForCustomDepositForm();
                     String customDepositFormURL = response.getUrlForCustomDepositForm();
+                    String customDepositFormSubmitURL = response.getUrlForCustomDepositFormSubmit();
 
                     // Will be needed to access the Rosetta interface
                     DigitalAssetStoreClient dasClient =(DigitalAssetStoreClient) getDASClient();
 
                     req.getSession().setAttribute("dasPort", Integer.toString(dasClient.getPort()));
                     req.getSession().setAttribute("dasHost", dasClient.getHost());
+                    req.getSession().setAttribute("customDepositFormSubmitURL",customDepositFormSubmitURL);
                     req.getSession().setAttribute("coreBaseUrl", getInTrayManager().getWctBaseUrl());
 
                     if (customDepositFormURL != null) {

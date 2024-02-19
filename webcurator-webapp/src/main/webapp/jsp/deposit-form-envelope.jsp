@@ -52,6 +52,7 @@ document.onkeypress = stopRKey;
 <input type="hidden" name="customDepositForm_targetDcType" value="<c:out value="${sessionTargetInstance.target.dublinCoreMetaData.type}"/>">
 <input id = "dasport" type="hidden" name="dasPort" value="<c:out value="${dasPort}"/>">
 <input id = "dashost" type="hidden" name="dasHost" value="<c:out value="${dasHost}"/>">
+<input id = "customDepositFormSubmitURL" type="hidden" name="customDepositFormSubmitURL" value="<c:out value="${customDepositFormSubmitURL}"/>">
 <input id = "coreBaseUrl" type="hidden" name="coreBaseUrl" value="<c:out value="${coreBaseUrl}"/>">
 
 <c:choose>
