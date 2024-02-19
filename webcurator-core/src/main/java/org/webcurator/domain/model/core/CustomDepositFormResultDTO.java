@@ -34,6 +34,12 @@ public class CustomDepositFormResultDTO {
 	 * fetched.
 	 */
 	private String urlForCustomDepositForm;
+
+	/**
+	 * The URL to where the custom form is to be submitted
+	 */
+	private String urlForCustomDepositFormSubmit;
+
 	/**
 	 * HTML contents of the custom deposit form.
 	 */
@@ -93,6 +99,15 @@ public class CustomDepositFormResultDTO {
 	public void setHTMLForCustomDepositForm(String htmlForCustomDepositForm) {
 		this.htmlForCustomDepositForm = htmlForCustomDepositForm;
 	}
+
+	public String getUrlForCustomDepositFormSubmit() {
+		return urlForCustomDepositFormSubmit;
+	}
+
+	public void setUrlForCustomDepositFormSubmit(String urlForCustomDepositFormSubmit) {
+		this.urlForCustomDepositFormSubmit = urlForCustomDepositFormSubmit;
+	}
+
 	public String getProducerId() {
 		return producerId;
 	}
