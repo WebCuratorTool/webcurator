@@ -420,9 +420,10 @@ function ajaxFunction_internal(requestParams, destinationDiv, asynchronousFlag) 
 	//policy will prevent the request if it is changed to use the configured values.
 	var serverPort = document.getElementById("dasport").value;
 	var serverHost = document.getElementById("dashost").value;
+	var customDepositFormSubmitURL = document.getElementById("customDepositFormSubmitURL").value;
 	var coreBaseUrl = document.getElementById("coreBaseUrl").value;
 
-	xmlhttp.open("POST", "http://" + serverHost + ":" + serverPort + "/digital-asset-store/rosettaInterface", asynchronousFlag);
+	xmlhttp.open("POST", customDepositFormSubmitURL + "/digital-asset-store/rosettaInterface", asynchronousFlag);
 	xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.setRequestHeader("Access-Control-Allow-Origin", coreBaseUrl);
     xmlhttp.setRequestHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");
