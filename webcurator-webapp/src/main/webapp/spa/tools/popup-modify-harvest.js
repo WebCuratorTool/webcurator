@@ -768,6 +768,10 @@ class PopupModifyHarvest{
 		// this.gridCandidate.gridOptions.api.updateRowData({ add: dataset});
 		this.gridCandidate.setRowData(dataset);
 
+		//Clear the filter
+		$('#menu-tool-bar input[name="candidate-query"]').val('');
+		this.gridCandidate.filter('');
+
 		this.setRowStyle();
 	}
 
