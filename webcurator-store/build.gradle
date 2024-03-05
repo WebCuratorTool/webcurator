@@ -34,7 +34,7 @@ dependencies {
     compile 'commons-httpclient:commons-httpclient:3.1'
     compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
     compile 'jaxen:jaxen:1.2.0'
-    compile('org.webcurator:webcurator-core:3.1.+') {
+    compile('org.webcurator:webcurator-core:4.0.+') {
         exclude group: 'org.archive', module: 'heritrix'
     }
     compile 'net.sf.ehcache:ehcache:2.10.6'
@@ -47,7 +47,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.4'
+version = '4.0.0-SNAPSHOT'
 description = 'Web Curator Tool Digital Asset Store'
 sourceCompatibility = '1.8'
 

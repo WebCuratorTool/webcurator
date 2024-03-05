@@ -203,18 +203,7 @@ public class TargetInstances {
             return ResponseEntity.notFound().build();
         }
         try {
-            if (targetInstance.getState().equals(TargetInstance.STATE_ABORTED) || targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)
-                                                     || targetInstance.getState().equals(TargetInstance.STATE_REJECTED)) {
-                if (targetInstance.getState().equals(TargetInstance.STATE_ABORTED) && !targetInstance.isPurged()) {
-                    // Aborted target instances are purged periodically by the system, we can only delete it if it has been purged
-                    return ResponseEntity.badRequest().body(
-                            Utils.errorMessage("Aborted target instance could not be deleted, because it has not been purged"));
-                } else if (targetInstance.getState().equals(TargetInstance.STATE_REJECTED)) {
-                    // Remove files from store
-                    //digitalAssetStoreClient.purge((List<String>)new ArrayList<String>(Arrays.asList(targetInstance.getJobName())));
-                    return ResponseEntity.badRequest().body(
-                            Utils.errorMessage("Currently, rejected target instances can not be deleted"));
-                }
+            if (targetInstance.getState().equals(TargetInstance.STATE_QUEUED) || targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)) {
                 targetInstance.setTarget(null); // make sure Hibernate does not delete the target
                 targetInstanceDAO.delete(targetInstance);
                 annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetInstance.getClass()), id));
