@@ -137,7 +137,7 @@ public class TargetInstances {
     }
 
     /**
-     * GET handler for individual target instances and target instances sections
+     * GET handler for individual target instances and target instance sections
      */
     @GetMapping(path = {"/{id}", "/{id}/{section}"})
     public ResponseEntity<?> get(@PathVariable long id, @PathVariable(required = false) String section) {
