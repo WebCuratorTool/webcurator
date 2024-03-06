@@ -128,6 +128,8 @@ public class TargetDTO {
         @NotBlank(message = "owner is required")
         String owner;
         @NotNull(message = "state is required")
+        @Min(value = 1, message = "invalid state: value should be between 1 and 7")
+        @Max(value = 7, message = "invalid state: value should be between 1 and 7")
         Integer state;
         @NotNull(message = "autoPrune is required")
         Boolean autoPrune = false;
