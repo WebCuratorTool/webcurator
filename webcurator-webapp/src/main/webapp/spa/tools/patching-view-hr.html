@@ -298,7 +298,12 @@ to get the desired effect
         updateCommandTable('#table-body-file-import', gridOptionsCommandImportByFile, data.listToBeImportedByFile);
     }
 
+    var nextAvailable=true;
     function fetchData(){
+        if(!nextAvailable){
+            return;
+        }
+        nextAvailable=false;
         var reqUrl=webContextPath+'/curator/target/patching-hr-view-data?targetInstanceOid='+jobId+'&harvestResultId='+harvestResultId+'&harvestNumber='+harvestResultNumber;
         fetch(reqUrl, { 
             method: 'GET',
@@ -316,6 +321,7 @@ to get the desired effect
                 $('.card').hide();
                 $('#hr-deleted-cover').show();
             }
+            nextAvailable=true;
         });
     }
 
@@ -338,7 +344,7 @@ to get the desired effect
 
         fetchData();
 
-        setInterval(fetchData, 3000);
+        //setInterval(fetchData, 5000);
     });
 </script>
 </body>
