@@ -229,13 +229,7 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return NetworkMapResult.getDBMissingErrorResult();
         }
         NetworkMapResult result = new NetworkMapResult();
-        List<NetworkMapNodeUrlEntity> urls = searchUrlDTOs(db, searchCommand, true);
-//        if (urls.size() > MAX_SEARCH_SIZE) {
-//            String warning = "Cannot display all URLs, please reduce the results using narrow search conditions.";
-//            log.warn(warning);
-//            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
-//            result.setRspMsg(warning);
-//        }
+        List<NetworkMapNodeUrlEntity> urls = searchUrlDTOs(db, searchCommand);
 
         String json = this.obj2Json(urls);
         urls.clear();
@@ -250,10 +244,10 @@ public class NetworkMapClientLocal implements NetworkMapClient {
             return null;
         }
 
-        return searchUrlDTOs(db, searchCommand, true);
+        return searchUrlDTOs(db, searchCommand);
     }
 
-    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(BDBRepoHolder db, NetworkMapServiceSearchCommand searchCommand, boolean allowBigDatasets) {
+    public List<NetworkMapNodeUrlEntity> searchUrlDTOs(BDBRepoHolder db, NetworkMapServiceSearchCommand searchCommand) {
         if (searchCommand == null) {
             searchCommand = new NetworkMapServiceSearchCommand();
         }
@@ -268,9 +262,6 @@ public class NetworkMapClientLocal implements NetworkMapClient {
                 continue;
             }
             urls.add(urlEntity);
-            if (!allowBigDatasets && urls.size() > MAX_SEARCH_SIZE) {
-                break;
-            }
         }
         cursor.close();
         long endTime = System.currentTimeMillis();
@@ -481,12 +472,6 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
 
         NetworkMapResult result = new NetworkMapResult();
-//        if (payload.size() > MAX_SEARCH_SIZE) {
-//            String warning = "Cannot modify all selected URLs, please reduce the results.";
-//            log.warn(warning);
-//            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
-//            result.setRspMsg(warning);
-//        }
 
         String json = this.obj2Json(payload);
         payload.forEach(NetworkMapNodeUrlEntity::clear);
@@ -545,13 +530,6 @@ public class NetworkMapClientLocal implements NetworkMapClient {
         }
 
         NetworkMapResult result = new NetworkMapResult();
-//        if (payload.size() > MAX_SEARCH_SIZE) {
-//            String warning = "Cannot modify all selected URLs, please reduce the results.";
-//
-//            log.warn(warning);
-//            result.setRspCode(NetworkMapResult.RSP_CODE_WARN);
-//            result.setRspMsg(warning);
-//        }
 
         String json = this.obj2Json(payload);
         payload.forEach(ModifyRowFullData::clear);
