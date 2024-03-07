@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
 import org.webcurator.core.store.DigitalAssetStoreClient;
@@ -55,6 +56,9 @@ public class TargetInstances {
 
     @Autowired
     private AnnotationDAO annotationDAO;
+
+    @Autowired
+    private HarvestAgentManager harvestAgentManager;
 
     @Autowired
     private FlagDAO flagDAO;
@@ -191,6 +195,19 @@ public class TargetInstances {
             default:
                 return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
         }
+    }
+
+    /**
+     * Handler for pausing individual target instances
+     */
+    @PutMapping(path = "/{id}/pause")
+    public ResponseEntity<?> pause(@PathVariable long id) {
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        harvestAgentManager.pause(targetInstance);
+        return ResponseEntity.ok().build();
     }
 
     /**
