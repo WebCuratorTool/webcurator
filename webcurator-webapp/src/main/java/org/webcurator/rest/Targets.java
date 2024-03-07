@@ -3,6 +3,7 @@ package org.webcurator.rest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.ObjectNotFoundException;
+import org.hibernate.exception.ConstraintViolationException;
 import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,6 +28,7 @@ import javax.validation.*;
 import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -484,7 +486,14 @@ public class Targets {
                 targetManager.save(target);
             }
         } catch (DataIntegrityViolationException e) {
-            throw new BadRequestError(e.getMessage());
+            String msg = e.getMessage();
+            Throwable cause = e.getCause();
+            if (cause != null && cause instanceof ConstraintViolationException) {
+                if (((ConstraintViolationException) cause).getSQLException() != null) {
+                    msg = "Database constraint violation, details: " + ((ConstraintViolationException) cause).getSQLException().getMessage();
+                }
+            }
+            throw new BadRequestError(msg);
         }
     }
 
@@ -616,13 +625,15 @@ public class Targets {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public HashMap<String, Object> errorMessage(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+        String msg = null;
+        // Return the first error (typically there will only be one anyway)
+        if (ex.getBindingResult().getErrorCount() > 0) {
+            FieldError error = (FieldError) ex.getBindingResult().getAllErrors().get(0);
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return Utils.errorMessage(errors);
+            msg = fieldName + ": " + errorMessage;
+        }
+        return Utils.errorMessage(msg);
     }
 
 
