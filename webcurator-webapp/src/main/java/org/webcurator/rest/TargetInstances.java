@@ -211,6 +211,19 @@ public class TargetInstances {
     }
 
     /**
+     * Handler for aborting individual target instances
+     */
+    @PutMapping(path = "/{id}/abort")
+    public ResponseEntity<?> abort(@PathVariable long id) {
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        harvestAgentManager.abort(targetInstance);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Handler for deleting individual target instances
      */
     @DeleteMapping(path = "/{id}")
