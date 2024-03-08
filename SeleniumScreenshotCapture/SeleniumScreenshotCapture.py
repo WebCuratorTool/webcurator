@@ -60,6 +60,8 @@ def main(command_args):
     # Set up the web driver
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--crash-dumps-dir=/tmp/chrome-crash-screenshot")
 
     if server is not None:
         driver = webdriver.Remote(command_executor=server, options=chrome_options)
