@@ -29,6 +29,7 @@ import org.webcurator.core.archive.oms.OMSArchive;
 import org.webcurator.core.coordinator.WctCoordinatorClient;
 import org.webcurator.core.screenshot.ScreenshotClientLocal;
 import org.webcurator.core.screenshot.ScreenshotGenerator;
+import org.webcurator.core.screenshot.SeleniumScreenshotCapture;
 import org.webcurator.core.visualization.VisualizationDirectoryManager;
 import org.webcurator.core.visualization.VisualizationProcessorManager;
 import org.webcurator.core.visualization.networkmap.NetworkMapDomainSuffix;
@@ -313,6 +314,9 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${pywbIndexer.wb-manager.coll}")
     private String pywbIndexerWaybackManagerColl;
 
+    @Value("${chromeClashDirectory}")
+    private String chromeClashDirectory;
+
     @Autowired
     private ArcDigitalAssetStoreService arcDigitalAssetStoreService;
 
@@ -326,6 +330,8 @@ public class DasConfig implements WebMvcConfigurer {
         arcDigitalAssetStoreService.setFileArchive(createFileArchive());
 
         NetworkMapNode.setTopDomainParse(networkMapDomainSuffix());
+
+        SeleniumScreenshotCapture.setChromeClashDirectory(chromeClashDirectory);
     }
 
     private NetworkMapDomainSuffix networkMapDomainSuffix() {

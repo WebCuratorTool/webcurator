@@ -41,6 +41,7 @@ import java.nio.file.StandardCopyOption;
 
 public class SeleniumScreenshotCapture {
     private static final Logger log = LoggerFactory.getLogger(SeleniumScreenshotCapture.class);
+    private static String chromeClashDirectory = "/tmp/chrome-crash-screenshot";
 
     private static void createThumbnail(File input, String output) {
         try {
@@ -138,6 +139,7 @@ public class SeleniumScreenshotCapture {
             ChromeOptions chromeOptions = new ChromeOptions();
             chromeOptions.addArguments("--headless");
             chromeOptions.addArguments("--no-sandbox");
+            chromeOptions.addArguments("--crash-dumps-dir=" + SeleniumScreenshotCapture.getChromeClashDirectory());
 
             if (imageHeight != null && imageWidth != null) {
                 chromeOptions.addArguments("--window-size=" + imageWidth + "," + imageHeight);
@@ -207,5 +209,13 @@ public class SeleniumScreenshotCapture {
             log.error("Unable to capture the screenshot.  " + e.getMessage());
             return false;
         }
+    }
+
+    public static String getChromeClashDirectory() {
+        return chromeClashDirectory;
+    }
+
+    public static void setChromeClashDirectory(String chromeClashDirectory) {
+        SeleniumScreenshotCapture.chromeClashDirectory = chromeClashDirectory;
     }
 }
