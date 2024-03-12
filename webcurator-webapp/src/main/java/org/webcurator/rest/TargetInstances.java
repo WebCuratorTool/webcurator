@@ -265,10 +265,18 @@ public class TargetInstances {
             String owner = targetInstanceDTO.getGeneral().getOwner();
             Long flagId = targetInstanceDTO.getGeneral().getFlagId();
             if (owner != null) {
-                targetInstance.setOwner(userRoleDAO.getUserByName(owner));
+                User user = userRoleDAO.getUserByName(owner);
+                if (user == null) {
+                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("User %s does not exist", owner)));
+                }
+                targetInstance.setOwner(user);
             }
             if (flagId != null) {
-                targetInstance.setFlag(flagDAO.getFlagByOid(flagId));
+                Flag flag = flagDAO.getFlagByOid(flagId);
+                if (flag == null) {
+                    return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Flag with id %d does not exist", flagId)));
+                }
+                targetInstance.setFlag(flag);
             }
         }
 
@@ -279,6 +287,11 @@ public class TargetInstances {
                                                             "Missing required attribute harvestResult.number"));
                 }
                 HarvestResult harvestResult = targetInstance.getHarvestResult(h.getNumber());
+                if (harvestResult == null) {
+                    return ResponseEntity.badRequest().body(Utils.errorMessage(
+                                         String.format("Target instance %d does not have a harvest result with number %d",
+                                                        id, h.getNumber())));
+                }
                 if (h.getState() == HarvestResult.STATE_ENDORSED || h.getState() == HarvestResult.STATE_REJECTED) {
                     harvestResult.setState(h.getState());
                 } else {

@@ -477,6 +477,9 @@ public class Targets {
                 target.getParents().clear(); // Remove existing parents
                 List<GroupMemberDTO> groupMemberDTOs = new ArrayList<>();
                 for (TargetDTO.Group g : targetDTO.getGroups()) {
+                    if (targetDAO.loadGroup(g.getId()) == null) {
+                        throw(new BadRequestError(String.format("Group %d does not exist", g.getId()))) ;
+                    }
                     GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
                     groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
                     groupMemberDTOs.add(groupMemberDTO);

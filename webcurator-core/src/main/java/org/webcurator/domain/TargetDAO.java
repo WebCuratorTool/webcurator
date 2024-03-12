@@ -709,26 +709,30 @@ public class TargetDAO extends BaseDAO {
         return (TargetGroup) getHibernateTemplate().execute(new HibernateCallback() {
 
             public Object doInHibernate(Session aSession) throws HibernateException {
-                if (!fullyInitialise) {
-                    TargetGroup aTargetGroup = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
-                    aTargetGroup.setDirty(false);
-                    return aTargetGroup;
-                } else {
-                    // Initialise some more items that we'll need. This is used
-                    // to prevent lazy load exceptions, since we're doing things
-                    // across multiple sessions.
-                    TargetGroup t = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
+                try {
+                    if (!fullyInitialise) {
+                        TargetGroup aTargetGroup = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
+                        aTargetGroup.setDirty(false);
+                        return aTargetGroup;
+                    } else {
+                        // Initialise some more items that we'll need. This is used
+                        // to prevent lazy load exceptions, since we're doing things
+                        // across multiple sessions.
+                        TargetGroup t = (TargetGroup) aSession.load(TargetGroup.class, targetGroupOid);
 
-                    Hibernate.initialize(t.getSchedules());
-                    Hibernate.initialize(t.getOverrides());
-                    Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
-                    Hibernate.initialize(t.getOverrides().getCredentials());
-                    //Hibernate.initialize(t.getChildren());
+                        Hibernate.initialize(t.getSchedules());
+                        Hibernate.initialize(t.getOverrides());
+                        Hibernate.initialize(t.getOverrides().getExcludeUriFilters());
+                        Hibernate.initialize(t.getOverrides().getIncludeUriFilters());
+                        Hibernate.initialize(t.getOverrides().getCredentials());
+                        //Hibernate.initialize(t.getChildren());
 
-                    t.setDirty(false);
+                        t.setDirty(false);
 
-                    return t;
+                        return t;
+                    }
+                } catch (ObjectNotFoundException e) {
+                    return null;
                 }
             }
         });
