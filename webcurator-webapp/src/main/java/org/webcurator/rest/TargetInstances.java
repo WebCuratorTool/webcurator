@@ -224,6 +224,19 @@ public class TargetInstances {
     }
 
     /**
+     * Handler for stopping individual target instances
+     */
+    @PutMapping(path = "/{id}/stop")
+    public ResponseEntity<?> stop(@PathVariable long id) {
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        harvestAgentManager.stop(targetInstance);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Handler for deleting individual target instances
      */
     @DeleteMapping(path = "/{id}")
