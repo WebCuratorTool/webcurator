@@ -9,7 +9,7 @@ repositories {
     mavenLocal()
     jcenter()
     maven {
-        url = 'http://builds.archive.org:8080/maven2'
+        url = 'https://builds.archive.org/maven2'
     }
 
     maven {
