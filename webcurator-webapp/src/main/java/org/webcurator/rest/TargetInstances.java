@@ -237,6 +237,19 @@ public class TargetInstances {
     }
 
     /**
+     * Handler for resuming individual target instances
+     */
+    @PutMapping(path = "/{id}/resume")
+    public ResponseEntity<?> resume(@PathVariable long id) {
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        harvestAgentManager.resume(targetInstance);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Handler for deleting individual target instances
      */
     @DeleteMapping(path = "/{id}")
