@@ -309,6 +309,9 @@ public class Targets {
                 target.setAllowOptimize(targetDTO.getSchedule().getHarvestOptimization());
             }
             if (targetDTO.getSchedule().getHarvestNow() != null) {
+                if (targetDTO.getSchedule().getHarvestNow() && targetDTO.getGeneral().getState() != Target.STATE_APPROVED) {
+                    throw new BadRequestError("Cannot harvest now, since the target is not in state 'Approved'");
+                }
                 target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
             }
             for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
