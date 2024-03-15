@@ -206,6 +206,11 @@ public class TargetInstances {
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
         }
+        if (!targetInstance.getState().equals(TargetInstance.STATE_RUNNING)) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(
+                                                String.format("Cannot pause a target instance unless it has state %s",
+                                                                TargetInstance.STATE_RUNNING)));
+        }
         harvestAgentManager.pause(targetInstance);
         return ResponseEntity.ok().build();
     }
@@ -218,6 +223,13 @@ public class TargetInstances {
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
+        }
+        if (!(targetInstance.getState().equals(TargetInstance.STATE_RUNNING) ||
+                                                    targetInstance.getState().equals(TargetInstance.STATE_PAUSED) ||
+                                                    targetInstance.getState().equals(TargetInstance.STATE_STOPPING))) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(
+                    String.format("Cannot abort a target instance unless it has state %s, %s or %s",
+                            TargetInstance.STATE_RUNNING, TargetInstance.STATE_PAUSED, TargetInstance.STATE_STOPPING)));
         }
         harvestAgentManager.abort(targetInstance);
         return ResponseEntity.ok().build();
@@ -232,6 +244,11 @@ public class TargetInstances {
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
         }
+        if (!targetInstance.getState().equals(TargetInstance.STATE_RUNNING)) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(
+                                                String.format("Cannot stop a target instance unless it has state %s",
+                                                                TargetInstance.STATE_RUNNING)));
+        }
         harvestAgentManager.stop(targetInstance);
         return ResponseEntity.ok().build();
     }
@@ -244,6 +261,11 @@ public class TargetInstances {
         TargetInstance targetInstance = targetInstanceDAO.load(id);
         if (targetInstance == null) {
             return ResponseEntity.notFound().build();
+        }
+        if (!targetInstance.getState().equals(TargetInstance.STATE_PAUSED)) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(
+                                                String.format("Cannot resume a target instance unless it has state %s",
+                                                                TargetInstance.STATE_PAUSED)));
         }
         harvestAgentManager.resume(targetInstance);
         return ResponseEntity.ok().build();
