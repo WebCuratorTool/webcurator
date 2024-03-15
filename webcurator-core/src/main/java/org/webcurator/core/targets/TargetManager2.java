@@ -245,9 +245,7 @@ public class TargetManager2 extends TargetManager {
 			TargetInstance ti = new TargetInstance();
 			ti.setTarget(aTarget);
 			ti.setSchedule(null);
-			Calendar cal = Calendar.getInstance();
-			cal.add(Calendar.MINUTE, 5);
-			ti.setScheduledTime(cal.getTime());
+			ti.setScheduledTime(new Date());
 			ti.setOwner(aTarget.getOwner());
 			ti.setUseAQA(aTarget.isUseAQA());
 			ti.setAllowOptimize(aTarget.isAllowOptimize());
