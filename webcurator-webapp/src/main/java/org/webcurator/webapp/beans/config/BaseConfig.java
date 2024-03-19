@@ -150,6 +150,9 @@ public class BaseConfig {
     @Value("${targetManager.allowMultiplePrimarySeeds}")
     private boolean allowMultiplePrimarySeeds;
 
+    @Value("${targetManager.harvestNowDelay}")
+    private int harvestNowDelay;
+
     @Value("${groupTypes.subgroup}")
     private String groupTypesSubgroup;
 
@@ -764,6 +767,7 @@ public class BaseConfig {
         bean.setAllowMultiplePrimarySeeds(allowMultiplePrimarySeeds);
         bean.setSubGroupParentTypesList(listsConfig.subGroupParentTypesList());
         bean.setSubGroupTypeName(groupTypesSubgroup);
+        bean.setHarvestNowDelay(harvestNowDelay);
 
         return bean;
     }
