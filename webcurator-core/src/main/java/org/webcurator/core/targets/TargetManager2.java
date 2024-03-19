@@ -82,6 +82,9 @@ public class TargetManager2 extends TargetManager {
 	private boolean sendGroupUpdateNotifications = true;
 	private boolean allowMultiplePrimarySeeds = true;
 
+	/** Number of seconds to wait before running a target instance using the "harvest now" functionality */
+	private int harvestNowDelay = 0;
+
 	private String subGroupTypeName = null;
 
 	public boolean getAllowMultiplePrimarySeeds() {
@@ -245,7 +248,7 @@ public class TargetManager2 extends TargetManager {
 			TargetInstance ti = new TargetInstance();
 			ti.setTarget(aTarget);
 			ti.setSchedule(null);
-			ti.setScheduledTime(new Date());
+			ti.setScheduledTime(new Date(System.currentTimeMillis() + harvestNowDelay * 1000));
 			ti.setOwner(aTarget.getOwner());
 			ti.setUseAQA(aTarget.isUseAQA());
 			ti.setAllowOptimize(aTarget.isAllowOptimize());
@@ -1705,6 +1708,14 @@ public class TargetManager2 extends TargetManager {
 	 */
 	public void setSubGroupParentTypesList(WCTTreeSet subGroupParentTypesList) {
 		this.subGroupParentTypesList = subGroupParentTypesList;
+	}
+
+	public int getHarvestNowDelay() {
+		return harvestNowDelay;
+	}
+
+	public void setHarvestNowDelay(int harvestNowDelay) {
+		this.harvestNowDelay = harvestNowDelay;
 	}
 
 	/**
