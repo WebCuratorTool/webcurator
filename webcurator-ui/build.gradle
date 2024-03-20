@@ -1,0 +1,24 @@
+plugins {
+      id 'com.coditory.webjar' version '1.3.1'
+      id 'maven-publish'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+group = 'org.webcurator'
+version = '4.0.0-SNAPSHOT'
+description = 'Web Curator Tool UI'
+
+// just an alias
+task install(dependsOn: ['webjarBuild', 'publishToMavenLocal'])
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
