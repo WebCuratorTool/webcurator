@@ -64,8 +64,8 @@ dependencies {
     implementation 'javax.validation:validation-api'
 
     implementation 'com.h2database:h2:1.4.199'
-    implementation 'mysql:mysql-connector-java:5.1.6'
-//    implementation 'mysql:mysql-connector-java:8.0.21'
+//    implementation 'mysql:mysql-connector-java:5.1.6'
+    implementation 'mysql:mysql-connector-java:8.0.21'
     implementation 'oracle:ojdbc6:11.2.0.3'
     implementation 'org.postgresql:postgresql:42.2.19'
 
@@ -77,6 +77,9 @@ dependencies {
         exclude group: 'org.apache.hadoop', module: 'hadoop-core'
     }
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.0.0'
+
+    implementation 'org.webjars:webjars-locator:0.30'
+    implementation 'org.webcurator:webcurator-ui:4.0.0-SNAPSHOT'
 
     // NOTE: This is a workaround so that gradle brings in the tests jar.
     testImplementation(group: 'org.webcurator', name: 'webcurator-core', version: '3.2.+', classifier: 'tests') {
