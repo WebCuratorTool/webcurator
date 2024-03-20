@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.core.coordinator.WctCoordinator;
 import org.webcurator.core.harvester.coordinator.HarvestAgentManager;
 import org.webcurator.core.harvester.coordinator.HarvestLogManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
@@ -17,6 +18,8 @@ import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
+import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
+import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetInstanceDTO;
@@ -59,6 +62,9 @@ public class TargetInstances {
 
     @Autowired
     private HarvestAgentManager harvestAgentManager;
+
+    @Autowired
+    private WctCoordinator wctCoordinator;
 
     @Autowired
     private FlagDAO flagDAO;
@@ -195,6 +201,40 @@ public class TargetInstances {
             default:
                 return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such target section: %s", section)));
         }
+    }
+
+    /**
+     * Handler for starting individual target instances
+     */
+    @PutMapping(path = "/{id}/start")
+    public ResponseEntity<?> start(@PathVariable long id, @RequestBody Map<String, String> params) {
+        // TODO: the harvestNowController also allows the caller to supply a harvestResultId, in which case wctCoordinator.patchHarvest is called
+        String harvestAgentName = params.get("harvestAgentName");
+        if (harvestAgentName == null) {
+           return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestAgentName is required"));
+        }
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!targetInstance.getState().equals(TargetInstance.STATE_SCHEDULED)) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(
+                                                String.format("Cannot start a target instance unless it has state %s",
+                                                                TargetInstance.STATE_SCHEDULED)));
+        }
+        if (wctCoordinator.isQueuePaused()) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage("Cannot start harvest: the queue is paused"));
+        }
+        HarvestAgentStatusDTO harvestAgentStatusDTO = wctCoordinator.getHarvestAgents().get(harvestAgentName);
+        if (harvestAgentStatusDTO == null) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No harvest agent named %s", harvestAgentName)));
+        }
+        if (!harvestAgentStatusDTO.isAcceptTasks()) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Harvest agent %s is not accepting tasks",
+                                                                                        harvestAgentName)));
+        }
+        wctCoordinator.harvest(targetInstance, harvestAgentStatusDTO);
+        return ResponseEntity.ok().build();
     }
 
     /**
