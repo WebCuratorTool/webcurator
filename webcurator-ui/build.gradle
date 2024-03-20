@@ -12,8 +12,13 @@ group = 'org.webcurator'
 version = '4.0.0-SNAPSHOT'
 description = 'Web Curator Tool UI'
 
+task deleteBuild(type: Delete) {
+    delete 'dist/'
+    delete 'build/'
+}
+
 // just an alias
-task install(dependsOn: ['webjarBuild', 'publishToMavenLocal'])
+task install(dependsOn: ['deleteBuild', 'webjarBuild', 'publishToMavenLocal'])
 
 publishing {
     publications {
