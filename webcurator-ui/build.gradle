@@ -12,6 +12,12 @@ group = 'org.webcurator'
 version = '4.0.0-SNAPSHOT'
 description = 'Web Curator Tool UI'
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 task clear(type: Delete) {
     delete 'dist/'
     delete 'build/'
