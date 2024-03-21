@@ -19,7 +19,6 @@ import org.webcurator.domain.*;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
-import org.webcurator.domain.model.dto.QueuedTargetInstanceDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.TargetInstanceDTO;
@@ -95,6 +94,7 @@ public class TargetInstances {
         stateMap.put(8, TargetInstance.STATE_REJECTED);
         stateMap.put(9, TargetInstance.STATE_ARCHIVED);
         stateMap.put(10, TargetInstance.STATE_ARCHIVING);
+        stateMap.put(11, TargetInstance.STATE_PATCHING);
 
         harvestResultStateMap = new TreeMap<>();
         harvestResultStateMap.put(HarvestResult.STATE_UNASSESSED, "Unassessed");
@@ -180,7 +180,7 @@ public class TargetInstances {
         targetInstanceDTO.setLogs(logs);
 
         if (section == null) {
-            // Return the entire target
+            // Return the entire target instance
             return ResponseEntity.ok().body(targetInstanceDTO);
         }
         switch (section) {
@@ -203,13 +203,54 @@ public class TargetInstances {
         }
     }
 
+
+    /**
+     * Handler for patching harvest results (used by the harvest analysis and patching functionality)
+     */
+    @PutMapping(path = "/{id}/patch-harvest", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> patchHarvest(@PathVariable long id, @RequestBody HarvestParams harvestParams) {
+        String harvestAgentName = harvestParams.getHarvestAgentName();
+        Long harvestResultId = harvestParams.getHarvestResultId();
+        if (harvestAgentName == null) {
+           return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestAgentName is required"));
+        }
+        if (harvestResultId == null) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestResultId is required"));
+        }
+        TargetInstance targetInstance = targetInstanceDAO.load(id);
+        if (targetInstance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (!targetInstance.getState().equals(TargetInstance.STATE_PATCHING)) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(
+                    String.format("Cannot patch a harvest result unless its target instance has state %s",
+                                                                                    TargetInstance.STATE_PATCHING)));
+        }
+        if (wctCoordinator.isQueuePaused()) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage("Cannot patch harvest: the queue is paused"));
+        }
+        HarvestAgentStatusDTO harvestAgentStatusDTO = wctCoordinator.getHarvestAgents().get(harvestAgentName);
+        if (harvestAgentStatusDTO == null) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No harvest agent named %s", harvestAgentName)));
+        }
+        if (!harvestAgentStatusDTO.isAcceptTasks()) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Harvest agent %s is not accepting tasks",
+                                                                                        harvestAgentName)));
+        }
+        HarvestResult harvestResult = targetInstanceDAO.getHarvestResult(harvestResultId);
+        if (harvestResult == null) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Could not find harvest result with id %d", harvestResultId)));
+        }
+        wctCoordinator.patchHarvest(targetInstance, harvestResult, harvestAgentStatusDTO);
+        return ResponseEntity.ok().build();
+    }
+
     /**
      * Handler for starting individual target instances
      */
-    @PutMapping(path = "/{id}/start")
-    public ResponseEntity<?> start(@PathVariable long id, @RequestBody Map<String, String> params) {
-        // TODO: the harvestNowController also allows the caller to supply a harvestResultId, in which case wctCoordinator.patchHarvest is called
-        String harvestAgentName = params.get("harvestAgentName");
+    @PutMapping(path = "/{id}/start", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> start(@PathVariable long id, @RequestBody HarvestParams harvestParams) {
+        String harvestAgentName = harvestParams.getHarvestAgentName();
         if (harvestAgentName == null) {
            return ResponseEntity.badRequest().body(Utils.errorMessage("Parameter harvestAgentName is required"));
         }
@@ -609,6 +650,31 @@ public class TargetInstances {
             }
         }
         throw new RuntimeException("Encountered unknown state " + state);
+    }
+
+
+    /**
+     * POJO that the framework maps JSON PUT data for /start and /patch-harvest into
+     */
+    private static class HarvestParams {
+        private String harvestAgentName;
+        private Long harvestResultId;
+
+        public String getHarvestAgentName() {
+            return harvestAgentName;
+        }
+
+        public void setHarvestAgentName(String harvestAgentName) {
+            this.harvestAgentName = harvestAgentName;
+        }
+
+        public Long getHarvestResultId() {
+            return harvestResultId;
+        }
+
+        public void setHarvestResultId(Long harvestResultId) {
+            this.harvestResultId = harvestResultId;
+        }
     }
 
     /**
