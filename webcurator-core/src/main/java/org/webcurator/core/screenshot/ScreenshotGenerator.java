@@ -384,9 +384,13 @@ public class ScreenshotGenerator {
                 if (!file.toString().contains(liveOrHarvested.name())) continue;
                 imageCounter++;
 
-                if (Files.getFileStore(file.toPath()) == null) continue;
-                UserDefinedFileAttributeView attributeView = Files.getFileAttributeView(file.toPath(), UserDefinedFileAttributeView.class);
-                attributeView.write("screenshotTool-" + toolUsed, Charset.defaultCharset().encode(toolUsed));
+                try {
+                    if (Files.getFileStore(file.toPath()) == null) continue;
+                    UserDefinedFileAttributeView attributeView = Files.getFileAttributeView(file.toPath(), UserDefinedFileAttributeView.class);
+                    attributeView.write("screenshotTool-" + toolUsed, Charset.defaultCharset().encode(toolUsed));
+                } catch (IOException e) {
+                    log.warn("Failed to record attribute for file {} {}", file.getAbsoluteFile(), toolUsed);
+                }
             }
             log.info("{} {} screenshots have been generated for job {}", imageCounter, liveOrHarvested, tiOid);
 

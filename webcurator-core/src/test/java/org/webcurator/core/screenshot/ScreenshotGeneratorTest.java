@@ -9,7 +9,9 @@ import org.webcurator.test.BaseWCTTest;
 import org.webcurator.test.WCTTestUtils;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 
 import static org.junit.Assert.assertTrue;
 
@@ -58,6 +60,16 @@ public class ScreenshotGeneratorTest extends BaseWCTTest<ScreenshotGenerator> {
         callWayback(2, "pywb", "2.7.3", "http://localhost:1080/my-web-archive/");
         callWayback(3, "pywb", "2.6.7", "http://localhost:2080/my-web-archive/");
         callWayback(4, "pywb", "2.3.0", "http://localhost:3080/my-web-archive/");
+    }
+
+    @Ignore
+    @Test
+    public void testAttributes() throws IOException {
+        String toolUsed="native";
+        File file=new File("/usr/local/wct/store/93/1/_snapshots/93_1_94_live_fullpage.png");
+        UserDefinedFileAttributeView attributeView = Files.getFileAttributeView(file.toPath(), UserDefinedFileAttributeView.class);
+        attributeView.write("screenshotTool-" + toolUsed, Charset.defaultCharset().encode(toolUsed));
+        attributeView.list().forEach(System.out::println);
     }
 
     private void callWayback(int harvestNumber, String waybackName, String waybackVersion, String waybackViewUrl) throws DigitalAssetStoreException, IOException {
