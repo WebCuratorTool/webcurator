@@ -94,7 +94,8 @@ public class TargetInstances {
         stateMap.put(8, TargetInstance.STATE_REJECTED);
         stateMap.put(9, TargetInstance.STATE_ARCHIVED);
         stateMap.put(10, TargetInstance.STATE_ARCHIVING);
-        stateMap.put(11, TargetInstance.STATE_PATCHING);
+        stateMap.put(11, TargetInstance.STATE_STOPPING);
+        stateMap.put(12, TargetInstance.STATE_PATCHING);
 
         harvestResultStateMap = new TreeMap<>();
         harvestResultStateMap.put(HarvestResult.STATE_UNASSESSED, "Unassessed");
