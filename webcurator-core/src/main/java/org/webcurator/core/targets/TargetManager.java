@@ -1533,7 +1533,7 @@ public class TargetManager {
 						psdto = new PermissionSeedDTO(p);
 					}
 
-					psdto.getSeeds().add(seed.getSeed());
+					psdto.getSeeds().add(seed);
 
 					permissions.put(psdto.getPermissionOid(), psdto);
 				}

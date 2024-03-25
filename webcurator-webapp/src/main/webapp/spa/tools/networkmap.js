@@ -84,7 +84,11 @@ class NetworkMap{
 			condition=source.getSelectedNodes();
 		}
 
-		gPopupModifyHarvest.checkUrls(condition, action);
+        if(action === 'prune'){
+            gPopupModifyHarvest.bulkPrune(condition, action);
+        }else{
+            gPopupModifyHarvest.checkUrls(condition, action);
+        }
 	}
 
 	static contextMenuItemsGrid={
