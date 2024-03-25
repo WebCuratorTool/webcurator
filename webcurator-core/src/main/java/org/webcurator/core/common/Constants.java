@@ -34,4 +34,7 @@ public interface Constants {
     String BEAN_TARGET_MNGR = "targetManager";
 
     String BEAN_HARVEST_BANDWIDTH_MANAGER= "harvestBandwidthManager";
+
+    /** the name of the Original Harvest directory. */
+    public static final String DIR_ORIGINAL_HARVEST = "1";
 }

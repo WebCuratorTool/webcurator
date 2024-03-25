@@ -19,7 +19,8 @@ import java.util.Arrays;
         "org.webcurator.core.rest",
         "org.webcurator.core.reader",
         "org.webcurator.core.store.arc",
-        "org.webcurator.core.visualization"},
+        "org.webcurator.core.visualization",
+        "org.webcurator.core.screenshot"},
 // HarvestAgentListenerService should be running on webcurator-webapp.
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
                 classes = {HarvestAgentListenerService.class, WctCoordinator.class})

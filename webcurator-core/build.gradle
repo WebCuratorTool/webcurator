@@ -9,12 +9,7 @@ repositories {
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
-    // maven {
-    //     url='http://builds.archive.org/maven2'
-    // }
-    // maven{
-    //     url = 'http://download.oracle.com/maven/'
-    // }
+
     maven{
         url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
@@ -53,6 +48,11 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-data-jpa:2.5.12'
     compile 'org.springframework.boot:spring-boot-starter-webflux:2.5.12'
     compile 'org.apache.tika:tika-core:1.26'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    compile group: 'ru.yandex.qatools.ashot', name: 'ashot', version: '1.5.4'
+    compile 'org.json:json:20220320'
+    compile group: 'joda-time', name: 'joda-time', version: '2.10.6'
+    compile 'org.jsoup:jsoup:1.12.2'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:3.2.4'
@@ -66,7 +66,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.5-SNAPSHOT'
+version = '3.2.0-SNAPSHOT'
 description = 'Web Curator Tool Core'
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'

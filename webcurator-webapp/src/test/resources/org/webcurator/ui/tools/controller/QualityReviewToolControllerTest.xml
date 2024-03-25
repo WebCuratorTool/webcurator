@@ -315,6 +315,9 @@
 			<originalSeeds>
 				<originalseed>http://www.oakleigh.co.uk/</originalseed>
 			</originalSeeds>
+			<historySeeds>
+				<historyseed>http://www.oakleigh.co.uk/</historyseed>
+			</historySeeds>
 			<overrides></overrides>
 			<archiveIdentifier />
 			<purged>false</purged>

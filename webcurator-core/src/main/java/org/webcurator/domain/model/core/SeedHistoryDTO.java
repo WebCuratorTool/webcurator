@@ -18,6 +18,8 @@ public class SeedHistoryDTO {
      */
     private boolean primary;
 
+    private String timestamp;
+
     public SeedHistoryDTO() {
 
     }
@@ -63,5 +65,13 @@ public class SeedHistoryDTO {
 
     public void setPrimary(boolean primary) {
         this.primary = primary;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 }

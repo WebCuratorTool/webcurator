@@ -1,3 +1,5 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
 plugins {
     id 'org.springframework.boot' version '2.5.12'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
@@ -13,20 +15,6 @@ repositories {
     maven {
         url = 'https://repo.maven.apache.org/maven2'
     }
-    // maven {
-    //     url = 'http://download.oracle.com/maven/'
-    // }
-    // maven {
-    //    url = 'http://builds.archive.org/maven2/'
-    // }
-    // maven {
-    //     url = 'http://www.datanucleus.org/downloads/maven2/'
-    // }
-
-    // maven {
-    //     // For  com.cloudera.cdh:hadoop-root:0.20.2-cdh3u4
-    //     url = 'https://mvnrepository.com/repos/archive-builds'
-    // }
     
     maven{
         // For  com.cloudera.cdh:hadoop-root:0.20.2-cdh3u4
@@ -39,7 +27,7 @@ repositories {
 }
 
 group = 'org.webcurator'
-version = '3.1.5-SNAPSHOT'
+version = '3.2.0-SNAPSHOT'
 description = 'Web Curator Tool WebApp'
 
 apply plugin: 'eclipse'
@@ -57,11 +45,11 @@ configurations {
 }
 
 dependencies {
-    implementation('org.netpreserve.openwayback:openwayback-core:2.4.0'){
+    implementation('org.netpreserve.openwayback:openwayback-core:2.4.0') {
         exclude group: 'org.netpreserve.commons', module: 'webarchive-commons'
         exclude group: 'com.sleepycat', module: 'je'
     }
-    implementation('org.apache.tiles:tiles-jsp:3.0.8') {
+    implementation(group: 'org.apache.tiles', name: 'tiles-jsp', version: '3.0.8') {
         // Use Spring boot logging.
         exclude group: 'org.slf4j', module: 'slf4j-api'
         exclude group: 'org.slf4j', module: 'jcl-over-slf4j'
@@ -82,7 +70,7 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.2.19'
 
     implementation 'commons-pool:commons-pool:1.3.1-heritrix-1.14.2-webcuratortool-2.0.1'
-    implementation('org.webcurator:webcurator-core:3.1.+') {
+    implementation(group: 'org.webcurator', name: 'webcurator-core', version: '3.2.+') {
         exclude group: 'joda-time', module: 'joda-time'
         exclude group: 'com.sleepycat', module: 'je'
         exclude group: 'org.archive', module: 'archive-commons'
@@ -91,7 +79,7 @@ dependencies {
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.0.0'
 
     // NOTE: This is a workaround so that gradle brings in the tests jar.
-    testImplementation group: 'org.webcurator', name: 'webcurator-core', version: '3.1.+', classifier: 'tests', {
+    testImplementation(group: 'org.webcurator', name: 'webcurator-core', version: '3.2.+', classifier: 'tests') {
         // Use Spring boot logging.
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
@@ -138,9 +126,12 @@ build.dependsOn war, sourcesJar
 
 // update the version number in application.properties
 processResources {
-    filesMatching('application.properties'){
-        filter {
-            it.replaceAll("^project\\.version.*", "project.version=${version}")
-        }
+    filesMatching('**/application.properties') {
+        filter ReplaceTokens, tokens: [
+                "project.version": "${version}".toString()
+        ]
     }
 }
+
+
+

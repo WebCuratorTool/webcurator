@@ -19,6 +19,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,12 +35,16 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.webcurator.core.archive.SipBuilder;
+import org.webcurator.core.common.Constants;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.exceptions.WCTRuntimeException;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.coordinator.*;
 import org.webcurator.core.notification.InTrayManager;
 import org.webcurator.core.scheduler.TargetInstanceManager;
+import org.webcurator.core.screenshot.ScreenshotClient;
+import org.webcurator.core.screenshot.ScreenshotIdentifierCommand;
+import org.webcurator.core.screenshot.ScreenshotType;
 import org.webcurator.core.store.DigitalAssetStoreFactory;
 import org.webcurator.core.store.coordinator.DigitalAssetStoreCoordinator;
 import org.webcurator.core.targets.TargetManager;
@@ -137,6 +142,12 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
     @Autowired
     private NetworkMapClient networkMapClient;
 
+    @Value("${enableScreenshots}")
+    private boolean enableScreenshots;
+
+    @Autowired
+    private ScreenshotClient screenshotClient;
+
     /**
      * Default Constructor.
      */
@@ -160,6 +171,14 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         this.visualizationDirectoryManager = visualizationDirectoryManager;
     }
 
+    public void setScreenshotClient(ScreenshotClient screenshotClient) {
+        this.screenshotClient = screenshotClient;
+    }
+
+    public void setEnableScreenshots(boolean enableScreenshots) {
+        this.enableScreenshots = enableScreenshots;
+    }
+
     public void setLog(Logger log) {
         this.log = log;
     }
@@ -178,7 +197,6 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
      * active job names to List for Harvest Agent attempting recovery.
      *
      * @param aStatus harvest agent scheme/host/port/service requesting attempting recovery
-     * 
      */
     public void recoverHarvests(HarvestAgentStatusDTO aStatus) {
         TargetInstanceCriteria criteria = new TargetInstanceCriteria();
@@ -429,10 +447,51 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         // Save the updated information: to avoid asynchronous problem, update the satate before start harvesting
         targetInstanceManager.save(aTargetInstance);
 
-        // Initiate harvest on the remote harvest agent
-        harvestAgentManager.initiateHarvest(aHarvestAgent, aTargetInstance, profile, seeds.toString());
+        // Generate live screenshots using a new thread
+        final TargetInstance ti = aTargetInstance;
 
-        log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + aTargetInstance.getOid().toString());
+        if (enableScreenshots) {
+            Runnable screenshotHandler = new Runnable() {
+                @Override
+                public void run() {
+                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                    identifiers.setTiOid(targetInstanceId);
+                    identifiers.setHarvestNumber(Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST));
+                    identifiers.setScreenshotType(ScreenshotType.live);
+                    String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
+                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                        seedHistoryDTO.setTimestamp(timestamp);
+                        identifiers.getSeeds().add(seedHistoryDTO);
+                    }
+                    Boolean screenshotsTaken = Boolean.TRUE;
+                    try {
+                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                    } catch (DigitalAssetStoreException e) {
+                        log.error("Failed to create screenshot:", e);
+                        screenshotsTaken = Boolean.FALSE;
+                    }
+
+                    if (!screenshotsTaken) {
+                        log.info("There was a problem generating the screenshots.");
+                        harvestAgentManager.abort(ti);
+                        return;
+                    }
+
+                    // Initiate harvest on the remote harvest agent
+                    harvestAgentManager.initiateHarvest(aHarvestAgent, ti, profile, seeds.toString());
+
+                    log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + ti.getOid().toString());
+                }
+            };
+            Thread t = new Thread(screenshotHandler);
+            t.start();
+        } else {
+            // Initiate harvest on the remote harvest agent
+            harvestAgentManager.initiateHarvest(aHarvestAgent, ti, profile, seeds.toString());
+
+            log.info("HarvestCoordinator: Harvest initiated successfully for target instance " + ti.getOid().toString());
+        }
     }
 
     /**
@@ -1090,6 +1149,31 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
             return;
         }
 
+        //Create the screenshot after indexed for original harvests
+        if (enableScreenshots && harvestNumber == Integer.valueOf(Constants.DIR_ORIGINAL_HARVEST)) {
+            ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+            identifiers.setTiOid(targetInstanceId);
+            identifiers.setHarvestNumber(harvestNumber);
+            identifiers.setScreenshotType(ScreenshotType.harvested);
+            for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                identifiers.getSeeds().add(seedHistoryDTO);
+            }
+            Boolean screenshotsTaken = Boolean.TRUE;
+            try {
+                screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+            } catch (DigitalAssetStoreException e) {
+                log.error("Failed to create screenshot:", e);
+                screenshotsTaken = Boolean.FALSE;
+            }
+
+            if (!screenshotsTaken) {
+                log.info("There was a problem generating the screenshots.");
+                harvestAgentManager.abort(ti);
+                return;
+            }
+        }
+
         finaliseIndex(ti, hr);
     }
 
@@ -1474,7 +1558,8 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         if (ti == null) {
             seedHistorySetDTO.setSeeds(new HashSet<>());
         } else {
-            ti.getSeedHistory().forEach(seedHistory -> {
+            Set<SeedHistory> seedHistories = ti.getSeedHistory();
+            seedHistories.forEach(seedHistory -> {
                 seedHistorySetDTO.getSeeds().add(new SeedHistoryDTO(seedHistory));
             });
         }

@@ -146,6 +146,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             harvester = getHarvester(aJob);
             harvester.start(profile, aJob);
             harvester.setAlertThreshold(alertThreshold);
+
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
                 log.error("Failed to initiate harvest for " + aJob + " : " + e.getMessage(), e);
@@ -362,7 +363,6 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         }
 
         List das = getHarvester(aJob).getHarvestDigitalAssetsDirs();
-
 
         // Make sure that the files are not longer in use.
         if (aFailureStep == NO_FAILURES) {

@@ -942,8 +942,8 @@ The following are common configuration options for the DAS adjusted via the **ap
 -  Additional Indexers
 
    This section of the file allows configuration of additional indexers, which run concurrently
-   with the standard WCT indexer. There are currently two additional indexers available (both disabled by default):
-
+   with the standard WCT indexer. There are currently three additional indexers available. 
+   
    **WaybackIndexer** configures WCT to make copies of the ARC or WARC files and move them to
    the **waybackInputFolder** for automatic indexing by an installed Wayback instance. Wayback
    will eventually deposit a file of the same name in either the **waybackMergedFolder** (if successful)
@@ -966,6 +966,17 @@ The following are common configuration options for the DAS adjusted via the **ap
       waybackIndexer.waybackFailedFolder=/usr/local/wct/wayback/index-data/failed
       # Create soft links instead of copies inside waybackInputFolder to save space
       waybackIndexer.useSymLinks=false
+
+   **PywbIndexer** configures WCT to make copies of the WARC files and ingest them to
+   the **pywbIndexer.wb-manager.store** for automatic indexing by an installed PyWB instance. The **wb-manager** command of PyWB will be called to **add** the WARC files to PyWB. **wb-manager** is a command line tool for managing common collection operations. You need to install **wb-manager** (The process of acquiring and installing wb-manager is outside the scope of this document).
+   The **PywbIndexer** is enabled by default. ::
+      
+      # Enable this indexer
+      pywbIndexer.enable=true
+      # Location of the folder where WARC files and indexes are stored
+      pywbIndexer.wb-manager.store=/usr/local/wct/pywb
+      # The collection name of the archive for WARC files
+      pywbIndexer.wb-manager.coll=my-web-archive
 
    **CDXIndexer** generates a CDX index file in the same folder as the ARC/WARC files. When a target
    instance is submitted to the archive, the CDX index will be copied along with the ARC/WARC file(s).
@@ -1013,7 +1024,42 @@ Current available types are fileArchive, omsArchive, dpsArchive.
 
 For more information on *dpsArchive*, see  :doc:`Rosetta DPS Configuration Guide <rosetta-dps-configuration-guide>`.
 
+Using the screenshot
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+You can take digital images of the home page to be harvested or archived on Wayback/PyWB. According to the image size, two kinds of pictures will be taken, the screen sized screenshot picture and the full page screenshot picture. The screen sized screenshot picture contains the contents can be seen on the screen without rolling, zooming or moving the window. The full page screenshot picture contains the contents of the entire home page, in fact pictures are screenshoted by rolling and joint together. Both kinds of pictures can be resized to thumbnails. The screenshot is enabled by default. ::
+      # Enable the screenshot
+      enableScreenshots=true
+      # Stop harvesting if fails to take screenshot
+      abortHarvestOnScreenshotFailure=true
+
+The following versions of waybacks have been used during the development of the Web Curator Tool:: 
+      # Wayback integration for screenshot: pywb-2.6.7, pywb-2.7.3 and owb-2.4.0 were tested.
+      # The wayback.name can be: pywb or owb.
+      wayback.name=pywb
+      # The wayback.version is the specific version number you are using.
+      wayback.version=2.7.3
+
+There is a builtin method and a python file that can be used as the screenshot capture tool, the default tool is the builtin method.
+      - The builtin method: if you are using the builtin method, please have the location of chromedriver specified in your environment's PATH.
+      - The python file: if you are using the SeleniumScreenshotCapture.py, please have the location of SeleniumScreenshotCapture.py specified in your environment's PATH. You may need to install python, pip, pip selenium, and pip Pillow.You may need to have the location of chromedriver specified in your environment's PATH. 
+You can download chromedriver from https://chromedriver.chromium.org/downloads. The screenshot commands are configurable. ::
+      #Screenshots
+      # %image.png% is a placeholder for the output image file and %url% is a placeholder for the seed url
+      screenshotCommand.screen=native filepath=%image.png% url=%url% width=1400 height=800
+      screenshotCommand.fullpage=native filepath=%image.png% url=%url%
+      #screenshotCommand.screen=SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=1400 height=800
+      #screenshotCommand.fullpage=SeleniumScreenshotCapture.py filepath=%image.png% url=%url%
+
+      # Include the command to set the window size in case the wayback banner doesn't grab the full screenshot
+      # Please use %width% for width value and %height% for height value
+      screenshotCommand.windowsize=native filepath=%image.png% url=%url% width=%width% height=%height%
+      #screenshotCommand.windowsize=SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=%width% height=%height%
+
+      # Needed to get the harvest screenshot from the wayback url
+      #harvestWaybackViewer.baseUrl=http://localhost:1080/${pywbIndexer.wb-manager.coll}/
+      harvestWaybackViewer.baseUrl=http://localhost:9090/wayback/
+	  
 
 Harvest Agent - application.properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1657,4 +1703,3 @@ Appendix B: Example application.properties overrides
 .. |image3| image:: ../_static/system-administrator-guide/image3.png
    :width: 5.77361in
    :height: 1.94306in
-

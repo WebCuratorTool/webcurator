@@ -6,29 +6,28 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
-    // maven {
-    //     url = 'http://builds.archive.org:8080/maven2'
-    // }
+
+//    maven {
+//        url = 'https://builds.archive.org/maven2'
+//    }
+
     maven {
         url = 'https://repo1.maven.org/maven2'
     }
-    // maven {
-    //     url = 'http://download.oracle.com/maven/'
-    // }
+
     maven{
         url = 'https://repository.cloudera.com/artifactory/libs-release-local/'
     }
 }
 
 dependencies {
-    //compile 'com.exlibris.dps:dps-sdk-fat-all:5.5.0'
     implementation ('org.netpreserve.commons:webarchive-commons:1.1.8') {
         exclude group: 'org.apache.hadoop.thirdparty.guava', module: 'guava'
     }
     compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
     compile 'com.exlibris:dps-sdk:7.1.0'
     compile 'com.exlibris:dps-sdk-deposit-api:7.1.0'
-    compile 'org.webcurator:webcurator-core:3.1.+'
+    compile 'org.webcurator:webcurator-core:3.2.0-SNAPSHOT'
     compile 'dom4j:dom4j:1.6.1'
     compile 'com.google.code.guice:guice:1.0'
     compile 'org.apache.xmlbeans:xmlbeans:2.3.0'
@@ -47,7 +46,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.1.5-SNAPSHOT'
+version = '3.2.0-SNAPSHOT'
 description = 'Web Curator Tool Submit-to-Rosetta'
 sourceCompatibility = '1.8'
 

@@ -22,7 +22,8 @@ import java.util.Arrays;
         "org.webcurator.core.reader",
         "org.webcurator.core.harvester.agent.HarvestAgentClient",
         "org.webcurator.core.visualization.networkmap.service",
-        "org.webcurator.domain.VisualizationImportedFileDAOImpl"}//,
+        "org.webcurator.domain.VisualizationImportedFileDAOImpl",
+        "org.webcurator.core.screenshot"}//,
         // Put any exclusions here.
         //excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = ClassToExclude.class)
 )

@@ -32,7 +32,7 @@ public final class Constants {
     public static final String HERITRIX3_WRAPPER_CONFIGURATION = "heritrix3WrapperConfiguration";
 
     /** the name of the Original Harvest directory. */
-    public static final String DIR_ORIGINAL_HARVEST = "1";
+    public static final String DIR_ORIGINAL_HARVEST = org.webcurator.core.common.Constants.DIR_ORIGINAL_HARVEST;
     /** the name of the Logs directory. */
     public static final String DIR_LOGS = "logs";
     /** the name of the reports directory. */
