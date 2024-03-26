@@ -3,7 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import { useDialog } from 'primevue/usedialog';
 import NavBar from '@/components/NavBar.vue'
 
-import api from './restclient';
+// import api from './restclient';
 
 
 </script>

@@ -1,4 +1,3 @@
-// mouse.js
 import { ref, reactive, watchEffect, toValue } from 'vue'
 import { useDialog } from 'primevue/usedialog';
 import LoginDialog from './components/LoginDialog.vue';
@@ -17,7 +16,7 @@ export const token = reactive({
 
 export const dialog = reactive({
     value: null
-})
+});
 
 // by convention, composable function names start with "use"
 export function useFetch(options:any) {
