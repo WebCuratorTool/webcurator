@@ -130,7 +130,6 @@ app.use(ConfirmationService);
 app.use(ToastService);
 app.use(DialogService);
 
-
 app.directive('tooltip', Tooltip);
 app.directive('badge', BadgeDirective);
 app.directive('ripple', Ripple);

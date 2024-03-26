@@ -30,7 +30,6 @@
 <script setup lang="ts">
 import { ref, onMounted, inject } from "vue";
 // import { useToast } from 'primevue/usetoast';
-
 // const toast = useToast();
 
 const dialogRef:any = inject("dialogRef");
@@ -42,30 +41,35 @@ const auth = () => {
     var url="./auth/v1/token?username=" + username.value + "&password=" + password.value;
     fetch(url, {
         method: 'POST',
-        redirect: 'follow',
+        redirect: 'error',
         headers: {
             'Content-Type': 'application/json',
         }
     }).then((rsp)=>{
-        console.log(rsp);
+        // console.log(rsp);
         if(!rsp.ok){
-            throw new Error(rsp.status + " : " + rsp.statusText);
+            let status = rsp.status;
+            let statusText = rsp.statusText;
+            if(!statusText || statusText.length===0){
+                if(status === 401){
+                    statusText = "Unknown username or password, please try again.";
+                }else{
+                    statusText = "Unknown error."
+                }
+            }
+            throw new Error(status + " : " + statusText);
         }
         return rsp.text();
     })
-    .then((token)=>{
-        console.log("token:" + token);
-        dialogRef.value.close(token);
+    .then((tokenValue)=>{
+        // console.log("token:" + token);
+        dialogRef.value.close(tokenValue);
     }).catch((err)=>{
-        console.log(err);
+        // console.log(err);
         // toast.add({ severity: 'error', summary: 'Error Message', detail: err.message, life: 3000 });
         alert(err.message);
     });
 };
-
-
-
-
 </script>
 
 <style scoped>
