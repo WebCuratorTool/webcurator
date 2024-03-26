@@ -139,7 +139,7 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 
 			bindingResult = new BindException(command, "AddParentsCommand");
 
-			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
+			ModelAndView mav = testInstance.handle(command, request, response,  bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 			assertTrue(((GeneralCommand)mav.getModel().get("command")).getParentOid().equals("15000"));
@@ -174,7 +174,7 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 
 			bindingResult = new BindException(command, "AddParentsCommand");
 
-			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
+			ModelAndView mav = testInstance.handle(command, request, response, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "groups");
 			assertTrue(((GeneralCommand)mav.getModel().get("command")).getParentOid().equals(""));
@@ -206,7 +206,7 @@ public class GroupAddParentsControllerTest extends BaseWCTTest<GroupAddParentsCo
 
 			bindingResult = new BindException(command, "AddMembersCommand");
 
-			ModelAndView mav = testInstance.handle(request, response, command, bindingResult);
+			ModelAndView mav = testInstance.handle(command, request, response, bindingResult);
 			assertNotNull(mav);
 			assertEquals(mav.getViewName(), "group-add-parents");
 		}
