@@ -31,6 +31,7 @@ Web Curator Tool Documentation
 
    guides/wayback-integration-guide
    guides/rosetta-dps-configuration-guide
+   guides/harvest-screenshot-configuration-guide
 
 .. toctree::
    :maxdepth: 1
