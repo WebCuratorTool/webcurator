@@ -3,8 +3,8 @@
         <div class="nav-bar-inner">
             <img class="logo" src="@/assets/wct_logo.png" />
             <div class="nav-bar-links">
-                <router-link class="nav-bar-link" to="/">Dashboard</router-link>
-                <router-link class="nav-bar-link" to="/targets">Targets</router-link>
+                <router-link class="nav-bar-link" to="/wct/dashboard">Dashboard</router-link>
+                <router-link class="nav-bar-link" to="/wct/targets">Targets</router-link>
             </div>
         </div>
     </div>
