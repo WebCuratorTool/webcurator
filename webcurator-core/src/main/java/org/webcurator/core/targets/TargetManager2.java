@@ -1515,7 +1515,7 @@ public class TargetManager2 extends TargetManager {
 						psdto = new PermissionSeedDTO(p);
 					}
 
-					psdto.getSeeds().add(seed.getSeed());
+					psdto.getSeeds().add(seed);
 
 					permissions.put(psdto.getPermissionOid(), psdto);
 				}
