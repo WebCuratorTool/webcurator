@@ -1,43 +1,32 @@
-import { ref, reactive, watchEffect, toValue } from 'vue'
+import { ref, reactive } from 'vue'
 import { useDialog } from 'primevue/usedialog';
 import LoginDialog from './components/LoginDialog.vue';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
-export interface FetchOptions {
-    method?: string
-    path?:string
-    payload?:any
-    timestamp?:string
-}
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const token = reactive({
     value: ""
 });
 
-export const dialog = reactive({
-    value: null
-});
-
-export interface UseFetchReturn {
+export interface UseFetchApis {
     // methods
-    get: (path:string, payload: any | null) => any
+    get: (path:string) => any
     post: (path:string, payload: any) => any
     put: (path:string, payload: any) => any
     delete: (path:string, payload: any) => any
     patch: (path:string, payload: any) => any
-    head: (path:string, payload: any) => any
+    head: (path:string) => any
     options: (path:string, payload: any) => any
 }
 
 // by convention, composable function names start with "use"
 export function useFetch() {
     // state encapsulated and managed by the composable
-    // const token = ref();
     const dialog = useDialog();
-    const data = ref()
-    const error = ref()
-    const previousFetchOptions=ref()
+    const isFinished=ref(false)
+    const isAuthenticating=ref(false);
  
     // a composable can update its managed state over time.
     async function openLoginDialog(dialog:any) {
@@ -54,12 +43,12 @@ export function useFetch() {
             onClose: (options:any) => {
                 console.log(options);
                 token.value = options.data;
-                // httpFetch(previousFetchOptions.value);
+                isAuthenticating.value=false;
             }
         });
     }
 
-    const shell: UseFetchReturn = {
+    const shell: UseFetchApis = {
         // method
         get: setMethod('GET'),
         put: setMethod('PUT'),
@@ -71,74 +60,50 @@ export function useFetch() {
     }
 
     function setMethod(methodValue: HttpMethod) {
-        return (path:string, payload:any) => {
-            let url=path;
-            if(!url){
-                error.value="500: the url is expected";
-                return;
+        return async (path:string, payload:any=null) => {                                                        
+            let ret=null;
+
+            //Retry until it's finished. If the login session is expired, it can be run 2 rounds
+            while(!isFinished.value){
+                // Waiting until the authentication is finished
+                while(isAuthenticating.value){
+                    await sleep(200);
+                }
+
+                const reqOptions:RequestInit={
+                    method: methodValue,
+                    redirect: 'error',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token.value,
+                    }
+                }
+                if(payload){
+                    reqOptions.body=JSON.stringify(payload);
+                }
+
+                ret = await fetch(path, reqOptions).then(rsp=>{
+                    console.log(rsp);
+                    if(rsp.status==401){
+                        isAuthenticating.value=true;
+                        openLoginDialog(dialog);
+                        return null;
+                    }
+
+                    isFinished.value = true;
+                    
+                    if(rsp.ok){                        
+                        return rsp.json();
+                    }else{
+                        let statusText = rsp.statusText;
+                        if(!statusText || statusText.length===0){              
+                            statusText = "Unknown error."                
+                        }                        
+                        throw new Error(rsp.status + " : " + statusText);
+                    }
+                });
             }
-            if(url?.startsWith('/')){
-                url='.'+url;
-            }else if(url?.startsWith('./') || url?.startsWith('../')){
-                //Do nothing
-            }else{
-                url='./'+url;
-            }
-
-            // let method=fetchOptions.method;
-            // if(!method){
-            //     error.value="500: the method is expected";
-            //     return;
-            // }
-            // method=method.toUpperCase();
-            // if(method!=="GET" && method!=="POST" && method!=="PUT" && method!=="DELETE" && method!=="PATCH" && method!=="HEAD" && method!=="OPTIONS" && method!=="TRACE" && method!=="CONNECT"){
-            //     error.value="500: unknown method: " + method;
-            //     return;
-            // }
-
-            let body="";
-            if(payload){
-                body=JSON.stringify(payload);
-            }
-            previousFetchOptions.value={
-                method: methodValue,
-                path: path,
-                payload: payload
-            };
-
-            fetch(url, {
-                method: methodValue,
-                redirect: 'error',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token.value,
-                },
-            }).then(rsp=>{
-                console.log(rsp);
-                if(rsp.ok){
-                    return rsp.json();
-                }
-
-                if(rsp.status==401){
-                    openLoginDialog(dialog);
-                    return null;
-                }
-
-                let statusText = rsp.statusText;
-                if(!statusText || statusText.length===0){              
-                    statusText = "Unknown error."                
-                }
-                throw new Error(rsp.status + " : " + statusText);
-            }).then(jsonData=>{
-                if(jsonData){
-                    data.value=jsonData;
-                }
-            }).catch(err=>{
-                console.log(err);
-                error.value=err.message;
-            });
-
-            return { data, error };
+            return ret;
         }
     }
 
