@@ -1024,42 +1024,15 @@ Current available types are fileArchive, omsArchive, dpsArchive.
 
 For more information on *dpsArchive*, see  :doc:`Rosetta DPS Configuration Guide <rosetta-dps-configuration-guide>`.
 
-Using the screenshot
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using the screenshot generation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can take digital images of the home page to be harvested or archived on Wayback/PyWB. According to the image size, two kinds of pictures will be taken, the screen sized screenshot picture and the full page screenshot picture. The screen sized screenshot picture contains the contents can be seen on the screen without rolling, zooming or moving the window. The full page screenshot picture contains the contents of the entire home page, in fact pictures are screenshoted by rolling and joint together. Both kinds of pictures can be resized to thumbnails. The screenshot is enabled by default. ::
-      # Enable the screenshot
-      enableScreenshots=true
-      # Stop harvesting if fails to take screenshot
-      abortHarvestOnScreenshotFailure=true
+The Web Curator Tool is able to generate screenshots of seed URLs for Target Instances. Screenshots are generated from 
+the live version and harvested version of each web page that corresponds to a seed URL in the Target Instance. 
 
-The following versions of waybacks have been used during the development of the Web Curator Tool:: 
-      # Wayback integration for screenshot: pywb-2.6.7, pywb-2.7.3 and owb-2.4.0 were tested.
-      # The wayback.name can be: pywb or owb.
-      wayback.name=pywb
-      # The wayback.version is the specific version number you are using.
-      wayback.version=2.7.3
+For information on setting up and configuring this feature 
+see :doc:`Harvest Screenshot Configuration Guide <harvest-screenshot-configuration-guide>`
 
-There is a builtin method and a python file that can be used as the screenshot capture tool, the default tool is the builtin method.
-      - The builtin method: if you are using the builtin method, please have the location of chromedriver specified in your environment's PATH.
-      - The python file: if you are using the SeleniumScreenshotCapture.py, please have the location of SeleniumScreenshotCapture.py specified in your environment's PATH. You may need to install python, pip, pip selenium, and pip Pillow.You may need to have the location of chromedriver specified in your environment's PATH. 
-You can download chromedriver from https://chromedriver.chromium.org/downloads. The screenshot commands are configurable. ::
-      #Screenshots
-      # %image.png% is a placeholder for the output image file and %url% is a placeholder for the seed url
-      screenshotCommand.screen=native filepath=%image.png% url=%url% width=1400 height=800
-      screenshotCommand.fullpage=native filepath=%image.png% url=%url%
-      #screenshotCommand.screen=SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=1400 height=800
-      #screenshotCommand.fullpage=SeleniumScreenshotCapture.py filepath=%image.png% url=%url%
-
-      # Include the command to set the window size in case the wayback banner doesn't grab the full screenshot
-      # Please use %width% for width value and %height% for height value
-      screenshotCommand.windowsize=native filepath=%image.png% url=%url% width=%width% height=%height%
-      #screenshotCommand.windowsize=SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=%width% height=%height%
-
-      # Needed to get the harvest screenshot from the wayback url
-      #harvestWaybackViewer.baseUrl=http://localhost:1080/${pywbIndexer.wb-manager.coll}/
-      harvestWaybackViewer.baseUrl=http://localhost:9090/wayback/
-	  
 
 Harvest Agent - application.properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
