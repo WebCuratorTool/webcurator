@@ -74,7 +74,7 @@ Install the latest stable release of Google Chrome for your operating system. Th
 
 Installing on RHEL 8 and newer
 
--   Setup local Chrome yum repo - create /etc/yum.repos.d/google-chrome.repo
+-   Setup local Chrome yum repo - create /etc/yum.repos.d/google-chrome.repo::
         
         [google-chrome]
         name=google-chrome
@@ -127,7 +127,7 @@ Installing on linux environments
 
         wget https://storage.googleapis.com/chrome-for-testing-public/122.0.6261.94/linux64/chromedriver-linux64.zip
         
--   Extract the driver and make executable
+-   Extract the driver and make executable::
 
         unzip chromedriver-linux64.zip
         sudo cp chromedriver-linux64/chromedriver /usr/bin/chromedriver
@@ -171,10 +171,17 @@ Configuration
 
 Enabling the screenshot generation feature
 
+-   Open your WCT Webapp `application.properties` file and set `enableScreenshots` to true. (`application.properties` is 
+    located in `webcurator-webapp.war/WEB-INF/classes/application.properties`)
+
+        enableScreenshots=true
+
 -   Open your WCT Store `application.properties` file and set `enableScreenshots` to true. (`application.properties` is 
     located in `webcurator-store.war/WEB-INF/classes/application.properties`)
 
         enableScreenshots=true
+        
+    *Both these settings must be in sync to enable/disable the feature.*
        
 -   To stop harvests from crawling if a screenshot of the live website fails, set `abortHarvestOnScreenshotFailure` to 
     true.
@@ -193,13 +200,13 @@ The harvest screenshot generation can work with OpenWayback or Pywb
 
 -   Open your WCT Store `application.properties` file and set the wayback viewer and version used with your WCT 
     installation. `wayback.name` can be set to either *owb* or *pywb*. The available wayback versions tested are 
-    OpenWayback 2.4, Pywb 2.6.7, Pywb 2.7.3 and Pywb 2.7.4.
+    OpenWayback 2.4, Pywb 2.6.7, Pywb 2.7.3 and Pywb 2.7.4.::
 
         wayback.name=pywb
         wayback.version=2.7.3
 
 -   Either enable `waybackIndexer` for OpenWayback or `pywbIndexer` for Pywb. Ensure the indexer not being used is set
-    to false.
+    to false.::
 
         #WaybackIndexer
         # Enable this indexer
@@ -213,7 +220,7 @@ Pywb implementation
 
 -   Open your WCT Store `application.properties` file, change the `pywbIndexer.wb-manager.store` path to the root directory
     of your Pywb installation, and change the `pywbIndexer.wb-manager.coll` value to the name of the Pywb collection used
-    by WCT.
+    by WCT.::
 
         pywbIndexer.wb-manager.store=/usr/local/wct/pywb
         pywbIndexer.wb-manager.coll=<my-web-archive>
@@ -223,7 +230,7 @@ Python implementation
 ---------------------
 
 -   Open your WCT Store `application.properties` file, and change screenshotCommand parameters to use the 
-    `SeleniumScreenshotCapture.py` Python implementation.
+    `SeleniumScreenshotCapture.py` Python implementation.::
 
         screenshotCommand.screen=SeleniumScreenshotCapture.py filepath=%image.png% url=%url% width=1400 height=800
         screenshotCommand.fullpage=SeleniumScreenshotCapture.py filepath=%image.png% url=%url%
