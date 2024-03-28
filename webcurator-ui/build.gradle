@@ -9,7 +9,7 @@ repositories {
 }
 
 group = 'org.webcurator'
-version = '4.0.0-SNAPSHOT'
+version = '3.3.0-SNAPSHOT'
 description = 'Web Curator Tool UI'
 
 java {
