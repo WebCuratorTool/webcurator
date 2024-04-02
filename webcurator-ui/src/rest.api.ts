@@ -63,6 +63,8 @@ export function useFetch() {
         return async (path:string, payload:any=null) => {                                                        
             let ret=null;
 
+            isFinished.value=false;
+
             //Retry until it's finished. If the login session is expired, it can be run 2 rounds
             while(!isFinished.value){
                 // Waiting until the authentication is finished
