@@ -27,7 +27,7 @@ dependencies {
     compile 'net.sourceforge.jexcelapi:jxl:2.6.12'
     compile 'com.exlibris:dps-sdk:7.1.0'
     compile 'com.exlibris:dps-sdk-deposit-api:7.1.0'
-    compile 'org.webcurator:webcurator-core:3.2.0'
+    compile 'org.webcurator:webcurator-core:3.2.1-SNAPSHOT'
     compile 'dom4j:dom4j:1.6.1'
     compile 'com.google.code.guice:guice:1.0'
     compile 'org.apache.xmlbeans:xmlbeans:2.3.0'
@@ -46,7 +46,7 @@ dependencies {
 }
 
 group = 'org.webcurator'
-version = '3.2.0'
+version = '3.2.1-SNAPSHOT'
 description = 'Web Curator Tool Submit-to-Rosetta'
 sourceCompatibility = '1.8'
 
