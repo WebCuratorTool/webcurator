@@ -60,7 +60,6 @@ import org.webcurator.core.profiles.Heritrix3Profile;
 import org.webcurator.core.profiles.HeritrixProfile;
 import org.webcurator.core.store.DigitalAssetStore;
 import org.webcurator.core.visualization.VisualizationConstants;
-import org.webcurator.core.visualization.networkmap.metadata.NetworkMapResult;
 import org.webcurator.core.visualization.networkmap.service.NetworkMapClient;
 import org.webcurator.domain.TargetInstanceCriteria;
 import org.webcurator.domain.TargetInstanceDAO;
@@ -313,8 +312,10 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
 
     public Boolean reIndexHarvestResult(HarvestResult origHarvestResult) {
         if (origHarvestResult != null) {
-            NetworkMapResult rst = networkMapClient.initialIndex(origHarvestResult.getTargetInstance().getOid(), origHarvestResult.getHarvestNumber());
-            return rst.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS;
+//            NetworkMapResult rst = networkMapClient.initialIndex(origHarvestResult.getTargetInstance().getOid(), origHarvestResult.getHarvestNumber());
+//            return rst.getRspCode() == NetworkMapResult.RSP_CODE_SUCCESS;
+            initiateIndexing(origHarvestResult.getTargetInstance(), origHarvestResult);
+            return true;
         } else {
             log.error("Invalid input parameter, origHarvestResult is null.");
             return false;
@@ -1588,6 +1589,94 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
         initiateIndexing(ti, harvestResult);
 
         log.info("'Modification Complete' message processed for job: " + ti.getOid() + ".");
+    }
+
+    public String recreateScreenshotAndIndex(long hrOid, boolean recreateLive, boolean recreateIndex, boolean recreateHarvested) {
+        HarvestResult hr = targetInstanceDao.getHarvestResult(hrOid);
+        if (hr == null) {
+            throw new WCTRuntimeException("Failed to load HarvestResult, hrOid=" + hrOid);
+        }
+
+        TargetInstance ti = hr.getTargetInstance();
+        if (ti == null) {
+            throw new WCTRuntimeException("Failed to load TargetInstance, hrOid=" + hrOid);
+        }
+
+        if (hr.getState() == HarvestResult.STATE_INDEXING) {
+            return "Another indexing is running, your request will be ignored.";
+        }
+
+        if (enableScreenshots && recreateLive) {
+            Runnable screenshotHandler = new Runnable() {
+                @Override
+                public void run() {
+                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                    identifiers.setTiOid(ti.getOid());
+                    identifiers.setHarvestNumber(hr.getHarvestNumber());
+                    identifiers.setScreenshotType(ScreenshotType.live);
+                    String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
+                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                        seedHistoryDTO.setTimestamp(timestamp);
+                        identifiers.getSeeds().add(seedHistoryDTO);
+                    }
+                    Boolean screenshotsTaken = Boolean.TRUE;
+                    try {
+                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                    } catch (DigitalAssetStoreException e) {
+                        log.error("Failed to create screenshot:", e);
+                        screenshotsTaken = Boolean.FALSE;
+                    }
+
+                    if (!screenshotsTaken) {
+                        log.info("There was a problem generating the screenshots.");
+                        return;
+                    }
+                }
+            };
+            Thread t = new Thread(screenshotHandler);
+            t.start();
+        }
+
+        if (recreateIndex) {
+            if (hr.getState() != HarvestResult.STATE_UNASSESSED) {
+                return "Only the havests at the [UNASSESSED] state can be reindexed";
+            }
+
+            this.initiateIndexing(ti, hr);
+        } else if (enableScreenshots && recreateHarvested) {
+            Runnable screenshotHandler = new Runnable() {
+                @Override
+                public void run() {
+                    ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+                    identifiers.setTiOid(ti.getOid());
+                    identifiers.setHarvestNumber(hr.getHarvestNumber());
+                    identifiers.setScreenshotType(ScreenshotType.harvested);
+                    String timestamp = new SimpleDateFormat("yyyyMMddhhmmss").format(new Date());
+                    for (SeedHistory seedHistory : ti.getSeedHistory()) {
+                        SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+                        seedHistoryDTO.setTimestamp(timestamp);
+                        identifiers.getSeeds().add(seedHistoryDTO);
+                    }
+                    Boolean screenshotsTaken = Boolean.TRUE;
+                    try {
+                        screenshotsTaken = screenshotClient.createScreenshots(identifiers);
+                    } catch (DigitalAssetStoreException e) {
+                        log.error("Failed to create screenshot:", e);
+                        screenshotsTaken = Boolean.FALSE;
+                    }
+
+                    if (!screenshotsTaken) {
+                        log.info("There was a problem generating the screenshots.");
+                        return;
+                    }
+                }
+            };
+            Thread t = new Thread(screenshotHandler);
+            t.start();
+        }
+
+        return "The request is accepted.";
     }
 
     private void initiateIndexing(long targetInstanceId, int harvestResultNumber) {

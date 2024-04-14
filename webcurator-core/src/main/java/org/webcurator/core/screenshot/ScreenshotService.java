@@ -18,4 +18,6 @@ public interface ScreenshotService {
 
     //    void browseScreenshotImage(long  tiOid, int harvestNumber, long seedOid);
     void browseScreenshotImage(HttpServletRequest req, HttpServletResponse rsp) throws IOException;
+
+    ScreenshotState checkScreenshotState(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException;
 }

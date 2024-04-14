@@ -41,4 +41,32 @@ public class PywbIndexerTest extends BaseWCTTest<PywbIndexer> {
         testInstance.indexFiles(targetInstanceId);
         assert true;
     }
+
+    @Ignore
+    @Test
+    public void testIndexerIndividualCollection() {
+        HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
+        harvestResultDTO.setOid(targetInstanceId);
+        harvestResultDTO.setHarvestNumber(harvestResultNumber);
+        harvestResultDTO.setTargetInstanceOid(targetInstanceId);
+        File directory = WCTTestUtils.getResourceAsFile(archivePath);
+        testInstance.setIndividualCollectionMode(true);
+        testInstance.initialise(harvestResultDTO, directory);
+        testInstance.indexFiles(targetInstanceId);
+        assert true;
+    }
+
+    @Ignore
+    @Test
+    public void testRemoveIndexIndividualCollection() {
+        HarvestResultDTO harvestResultDTO = new HarvestResultDTO();
+        harvestResultDTO.setOid(targetInstanceId);
+        harvestResultDTO.setHarvestNumber(harvestResultNumber);
+        harvestResultDTO.setTargetInstanceOid(targetInstanceId);
+        File directory = WCTTestUtils.getResourceAsFile(archivePath);
+        testInstance.setIndividualCollectionMode(true);
+        testInstance.initialise(harvestResultDTO, directory);
+        testInstance.removeIndex(targetInstanceId);
+        assert true;
+    }
 }
