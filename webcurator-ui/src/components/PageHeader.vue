@@ -13,8 +13,8 @@ defineProps<{
 <style>
 .page-header {
 	height: 5em;
-	background: #dfe1e2;
-	color: #1F5384;
+	/* background: #dfe1e2; */
+	/* color: #1F5384; */
 	font-size: xx-large;
 	font-weight: bold;
 	text-align: left;

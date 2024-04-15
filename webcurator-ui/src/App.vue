@@ -2,6 +2,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import { useDialog } from 'primevue/usedialog';
 import NavBar from '@/components/NavBar.vue'
+import AppConfig from '@/layout/AppConfig.vue';
 
 // import api from './restclient';
 
@@ -13,6 +14,7 @@ import NavBar from '@/components/NavBar.vue'
     <NavBar />
     <router-view />
      <DynamicDialog />
+     <AppConfig />
   </div>
 </template>
 
