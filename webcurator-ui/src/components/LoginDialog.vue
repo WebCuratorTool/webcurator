@@ -38,13 +38,15 @@ const password=ref(null);
 
 
 const auth = () => {
-    var url="./auth/v1/token?username=" + username.value + "&password=" + password.value;
+    var url="./auth/v1/token";
+    var credentials="username=" + username.value + "&password=" + password.value;
     fetch(url, {
         method: 'POST',
         redirect: 'error',
         headers: {
-            'Content-Type': 'application/json',
-        }
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: credentials
     }).then((rsp)=>{
         // console.log(rsp);
         if(!rsp.ok){
