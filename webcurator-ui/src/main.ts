@@ -115,17 +115,20 @@ import TreeTable from 'primevue/treetable';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
 import VirtualScroller from 'primevue/virtualscroller';
 
-import "primevue/resources/themes/aura-dark-lime/theme.css";
-import 'primevue/resources/primevue.min.css';
-import 'primeicons/primeicons.css';  
+import BlockViewer from '@/components/BlockViewer.vue';
+
+// import "primevue/resources/themes/aura-dark-lime/theme.css";
+// import 'primevue/resources/primevue.min.css';
+// import 'primeicons/primeicons.css';  
+import '@/assets/styles.scss';
 
 const app = createApp(App);
 
 app.use(createPinia());
 app.use(router);
 
-app.use(PrimeVue, { unstyled: false });
-// app.use(PrimeVue, { ripple: true  });
+// app.use(PrimeVue, { unstyled: false });
+app.use(PrimeVue, { ripple: true  });
 app.use(ConfirmationService);
 app.use(ToastService);
 app.use(DialogService);
@@ -136,6 +139,8 @@ app.directive('ripple', Ripple);
 app.directive('styleclass', StyleClass);
 app.directive('focustrap', FocusTrap);
 app.directive('animateonscroll', AnimateOnScroll);
+
+app.component('BlockViewer', BlockViewer);
 
 app.component('Accordion', Accordion);
 app.component('AccordionTab', AccordionTab);
