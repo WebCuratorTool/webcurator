@@ -104,7 +104,7 @@ export function useFetch() {
                     reqOptions.body=JSON.stringify(payload);
                 }
 
-                ret = await fetch(path, reqOptions).then(rsp=>{
+                ret = await fetch('./api/v1/' + path, reqOptions).then(rsp=>{
                     console.log(rsp);
                     if(rsp.status==401){                                                
                         return null;
