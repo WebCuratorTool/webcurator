@@ -10,6 +10,10 @@ export const token = reactive({
     value: ""
 });
 
+export const isAuthenticating = reactive ({
+    value: false
+});
+
 export interface UseFetchApis {
     // methods
     get: (path:string) => any
@@ -26,10 +30,25 @@ export function useFetch() {
     // state encapsulated and managed by the composable
     const dialog = useDialog();
     const isFinished=ref(false)
-    const isAuthenticating=ref(false);
  
     // a composable can update its managed state over time.
     async function openLoginDialog(dialog:any) {
+        const last_token=token.value;
+        await sleep(Math.floor((Math.random() * 100) + 1));
+        
+        if(isAuthenticating.value){
+            console.log("The login window is opened");
+            return;
+        }
+        
+        if(last_token !== token.value){
+            console.log("The token was updated.");
+            isAuthenticating.value=false;
+            return;
+        }
+
+        isAuthenticating.value=true;
+
         const dialogRef = dialog.open(LoginDialog, {
             props: {
                 header: 'Please login',
@@ -69,7 +88,7 @@ export function useFetch() {
             while(!isFinished.value){
                 // Waiting until the authentication is finished
                 while(isAuthenticating.value){
-                    await sleep(200);
+                    await sleep(1000);
                 }
 
                 const reqOptions:RequestInit={
@@ -86,9 +105,8 @@ export function useFetch() {
 
                 ret = await fetch(path, reqOptions).then(rsp=>{
                     console.log(rsp);
-                    if(rsp.status==401){
-                        isAuthenticating.value=true;
-                        openLoginDialog(dialog);
+                    if(rsp.status==401){                        
+                        openLoginDialog(dialog);                        
                         return null;
                     }
 
