@@ -3,7 +3,7 @@
 .main-content{
     margin: 0;
 	padding: 0 120px;
-    width: calc(100vw - 240px);
+    /* width: calc(100vw - 240px); */
 	display: flex;
 	align-items: center;
 }
