@@ -86,7 +86,7 @@ public class Targets {
         stateMap.put(Target.STATE_COMPLETED, "Completed");
     }
 
-    @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> get(@RequestBody(required = false) SearchParams searchParams) {
         if (searchParams == null) {
             searchParams = new SearchParams();
@@ -187,7 +187,7 @@ public class Targets {
     /**
      * Handler for creating new targets
      */
-    @PostMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/save", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> post(@Valid @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
         Target target = new Target();
         try {
