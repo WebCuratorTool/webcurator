@@ -29,8 +29,7 @@ export interface UseFetchApis {
 export function useFetch() {
     // state encapsulated and managed by the composable
     const dialog = useDialog();
-    const isFinished=ref(false)
- 
+    
     // a composable can update its managed state over time.
     async function openLoginDialog(dialog:any) {
         const last_token=token.value;
@@ -82,7 +81,9 @@ export function useFetch() {
         return async (path:string, payload:any=null) => {                                                        
             let ret=null;
 
-            isFinished.value=false;
+            const isFinished=ref(false);
+ 
+            //isFinished.value=false;
 
             //Retry until it's finished. If the login session is expired, it can be run 2 rounds
             while(!isFinished.value){
@@ -105,8 +106,7 @@ export function useFetch() {
 
                 ret = await fetch(path, reqOptions).then(rsp=>{
                     console.log(rsp);
-                    if(rsp.status==401){                        
-                        openLoginDialog(dialog);                        
+                    if(rsp.status==401){                                                
                         return null;
                     }
 
@@ -122,6 +122,10 @@ export function useFetch() {
                         throw new Error(rsp.status + " : " + statusText);
                     }
                 });
+
+                if(!isFinished.value){
+                    await openLoginDialog(dialog);
+                }
             }
             return ret;
         }
