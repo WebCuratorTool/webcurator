@@ -5,6 +5,7 @@
             <div class="nav-bar-links">
                 <router-link class="nav-bar-link" to="/wct/dashboard">Dashboard</router-link>
                 <router-link class="nav-bar-link" to="/wct/targets">Targets</router-link>
+                
             </div>
         </div>
     </div>

@@ -1,9 +1,26 @@
 @import './base.css';
 
+.main-header {
+	height: 8em;
+	margin: 0;
+	padding: 20px 120px;
+	text-align: left;
+	/* display: flex; */
+	align-items: center;	
+}
+
 .main-content{
     margin: 0;
 	padding: 0 120px;
-    /* width: calc(100vw - 240px); */
-	display: flex;
+	/* display: flex; */
 	align-items: center;
+}
+
+#main-header-arrow-left{
+	font-size: 1.5rem;
+}
+
+.title{
+	font-size: xx-large;
+	font-weight: bold;
 }

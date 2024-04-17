@@ -130,77 +130,77 @@ const search= () => {
     <div class="main-content grid">
         <div class="col-12 card">
             <h5>Query</h5>
-            <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-                <div class="formgroup-inline search-condition">
-                    <div class="field search-input">
-                        <label>Target ID</label>
-                        <InputNumber v-model="targetId" :useGrouping="false"/>
-                    </div>
-                    <div class="field search-input">
-                        <label>Target Name</label>
-                        <InputText v-model="targetName" type="text" />
-                    </div>
-                    <div class="field search-input">
-                        <label>Seed</label>
-                        <InputText v-model="targetSeed" type="text" />
-                    </div>
-                    <div class="field search-input">
-                        <label>Description</label>
-                        <InputText v-model="targetDescription" type="text" />
-                    </div>
-                    <div class="field search-input">
-                        <label>Member of</label>
-                        <InputText v-model="targetMemberOf" type="text" />
-                    </div>
+            <div class="grid">
+                <div class="col-2">
+                    <label>Target ID</label>
+                    <InputNumber v-model="targetId" :useGrouping="false"/>
                 </div>
-                <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="search()"></Button>
-            </div>
-
-            <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-                <div class="formgroup-inline">
-                    <div class="field">
-                        <InputGroup class="w-full md:w-20rem">
-                            <InputGroupAddon>Agency</InputGroupAddon>
-                            <Dropdown id="agency" v-model="selectedAgency" :options="agencyList" optionLabel="name" placeholder="Select an Agency" checkmark class="w-full md:w-18rem" />
-                        </InputGroup>
-                    </div>
-                    <div class="field">
-                        <InputGroup class="w-full md:w-20rem">
-                            <InputGroupAddon>User</InputGroupAddon>
-                            <Dropdown id="user" v-model="selectedUser" :options="userList" optionLabel="name" placeholder="Select an User" checkmark class="w-full md:w-18rem" />
-                        </InputGroup>
-                    </div>
-                    
-                    <div class="field">
-                        <InputGroup>
-                            <InputGroupAddon>Noe-Display  Only</InputGroupAddon>      
-                            <InputGroupAddon>
-                                <Checkbox v-model="noneDisplayOnly" :binary="true" />
-                            </InputGroupAddon>
-                        </InputGroup>
-                    </div>
-                    
-                    <div class="field">
-                        <InputGroup class="w-full md:w-20rem">
-                            <InputGroupAddon>State</InputGroupAddon>
-                            <MultiSelect v-model="selectedState" :options="stateList" optionLabel="name" placeholder="Select States"  :maxSelectedLabels="3" class="w-full md:w-20rem" />
-                        </InputGroup>
-
-                    </div>
-
-                    <div class="field">
-                        <Button label="&nbsp;&nbsp;Reset filter" icon="pi pi-times" severity="secondary"  class="btn-sub" />
-                    </div>
-                    <div class="field">
-                        <Button label="&nbsp;&nbsp;Filter" icon="pi pi-filter" severity="secondary"  class="btn-sub" />
-                    </div>
+                <div class="col-2">
+                    <label>Target Name</label>
+                    <InputText v-model="targetName" type="text" />
+                </div>
+                <div class="col-2">
+                    <label>Seed</label>
+                    <InputText v-model="targetSeed" type="text" />
+                </div>
+                <div class="col-2">
+                    <label>Description</label>
+                    <InputText v-model="targetDescription" type="text" />
+                </div>
+                <div class="col-2">
+                    <label>Member of</label>
+                    <InputText v-model="targetMemberOf" type="text" />
+                </div>
+                <div class="col-2">
+                    <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="search()"></Button>
                 </div>
             </div>
+
+            <div class="formgroup-inline">
+                <div class="field">
+                    <InputGroup class="w-full md:w-20rem">
+                        <InputGroupAddon>Agency</InputGroupAddon>
+                        <Dropdown id="agency" v-model="selectedAgency" :options="agencyList" optionLabel="name" placeholder="Select an Agency" checkmark class="w-full md:w-18rem" />
+                    </InputGroup>
+                </div>
+                <div class="field">
+                    <InputGroup class="w-full md:w-20rem">
+                        <InputGroupAddon>User</InputGroupAddon>
+                        <Dropdown id="user" v-model="selectedUser" :options="userList" optionLabel="name" placeholder="Select an User" checkmark class="w-full md:w-18rem" />
+                    </InputGroup>
+                </div>
+                
+                <div class="field">
+                    <InputGroup>
+                        <InputGroupAddon>Noe-Display  Only</InputGroupAddon>      
+                        <InputGroupAddon>
+                            <Checkbox v-model="noneDisplayOnly" :binary="true" />
+                        </InputGroupAddon>
+                    </InputGroup>
+                </div>
+                
+                <div class="field">
+                    <InputGroup class="w-full md:w-20rem">
+                        <InputGroupAddon>State</InputGroupAddon>
+                        <MultiSelect v-model="selectedState" :options="stateList" optionLabel="name" placeholder="Select States"  :maxSelectedLabels="3" class="w-full md:w-20rem" />
+                    </InputGroup>
+
+                </div>
+
+                <div class="field">
+                    <Button label="&nbsp;&nbsp;Reset filter" icon="pi pi-times" severity="secondary"  class="btn-sub" />
+                </div>
+                <div class="field">
+                    <Button label="&nbsp;&nbsp;Filter" icon="pi pi-filter" severity="secondary"  class="btn-sub" />
+                </div>
+            </div>
+
         </div>
 
         <div class="col-12 card">
             <DataTable
                 :value="targetList"
+                size="small"
                 :paginator="true"
                 :rows="10"
                 dataKey="oid"
@@ -208,42 +208,31 @@ const search= () => {
                 filterDisplay="menu"
                 :loading="loadingTargetList"
                 :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']"
+                resizableColumns columnResizeMode="fit"
                 showGridlines
             >
                 <template #header>
                     <div class="flex justify-content-between flex-column sm:flex-row">
                         <h5>Results</h5>
-                        <Button label="Create new" severity="secondary"/>
+                        <Button severity="secondary" raised>
+                            <router-link :to="{ name: 'target', params: { mode: 'new', id:0 } }">
+                            Create new
+                            </router-link>
+                        </Button>
                     </div>
                 </template>
                 <template #empty> No targets found. </template>
                 <template #loading> Loading target list. Please wait. </template>
-                <Column field="oid" header="Id" dataType="numeric" style="min-width: 2rem">
-                    <template #body="{ data }">
-                        {{ data.id }}
-                    </template>
-                </Column>
-                <Column header="Date" filterField="date" dataType="date" style="min-width: 5rem">
+                <Column field="id" sortable  header="Id" dataType="numeric" style="min-width: 2rem"></Column>
+                <Column header="Date" sortable dataType="date" style="min-width: 5rem">
                     <template #body="{ data }">
                         {{ formatDate(data.creationDate) }}
                     </template>
                 </Column>
-                <Column field="name" header="Name" style="min-width: 8rem">
-                    <template #body="{ data }">
-                        {{ data.name }}
-                    </template>
-                </Column>
-                <Column header="Agency" filterField="agency" style="min-width: 5rem">
-                    <template #body="{ data }">
-                        {{ data.agency }}
-                    </template>
-                </Column>
-                <Column header="Owner" filterField="owner" style="min-width: 3rem">
-                    <template #body="{ data }">
-                        {{ data.owner }}
-                    </template>
-                </Column>
-                <Column header="Status" field="status" style="min-width: 2rem">
+                <Column field="name" header="Name" sortable style="min-width: 8rem"></Column>
+                <Column field="agency" header="Agency" sortable style="min-width: 5rem"></Column>
+                <Column field="owner" header="Owner" sortable filterField="owner" style="min-width: 6rem"></Column>
+                <Column field="state" header="Status" sortable style="min-width: 2rem">
                     <template #body="{ data }">
                         {{ formatState(data.state) }}
                     </template>
@@ -251,14 +240,19 @@ const search= () => {
                 <Column header="Seed" field="seed" style="min-width: 12rem">
                     <template #body="{ data }">
                         <div v-for="seed in data.seeds" :key="seed">                        
-                            <span style="font-weight: bold;" v-if="seed.primary">{{ seed.seed }}</span>
+                            <span v-if="seed.primary" style="font-weight: bold;">{{ seed.seed }}</span>
                             <span v-else>{{ seed.seed }}</span>
                         </div>                        
                     </template>
                 </Column>
-                <Column header="Action" field="oid" style="min-width: 12rem">
+                <Column header="Action" field="oid" style="min-width: 8rem">
                     <template #body="{ data }">
-                        {{ data.oid }}
+                        <div class="flex flex-wrap justify-content-center">
+                            <Button text><img alt="logo" src="@/assets/images/action-icon-view.gif" style="width: 1.2rem; height: 1.2rem;"/></Button>
+                            <Button text><img alt="logo" src="@/assets/images/action-icon-edit.gif" style="width: 1.2rem; height: 1.2rem;" /></Button>
+                            <Button text><img alt="logo" src="@/assets/images/action-icon-copy.gif" style="width: 1.2rem; height: 1.2rem;" /></Button>
+                            <Button text><img alt="logo" src="@/assets/images/action-icon-target-instances.gif" style="width: 1.2rem; height: 1.2rem;" /></Button>
+                        </div>
                     </template>
                 </Column>
             </DataTable>
@@ -277,6 +271,7 @@ const search= () => {
 
 #search-button{
     margin-top: 22px;
+    margin-left: 120px;
 }
 
 .toolbar{
