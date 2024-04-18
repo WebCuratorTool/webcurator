@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, provide } from "vue";
 import { onBeforeRouteUpdate } from 'vue-router';
-import {target, getTargetSubTitle, getTargetState} from '@/components/target/target';
+import {storeToRefs} from 'pinia';
+import {useTargetGeneralDTO, target, getTargetSubTitle, getTargetState} from '@/components/target/target';
 import TargetGeneral from "@/components/target/TargetGeneral.vue";
 import {type UseFetchApis, useFetch} from '../rest.api';
 
 const rest: UseFetchApis=useFetch();
-
+const targetGeneral=useTargetGeneralDTO();
+// const {id,name,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,setData}=storeToRefs(targetGeneral);
 // ...
 const openMode=ref();
 const targetId=ref();
@@ -31,7 +33,13 @@ const targetDTO=ref({
 
 onMounted(()=>{
     console.log("onMounted");
-    console.log(this.$route.query);
+    console.log(TargetGeneral);
+    // id.value=125886;
+    // name.value="helloword";
+    targetGeneral.setData({
+        id: 125886,
+        name: "hello world",
+    });
 });
 
 onBeforeRouteUpdate((to, from) => {

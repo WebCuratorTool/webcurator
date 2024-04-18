@@ -1,34 +1,8 @@
 <script setup lang="ts">
 import { ref, inject, computed, onMounted, onBeforeMount } from "vue";
-import {type TargateGeneralDTO, stateList} from '@/components/target/target';
+import {useTargetGeneralDTO, stateList} from '@/components/target/target';
 
-// defineProps<{
-//     openMode: string,
-//     targetId: number
-// }>()
-
-// const fields:TargateGeneralDTO=inject('targetGeneral', {
-//     id: undefined,
-//     name: "",
-//     description: "",
-//     referenceNumber: "",
-//     runOnApproval: false,
-//     automatedQA: false,
-// });
-
-// const id=ref();
-// const name=ref("");
-// const description=ref("");
-// const referenceNumber=ref("");
-// const runOnApproval=ref(false);
-// const automatedQA=ref(false);
-// const userList=ref([]);
-// const selectedUser=ref();
-// const selectedState=ref(null);
-// const autoPrune=ref(false);
-// const referenceCrawl=ref(false);
-// const requestToArchivists=ref("");
-
+const fields=useTargetGeneralDTO();
 
 let targetDTO:any=null;
 
@@ -63,73 +37,70 @@ onBeforeMount(()=>{
             <label>Id:</label>
         </div>
         <div class="col-10">
-            <InputText v-model="targetDTO.general.id" disabled />
+            <InputText v-model="fields.id" disabled />
         </div>
         <div class="col-2">
             <label>Name(*):</label>
         </div>
         <div class="col-10">
-            <InputText v-model="targetDTO.general.name"/>
+            <InputText v-model="fields.name"/>
         </div>
         <div class="col-2">
             <label>Description:</label>
         </div>
         <div class="col-10">
-            <Textarea v-model="targetDTO.general.description" autoResize rows="6"/>
+            <Textarea v-model="fields.description" autoResize rows="6"/>
         </div>
         <div class="col-2">
             <label>Reference Number:</label>
         </div>
         <div class="col-10">
-            <InputText v-model="targetDTO.general.referenceNumber"/>
+            <InputText v-model="fields.referenceNumber"/>
         </div>
         <div class="col-2">
             <label>Run on Approval:</label>
         </div>
         <div class="col-10">        
-            <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="targetDTO.general.runOnApproval"/>
+            <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="fields.runOnApproval"/>
         </div>
         <div class="col-2">
             <label>Use Automated QA:</label>
         </div>
         <div class="col-10">
-            <Checkbox id="checkOption2" name="option2" value="Use Automated QA" v-model="targetDTO.general.automatedQA" />
+            <Checkbox id="checkOption2" name="option2" value="Use Automated QA" v-model="fields.automatedQA" />
         </div>
         <div class="col-2">
             <label>Owner:</label>
         </div>
         <div class="col-10">
-            <Dropdown id="user" v-model="targetDTO.general.selectedUser" :options="userList" optionLabel="name" placeholder="Select an User" checkmark class="w-full md:w-18rem" />
+            <Dropdown id="user" v-model="fields.selectedUser" :options="userList" optionLabel="name" placeholder="Select an User" checkmark class="w-full md:w-18rem" />
         </div>
         <div class="col-2">
             <label>State:</label>
         </div>
         <div class="col-10">
-            <Dropdown id="state" v-model="targetDTO.general.selectedState" :options="stateList" optionLabel="name" placeholder="Select the state" checkmark class="w-full md:w-18rem" />
+            <Dropdown id="state" v-model="fields.selectedState" :options="stateList" optionLabel="name" placeholder="Select the state" checkmark class="w-full md:w-18rem" />
         </div>
         <div class="col-2">
             <label>Auto-prune:</label>
         </div>
         <div class="col-10">        
-            <Checkbox id="checkOption3" name="option3" value="Auto-prune:" v-model="targetDTO.general.autoPrune"/>
+            <Checkbox id="checkOption3" name="option3" value="Auto-prune:" v-model="fields.autoPrune"/>
         </div>
         <div class="col-2">
             <label>Reference Crawl:</label>
         </div>
         <div class="col-10">
-            <Checkbox id="checkOption4" name="option4" value="Reference Crawl" v-model="targetDTO.general.referenceCrawl" />
+            <Checkbox id="checkOption4" name="option4" value="Reference Crawl" v-model="fields.referenceCrawl" />
         </div>
         <div class="col-2">
             <label>Request to Archivists:</label>
         </div>
         <div class="col-10">
-            <Textarea v-model="targetDTO.general.requestToArchivists" autoResize rows="6"/>
+            <Textarea v-model="fields.requestToArchivists" autoResize rows="6"/>
         </div>
     </div>
 </div>
-
-    
-
 
    
 </template>

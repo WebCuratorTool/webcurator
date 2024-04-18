@@ -1,4 +1,5 @@
 import { ref, reactive, computed } from 'vue';
+import { defineStore } from 'pinia';
 
 export const target=reactive({
     targetList: [],
@@ -44,23 +45,62 @@ export const getTargetSubTitle=()=>{
     return "New";
 };
 
+export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
+    const id=ref();
+    const name=ref("");
+    const description=ref("");
+    const referenceNumber=ref("");
+    const runOnApproval=ref(false);
+    const automatedQA=ref(false);
+    const selectedUser=ref();
+    const selectedState=ref(1);
+    const autoPrune=ref(false);
+    const referenceCrawl=ref(false);
+    const requestToArchivists=ref("");
 
-export interface TargateGeneralDTO{
-    id?: number,
-    creationDate?: number,
-    name?: string,
-    description?: string,
-    referenceNumber?: string,
-    runOnApproval?: boolean,
-    automatedQA?: boolean,
-    owner?: string,
-    state?: number,
-    autoPrune?: boolean,
-    referenceCrawl?: boolean,
-    requestToArchivists?: string,
-}
+    const initData=()=>{
+        id.value=undefined;
+        name.value="";
+        description.value="";
+        referenceNumber.value="";
+        runOnApproval.value=false;
+        automatedQA.value=false;
+        selectedUser.value="";
+        selectedState.value=1;
+        autoPrune.value=false;
+        referenceCrawl.value=false;
+        requestToArchivists.value="";
+    }
 
-// export const 
-// export const emptyTargetDTO=reactive({
-//     general:
-// });
+    const getData=()=>{
+        return {
+            id: id.value,
+            name: name.value,
+            description: description.value,
+            referenceNumber: referenceNumber.value,
+            runOnApproval: runOnApproval.value,
+            automatedQA: automatedQA.value,
+            owner: selectedUser.value,
+            state: selectedState.value,
+            autoPrune:autoPrune.value,
+            referenceCrawl:referenceCrawl.value,
+            requestToArchivists:requestToArchivists.value,
+        }
+    }
+
+    const setData=(data:any)=>{
+        id.value=data.id;
+        name.value=data.name;
+        description.value=data.description;
+        referenceNumber.value=data.referenceNumber;
+        runOnApproval.value=data.runOnApproval;
+        automatedQA.value=data.automatedQA;
+        selectedUser.value=data.owner;
+        selectedState.value=data.state;
+        autoPrune.value=data.autoPrune;
+        referenceCrawl.value=data.referenceCrawl;
+        requestToArchivists.value=data.requestToArchivists;
+    }
+
+    return {id,name,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,initData,getData,setData}
+});
