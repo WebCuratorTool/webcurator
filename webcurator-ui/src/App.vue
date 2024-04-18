@@ -11,8 +11,11 @@ import AppConfig from '@/layout/AppConfig.vue';
 
 <template>
   <div class="app">
-    <NavBar />
-    <router-view />
+     <NavBar />
+     <div class="main-container">
+      <router-view />
+     </div>
+     
      <DynamicDialog />
      <AppConfig />
   </div>
