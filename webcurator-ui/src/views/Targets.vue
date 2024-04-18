@@ -20,15 +20,7 @@ const selectedAgency=ref(null);
 const userList=ref();
 const selectedUser=ref(null);
 const noneDisplayOnly=ref(false);
-// const stateList=ref([
-//     {"name":"Pending", "code":1},
-//     {"name":"Reinstated", "code":2},
-//     {"name":"Nominated", "code":3},
-//     {"name":"Rejected", "code":4},
-//     {"name":"Approved", "code":5},
-//     {"name":"Cancelled", "code":6},
-//     {"name":"Completed", "code":7}
-// ]);
+
 const stateList=computed(()=>{
     const ary=[];
     for(var i=0; i<STATE_MAP.length; i++){
