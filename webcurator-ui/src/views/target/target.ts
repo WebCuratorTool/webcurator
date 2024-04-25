@@ -45,6 +45,8 @@ export const getTargetSubTitle=()=>{
     return "New";
 };
 
+
+
 export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const id=ref();
     const name=ref("");
@@ -102,5 +104,5 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         requestToArchivists.value=data.requestToArchivists;
     }
 
-    return {id,name,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,initData,getData,setData}
+    return {id,name,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,initData,getData,setData};
 });

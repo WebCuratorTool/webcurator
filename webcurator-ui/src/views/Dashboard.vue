@@ -9,7 +9,7 @@
 
 import PageHeader from '@/components/PageHeader.vue';
 
-import {type UseFetchApis, useFetch} from '../rest.api';
+import {type UseFetchApis, useFetch} from '../utils/rest.api';
 
 const rest: UseFetchApis=useFetch();
 

@@ -1,14 +1,35 @@
 import { ref, reactive } from 'vue'
 import { useDialog } from 'primevue/usedialog';
-import LoginDialog from './components/LoginDialog.vue';
+import LoginDialog from '@/components/LoginDialog.vue';
+import { defineStore } from 'pinia';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export const token = reactive({
-    value: ""
+export const useTokenStore = defineStore ('WctToken',  () => {
+    const token=ref();
+
+    const getToken=()=>{
+        if(!token.value){
+            token.value=localStorage.getItem('token');
+        }
+        return token.value;
+    }
+
+    const setToken=(data:string)=>{
+        token.value=data;
+        localStorage.setItem('token',data);
+    }
+
+    const removeToken=()=>{
+        token.value=undefined;
+        localStorage.removeItem('token');
+    }
+
+    return {getToken, setToken, removeToken};
 });
+
 
 export const isAuthenticating = reactive ({
     value: false
@@ -32,7 +53,9 @@ export function useFetch() {
     
     // a composable can update its managed state over time.
     async function openLoginDialog(dialog:any) {
-        const last_token=token.value;
+        const token = useTokenStore();
+
+        const last_token=token.getToken();
         await sleep(Math.floor((Math.random() * 100) + 1));
         
         if(isAuthenticating.value){
@@ -40,7 +63,7 @@ export function useFetch() {
             return;
         }
         
-        if(last_token !== token.value){
+        if(last_token !== token.getToken()){
             console.log("The token was updated.");
             isAuthenticating.value=false;
             return;
@@ -60,7 +83,7 @@ export function useFetch() {
             
             onClose: (options:any) => {
                 console.log(options);
-                token.value = options.data;
+                token.setToken(options.data);
                 isAuthenticating.value=false;
             }
         });
@@ -78,7 +101,9 @@ export function useFetch() {
     }
 
     function setMethod(methodValue: HttpMethod) {
-        return async (path:string, payload:any=null) => {                                                        
+        return async (path:string, payload:any=null) => {
+            const token = useTokenStore();
+                                                  
             let ret=null;
 
             const isFinished=ref(false);
@@ -97,14 +122,14 @@ export function useFetch() {
                     redirect: 'error',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': token.value,
+                        'Authorization': token.getToken(),
                     }
                 }
                 if(payload){
                     reqOptions.body=JSON.stringify(payload);
                 }
 
-                ret = await fetch('./api/v1/' + path, reqOptions).then(rsp=>{
+                ret = await fetch('/wct/api/v1/' + path, reqOptions).then(rsp=>{
                     console.log(rsp);
                     if(rsp.status==401){                                                
                         return null;

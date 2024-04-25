@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageHeader from '@/components/PageHeader.vue';
 import { ref, computed, onMounted } from "vue";
-import {type UseFetchApis, useFetch} from '../rest.api';
+import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 
 const rest: UseFetchApis=useFetch();
 
@@ -207,7 +207,7 @@ const search= () => {
                     <div class="flex justify-content-between flex-column sm:flex-row">
                         <h5>Results</h5>
                         <Button severity="secondary" raised>
-                            <router-link :to="{ name: 'target', params: { mode: 'new', id:0 } }">
+                            <router-link :to="{ name: 'target', params: { mode: 'new', id: 0 } }">
                             Create new
                             </router-link>
                         </Button>
@@ -237,13 +237,17 @@ const search= () => {
                         </div>                        
                     </template>
                 </Column>
-                <Column header="Action" field="oid" style="min-width: 8rem">
+                <Column header="Action" field="id" style="max-width: 5rem">
                     <template #body="{ data }">
-                        <div class="flex flex-wrap justify-content-center">
-                            <Button text><img alt="logo" src="@/assets/images/action-icon-view.gif" style="width: 1.2rem; height: 1.2rem;"/></Button>
-                            <Button text><img alt="logo" src="@/assets/images/action-icon-edit.gif" style="width: 1.2rem; height: 1.2rem;" /></Button>
-                            <Button text><img alt="logo" src="@/assets/images/action-icon-copy.gif" style="width: 1.2rem; height: 1.2rem;" /></Button>
-                            <Button text><img alt="logo" src="@/assets/images/action-icon-target-instances.gif" style="width: 1.2rem; height: 1.2rem;" /></Button>
+                        <div id="actions" class="flex flex-wrap justify-content-center">
+                            <router-link :to="{ name: 'target', params: { mode: 'view', id: data.id } }">
+                                <Button text><img alt="logo" src="@/assets/images/action-icon-view.gif" /></Button>
+                            </router-link>
+                            <router-link :to="{ name: 'target', params: { mode: 'edit', id: data.id } }">
+                                <Button text><img alt="logo" src="@/assets/images/action-icon-edit.gif" /></Button>
+                            </router-link>
+                            <Button text><img alt="logo" src="@/assets/images/action-icon-copy.gif" /></Button>
+                            <Button text><img alt="logo" src="@/assets/images/action-icon-target-instances.gif" /></Button>
                         </div>
                     </template>
                 </Column>
@@ -273,4 +277,13 @@ const search= () => {
     padding-bottom: 0;
 }
 
+#actions img{
+    width: 1rem;
+    height: 1rem;
+    padding: 0;
+}
+
+#actions button{
+    padding: 0 0.3rem;
+}
 </style>

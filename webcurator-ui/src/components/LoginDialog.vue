@@ -38,7 +38,7 @@ const password=ref(null);
 
 
 const auth = () => {
-    var url="./auth/v1/token";
+    var url="/wct/auth/v1/token";
     var credentials="username=" + username.value + "&password=" + password.value;
     fetch(url, {
         method: 'POST',

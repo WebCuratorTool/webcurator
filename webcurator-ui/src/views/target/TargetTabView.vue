@@ -1,77 +1,77 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, provide } from "vue";
-import { onBeforeRouteUpdate } from 'vue-router';
-import {storeToRefs} from 'pinia';
-import {useTargetGeneralDTO, target, getTargetSubTitle, getTargetState} from '@/components/target/target';
-import TargetGeneral from "@/components/target/TargetGeneral.vue";
-import {type UseFetchApis, useFetch} from '../rest.api';
+import { ref, watch, computed, onMounted, onBeforeUpdate, provide } from "vue";
+import {useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
+import {type UseFetchApis, useFetch} from '@/utils/rest.api';
+import {useTargetGeneralDTO, target, getTargetState} from './target';
+import TargetGeneral from "./TargetGeneral.vue";
 
+const route=useRoute();
+const router=useRouter();
 const rest: UseFetchApis=useFetch();
+
 const targetGeneral=useTargetGeneralDTO();
-// const {id,name,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,setData}=storeToRefs(targetGeneral);
-// ...
+
 const openMode=ref();
 const targetId=ref();
 const readOnly=ref(false);
+const isTargetAvailable=ref(false);
 
-const targetDTO=ref({
-    general:{
-        id: undefined,
-        creationDate: 0,
-        name: "",
-        description: "",
-        referenceNumber: "",
-        runOnApproval: false,
-        automatedQA: false,
-        owner: "",
-        state: 1,
-        autoPrune:false,
-        referenceCrawl:false,
-        requestToArchivists:"",
+const initData=()=>{
+    isTargetAvailable.value=false;
+    targetId.value=undefined;
+    targetGeneral.initData();
+}
+
+const fetchTargetDetais=(mode, id)=>{
+    isTargetAvailable.value=false;
+    targetId.value=id;
+    rest.get('targets/'+id).then(data=>{
+        isTargetAvailable.value=true;
+        targetGeneral.setData(data.general);
+    }).catch((err:any)=>{
+        console.log(err.message);
+        initData();
+     });
+}
+
+
+watch(()=>router.currentRoute.value.path, (to, from)=>{
+    openMode.value=route.params.mode;
+    if (openMode.value === 'view') {
+        readOnly.value=true;
+    }else{
+        readOnly.value=false;
     }
-});
+    if (openMode.value==="new") {
+        initData();
+    }else{
+        fetchTargetDetais(route.params.mode, route.params.id);
+    }
+   
+}, {immediate:true});
 
 onMounted(()=>{
     console.log("onMounted");
-    console.log(TargetGeneral);
-    // id.value=125886;
-    // name.value="helloword";
-    targetGeneral.setData({
-        id: 125886,
-        name: "hello world",
-    });
+    console.log(route.params.mode)
 });
 
-onBeforeRouteUpdate((to, from) => {
+onBeforeUpdate(()=>{
+    console.log("onBeforeUpdate");
+});
+
+onBeforeRouteUpdate((to) => {
     console.log("onBeforeRouteUpdate");
-    // react to route changes...
-    openMode.value=to.params.mode;
-    if(to.params.mode==="new"){
-        readOnly.value=false;
-        // return;
-    }
-    // targetId.value=to.params.id;
-    targetId.value=7;
-    rest.get("targets/"+targetId.value).then((data:any)=>{
-        targetDTO.value=data;
-        provide("TargetDTO", targetDTO);
-        console.log("Provide targetDTO:");
-        console.log(targetDTO.value);
-    }).catch((err:any)=>{
-        console.log(err.message);
-    });
-
 });
 
 
-const isTargetAvailable=computed(() => {
-    if(openMode.value==="view" || openMode.value==="edit"){
-        if(target.selectedTarget){
-            return true;
-        }
-    }
-    return true;
-});
+// const isTargetAvailable=computed(() => {
+//     if(openMode.value==="view" || openMode.value==="edit"){
+//         if(target.selectedTarget){
+//             return true;
+//         }
+//     }
+//     return false;
+// });
 
 const save=()=>{
 
@@ -81,7 +81,7 @@ const save=()=>{
 
 <template>    
     <div class="main-container">
-        <div class="main-header"> 
+        <div class="main-header">
             <div class="target-header-container">
                 <div class="w-full">
                     <router-link class="nav-bar-link" :to="{ name: 'targets'}"><i id="main-header-arrow-left" class="pi pi-arrow-left"></i></router-link>
@@ -90,7 +90,7 @@ const save=()=>{
                 <div class="w-full">
                     <span class="title">Target</span>
                     <div v-if="isTargetAvailable" class="subtitle-container p-overlay-badge ">
-                        <span class="sub-title">{{ getTargetSubTitle() }}</span>
+                        <span class="sub-title">{{ targetGeneral.id }}</span>
                         <span class="p-badge p-component p-badge-secondary" data-pc-name="badge" data-pc-section="root">{{ getTargetState() }}</span>
                     </div>
                 </div>
