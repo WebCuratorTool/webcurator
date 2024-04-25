@@ -2,6 +2,7 @@
 import PageHeader from '@/components/PageHeader.vue';
 import { ref, computed, onMounted } from "vue";
 import {type UseFetchApis, useFetch} from '@/utils/rest.api';
+import {formatDatetime} from '@/utils/helper';
 
 const rest: UseFetchApis=useFetch();
 
@@ -68,14 +69,7 @@ onMounted(() => {
     });
 });
 
-const formatDate = (timestamp:number) => {
-    const value=new Date(timestamp);
-    return value.toLocaleDateString(undefined, {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-};
+
 
 const formatState = (stateCode:number) => {
     if(stateCode>0 && stateCode<=STATE_MAP.length){
@@ -218,7 +212,7 @@ const search= () => {
                 <Column field="id" sortable  header="Id" dataType="numeric" style="min-width: 2rem"></Column>
                 <Column header="Date" sortable dataType="date" style="min-width: 5rem">
                     <template #body="{ data }">
-                        {{ formatDate(data.creationDate) }}
+                        {{ formatDatetime(data.creationDate) }}
                     </template>
                 </Column>
                 <Column field="name" header="Name" sortable style="min-width: 8rem"></Column>

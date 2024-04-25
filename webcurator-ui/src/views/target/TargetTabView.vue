@@ -2,7 +2,8 @@
 import { ref, watch, computed, onMounted, onBeforeUpdate, provide } from "vue";
 import {useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
 import {type UseFetchApis, useFetch} from '@/utils/rest.api';
-import {useTargetGeneralDTO, target, getTargetState} from './target';
+import {formatDatetime} from '@/utils/helper';
+import {useTargetGeneralDTO, target, formatTargetState} from './target';
 import TargetGeneral from "./TargetGeneral.vue";
 
 const route=useRoute();
@@ -27,7 +28,10 @@ const fetchTargetDetais=(mode, id)=>{
     targetId.value=id;
     rest.get('targets/'+id).then(data=>{
         isTargetAvailable.value=true;
+        console.log(data.general);
         targetGeneral.setData(data.general);
+        console.log(targetGeneral.id);
+        console.log(targetGeneral.creationDate);
     }).catch((err:any)=>{
         console.log(err.message);
         initData();
@@ -90,8 +94,8 @@ const save=()=>{
                 <div class="w-full">
                     <span class="title">Target</span>
                     <div v-if="isTargetAvailable" class="subtitle-container p-overlay-badge ">
-                        <span class="sub-title">{{ targetGeneral.id }}</span>
-                        <span class="p-badge p-component p-badge-secondary" data-pc-name="badge" data-pc-section="root">{{ getTargetState() }}</span>
+                        <span class="sub-title">{{ targetGeneral.id }} - {{ formatDatetime(targetGeneral.creationDate) }}</span>
+                        <span class="p-badge p-component p-badge-secondary" data-pc-name="badge" data-pc-section="root">{{ formatTargetState(targetGeneral.selectedState) }}</span>
                     </div>
                 </div>
             </div>

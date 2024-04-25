@@ -82,7 +82,7 @@ export function useFetch() {
             },
             
             onClose: (options:any) => {
-                console.log(options);
+                //console.log(options);
                 token.setToken(options.data);
                 isAuthenticating.value=false;
             }
@@ -130,7 +130,7 @@ export function useFetch() {
                 }
 
                 ret = await fetch('/wct/api/v1/' + path, reqOptions).then(rsp=>{
-                    console.log(rsp);
+                    //console.log(rsp);
                     if(rsp.status==401){                                                
                         return null;
                     }

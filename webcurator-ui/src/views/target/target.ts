@@ -50,6 +50,7 @@ export const getTargetSubTitle=()=>{
 export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const id=ref();
     const name=ref("");
+    const creationDate=ref(0);
     const description=ref("");
     const referenceNumber=ref("");
     const runOnApproval=ref(false);
@@ -63,6 +64,7 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const initData=()=>{
         id.value=undefined;
         name.value="";
+        creationDate.value=0;
         description.value="";
         referenceNumber.value="";
         runOnApproval.value=false;
@@ -78,6 +80,7 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         return {
             id: id.value,
             name: name.value,
+            creationDate: Date.now(),
             description: description.value,
             referenceNumber: referenceNumber.value,
             runOnApproval: runOnApproval.value,
@@ -93,6 +96,7 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const setData=(data:any)=>{
         id.value=data.id;
         name.value=data.name;
+        creationDate.value=data.creationDate;
         description.value=data.description;
         referenceNumber.value=data.referenceNumber;
         runOnApproval.value=data.runOnApproval;
@@ -104,5 +108,5 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         requestToArchivists.value=data.requestToArchivists;
     }
 
-    return {id,name,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,initData,getData,setData};
+    return {id,name,creationDate,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,initData,getData,setData};
 });
