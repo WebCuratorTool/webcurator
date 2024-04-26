@@ -1,9 +1,8 @@
-<template>
-    
-        <div class="col-2">
+<template>    
+        <div class="col-2" style="padding: 0.5rem; text-align: left;">
             <label>{{ label }}:</label>
         </div>
-        <div class="col-10">
+        <div class="col-10" style="padding: 0.5rem;">
             <slot></slot>
         </div>
 </template>

@@ -22,11 +22,22 @@ export const stateList=computed(()=>{
     return ary;
 });
 
-export const formatTargetState = (stateCode:number) => {
-    if(stateCode>0 && stateCode<=STATE_MAP.length){
-        return STATE_MAP[stateCode - 1];
+export const formatTargetState = (state:number|any) => {
+    //console.log(state);
+    const placeHolder='Select a state';
+    
+    if(typeof state === 'undefined'){
+        return placeHolder;
+    }
+
+    if(typeof state === 'number'){
+        if(state>0 && state<=STATE_MAP.length){
+            return STATE_MAP[state - 1];
+        }else{
+            return placeHolder;
+        }
     }else{
-        return 'unknown';
+        return state.name;
     }
 };
 
@@ -56,7 +67,7 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const runOnApproval=ref(false);
     const automatedQA=ref(false);
     const selectedUser=ref();
-    const selectedState=ref(1);
+    const selectedState=ref();
     const autoPrune=ref(false);
     const referenceCrawl=ref(false);
     const requestToArchivists=ref("");
@@ -70,7 +81,10 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         runOnApproval.value=false;
         automatedQA.value=false;
         selectedUser.value="";
-        selectedState.value=1;
+        selectedState.value={
+            name: 'Approved',
+            code: 5,
+        };
         autoPrune.value=false;
         referenceCrawl.value=false;
         requestToArchivists.value="";
@@ -85,8 +99,8 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
             referenceNumber: referenceNumber.value,
             runOnApproval: runOnApproval.value,
             automatedQA: automatedQA.value,
-            owner: selectedUser.value,
-            state: selectedState.value,
+            owner: selectedUser.value.code,
+            state: selectedState.value.code,
             autoPrune:autoPrune.value,
             referenceCrawl:referenceCrawl.value,
             requestToArchivists:requestToArchivists.value,
@@ -101,8 +115,14 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         referenceNumber.value=data.referenceNumber;
         runOnApproval.value=data.runOnApproval;
         automatedQA.value=data.automatedQA;
-        selectedUser.value=data.owner;
-        selectedState.value=data.state;
+        selectedUser.value={
+            code:data.owner,
+            name:data.owner,
+        };
+        selectedState.value={
+            code:data.state,
+            name:formatTargetState(data.state),
+        };
         autoPrune.value=data.autoPrune;
         referenceCrawl.value=data.referenceCrawl;
         requestToArchivists.value=data.requestToArchivists;

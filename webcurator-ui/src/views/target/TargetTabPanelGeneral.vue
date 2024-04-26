@@ -2,7 +2,7 @@
 import { ref, inject, computed, onMounted, onBeforeMount } from "vue";
 import {useUsersStore} from '@/stores/users';
 import FormField from '@/components/FormField.vue';
-import {useTargetGeneralDTO, stateList} from './target';
+import {useTargetGeneralDTO, stateList, formatTargetState} from '@/stores/target';
 
 
 const fields=useTargetGeneralDTO();
@@ -42,7 +42,18 @@ const users=useUsersStore();
         </FormField>
 
         <FormField label="State">
-            <Dropdown id="state" v-model="fields.selectedState" :options="stateList" optionLabel="name" placeholder="Select the state" checkmark class="w-full md:w-18rem" /> 
+            <Dropdown id="state" v-model="fields.selectedState" :options="stateList" input="2asd" optionLabel="name" checkmark class="w-full md:w-18rem">
+                <template #value="slotProps">
+                    <div class="flex align-items-center">
+                        <div>{{ formatTargetState(fields.selectedState) }}</div>
+                    </div>
+                </template>
+                <template #option="slotProps">
+                    <div class="flex align-items-center">
+                        <div>{{ slotProps.option.name }}</div>
+                    </div>
+                </template>
+            </Dropdown>
         </FormField>
 
         <FormField label="Auto-prune">
@@ -72,9 +83,5 @@ const users=useUsersStore();
         position: relative;
         text-align: right;
         margin-right: 0;
-    }
-
-    .col-2, .col-10{
-        padding: 0.2rem;
     }
 </style>

@@ -3,8 +3,15 @@ import { ref, watch, computed, onMounted, onBeforeUpdate, provide } from "vue";
 import {useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
 import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 import {formatDatetime} from '@/utils/helper';
-import {useTargetGeneralDTO, target, formatTargetState} from './target';
-import TargetGeneral from "./TargetGeneral.vue";
+import {useTargetGeneralDTO, target, formatTargetState} from '@/stores/target';
+import TargetTabPanelGeneral from "./TargetTabPanelGeneral.vue";
+import TargetTabPanelSeeds from "./TargetTabPanelSeeds.vue";
+import TargetTabPanelProfile from "./TargetTabPanelProfile.vue";
+import TargetTabPanelSchedule from "./TargetTabPanelSchedule.vue";
+import TargetTabPanelAnnotations from "./TargetTabPanelAnnotations.vue";
+import TargetTabPanelDescription from "./TargetTabPanelDescription.vue";
+import TargetTabPanelGroups from "./TargetTabPanelGroups.vue";
+import TargetTabPanelAccess from "./TargetTabPanelAccess.vue";
 
 const route=useRoute();
 const router=useRouter();
@@ -26,7 +33,7 @@ const initData=()=>{
 const fetchTargetDetais=(mode, id)=>{
     isTargetAvailable.value=false;
     targetId.value=id;
-    rest.get('targets/'+id).then(data=>{
+    rest.get('targets/'+id).then((data:any)=>{
         isTargetAvailable.value=true;
         console.log(data.general);
         targetGeneral.setData(data.general);
@@ -67,18 +74,24 @@ onBeforeRouteUpdate((to) => {
     console.log("onBeforeRouteUpdate");
 });
 
-
-// const isTargetAvailable=computed(() => {
-//     if(openMode.value==="view" || openMode.value==="edit"){
-//         if(target.selectedTarget){
-//             return true;
-//         }
-//     }
-//     return false;
-// });
-
 const save=()=>{
+    const dataReq={
+        general: targetGeneral.getData(),
+    }
 
+    if(openMode.value==='new'){
+        rest.post('targets/save', dataReq).then((data:any)=>{
+            console.log(data);
+        }).catch((err:any)=>{
+            console.log(err.message);
+        });
+    }else if(openMode.value==='edit'){
+        rest.put('targets/' + targetGeneral.id, dataReq).then((data:any)=>{
+            console.log(data);
+        }).catch((err:any)=>{
+            console.log(err.message);
+        });
+    }
 };
 
 </script>
@@ -87,9 +100,15 @@ const save=()=>{
     <div class="main-container">
         <div class="main-header">
             <div class="target-header-container">
-                <div class="w-full">
-                    <router-link class="nav-bar-link" :to="{ name: 'targets'}"><i id="main-header-arrow-left" class="pi pi-arrow-left"></i></router-link>
-                </div>
+                <!-- <div class="w-full">
+                    
+                    
+                </div> -->
+                <Toolbar style="border: none; background: transparent;">
+                    <template #start> <router-link class="nav-bar-link" :to="{ name: 'targets'}"><i id="main-header-arrow-left" class="pi pi-arrow-left"></i></router-link> </template>
+                    <template #end> <Button icon="pi pi-save" @click="save" label="Save"/> </template>
+                </Toolbar>
+
         
                 <div class="w-full">
                     <span class="title">Target</span>
@@ -103,42 +122,36 @@ const save=()=>{
         <div class="main-content">
             <TabView class="tabview-custom">
                 <TabPanel header="Genaral">
-                    <TargetGeneral />
+                    <TargetTabPanelGeneral />
                 </TabPanel>
                 <TabPanel header="Seeds">
-                    <p class="m-0">
-                        Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim
-                        ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Consectetur, adipisci velit, sed quia non numquam eius modi.
-                    </p>
+                    <TargetTabPanelSeeds />
                 </TabPanel>
                 <TabPanel header="Profile">
-                    <p class="m-0">
-                        At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui
-                        officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus.
-                    </p>
+                    <TargetTabPanelProfile />
                 </TabPanel>
                 <TabPanel header="Schedule">
-                
+                    <TargetTabPanelSchedule />
                 </TabPanel>
                 <TabPanel header="Annotations">
-                
+                    <TargetTabPanelAnnotations />
                 </TabPanel>
                 <TabPanel header="Description">
-                
+                    <TargetTabPanelDescription />
                 </TabPanel>
                 <TabPanel header="Groups">
-                
+                    <TargetTabPanelGroups />
                 </TabPanel>
                 <TabPanel header="Access">
-                
+                    <TargetTabPanelAccess />
                 </TabPanel>
             </TabView>
-
-            
-        </div>
-
-        <div class="layout-footer">
-            <Button icon="pi pi-save" @click="save" label="Save"/>
         </div>
     </div>
 </template>
+
+<style>
+.tabview-custom{
+    min-height: 60vh;
+}
+</style>
