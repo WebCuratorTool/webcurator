@@ -1,15 +1,6 @@
 import { ref, reactive, computed } from 'vue';
 import { defineStore } from 'pinia';
 
-export const target=reactive({
-    targetList: [],
-    selectedTargetId: -1,
-    selectedTarget: null,
-    openMode:"new",
-    readOnly:false,
-});
-
-
 const STATE_MAP=["Pending","Reinstated","Nominated","Rejected","Approved", "Cancelled", "Completed"];
 export const stateList=computed(()=>{
     const ary=[];
@@ -40,22 +31,6 @@ export const formatTargetState = (state:number|any) => {
         return state.name;
     }
 };
-
-export const getTargetState=()=>{
-    if(target.selectedTarget !== null){
-        const stateCode=target.selectedTarget["state"];
-        return formatTargetState(stateCode);
-    }
-    return 'unknown';
-};
-
-export const getTargetSubTitle=()=>{
-    if(target.selectedTarget !== null){
-        return target.selectedTarget["id"] + "-" + target.selectedTarget["creationDate;"] 
-    }
-    return "New";
-};
-
 
 
 export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {

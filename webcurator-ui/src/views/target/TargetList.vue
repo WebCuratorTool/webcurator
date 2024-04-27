@@ -3,10 +3,19 @@ import PageHeader from '@/components/PageHeader.vue';
 import { ref, computed, onMounted } from "vue";
 import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 import {formatDatetime} from '@/utils/helper';
+import {useUsersStore} from '@/stores/users';
+import { useAgenciesStore } from '@/stores/agencies';
+import {stateList, formatTargetState} from '@/stores/target';
+
+const options=defineProps(['props']);
+
+const emit = defineEmits(['popPage']);
 
 const rest: UseFetchApis=useFetch();
 
-const STATE_MAP=["Pending","Reinstated","Nominated","Rejected","Approved", "Cancelled", "Completed"];
+const users=useUsersStore();
+const agencies=useAgenciesStore();
+
 
 // Search conditions
 const targetId=ref(null);
@@ -16,68 +25,18 @@ const targetDescription=ref(null);
 const targetMemberOf=ref(null);
 
 // Filter conditions
-const agencyList=ref();
 const selectedAgency=ref(null);
-const userList=ref();
 const selectedUser=ref(null);
 const noneDisplayOnly=ref(false);
-
-const stateList=computed(()=>{
-    const ary=[];
-    for(var i=0; i<STATE_MAP.length; i++){
-        ary.push({
-            "name": STATE_MAP[i],
-            "code": i+1,
-        })
-    }
-    return ary;
-});
-
 const selectedState=ref(null);
 
 const targetList=ref(null);
 const loadingTargetList=ref(false);
 
 onMounted(() => {
-    rest.get("agencies").then((data:any)=>{
-        const formatedData=[];
-        for(var i=0; i<data.length; i++){
-            var item=data[i];
-            formatedData.push({
-                "name": item["name"],
-                "code": item["id"],                
-            });
-        }
-        agencyList.value = formatedData;
-    }).catch((err:any)=>{
-        console.log(err.message);
-    });
-
-    rest.get("users").then((data:any)=>{
-        data=data["users"];
-        const formatedData=[];
-        for(var i=0; i<data.length; i++){
-            var item=data[i];
-            formatedData.push({
-                "name": item["firstName"] + " " + item["lastName"] + " (" + item["name"] + ")",
-                "code": item["id"],                
-            });
-        }
-        userList.value = formatedData;
-    }).catch((err:any)=>{
-        console.log(err.message);
-    });
+    agencies.initialFetch();
+    users.initialFetch();
 });
-
-
-
-const formatState = (stateCode:number) => {
-    if(stateCode>0 && stateCode<=STATE_MAP.length){
-        return STATE_MAP[stateCode - 1];
-    }else{
-        return 'unknown';
-    }
-};
 
 const search= () => {
     const filter={
@@ -106,6 +65,21 @@ const search= () => {
     });
 };
 
+const createNew=()=>{
+    emit('popPage', {
+        page: 'TargetTabView',
+        openMode: 'new',
+        targetId: 0,
+    });
+}
+
+const openDetails=(mode:string, id:number)=>{
+    emit('popPage', {
+        page: 'TargetTabView',
+        openMode: mode,
+        targetId: id,
+    });
+}
 
 </script>
 
@@ -146,13 +120,13 @@ const search= () => {
                 <div class="field">
                     <InputGroup class="w-full md:w-20rem">
                         <InputGroupAddon>Agency</InputGroupAddon>
-                        <Dropdown id="agency" v-model="selectedAgency" :options="agencyList" optionLabel="name" placeholder="Select an Agency" checkmark class="w-full md:w-18rem" />
+                        <Dropdown id="agency" v-model="selectedAgency" :options="agencies.agencyList" optionLabel="name" placeholder="Select an Agency" checkmark class="w-full md:w-18rem" />
                     </InputGroup>
                 </div>
                 <div class="field">
                     <InputGroup class="w-full md:w-20rem">
                         <InputGroupAddon>User</InputGroupAddon>
-                        <Dropdown id="user" v-model="selectedUser" :options="userList" optionLabel="name" placeholder="Select an User" checkmark class="w-full md:w-18rem" />
+                        <Dropdown id="user" v-model="selectedUser" :options="users.userList" optionLabel="name" placeholder="Select an User" checkmark class="w-full md:w-18rem" />
                     </InputGroup>
                 </div>
                 
@@ -200,11 +174,7 @@ const search= () => {
                 <template #header>
                     <div class="flex justify-content-between flex-column sm:flex-row">
                         <h5>Results</h5>
-                        <Button severity="secondary" raised>
-                            <router-link :to="{ name: 'target', params: { mode: 'new', id: 0 } }">
-                            Create new
-                            </router-link>
-                        </Button>
+                        <Button severity="secondary" @click="createNew" raised>Create new</Button>
                     </div>
                 </template>
                 <template #empty> No targets found. </template>
@@ -220,7 +190,7 @@ const search= () => {
                 <Column field="owner" header="Owner" sortable filterField="owner" style="min-width: 6rem"></Column>
                 <Column field="state" header="Status" sortable style="min-width: 2rem">
                     <template #body="{ data }">
-                        {{ formatState(data.state) }}
+                        {{ formatTargetState(data.state) }}
                     </template>
                 </Column>
                 <Column header="Seed" field="seed" style="min-width: 12rem">
@@ -234,12 +204,8 @@ const search= () => {
                 <Column header="Action" field="id" style="max-width: 5rem">
                     <template #body="{ data }">
                         <div id="actions" class="flex flex-wrap justify-content-center">
-                            <router-link :to="{ name: 'target', params: { mode: 'view', id: data.id } }">
-                                <Button text><img alt="logo" src="@/assets/images/action-icon-view.gif" /></Button>
-                            </router-link>
-                            <router-link :to="{ name: 'target', params: { mode: 'edit', id: data.id } }">
-                                <Button text><img alt="logo" src="@/assets/images/action-icon-edit.gif" /></Button>
-                            </router-link>
+                            <Button @click="openDetails('view', data.id)" text><img alt="logo" src="@/assets/images/action-icon-view.gif" /></Button>
+                            <Button @click="openDetails('edit', data.id)" text><img alt="logo" src="@/assets/images/action-icon-edit.gif" /></Button>
                             <Button text><img alt="logo" src="@/assets/images/action-icon-copy.gif" /></Button>
                             <Button text><img alt="logo" src="@/assets/images/action-icon-target-instances.gif" /></Button>
                         </div>

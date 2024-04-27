@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onBeforeUpdate, provide } from "vue";
-import {useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
+import { ref, watch, computed, onMounted, onActivated, provide } from "vue";
 import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 import {formatDatetime} from '@/utils/helper';
-import {useTargetGeneralDTO, target, formatTargetState} from '@/stores/target';
+import {useTargetGeneralDTO, formatTargetState} from '@/stores/target';
 import TargetTabPanelGeneral from "./TargetTabPanelGeneral.vue";
 import TargetTabPanelSeeds from "./TargetTabPanelSeeds.vue";
 import TargetTabPanelProfile from "./TargetTabPanelProfile.vue";
@@ -13,8 +12,10 @@ import TargetTabPanelDescription from "./TargetTabPanelDescription.vue";
 import TargetTabPanelGroups from "./TargetTabPanelGroups.vue";
 import TargetTabPanelAccess from "./TargetTabPanelAccess.vue";
 
-const route=useRoute();
-const router=useRouter();
+const options=defineProps(['props']);
+
+const emit = defineEmits(['popPage']);
+
 const rest: UseFetchApis=useFetch();
 
 const targetGeneral=useTargetGeneralDTO();
@@ -30,7 +31,7 @@ const initData=()=>{
     targetGeneral.initData();
 }
 
-const fetchTargetDetais=(mode, id)=>{
+const fetchTargetDetais=(id:any)=>{
     isTargetAvailable.value=false;
     targetId.value=id;
     rest.get('targets/'+id).then((data:any)=>{
@@ -46,8 +47,9 @@ const fetchTargetDetais=(mode, id)=>{
 }
 
 
-watch(()=>router.currentRoute.value.path, (to, from)=>{
-    openMode.value=route.params.mode;
+onMounted(()=>{
+    console.log("onMounted");
+    openMode.value=options.props.openMode;
     if (openMode.value === 'view') {
         readOnly.value=true;
     }else{
@@ -56,42 +58,45 @@ watch(()=>router.currentRoute.value.path, (to, from)=>{
     if (openMode.value==="new") {
         initData();
     }else{
-        fetchTargetDetais(route.params.mode, route.params.id);
+        fetchTargetDetais(options.props.targetId);
     }
-   
-}, {immediate:true});
-
-onMounted(()=>{
-    console.log("onMounted");
-    console.log(route.params.mode)
 });
 
-onBeforeUpdate(()=>{
-    console.log("onBeforeUpdate");
+onActivated(()=>{
+    console.log("onActivated");
 });
 
-onBeforeRouteUpdate((to) => {
-    console.log("onBeforeRouteUpdate");
-});
+const cancel=()=>{
+    emit('popPage', {
+        page: 'TargetList',
+        openMode: 'new',
+        targetId: 0,
+    });
+}
 
 const save=()=>{
     const dataReq={
         general: targetGeneral.getData(),
     }
 
+    let rsp;
     if(openMode.value==='new'){
-        rest.post('targets/save', dataReq).then((data:any)=>{
-            console.log(data);
-        }).catch((err:any)=>{
-            console.log(err.message);
-        });
+        rsp=rest.post('targets/save', dataReq)
     }else if(openMode.value==='edit'){
-        rest.put('targets/' + targetGeneral.id, dataReq).then((data:any)=>{
-            console.log(data);
-        }).catch((err:any)=>{
-            console.log(err.message);
-        });
+        rsp=rest.put('targets/' + targetGeneral.id, dataReq);
     }
+
+    rsp.then((data:any)=>{
+        console.log(data);
+        emit('popPage', {
+            page: 'TargetList',
+            openMode: 'new',
+            targetId: 0,
+        });
+    }).catch((err:any)=>{
+        console.log(err.message);
+        alert(err.message);
+    });
 };
 
 </script>
@@ -105,7 +110,7 @@ const save=()=>{
                     
                 </div> -->
                 <Toolbar style="border: none; background: transparent;">
-                    <template #start> <router-link class="nav-bar-link" :to="{ name: 'targets'}"><i id="main-header-arrow-left" class="pi pi-arrow-left"></i></router-link> </template>
+                    <template #start> <Button icon="pi pi-arrow-left" @click="cancel" text/> </template>
                     <template #end> <Button icon="pi pi-save" @click="save" label="Save"/> </template>
                 </Toolbar>
 
