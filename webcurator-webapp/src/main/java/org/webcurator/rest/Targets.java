@@ -214,23 +214,28 @@ public class Targets {
      * Handler for updating individual targets
      */
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> targetMap, HttpServletRequest request) {
+    public ResponseEntity<?> put(@PathVariable long id, @RequestBody TargetDTO targetDTO, HttpServletRequest request) {
         Target target = targetDAO.load(id, true);
         if (target == null) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
         }
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
+
+        /**
         // Create DTO based on the current data in the database
         TargetDTO targetDTO = new TargetDTO(target);
         // Then update the DTO with data from the supplied JSON
         try {
             updateTargetDTO(targetDTO, targetMap, targetDTO);
         } catch (BadRequestError e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
         }
+         */
 
         // Validate updated DTO
         Set<ConstraintViolation<TargetDTO>> violations = validator.validate(targetDTO);

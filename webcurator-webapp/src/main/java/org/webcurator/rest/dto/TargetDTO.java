@@ -1,6 +1,8 @@
 package org.webcurator.rest.dto;
 
+//import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+//import org.springframework.format.annotation.DateTimeFormat;
 import org.webcurator.domain.model.core.*;
 
 import javax.validation.Valid;
@@ -8,12 +10,12 @@ import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+//import java.util.TimeZone;
 
 /**
  * This class is used for mapping between the Target entity and the JSON representation of a target in the API.
  */
 public class TargetDTO {
-
     @Valid
     @NotNull(message = "General section is required")
     General general;
@@ -116,7 +118,11 @@ public class TargetDTO {
 
     public static class General {
         long id;
-        Date creationDate;
+
+//        @JsonFormat(pattern="yyyy-MM-ddTHH:mm:ss", timezone = "UTC+0") // Return to the UI
+//        @DateTimeFormat(pattern = "yyyy-MM-ddTHH:mm:ss") // Save to the DB
+//        Date creationDate;
+        Long creationDate;
         @NotBlank(message = "name is required")
         String name;
         String description;
@@ -142,7 +148,7 @@ public class TargetDTO {
 
         public General(Target target) {
             id = target.getOid();
-            creationDate = target.getCreationDate();
+            creationDate = target.getCreationDate().toInstant().toEpochMilli();
             name = target.getName();
             description = target.getDescription();
             referenceNumber = target.getReferenceNumber();
@@ -163,11 +169,11 @@ public class TargetDTO {
             this.id = id;
         }
 
-        public Date getCreationDate() {
+        public Long getCreationDate() {
             return creationDate;
         }
 
-        public void setCreationDate(Date creationDate) {
+        public void setCreationDate(Long creationDate) {
             this.creationDate = creationDate;
         }
 
