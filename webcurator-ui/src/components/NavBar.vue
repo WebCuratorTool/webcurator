@@ -5,12 +5,19 @@
             <div class="nav-bar-links">
                 <router-link class="nav-bar-link" to="/wct/dashboard">Dashboard</router-link>
                 <router-link class="nav-bar-link" to="/wct/targets">Targets</router-link>
-                
+                <Button label="Logout" @click="logout"/>
             </div>
         </div>
     </div>
 </template>
 
+<script setup lang="ts">
+import {useUserProfileStore} from '@/stores/users';
+const token=useUserProfileStore();
+const logout=()=>{
+    token.clear();
+}
+</script>
 <style scoped>
 .nav-bar{
     position: sticky;

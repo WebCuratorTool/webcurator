@@ -29,6 +29,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, inject } from "vue";
+import { useUserProfileStore } from "@/stores/users";
 // import { useToast } from 'primevue/usetoast';
 // const toast = useToast();
 
@@ -36,6 +37,7 @@ const dialogRef:any = inject("dialogRef");
 const username=ref(null);
 const password=ref(null);
 
+const userProfile=useUserProfileStore();
 
 const auth = () => {
     var url="/wct/auth/v1/token";
@@ -64,7 +66,7 @@ const auth = () => {
         return rsp.text();
     })
     .then((tokenValue)=>{
-        // console.log("token:" + token);
+        userProfile.setToken(String(username.value), tokenValue);
         dialogRef.value.close(tokenValue);
     }).catch((err)=>{
         // console.log(err);

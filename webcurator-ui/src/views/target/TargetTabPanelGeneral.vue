@@ -4,6 +4,8 @@ import {useUserProfileStore, useUsersStore, getPresentationUserName} from '@/sto
 import WctFormField from '@/components/WctFormField.vue';
 import {useTargetGeneralDTO, stateList, formatTargetState} from '@/stores/target';
 
+const options=defineProps(['readOnly']);
+const readOnly=ref(options.readOnly);
 
 const fields=useTargetGeneralDTO();
 const users=useUsersStore();
@@ -18,7 +20,7 @@ const users=useUsersStore();
         </WctFormField>
 
         <WctFormField label="Name(*)">
-            <InputText v-model="fields.name"/>
+            <InputText v-model="fields.name" :readonly="readOnly" />
         </WctFormField>
 
         <WctFormField label="Description">
@@ -80,15 +82,10 @@ const users=useUsersStore();
         </WctFormField>
     </div>
 </div>
-
-   
 </template>
 
 <style>
     .grid{
         align-items: center;
-    }
-    #grid-form {
-
     }
 </style>

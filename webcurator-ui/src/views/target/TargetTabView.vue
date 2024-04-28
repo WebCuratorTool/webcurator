@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onActivated, provide } from "vue";
+import { ref, watch, computed, onBeforeMount, onActivated, provide } from "vue";
 import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 import {formatDatetime} from '@/utils/helper';
 import {useTargetGeneralDTO, formatTargetState} from '@/stores/target';
@@ -47,8 +47,8 @@ const fetchTargetDetais=(id:any)=>{
 }
 
 
-onMounted(()=>{
-    console.log("onMounted");
+onBeforeMount(()=>{
+    console.log("onBeforeMount");
     openMode.value=options.props.mode;
     if (openMode.value === 'view') {
         readOnly.value=true;
@@ -84,6 +84,8 @@ const save=()=>{
         rsp=rest.post('targets/save', dataReq)
     }else if(openMode.value==='edit'){
         rsp=rest.put('targets/' + targetGeneral.id, dataReq);
+    }else{
+        return;
     }
 
     rsp.then((data:any)=>{
@@ -127,7 +129,7 @@ const save=()=>{
         <div class="main-content">
             <TabView class="tabview-custom">
                 <TabPanel header="Genaral">
-                    <TargetTabPanelGeneral />
+                    <TargetTabPanelGeneral :readOnly="readOnly" />
                 </TabPanel>
                 <TabPanel header="Seeds">
                     <TargetTabPanelSeeds />

@@ -1,35 +1,11 @@
 import { ref, reactive } from 'vue'
 import { useDialog } from 'primevue/usedialog';
 import LoginDialog from '@/components/LoginDialog.vue';
-import { defineStore } from 'pinia';
+import { useUserProfileStore } from '@/stores/users';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-export const useTokenStore = defineStore ('WctToken',  () => {
-    const token=ref();
-
-    const getToken=()=>{
-        if(!token.value){
-            token.value=localStorage.getItem('token');
-        }
-        return token.value;
-    }
-
-    const setToken=(data:string)=>{
-        token.value=data;
-        localStorage.setItem('token',data);
-    }
-
-    const removeToken=()=>{
-        token.value=undefined;
-        localStorage.removeItem('token');
-    }
-
-    return {getToken, setToken, removeToken};
-});
-
 
 export const isAuthenticating = reactive ({
     value: false
@@ -53,9 +29,8 @@ export function useFetch() {
     
     // a composable can update its managed state over time.
     async function openLoginDialog(dialog:any) {
-        const token = useTokenStore();
-
-        const last_token=token.getToken();
+        const userProfile=useUserProfileStore();
+        const last_token=userProfile.token;
         await sleep(Math.floor((Math.random() * 100) + 1));
         
         if(isAuthenticating.value){
@@ -63,7 +38,7 @@ export function useFetch() {
             return;
         }
         
-        if(last_token !== token.getToken()){
+        if(last_token !== userProfile.token){
             console.log("The token was updated.");
             isAuthenticating.value=false;
             return;
@@ -83,7 +58,7 @@ export function useFetch() {
             
             onClose: (options:any) => {
                 //console.log(options);
-                token.setToken(options.data);
+                // token.setToken(options.data);
                 isAuthenticating.value=false;
             }
         });
@@ -101,9 +76,9 @@ export function useFetch() {
     }
 
     function setMethod(methodValue: HttpMethod) {
-        return async (path:string, payload:any=null) => {
-            const token = useTokenStore();
-                                                  
+        return async (path:string, payload:any=null) => {              
+            const userProfile=useUserProfileStore();
+                                                
             let ret=null;
 
             const isFinished=ref(false);
@@ -122,7 +97,7 @@ export function useFetch() {
                     redirect: 'error',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': token.getToken(),
+                        'Authorization': userProfile.token,
                     }
                 }
                 if(payload){

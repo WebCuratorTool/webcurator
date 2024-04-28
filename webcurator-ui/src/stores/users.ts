@@ -2,7 +2,9 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 
+const KEY_USER_PROFILE='wct-user-profile';
 export const useUserProfileStore = defineStore ('userProfile', ()=>{
+  const token=ref('');
   const id=ref(-1);
   const name=ref('');
   const firstName=ref('');
@@ -14,6 +16,54 @@ export const useUserProfileStore = defineStore ('userProfile', ()=>{
 
   const currUserName=computed(()=>firstName.value + " " + lastName.value + "(" + name.value + ")");
 
+  const load=()=>{
+    const cachedContent=localStorage.getItem(KEY_USER_PROFILE);
+    if(!cachedContent){
+      return;
+    }
+
+    const p=JSON.parse(cachedContent);
+    token.value=p.token;
+    id.value=p.id;
+    name.value=p.name;
+    firstName.value=p.firstName;
+    lastName.value=p.lastName;
+    agency.value=p.agency;
+    isActive.value=p.isActive;
+    roles.value=p.roles;
+    priviledges.value=p.priviledges;
+  }
+
+  const save=()=>{
+    const data={
+      token: token.value,
+      id: id.value,
+      name: name.value,
+      firstName: firstName.value,
+      lastName: lastName.value,
+      agency: agency.value,
+      isActive: isActive.value,
+      roles: roles.value,
+      priviledges: priviledges.value,
+    }
+
+    const cachedContent=JSON.stringify(data);
+    localStorage.setItem(KEY_USER_PROFILE, cachedContent);
+  }
+
+  const clear=()=>{
+    token.value='';
+    id.value=-1;
+    name.value='';
+    firstName.value='';
+    lastName.value='';
+    agency.value='';
+    isActive.value=true;
+    roles.value=[];
+    priviledges.value=[];
+    localStorage.removeItem(KEY_USER_PROFILE);
+  }
+
   const setBasicData=(user:any)=>{
     id.value=user.id;
     firstName.value=user.firstName;
@@ -21,15 +71,25 @@ export const useUserProfileStore = defineStore ('userProfile', ()=>{
     agency.value=user.agency;
     isActive.value=user.isActive;
     roles.value=user.roles;
+    save();
   }
 
-  return {id,name,firstName,lastName,roles,agency,priviledges,currUserName,setBasicData}
+  const setToken=(currName:string, currToken:string)=>{
+    name.value=currName;
+    token.value=currToken;
+    save();
+  }
+
+  load();
+
+  return {token,id,name,firstName,lastName,roles,agency,priviledges,currUserName,setBasicData,setToken,clear}
 });
-const userProfile=useUserProfileStore();
+
 
 export const useUsersStore = defineStore('users', () => {
   const data = ref([]);
   const initialFetch=()=>{
+    const userProfile=useUserProfileStore();
     const rest: UseFetchApis=useFetch();
     rest.get("users").then((rsp:any)=>{
       data.value=rsp["users"];
@@ -56,9 +116,6 @@ export const useUsersStore = defineStore('users', () => {
     }
     return formatedData;
   });
-
-
-
   return {data, userList, initialFetch}
 });
 

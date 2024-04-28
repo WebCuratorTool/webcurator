@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router';
-import { ref, watch, shallowRef, computed, onMounted } from "vue";
+import { ref, watch, shallowRef, onBeforeMount } from "vue";
 import {getRouteURLByName} from '@/utils/helper';
 import {useUsersStore} from '@/stores/users';
 import { useAgenciesStore } from '@/stores/agencies';
@@ -56,7 +56,7 @@ const popPage=(options:any)=>{
     history.pushState({}, '',  url);
 }
 
-onMounted(() => {
+onBeforeMount(() => {
     agencies.initialFetch();
     users.initialFetch();
 });
