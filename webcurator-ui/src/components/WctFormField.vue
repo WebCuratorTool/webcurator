@@ -15,4 +15,12 @@ defineProps<{label: string}>()
 .col-2, .col-10{
     padding: 15px;
 }
+
+label{
+    width: 100%;
+    display: inline-block;
+    position: relative;
+    text-align: left;
+    margin-right: 0;
+}
 </style>

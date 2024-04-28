@@ -1,5 +1,6 @@
 import { ref, reactive, computed } from 'vue';
 import { defineStore } from 'pinia';
+import {useUserProfileStore, useUsersStore, getPresentationUserName} from '@/stores/users';
 
 const STATE_MAP=["Pending","Reinstated","Nominated","Rejected","Approved", "Cancelled", "Completed"];
 export const stateList=computed(()=>{
@@ -32,6 +33,7 @@ export const formatTargetState = (state:number|any) => {
     }
 };
 
+const userProfile=useUserProfileStore();
 
 export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const id=ref();
@@ -55,7 +57,10 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         referenceNumber.value="";
         runOnApproval.value=false;
         automatedQA.value=false;
-        selectedUser.value="";
+        selectedUser.value={
+            name: userProfile.currUserName,
+            code: userProfile.name,
+        };
         selectedState.value={
             name: 'Approved',
             code: 5,
@@ -91,8 +96,8 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         runOnApproval.value=data.runOnApproval;
         automatedQA.value=data.automatedQA;
         selectedUser.value={
+            name:getPresentationUserName(data.owner),
             code:data.owner,
-            name:data.owner,
         };
         selectedState.value={
             code:data.state,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, inject, computed, onMounted, onBeforeMount } from "vue";
-import {useUsersStore} from '@/stores/users';
-import FormField from '@/components/FormField.vue';
+import {useUserProfileStore, useUsersStore, getPresentationUserName} from '@/stores/users';
+import WctFormField from '@/components/WctFormField.vue';
 import {useTargetGeneralDTO, stateList, formatTargetState} from '@/stores/target';
 
 
@@ -12,37 +12,48 @@ const users=useUsersStore();
 <template>
 
 <div class="card p-fluid">
-    <div class="grid">
-        <FormField label="Id">
-            <InputText v-model="fields.id" disabled />
-        </FormField>
+    <div class="grid" id="grid-form">
+        <WctFormField label="Id">
+            <InputText v-model="fields.id" :readonly="true" />
+        </WctFormField>
 
-        <FormField label="Name(*)">
+        <WctFormField label="Name(*)">
             <InputText v-model="fields.name"/>
-        </FormField>
+        </WctFormField>
 
-        <FormField label="Description">
+        <WctFormField label="Description">
             <Textarea v-model="fields.description" autoResize rows="6"/>
-        </FormField>
+        </WctFormField>
 
-        <FormField label="Reference Number">
+        <WctFormField label="Reference Number">
             <InputText v-model="fields.referenceNumber"/>
-        </FormField>
+        </WctFormField>
 
-        <FormField label="Run on Approval">
-            <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="fields.runOnApproval"/>
-        </FormField>
+        <WctFormField label="Run on Approval">
+            <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="fields.runOnApproval" :binary="true"/>
+        </WctFormField>
 
-        <FormField label="Use Automated QA">
-            <Checkbox id="checkOption2" name="option2" value="Use Automated QA" v-model="fields.automatedQA" />
-        </FormField>
+        <WctFormField label="Use Automated QA">
+            <Checkbox id="checkOption2" name="option2" value="Use Automated QA" v-model="fields.automatedQA" :binary="true"/>
+        </WctFormField>
 
-        <FormField label="Owner">
-            <Dropdown id="user" v-model="fields.selectedUser" :options="users.userList" optionLabel="name" placeholder="Select an User" checkmark class="w-full md:w-18rem" />
-        </FormField>
+        <WctFormField label="Owner">
+            <Dropdown id="user" v-model="fields.selectedUser" :options="users.userList" placeholder="Select an User" checkmark class="w-full md:w-18rem">
+                <template #value="slotProps">
+                    <div class="flex align-items-center">
+                        <div>{{ getPresentationUserName(fields.selectedUser) }}</div>
+                    </div>
+                </template>
+                <template #option="slotProps">
+                    <div class="flex align-items-center">
+                        <div>{{ slotProps.option.name }}</div>
+                    </div>
+                </template>
+            </Dropdown>
+        </WctFormField>
 
-        <FormField label="State">
-            <Dropdown id="state" v-model="fields.selectedState" :options="stateList" input="2asd" optionLabel="name" checkmark class="w-full md:w-18rem">
+        <WctFormField label="State">
+            <Dropdown id="state" v-model="fields.selectedState" :options="stateList" checkmark class="w-full md:w-18rem">
                 <template #value="slotProps">
                     <div class="flex align-items-center">
                         <div>{{ formatTargetState(fields.selectedState) }}</div>
@@ -54,19 +65,19 @@ const users=useUsersStore();
                     </div>
                 </template>
             </Dropdown>
-        </FormField>
+        </WctFormField>
 
-        <FormField label="Auto-prune">
-            <Checkbox id="checkOption3" name="option3" value="Auto-prune:" v-model="fields.autoPrune"/>
-        </FormField>
+        <WctFormField label="Auto-prune">
+            <Checkbox id="checkOption3" name="option3" value="Auto-prune:" v-model="fields.autoPrune" :binary="true"/>
+        </WctFormField>
 
-        <FormField label="Reference Crawl">
-            <Checkbox id="checkOption4" name="option4" value="Reference Crawl" v-model="fields.referenceCrawl" />
-        </FormField>
+        <WctFormField label="Reference Crawl">
+            <Checkbox id="checkOption4" name="option4" value="Reference Crawl" v-model="fields.referenceCrawl" :binary="true"/>
+        </WctFormField>
 
-        <FormField label="Request to Archivists">
+        <WctFormField label="Request to Archivists">
             <Textarea v-model="fields.requestToArchivists" autoResize rows="6"/>
-        </FormField>
+        </WctFormField>
     </div>
 </div>
 
@@ -77,11 +88,7 @@ const users=useUsersStore();
     .grid{
         align-items: center;
     }
-    label{
-        width: 100%;
-        display: inline-block;
-        position: relative;
-        text-align: right;
-        margin-right: 0;
+    #grid-form {
+
     }
 </style>

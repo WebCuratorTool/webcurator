@@ -33,11 +33,6 @@ const selectedState=ref(null);
 const targetList=ref(null);
 const loadingTargetList=ref(false);
 
-onMounted(() => {
-    agencies.initialFetch();
-    users.initialFetch();
-});
-
 const search= () => {
     const filter={
         "targetId": targetId.value,
@@ -68,16 +63,16 @@ const search= () => {
 const createNew=()=>{
     emit('popPage', {
         page: 'TargetTabView',
-        openMode: 'new',
-        targetId: 0,
+        mode: 'new',
+        id: 0,
     });
 }
 
 const openDetails=(mode:string, id:number)=>{
     emit('popPage', {
         page: 'TargetTabView',
-        openMode: mode,
-        targetId: id,
+        mode: mode,
+        id: id,
     });
 }
 
@@ -90,28 +85,28 @@ const openDetails=(mode:string, id:number)=>{
     <div class="main-content grid">
         <div class="col-12 card">
             <h5>Query</h5>
-            <div class="grid">
-                <div class="col-2">
+            <div class="formgrid grid" id="grid-search">
+                <div class="field col">
                     <label>Target ID</label>
                     <InputNumber v-model="targetId" :useGrouping="false"/>
                 </div>
-                <div class="col-2">
+                <div class="field col">
                     <label>Target Name</label>
                     <InputText v-model="targetName" type="text" />
                 </div>
-                <div class="col-2">
+                <div class="field col">
                     <label>Seed</label>
                     <InputText v-model="targetSeed" type="text" />
                 </div>
-                <div class="col-2">
+                <div class="field col">
                     <label>Description</label>
                     <InputText v-model="targetDescription" type="text" />
                 </div>
-                <div class="col-2">
+                <div class="field col">
                     <label>Member of</label>
                     <InputText v-model="targetMemberOf" type="text" />
                 </div>
-                <div class="col-2">
+                <div class="field col">
                     <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="search()"></Button>
                 </div>
             </div>
@@ -217,12 +212,11 @@ const openDetails=(mode:string, id:number)=>{
 </template>
 
 <style>
-.btn-sub{
-  font-size: 1.25em;
+#grid-search label{
+    text-align: left;
 }
-
-.search-condition .search-input {
-    width: 15rem;
+.btn-sub{
+  font-size: 1.0em;
 }
 
 #search-button{

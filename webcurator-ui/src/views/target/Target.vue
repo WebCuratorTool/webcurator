@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import PageHeader from '@/components/PageHeader.vue';
-import { ref, shallowRef, computed, onMounted } from "vue";
-import {type UseFetchApis, useFetch} from '@/utils/rest.api';
-import {formatDatetime} from '@/utils/helper';
+import { useRouter, useRoute } from 'vue-router';
+import { ref, watch, shallowRef, computed, onMounted } from "vue";
+import {getRouteURLByName} from '@/utils/helper';
+import {useUsersStore} from '@/stores/users';
+import { useAgenciesStore } from '@/stores/agencies';
 import TargetList from './TargetList.vue';
 import TargetTabView from './TargetTabView.vue';
 
@@ -10,21 +11,55 @@ const current = shallowRef(TargetList);
 
 const props=ref({
     page: 'TargetTabView',
-    openMode:'new',
-    targetId:0,
+    mode:'new',
+    id:0,
 });
 
+const users=useUsersStore();
+const agencies=useAgenciesStore();
+
+const route=useRoute();
+const router=useRouter();
+
+watch(()=>router.currentRoute.value.path, (to, from)=>{
+    console.log('to: '+ to);
+    if(route.name==='target-list'){
+        current.value=TargetList;
+        props.value.page='TargetList';
+    }else if(route.name==='target-tabview-new'){
+        current.value=TargetTabView;
+        props.value.page='TargetTabView';
+        props.value.mode='new';
+    }else if(route.name==='target-tabview-exist'){
+        current.value=TargetTabView;
+        props.value.page='TargetTabView';
+        props.value.mode=route.params.mode.toString();
+        props.value.id=Number(route.params.id.toString());
+    }
+}, {immediate:true});
 
 const popPage=(options:any)=>{
+    let url='/';
     if(options.page==='TargetList'){
         current.value=TargetList;
+        url=getRouteURLByName('target-list');
     }else{
         props.value=options;
         current.value=TargetTabView;
+
+        if(options.mode==='new'){
+            url=getRouteURLByName('target-tabview-new');
+        }else{
+            url=getRouteURLByName('target-tabview-exist', options);
+        }
     }
+    history.pushState({}, '',  url);
 }
 
-
+onMounted(() => {
+    agencies.initialFetch();
+    users.initialFetch();
+});
 </script>
 
 <template>

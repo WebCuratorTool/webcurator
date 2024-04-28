@@ -49,7 +49,7 @@ const fetchTargetDetais=(id:any)=>{
 
 onMounted(()=>{
     console.log("onMounted");
-    openMode.value=options.props.openMode;
+    openMode.value=options.props.mode;
     if (openMode.value === 'view') {
         readOnly.value=true;
     }else{
@@ -58,7 +58,7 @@ onMounted(()=>{
     if (openMode.value==="new") {
         initData();
     }else{
-        fetchTargetDetais(options.props.targetId);
+        fetchTargetDetais(options.props.id);
     }
 });
 
@@ -69,8 +69,8 @@ onActivated(()=>{
 const cancel=()=>{
     emit('popPage', {
         page: 'TargetList',
-        openMode: 'new',
-        targetId: 0,
+        mode: 'new',
+        id: 0,
     });
 }
 
@@ -90,8 +90,8 @@ const save=()=>{
         console.log(data);
         emit('popPage', {
             page: 'TargetList',
-            openMode: 'new',
-            targetId: 0,
+            mode: 'new',
+            id: 0,
         });
     }).catch((err:any)=>{
         console.log(err.message);
