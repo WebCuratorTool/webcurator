@@ -2,17 +2,23 @@ import { ref, reactive, computed } from 'vue';
 import { defineStore } from 'pinia';
 import {useUserProfileStore, useUsersStore, getPresentationUserName} from '@/stores/users';
 
-const STATE_MAP=["Pending","Reinstated","Nominated","Rejected","Approved", "Cancelled", "Completed"];
-export const stateList=computed(()=>{
-    const ary=[];
-    for(let i=0; i<STATE_MAP.length; i++){
-        ary.push({
-            "name": STATE_MAP[i],
-            "code": i+1,
-        })
-    }
-    return ary;
-});
+const TARGET_STATE_PENDING={name:"Pending",  code:1}
+const TARGET_STATE_REINSTATED={name:"Reinstated",  code:2}
+const TARGET_STATE_NOMINATED={name:"Nominated",  code:3}
+const TARGET_STATE_REJECTED={name:"Rejected",  code:4}
+const TARGET_STATE_APPROVED={name:"Approved",  code:5}
+const TARGET_STATE_CANCELLED={name:"Cancelled",  code:6}
+const TARGET_STATE_COMPLETED={name:"Completed",  code:7}
+
+export const stateList=[
+    TARGET_STATE_PENDING,
+    TARGET_STATE_REINSTATED,
+    TARGET_STATE_NOMINATED,
+    TARGET_STATE_REJECTED,
+    TARGET_STATE_APPROVED,
+    TARGET_STATE_CANCELLED,
+    TARGET_STATE_COMPLETED,
+]
 
 export const formatTargetState = (state:number|any) => {
     //console.log(state);
@@ -23,8 +29,8 @@ export const formatTargetState = (state:number|any) => {
     }
 
     if(typeof state === 'number'){
-        if(state>0 && state<=STATE_MAP.length){
-            return STATE_MAP[state - 1];
+        if(state>0 && state<=stateList.length){
+            return stateList[state - 1].name;
         }else{
             return placeHolder;
         }
@@ -33,7 +39,31 @@ export const formatTargetState = (state:number|any) => {
     }
 };
 
-const userProfile=useUserProfileStore();
+
+export const isTargetAction=(target:any, actionName:string)=>{
+    if(!target || !actionName){
+        return false;
+    }
+
+    //TODO: privilege applied
+
+    if(actionName === 'view'){
+        return true;
+    }
+
+    if(actionName === 'edit' ){
+        return true;
+    }
+
+    if(actionName === 'new' || actionName === 'copy' ){
+        return true;
+    }
+
+    if(actionName === 'delete'){
+        return (target.state === TARGET_STATE_REJECTED.code || target.state === TARGET_STATE_CANCELLED.code);
+    }
+};
+
 
 export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const id=ref();
@@ -44,10 +74,12 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const runOnApproval=ref(false);
     const automatedQA=ref(false);
     const selectedUser=ref();
-    const selectedState=ref();
+    const selectedState=ref(TARGET_STATE_APPROVED);
     const autoPrune=ref(false);
     const referenceCrawl=ref(false);
     const requestToArchivists=ref("");
+
+    const userProfile=useUserProfileStore();
 
     const initData=()=>{
         id.value=undefined;
@@ -61,10 +93,7 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
             name: userProfile.currUserName,
             code: userProfile.name,
         };
-        selectedState.value={
-            name: 'Approved',
-            code: 5,
-        };
+        selectedState.value=TARGET_STATE_APPROVED;
         autoPrune.value=false;
         referenceCrawl.value=false;
         requestToArchivists.value="";

@@ -5,7 +5,7 @@ import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 import {formatDatetime} from '@/utils/helper';
 import {useUsersStore} from '@/stores/users';
 import { useAgenciesStore } from '@/stores/agencies';
-import {stateList, formatTargetState} from '@/stores/target';
+import {stateList, formatTargetState, isTargetAction} from '@/stores/target';
 
 const options=defineProps(['props']);
 
@@ -73,6 +73,14 @@ const openDetails=(mode:string, id:number)=>{
         page: 'TargetTabView',
         mode: mode,
         id: id,
+    });
+}
+
+const deleteTarget=(id:number)=>{
+    rest.delete('targets/'+id, {}).then(rsp=>{
+        console.log('Succeed to delete target: ' + id);
+    }).catch((err:any)=>{
+        console.log(err.message);
     });
 }
 
@@ -196,13 +204,15 @@ const openDetails=(mode:string, id:number)=>{
                         </div>                        
                     </template>
                 </Column>
-                <Column header="Action" field="id" style="max-width: 5rem">
+                <Column header="Action" field="id" style="max-width: 8rem">
                     <template #body="{ data }">
                         <div id="actions" class="flex flex-wrap justify-content-center">
                             <Button @click="openDetails('view', data.id)" text><img alt="logo" src="@/assets/images/action-icon-view.gif" /></Button>
                             <Button @click="openDetails('edit', data.id)" text><img alt="logo" src="@/assets/images/action-icon-edit.gif" /></Button>
-                            <Button text><img alt="logo" src="@/assets/images/action-icon-copy.gif" /></Button>
+                            <Button @click="openDetails('copy', data.id)" text><img alt="logo" src="@/assets/images/action-icon-copy.gif" /></Button>
                             <Button text><img alt="logo" src="@/assets/images/action-icon-target-instances.gif" /></Button>
+                            <Button v-if="isTargetAction(data,'delete')" @click="deleteTarget(data.id)" text><img alt="logo" src="@/assets/images/action-icon-delete.gif" /></Button>
+    
                         </div>
                     </template>
                 </Column>
@@ -238,6 +248,6 @@ const openDetails=(mode:string, id:number)=>{
 }
 
 #actions button{
-    padding: 0 0.3rem;
+    padding: 0 0.5rem;
 }
 </style>

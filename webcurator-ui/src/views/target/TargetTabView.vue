@@ -31,15 +31,15 @@ const initData=()=>{
     targetGeneral.initData();
 }
 
-const fetchTargetDetais=(id:any)=>{
+const fetchTargetDetais=()=>{
     isTargetAvailable.value=false;
-    targetId.value=id;
-    rest.get('targets/'+id).then((data:any)=>{
+    
+    rest.get('targets/'+targetId.value).then((data:any)=>{
         isTargetAvailable.value=true;
-        console.log(data.general);
         targetGeneral.setData(data.general);
-        console.log(targetGeneral.id);
-        console.log(targetGeneral.creationDate);
+        if(openMode.value === 'copy'){
+            targetGeneral.name='';
+        }
     }).catch((err:any)=>{
         console.log(err.message);
         initData();
@@ -58,7 +58,8 @@ onBeforeMount(()=>{
     if (openMode.value==="new") {
         initData();
     }else{
-        fetchTargetDetais(options.props.id);
+        targetId.value=options.props.id;
+        fetchTargetDetais();
     }
 });
 
@@ -90,14 +91,15 @@ const save=()=>{
 
     rsp.then((data:any)=>{
         console.log(data);
+    }).catch((err:any)=>{
+        console.log(err.message);
+        // alert(err.message);
+    }).finally(() => {
         emit('popPage', {
             page: 'TargetList',
             mode: 'new',
             id: 0,
         });
-    }).catch((err:any)=>{
-        console.log(err.message);
-        alert(err.message);
     });
 };
 
@@ -113,7 +115,7 @@ const save=()=>{
                 </div> -->
                 <Toolbar style="border: none; background: transparent;">
                     <template #start> <Button icon="pi pi-arrow-left" @click="cancel" text/> </template>
-                    <template #end> <Button icon="pi pi-save" @click="save" label="Save"/> </template>
+                    <template #end> <Button icon="pi pi-save" @click="save" label="Save" :disabled="readOnly"/> </template>
                 </Toolbar>
 
         

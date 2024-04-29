@@ -112,7 +112,7 @@ export function useFetch() {
 
                     isFinished.value = true;
                     
-                    if(rsp.ok){                        
+                    if(rsp.ok){                 
                         return rsp.json();
                     }else{
                         let statusText = rsp.statusText;
