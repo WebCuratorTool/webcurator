@@ -223,18 +223,18 @@ public class Targets {
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
 
         /**
-        // Create DTO based on the current data in the database
-        TargetDTO targetDTO = new TargetDTO(target);
-        // Then update the DTO with data from the supplied JSON
-        try {
-            updateTargetDTO(targetDTO, targetMap, targetDTO);
-        } catch (BadRequestError e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
-        }
+         // Create DTO based on the current data in the database
+         TargetDTO targetDTO = new TargetDTO(target);
+         // Then update the DTO with data from the supplied JSON
+         try {
+         updateTargetDTO(targetDTO, targetMap, targetDTO);
+         } catch (BadRequestError e) {
+         e.printStackTrace();
+         return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+         } catch (Exception e) {
+         e.printStackTrace();
+         return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+         }
          */
 
         // Validate updated DTO
@@ -263,6 +263,13 @@ public class Targets {
     @GetMapping(path = "/states")
     public ResponseEntity getStates() {
         return ResponseEntity.ok().body(stateMap);
+    }
+
+    @GetMapping(path = "/nextStates/{id}")
+    public ResponseEntity getNextStates(@PathVariable long id) {
+        Target target = targetManager.load(id);
+        int[] targetCodes = targetManager.getNextStates(target);
+        return ResponseEntity.ok().body(targetCodes);
     }
 
     /**
@@ -486,7 +493,7 @@ public class Targets {
                 List<GroupMemberDTO> groupMemberDTOs = new ArrayList<>();
                 for (TargetDTO.Group g : targetDTO.getGroups()) {
                     if (targetDAO.loadGroup(g.getId()) == null) {
-                        throw(new BadRequestError(String.format("Group %d does not exist", g.getId()))) ;
+                        throw (new BadRequestError(String.format("Group %d does not exist", g.getId())));
                     }
                     GroupMemberDTO groupMemberDTO = new GroupMemberDTO(g.getId(), target.getOid());
                     groupMemberDTO.setSaveState(GroupMemberDTO.SAVE_STATE.NEW);
@@ -608,9 +615,9 @@ public class Targets {
                 } else if (childType == Integer.class && value instanceof Long) {
                     value = ((Number) value).intValue();
                 } else if (childType == Long.class && value instanceof String) {
-                    value = Long.valueOf((String)value);
+                    value = Long.valueOf((String) value);
                 } else if (childType == Integer.class && value instanceof String) {
-                    value = Integer.valueOf((String)value);
+                    value = Integer.valueOf((String) value);
                 } else if (childType == Boolean.class && value instanceof String) {
                     value = Boolean.valueOf((String) value);
                 }

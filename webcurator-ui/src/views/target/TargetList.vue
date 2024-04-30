@@ -81,6 +81,8 @@ const deleteTarget=(id:number)=>{
         console.log('Succeed to delete target: ' + id);
     }).catch((err:any)=>{
         console.log(err.message);
+    }).finally(()=>{
+        
     });
 }
 

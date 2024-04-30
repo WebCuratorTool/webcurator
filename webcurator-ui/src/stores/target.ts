@@ -1,5 +1,6 @@
 import { ref, reactive, computed } from 'vue';
 import { defineStore } from 'pinia';
+import {type UseFetchApis, useFetch} from '@/utils/rest.api';
 import {useUserProfileStore, useUsersStore, getPresentationUserName} from '@/stores/users';
 
 const TARGET_STATE_PENDING={name:"Pending",  code:1}
@@ -65,7 +66,7 @@ export const isTargetAction=(target:any, actionName:string)=>{
 };
 
 
-export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
+export const useTargetGeneralDTO = defineStore ('TargetDTOGeneral',  () => {
     const id=ref();
     const name=ref("");
     const creationDate=ref(0);
@@ -78,6 +79,7 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
     const autoPrune=ref(false);
     const referenceCrawl=ref(false);
     const requestToArchivists=ref("");
+    const nextStates=ref([]);
 
     const userProfile=useUserProfileStore();
 
@@ -97,6 +99,7 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         autoPrune.value=false;
         referenceCrawl.value=false;
         requestToArchivists.value="";
+        nextStates.value=[];
     }
 
     const getData=()=>{
@@ -135,6 +138,13 @@ export const useTargetGeneralDTO = defineStore ('TargetDTO',  () => {
         autoPrune.value=data.autoPrune;
         referenceCrawl.value=data.referenceCrawl;
         requestToArchivists.value=data.requestToArchivists;
+
+        // const rest: UseFetchApis=useFetch();
+        // rest.get('targets/nextStates/'+data.id).then((rsp:any)=>{
+        //     console.log(rsp);
+        // }).catch((err:any)=>{
+    
+        // });
     }
 
     return {id,name,creationDate,description,referenceNumber,runOnApproval,automatedQA,selectedUser,selectedState,autoPrune,referenceCrawl,requestToArchivists,initData,getData,setData};
