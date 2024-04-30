@@ -35,6 +35,15 @@ Web Curator Tool Documentation
 
 .. toctree::
    :maxdepth: 1
+   :caption: Rest API
+
+   guides/api-introduction.rst
+   guides/api-principles.rst
+   guides/api-release-notes.rst
+   guides/apis/api-overview.rst
+
+.. toctree::
+   :maxdepth: 1
    :caption: Developers
 
    guides/developer-guide
