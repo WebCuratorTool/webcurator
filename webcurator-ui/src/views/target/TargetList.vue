@@ -95,31 +95,37 @@ const deleteTarget=(id:number)=>{
     <div class="main-content grid">
         <div class="col-12 card">
             <h5>Query</h5>
-            <div class="formgrid grid" id="grid-search">
-                <div class="field col">
-                    <label>Target ID</label>
-                    <InputNumber v-model="targetId" :useGrouping="false"/>
+            <div class="grid">
+                <div class="col-10">
+                    <div class="p-fluid formgrid grid" id="grid-search">
+                        <div class="field col-12 md:col-2">
+                            <label>Target ID</label>
+                            <InputNumber v-model="targetId" :useGrouping="false"/>
+                        </div>
+                        <div class="field col-12 md:col-2">
+                            <label>Target Name</label>
+                            <InputText v-model="targetName" type="text" />
+                        </div>
+                        <div class="field col-12 md:col-2">
+                            <label>Seed</label>
+                            <InputText v-model="targetSeed" type="text" />
+                        </div>
+                        <div class="field col-12 md:col-2">
+                            <label>Description</label>
+                            <InputText v-model="targetDescription" type="text" />
+                        </div>
+                        <div class="field col-12 md:col-2">
+                            <label>Member of</label>
+                            <InputText v-model="targetMemberOf" type="text" />
+                        </div>
+                    </div>
                 </div>
-                <div class="field col">
-                    <label>Target Name</label>
-                    <InputText v-model="targetName" type="text" />
-                </div>
-                <div class="field col">
-                    <label>Seed</label>
-                    <InputText v-model="targetSeed" type="text" />
-                </div>
-                <div class="field col">
-                    <label>Description</label>
-                    <InputText v-model="targetDescription" type="text" />
-                </div>
-                <div class="field col">
-                    <label>Member of</label>
-                    <InputText v-model="targetMemberOf" type="text" />
-                </div>
-                <div class="field col">
+
+                <div class="col-2">
                     <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" id="search-button" @click="search()"></Button>
                 </div>
             </div>
+
 
             <div class="formgroup-inline">
                 <div class="field">
