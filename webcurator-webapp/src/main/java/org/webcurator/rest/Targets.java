@@ -135,6 +135,13 @@ public class Targets {
         // Annotations are managed differently from normal associated entities
         target.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
         TargetDTO targetDTO = new TargetDTO(target);
+        int[] nextStates = new int[]{};
+        try {
+            targetManager.getNextStates(target);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        targetDTO.getGeneral().setNextStates(nextStates);
         if (section == null) {
             // Return the entire target
             return ResponseEntity.ok().body(targetDTO);

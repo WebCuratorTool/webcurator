@@ -142,6 +142,7 @@ public class TargetDTO {
         @NotNull(message = "referenceCrawl is required")
         Boolean referenceCrawl = false;
         String requestToArchivists;
+        int[] nextStates;
 
         public General() {
         }
@@ -255,6 +256,14 @@ public class TargetDTO {
 
         public void setRequestToArchivists(String requestToArchivists) {
             this.requestToArchivists = requestToArchivists;
+        }
+
+        public int[] getNextStates() {
+            return nextStates;
+        }
+
+        public void setNextStates(int[] nextStates) {
+            this.nextStates = nextStates;
         }
     }
 
