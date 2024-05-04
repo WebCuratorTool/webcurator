@@ -33,7 +33,8 @@ const selectedState = ref([])
 
 const targetList = ref([])
 const loadingTargetList = ref(false)
-const filteredTargetList = computed(() => {
+const filteredTargetList = ref()
+const filter = () => {
   const ret = [];
   for (let idx = 0; idx < targetList.value.length; idx++) {
     const target: any = targetList.value[idx];
@@ -58,12 +59,26 @@ const filteredTargetList = computed(() => {
     }
     ret.push(target);
   }
-  return ret;
-});
+  filteredTargetList.value = ret;
+}
+
+const resetFilter = () => {
+  selectedUser.value = {
+    name: userProfile.currUserName,
+    code: userProfile.name
+  }
+
+  selectedAgency.value = {
+    name: userProfile.agency,
+    code: userProfile.agency
+  }
+
+  selectedState.value = [];
+}
 
 
 const search = () => {
-  const filter = {
+  const searchConditions = {
     targetId: targetId.value,
     name: targetName.value,
     seed: targetSeed.value,
@@ -73,7 +88,7 @@ const search = () => {
   }
 
   const searchParams = {
-    filter: filter,
+    filter: searchConditions,
     offset: 0,
     limit: 1024,
     sortBy: 'creationDate,asc'
@@ -86,6 +101,7 @@ const search = () => {
       console.log(data)
       targetList.value = data['targets']
       console.log(targetList.value)
+      filter();
       loadingTargetList.value = false
     })
     .catch((err: any) => {
@@ -124,16 +140,7 @@ const deleteTarget = (id: number) => {
 
 watch(userProfile, (newUserProfile, oldUserProfile) => {
   console.log(userProfile)
-
-  selectedUser.value = {
-    name: userProfile.currUserName,
-    code: userProfile.name
-  }
-
-  selectedAgency.value = {
-    name: userProfile.agency,
-    code: userProfile.agency
-  }
+  resetFilter();
 });
 
 onMounted(() => {
@@ -172,7 +179,7 @@ onMounted(() => {
               <InputText v-model="targetMemberOf" type="text" />
             </div>
             <div class="field col-12 md:col-2">
-              <label>Noe-Display Only</label>
+              <label>Non-Display Only</label>
               <Checkbox v-model="noneDisplayOnly" :binary="true" />
             </div>
           </div>
@@ -188,8 +195,8 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>Agency</InputGroupAddon>
-            <Dropdown id="agency" v-model="selectedAgency" :options="agencies.agencyList" optionLabel="name"
-              placeholder="Select an Agency" checkmark class="w-full md:w-18rem">
+            <Dropdown id="agency" v-model="selectedAgency" :options="agencies.agencyListWithEmptyItem"
+              optionLabel="name" placeholder="Select an Agency" class="w-full md:w-18rem">
               <template #value="slotProps">
                 <div class="flex align-items-center">
                   <div>{{ selectedAgency.name }}</div>
@@ -206,8 +213,8 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>User</InputGroupAddon>
-            <Dropdown id="user" v-model="selectedUser" :options="users.userList" optionLabel="name"
-              placeholder="Select an User" checkmark class="w-full md:w-18rem">
+            <Dropdown id="user" v-model="selectedUser" :options="users.userListWithEmptyItem" optionLabel="name"
+              placeholder="Select an User" class="w-full md:w-18rem">
               <template #value="slotProps">
                 <div class="flex align-items-center">
                   <div>{{ selectedUser.name }}</div>
@@ -231,10 +238,11 @@ onMounted(() => {
         </div>
 
         <div class="field">
-          <Button label="&nbsp;&nbsp;Reset filter" icon="pi pi-times" severity="secondary" class="btn-sub" />
+          <Button @click="resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times" severity="secondary"
+            class="btn-sub" />
         </div>
         <div class="field">
-          <Button label="&nbsp;&nbsp;Filter" icon="pi pi-filter" severity="secondary" class="btn-sub" />
+          <Button @click="filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" severity="secondary" class="btn-sub" />
         </div>
       </div>
     </div>
@@ -247,9 +255,11 @@ onMounted(() => {
       :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']" resizableColumns
       columnResizeMode="fit" showGridlines>
       <template #header>
-        <div class="flex justify-content-between flex-column sm:flex-row">
-          <h5>Results</h5>
-          <Button severity="secondary" @click="createNew" raised>Create new</Button>
+        <!-- <div class="flex justify-content-between flex-column sm:flex-row">
+          <h5>Results</h5> -->
+        <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+          <span class="text-xl text-900 font-bold">Results</span>
+          <Button severity="primary" @click="createNew">Create new</Button>
         </div>
       </template>
       <template #empty> No targets found. </template>

@@ -110,63 +110,58 @@ const save = () => {
 </script>
 
 <template>
-  <div class="main-container">
-    <div class="main-header">
-      <div class="target-header-container">
-        <!-- <div class="w-full">
-                    
-                    
-                </div> -->
-        <Toolbar style="border: none; background: transparent">
-          <template #start> <Button icon="pi pi-arrow-left" @click="cancel" text /> </template>
-          <template #end>
-            <Button icon="pi pi-save" @click="save" label="Save" :disabled="readOnly" />
-          </template>
-        </Toolbar>
+  <div class="main-header">
+    <div class="target-header-container">
+      <Toolbar style="border: none; background: transparent">
+        <template #start> <Button icon="pi pi-arrow-left" @click="cancel" text /> </template>
+        <template #end>
+          <Button icon="pi pi-save" @click="save" label="Save" :disabled="readOnly" />
+        </template>
+      </Toolbar>
 
-        <div class="w-full">
-          <span class="title">Target</span>
-          <div v-if="isTargetAvailable" class="subtitle-container p-overlay-badge">
-            <span class="sub-title">{{ targetGeneral.id }} - {{ formatDatetime(targetGeneral.creationDate) }}</span>
-            <span class="p-badge p-component p-badge-secondary" data-pc-name="badge" data-pc-section="root">{{
-              formatTargetState(targetGeneral.selectedState) }}</span>
-          </div>
+      <div class="w-full">
+        <span class="title">Target</span>
+        <div v-if="isTargetAvailable" class="subtitle-container p-overlay-badge">
+          <span class="sub-title">{{ targetGeneral.id }} - {{ formatDatetime(targetGeneral.creationDate) }}</span>
+          <span class="p-badge p-component p-badge-secondary" data-pc-name="badge" data-pc-section="root">{{
+            formatTargetState(targetGeneral.selectedState) }}</span>
         </div>
       </div>
     </div>
-    <div class="main-content">
-      <TabView class="tabview-custom">
-        <TabPanel header="Genaral">
-          <TargetTabPanelGeneral :readOnly="readOnly" />
-        </TabPanel>
-        <TabPanel header="Seeds">
-          <TargetTabPanelSeeds />
-        </TabPanel>
-        <TabPanel header="Profile">
-          <TargetTabPanelProfile />
-        </TabPanel>
-        <TabPanel header="Schedule">
-          <TargetTabPanelSchedule />
-        </TabPanel>
-        <TabPanel header="Annotations">
-          <TargetTabPanelAnnotations />
-        </TabPanel>
-        <TabPanel header="Description">
-          <TargetTabPanelDescription />
-        </TabPanel>
-        <TabPanel header="Groups">
-          <TargetTabPanelGroups />
-        </TabPanel>
-        <TabPanel header="Access">
-          <TargetTabPanelAccess />
-        </TabPanel>
-      </TabView>
-    </div>
+  </div>
+  <div class="main-content">
+    <TabView class="tabview-custom">
+      <TabPanel header="Genaral">
+        <TargetTabPanelGeneral :readOnly="readOnly" />
+      </TabPanel>
+      <TabPanel header="Seeds">
+        <TargetTabPanelSeeds />
+      </TabPanel>
+      <TabPanel header="Profile">
+        <TargetTabPanelProfile />
+      </TabPanel>
+      <TabPanel header="Schedule">
+        <TargetTabPanelSchedule />
+      </TabPanel>
+      <TabPanel header="Annotations">
+        <TargetTabPanelAnnotations />
+      </TabPanel>
+      <TabPanel header="Description">
+        <TargetTabPanelDescription />
+      </TabPanel>
+      <TabPanel header="Groups">
+        <TargetTabPanelGroups />
+      </TabPanel>
+      <TabPanel header="Access">
+        <TargetTabPanelAccess />
+      </TabPanel>
+    </TabView>
   </div>
 </template>
 
 <style>
 .tabview-custom {
+  width: 80vw;
   min-height: 60vh;
 }
 </style>

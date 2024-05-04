@@ -118,7 +118,23 @@ export const useUsersStore = defineStore('users', () => {
     }
     return formatedData;
   });
-  return { data, userList, initialFetch }
+
+  const userListWithEmptyItem = computed(() => {
+    const formatedData = [{
+      "name": " ",
+      "code": "",
+    }];
+
+    for (var i = 0; i < data.value.length; i++) {
+      var user: any = data.value[i];
+      formatedData.push({
+        "name": user.firstName + " " + user.lastName + " (" + user.name + ")",
+        "code": user.name,
+      });
+    }
+    return formatedData;
+  });
+  return { data, userList, userListWithEmptyItem, initialFetch }
 });
 
 
