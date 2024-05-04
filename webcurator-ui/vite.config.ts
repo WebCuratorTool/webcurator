@@ -19,23 +19,7 @@ export default defineConfig({
   server: {
     open: false,
     port: 5173,
-    https: false,
-    hotOnly: false,
-    // proxy: {
-    //   "/wct/api": {
-    //     target: "http://localhost:6090/wct/api",
-    //     changeOrigin: true, 
-    //     // rewrite: (path) => path.replace(/^\/mis/, ""),
-    //     // ws: true,                      
-    //     // secure: true,
-    //   },
-    //   "/wct/auth": {
-    //     target: "http://localhost:6090/wct/auth",
-    //     changeOrigin: true, 
-    //     // rewrite: (path) => path.replace(/^\/mis/, ""),
-    //     // ws: true,                      
-    //     // secure: true,
-    //   },
-    // },
+    // https: false,
+    // hotOnly: false,
   },
 })
