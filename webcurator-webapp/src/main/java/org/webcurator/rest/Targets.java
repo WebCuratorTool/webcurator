@@ -21,6 +21,7 @@ import org.webcurator.domain.model.core.*;
 import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
+import org.webcurator.rest.dto.ProfileDTO;
 import org.webcurator.rest.dto.TargetDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +29,6 @@ import javax.validation.*;
 import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -314,7 +314,7 @@ public class Targets {
                 }
                 target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
             }
-            for (TargetDTO.Scheduling.Schedule s : targetDTO.getSchedule().getSchedules()) {
+            for (TargetDTO.ScheduleDTO s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
                 String cronExpression = s.getCron();
                 // we support classic cron, without the prepended SECONDS field expected by Quartz
@@ -383,12 +383,12 @@ public class Targets {
             target.setProfile(profile);
 
             ProfileOverrides profileOverrides = target.getProfileOverrides();
-            List<TargetDTO.Profile.Override> overrides = targetDTO.getProfile().getOverrides();
+            List<ProfileDTO.Override> overrides = targetDTO.getProfile().getOverrides();
             if (!profile.isImported() && overrides.isEmpty()) {
                 throw new BadRequestError("A target with a non-imported profile requires profile overrides");
             }
             // Use reflection to fill out the elaborate yet consistently named ProfileOverrides
-            for (TargetDTO.Profile.Override override : overrides) {
+            for (ProfileDTO.Override override : overrides) {
                 String id = override.getId();
                 id = id.substring(0, 1).toUpperCase() + id.substring(1); // camel case
                 String methodNameSetValue = "setH3" + id;
@@ -534,8 +534,8 @@ public class Targets {
                         if (!(element instanceof HashMap)) {
                             throw new BadRequestError("Bad item in list of profile overrides");
                         }
-                        TargetDTO.Profile.Override overrideToBeUpdated = null;
-                        for (TargetDTO.Profile.Override override : (List<TargetDTO.Profile.Override>) child) {
+                        ProfileDTO.Override overrideToBeUpdated = null;
+                        for (ProfileDTO.Override override : (List<ProfileDTO.Override>) child) {
                             if (override.getId().equals(((HashMap) element).get("id"))) {
                                 overrideToBeUpdated = override;
                                 break;
