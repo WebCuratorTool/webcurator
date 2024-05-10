@@ -81,7 +81,8 @@ public class ProcessBuilderUtils {
             return true;
         }
         String os = SystemUtils.OS_NAME.toLowerCase();
-        if (os.contains("linux") || os.contains("unix")) {
+        if (SystemUtils.IS_OS_UNIX || os.contains("bsd")) {
+//        if (os.contains("linux") || os.contains("unix")) {
             String cmdRm = getFullPathOfCommand("rm");
             String[] commands = {cmdRm, "-rf", toBeDeletedDirectory.getAbsolutePath()};
             int ret = processCommand(new File("/tmp"), commands);
