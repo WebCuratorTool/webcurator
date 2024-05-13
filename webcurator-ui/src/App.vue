@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import { useDialog } from 'primevue/usedialog';
+import { RouterView } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
-import AppConfig from '@/layout/AppConfig.vue';
 
 // import api from './restclient';
-
-
 </script>
 
 <template>
@@ -17,7 +13,6 @@ import AppConfig from '@/layout/AppConfig.vue';
      </div>
      
      <DynamicDialog />
-     <AppConfig />
   </div>
 </template>
 
