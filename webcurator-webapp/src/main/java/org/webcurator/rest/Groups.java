@@ -6,9 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
+import org.webcurator.domain.model.core.GroupMember;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
+import org.webcurator.rest.dto.GroupDTO;
 
 import java.util.*;
 
@@ -36,6 +38,9 @@ public class Groups {
         stateMap.put(TargetGroup.STATE_INACTIVE, "Inactive");
     }
 
+    /**
+     * Handler for search
+     */
     @GetMapping(path = "", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity get(@RequestBody(required = false) SearchParams searchParams) {
        if (searchParams == null) {
@@ -65,6 +70,19 @@ public class Groups {
         } catch (BadRequestError e) {
             return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
         }
+    }
+
+    /**
+     * Handler for retrieval of individual groups
+     */
+    @GetMapping(path = {"/{id}", "/{id}/{section}"})
+    public ResponseEntity get(@PathVariable long id, @PathVariable(required = false) String section) {
+        TargetGroup targetGroup = targetDAO.loadGroup(id);
+        if (targetGroup == null) {
+            return ResponseEntity.notFound().build();
+        }
+        GroupDTO groupDTO = new GroupDTO(targetGroup);
+        return ResponseEntity.ok().body(groupDTO);
     }
 
     /**

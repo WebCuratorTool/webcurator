@@ -1,7 +1,6 @@
 package org.webcurator.rest.dto;
 
 import org.webcurator.domain.model.core.DublinCore;
-import org.webcurator.domain.model.core.Target;
 
 public class DescriptionDTO {
 
@@ -23,23 +22,22 @@ public class DescriptionDTO {
     public DescriptionDTO() {
     }
 
-    public DescriptionDTO(Target target) {
-        DublinCore metadata = target.getDublinCoreMetaData();
-        if (metadata != null) {
-            identifier = metadata.getIdentifier();
-            description = metadata.getDescription();
-            subject = metadata.getSubject();
-            creator = metadata.getCreator();
-            publisher = metadata.getPublisher();
-            type = metadata.getType();
-            format = metadata.getFormat();
-            source = metadata.getSource();
-            language = metadata.getLanguage();
-            relation = metadata.getRelation();
-            contributor = metadata.getContributor();
-            coverage = metadata.getCoverage();
-            issn = metadata.getIssn();
-            isbn = metadata.getIsbn();
+    public DescriptionDTO(DublinCore dublinCore) {
+        if (dublinCore != null) {
+            identifier = dublinCore.getIdentifier();
+            description = dublinCore.getDescription();
+            subject = dublinCore.getSubject();
+            creator = dublinCore.getCreator();
+            publisher = dublinCore.getPublisher();
+            type = dublinCore.getType();
+            format = dublinCore.getFormat();
+            source = dublinCore.getSource();
+            language = dublinCore.getLanguage();
+            relation = dublinCore.getRelation();
+            contributor = dublinCore.getContributor();
+            coverage = dublinCore.getCoverage();
+            issn = dublinCore.getIssn();
+            isbn = dublinCore.getIsbn();
         }
     }
 

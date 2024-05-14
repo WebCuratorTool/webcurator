@@ -21,7 +21,7 @@ public class AccessDTO {
     public AccessDTO() {
     }
 
-    public AccessDTO(Target target) {
+    public AccessDTO(AbstractTarget target) {
         displayTarget = target.isDisplayTarget();
         accessZone = target.getAccessZone();
         accessZoneText = target.getAccessZoneText();

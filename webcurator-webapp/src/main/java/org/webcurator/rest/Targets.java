@@ -22,6 +22,7 @@ import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.ProfileDTO;
+import org.webcurator.rest.dto.ScheduleDTO;
 import org.webcurator.rest.dto.TargetDTO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -314,7 +315,7 @@ public class Targets {
                 }
                 target.setHarvestNow(targetDTO.getSchedule().getHarvestNow());
             }
-            for (TargetDTO.ScheduleDTO s : targetDTO.getSchedule().getSchedules()) {
+            for (ScheduleDTO s : targetDTO.getSchedule().getSchedules()) {
                 Schedule schedule = businessObjectFactory.newSchedule(target);
                 String cronExpression = s.getCron();
                 // we support classic cron, without the prepended SECONDS field expected by Quartz
