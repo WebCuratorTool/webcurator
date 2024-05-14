@@ -126,71 +126,71 @@
 			<td width="70%" colspan="3" class="tableHead">Description</td>
 		</tr>
 
-		<tr>
-            <td width="30%">
-                <a href="javascript: recreate(${command.harvestResultId});">Recreate screenshot or reindex</a>
-                <!--input type="submit" value="Recreate screenshot or reindex"-->
-            </td>
-            <td width="70%" colspan="3">
-                <ul class="reindexOptions">
-                    <li>
-                        <c:choose>
-                            <c:when test="${enableScreenshots}">
-                                <c:choose>
-                                    <c:when test="${screenshotState.liveScreenshot}">
-                                        <input type="checkbox" id="is-recreate-live" name="is-recreate-live">
-                                        <label for="is-recreate-live">Live screenshot (&radic;)</label>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <input type="checkbox" id="is-recreate-live" name="is-recreate-live" checked>
-                                        <label for="is-recreate-live">Live screenshot(&empty;)</label>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:when>
-                            <c:otherwise>
-                                <input type="checkbox" id="is-recreate-live" name="is-recreate-live" disabled>
-                                <label for="is-recreate-live">Live screenshot</label>
-                            </c:otherwise>
-                        </c:choose>
-                    </li>
-                    <li>
-                        <c:choose>
-                            <c:when test="${screenshotState.indexAvailable}">
-                                <input type="checkbox" id="is-recreate-index" name="is-recreate-index">
-                                <label for="is-recreate-index">Playback indexes (&radic;)</label>
-                            </c:when>
-                            <c:otherwise>
-                                <input type="checkbox" id="is-recreate-index" name="is-recreate-index" checked>
-                                <label for="is-recreate-index">Playback indexes(&empty;)</label>
-                            </c:otherwise>
-                        </c:choose>
-                    </li>
-                    <li>
-                        <c:choose>
-                            <c:when test="${enableScreenshots}">
-                                <c:choose>
-                                    <c:when test="${screenshotState.harvestedScreenshot}">
-                                        <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested">
-                                        <label for="is-recreate-harvested">Harvested screenshot (&radic;)</label>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested" checked>
-                                        <label for="is-recreate-harvested">Harvested screenshot(&empty;)</label>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:when>
-                            <c:otherwise>
-                                <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested" disabled>
-                                <label for="is-recreate-harvested">Harvested screenshot</label>
-                            </c:otherwise>
-                        </c:choose>
-                    </li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="4" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>
-        </tr>
+<%--		<tr>--%>
+<%--            <td width="30%">--%>
+<%--                <a href="javascript: recreate(${command.harvestResultId});">Recreate screenshot or reindex</a>--%>
+<%--                <!--input type="submit" value="Recreate screenshot or reindex"-->--%>
+<%--            </td>--%>
+<%--            <td width="70%" colspan="3">--%>
+<%--                <ul class="reindexOptions">--%>
+<%--                    <li>--%>
+<%--                        <c:choose>--%>
+<%--                            <c:when test="${enableScreenshots}">--%>
+<%--                                <c:choose>--%>
+<%--                                    <c:when test="${screenshotState.liveScreenshot}">--%>
+<%--                                        <input type="checkbox" id="is-recreate-live" name="is-recreate-live">--%>
+<%--                                        <label for="is-recreate-live">Live screenshot (&radic;)</label>--%>
+<%--                                    </c:when>--%>
+<%--                                    <c:otherwise>--%>
+<%--                                        <input type="checkbox" id="is-recreate-live" name="is-recreate-live" checked>--%>
+<%--                                        <label for="is-recreate-live">Live screenshot(&empty;)</label>--%>
+<%--                                    </c:otherwise>--%>
+<%--                                </c:choose>--%>
+<%--                            </c:when>--%>
+<%--                            <c:otherwise>--%>
+<%--                                <input type="checkbox" id="is-recreate-live" name="is-recreate-live" disabled>--%>
+<%--                                <label for="is-recreate-live">Live screenshot</label>--%>
+<%--                            </c:otherwise>--%>
+<%--                        </c:choose>--%>
+<%--                    </li>--%>
+<%--                    <li>--%>
+<%--                        <c:choose>--%>
+<%--                            <c:when test="${screenshotState.indexAvailable}">--%>
+<%--                                <input type="checkbox" id="is-recreate-index" name="is-recreate-index">--%>
+<%--                                <label for="is-recreate-index">Playback indexes (&radic;)</label>--%>
+<%--                            </c:when>--%>
+<%--                            <c:otherwise>--%>
+<%--                                <input type="checkbox" id="is-recreate-index" name="is-recreate-index" checked>--%>
+<%--                                <label for="is-recreate-index">Playback indexes(&empty;)</label>--%>
+<%--                            </c:otherwise>--%>
+<%--                        </c:choose>--%>
+<%--                    </li>--%>
+<%--                    <li>--%>
+<%--                        <c:choose>--%>
+<%--                            <c:when test="${enableScreenshots}">--%>
+<%--                                <c:choose>--%>
+<%--                                    <c:when test="${screenshotState.harvestedScreenshot}">--%>
+<%--                                        <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested">--%>
+<%--                                        <label for="is-recreate-harvested">Harvested screenshot (&radic;)</label>--%>
+<%--                                    </c:when>--%>
+<%--                                    <c:otherwise>--%>
+<%--                                        <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested" checked>--%>
+<%--                                        <label for="is-recreate-harvested">Harvested screenshot(&empty;)</label>--%>
+<%--                                    </c:otherwise>--%>
+<%--                                </c:choose>--%>
+<%--                            </c:when>--%>
+<%--                            <c:otherwise>--%>
+<%--                                <input type="checkbox" id="is-recreate-harvested" name="is-recreate-harvested" disabled>--%>
+<%--                                <label for="is-recreate-harvested">Harvested screenshot</label>--%>
+<%--                            </c:otherwise>--%>
+<%--                        </c:choose>--%>
+<%--                    </li>--%>
+<%--                </ul>--%>
+<%--            </td>--%>
+<%--        </tr>--%>
+<%--        <tr>--%>
+<%--            <td colspan="4" class="tableRowSep"><img src="images/x.gif" alt="" width="1" height="1" border="0" /></td>--%>
+<%--        </tr>--%>
 
 		<tr>
 			<td width="30%"><a href="<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+ request.getContextPath()%>/curator/tools/harvest-history.html?targetInstanceOid=<c:out value="${command.targetInstanceOid}"/>&harvestResultId=<c:out value="${command.harvestResultId}"/>">Harvest History</a></td>
