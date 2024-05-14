@@ -71,3 +71,9 @@
 	padding-top: 1.2em;
 	width: calc(100vw - 480px);
 }
+
+.wct-secondary-button {
+	border: 1px solid #3F51B5;
+	background-color: transparent;
+	color: #3F51B5;
+}

@@ -17,11 +17,11 @@
 </template>
 
 <script setup lang="ts">
-import {useUserProfileStore} from '@/stores/users';
+import { useUserProfileStore } from '@/stores/users';
 import { useLayout } from '@/layout/composables/layout';
 import { usePrimeVue } from 'primevue/config';
 
-const { setScale, layoutConfig } = useLayout();
+const { layoutConfig } = useLayout();
 const $primevue = usePrimeVue();
 
 const token = useUserProfileStore();

@@ -238,11 +238,11 @@ onMounted(() => {
         </div>
 
         <div class="field">
-          <Button @click="resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times" severity="secondary"
-            class="btn-sub" />
+          <Button @click="resetFilter" label="&nbsp;&nbsp;Reset filter" icon="pi pi-times"
+            class="wct-secondary-button" />
         </div>
         <div class="field">
-          <Button @click="filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" severity="secondary" class="btn-sub" />
+          <Button @click="filter" label="&nbsp;&nbsp;Filter" icon="pi pi-filter" class="wct-secondary-button" />
         </div>
       </div>
     </div>
