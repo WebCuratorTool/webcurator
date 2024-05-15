@@ -128,7 +128,7 @@ app.use(createPinia());
 app.use(router);
 
 // app.use(PrimeVue, { unstyled: false });
-app.use(PrimeVue, { ripple: true  });
+app.use(PrimeVue, { ripple: true });
 app.use(ConfirmationService);
 app.use(ToastService);
 app.use(DialogService);

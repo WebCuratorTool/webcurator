@@ -9,12 +9,12 @@
 
 import PageHeader from '@/components/PageHeader.vue';
 
-import {type UseFetchApis, useFetch} from '../rest.api';
+import {type UseFetchApis, useFetch} from '../utils/rest.api';
 
 const rest: UseFetchApis=useFetch();
 
 const showTargets = () => {
-  const rsp= rest.get("./api/v1/targets");
+  const rsp= rest.post("targets", {});
   rsp.then((data:any)=>{
     console.log('fetch: ');
     console.log(data);

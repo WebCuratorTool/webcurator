@@ -5,6 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.webcurator.domain.UserRoleDAO;
+import org.webcurator.domain.model.auth.Role;
 import org.webcurator.domain.model.auth.User;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
@@ -55,6 +56,10 @@ public class Users {
             result = userRoleDAO.getUsers(filter.agency);
         }
         for (User u : result) {
+            List<String> roles=new ArrayList<>();
+            for (Role r : u.getRoles()){
+                roles.add(r.getName());
+            }
             HashMap<String, Object> user = new HashMap<>();
             user.put("id", u.getOid());
             user.put("name", u.getUsername());
@@ -62,6 +67,8 @@ public class Users {
             user.put("lastName", u.getLastname());
             user.put("email", u.getEmail());
             user.put("agency", u.getAgency().getName());
+            user.put("isActive",u.isActive());
+            user.put("roles",roles);
             users.add(user);
         }
         return new SearchResult(users.size(), users);

@@ -1,20 +1,18 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import { useDialog } from 'primevue/usedialog';
+import { RouterView } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
-import AppConfig from '@/layout/AppConfig.vue';
 
 // import api from './restclient';
-
-
 </script>
 
 <template>
   <div class="app">
-    <NavBar />
-    <router-view />
+     <NavBar />
+     <div class="main-container">
+      <router-view />
+     </div>
+     
      <DynamicDialog />
-     <AppConfig />
   </div>
 </template>
 
