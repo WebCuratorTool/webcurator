@@ -15,7 +15,7 @@ import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
 
 // const options = defineProps(['props']);
 const route = useRoute()
-const id = route.params.id as string
+const targetId = route.params.id as string
 
 const emit = defineEmits(['popPage']);
 
@@ -25,13 +25,13 @@ const targetGeneral = useTargetGeneralDTO();
 const nextStates = useNextStateStore();
 
 const openMode = ref();
-const targetId = ref();
-const readOnly = ref(false);
+// const targetId = ref();
+// const readOnly = ref(false);
 const isTargetAvailable = ref(false);
+const editing = ref(false);
 
 const initData = () => {
   isTargetAvailable.value = false;
-  targetId.value = undefined;
   targetGeneral.initData();
   nextStates.initData();
 }
@@ -39,7 +39,7 @@ const initData = () => {
 const fetchTargetDetails = () => {
   isTargetAvailable.value = false;
 
-  rest.get('targets/' + targetId.value).then((data: any) => {
+  rest.get('targets/' + targetId).then((data: any) => {
     isTargetAvailable.value = true;
     targetGeneral.setData(data.general);
     if (openMode.value === 'copy') {
@@ -66,7 +66,6 @@ onBeforeMount(() => {
   //   targetId.value = options.props.id
   //   fetchTargetDetais();
   // }
-  targetId.value = id
   fetchTargetDetails();
 })
 
@@ -83,6 +82,8 @@ const cancel = () => {
 }
 
 const save = () => {
+  console.log("here");
+  
   const dataReq = {
     general: targetGeneral.getData()
   }
@@ -117,10 +118,17 @@ const save = () => {
 <template>
   <div class="main-header">
     <div class="target-header-container">
+
       <Toolbar style="border: none; background: transparent">
-        <template #start> <Button icon="pi pi-arrow-left" @click="cancel" text /> </template>
-        <template #end>
-          <Button icon="pi pi-save" @click="save" label="Save" :disabled="readOnly" />
+        <template #start>
+          <Button icon="pi pi-arrow-left" @click="cancel" text />
+        </template>
+        <template v-if="!editing" #end>
+          <Button icon="pi pi-pencil" @click="editing = true" label="Edit" />
+        </template>
+        <template v-else #end>
+          <Button icon="pi pi-times" @click="editing = false" label="Cancel" />
+          <Button class="ml-2" icon="pi pi-save" @click="save" label="Save" />
         </template>
       </Toolbar>
 
@@ -137,7 +145,7 @@ const save = () => {
   <div class="main-content">
     <TabView class="tabview-custom">
       <TabPanel header="Genaral">
-        <TargetTabPanelGeneral :readOnly="readOnly" />
+        <TargetTabPanelGeneral :editing="editing" />
       </TabPanel>
       <TabPanel header="Seeds">
         <TargetTabPanelSeeds />
