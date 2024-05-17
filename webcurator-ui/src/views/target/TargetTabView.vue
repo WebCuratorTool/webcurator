@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onBeforeMount, onActivated } from 'vue';
+import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { formatDatetime } from '@/utils/helper';
 import { useTargetGeneralDTO, formatTargetState, useNextStateStore } from '@/stores/target';
@@ -12,7 +13,9 @@ import TargetTabPanelDescription from './TargetTabPanelDescription.vue';
 import TargetTabPanelGroups from './TargetTabPanelGroups.vue';
 import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
 
-const options = defineProps(['props']);
+// const options = defineProps(['props']);
+const route = useRoute()
+const id = route.params.id as string
 
 const emit = defineEmits(['popPage']);
 
@@ -33,7 +36,7 @@ const initData = () => {
   nextStates.initData();
 }
 
-const fetchTargetDetais = () => {
+const fetchTargetDetails = () => {
   isTargetAvailable.value = false;
 
   rest.get('targets/' + targetId.value).then((data: any) => {
@@ -50,19 +53,21 @@ const fetchTargetDetais = () => {
 }
 
 onBeforeMount(() => {
-  console.log('onBeforeMount');
-  openMode.value = options.props.mode;
-  if (openMode.value === 'view') {
-    readOnly.value = true;
-  } else {
-    readOnly.value = false;
-  }
-  if (openMode.value === 'new') {
-    initData();
-  } else {
-    targetId.value = options.props.id
-    fetchTargetDetais();
-  }
+  // console.log('onBeforeMount');
+  // openMode.value = options.props.mode;
+  // if (openMode.value === 'view') {
+  //   readOnly.value = true;
+  // } else {
+  //   readOnly.value = false;
+  // }
+  // if (openMode.value === 'new') {
+  //   initData();
+  // } else {
+  //   targetId.value = options.props.id
+  //   fetchTargetDetais();
+  // }
+  targetId.value = id
+  fetchTargetDetails();
 })
 
 onActivated(() => {

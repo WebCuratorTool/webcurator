@@ -118,25 +118,25 @@ const createNew = () => {
   })
 }
 
-const openDetails = (mode: string, id: number) => {
-  emit('popPage', {
-    page: 'TargetTabView',
-    mode: mode,
-    id: id
-  })
-}
+// const openDetails = (mode: string, id: number) => {
+//   emit('popPage', {
+//     page: 'TargetTabView',
+//     mode: mode,
+//     id: id
+//   })
+// }
 
-const deleteTarget = (id: number) => {
-  rest
-    .delete('targets/' + id, {})
-    .then((rsp: any) => {
-      console.log('Succeed to delete target: ' + id)
-    })
-    .catch((err: any) => {
-      console.log(err.message)
-    })
-    .finally(() => { })
-}
+// const deleteTarget = (id: number) => {
+//   rest
+//     .delete('targets/' + id, {})
+//     .then((rsp: any) => {
+//       console.log('Succeed to delete target: ' + id)
+//     })
+//     .catch((err: any) => {
+//       console.log(err.message)
+//     })
+//     .finally(() => { })
+// }
 
 watch(userProfile, (newUserProfile, oldUserProfile) => {
   console.log(userProfile)
@@ -270,7 +270,11 @@ onMounted(() => {
           {{ formatDatetime(data.creationDate) }}
         </template>
       </Column>
-      <Column field="name" header="Name" sortable style="min-width: 8rem"></Column>
+      <Column field="name" header="Name" sortable style="min-width: 8rem">
+        <template #body="{ data }">
+          <router-link :to="`/wct/targets/${data.id}`">{{ data.name }}</router-link>
+        </template>
+      </Column>
       <Column field="agency" header="Agency" sortable style="min-width: 5rem"></Column>
       <Column field="owner" header="Owner" sortable filterField="owner" style="min-width: 6rem"></Column>
       <Column field="state" header="Status" sortable style="min-width: 2rem">
@@ -288,17 +292,7 @@ onMounted(() => {
       </Column>
       <Column header="Action" field="id" style="max-width: 8rem">
         <template #body="{ data }">
-          <div id="actions" class="flex flex-wrap justify-content-center">
-            <Button @click="openDetails('view', data.id)" text><img alt="logo"
-                src="@/assets/images/action-icon-view.gif" /></Button>
-            <Button @click="openDetails('edit', data.id)" text><img alt="logo"
-                src="@/assets/images/action-icon-edit.gif" /></Button>
-            <Button @click="openDetails('copy', data.id)" text><img alt="logo"
-                src="@/assets/images/action-icon-copy.gif" /></Button>
-            <Button text><img alt="logo" src="@/assets/images/action-icon-target-instances.gif" /></Button>
-            <Button v-if="isTargetAction(data, 'delete')" @click="deleteTarget(data.id)" text><img alt="logo"
-                src="@/assets/images/action-icon-delete.gif" /></Button>
-          </div>
+          ...
         </template>
       </Column>
     </DataTable>
