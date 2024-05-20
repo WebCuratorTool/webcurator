@@ -317,6 +317,9 @@ public class DasConfig implements WebMvcConfigurer {
     @Value("${pywbIndexer.individualCollectionMode}")
     private boolean individualCollectionMode;
 
+    @Value("${pywbIndexer.useSymLinkForArchive}")
+    private boolean useSymLinkForArchive;
+
     @Value("${pywbIndexer.wb-manager.store}")
     private String pywbIndexerWaybackManagerStore;
 
@@ -544,6 +547,7 @@ public class DasConfig implements WebMvcConfigurer {
         bean.setPywbManagerColl(pywbIndexerWaybackManagerColl);
         bean.setPywbManagerStoreDir(new File(pywbIndexerWaybackManagerStore));
         bean.setIndividualCollectionMode(individualCollectionMode);
+        bean.setUseSymLinkForArchive(useSymLinkForArchive);
         return bean;
     }
 

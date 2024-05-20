@@ -76,6 +76,16 @@ public class ProcessBuilderUtils {
         return processCommand(targetDirectory, commands);
     }
 
+    public static int wbManagerReindexCollection(File targetDirectory, String collName) {
+        String wb_manager = ProcessBuilderUtils.getFullPathOfCommand("wb-manager");
+        if (wb_manager == null) {
+            log.error("The command tool [wb-manager] is not installed or not in the env PATH.");
+            return UNKNOWN_ERROR;
+        }
+        String[] commands = {wb_manager, "reindex", collName};
+        return processCommand(targetDirectory, commands);
+    }
+
     public static boolean forceDeleteDirectory(File toBeDeletedDirectory) {
         if (toBeDeletedDirectory == null || !toBeDeletedDirectory.exists()) {
             return true;
@@ -86,6 +96,22 @@ public class ProcessBuilderUtils {
             String cmdRm = getFullPathOfCommand("rm");
             String[] commands = {cmdRm, "-rf", toBeDeletedDirectory.getAbsolutePath()};
             int ret = processCommand(new File("/tmp"), commands);
+            return ret == 0;
+        } else {
+            //TODO: not supported
+            return false;
+        }
+    }
+
+    public static boolean createSymLink(File baseDirectory, File targetDirectory, String symLinkName) {
+        if (targetDirectory == null || !targetDirectory.exists()) {
+            return false;
+        }
+        String os = SystemUtils.OS_NAME.toLowerCase();
+        if (SystemUtils.IS_OS_UNIX || os.contains("bsd")) {
+            String cmdRm = getFullPathOfCommand("ln");
+            String[] commands = {cmdRm, "-s", targetDirectory.getAbsolutePath(), symLinkName};
+            int ret = processCommand(baseDirectory, commands);
             return ret == 0;
         } else {
             //TODO: not supported

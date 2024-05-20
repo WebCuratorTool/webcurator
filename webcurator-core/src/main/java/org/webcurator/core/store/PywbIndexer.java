@@ -17,6 +17,7 @@ public class PywbIndexer extends IndexerBase {
     private String pywbManagerColl;
     private File pywbManagerStoreDir;
     private boolean isIndividualCollectionMode = true;
+    private boolean useSymLinkForArchive = false;
 
     public PywbIndexer() {
         super();
@@ -34,6 +35,7 @@ public class PywbIndexer extends IndexerBase {
         this.pywbManagerColl = original.pywbManagerColl;
         this.pywbManagerStoreDir = original.pywbManagerStoreDir;
         this.isIndividualCollectionMode = original.isIndividualCollectionMode;
+        this.useSymLinkForArchive = original.useSymLinkForArchive;
     }
 
     @Override
@@ -85,24 +87,54 @@ public class PywbIndexer extends IndexerBase {
             } else {
                 log.info("Init the collection: {} {}", pywbManagerStoreDir, collName);
             }
-        }
 
-        //Added the WARC files to pywb, and pywb will index automatically
-        File[] warcFiles = this.directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
-                name.toLowerCase().endsWith(".warc.gz"));
-        if (warcFiles == null || warcFiles.length == 0) {
-            String err = "No warc files found in folder: " + this.directory.getAbsolutePath();
-            log.error(err);
-            return;
-        }
+            if(this.useSymLinkForArchive){
+                // Remove original 'archive' folder in the new collection directory
+                File archivePath = new File(pywbManagerStoreDir, "collections" + File.separator + collName + File.separator + "archive");
+                //Remove archive folder within collection directory
+                ret = WctUtils.cleanDirectory(archivePath);
+                if (!ret || archivePath.exists()) {
+                    ProcessBuilderUtils.forceDeleteDirectory(archivePath);
+                }
 
-        //Added all warc files to the PYWB
-        for (File warc : warcFiles) {
-            int ret = ProcessBuilderUtils.wbManagerAddWarcFile(pywbManagerStoreDir, collName, warc.getAbsolutePath());
-            if (ret != 0) {
-                log.error("Failed to add file: {} to collection: {}", warc.getAbsolutePath(), collName);
-                break;
+                // Create a symbolic link to the WARC files in the Target Instance + Harvest Result directory
+                ret = ProcessBuilderUtils.createSymLink(collPath, this.directory, "archive");
+                if (!ret) {
+                    log.error("Failed to create Archive folder SymLink for collection: {}", this.directory.getAbsolutePath(), collName);
+                    return;
+                }
             }
+
+        }
+
+        // If Symlinking is used for the archive folder, then use wb-manager reindex as the WARC files don't need to be copied.
+        if(this.useSymLinkForArchive){
+            // Index collection
+            int ret = ProcessBuilderUtils.wbManagerReindexCollection(pywbManagerStoreDir, collName);
+            if (ret != 0) {
+                log.error("Failed to index collection: {}", collName);
+            }
+        }
+        else {
+
+            //Added the WARC files to pywb, and pywb will index automatically
+            File[] warcFiles = this.directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
+                    name.toLowerCase().endsWith(".warc.gz"));
+            if (warcFiles == null || warcFiles.length == 0) {
+                String err = "No warc files found in folder: " + this.directory.getAbsolutePath();
+                log.error(err);
+                return;
+            }
+
+            //Added all warc files to the PYWB
+            for (File warc : warcFiles) {
+                int ret = ProcessBuilderUtils.wbManagerAddWarcFile(pywbManagerStoreDir, collName, warc.getAbsolutePath());
+                if (ret != 0) {
+                    log.error("Failed to add file: {} to collection: {}", warc.getAbsolutePath(), collName);
+                    break;
+                }
+            }
+
         }
     }
 
@@ -162,5 +194,13 @@ public class PywbIndexer extends IndexerBase {
 
     public void setIndividualCollectionMode(boolean individualCollectionMode) {
         isIndividualCollectionMode = individualCollectionMode;
+    }
+
+    public boolean isUseSymLinkForArchive() {
+        return this.useSymLinkForArchive;
+    }
+
+    public void setUseSymLinkForArchive(boolean useSymLinkForArchive) {
+        this.useSymLinkForArchive = useSymLinkForArchive;
     }
 }
