@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { ref, onBeforeMount } from 'vue';
-import { useRoute } from 'vue-router'
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useTargetGeneralDTO, useNextStateStore } from '@/stores/target';
+import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
 import TargetTabView from './target-tabs/TargetTabView.vue';
 
-const route = useRoute()
-const targetId = route.params.id as string
+const router = useRouter()
+
+const editing = ref(true);
+const isTargetAvailable = ref(false);
 
 const rest: UseFetchApis = useFetch();
 
 const targetGeneral = useTargetGeneralDTO();
 const nextStates = useNextStateStore();
-
-const editing = ref(false);
-const isTargetAvailable = ref(false);
 
 const initData = () => {
     isTargetAvailable.value = false;
@@ -23,25 +22,12 @@ const initData = () => {
     nextStates.initData();
 }
 
-const fetchTargetDetails = () => {
-    isTargetAvailable.value = false;
-
-    rest.get('targets/' + targetId).then((data: any) => {
-        isTargetAvailable.value = true;
-        targetGeneral.setData(data.general);
-        nextStates.setData(targetGeneral.selectedState, data.general.nextStates);
-    }).catch((err: any) => {
-        console.log(err.message);
-        initData();
-    });
-}
-
 const save = () => {
     const dataReq = {
         general: targetGeneral.getData()
     }
 
-    rest.put('targets/' + targetGeneral.id, dataReq)
+    rest.post('targets/save', dataReq)
     .then((data: any) => {
         console.log(data)
     })
@@ -50,16 +36,19 @@ const save = () => {
     })
     .finally(() => {
         editing.value = false
+        router.push('/wct/targets/')
     })
 }
 
 const setEditing = (isEditing: boolean) => {
     editing.value = isEditing
+    if (!isEditing) {
+        router.push('/wct/targets/')
+    }
 }
 
-onBeforeMount(() => {
-    fetchTargetDetails();
-})
+initData()
+
 </script>
 
 <template>

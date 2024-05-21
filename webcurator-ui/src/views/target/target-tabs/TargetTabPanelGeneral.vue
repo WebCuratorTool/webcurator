@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 import { useTargetGeneralDTO, formatTargetState, useNextStateStore } from '@/stores/target'
 
-const props = defineProps({
-  editing: Boolean
-});
-const fields = useTargetGeneralDTO()
+defineProps<{
+    editing: boolean
+}>()
+
+const targetGeneral = useTargetGeneralDTO()
+
 const users = useUsersStore()
 const nextStates = useNextStateStore()
 
@@ -17,37 +18,37 @@ const nextStates = useNextStateStore()
 <template>
   <WctTabViewPanel>
     <WctFormField label="Id">
-      <InputText v-model="fields.id" :disabled="true" />
+      <InputText v-model="targetGeneral.id" :disabled="true" />
     </WctFormField>
 
     <WctFormField label="Name(*)">
-      <InputText v-model="fields.name" :disabled="!editing" />
+      <InputText v-model="targetGeneral.name" :disabled="!editing" />
     </WctFormField>
 
     <WctFormField label="Description">
-      <Textarea v-model="fields.description" autoResize rows="6" :disabled="!editing" />
+      <Textarea v-model="targetGeneral.description" autoResize rows="6" :disabled="!editing" />
     </WctFormField>
 
     <WctFormField label="Reference Number">
-      <InputText v-model="fields.referenceNumber" :disabled="!editing" />
+      <InputText v-model="targetGeneral.referenceNumber" :disabled="!editing" />
     </WctFormField>
 
     <WctFormField label="Run on Approval">
-      <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="fields.runOnApproval" :binary="true"
+      <Checkbox id="checkOption1" name="option1" value="Run on Approval" v-model="targetGeneral.runOnApproval" :binary="true"
         :disabled="!editing" />
     </WctFormField>
 
     <WctFormField label="Use Automated QA">
-      <Checkbox id="checkOption2" name="option2" value="Use Automated QA" v-model="fields.automatedQA" :binary="true"
+      <Checkbox id="checkOption2" name="option2" value="Use Automated QA" v-model="targetGeneral.automatedQA" :binary="true"
         :disabled="!editing" />
     </WctFormField>
 
     <WctFormField label="Owner">
-      <Dropdown id="user" v-model="fields.selectedUser" :options="users.userList" placeholder="Select an User" checkmark
+      <Dropdown id="user" v-model="targetGeneral.selectedUser" :options="users.userList" placeholder="Select an User" checkmark
         class="w-full md:w-18rem" :disabled="!editing">
         <template #value="slotProps">
           <div class="flex align-items-center">
-            <div>{{ getPresentationUserName(fields.selectedUser) }}</div>
+            <div>{{ getPresentationUserName(targetGeneral.selectedUser) }}</div>
           </div>
         </template>
         <template #option="slotProps">
@@ -59,11 +60,11 @@ const nextStates = useNextStateStore()
     </WctFormField>
 
     <WctFormField label="State">
-      <Dropdown id="state" v-model="fields.selectedState" :options="nextStates.nextStateList" optionLabel="label"
+      <Dropdown id="state" v-model="targetGeneral.selectedState" :options="nextStates.nextStateList" optionLabel="label"
         optionGroupLabel="label" optionGroupChildren="items" checkmark class="w-full md:w-18rem" :disabled="!editing">
         <template #value="slotProps">
           <div class="flex align-items-center">
-            <div>{{ formatTargetState(fields.selectedState) }}</div>
+            <div>{{ formatTargetState(targetGeneral.selectedState) }}</div>
           </div>
         </template>
         <template #optiongroup="slotProps">
@@ -80,17 +81,17 @@ const nextStates = useNextStateStore()
     </WctFormField>
 
     <WctFormField label="Auto-prune">
-      <Checkbox id="checkOption3" name="option3" value="Auto-prune:" v-model="fields.autoPrune" :binary="true"
+      <Checkbox id="checkOption3" name="option3" value="Auto-prune:" v-model="targetGeneral.autoPrune" :binary="true"
         :disabled="!editing" />
     </WctFormField>
 
     <WctFormField label="Reference Crawl">
-      <Checkbox id="checkOption4" name="option4" value="Reference Crawl" v-model="fields.referenceCrawl" :binary="true"
+      <Checkbox id="checkOption4" name="option4" value="Reference Crawl" v-model="targetGeneral.referenceCrawl" :binary="true"
         :disabled="!editing" />
     </WctFormField>
 
     <WctFormField label="Request to Archivists">
-      <Textarea v-model="fields.requestToArchivists" autoResize rows="6" :disabled="!editing" />
+      <Textarea v-model="targetGeneral.requestToArchivists" autoResize rows="6" :disabled="!editing" />
     </WctFormField>
   </WctTabViewPanel>
 </template>

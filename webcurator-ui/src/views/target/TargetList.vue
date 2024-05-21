@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import PageHeader from '@/components/PageHeader.vue'
 import { ref, watch, onMounted, computed } from 'vue'
-import { FilterMatchMode } from 'primevue/api';
+import { useRouter } from 'vue-router';
+import { useConfirm } from "primevue/useconfirm";
+import { useToast } from "primevue/usetoast";
 import { type UseFetchApis, useFetch } from '@/utils/rest.api'
 import { formatDatetime } from '@/utils/helper'
 import { useUsersStore, useUserProfileStore } from '@/stores/users'
 import { useAgenciesStore } from '@/stores/agencies'
-import { stateList, formatTargetState, isTargetAction } from '@/stores/target'
+import { stateList, formatTargetState } from '@/stores/target'
+
+import PageHeader from '@/components/PageHeader.vue'
+
+const router = useRouter()
+const confirm = useConfirm();
+const toast = useToast();
 
 const options = defineProps(['props'])
 
@@ -111,11 +118,9 @@ const search = () => {
 }
 
 const createNew = () => {
-  emit('popPage', {
-    page: 'TargetTabView',
-    mode: 'new',
-    id: 0
-  })
+  if (router) {
+    router.push('/wct/targets/new/')
+  }
 }
 
 // const openDetails = (mode: string, id: number) => {
@@ -126,17 +131,37 @@ const createNew = () => {
 //   })
 // }
 
-// const deleteTarget = (id: number) => {
-//   rest
-//     .delete('targets/' + id, {})
-//     .then((rsp: any) => {
-//       console.log('Succeed to delete target: ' + id)
-//     })
-//     .catch((err: any) => {
-//       console.log(err.message)
-//     })
-//     .finally(() => { })
-// }
+const deleteTarget = (id: number) => {
+  confirm.require({
+    message: `Do you want to delete target ${id}?`,
+    header: 'Danger Zone',
+    icon: 'pi pi-info-circle',
+    rejectLabel: 'Cancel',
+    acceptLabel: 'Delete',
+    rejectClass: 'p-button-secondary p-button-outlined',
+    acceptClass: 'p-button-danger',
+    accept: () => {
+      rest
+        .delete('targets/' + id, {})
+        .then((rsp: any) => {
+          console.log('Succeed to delete target: ' + id)
+          toast.add({ severity: 'info', summary: 'Confirmed', detail: `Target ${id} deleted`, life: 3000 });
+
+        })
+        .catch((err: any) => {
+          console.log(Object.keys(err));
+          
+          toast.add({ severity: 'error', summary: 'Error', detail: err.message.Error, life: 3000 });
+        })
+        .finally(() => { 
+        })
+    },
+    reject: () => {
+        toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 });
+    }
+  })
+
+}
 
 watch(userProfile, (newUserProfile, oldUserProfile) => {
   console.log(userProfile)
@@ -292,11 +317,15 @@ onMounted(() => {
       </Column>
       <Column header="Action" field="id" style="max-width: 8rem">
         <template #body="{ data }">
-          ...
+          <Button icon="pi pi-copy" text />
+          <Button icon="pi pi-trash" @click="deleteTarget(data.id)" text />
         </template>
       </Column>
     </DataTable>
   </div>
+
+  <Toast />
+  <ConfirmDialog></ConfirmDialog>
   <!-- </div> -->
 </template>
 

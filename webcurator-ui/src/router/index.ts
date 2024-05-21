@@ -22,13 +22,13 @@ export const routes={
         },
         {
           path: 'targets/:id',
-          name: 'target-tabview-exist',
-          component: () => import('@/views/target/TargetTabView.vue')
+          name: 'target',
+          component: () => import('@/views/target/Target.vue')
         },
         {
           path: 'targets/new',
-          name: 'target-tabview-new',
-          component: () => import('@/views/target/Target.vue')
+          name: 'target-new',
+          component: () => import('@/views/target/TargetNew.vue')
         }
       ]
     }
