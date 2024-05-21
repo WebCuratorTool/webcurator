@@ -183,16 +183,16 @@ public class WctUtils {
         }
     }
 
-    public static void cleanDirectory(File directory) {
+    public static boolean cleanDirectory(File directory) {
         if (directory == null || !directory.exists()) {
-            return;
+            return true;
         }
 
         if (directory.isDirectory()) {
             File[] files = directory.listFiles();
             if (files != null) {
                 for (File f : files) {
-                    cleanDirectory(f);
+                    return cleanDirectory(f);
                 }
             }
         }
@@ -208,6 +208,7 @@ public class WctUtils {
         } catch (IOException e) {
             log.error("Failed to delete: {}", directory.getAbsolutePath(), e);
         }
+        return rst;
     }
 
     /*Copy ans close streams*/

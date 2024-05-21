@@ -31,4 +31,10 @@ public class ScreenshotController implements ScreenshotService {
     public void browseScreenshotImage(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
         screenshotClient.browseScreenshotImage(req, rsp);
     }
+
+    @Override
+    @PostMapping(path = ScreenshotPaths.CHECK_SCREENSHOT_STATE)
+    public ScreenshotState checkScreenshotState(@RequestBody ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
+        return screenshotClient.checkScreenshotState(identifiers);
+    }
 }

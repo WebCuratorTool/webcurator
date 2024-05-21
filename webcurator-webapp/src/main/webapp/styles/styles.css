@@ -1056,3 +1056,40 @@ input[readonly="readonly"] {
 	right: 255px;
 	cursor: pointer;
 }
+
+.reindexModalDialog{
+    display: none;
+    width: 512px;
+    border: 2px solid gray;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+#reindexModalHeader{
+   display: block;
+   border-top: 4px solid #a7a59b;
+   background-color: #f6e9d9;
+   height: 22px;
+   line-height: 22px;
+   padding: 4px 6px;
+   font-size: 14px;
+   color: #000;
+   margin-bottom: 13px;
+   clear:both;
+}
+#reindexModalHeader .title {float: left;}
+#reindexModalHeader .close {float: right; font-size: 2em;}
+
+.reindexOptions{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.reindexOptions li{
+    display: inline-block;
+    padding: 5px;
+}
+
+.reindexOptions button{
+    font-size: 12px;
+}

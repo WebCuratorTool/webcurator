@@ -1,24 +1,23 @@
 package org.webcurator.core.store;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.webcurator.core.util.ProcessBuilderUtils;
+import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.model.core.HarvestResultDTO;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 public class PywbIndexer extends IndexerBase {
-    private static final Log log = LogFactory.getLog(PywbIndexer.class);
+    private static final Logger log = LoggerFactory.getLogger(PywbIndexer.class);
     private HarvestResultDTO result;
     private File directory;
     private boolean enabled;
-
     private String pywbManagerColl;
-
     private File pywbManagerStoreDir;
+    private boolean isIndividualCollectionMode = true;
+    private boolean useSymLinkForArchive = false;
 
     public PywbIndexer() {
         super();
@@ -35,6 +34,8 @@ public class PywbIndexer extends IndexerBase {
         this.enabled = original.enabled;
         this.pywbManagerColl = original.pywbManagerColl;
         this.pywbManagerStoreDir = original.pywbManagerStoreDir;
+        this.isIndividualCollectionMode = original.isIndividualCollectionMode;
+        this.useSymLinkForArchive = original.useSymLinkForArchive;
     }
 
     @Override
@@ -69,43 +70,105 @@ public class PywbIndexer extends IndexerBase {
             return;
         }
 
-        //Added the WARC files to pywb, and pywb will index automatically
-        File[] warcFiles = this.directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
-                name.toLowerCase().endsWith(".warc.gz"));
-        if (warcFiles == null || warcFiles.length == 0) {
-            String err = "No warc files found in folder: " + this.directory.getAbsolutePath();
-            log.error(err);
-            return;
-        }
+        String collName = this.pywbManagerColl;
+        if (this.isIndividualCollectionMode) {
+            collName = String.format("%d-%d", this.result.getTargetInstanceOid(), this.result.getHarvestNumber());
+            File collPath = new File(pywbManagerStoreDir, "collections" + File.separator + collName);
 
-        String wb_manager = ProcessBuilderUtils.getFullPathOfCommand("wb-manager");
-        if (wb_manager == null) {
-            log.error("The command tool [wb-manager] is not installed or not in the env PATH.");
-            return;
-        }
-
-        //Added all warc files to the PYWB
-        for (File warc : warcFiles) {
-            String[] commands = {wb_manager, "add", pywbManagerColl, warc.getAbsolutePath()};
-            List<String> commandList = Arrays.asList(commands);
-            ProcessBuilder processBuilder = new ProcessBuilder(commandList);
-            processBuilder.directory(pywbManagerStoreDir);
-            try {
-                Process process = processBuilder.inheritIO().start();
-                int processStatus = process.waitFor();
-
-                if (processStatus != 0) {
-                    throw new Exception("Process ended with a failed status: " + processStatus);
-                }
-            } catch (Exception e) {
-                log.error("Unable to process the command in a new thread.", e);
+            //Create the collection with "wb-manager" command
+            boolean ret = WctUtils.cleanDirectory(collPath);
+            if (!ret || collPath.exists()) {
+                ProcessBuilderUtils.forceDeleteDirectory(collPath);
             }
+
+            if (ProcessBuilderUtils.wbManagerInitCollection(pywbManagerStoreDir, collName) != 0) {
+                log.error("Failed to init collection: {} {}", pywbManagerStoreDir, collName);
+                return;
+            } else {
+                log.info("Init the collection: {} {}", pywbManagerStoreDir, collName);
+            }
+
+            if(this.useSymLinkForArchive){
+                // Remove original 'archive' folder in the new collection directory
+                File archivePath = new File(pywbManagerStoreDir, "collections" + File.separator + collName + File.separator + "archive");
+                //Remove archive folder within collection directory
+                ret = WctUtils.cleanDirectory(archivePath);
+                if (!ret || archivePath.exists()) {
+                    ProcessBuilderUtils.forceDeleteDirectory(archivePath);
+                }
+
+                // Create a symbolic link to the WARC files in the Target Instance + Harvest Result directory
+                ret = ProcessBuilderUtils.createSymLink(collPath, this.directory, "archive");
+                if (!ret) {
+                    log.error("Failed to create Archive folder SymLink for collection: {}", this.directory.getAbsolutePath(), collName);
+                    return;
+                }
+            }
+
+        }
+
+        // If Symlinking is used for the archive folder, then use wb-manager reindex as the WARC files don't need to be copied.
+        if(this.useSymLinkForArchive){
+            // Index collection
+            int ret = ProcessBuilderUtils.wbManagerReindexCollection(pywbManagerStoreDir, collName);
+            if (ret != 0) {
+                log.error("Failed to index collection: {}", collName);
+            }
+        }
+        else {
+
+            //Added the WARC files to pywb, and pywb will index automatically
+            File[] warcFiles = this.directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
+                    name.toLowerCase().endsWith(".warc.gz"));
+            if (warcFiles == null || warcFiles.length == 0) {
+                String err = "No warc files found in folder: " + this.directory.getAbsolutePath();
+                log.error(err);
+                return;
+            }
+
+            //Added all warc files to the PYWB
+            for (File warc : warcFiles) {
+                int ret = ProcessBuilderUtils.wbManagerAddWarcFile(pywbManagerStoreDir, collName, warc.getAbsolutePath());
+                if (ret != 0) {
+                    log.error("Failed to add file: {} to collection: {}", warc.getAbsolutePath(), collName);
+                    break;
+                }
+            }
+
         }
     }
 
     @Override
-    public boolean isEnabled() {
-        return this.enabled;
+    public void removeIndex(Long harvestResultOid) {
+        //Remove the Archive files from the Wayback input folder
+        log.info("Removing indexes for " + getResult().getTargetInstanceOid() + " HarvestNumber " + getResult().getHarvestNumber());
+        if (this.isIndividualCollectionMode) {
+            String collName = String.format("%d-%d", this.result.getTargetInstanceOid(), this.result.getHarvestNumber());
+            File collPath = new File(pywbManagerStoreDir, "collections" + File.separator + collName);
+
+            //delete the individual collection folder
+            boolean ret = WctUtils.cleanDirectory(collPath);
+            if (!ret || collPath.exists()) {
+                ProcessBuilderUtils.forceDeleteDirectory(collPath);
+            }
+        } else {
+            File[] warcFiles = this.directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".warc") ||
+                    name.toLowerCase().endsWith(".warc.gz"));
+            if (warcFiles == null || warcFiles.length == 0) {
+                String err = "No warc files found in folder: " + this.directory.getAbsolutePath();
+                log.error(err);
+                return;
+            }
+            for (File warc : warcFiles) {
+                File archivedWarc = new File(pywbManagerStoreDir, "archive" + File.separator + warc.getName());
+                if (archivedWarc.exists()) {
+                    boolean ret = archivedWarc.delete();
+                    if (!ret) {
+                        log.error("Failed to delete the file: {}", archivedWarc.getAbsolutePath());
+                    }
+                }
+            }
+        }
     }
 
     public void setPywbManagerColl(String pywbManagerColl) {
@@ -116,7 +179,28 @@ public class PywbIndexer extends IndexerBase {
         this.pywbManagerStoreDir = pywbManagerStoreDir;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isIndividualCollectionMode() {
+        return isIndividualCollectionMode;
+    }
+
+    public void setIndividualCollectionMode(boolean individualCollectionMode) {
+        isIndividualCollectionMode = individualCollectionMode;
+    }
+
+    public boolean isUseSymLinkForArchive() {
+        return this.useSymLinkForArchive;
+    }
+
+    public void setUseSymLinkForArchive(boolean useSymLinkForArchive) {
+        this.useSymLinkForArchive = useSymLinkForArchive;
     }
 }

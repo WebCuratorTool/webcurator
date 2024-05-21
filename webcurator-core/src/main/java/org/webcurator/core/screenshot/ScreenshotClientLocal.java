@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.webcurator.core.exceptions.DigitalAssetStoreException;
+import org.webcurator.domain.model.core.SeedHistoryDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,7 +19,6 @@ public class ScreenshotClientLocal implements ScreenshotClient {
     private boolean enableScreenshots;
     private boolean abortHarvestOnScreenshotFailure;
     private ScreenshotGenerator screenshotGenerator;
-
     private String baseDir;
 
 
@@ -58,13 +58,13 @@ public class ScreenshotClientLocal implements ScreenshotClient {
 
         // Return false if the directory contains more than 1 file
         if (dirFiles != null && dirFiles.length > 1) {
-            log.info("There are more files in " + dir.toString() + " than the " + expectedDir + " directory.");
+            log.info("There are more files in " + dir + " than the " + expectedDir + " directory.");
             return false;
         }
 
         // Return false if the child directory isn't the expected directory
         if (!Objects.requireNonNull(dirFiles)[0].getName().equals(expectedDir)) {
-            log.info("There is an unexpected file in " + dir.toString());
+            log.info("There is an unexpected file in " + dir);
             return false;
         }
 
@@ -85,25 +85,24 @@ public class ScreenshotClientLocal implements ScreenshotClient {
         // Delete all files in _resources
         for (File f : Objects.requireNonNull(resourcesDir.listFiles())) {
             if (!f.delete()) {
-                log.info("Unable to delete " + f.toString());
+                log.info("Unable to delete " + f);
                 return;
             }
         }
 
         // Delete _resources directory then tmpDir then harvest directory
         if (!resourcesDir.delete()) {
-            log.info("Could not delete " + resourcesDir.toString());
+            log.info("Could not delete " + resourcesDir);
             return;
         }
         if (!tmpDir.delete()) {
-            log.info("Could not delete " + tmpDir.toString());
+            log.info("Could not delete " + tmpDir);
             return;
         }
         if (!harvestBaseDir.delete()) {
-            log.info("Could not delete " + harvestBaseDir.toString());
+            log.info("Could not delete " + harvestBaseDir);
         }
     }
-
 
     @Override
     public void browseScreenshotImage(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
@@ -122,6 +121,41 @@ public class ScreenshotClientLocal implements ScreenshotClient {
                 IOUtils.write(unavailableImageScreen, rsp.getOutputStream());
             }
         }
+    }
+
+    @Override
+    public ScreenshotState checkScreenshotState(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
+        ScreenshotState ret = new ScreenshotState();
+        ret.setIndexAvailable(screenshotGenerator.checkIndexState(identifiers));
+        ret.setLiveScreenshot(this.isScreenshotOfSeedsAvailable(identifiers, ScreenshotType.live));
+        ret.setHarvestedScreenshot(this.isScreenshotOfSeedsAvailable(identifiers, ScreenshotType.harvested));
+        return ret;
+    }
+
+    private boolean isScreenshotOfSeedsAvailable(ScreenshotIdentifierCommand identifiers, ScreenshotType liveOrHarvested) {
+        for (SeedHistoryDTO seed : identifiers.getSeeds()) {
+            int count = this.countOfImages(identifiers.getTiOid(), identifiers.getHarvestNumber(), seed.getOid(), liveOrHarvested);
+            if (count < 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int countOfImages(long tiOid, int harvestNumber, long seedOid, ScreenshotType liveOrHarvested) {
+        File imgPath = new File(baseDir, ScreenshotPaths.getImagePath(tiOid, harvestNumber));
+        String prefix = String.format("%d_%d_%s_%s", tiOid, harvestNumber, seedOid, liveOrHarvested.name());
+        String[] fileNames = imgPath.list();
+        if (fileNames == null) {
+            return 0;
+        }
+        int count = 0;
+        for (String fileName : fileNames) {
+            if (fileName.startsWith(prefix)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public void setEnableScreenshots(boolean enableScreenshots) {

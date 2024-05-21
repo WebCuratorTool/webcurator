@@ -14,6 +14,7 @@ import java.util.List;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,19 +35,7 @@ public class ScreenshotGenerator {
 
     private String waybackName = "pywb";
     private String waybackVersion = "2.7.3";
-
-
-    public String getFullpageSizeCommand() {
-        return fullpageSizeCommand;
-    }
-
-    public String getScreenSizeCommand() {
-        return screenSizeCommand;
-    }
-
-    public String getWindowSizeCommand() {
-        return windowSizeCommand;
-    }
+    private boolean isIndividualCollectionMode = true;
 
     private void waitForScreenshot(File file) {
         try {
@@ -61,14 +50,19 @@ public class ScreenshotGenerator {
         }
     }
 
-    private boolean waitForIndex(List<SeedHistoryDTO> seeds) {
+    private boolean waitForIndex(ScreenshotIdentifierCommand identifiers) {
         //The wb-manager is used to add the WARC files to collections, and index synchronized.
         if (this.waybackName.equalsIgnoreCase("pywb")) {
-            return true;
+            return this.waitForIndexPywb(identifiers);
+        } else {
+            return this.waitForIndexWayback(identifiers);
         }
+    }
 
+    private boolean waitForIndexWayback(ScreenshotIdentifierCommand identifiers) {
+        List<SeedHistoryDTO> seeds = identifiers.getSeeds();
         for (SeedHistoryDTO seed : seeds) {
-            String targetUrl = getWaybackUrl(seed.getSeed(), seed.getTimestamp(), this.harvestWaybackViewerBaseUrl);
+            String targetUrl = getWaybackUrl(seed.getSeed(), seed.getTimestamp(), identifiers);
             try {
                 URI uri = new URI(targetUrl);
                 HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
@@ -84,6 +78,56 @@ public class ScreenshotGenerator {
             } catch (IOException | URISyntaxException e) {
                 log.error("Failed to connect to: {}", targetUrl, e);
                 return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean waitForIndexPywb(ScreenshotIdentifierCommand identifiers) {
+        List<SeedHistoryDTO> seeds = identifiers.getSeeds();
+        for (SeedHistoryDTO seed : seeds) {
+            String pywbUrl = this.getPywbCDXJServerApiUrl(seed.getSeed(), seed.getTimestamp(), identifiers);
+            HttpURLConnection conn = null;
+            try {
+                URI uri = new URI(pywbUrl);
+                conn = (HttpURLConnection) uri.toURL().openConnection();
+
+                conn.connect();
+
+                boolean is_indexed = conn.getResponseCode() == HttpURLConnection.HTTP_OK;
+
+                if (!is_indexed) {
+                    return false;
+                }
+
+                List<String> lines = IOUtils.readLines(conn.getInputStream(), Charset.defaultCharset());
+                if (this.isIndividualCollectionMode) {
+                    if (lines.isEmpty()) {
+                        return false;
+                    }
+                } else {
+                    boolean isValid = false;
+                    for (String line : lines) {
+                        String[] items = line.split(" ");
+                        if (items.length >= 3) {
+                            String timestamp = items[1];
+                            if (StringUtils.equals(timestamp, seed.getTimestamp())) {
+                                isValid = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isValid) {
+                        return false;
+                    }
+                }
+            } catch (IOException | URISyntaxException e) {
+                log.error("Failed to connect to: {}", pywbUrl, e);
+                return false;
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
             }
         }
         return true;
@@ -224,9 +268,15 @@ public class ScreenshotGenerator {
     }
 
     // Returns an empty string when it can't retrieve the timestamp for the url
-    private String getWaybackUrl(String seed, String timestamp, String waybackBaseUrl) {
-        String result = waybackBaseUrl;
+    private String getWaybackUrl(String seed, String timestamp, ScreenshotIdentifierCommand identifiers) {
+        String result = this.harvestWaybackViewerBaseUrl;
         if (!result.endsWith("/")) {
+            result += "/";
+        }
+
+        if (this.isIndividualCollectionMode) {
+            String collName = String.format("%d-%d", identifiers.getTiOid(), identifiers.getHarvestNumber());
+            result += collName;
             result += "/";
         }
 
@@ -241,6 +291,16 @@ public class ScreenshotGenerator {
         }
         log.info("Using harvest url {} to generate screenshots.", result);
         return result;
+    }
+
+    private String getPywbCDXJServerApiUrl(String seed, String timestamp, ScreenshotIdentifierCommand identifiers) {
+        String rootUrl = StringUtils.removeEnd(this.harvestWaybackViewerBaseUrl, "/");
+        if (this.isIndividualCollectionMode) {
+            String collName = String.format("%d-%d", identifiers.getTiOid(), identifiers.getHarvestNumber());
+            return String.format("%s/%s/cdx?url=%s", rootUrl, collName, seed);
+        } else { //The coll name is contained inside rootUrl
+            return String.format("%s/cdx?url=%s", rootUrl, seed);
+        }
     }
 
     private String getScreenshotToolName() {
@@ -266,6 +326,17 @@ public class ScreenshotGenerator {
         return toolUsed;
     }
 
+    public boolean checkIndexState(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
+        File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
+        List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractor.getSeedWithTimestamps(identifiers.getSeeds(), directory);
+        if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
+            log.error("Failed to extract timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
+            return false;
+        }
+        identifiers.setSeeds(seedWithTimestamp);
+        return this.waitForIndex(identifiers);
+    }
+
     public Boolean createScreenshots(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
         if (identifiers.getScreenshotType() == ScreenshotType.harvested) {
             File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
@@ -277,7 +348,7 @@ public class ScreenshotGenerator {
             identifiers.setSeeds(seedWithTimestamp);
 
             for (int count = 0; count < 60; count++) {
-                if (this.waitForIndex(seedWithTimestamp)) {
+                if (this.waitForIndex(identifiers)) {
                     break;
                 }
                 try {
@@ -292,7 +363,7 @@ public class ScreenshotGenerator {
         boolean screenshotsSucceeded = Boolean.FALSE;
         try {
             for (SeedHistoryDTO seed : identifiers.getSeeds()) {
-                screenshotsSucceeded = this.createScreenshots(seed, identifiers.getTiOid(), identifiers.getScreenshotType(), identifiers.getHarvestNumber());
+                screenshotsSucceeded = this.createScreenshots(seed, identifiers);
                 if (!screenshotsSucceeded) {
                     break;
                 }
@@ -304,7 +375,11 @@ public class ScreenshotGenerator {
         return screenshotsSucceeded;
     }
 
-    private Boolean createScreenshots(SeedHistoryDTO seed, long tiOid, ScreenshotType liveOrHarvested, int harvestNumber) {
+    private Boolean createScreenshots(SeedHistoryDTO seed, ScreenshotIdentifierCommand identifiers) {
+        long tiOid = identifiers.getTiOid();
+        ScreenshotType liveOrHarvested = identifiers.getScreenshotType();
+        int harvestNumber = identifiers.getHarvestNumber();
+
         String outputPathString = baseDir + File.separator + ScreenshotPaths.getImagePath(tiOid, harvestNumber) + File.separator;
 
         // Make sure output path exists
@@ -319,7 +394,7 @@ public class ScreenshotGenerator {
         String seedUrl = seed.getSeed();
         // Need to move the live screenshots and use the wayback indexed url instead of the seed url
         if (liveOrHarvested == ScreenshotType.harvested) {
-            seedUrl = getWaybackUrl(seedUrl, seed.getTimestamp(), harvestWaybackViewerBaseUrl);
+            seedUrl = getWaybackUrl(seedUrl, seed.getTimestamp(), identifiers);
             if (StringUtils.isEmpty(seedUrl)) {
                 log.error("Could not retrieve wayback url.");
                 return false;
@@ -401,6 +476,18 @@ public class ScreenshotGenerator {
         return true;
     }
 
+    public String getFullpageSizeCommand() {
+        return fullpageSizeCommand;
+    }
+
+    public String getScreenSizeCommand() {
+        return screenSizeCommand;
+    }
+
+    public String getWindowSizeCommand() {
+        return windowSizeCommand;
+    }
+
     public void setWindowSizeCommand(String windowSizeCommand) {
         this.windowSizeCommand = windowSizeCommand;
     }
@@ -429,5 +516,13 @@ public class ScreenshotGenerator {
 
     public void setWaybackVersion(String waybackVersion) {
         this.waybackVersion = waybackVersion;
+    }
+
+    public boolean isIndividualCollectionMode() {
+        return isIndividualCollectionMode;
+    }
+
+    public void setIndividualCollectionMode(boolean individualCollectionMode) {
+        isIndividualCollectionMode = individualCollectionMode;
     }
 }

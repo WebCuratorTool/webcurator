@@ -29,11 +29,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import org.webcurator.core.screenshot.ScreenshotPaths;
-import org.webcurator.domain.model.core.BusinessObjectFactory;
-import org.webcurator.domain.model.core.HarvestResult;
-import org.webcurator.domain.model.core.SeedHistory;
-import org.webcurator.domain.model.core.TargetInstance;
+import org.webcurator.core.screenshot.*;
+import org.webcurator.domain.model.core.*;
 import org.webcurator.ui.tools.command.QualityReviewToolCommand;
 import org.webcurator.ui.util.PrimarySeedFirstCompare;
 
@@ -51,6 +48,9 @@ public class QualityReviewToolController {
 
     @Autowired
     private QualityReviewToolControllerAttribute attr;
+
+    @Autowired
+    private ScreenshotClient screenshotClient;
 
     @Value("${server.servlet.contextPath}")
     private String webappContextPath;
@@ -99,6 +99,21 @@ public class QualityReviewToolController {
         //Do not load fully as this loads ALL resources, regardless of whether they're seeds. Causes OutOfMemory for large harvests.
         HarvestResult result = attr.targetInstanceDao.getHarvestResult(harvestResultId, false);
 
+        ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
+        identifiers.setTiOid(targetInstanceOid);
+        identifiers.setHarvestNumber(result.getHarvestNumber());
+        identifiers.setScreenshotType(ScreenshotType.live);
+        for (SeedHistory seedHistory : ti.getSeedHistory()) {
+            SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
+            identifiers.getSeeds().add(seedHistoryDTO);
+        }
+        ScreenshotState screenshotState = new ScreenshotState();
+        try {
+            screenshotState = screenshotClient.checkScreenshotState(identifiers);
+        } catch (Exception e) {
+            log.error("Failed to get screenshot state", e);
+        }
+
         ModelAndView mav = new ModelAndView("quality-review-toc", "command", cmd);
         mav.addObject("targetInstanceOid", ti.getOid());
         mav.addObject("archiveUrl", attr.archiveUrl);
@@ -108,6 +123,7 @@ public class QualityReviewToolController {
         mav.addObject("webArchiveTarget", attr.webArchiveTarget);
         mav.addObject("targetOid", ti.getTarget().getOid());
         mav.addObject("seedHistory", ti.getSeedHistory());
+        mav.addObject("screenshotState", screenshotState);
 
         // Get seed ID of primary seed and populate array of all seeds
         List<Map<String, String>> sMap = Lists.newArrayList();
@@ -118,20 +134,31 @@ public class QualityReviewToolController {
             m.put("id", String.valueOf(s.getOid()));
             m.put("seedUrl", s.getSeed());
             m.put("primary", String.valueOf(s.isPrimary()));
+
+            if (attr.enableBrowseTool) {
+                m.put("browseUrl", String.format("curator/tools/browse/%d/?url=%s", harvestResultId, Base64.getEncoder().encodeToString(s.getSeed().getBytes())));
+            } else {
+                m.put("browseUrl", "");
+            }
+
+            if (attr.enableAccessTool) {
+                m.put("accessUrl", attr.harvestResourceUrlMapper.generateUrl(result) + s.getSeed());
+            } else {
+                m.put("accessUrl", "");
+            }
+
             sMap.add(m);
 
             if (s.isPrimary()) {
                 mav.addObject("primarySeedId", s.getOid());
                 mav.addObject("primarySeedUrl", s.getSeed());
-//				break;
+                //				break;
             }
         }
         mav.addObject(QualityReviewToolCommand.MDL_SEEDS, sMap);
 
-        String targetOid = String.valueOf(ti.getOid());
-        String harvestNum = String.valueOf(result.getHarvestNumber());
-//		mav.addObject("screenshotUrl", attr.dasBaseUrl + "/store/" + targetOid + "/" + harvestNum + "/_resources/" + targetOid + "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
-        String img_model_name = targetOid + "_" + harvestNum + "_seedId_live_screen-thumbnail.png";
+        //		mav.addObject("screenshotUrl", attr.dasBaseUrl + "/store/" + targetOid + "/" + harvestNum + "/_resources/" + targetOid + "_" + harvestNum + "_seedId_live_screen-thumbnail.png");
+        String img_model_name = ti.getOid() + "_" + result.getHarvestNumber() + "_seedId_live_screen-thumbnail.png";
         String browseUrl = webappContextPath + ScreenshotPaths.BROWSE_SCREENSHOT + "/" + ScreenshotPaths.getImagePath(ti.getOid(), result.getHarvestNumber()) + "/" + img_model_name;
         mav.addObject("screenshotUrl", browseUrl);
 

@@ -9,7 +9,7 @@ import java.util.List;
 public class ScreenshotIdentifierCommand {
     private List<SeedHistoryDTO> seeds = new ArrayList<>();
     private long tiOid;
-    private ScreenshotType screenshotType;
+    private ScreenshotType screenshotType = ScreenshotType.live;
     private int harvestNumber;
 
     public List<SeedHistoryDTO> getSeeds() {

@@ -501,6 +501,12 @@ public class HarvestModificationHandler {
             return;
         }
 
+        if (headers==null){
+            log.warn("The headers is null for ti " + ti.getOid());
+            rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
         // Get the content type.
         String realContentType = getHeaderValue(headers, "Content-Type");
         String simpleContentType = this.getSimpleContentType(realContentType);

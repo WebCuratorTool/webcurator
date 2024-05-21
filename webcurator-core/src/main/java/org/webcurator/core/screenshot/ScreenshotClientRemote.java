@@ -9,6 +9,7 @@ import org.webcurator.core.exceptions.DigitalAssetStoreException;
 import org.webcurator.core.rest.AbstractRestClient;
 import org.webcurator.core.store.DigitalAssetStorePaths;
 
+import javax.lang.model.type.NullType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -42,5 +43,15 @@ public class ScreenshotClientRemote extends AbstractRestClient implements Screen
         rsp.setContentType("image/png");
         urlConnection.setDoOutput(true);
         IOUtils.copy(urlConnection.getInputStream(), rsp.getOutputStream());
+    }
+
+    @Override
+    public ScreenshotState checkScreenshotState(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
+        HttpEntity<String> request = this.createHttpRequestEntity(identifiers);
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl(getUrl(ScreenshotPaths.CHECK_SCREENSHOT_STATE));
+        RestTemplate restTemplate = restTemplateBuilder.build();
+
+        return restTemplate.postForObject(uriComponentsBuilder.buildAndExpand().toUri(),
+                request, ScreenshotState.class);
     }
 }
