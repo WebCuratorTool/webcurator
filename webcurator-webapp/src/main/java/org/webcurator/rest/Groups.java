@@ -4,9 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.webcurator.core.util.WctUtils;
+import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
-import org.webcurator.domain.model.core.GroupMember;
 import org.webcurator.domain.model.core.TargetGroup;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
@@ -29,6 +30,9 @@ public class Groups {
 
     @Autowired
     TargetDAO targetDAO;
+
+    @Autowired
+    AnnotationDAO annotationDAO;
 
     private Map<Integer, String> stateMap = new TreeMap();
 
@@ -81,8 +85,32 @@ public class Groups {
         if (targetGroup == null) {
             return ResponseEntity.notFound().build();
         }
+        // Annotations are managed differently from normal associated entities
+        targetGroup.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetGroup.getClass()), id));
         GroupDTO groupDTO = new GroupDTO(targetGroup);
-        return ResponseEntity.ok().body(groupDTO);
+        if (section == null) {
+            return ResponseEntity.ok().body(groupDTO);
+        }
+        switch (section) {
+            case "general":
+                return ResponseEntity.ok().body(groupDTO.getGeneral());
+            case "members":
+                return ResponseEntity.ok().body(groupDTO.getMembers());
+            case "memberOf":
+                return ResponseEntity.ok().body(groupDTO.getMemberOf());
+            case "profile":
+                return ResponseEntity.ok().body(groupDTO.getProfile());
+            case "schedules":
+                return ResponseEntity.ok().body(groupDTO.getSchedules());
+            case "annotations":
+                return ResponseEntity.ok().body(groupDTO.getAnnotations());
+            case "description":
+                return ResponseEntity.ok().body(groupDTO.getDescription());
+            case "access":
+                return ResponseEntity.ok().body(groupDTO.getAccess());
+            default:
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such group section: %s", section)));
+        }
     }
 
     /**
