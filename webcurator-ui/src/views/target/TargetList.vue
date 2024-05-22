@@ -123,18 +123,10 @@ const createNew = () => {
   }
 }
 
-// const openDetails = (mode: string, id: number) => {
-//   emit('popPage', {
-//     page: 'TargetTabView',
-//     mode: mode,
-//     id: id
-//   })
-// }
-
 const deleteTarget = (id: number) => {
   confirm.require({
-    message: `Do you want to delete target ${id}?`,
-    header: 'Danger Zone',
+    message: `Are you sure you want to delete target ${id}?`,
+    header: 'Confirm Delete',
     icon: 'pi pi-info-circle',
     rejectLabel: 'Cancel',
     acceptLabel: 'Delete',
@@ -144,20 +136,11 @@ const deleteTarget = (id: number) => {
       rest
         .delete('targets/' + id, {})
         .then((rsp: any) => {
-          console.log('Succeed to delete target: ' + id)
           toast.add({ severity: 'info', summary: 'Confirmed', detail: `Target ${id} deleted`, life: 3000 });
-
         })
         .catch((err: any) => {
-          console.log(Object.keys(err));
-          
-          toast.add({ severity: 'error', summary: 'Error', detail: err.message.Error, life: 3000 });
+          toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 });
         })
-        .finally(() => { 
-        })
-    },
-    reject: () => {
-        toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 });
     }
   })
 
@@ -174,6 +157,9 @@ onMounted(() => {
 </script>
 
 <template>
+  <Toast />
+  <ConfirmDialog></ConfirmDialog>
+
   <div class="targets">
     <PageHeader title="Targets" />
   </div>
@@ -323,9 +309,6 @@ onMounted(() => {
       </Column>
     </DataTable>
   </div>
-
-  <Toast />
-  <ConfirmDialog></ConfirmDialog>
   <!-- </div> -->
 </template>
 

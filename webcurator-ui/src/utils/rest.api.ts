@@ -104,7 +104,7 @@ export function useFetch() {
                     reqOptions.body = JSON.stringify(payload);
                 }
 
-                ret = await fetch('/wct/api/v1/' + path, reqOptions).then(rsp => {
+                ret = await fetch('/wct/api/v1/' + path, reqOptions).then(async rsp => {
                     //console.log(rsp);
                     if (rsp.status == 401) {
                         return null;
@@ -114,12 +114,15 @@ export function useFetch() {
 
                     if (rsp.ok) {
                         return rsp.json();
-                    } else {
-                        let statusText = rsp.statusText;
-                        if (!statusText || statusText.length === 0) {
-                            statusText = "Unknown error."
+                    } else {                    
+                        let errorMessage
+                        const error = await rsp.json()
+                        if (!error || error.length === 0) {
+                            errorMessage = "Unknown error."
+                        } else {
+                            errorMessage = error.Error
                         }
-                        throw new Error(rsp.status + " : " + statusText);
+                        throw new Error(rsp.status + " : " + errorMessage);
                     }
                 });
 
