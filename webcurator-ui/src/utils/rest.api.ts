@@ -105,7 +105,7 @@ export function useFetch() {
                 }
 
                 ret = await fetch('/wct/api/v1/' + path, reqOptions).then(async rsp => {
-                    //console.log(rsp);
+                    console.log(rsp);
                     if (rsp.status == 401) {
                         return null;
                     }

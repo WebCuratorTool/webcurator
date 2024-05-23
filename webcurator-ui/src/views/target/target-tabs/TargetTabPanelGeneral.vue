@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
+import { useTargetGeneralDTO, formatTargetState, useNextStateStore } from '@/stores/target'
+
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
-import { useTargetGeneralDTO, formatTargetState, useNextStateStore } from '@/stores/target'
 
 defineProps<{
     editing: boolean

@@ -4,6 +4,7 @@ import { formatDatetime } from '@/utils/helper';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 
 import TargetTabPanelGeneral from './TargetTabPanelGeneral.vue'
+import TargetTabPanelProfile from './TargetTabPanelProfile.vue'
 
 const router = useRouter()
 
@@ -59,7 +60,7 @@ const navigateBack = () => {
         <TargetTabPanelSeeds />
       </TabPanel>
       <TabPanel header="Profile">
-        <TargetTabPanelProfile />
+        <TargetTabPanelProfile :editing="editing" />
       </TabPanel>
       <TabPanel header="Schedule">
         <TargetTabPanelSchedule />

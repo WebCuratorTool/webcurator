@@ -159,7 +159,7 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
         }
     }
 
-    const setData = (data: any) => {
+    const setData = (data: any) => {        
         id.value = data.id;
         name.value = data.name;
         creationDate.value = data.creationDate;
@@ -188,4 +188,146 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     }
 
     return { id, name, creationDate, description, referenceNumber, runOnApproval, automatedQA, selectedUser, selectedState, autoPrune, referenceCrawl, requestToArchivists, initData, getData, setData };
+});
+
+export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
+    const harvesterType	= ref('');
+    const id = ref();
+    const imported = ref(false);
+    const name = ref('');
+    const overrides = ref([
+        {
+            id:	"documentLimit",
+            value:	0,
+            enabled: false
+        },
+        {
+            id: "dataLimit",
+            value: 0,
+            enabled: false,
+            unit: "B"
+        },
+        {
+            id: "maxPathDepth",
+            value: 5,
+            enabled: true,
+            unit: "SECOND"
+        },
+        {
+            id: "maxHops",
+            value: 0,
+            enabled: false
+        },
+        {   
+            id: "maxTransitiveHops",
+            value: 0,
+            enabled: false
+        },
+        {
+            id: "ignoreRobots",
+            value: false,
+            enabled: false
+        },
+        {
+            id: "extractJs",
+            value: false,
+            enabled: false
+        },
+        {
+            id: "ignoreCookies",
+            value: false,
+            enabled: false
+        },
+        {
+            id: "blockedUrls",
+            value: [],
+            enabled: false
+        },
+        {
+            id: "includedUrls",
+            value: [],
+            enabled: false
+        }
+    ]);
+
+    const initData = () => {
+        harvesterType.value = '',
+        id.value = '',
+        imported.value = false,
+        name.value = ''
+        overrides.value = [
+            {
+                id:	"documentLimit",
+                value:	0,
+                enabled: false
+            },
+            {
+                id: "dataLimit",
+                value: 0,
+                enabled: false,
+                unit: "B"
+            },
+            {
+                id: "maxPathDepth",
+                value: 5,
+                enabled: true,
+                unit: "SECOND"
+            },
+            {
+                id: "maxHops",
+                value: 0,
+                enabled: false
+            },
+            {   
+                id: "maxTransitiveHops",
+                value: 0,
+                enabled: false
+            },
+            {
+                id: "ignoreRobots",
+                value: false,
+                enabled: false
+            },
+            {
+                id: "extractJs",
+                value: false,
+                enabled: false
+            },
+            {
+                id: "ignoreCookies",
+                value: false,
+                enabled: false
+            },
+            {
+                id: "blockedUrls",
+                value: [],
+                enabled: false
+            },
+            {
+                id: "includedUrls",
+                value: [],
+                enabled: false
+            }
+        ]
+    }
+
+    const getData = () => {
+        return {
+            harvesterType: harvesterType.value,
+            id: id.value,
+            imported: imported.value,
+            name: name.value,
+            overrides: overrides.value
+        }
+    }
+    
+    const setData = (data: any) => {
+        harvesterType.value = data.harvesterType,
+        id.value = data.id,
+        imported.value = data.imported,
+        name.value = data.name
+        overrides.value = data.overrides
+    }
+
+    return { harvesterType, id, imported, name, overrides, initData, getData, setData }
 });
