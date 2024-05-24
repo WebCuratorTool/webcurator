@@ -1,6 +1,9 @@
 package org.webcurator.rest.dto;
 
-import org.webcurator.domain.model.core.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.webcurator.domain.model.core.GroupMember;
+import org.webcurator.domain.model.core.Permission;
+import org.webcurator.domain.model.core.Target;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
@@ -115,6 +118,7 @@ public class TargetDTO {
 
     public static class General {
         long id;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date creationDate;
         @NotBlank(message = "name is required")
         String name;
@@ -416,6 +420,7 @@ public class TargetDTO {
         }
 
         public static class Selection {
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Date date;
             @Pattern(regexp = "Producer type|Publication type|Collection|Area|Other collections",
                     message = "invalid selection type")
@@ -450,6 +455,7 @@ public class TargetDTO {
         }
 
         public static class Annotation {
+            @JsonFormat(shape = JsonFormat.Shape.STRING)
             Date date;
             String user;
             String note;

@@ -1,6 +1,8 @@
 package org.webcurator.rest.dto;
 
-import org.webcurator.domain.model.core.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.webcurator.domain.model.core.HarvesterStatus;
+import org.webcurator.domain.model.core.TargetInstance;
 import org.webcurator.rest.TargetInstances;
 
 import java.util.*;
@@ -122,7 +124,9 @@ public class TargetInstanceDTO {
     public static class General {
         long id;
         String name;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date scheduleStartDate;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date actualStartDate;
         String priority;
         String owner;
@@ -395,6 +399,7 @@ public class TargetInstanceDTO {
     public static class HarvestResult {
         Long id;
         Integer number;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date creationDate;
         Integer derivedFrom;
         String owner;
@@ -459,6 +464,7 @@ public class TargetInstanceDTO {
     }
 
     public static class Annotation {
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date date;
         String user;
         String note;

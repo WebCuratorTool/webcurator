@@ -1,6 +1,10 @@
 package org.webcurator.rest.dto;
 
-import org.webcurator.domain.model.core.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.webcurator.domain.model.core.AbstractTarget;
+import org.webcurator.domain.model.core.GroupMember;
+import org.webcurator.domain.model.core.Schedule;
+import org.webcurator.domain.model.core.TargetGroup;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -128,7 +132,9 @@ public class GroupDTO {
         String type;
         String owner;
         String ownerInfo;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date dateFrom;
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date dateTo;
         int sipType;
 
@@ -262,6 +268,7 @@ public class GroupDTO {
     }
 
     public static class Annotation {
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         Date date;
         String note;
         String user;

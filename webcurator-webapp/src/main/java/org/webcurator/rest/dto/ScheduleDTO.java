@@ -1,5 +1,6 @@
 package org.webcurator.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.webcurator.domain.model.core.Schedule;
 
 import javax.validation.constraints.Max;
@@ -13,14 +14,18 @@ public class ScheduleDTO {
     @NotBlank(message = "cron is required")
     String cron;
     @NotNull(message = "startDate is required")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     Date startDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     Date endDate;
     @NotNull(message = "type is required")
     @Min(value = -7, message = "invalid schedule type: value should be between -7 and 1")
     @Max(value = 1, message = "invalid schedule type: value should be between -7 and 1")
     Integer type;
     @NotNull(message = "nextExecutionDate is required")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     Date nextExecutionDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     Date lastProcessedDate;
     @NotNull(message = "owner is required")
     String owner;
