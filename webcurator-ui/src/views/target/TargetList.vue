@@ -7,7 +7,7 @@ import { type UseFetchApis, useFetch } from '@/utils/rest.api'
 import { formatDatetime } from '@/utils/helper'
 import { useUsersStore, useUserProfileStore } from '@/stores/users'
 import { useAgenciesStore } from '@/stores/agencies'
-import { stateList, formatTargetState } from '@/stores/target'
+import { stateList, formatTargetState, showTargetAction } from '@/stores/target'
 
 import PageHeader from '@/components/PageHeader.vue'
 
@@ -303,8 +303,8 @@ onMounted(() => {
       </Column>
       <Column header="Action" field="id" style="max-width: 8rem">
         <template #body="{ data }">
-          <Button icon="pi pi-copy" text />
-          <Button icon="pi pi-trash" @click="deleteTarget(data.id)" text />
+          <Button v-if="showTargetAction(data, 'copy')"  icon="pi pi-copy" text />
+          <Button v-if="showTargetAction(data, 'delete')" icon="pi pi-trash" @click="deleteTarget(data.id)" text />
         </template>
       </Column>
     </DataTable>

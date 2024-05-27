@@ -81,7 +81,7 @@ export const useNextStateStore = defineStore('TargetNextStateList', () => {
 });
 
 
-export const isTargetAction = (target: any, actionName: string) => {
+export const showTargetAction = (target: any, actionName: string) => {
     if (!target || !actionName) {
         return false;
     }
@@ -190,128 +190,91 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     return { id, name, creationDate, description, referenceNumber, runOnApproval, automatedQA, selectedUser, selectedState, autoPrune, referenceCrawl, requestToArchivists, initData, getData, setData };
 });
 
+const profileOverrides = [
+    {
+        id:	"documentLimit",
+        value:	0,
+        enabled: false
+    },
+    {
+        id: "dataLimit",
+        value: 0.0,
+        enabled: false,
+        unit: "B"
+    },
+    {
+        id: "timeLimit",
+        value: 0.0,
+        enabled: false,
+        unit: "SECOND"	
+    },
+    {
+        id: "maxPathDepth",
+        value: 0,
+        enabled: false,
+    },
+    {
+        id: "maxHops",
+        value: 0,
+        enabled: false
+    },
+    {   
+        id: "maxTransitiveHops",
+        value: 0,
+        enabled: false
+    },
+    {
+        id: "ignoreRobots",
+        value: false,
+        enabled: false
+    },
+    {
+        id: "extractJs",
+        value: false,
+        enabled: false
+    },
+    {
+        id: "ignoreCookies",
+        value: false,
+        enabled: false
+    },
+    {
+        id: "blockedUrls",
+        value: [],
+        enabled: false
+    },
+    {
+        id: "includedUrls",
+        value: [],
+        enabled: false
+    }
+];
+
 export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
     const harvesterType	= ref('');
     const id = ref();
     const imported = ref(false);
     const name = ref('');
-    const overrides = ref([
-        {
-            id:	"documentLimit",
-            value:	0,
-            enabled: false
-        },
-        {
-            id: "dataLimit",
-            value: 0,
-            enabled: false,
-            unit: "B"
-        },
-        {
-            id: "maxPathDepth",
-            value: 5,
-            enabled: true,
-            unit: "SECOND"
-        },
-        {
-            id: "maxHops",
-            value: 0,
-            enabled: false
-        },
-        {   
-            id: "maxTransitiveHops",
-            value: 0,
-            enabled: false
-        },
-        {
-            id: "ignoreRobots",
-            value: false,
-            enabled: false
-        },
-        {
-            id: "extractJs",
-            value: false,
-            enabled: false
-        },
-        {
-            id: "ignoreCookies",
-            value: false,
-            enabled: false
-        },
-        {
-            id: "blockedUrls",
-            value: [],
-            enabled: false
-        },
-        {
-            id: "includedUrls",
-            value: [],
-            enabled: false
-        }
-    ]);
+    const overrides = ref(profileOverrides);
 
     const initData = () => {
         harvesterType.value = '',
         id.value = '',
         imported.value = false,
-        name.value = ''
-        overrides.value = [
-            {
-                id:	"documentLimit",
-                value:	0,
-                enabled: false
-            },
-            {
-                id: "dataLimit",
-                value: 0,
-                enabled: false,
-                unit: "B"
-            },
-            {
-                id: "maxPathDepth",
-                value: 5,
-                enabled: true,
-                unit: "SECOND"
-            },
-            {
-                id: "maxHops",
-                value: 0,
-                enabled: false
-            },
-            {   
-                id: "maxTransitiveHops",
-                value: 0,
-                enabled: false
-            },
-            {
-                id: "ignoreRobots",
-                value: false,
-                enabled: false
-            },
-            {
-                id: "extractJs",
-                value: false,
-                enabled: false
-            },
-            {
-                id: "ignoreCookies",
-                value: false,
-                enabled: false
-            },
-            {
-                id: "blockedUrls",
-                value: [],
-                enabled: false
-            },
-            {
-                id: "includedUrls",
-                value: [],
-                enabled: false
-            }
-        ]
+        name.value = '',
+        overrides.value = profileOverrides
     }
 
-    const getData = () => {
+    const getData = () => {        
+        overrides.value.forEach((override) => {       
+            // Ensure blockedUrls and includedUrls are arrays
+            if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
+                if (!Array.isArray(override.value)) {
+                    override.value = override.value.split(',');
+                }
+            }
+        })
+
         return {
             harvesterType: harvesterType.value,
             id: id.value,

@@ -40,8 +40,9 @@ const fetchTargetDetails = () => {
 
 const save = () => {
     const dataReq = {
-        general: targetGeneral.getData()
-    }
+        general: targetGeneral.getData(),
+        profile: targetProfile.getData()
+    }    
 
     rest.put('targets/' + targetGeneral.id, dataReq)
     .then((data: any) => {

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, inject, computed, onMounted, onBeforeMount } from "vue";
-import { useUsersStore } from '@/stores/users';
-import { useTargetProfileDTO, stateList, formatTargetState } from '@/stores/target';
+import { ref } from "vue";
+import { useTargetProfileDTO } from '@/stores/target';
 
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
@@ -11,7 +10,6 @@ defineProps<{
 }>()
 
 const targetProfile = useTargetProfileDTO();
-const users=useUsersStore();
 
 const timeUnits = ref([
     "SECOND",
@@ -45,29 +43,6 @@ function camelCaseToTitleCase(s: string) {
         </WctFormField>
     </WctTabViewPanel>
 
-    <!-- <WctTabViewPanel>
-        <WctFormField v-for="override in targetProfile.overrides" :label="camelCaseToTitleCase(override.id)">
-            <Checkbox v-if="typeof override.value == 'boolean'"
-                id="checkOption1"
-                name="option1"
-                value="Run on Approval"
-                v-model="override.value" 
-                :binary="true"
-            />
-            <InputText v-else-if="Array.isArray(override.value)" 
-                v-model="override.value"
-            />
-            <InputNumber v-else 
-                v-model="override.value" 
-                inputId="minmax-buttons" 
-                mode="decimal" 
-                showButtons 
-                :min="0" 
-                :max="100" 
-            />   
-        </WctFormField>
-    </WctTabViewPanel> -->
-
     <WctTabViewPanel>
         <DataTable class="w-full" :rowHover="true" :value="targetProfile.overrides">
             <template #header>
@@ -80,25 +55,22 @@ function camelCaseToTitleCase(s: string) {
             </Column>
             <Column field="value" header="Override Value">
                 <template #body="{ data }">
-                    <!-- {{ `${data.value} ${data.unit ? data.unit : ''}`}} -->
                     <Checkbox v-if="typeof data.value == 'boolean'"
-                        id="checkOption1"
-                        name="option1"
-                        value="Run on Approval"
                         v-model="data.value" 
                         :binary="true"
                         :disabled="!editing" 
                     />
-                    <InputText v-else-if="Array.isArray(data.value)" 
+                    <InputText v-else-if="Array.isArray(data.value) || typeof data.value == 'string'" 
                         v-model="data.value"
                         :disabled="!editing" 
                     />
-                    <div v-else class="flex ">
+                    <div v-else class="flex">
                         <InputNumber
                             class="w-6"
                             v-model="data.value" 
                             inputId="minmax-buttons" 
-                            mode="decimal" 
+                            mode="decimal"
+                            :minFractionDigits="(data.id == 'dataLimit' || data.id == 'timeLimit') ? 1 : 0"
                             showButtons 
                             :min="0" 
                             :max="100" 
@@ -121,7 +93,6 @@ function camelCaseToTitleCase(s: string) {
             </Column>
             <Column field="enabled" header="Enable Override">
                 <template #body="{ data }">
-                    <!-- {{ `${data.value} ${data.unit ? data.unit : ''}`}} -->
                     <Checkbox
                         id="checkOption1"
                         name="option1"
@@ -134,8 +105,6 @@ function camelCaseToTitleCase(s: string) {
             </Column>
         </DataTable>
     </WctTabViewPanel>
-
-
 </template>
 
 <style>

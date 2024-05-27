@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useTargetGeneralDTO, useNextStateStore } from '@/stores/target';
+import { useTargetGeneralDTO, useTargetProfileDTO, useNextStateStore } from '@/stores/target';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
 import TargetTabView from './target-tabs/TargetTabView.vue';
@@ -14,12 +14,14 @@ const isTargetAvailable = ref(false);
 const rest: UseFetchApis = useFetch();
 
 const targetGeneral = useTargetGeneralDTO();
+const targetProfile = useTargetProfileDTO();
 const nextStates = useNextStateStore();
 
 const initData = () => {
     isTargetAvailable.value = false;
     targetGeneral.initData();
     nextStates.initData();
+    targetProfile.initData();
 }
 
 const save = () => {
