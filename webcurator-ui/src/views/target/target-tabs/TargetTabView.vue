@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { formatDatetime } from '@/utils/helper';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 
+import TargetTabPanelDescription from './TargetTabPanelDescription.vue';
 import TargetTabPanelGeneral from './TargetTabPanelGeneral.vue'
 import TargetTabPanelProfile from './TargetTabPanelProfile.vue'
 
@@ -69,7 +70,7 @@ const navigateBack = () => {
         <TargetTabPanelAnnotations />
       </TabPanel>
       <TabPanel header="Description">
-        <TargetTabPanelDescription />
+        <TargetTabPanelDescription :editing="editing" />
       </TabPanel>
       <TabPanel header="Groups">
         <TargetTabPanelGroups />

@@ -14,6 +14,24 @@ interface TargetGeneral {
     nextStates: []
 }
 
+interface TargetDescription {
+    identifier: string,
+    description: string,
+    subject: string,
+    creator: string,
+    publisher: string,
+    type: string,
+    format: string,
+    language: string,
+    source: string,
+    relation: string,
+    contributor: string,
+    coverage: string,
+    issn: string,
+    isbn: string,
+}
+
 export type {
-    TargetGeneral
+    TargetGeneral,
+    TargetDescription
 }

@@ -2,7 +2,7 @@
 import { ref, onBeforeMount } from 'vue';
 import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { useTargetGeneralDTO, useTargetProfileDTO, useNextStateStore } from '@/stores/target';
+import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore } from '@/stores/target';
 
 import TargetTabView from './target-tabs/TargetTabView.vue';
 
@@ -13,6 +13,7 @@ const rest: UseFetchApis = useFetch();
 
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
+const targetDescription = useTargetDescriptionDTO();
 const nextStates = useNextStateStore();
 
 const editing = ref(false);
@@ -31,6 +32,7 @@ const fetchTargetDetails = () => {
         isTargetAvailable.value = true;
         targetGeneral.setData(data.general);
         targetProfile.setData(data.profile);
+        targetDescription.setData(data.description)
         nextStates.setData(targetGeneral.selectedState, data.general.nextStates);
     }).catch((err: any) => {
         console.log(err.message);
@@ -41,7 +43,8 @@ const fetchTargetDetails = () => {
 const save = () => {
     const dataReq = {
         general: targetGeneral.getData(),
-        profile: targetProfile.getData()
+        profile: targetProfile.getData(),
+        description: targetDescription.getData(),
     }    
 
     rest.put('targets/' + targetGeneral.id, dataReq)

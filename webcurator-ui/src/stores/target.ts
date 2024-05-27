@@ -2,6 +2,7 @@ import { ref, reactive, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import { useUserProfileStore, useUsersStore, getPresentationUserName } from '@/stores/users';
+import { type TargetDescription } from '@/types/target';
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
 const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 }
@@ -80,7 +81,6 @@ export const useNextStateStore = defineStore('TargetNextStateList', () => {
     return { nextStateList, initData, setData };
 });
 
-
 export const showTargetAction = (target: any, actionName: string) => {
     if (!target || !actionName) {
         return false;
@@ -104,7 +104,6 @@ export const showTargetAction = (target: any, actionName: string) => {
         return (target.state === TARGET_STATE_REJECTED.code || target.state === TARGET_STATE_CANCELLED.code);
     }
 };
-
 
 export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     const id = ref();
@@ -259,7 +258,7 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
 
     const initData = () => {
         harvesterType.value = '',
-        id.value = '',
+        id.value = null,
         imported.value = false,
         name.value = '',
         overrides.value = profileOverrides
@@ -293,4 +292,33 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
     }
 
     return { harvesterType, id, imported, name, overrides, initData, getData, setData }
+});
+
+export const useTargetDescriptionDTO = defineStore('TargetDescriptionDTO', () => {
+    const targetDescription = ref({} as TargetDescription);
+
+    const initData = () => {
+        targetDescription.value = {} as TargetDescription;
+    }
+
+    const setData = (data: any) => {
+        targetDescription.value.identifier = data.identifier;
+        targetDescription.value.description = data.description; 
+        targetDescription.value.subject = data.subject;
+        targetDescription.value.creator = data.creator;
+        targetDescription.value.publisher = data.publisher; 
+        targetDescription.value.type = data.type;
+        targetDescription.value.format = data.format; 
+        targetDescription.value.language = data.language; 
+        targetDescription.value.source = data.source; 
+        targetDescription.value.relation = data.relation; 
+        targetDescription.value.contributor = data.contributor; 
+        targetDescription.value.coverage = data.coverage; 
+        targetDescription.value.issn = data.issn; 
+        targetDescription.value.isbn = data.isbn; 
+    }
+    
+    const getData = () => targetDescription.value;
+
+    return { targetDescription, initData, setData, getData }
 });
