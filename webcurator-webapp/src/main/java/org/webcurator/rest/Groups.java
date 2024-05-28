@@ -8,7 +8,10 @@ import org.webcurator.core.util.WctUtils;
 import org.webcurator.domain.AnnotationDAO;
 import org.webcurator.domain.Pagination;
 import org.webcurator.domain.TargetDAO;
+import org.webcurator.domain.model.core.AbstractTarget;
+import org.webcurator.domain.model.core.GroupMember;
 import org.webcurator.domain.model.core.TargetGroup;
+import org.webcurator.domain.model.dto.GroupMemberDTO;
 import org.webcurator.rest.common.BadRequestError;
 import org.webcurator.rest.common.Utils;
 import org.webcurator.rest.dto.GroupDTO;
@@ -111,6 +114,37 @@ public class Groups {
             default:
                 return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No such group section: %s", section)));
         }
+    }
+
+    /**
+     * Handler for adding individual group members
+     */
+    @PostMapping(path = "/{id}/members/{memberId}")
+    public ResponseEntity add(@PathVariable long id, @PathVariable long memberId) {
+        TargetGroup targetGroup = targetDAO.loadGroup(id);
+        if (targetGroup == null) {
+            return ResponseEntity.notFound().build();
+        }
+        AbstractTarget abstractTarget = targetDAO.load(memberId);
+        if (abstractTarget == null) {
+            abstractTarget = targetDAO.loadGroup(memberId);
+            if (abstractTarget == null) {
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No group or target with id %s exists", memberId)));
+            }
+        }
+        for (GroupMember groupMember : targetGroup.getChildren()) {
+            if (groupMember.getChild().getOid() == memberId) {
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Group already contains member with id %s", memberId)));
+            }
+        }
+        GroupMemberDTO member = new GroupMemberDTO(targetGroup, abstractTarget);
+        targetGroup.getNewChildren().add(member);
+        try {
+            targetDAO.save(targetGroup, true, null);
+        } catch (Exception e) {
+            ResponseEntity.internalServerError().body(Utils.errorMessage(String.format("Error while trying to persist group member: %s", e.getMessage())));
+        }
+        return ResponseEntity.ok().build();
     }
 
     /**

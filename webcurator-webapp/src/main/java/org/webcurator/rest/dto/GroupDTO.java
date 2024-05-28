@@ -37,14 +37,17 @@ public class GroupDTO {
     public GroupDTO(TargetGroup targetGroup) {
         general = new General(targetGroup);
         for (GroupMember g : targetGroup.getChildren()) {
-            if (g.getChild() != null && g.getChild().getObjectType() == AbstractTarget.TYPE_GROUP) {
-                Member member = new Member(g.getChild().getOid(), g.getChild().getName(), ((TargetGroup)g.getChild()).getType());
+            if (g.getChild() != null) {
+                String type = g.getChild().getObjectType() == AbstractTarget.TYPE_GROUP ? "group" : "target";
+                Member member = new Member(g.getChild().getOid(), g.getChild().getName(), type);
                 members.add(member);
             }
         }
         for (GroupMember g : targetGroup.getParents()) {
-            Member member = new Member(g.getParent().getOid(), g.getParent().getName(), g.getParent().getType());
-            memberOf.add(member);
+            if (g.getParent() != null) {
+                Member member = new Member(g.getParent().getOid(), g.getParent().getName(), "group");
+                memberOf.add(member);
+            }
         }
         profile = new ProfileDTO(targetGroup);
         for (Schedule s : targetGroup.getSchedules()) {
