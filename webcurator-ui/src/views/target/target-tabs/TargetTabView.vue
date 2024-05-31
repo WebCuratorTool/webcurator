@@ -3,7 +3,10 @@ import { useRouter } from 'vue-router'
 import { formatDatetime } from '@/utils/helper';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 
+import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
+import TargetTabPanelAnnotations from './TargetTabPanelAnnotations.vue';
 import TargetTabPanelDescription from './TargetTabPanelDescription.vue';
+import TargetTabPanelHarvests from './TargetTabPanelHarvests.vue';
 import TargetTabPanelGeneral from './TargetTabPanelGeneral.vue'
 import TargetTabPanelProfile from './TargetTabPanelProfile.vue'
 
@@ -12,6 +15,7 @@ const router = useRouter()
 defineProps<{
     editing: boolean
     isTargetAvailable: boolean,
+    loading: boolean
 }>()
 
 const targetGeneral = useTargetGeneralDTO()
@@ -53,30 +57,25 @@ const navigateBack = () => {
     </div>
   </div>
   <div class="main-content">
-    <TabView class="tabview-custom">
+    <Loading v-if="loading" />
+    <TabView v-else class="tabview-custom">
       <TabPanel header="Genaral">
         <TargetTabPanelGeneral :editing="editing" />
-      </TabPanel>
-      <TabPanel header="Seeds">
-        <TargetTabPanelSeeds />
-      </TabPanel>
-      <TabPanel header="Profile">
-        <TargetTabPanelProfile :editing="editing" />
-      </TabPanel>
-      <TabPanel header="Schedule">
-        <TargetTabPanelSchedule />
-      </TabPanel>
-      <TabPanel header="Annotations">
-        <TargetTabPanelAnnotations />
       </TabPanel>
       <TabPanel header="Description">
         <TargetTabPanelDescription :editing="editing" />
       </TabPanel>
-      <TabPanel header="Groups">
-        <TargetTabPanelGroups />
+      <TabPanel header="Profile">
+        <TargetTabPanelProfile :editing="editing" />
+      </TabPanel>
+      <TabPanel header="Harvests">
+        <TargetTabPanelHarvests :editing="editing" />
+      </TabPanel>
+      <TabPanel header="Annotations">
+        <TargetTabPanelAnnotations :editing="editing" />
       </TabPanel>
       <TabPanel header="Access">
-        <TargetTabPanelAccess />
+        <TargetTabPanelAccess :editing="editing" />
       </TabPanel>
     </TabView>
   </div>

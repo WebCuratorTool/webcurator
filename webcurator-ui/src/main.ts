@@ -115,7 +115,7 @@ import TreeTable from 'primevue/treetable';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
 import VirtualScroller from 'primevue/virtualscroller';
 
-import BlockViewer from '@/components/BlockViewer.vue';
+// import BlockViewer from '@/components/BlockViewer.vue';
 
 // import "primevue/resources/themes/aura-dark-lime/theme.css";
 // import 'primevue/resources/primevue.min.css';
@@ -140,7 +140,7 @@ app.directive('styleclass', StyleClass);
 app.directive('focustrap', FocusTrap);
 app.directive('animateonscroll', AnimateOnScroll);
 
-app.component('BlockViewer', BlockViewer);
+// app.component('BlockViewer', BlockViewer);
 
 app.component('Accordion', Accordion);
 app.component('AccordionTab', AccordionTab);

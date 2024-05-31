@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore } from '@/stores/target';
+import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore, initNewTarget } from '@/stores/target';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
 import TargetTabView from './target-tabs/TargetTabView.vue';
@@ -18,13 +18,13 @@ const targetDescription = useTargetDescriptionDTO();
 const targetProfile = useTargetProfileDTO();
 const nextStates = useNextStateStore();
 
-const initData = () => {
-    isTargetAvailable.value = false;
-    targetGeneral.initData();
-    nextStates.initData();
-    targetProfile.initData();
-    targetDescription.initData();
-}
+// const initData = () => {
+//     isTargetAvailable.value = false;
+//     targetGeneral.initData();
+//     nextStates.initData();
+//     targetProfile.initData();
+//     targetDescription.initData();
+// }
 
 const save = () => {
     const dataReq = {
@@ -53,7 +53,7 @@ const setEditing = (isEditing: boolean) => {
     }
 }
 
-initData()
+initNewTarget()
 
 </script>
 

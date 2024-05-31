@@ -9,7 +9,8 @@ defineProps<{
     editing: boolean
 }>()
 
-const targetProfile = useTargetProfileDTO();
+const targetProfile = useTargetProfileDTO().getData();
+// const targetProfile = data.targetProfile;
 
 const timeUnits = ref([
     "SECOND",
@@ -34,20 +35,21 @@ function camelCaseToTitleCase(s: string) {
 </script>
 
 <template>
-    <WctTabViewPanel label="Base Profile">
+    <h4 class="mt-4">Base Profile</h4>
+    <WctTabViewPanel>
         <WctFormField label="Harvester Type">
-          <InputText v-model="targetProfile.harvesterType" :disabled="!editing" />
+          <InputText v-if="editing" v-model="targetProfile.harvesterType" :disabled="!editing" />
+          <p v-else class="font-semibold">{{ targetProfile.harvesterType}}</p>
         </WctFormField>
         <WctFormField label="Base Profile">
-          <InputText v-model="targetProfile.name" :disabled="!editing" />
+          <InputText v-if="editing" v-model="targetProfile.name" :disabled="!editing" />
+          <p v-else class="font-semibold">{{ targetProfile.name}}</p>
         </WctFormField>
     </WctTabViewPanel>
 
+    <h4 class="mt-4">Profile Overrides</h4>
     <WctTabViewPanel>
         <DataTable class="w-full" :rowHover="true" :value="targetProfile.overrides">
-            <template #header>
-                <span class="text-xl text-900 font-bold">Profile Overrides</span>
-            </template>
             <Column field="id" header="Profile Element">
                 <template #body="{ data }">
                     {{ camelCaseToTitleCase(data.id) }}
@@ -55,45 +57,56 @@ function camelCaseToTitleCase(s: string) {
             </Column>
             <Column field="value" header="Override Value">
                 <template #body="{ data }">
-                    <Checkbox v-if="typeof data.value == 'boolean'"
-                        v-model="data.value" 
-                        :binary="true"
-                        :disabled="!editing" 
-                    />
-                    <InputText v-else-if="Array.isArray(data.value) || typeof data.value == 'string'" 
-                        v-model="data.value"
-                        :disabled="!editing" 
-                    />
-                    <div v-else class="flex">
-                        <InputNumber
-                            class="w-6"
+                    <div v-if="typeof data.value == 'boolean'">
+                        <Checkbox v-if="editing"
                             v-model="data.value" 
-                            inputId="minmax-buttons" 
-                            mode="decimal"
-                            :minFractionDigits="(data.id == 'dataLimit' || data.id == 'timeLimit') ? 1 : 0"
-                            showButtons 
-                            :min="0" 
-                            :max="100" 
+                            :binary="true"
                             :disabled="!editing" 
                         />
-                        <Dropdown v-if="data.id == 'dataLimit'"
-                            class="ml-2"
-                            v-model="data.unit"
-                            :options="sizeUnits"
-                            :disabled="!editing"
+                        <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
+                    </div>
+                    <div v-else-if="Array.isArray(data.value) || typeof data.value == 'string'">
+                        <InputText v-if="editing" 
+                            v-model="data.value"
+                            :disabled="!editing" 
                         />
-                        <Dropdown v-else-if="data.id == 'timeLimit'"
-                            class="ml-2"
-                            v-model="data.unit"
-                            :options="timeUnits"
-                            :disabled="!editing"
-                        />
+                        <p v-else class="font-semibold">{{ data.value.toString() }}</p>
+                    </div>
+                    <div v-else>
+                        <div v-if="editing" class="flex">
+                            <InputNumber
+                                class="w-6"
+                                v-model="data.value" 
+                                inputId="minmax-buttons" 
+                                mode="decimal"
+                                :minFractionDigits="(data.id == 'dataLimit' || data.id == 'timeLimit') ? 1 : 0"
+                                showButtons 
+                                :min="0" 
+                                :max="100" 
+                                :disabled="!editing" 
+                            />
+                            <Dropdown v-if="data.id == 'dataLimit'"
+                                class="ml-2"
+                                v-model="data.unit"
+                                :options="sizeUnits"
+                                :disabled="!editing"
+                            />
+                            <Dropdown v-else-if="data.id == 'timeLimit'"
+                                class="ml-2"
+                                v-model="data.unit"
+                                :options="timeUnits"
+                                :disabled="!editing"
+                            />
+                        </div>
+                        <div v-else>
+                            <p class="font-semibold">{{ `${ data.value ? data.value : ''} ${ data.unit ? data.unit : ''}`}}</p>
+                        </div>
                     </div>
                 </template>
             </Column>
             <Column field="enabled" header="Enable Override">
                 <template #body="{ data }">
-                    <Checkbox
+                    <Checkbox v-if="editing"
                         id="checkOption1"
                         name="option1"
                         value="Run on Approval"
@@ -101,6 +114,7 @@ function camelCaseToTitleCase(s: string) {
                         :binary="true"
                         :disabled="!editing" 
                     />
+                    <p v-else class="font-semibold">{{ data.value ? 'Yes' : 'No' }}</p>
                 </template>
             </Column>
         </DataTable>

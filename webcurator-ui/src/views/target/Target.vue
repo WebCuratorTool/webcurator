@@ -2,7 +2,15 @@
 import { ref, onBeforeMount } from 'vue';
 import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore } from '@/stores/target';
+import {
+    setTarget,
+    useTargetDescriptionDTO,
+    useTargetGeneralDTO,
+    useTargetGropusDTO,
+    useTargetProfileDTO,
+    useTargetSeedsDTO, 
+    useNextStateStore 
+} from '@/stores/target';
 
 import TargetTabView from './target-tabs/TargetTabView.vue';
 
@@ -14,10 +22,13 @@ const rest: UseFetchApis = useFetch();
 const targetGeneral = useTargetGeneralDTO();
 const targetProfile = useTargetProfileDTO();
 const targetDescription = useTargetDescriptionDTO();
+const targetSeeds = useTargetSeedsDTO();
+const targetGroups = useTargetGropusDTO();
 const nextStates = useNextStateStore();
 
 const editing = ref(false);
 const isTargetAvailable = ref(false);
+const loading = ref(false);
 
 const initData = () => {
     isTargetAvailable.value = false;
@@ -27,16 +38,17 @@ const initData = () => {
 
 const fetchTargetDetails = () => {
     isTargetAvailable.value = false;
+    loading.value = true;
 
     rest.get('targets/' + targetId).then((data: any) => {        
         isTargetAvailable.value = true;
-        targetGeneral.setData(data.general);
-        targetProfile.setData(data.profile);
-        targetDescription.setData(data.description)
+        setTarget(data);
         nextStates.setData(targetGeneral.selectedState, data.general.nextStates);
     }).catch((err: any) => {
         console.log(err.message);
         initData();
+    }).finally(() => {
+        loading.value = false;
     });
 }
 
@@ -63,15 +75,15 @@ const setEditing = (isEditing: boolean) => {
     editing.value = isEditing
 }
 
-onBeforeMount(() => {
-    fetchTargetDetails();
-})
+fetchTargetDetails();
+
 </script>
 
 <template>
     <TargetTabView 
         :editing=editing 
-        :isTargetAvailable=isTargetAvailable 
+        :isTargetAvailable=isTargetAvailable
+        :loading=loading 
         @setEditing="setEditing"
         @save="save"    
     />

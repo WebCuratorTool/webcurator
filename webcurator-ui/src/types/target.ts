@@ -1,3 +1,12 @@
+interface Target {
+    general: TargetGeneral,
+    description: TargetDescription,
+    profile: TargetProfile,
+    seeds: TargetSeeds,
+    access: TargetAccess,
+    groups: TargetGroups
+}
+
 interface TargetGeneral {
     id: number,
     name: string,
@@ -12,6 +21,13 @@ interface TargetGeneral {
     referenceCrawl: boolean,
     requestToArchivists: string,
     nextStates: []
+}
+
+interface TargetSeeds {
+    id: number,
+    seed: string,
+    primary: boolean,
+    authorisations: []
 }
 
 interface TargetDescription {
@@ -31,7 +47,44 @@ interface TargetDescription {
     isbn: string,
 }
 
+interface TargetProfileOverride {
+    id: string;
+    value: string | number | boolean | any[];
+    enabled: boolean;
+    unit?: string; 
+}
+
+interface TargetProfile {
+    id: number | null,
+    harvesterType: string,
+    imported: boolean,
+    name: string,
+    overrides: Array<TargetProfileOverride>
+}
+
+interface TargetGroup {
+    id: number,
+    name: string
+}
+
+interface TargetGroups extends Array<TargetGroup>{}
+
+interface TargetAccess {
+    displayTarget: boolean,
+    accessZone: number,
+    accessZoneText: string,
+    displayChangeReason: string,
+    displayNote: StreamPipeOptions
+}
+
 export type {
+    Target,
+    TargetAccess,
+    TargetDescription,
     TargetGeneral,
-    TargetDescription
+    TargetGroup,
+    TargetGroups,
+    TargetProfile,
+    TargetProfileOverride,
+    TargetSeeds
 }
