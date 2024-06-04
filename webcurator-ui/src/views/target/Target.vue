@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onBeforeMount } from 'vue';
+import { ref } from 'vue';
 import { useRoute } from 'vue-router'
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 import {
@@ -11,7 +11,6 @@ import {
     useTargetSeedsDTO, 
     useNextStateStore 
 } from '@/stores/target';
-import { useProfiles } from '@/stores/profiles';
 
 import TargetTabView from './target-tabs/TargetTabView.vue';
 

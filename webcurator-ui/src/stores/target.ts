@@ -1,7 +1,6 @@
-import { ref, reactive, computed } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { useUserProfileStore, useUsersStore, getPresentationUserName } from '@/stores/users';
+import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
 import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
