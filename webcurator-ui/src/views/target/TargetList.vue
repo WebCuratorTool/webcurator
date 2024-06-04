@@ -137,6 +137,7 @@ const deleteTarget = (id: number) => {
         .delete('targets/' + id, {})
         .then((rsp: any) => {
           toast.add({ severity: 'info', summary: 'Confirmed', detail: `Target ${id} deleted`, life: 3000 });
+          search();
         })
         .catch((err: any) => {
           toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 });

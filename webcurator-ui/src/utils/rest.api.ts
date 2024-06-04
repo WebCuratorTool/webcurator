@@ -103,6 +103,35 @@ export function useFetch() {
                 if (payload) {
                     reqOptions.body = JSON.stringify(payload);
                 }
+                
+
+                
+                // const response = await fetch('/wct/api/v1/' + path, reqOptions);
+                // if (response.status == 401) {
+                //     return null;
+                // }
+
+                // isFinished.value = true;
+
+                // if (response.ok) {
+                //     try {
+                //         const text = await response.text();
+                //         const data = JSON.parse(text);
+                //         return data;
+                //     } catch {
+                //         return { status: "success"}
+                //     }
+                // } else {                    
+                //     let errorMessage
+                //     const error = await response.json()
+                //     if (!error || error.length === 0) {
+                //         errorMessage = "Unknown error."
+                //     } else {
+                //         errorMessage = error.Error
+                //     }
+                //     throw new Error(response.status + " : " + errorMessage);
+                // }
+                
 
                 ret = await fetch('/wct/api/v1/' + path, reqOptions).then(async rsp => {
                     // console.log(rsp);
@@ -113,7 +142,13 @@ export function useFetch() {
                     isFinished.value = true;
 
                     if (rsp.ok) {
-                        return rsp.json();
+                        try {
+                            const text = await rsp.text();
+                            const data = JSON.parse(text);
+                            return data;
+                        } catch {
+                            return "Success";
+                        }
                     } else {                    
                         let errorMessage
                         const error = await rsp.json()

@@ -2,13 +2,11 @@
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
 import { useTargetGeneralDTO, useTargetGropusDTO, useTargetSeedsDTO, formatTargetState, useNextStateStore } from '@/stores/target'
 
-import Loading from '@/components/Loading.vue'
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 
 defineProps<{
-    editing: boolean,
-    loading: boolean
+    editing: boolean
 }>()
 
 const targetGeneral = useTargetGeneralDTO();

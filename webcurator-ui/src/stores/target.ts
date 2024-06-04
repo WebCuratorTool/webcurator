@@ -293,6 +293,12 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
 
         return targetProfile.value;
     }
+
+    const setProfile = (data: {id: number, type: string, name: string}) => {
+        targetProfile.value.id = data.id;
+        targetProfile.value.harvesterType = data.type;
+        targetProfile.value.name = data.name
+    }
     
     const setData = (data: TargetProfile) => {
         console.log(data);
@@ -300,7 +306,7 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
         targetProfile.value = data;
     }
 
-    return { targetProfile, initData, getData, setData }
+    return { targetProfile, initData, getData, setData, setProfile }
 });
 
 export const useTargetDescriptionDTO = defineStore('TargetDescriptionDTO', () => {

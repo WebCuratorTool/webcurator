@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore, initNewTarget } from '@/stores/target';
+import { useProfiles } from '@/stores/profiles';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
 import TargetTabView from './target-tabs/TargetTabView.vue';
@@ -9,6 +10,7 @@ import TargetTabView from './target-tabs/TargetTabView.vue';
 const router = useRouter()
 
 const editing = ref(true);
+const loading = ref(false);
 const isTargetAvailable = ref(false);
 
 const rest: UseFetchApis = useFetch();
@@ -18,13 +20,17 @@ const targetDescription = useTargetDescriptionDTO();
 const targetProfile = useTargetProfileDTO();
 const nextStates = useNextStateStore();
 
-// const initData = () => {
-//     isTargetAvailable.value = false;
-//     targetGeneral.initData();
-//     nextStates.initData();
-//     targetProfile.initData();
-//     targetDescription.initData();
-// }
+const fetchProfile = () => {
+    loading.value = true;
+    // const data = await rest.get('proflies/');
+    rest.get('profiles/').then((data: any) => {        
+        useProfiles().setProfiles(data);
+    }).catch((err: any) => {
+        console.log(err.message);
+    }).finally(() => {
+        loading.value = false;
+    })   
+}
 
 const save = () => {
     const dataReq = {
@@ -53,7 +59,8 @@ const setEditing = (isEditing: boolean) => {
     }
 }
 
-initNewTarget()
+initNewTarget();
+fetchProfile();
 
 </script>
 
@@ -61,6 +68,7 @@ initNewTarget()
     <TargetTabView 
         :editing=editing 
         :isTargetAvailable=isTargetAvailable 
+        :loading=loading
         @setEditing="setEditing"
         @save="save"    
     />

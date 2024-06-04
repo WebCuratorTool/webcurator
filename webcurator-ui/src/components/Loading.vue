@@ -1,6 +1,6 @@
 
 <template>
-    <div class="flex justify-content-center my-8">
+    <div class="w-full flex justify-content-center my-8">
         <ProgressSpinner />
     </div>
 </template>

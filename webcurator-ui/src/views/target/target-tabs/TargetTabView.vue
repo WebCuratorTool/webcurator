@@ -3,6 +3,8 @@ import { useRouter } from 'vue-router'
 import { formatDatetime } from '@/utils/helper';
 import { formatTargetState, useTargetGeneralDTO } from '@/stores/target';
 
+import Loading from '@/components/Loading.vue'
+
 import TargetTabPanelAccess from './TargetTabPanelAccess.vue';
 import TargetTabPanelAnnotations from './TargetTabPanelAnnotations.vue';
 import TargetTabPanelDescription from './TargetTabPanelDescription.vue';
@@ -27,6 +29,7 @@ const navigateBack = () => {
     router.push('/wct/targets/')
   }
 }
+
 </script>
 
 <template>

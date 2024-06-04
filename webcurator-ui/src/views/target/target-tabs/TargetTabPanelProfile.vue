@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useTargetProfileDTO } from '@/stores/target';
+import { useProfiles } from '@/stores/profiles';
+import { camelCaseToTitleCase } from '@/utils/helper';
 
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
@@ -9,8 +11,8 @@ defineProps<{
     editing: boolean
 }>()
 
-const targetProfile = useTargetProfileDTO().getData();
-// const targetProfile = data.targetProfile;
+const targetProfile = useTargetProfileDTO().targetProfile;
+const profiles = useProfiles().profiles;
 
 const timeUnits = ref([
     "SECOND",
@@ -27,9 +29,16 @@ const sizeUnits = ref([
     "GB",
 ])
 
-function camelCaseToTitleCase(s: string) {
-    const result = s.replace(/([A-Z])/g, ' $1');
-    return result.charAt(0).toUpperCase() + result.slice(1);
+const harvesterTypes = ref([
+    'HERITRIX1',
+    'HERITRIX3'
+])
+
+const selectedHarvesterType = ref(targetProfile.harvesterType)
+const selectedProfile = ref(profiles.find(profile => profile.id == targetProfile.id))
+
+const onChangeProfile = (event: any) => {
+    useTargetProfileDTO().setProfile(event.value)
 }
 
 </script>
@@ -38,12 +47,21 @@ function camelCaseToTitleCase(s: string) {
     <h4 class="mt-4">Base Profile</h4>
     <WctTabViewPanel>
         <WctFormField label="Harvester Type">
-          <InputText v-if="editing" v-model="targetProfile.harvesterType" :disabled="!editing" />
-          <p v-else class="font-semibold">{{ targetProfile.harvesterType}}</p>
+          <Dropdown v-if="editing"
+            v-model="selectedHarvesterType"
+            :options="harvesterTypes"
+            :disabled="!editing" />
+          <p v-else class="font-semibold">{{ targetProfile.harvesterType }}</p>
         </WctFormField>
         <WctFormField label="Base Profile">
-          <InputText v-if="editing" v-model="targetProfile.name" :disabled="!editing" />
-          <p v-else class="font-semibold">{{ targetProfile.name}}</p>
+          <Dropdown v-if="editing"
+            v-model="selectedProfile"
+            :options="profiles.filter(profile => profile.type == selectedHarvesterType)"
+            optionLabel="name"
+            :disabled="!editing"
+            @change="onChangeProfile"
+          />
+          <p v-else class="font-semibold">{{ targetProfile.name }}</p>
         </WctFormField>
     </WctTabViewPanel>
 
