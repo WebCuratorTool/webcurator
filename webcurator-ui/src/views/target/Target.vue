@@ -53,18 +53,6 @@ const fetchTargetDetails = () => {
     });
 }
 
-const fetchProfile = () => {
-    loading.value = true;
-    // const data = await rest.get('proflies/');
-    rest.get('profiles/').then((data: any) => {        
-        useProfiles().setProfiles(data);
-    }).catch((err: any) => {
-        console.log(err.message);
-    }).finally(() => {
-        loading.value = false;
-    })   
-}
-
 const save = () => {
     const dataReq = {
         general: targetGeneral.getData(),
@@ -86,9 +74,7 @@ const save = () => {
 
 const setEditing = (isEditing: boolean) => {
     editing.value = isEditing;
-    if (isEditing) {
-        fetchProfile();
-    } else {
+    if (!isEditing) {
         fetchTargetDetails();
     }
 }

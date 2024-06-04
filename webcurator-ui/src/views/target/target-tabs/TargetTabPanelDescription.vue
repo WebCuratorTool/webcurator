@@ -5,11 +5,11 @@ import { useTargetDescriptionDTO } from '@/stores/target';
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 
-defineProps<{
+const props = defineProps<{
     editing: boolean
 }>()
 
-const targetDescription = useTargetDescriptionDTO().targetDescription;
+const targetDescription = ref(useTargetDescriptionDTO().targetDescription);
 
 const types = ref([
     "",
