@@ -2,5 +2,16 @@
 "general":
 	{
 		"description": "Updated description"
+	},
+"profile":
+	{
+		"overrides": [
+				{
+			       		"id": "dataLimit",
+					"unit": "GB",
+        				"value": 1,
+        				"enabled": false
+     				}
+			     ]
 	}
 }
