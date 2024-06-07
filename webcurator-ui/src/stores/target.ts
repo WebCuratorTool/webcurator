@@ -286,9 +286,7 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
                     override.value = override.value.split(',');
                 }
             }
-        })
-        console.log(targetProfile.value);
-        
+        })        
 
         return targetProfile.value;
     }
@@ -300,7 +298,6 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
     }
     
     const setData = (data: TargetProfile) => {
-        console.log(data);
         
         targetProfile.value = data;
     }
