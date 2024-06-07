@@ -128,7 +128,6 @@ watch(() => props.editing, async(newEditing) => {
                                     :minFractionDigits="(data.id == 'dataLimit' || data.id == 'timeLimit') ? 1 : 0"
                                     showButtons 
                                     :min="0" 
-                                    :max="100" 
                                     :disabled="!editing" 
                                 />
                                 <Dropdown v-if="data.id == 'dataLimit'"
