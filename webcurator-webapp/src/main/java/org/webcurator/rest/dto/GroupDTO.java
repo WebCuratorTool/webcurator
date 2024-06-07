@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-// FIXME Add validation
-// FIXME Spring can't find converter for this class in GET /groups/<id> (maybe finish this class first and see if the problem persists?)
 public class GroupDTO {
 
     @Valid
@@ -33,6 +31,8 @@ public class GroupDTO {
     DescriptionDTO description;
     @Valid
     AccessDTO access;
+
+    public GroupDTO() {}
 
     public GroupDTO(TargetGroup targetGroup) {
         general = new General(targetGroup);
@@ -141,6 +141,8 @@ public class GroupDTO {
         Date dateTo;
         int sipType;
 
+        public General() {}
+
         public General(TargetGroup targetGroup) {
             id = targetGroup.getOid();
             name = targetGroup.getName();
@@ -239,6 +241,8 @@ public class GroupDTO {
         String type;
         String name;
 
+        public Member() {}
+
         public Member(long id, String name, String type) {
             this.id = id;
             this.name = name;
@@ -275,6 +279,8 @@ public class GroupDTO {
         Date date;
         String note;
         String user;
+
+        public Annotation() {}
 
         public Annotation(Date date, String note, String user) {
             this.date = date;

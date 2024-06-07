@@ -329,10 +329,9 @@ public class Targets {
                 schedule.setStartDate(s.getStartDate());
                 schedule.setEndDate(s.getEndDate());
                 schedule.setScheduleType(s.getType());
-                owner = userRoleDAO.getUserByName(s.getOwner());
-                if (owner == null) {
-                    throw new BadRequestError(String.format("Owner with username %s unknown",
-                            targetDTO.getGeneral().getOwner()));
+                User scheduleOwner = userRoleDAO.getUserByName(s.getOwner());
+                if (scheduleOwner == null) {
+                    throw new BadRequestError(String.format("Owner with username %s unknown", s.getOwner()));
                 }
                 schedule.setOwningUser(owner);
                 schedules.add(schedule);
@@ -464,6 +463,7 @@ public class Targets {
             metadata.setSubject(targetDTO.getDescription().getSubject());
             metadata.setCreator(targetDTO.getDescription().getCreator());
             metadata.setPublisher(targetDTO.getDescription().getPublisher());
+            metadata.setContributor(targetDTO.getDescription().getContributor());
             metadata.setType(targetDTO.getDescription().getType());
             metadata.setFormat(targetDTO.getDescription().getFormat());
             metadata.setSource(targetDTO.getDescription().getSource());

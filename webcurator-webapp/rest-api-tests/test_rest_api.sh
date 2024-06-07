@@ -14,11 +14,13 @@
 
 
 post_target_file_template=post-target-template.json
+post_group_file_template=post-group-template.json
 put_target_file=put-target.json
 put_target_instance_file=put-target-instance.json
 . ./credentials
 
 post_target_file="/tmp/post-target-file-$RANDOM.json"
+post_group_file="/tmp/post-group-file-$RANDOM.json"
 
 
 
@@ -75,6 +77,10 @@ cat $post_target_file_template | sed s/\$username/$first_user_name/g \
 					| sed s/\$profileId/$first_profile_id/g \
 					| sed s/\$date/$date/g \
 				> $post_target_file
+cat $post_group_file_template | sed s/\$username/$first_user_name/g \
+					| sed s/\$profileId/$first_profile_id/g \
+					| sed s/\$date/$date/g \
+				> $post_group_file
 
 
 echo "Posting target example"
@@ -136,7 +142,24 @@ curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/
 
 delete_target
 
+echo "Posting group example"
+echo "curl -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/ -d @$post_group_file"
+group_id=`curl -v -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/ -d @$post_group_file 2>&1 | grep "Location:" | tr -d '\r' | sed 's/.*\/\([0-9]\+\)$/\1/'`
+
+if [ -z $group_id ]
+then
+	echo "POST of $post_group_file failed"
+	exit 1
+fi
+
+echo "POST succeeded: there's a new group with id $group_id"
+echo "Getting newly created group with id $group_id"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id | jq .  
+
+
 echo "Cleaning up temp files"
 rm $post_target_file 
+rm $post_group_file 
 echo "Done"
 exit 0

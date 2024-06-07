@@ -1,0 +1,117 @@
+{
+  "general": {
+    "owner": "$username",
+    "ownerInfo": "Test owner info",
+    "referenceNumber": "",
+    "requestToArchivists": "",
+    "name": "Test Group $date",
+    "description": "",
+    "referenceCrawl": false,
+    "dateFrom": "2023-09-17T13:36:36.707+00:00",
+    "dateTo": "2030-09-17T13:36:36.707+00:00",
+    "sipType": 1,
+    "type": "collection"
+  },
+  "schedules": [
+	{
+		"cron": "00 21 ? * MON *",
+		"startDate": "2023-09-17T13:36:36.707+00:00",
+		"type": 1,
+		"nextExecutionDate": "2023-09-17T13:36:36.707+00:00",
+		"owner": "$username"
+	}
+  ],
+  "access": {
+    "displayTarget": false,
+    "accessZone": 0,
+    "displayChangeReason": "None given",
+    "displayNote": null,
+    "accessZoneText": "Public"
+  },
+  "profile": {
+    "id": $profileId,
+    "overrides": [
+      {
+        "id": "documentLimit",
+        "value": null,
+        "enabled": false
+      },
+      {
+        "unit": "GB",
+        "id": "dataLimit",
+        "value": null,
+        "enabled": false
+      },
+      {
+        "unit": "seconds",
+        "id": "timeLimit",
+        "value": null,
+        "enabled": false
+      },
+      {
+        "id": "maxPathDepth",
+        "value": null,
+        "enabled": false
+      },
+      {
+        "id": "maxHops",
+        "value": 5,
+        "enabled": true 
+      },
+      {
+        "id": "maxTransitiveHops",
+        "value": null,
+        "enabled": false
+      },
+      {
+        "id": "ignoreRobots",
+        "value": false,
+        "enabled": false
+      },
+      {
+        "id": "extractJs",
+        "value": false,
+        "enabled": false
+      },
+      {
+        "id": "ignoreCookies",
+        "value": false,
+        "enabled": false
+      },
+      {
+        "id": "blockedUrls",
+        "value": [],
+        "enabled": false
+      },
+      {
+        "id": "includedUrls",
+        "value": [],
+        "enabled": false
+      }
+    ],
+    "harvesterType": "HERITRIX3"
+  },
+  "annotations": [
+	{
+    	  "date": "2023-05-17T13:37:13.919+00:00",
+	  "note": "Test annotation",
+	  "user": "$username"
+	}
+  ],
+  "description": {
+    "coverage": null,
+    "identifier": null,
+    "creator": null,
+    "subject": null,
+    "isbn": null,
+    "format": null,
+    "description": null,
+    "language": "Dutch",
+    "source": null,
+    "type": "",
+    "relation": null,
+    "contributor": null,
+    "issn": null,
+    "publisher": null
+  }
+}
