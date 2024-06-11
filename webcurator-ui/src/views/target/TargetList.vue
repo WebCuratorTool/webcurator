@@ -181,7 +181,12 @@ onMounted(() => {
             </div>
             <div class="field col-12 md:col-2">
               <label>Non-Display Only</label>
-              <Checkbox v-model="searchTerms.noneDisplayOnly" :binary="true" />
+              <InputGroup>
+                <InputGroupAddon>Option</InputGroupAddon>
+                <InputGroupAddon>
+                  <Checkbox v-model="searchTerms.noneDisplayOnly" :binary="true" />
+                </InputGroupAddon>
+              </InputGroup>
             </div>
           </div>
         </div>
