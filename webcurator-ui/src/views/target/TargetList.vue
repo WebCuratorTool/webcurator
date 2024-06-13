@@ -8,6 +8,7 @@ import { formatDatetime } from '@/utils/helper'
 import { useUsersStore, useUserProfileStore } from '@/stores/users'
 import { useAgenciesStore } from '@/stores/agencies'
 import { stateList, formatTargetState, showTargetAction } from '@/stores/target'
+import { useTargetListSearchStore, useTargetListFiltertore } from '@/stores/targetlist';
 
 import PageHeader from '@/components/PageHeader.vue'
 
@@ -24,19 +25,8 @@ const userProfile = useUserProfileStore()
 const users = useUsersStore()
 const agencies = useAgenciesStore()
 
-// Search conditions
-const targetId = ref(null)
-const targetName = ref(null)
-const targetSeed = ref(null)
-const targetDescription = ref(null)
-const targetMemberOf = ref(null)
-
-// Filter conditions
-const selectedAgency = ref({ name: "", code: "" })
-const selectedUser = ref({ name: "", code: "" })
-
-const noneDisplayOnly = ref(false)
-const selectedState = ref([])
+const searchTerms = useTargetListSearchStore()
+const filters = useTargetListFiltertore()
 
 const targetList = ref([])
 const loadingTargetList = ref(false)
@@ -45,23 +35,23 @@ const filter = () => {
   const ret = [];
   for (let idx = 0; idx < targetList.value.length; idx++) {
     const target: any = targetList.value[idx];
-    if (selectedAgency.value.code !== "" && target.agency !== selectedAgency.value.code) {
+    if (filters.selectedAgency.code !== "" && target.agency !== filters.selectedAgency.code) {
       continue;
     }
 
-    if (selectedUser.value.code !== "" && target.owner !== selectedUser.value.code) {
+    if (filters.selectedUser.code !== "" && target.owner !== filters.selectedUser.code) {
       continue;
     }
 
     let isInSelectedStates = false;
-    for (const idx in selectedState.value) {
-      const stateOption: any = selectedState.value[idx];
+    for (const idx in filters.selectedState) {
+      const stateOption: any = filters.selectedState[idx];
       if (target.state === stateOption.code) {
         isInSelectedStates = true;
         break;
       }
     }
-    if (selectedState.value.length > 0 && !isInSelectedStates) {
+    if (filters.selectedState.length > 0 && !isInSelectedStates) {
       continue;
     }
     ret.push(target);
@@ -70,28 +60,27 @@ const filter = () => {
 }
 
 const resetFilter = () => {
-  selectedUser.value = {
+  filters.selectedUser = {
     name: userProfile.currUserName,
     code: userProfile.name
   }
 
-  selectedAgency.value = {
+  filters.selectedAgency = {
     name: userProfile.agency,
     code: userProfile.agency
   }
 
-  selectedState.value = [];
+  filters.selectedState = [];
 }
-
 
 const search = () => {
   const searchConditions = {
-    targetId: targetId.value,
-    name: targetName.value,
-    seed: targetSeed.value,
-    description: targetDescription.value,
-    groupName: targetMemberOf.value,
-    nonDisplayOnly: noneDisplayOnly.value,
+    targetId: searchTerms.targetId,
+    name: searchTerms.targetName,
+    seed: searchTerms.targetSeed,
+    description: searchTerms.targetDescription,
+    groupName: searchTerms.targetMemberOf,
+    nonDisplayOnly: searchTerms.noneDisplayOnly,
   }
 
   const searchParams = {
@@ -172,27 +161,27 @@ onMounted(() => {
           <div class="p-fluid formgrid grid" id="grid-search">
             <div class="field col-12 md:col-2">
               <label>Target ID</label>
-              <InputNumber v-model="targetId" :useGrouping="false" />
+              <InputNumber v-model="searchTerms.targetId" :useGrouping="false" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Target Name</label>
-              <InputText v-model="targetName" type="text" />
+              <InputText v-model="searchTerms.targetName" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Seed</label>
-              <InputText v-model="targetSeed" type="text" />
+              <InputText v-model="searchTerms.targetSeed" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Description</label>
-              <InputText v-model="targetDescription" type="text" />
+              <InputText v-model="searchTerms.targetDescription" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Member of</label>
-              <InputText v-model="targetMemberOf" type="text" />
+              <InputText v-model="searchTerms.targetMemberOf" type="text" />
             </div>
             <div class="field col-12 md:col-2">
               <label>Non-Display Only</label>
-              <Checkbox v-model="noneDisplayOnly" :binary="true" />
+              <Checkbox v-model="searchTerms.noneDisplayOnly" :binary="true" />
             </div>
           </div>
         </div>
@@ -207,11 +196,11 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>Agency</InputGroupAddon>
-            <Dropdown id="agency" v-model="selectedAgency" :options="agencies.agencyListWithEmptyItem"
+            <Dropdown id="agency" v-model="filters.selectedAgency" :options="agencies.agencyListWithEmptyItem"
               optionLabel="name" placeholder="Select an Agency" class="w-full md:w-18rem">
               <template #value="slotProps">
                 <div class="flex align-items-center">
-                  <div>{{ selectedAgency.name }}</div>
+                  <div>{{ filters.selectedAgency.name }}</div>
                 </div>
               </template>
               <template #option="slotProps">
@@ -225,11 +214,11 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>User</InputGroupAddon>
-            <Dropdown id="user" v-model="selectedUser" :options="users.userListWithEmptyItem" optionLabel="name"
+            <Dropdown id="user" v-model="filters.selectedUser" :options="users.userListWithEmptyItem" optionLabel="name"
               placeholder="Select an User" class="w-full md:w-18rem">
               <template #value="slotProps">
                 <div class="flex align-items-center">
-                  <div>{{ selectedUser.name }}</div>
+                  <div>{{ filters.selectedUser.name }}</div>
                 </div>
               </template>
               <template #option="slotProps">
@@ -244,7 +233,7 @@ onMounted(() => {
         <div class="field">
           <InputGroup class="w-full md:w-20rem">
             <InputGroupAddon>State</InputGroupAddon>
-            <MultiSelect v-model="selectedState" :options="stateList" optionLabel="name" placeholder="Select States"
+            <MultiSelect v-model="filters.selectedState" :options="stateList" optionLabel="name" placeholder="Select States"
               :maxSelectedLabels="3" class="w-full md:w-20rem" />
           </InputGroup>
         </div>

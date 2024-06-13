@@ -283,7 +283,7 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
             // Ensure blockedUrls and includedUrls are arrays
             if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
                 if (!Array.isArray(override.value)) {
-                    override.value = override.value.split(',');
+                    override.value = override.value.toString().split(',');
                 }
             }
         })        
