@@ -16,6 +16,7 @@
 post_target_file_template=post-target-template.json
 post_group_file_template=post-group-template.json
 put_target_file=put-target.json
+put_group_file=put-group.json
 put_target_instance_file=put-target-instance.json
 . ./credentials
 
@@ -156,6 +157,15 @@ echo "POST succeeded: there's a new group with id $group_id"
 echo "Getting newly created group with id $group_id"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id" 
 curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id | jq .  
+
+echo "Updating group with id $group_id"
+echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id -d @$put_group_file"
+curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id -d @$put_group_file
+
+echo "Getting updated group"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id | jq .  
+
 
 
 echo "Cleaning up temp files"

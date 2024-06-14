@@ -1,0 +1,17 @@
+{
+"general":
+	{
+		"description": "Updated description"
+	},
+"profile": 
+	{
+		"overrides": 
+			[
+				{
+					"id": "blockedUrls",
+					"value": ["http://www.kb.nl", "http://www.dbnl.org"],
+					"enabled": true
+				}
+			]
+	}
+}

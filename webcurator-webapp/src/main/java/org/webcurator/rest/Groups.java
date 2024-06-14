@@ -20,11 +20,15 @@ import org.webcurator.rest.dto.ProfileDTO;
 import org.webcurator.rest.dto.ScheduleDTO;
 
 import javax.servlet.http.HttpServletRequest;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import java.lang.reflect.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -39,6 +43,9 @@ public class Groups {
     // Response field names that are used more than once
     private static final String OFFSET_FIELD = "offset";
     private static final String LIMIT_FIELD = "limit";
+
+    private ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private Validator validator = factory.getValidator();
 
     @Autowired
     TargetDAO targetDAO;
@@ -163,7 +170,51 @@ public class Groups {
         }
     }
 
-    void upsert(TargetGroup group, GroupDTO groupDTO) throws BadRequestError {
+
+    /**
+     * Handler for updating individual groups
+     */
+    @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> put(@PathVariable long id, @RequestBody HashMap<String, Object> groupMap, HttpServletRequest request) {
+        TargetGroup targetGroup = targetDAO.loadGroup(id, true);
+        if (targetGroup == null) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Target with id %s does not exist", id)));
+        }
+        // Annotations are managed differently from normal associated entities
+        targetGroup.setAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetGroup.getClass()), id));
+        // Create DTO based on the current data in the database
+        GroupDTO groupDTO = new GroupDTO(targetGroup);
+        // Then update the DTO with data from the supplied JSON
+        try {
+            Utils.mapToDTO(groupMap, groupDTO);
+        } catch (BadRequestError e) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+        }
+
+        // Validate updated DTO
+        Set<ConstraintViolation<GroupDTO>> violations = validator.validate(groupDTO);
+        if (!violations.isEmpty()) {
+            // Return the first violation we find
+            ConstraintViolation<GroupDTO> constraintViolation = violations.iterator().next();
+            String message = constraintViolation.getPropertyPath() + ": " + constraintViolation.getMessage();
+            return ResponseEntity.badRequest().body(Utils.errorMessage(message));
+        }
+
+        // Finally, map the DTO to the entity and update the database
+        try {
+            upsert(targetGroup, groupDTO);
+            return ResponseEntity.ok().build();
+        } catch (BadRequestError e) {
+            return ResponseEntity.badRequest().body(Utils.errorMessage(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Utils.errorMessage(e.getMessage()));
+        }
+    }
+
+
+    private void upsert(TargetGroup group, GroupDTO groupDTO) throws BadRequestError {
         String ownerStr = groupDTO.getGeneral().getOwner();
         User owner = userRoleDAO.getUserByName(ownerStr);
         if (owner == null) {
