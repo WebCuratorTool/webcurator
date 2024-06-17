@@ -74,7 +74,7 @@ interface TargetAccess {
     accessZone: number,
     accessZoneText: string,
     displayChangeReason: string,
-    displayNote: StreamPipeOptions
+    displayNote: string
 }
 
 export type {
