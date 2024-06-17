@@ -8,7 +8,7 @@ import { formatDatetime } from '@/utils/helper'
 import { useUsersStore, useUserProfileStore } from '@/stores/users'
 import { useAgenciesStore } from '@/stores/agencies'
 import { stateList, formatTargetState, showTargetAction } from '@/stores/target'
-import { useTargetListSearchStore, useTargetListFiltertore } from '@/stores/targetlist';
+import { useTargetListSearchStore, useTargetListFiltertore } from '@/stores/targetList';
 
 import PageHeader from '@/components/PageHeader.vue'
 
