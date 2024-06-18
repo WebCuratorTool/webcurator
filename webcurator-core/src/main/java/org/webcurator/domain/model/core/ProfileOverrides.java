@@ -906,6 +906,13 @@ public class ProfileOverrides {
 	}
 
 	/**
+	 * @param h3DataLimit The h3DataLimit to set.
+	 */
+	public void setH3DataLimit(Long h3DataLimit) {
+		this.h3DataLimit = h3DataLimit.doubleValue();
+	}
+
+	/**
 	 * @return Returns the overrideH3DataLimit.
 	 */
 	public boolean isOverrideH3DataLimit() {
@@ -945,6 +952,13 @@ public class ProfileOverrides {
 	 */
 	public void setH3TimeLimit(Double h3TimeLimit) {
 		this.h3TimeLimit = h3TimeLimit;
+	}
+
+	/**
+	 * @param h3TimeLimit The h3TimeLimit to set.
+	 */
+	public void setH3TimeLimit(Long h3TimeLimit) {
+		this.h3TimeLimit = h3TimeLimit.doubleValue();
 	}
 
 	/**
