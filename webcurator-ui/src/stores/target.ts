@@ -1,7 +1,7 @@
-import { ref, reactive, computed } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
-import { type UseFetchApis, useFetch } from '@/utils/rest.api';
-import { useUserProfileStore, useUsersStore, getPresentationUserName } from '@/stores/users';
+import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
+import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
 const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 }
@@ -20,6 +20,27 @@ export const stateList = [
     TARGET_STATE_CANCELLED,
     TARGET_STATE_COMPLETED,
 ]
+
+export const initNewTarget = () => {
+    useTargetDescriptionDTO().initData();
+    useTargetGeneralDTO().initData();
+    useTargetGropusDTO().initData();
+    useTargetProfileDTO().initData();
+    useTargetSeedsDTO().initData();
+    useNextStateStore().initData();
+    useTargetAccessDTO().initData();
+}
+
+export const setTarget = (target: Target) => {
+    console.log(target);
+    
+    useTargetDescriptionDTO().setData(target.description);
+    useTargetGeneralDTO().setData(target.general);
+    useTargetGropusDTO().setData(target.groups);
+    useTargetProfileDTO().setData(target.profile);
+    useTargetSeedsDTO().setData(target.seeds);
+    useTargetAccessDTO().setData(target.access);
+}
 
 export const formatTargetState = (state: number | any) => {
     //console.log(state);
@@ -80,8 +101,7 @@ export const useNextStateStore = defineStore('TargetNextStateList', () => {
     return { nextStateList, initData, setData };
 });
 
-
-export const isTargetAction = (target: any, actionName: string) => {
+export const showTargetAction = (target: any, actionName: string) => {
     if (!target || !actionName) {
         return false;
     }
@@ -104,7 +124,6 @@ export const isTargetAction = (target: any, actionName: string) => {
         return (target.state === TARGET_STATE_REJECTED.code || target.state === TARGET_STATE_CANCELLED.code);
     }
 };
-
 
 export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     const id = ref();
@@ -159,7 +178,7 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
         }
     }
 
-    const setData = (data: any) => {
+    const setData = (data: any) => {        
         id.value = data.id;
         name.value = data.name;
         creationDate.value = data.creationDate;
@@ -188,4 +207,161 @@ export const useTargetGeneralDTO = defineStore('TargetDTOGeneral', () => {
     }
 
     return { id, name, creationDate, description, referenceNumber, runOnApproval, automatedQA, selectedUser, selectedState, autoPrune, referenceCrawl, requestToArchivists, initData, getData, setData };
+});
+
+const profileOverrides = [
+    {
+        id:	"documentLimit",
+        value:	0,
+        enabled: false
+    },
+    {
+        id: "dataLimit",
+        value: 0.0,
+        enabled: false,
+        unit: "B"
+    },
+    {
+        id: "timeLimit",
+        value: 0.0,
+        enabled: false,
+        unit: "SECOND"	
+    },
+    {
+        id: "maxPathDepth",
+        value: 0,
+        enabled: false,
+    },
+    {
+        id: "maxHops",
+        value: 0,
+        enabled: false
+    },
+    {   
+        id: "maxTransitiveHops",
+        value: 0,
+        enabled: false
+    },
+    {
+        id: "ignoreRobots",
+        value: false,
+        enabled: false
+    },
+    {
+        id: "extractJs",
+        value: false,
+        enabled: false
+    },
+    {
+        id: "ignoreCookies",
+        value: false,
+        enabled: false
+    },
+    {
+        id: "blockedUrls",
+        value: [],
+        enabled: false
+    },
+    {
+        id: "includedUrls",
+        value: [],
+        enabled: false
+    }
+];
+
+export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
+    const targetProfile = ref({} as TargetProfile);
+
+    const initData = () => {
+        targetProfile.value = {} as TargetProfile;
+        targetProfile.value.id = null
+        targetProfile.value.overrides = profileOverrides
+    }
+
+    const getData = () => {        
+        targetProfile.value.overrides.forEach((override) => {       
+            // Ensure blockedUrls and includedUrls are arrays
+            if (override.id == 'blockedUrls' || override.id == 'includedUrls') {
+                if (!Array.isArray(override.value)) {
+                    override.value = override.value.toString().split(',');
+                }
+            }
+        })        
+
+        return targetProfile.value;
+    }
+
+    const setProfile = (data: {id: number, type: string, name: string}) => {
+        targetProfile.value.id = data.id;
+        targetProfile.value.harvesterType = data.type;
+        targetProfile.value.name = data.name
+    }
+    
+    const setData = (data: TargetProfile) => {
+        
+        targetProfile.value = data;
+    }
+
+    return { targetProfile, initData, getData, setData, setProfile }
+});
+
+export const useTargetDescriptionDTO = defineStore('TargetDescriptionDTO', () => {
+    const targetDescription = ref({} as TargetDescription);
+
+    const initData = () => {
+        targetDescription.value = {} as TargetDescription;
+    }
+
+    const setData = (data: TargetDescription) => {
+        targetDescription.value = data;
+    }
+    
+    const getData = () => targetDescription.value;
+
+    return { targetDescription, initData, setData, getData }
+});
+
+export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
+    const targetSeeds = ref([]);
+    
+    const initData = () => {
+        targetSeeds.value = [];
+    }
+
+    const setData = (data: any) => {
+        targetSeeds.value = data;
+    }
+    const getData = () => targetSeeds.value;
+
+    return { targetSeeds, initData, setData, getData }
+});
+
+export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
+    const targetGroups = ref([] as TargetGroups);
+    
+    const initData = () => {
+        targetGroups.value = [] as TargetGroups;
+    }
+
+    const setData = (data: TargetGroups) => {
+        targetGroups.value = data;
+    }
+    const getData = () => targetGroups.value;
+
+    return { targetGroups, initData, setData, getData }
+});
+
+export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
+    const targetAccess = ref({} as TargetAccess);
+    
+    const initData = () => {
+        targetAccess.value = {} as TargetAccess;
+    }
+
+    const setData = (data: TargetAccess) => {
+        targetAccess.value = data;
+    }
+    const getData = () => targetAccess.value;
+
+    return { targetAccess, initData, setData, getData }
 });

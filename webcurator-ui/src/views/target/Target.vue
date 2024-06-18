@@ -1,71 +1,93 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router';
-import { ref, watch, shallowRef, onBeforeMount } from "vue";
-import { getRouteURLByName } from '@/utils/helper';
-import { useUsersStore } from '@/stores/users';
-import { useAgenciesStore } from '@/stores/agencies';
-import TargetList from './TargetList.vue';
-import TargetTabView from './TargetTabView.vue';
+import { ref } from 'vue';
+import { useRoute } from 'vue-router'
+import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import {
+    setTarget,
+    useTargetDescriptionDTO,
+    useTargetGeneralDTO,
+    useTargetGropusDTO,
+    useTargetProfileDTO,
+    useTargetSeedsDTO, 
+    useNextStateStore 
+} from '@/stores/target';
 
-const current = shallowRef(TargetList);
+import TargetTabView from './target-tabs/TargetTabView.vue';
 
-const props = ref({
-    page: 'TargetTabView',
-    mode: 'new',
-    id: 0,
-});
+const route = useRoute()
+const targetId = route.params.id as string
 
-const users = useUsersStore();
-const agencies = useAgenciesStore();
+const rest: UseFetchApis = useFetch();
 
-const route = useRoute();
-const router = useRouter();
+const targetGeneral = useTargetGeneralDTO();
+const targetProfile = useTargetProfileDTO();
+const targetDescription = useTargetDescriptionDTO();
+const targetSeeds = useTargetSeedsDTO();
+const targetGroups = useTargetGropusDTO();
+const nextStates = useNextStateStore();
 
-watch(() => router.currentRoute.value.path, (to, from) => {
-    console.log('to: ' + to);
-    if (route.name === 'target-list') {
-        current.value = TargetList;
-        props.value.page = 'TargetList';
-    } else if (route.name === 'target-tabview-new') {
-        current.value = TargetTabView;
-        props.value.page = 'TargetTabView';
-        props.value.mode = 'new';
-    } else if (route.name === 'target-tabview-exist') {
-        current.value = TargetTabView;
-        props.value.page = 'TargetTabView';
-        props.value.mode = route.params.mode.toString();
-        props.value.id = Number(route.params.id.toString());
-    }
-}, { immediate: true });
+const editing = ref(false);
+const isTargetAvailable = ref(false);
+const loading = ref(false);
 
-const popPage = (options: any) => {
-    let url = '/';
-    if (options.page === 'TargetList') {
-        current.value = TargetList;
-        url = getRouteURLByName('target-list');
-    } else {
-        props.value = options;
-        current.value = TargetTabView;
-
-        if (options.mode === 'new') {
-            url = getRouteURLByName('target-tabview-new');
-        } else {
-            url = getRouteURLByName('target-tabview-exist', options);
-        }
-    }
-    history.pushState({}, '', url);
+const initData = () => {
+    isTargetAvailable.value = false;
+    targetGeneral.initData();
+    nextStates.initData();
 }
 
-onBeforeMount(() => {
-    agencies.initialFetch();
-    users.initialFetch();
-});
+const fetchTargetDetails = () => {
+    isTargetAvailable.value = false;
+    loading.value = true;
+
+    rest.get('targets/' + targetId).then((data: any) => {        
+        isTargetAvailable.value = true;
+        setTarget(data);
+        nextStates.setData(targetGeneral.selectedState, data.general.nextStates);
+    }).catch((err: any) => {
+        console.log(err.message);
+        initData();
+    }).finally(() => {
+        loading.value = false;
+    });
+}
+
+const save = () => {
+    const dataReq = {
+        general: targetGeneral.getData(),
+        profile: targetProfile.getData(),
+        description: targetDescription.getData(),
+    }    
+
+    rest.put('targets/' + targetGeneral.id, dataReq)
+    .then((data: any) => {
+        console.log(data)
+    })
+    .catch((err: any) => {
+        console.log(err.message)
+    })
+    .finally(() => {
+        editing.value = false
+    })
+}
+
+const setEditing = (isEditing: boolean) => {
+    editing.value = isEditing;
+    if (!isEditing) {
+        fetchTargetDetails();
+    }
+}
+
+fetchTargetDetails();
+
 </script>
 
 <template>
-    <KeepAlive include="TargetList">
-        <component :is="current" :props="props" @popPage="popPage"></component>
-    </KeepAlive>
+    <TargetTabView 
+        :editing=editing 
+        :isTargetAvailable=isTargetAvailable
+        :loading=loading 
+        @setEditing="setEditing"
+        @save="save"    
+    />
 </template>
-
-<style></style>

@@ -18,17 +18,17 @@ export const routes={
           // route level code-splitting
           // this generates a separate chunk (About.[hash].js) for this route
           // which is lazy-loaded when the route is visited.
-          component: () => import('@/views/target/Target.vue')
+          component: () => import('@/views/target/TargetList.vue')
         },
         {
-          path: 'targets/:mode/:id',
-          name: 'target-tabview-exist',
+          path: 'targets/:id',
+          name: 'target',
           component: () => import('@/views/target/Target.vue')
         },
         {
           path: 'targets/new',
-          name: 'target-tabview-new',
-          component: () => import('@/views/target/Target.vue')
+          name: 'target-new',
+          component: () => import('@/views/target/TargetNew.vue')
         }
       ]
     }

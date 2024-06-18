@@ -103,9 +103,38 @@ export function useFetch() {
                 if (payload) {
                     reqOptions.body = JSON.stringify(payload);
                 }
+                
 
-                ret = await fetch('/wct/api/v1/' + path, reqOptions).then(rsp => {
-                    //console.log(rsp);
+                
+                // const response = await fetch('/wct/api/v1/' + path, reqOptions);
+                // if (response.status == 401) {
+                //     return null;
+                // }
+
+                // isFinished.value = true;
+
+                // if (response.ok) {
+                //     try {
+                //         const text = await response.text();
+                //         const data = JSON.parse(text);
+                //         return data;
+                //     } catch {
+                //         return { status: "success"}
+                //     }
+                // } else {                    
+                //     let errorMessage
+                //     const error = await response.json()
+                //     if (!error || error.length === 0) {
+                //         errorMessage = "Unknown error."
+                //     } else {
+                //         errorMessage = error.Error
+                //     }
+                //     throw new Error(response.status + " : " + errorMessage);
+                // }
+                
+
+                ret = await fetch('/wct/api/v1/' + path, reqOptions).then(async rsp => {
+                    // console.log(rsp);
                     if (rsp.status == 401) {
                         return null;
                     }
@@ -113,13 +142,22 @@ export function useFetch() {
                     isFinished.value = true;
 
                     if (rsp.ok) {
-                        return rsp.json();
-                    } else {
-                        let statusText = rsp.statusText;
-                        if (!statusText || statusText.length === 0) {
-                            statusText = "Unknown error."
+                        try {
+                            const text = await rsp.text();
+                            const data = JSON.parse(text);
+                            return data;
+                        } catch {
+                            return "Success";
                         }
-                        throw new Error(rsp.status + " : " + statusText);
+                    } else {                    
+                        let errorMessage
+                        const error = await rsp.json()
+                        if (!error || error.length === 0) {
+                            errorMessage = "Unknown error."
+                        } else {
+                            errorMessage = error.Error
+                        }
+                        throw new Error(rsp.status + " : " + errorMessage);
                     }
                 });
 
