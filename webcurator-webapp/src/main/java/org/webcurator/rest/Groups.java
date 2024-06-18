@@ -146,6 +146,22 @@ public class Groups {
 
 
     /**
+     * Handler for deleting groups
+     */
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity delete(@PathVariable long id) {
+        TargetGroup targetGroup = targetDAO.loadGroup(id);
+        if (targetGroup == null) {
+            return ResponseEntity.notFound().build();
+        }
+        targetDAO.deleteGroup(targetGroup);
+        // Annotations are managed differently from normal associated entities
+        annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(targetGroup.getClass()), id));
+        return ResponseEntity.ok().build();
+    }
+
+
+    /**
      * Handler for adding new groups
      */
     @PostMapping(path = "")

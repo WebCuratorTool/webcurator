@@ -166,7 +166,9 @@ echo "Getting updated group"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id" 
 curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id | jq .  
 
-
+echo "Deleting group"
+echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id" 
+curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id
 
 echo "Cleaning up temp files"
 rm $post_target_file 
