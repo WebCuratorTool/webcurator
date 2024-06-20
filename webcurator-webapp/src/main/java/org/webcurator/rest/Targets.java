@@ -176,8 +176,7 @@ public class Targets {
             } else if (target.getState() != Target.STATE_REJECTED && target.getState() != Target.STATE_CANCELLED) {
                 return ResponseEntity.badRequest().body(Utils.errorMessage("Target could not be deleted because its state is not Rejected or Cancelled"));
             } else {
-                // FIXME This does not delete group memberships
-                targetDAO.delete(target);
+                targetManager.deleteTarget(target);
                 // Annotations are managed differently from normal associated entities
                 annotationDAO.deleteAnnotations(annotationDAO.loadAnnotations(WctUtils.getPrefixClassName(target.getClass()), id));
                 return ResponseEntity.ok().build();
