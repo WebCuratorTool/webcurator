@@ -141,8 +141,6 @@ echo "Cleaning up target instance $target_instance_id"
 echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id" 
 curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/target-instances/$target_instance_id 
 
-delete_target
-
 echo "Posting group example"
 echo "curl -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/ -d @$post_group_file"
 group_id=`curl -v -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/ -d @$post_group_file 2>&1 | grep "Location:" | tr -d '\r' | sed 's/.*\/\([0-9]\+\)$/\1/'`
@@ -162,13 +160,32 @@ echo "Updating group with id $group_id"
 echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id -d @$put_group_file"
 curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id -d @$put_group_file
 
+
 echo "Getting updated group"
 echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id" 
 curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id | jq .  
 
+echo "Adding target with id $target_id to group with id $group_id"
+echo "curl -XPOST -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id/members/$target_id -d'{}'"
+curl -XPOST -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id/members/$target_id -d'{}'
+
+echo "Getting members of group $group_id"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id/members" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id/members | jq .  
+
+echo "Removing target with id $target_id from group with id $group_id"
+echo "curl -XDELETE -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id/members/$target_id -d'{}'"
+curl -XDELETE -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id/members/$target_id -d'{}'
+
+echo "Getting members of group $group_id after removal of member $target_id"
+echo "curl -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id/members" 
+curl -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id/members | jq .  
+
 echo "Deleting group"
 echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/groups/$group_id" 
 curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/groups/$group_id
+
+delete_target
 
 echo "Cleaning up temp files"
 rm $post_target_file 

@@ -430,6 +430,37 @@ public class Groups {
     }
 
     /**
+     * Handler for removing individual group members
+     */
+    @DeleteMapping(path = "/{id}/members/{memberId}")
+    public ResponseEntity remove(@PathVariable long id, @PathVariable long memberId) {
+        TargetGroup targetGroup = targetDAO.loadGroup(id);
+        if (targetGroup == null) {
+            return ResponseEntity.notFound().build();
+        }
+        AbstractTarget abstractTarget = targetDAO.load(memberId);
+        if (abstractTarget == null) {
+            abstractTarget = targetDAO.loadGroup(memberId);
+            if (abstractTarget == null) {
+                return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("No group or target with id %s exists", memberId)));
+            }
+        }
+        for (GroupMember groupMember : targetGroup.getChildren()) {
+            if (groupMember.getChild().getOid() == memberId) {
+                targetGroup.getRemovedChildren().add(memberId);
+                try {
+                    targetDAO.save(targetGroup, true, null);
+                    return ResponseEntity.ok().build();
+                } catch (Exception e) {
+                    ResponseEntity.internalServerError().body(Utils.errorMessage(String.format("Error while trying to remove group member: %s", e.getMessage())));
+                }
+            }
+        }
+        return ResponseEntity.badRequest().body(Utils.errorMessage(String.format("Group does not contain member with id %s", memberId)));
+    }
+
+
+    /**
      * Returns an overview of all possible group states
      */
     @GetMapping(path = "/states")
