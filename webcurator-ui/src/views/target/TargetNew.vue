@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore, initNewTarget } from '@/stores/target';
+import { useTargetGeneralDTO, useTargetProfileDTO, useTargetDescriptionDTO, useNextStateStore, initNewTarget, useTargetGropusDTO } from '@/stores/target';
 import { useProfiles } from '@/stores/profiles';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
 
@@ -15,8 +15,9 @@ const isTargetAvailable = ref(false);
 
 const rest: UseFetchApis = useFetch();
 
-const targetGeneral = useTargetGeneralDTO();
 const targetDescription = useTargetDescriptionDTO();
+const targetGeneral = useTargetGeneralDTO();
+const targetGroups = useTargetGropusDTO();
 const targetProfile = useTargetProfileDTO();
 const nextStates = useNextStateStore();
 
@@ -33,10 +34,14 @@ const fetchProfile = () => {
 }
 
 const save = () => {
-    const dataReq = {
-        general: targetGeneral.getData(),
-        profile: targetProfile.getData(),
+    const dataReq: any = {
         description: targetDescription.getData(),
+        general: targetGeneral.getData(),
+        groups: targetGroups.getData(),
+    }
+
+    if (targetProfile.getData().id != null) {
+        dataReq.profile = targetProfile.getData();
     }
 
     rest.post('targets/save', dataReq)

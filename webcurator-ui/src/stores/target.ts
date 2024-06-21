@@ -298,7 +298,6 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
     }
     
     const setData = (data: TargetProfile) => {
-        
         targetProfile.value = data;
     }
 
@@ -338,17 +337,23 @@ export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
 
 export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
     const targetGroups = ref([] as TargetGroups);
+    // Due to an issue with the PrimeVue Chip component, a duplicate is needed for editing 
+    const editedGroups = ref([] as TargetGroups);
     
     const initData = () => {
         targetGroups.value = [] as TargetGroups;
+        editedGroups.value = [] as TargetGroups;
     }
 
     const setData = (data: TargetGroups) => {
         targetGroups.value = data;
+        editedGroups.value = data;
     }
-    const getData = () => targetGroups.value;
 
-    return { targetGroups, initData, setData, getData }
+    const getData = () => targetGroups.value;
+    const getEditedGroups = () => editedGroups.value;
+
+    return { targetGroups, editedGroups, initData, setData, getData, getEditedGroups }
 });
 
 export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {

@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { defineAsyncComponent, ref } from 'vue';
+import { useDialog } from 'primevue/usedialog';
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
 import { useTargetGeneralDTO, useTargetGropusDTO, useTargetSeedsDTO, formatTargetState, useNextStateStore } from '@/stores/target'
 
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
+
+const AddGroupsModal = defineAsyncComponent(() => import('./TargetAddGroupsModal.vue'))
 
 defineProps<{
     editing: boolean
@@ -15,6 +19,19 @@ const targetSeeds = useTargetSeedsDTO();
 
 const users = useUsersStore();
 const nextStates = useNextStateStore();
+
+const addGroupsModal = useDialog();
+
+const showAddGroups = () => {
+  const modalRef = addGroupsModal.open(AddGroupsModal, {
+    props: { header: 'Add Groups', modal: true, dismissableMask: true, style: { width: '50vw' } },
+    data: { targetGroups: targetGroups.targetGroups, editedGroups: targetGroups.editedGroups }
+  })
+}
+
+const removeGroup = (groupId: number) => {  
+  targetGroups.editedGroups = targetGroups.editedGroups.filter(g => g.id != groupId)
+}
 
 </script>
 
@@ -86,16 +103,19 @@ const nextStates = useNextStateStore();
             </div>
           </template>
         </Dropdown>
-        <p v-else class="font-semibold">{{ formatTargetState(targetGeneral.selectedState)}}</p>
+        <p v-else class="font-semibold">{{ formatTargetState(targetGeneral.selectedState) }}</p>
       </WctFormField>
     </div>
   </WctTabViewPanel>
 
   <!-- Groups -->
-  <h4>Groups</h4>
+  <div class="flex justify-content-between">
+    <h4>Groups</h4>
+    <Button v-if="editing" icon="pi pi-plus" label="Add" text @click="showAddGroups" />
+  </div>
   <WctTabViewPanel>
     <div class="flex flex-wrap gap-2">
-      <Chip v-for="group in targetGroups.targetGroups" :label="group.name" :removable="editing"/>
+      <Chip v-for="group in targetGroups.targetGroups" :label="group.name" :removable="editing" @remove="removeGroup(group.id)" />
     </div>
   </WctTabViewPanel>
 

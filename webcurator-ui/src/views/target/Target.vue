@@ -57,6 +57,7 @@ const save = () => {
         general: targetGeneral.getData(),
         profile: targetProfile.getData(),
         description: targetDescription.getData(),
+        groups: targetGroups.getEditedGroups()
     }    
 
     rest.put('targets/' + targetGeneral.id, dataReq)
@@ -86,7 +87,7 @@ fetchTargetDetails();
     <TargetTabView 
         :editing=editing 
         :isTargetAvailable=isTargetAvailable
-        :loading=loading 
+        :loading=loading
         @setEditing="setEditing"
         @save="save"    
     />

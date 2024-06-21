@@ -40,7 +40,7 @@ const harvesterTypes = ref([
     'HERITRIX3'
 ])
 
-const profiles = ref([] as Profiles);
+const profiles = useProfiles().profiles;
 const selectedHarvesterType = ref(targetProfile.harvesterType)
 const selectedProfile = ref({} as Profile | undefined)
 
@@ -55,8 +55,7 @@ const fetchProfile = () => {
     }).catch((err: any) => {
         console.log(err.message);
     }).finally(() => {
-        profiles.value = useProfiles().profiles;
-        selectedProfile.value = profiles.value.find(profile => profile.id == targetProfile.id)
+        selectedProfile.value = profiles.find(profile => profile.id == targetProfile.id)
         loading.value = false;
     })   
 }
