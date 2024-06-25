@@ -24,13 +24,8 @@ const addGroupsModal = useDialog();
 
 const showAddGroups = () => {
   const modalRef = addGroupsModal.open(AddGroupsModal, {
-    props: { header: 'Add Groups', modal: true, dismissableMask: true, style: { width: '50vw' } },
-    data: { targetGroups: targetGroups.targetGroups, editedGroups: targetGroups.editedGroups }
+    props: { header: 'Add Groups', modal: true, dismissableMask: true, style: { width: '50vw' } }
   })
-}
-
-const removeGroup = (groupId: number) => {  
-  targetGroups.editedGroups = targetGroups.editedGroups.filter(g => g.id != groupId)
 }
 
 </script>
@@ -115,7 +110,13 @@ const removeGroup = (groupId: number) => {
   </div>
   <WctTabViewPanel>
     <div class="flex flex-wrap gap-2">
-      <Chip v-for="group in targetGroups.targetGroups" :label="group.name" :removable="editing" @remove="removeGroup(group.id)" />
+      <Chip 
+        v-if="!targetGroups.removingGroup" 
+        v-for="group in targetGroups.targetGroups" 
+        :label="group.name" 
+        :removable="editing" 
+        @remove="targetGroups.removeGroup(group.id)" 
+      />
     </div>
   </WctTabViewPanel>
 

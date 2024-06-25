@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref, inject, onMounted } from 'vue';
+import { ref, inject } from 'vue';
 import { type UseFetchApis, useFetch } from '@/utils/rest.api';
+import { useTargetGropusDTO } from '@/stores/target'
+
 
 const dialogRef: any = inject('dialogRef');
 
 const rest: UseFetchApis = useFetch();
 
+const targetGroups = useTargetGropusDTO();
+
 const groups = ref([]);
-const targetGroups = ref(dialogRef.value.data.targetGroups);
-const editedGroups = ref(dialogRef.value.data.editedGroups);
 const loading = ref(false);
 
 const name = ref('');
@@ -42,13 +44,12 @@ const search = () => {
         })
 }
 
-const findAddedGroup = (id: number) => {
-    return editedGroups.value.some((t: any) => t.id == id);
+const isGroupAdded = (id: number) => {
+    return targetGroups.targetGroups.some((t: any) => t.id == id);
 }
 
 const addGroup = (group: any) => {
-    targetGroups.value.push(group);
-    editedGroups.value.push(group);
+    targetGroups.targetGroups.push(group);
 }
 
 search();
@@ -64,18 +65,30 @@ search();
 
     <Divider type="dotted" />
 
-    <DataTable class="w-full" :value="groups" :loading="loading">
+    <div class="flex flex-wrap gap-2">
+        <Chip 
+            v-if="!targetGroups.removingGroup" 
+            v-for="group in targetGroups.targetGroups" 
+            :label="group.name" 
+            :removable="true"
+            @remove="targetGroups.removeGroup(group.id)" 
+        />
+    </div>
+
+    <Divider type="dotted" />
+
+    <DataTable class="w-full" :value="groups" size="small" paginator :rows="10" :loading="loading">
         <Column field="name" header="Name" />
         <Column field="state" header="Status">
             <template #body="{ data }">
                 {{ states[data.state] }}
             </template>
         </Column>
-        <Column field="agency" header="Agency" />
+        <Column field="agency" header="Agency" sortable />
         <Column>
             <template #body="{ data }">
                 <div class="flex justify-content-center">
-                    <i v-if="findAddedGroup(data.id)" class="pi pi-check" />
+                    <i v-if="isGroupAdded(data.id)" class="pi pi-check" />
                     <Button v-else label="Add" text @click="addGroup(data)" />
                 </div>
             </template>
