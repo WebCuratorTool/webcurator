@@ -24,11 +24,11 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -65,12 +65,20 @@ public class Groups {
     @Autowired
     TargetManager2 targetManager;
 
+
     private Map<Integer, String> stateMap = new TreeMap();
+    private List<String> groupTypes = new ArrayList<>();
 
     public Groups() {
         stateMap.put(TargetGroup.STATE_PENDING, "Pending");
         stateMap.put(TargetGroup.STATE_ACTIVE, "Active");
         stateMap.put(TargetGroup.STATE_INACTIVE, "Inactive");
+        groupTypes.add("collection");
+        groupTypes.add("event");
+        groupTypes.add("functional");
+        groupTypes.add("sub-group");
+        groupTypes.add("subject");
+        groupTypes.add("thematic");
     }
 
     /**
@@ -466,6 +474,14 @@ public class Groups {
     @GetMapping(path = "/states")
     public ResponseEntity getStates() {
         return ResponseEntity.ok().body(stateMap);
+    }
+
+    /**
+     * Returns an overview of all group types
+     */
+    @GetMapping(path = "/types")
+    public ResponseEntity getTypes() {
+        return ResponseEntity.ok().body(groupTypes);
     }
 
 

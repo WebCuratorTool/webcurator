@@ -29,11 +29,11 @@ delete_target() {
 	echo "Setting state to 4 for target $target_id, so we can delete it"
 	data="{\"general\": {\"state\":4}}"
 	echo "curl -XPUT -H\"Content-Type: application/json\" -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id -d \"$data\""
-	curl -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id -d "$data"
+	curl -v -XPUT -H"Content-Type: application/json" -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id -d "$data"
 
 	echo "Cleaning up target $target_id"
 	echo "curl -XDELETE -H\"Authorization: Bearer $token\" http://localhost:8080/wct/api/v1/targets/$target_id" 
-	curl -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id
+	#curl -v -XDELETE -H"Authorization: Bearer $token" http://localhost:8080/wct/api/v1/targets/$target_id
 }
 
 echo "Getting token"
