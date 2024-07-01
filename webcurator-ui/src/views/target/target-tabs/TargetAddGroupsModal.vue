@@ -48,10 +48,6 @@ const isGroupAdded = (id: number) => {
     return targetGroups.targetGroups.some((t: any) => t.id == id);
 }
 
-const addGroup = (group: any) => {
-    targetGroups.targetGroups.push(group);
-}
-
 search();
 
 </script>
@@ -86,7 +82,7 @@ search();
             <template #body="{ data }">
                 <div class="flex justify-content-center">
                     <i v-if="isGroupAdded(data.id)" class="pi pi-check" />
-                    <Button v-else class="p-0 m-0" label="Add" text @click="addGroup(data)" />
+                    <Button v-else class="p-0 m-0" label="Add" text @click="targetGroups.addGroup(data)" />
                 </div>
             </template>
         </Column>

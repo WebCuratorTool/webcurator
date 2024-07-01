@@ -352,8 +352,11 @@ export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
         targetGroups.value = targetGroups.value.filter(g => g.id != groupId);
     }
 
+    const addGroup = (group: any)=>{
+        targetGroups.value.push(group);
+    }
 
-    return { targetGroups, initData, setData, getData, removeGroup}
+    return { targetGroups, initData, setData, getData, removeGroup, addGroup}
 });
 
 export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {
