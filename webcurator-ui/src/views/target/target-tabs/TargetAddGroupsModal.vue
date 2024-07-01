@@ -86,7 +86,7 @@ search();
             <template #body="{ data }">
                 <div class="flex justify-content-center">
                     <i v-if="isGroupAdded(data.id)" class="pi pi-check" />
-                    <Button v-else label="Add" text @click="addGroup(data)" />
+                    <Button v-else class="p-0 m-0" label="Add" text @click="addGroup(data)" />
                 </div>
             </template>
         </Column>
