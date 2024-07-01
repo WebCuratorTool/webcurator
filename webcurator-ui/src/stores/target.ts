@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, computed} from 'vue';
 import { defineStore } from 'pinia';
 import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
 import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
@@ -298,7 +298,6 @@ export const useTargetProfileDTO = defineStore('TargetProfileDTO', () => {
     }
     
     const setData = (data: TargetProfile) => {
-        
         targetProfile.value = data;
     }
 
@@ -338,7 +337,7 @@ export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
 
 export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
     const targetGroups = ref([] as TargetGroups);
-    
+   
     const initData = () => {
         targetGroups.value = [] as TargetGroups;
     }
@@ -346,9 +345,18 @@ export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
     const setData = (data: TargetGroups) => {
         targetGroups.value = data;
     }
+
     const getData = () => targetGroups.value;
 
-    return { targetGroups, initData, setData, getData }
+    const removeGroup =  (groupId: number) => {
+        targetGroups.value = targetGroups.value.filter(g => g.id != groupId);
+    }
+
+    const addGroup = (group: any)=>{
+        targetGroups.value.push(group);
+    }
+
+    return { targetGroups, initData, setData, getData, removeGroup, addGroup}
 });
 
 export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {

@@ -69,7 +69,7 @@
 
 .p-tabview-panels {
 	padding-top: 1.2em;
-	width: calc(100vw - 480px);
+	/* width: calc(100vw - 480px); */
 }
 
 .wct-secondary-button {

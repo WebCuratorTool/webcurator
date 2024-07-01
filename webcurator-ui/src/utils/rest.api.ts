@@ -14,7 +14,7 @@ export const isAuthenticating = reactive({
 export interface UseFetchApis {
     // methods
     get: (path: string) => any
-    post: (path: string, payload: any) => any
+    post: (path: string, payload: any, customHeader?: any) => any
     put: (path: string, payload: any) => any
     delete: (path: string, payload: any) => any
     patch: (path: string, payload: any) => any
@@ -76,7 +76,7 @@ export function useFetch() {
     }
 
     function setMethod(methodValue: HttpMethod) {
-        return async (path: string, payload: any = null) => {
+        return async (path: string, payload: any = null, customHeader: any = null) => {
             const userProfile = useUserProfileStore();
 
             let ret = null;
@@ -92,19 +92,22 @@ export function useFetch() {
                     await sleep(1000);
                 }
 
+                const requestHeaders: HeadersInit = new Headers();
+                requestHeaders.set('Content-Type', 'application/json');
+                requestHeaders.set('Authorization', userProfile.token);
+
+                if (customHeader) {
+                    requestHeaders.set(customHeader.header, customHeader.value);
+                }
+
                 const reqOptions: RequestInit = {
                     method: methodValue,
                     redirect: 'error',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': userProfile.token,
-                    }
+                    headers: requestHeaders
                 }
                 if (payload) {
                     reqOptions.body = JSON.stringify(payload);
-                }
-                
-
+                }                
                 
                 // const response = await fetch('/wct/api/v1/' + path, reqOptions);
                 // if (response.status == 401) {
