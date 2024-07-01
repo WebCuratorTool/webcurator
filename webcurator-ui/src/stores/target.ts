@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, computed} from 'vue';
 import { defineStore } from 'pinia';
 import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
 import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
@@ -337,8 +337,7 @@ export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
 
 export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
     const targetGroups = ref([] as TargetGroups);
-    const removingGroup = ref(false);
-    
+   
     const initData = () => {
         targetGroups.value = [] as TargetGroups;
     }
@@ -349,15 +348,12 @@ export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {
 
     const getData = () => targetGroups.value;
 
-    const removeGroup = async (groupId: number) => {
-        // Use the removingGroup boolean to force the group chips to re-render after targetGroups updated, otherwise the PrimeVue Chip components
-        // get out of synch 
-        removingGroup.value = true;
-        await Promise.resolve(targetGroups.value = targetGroups.value.filter(g => g.id != groupId));
-        removingGroup.value = false;
+    const removeGroup =  (groupId: number) => {
+        targetGroups.value = targetGroups.value.filter(g => g.id != groupId);
     }
 
-    return { targetGroups, removingGroup, initData, setData, getData, removeGroup }
+
+    return { targetGroups, initData, setData, getData, removeGroup}
 });
 
 export const useTargetAccessDTO = defineStore('TargetAccessDTO', () => {

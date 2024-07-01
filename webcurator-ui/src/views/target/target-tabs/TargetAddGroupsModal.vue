@@ -66,13 +66,10 @@ search();
     <Divider type="dotted" />
 
     <div class="flex flex-wrap gap-2">
-        <Chip 
-            v-if="!targetGroups.removingGroup" 
-            v-for="group in targetGroups.targetGroups" 
-            :label="group.name" 
-            :removable="true"
-            @remove="targetGroups.removeGroup(group.id)" 
-        />
+        <Chip class="p-0" v-for="group in targetGroups.targetGroups">
+            <span class="p-2 m-0">{{ group.name }}</span>
+            <Button class="p-0 m-0" icon="pi pi-times-circle" style="width: 2rem;" link @click="targetGroups.removeGroup(group.id)"/>
+        </Chip>
     </div>
 
     <Divider type="dotted" />
