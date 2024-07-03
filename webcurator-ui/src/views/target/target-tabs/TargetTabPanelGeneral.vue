@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
 import { useTargetGeneralDTO, useTargetGropusDTO, useTargetSeedsDTO, formatTargetState, useNextStateStore } from '@/stores/target'
@@ -110,7 +110,7 @@ const showAddGroups = () => {
   </div>
   <WctTabViewPanel>
     <div class="flex flex-wrap gap-2">
-      <Chip class="p-0" v-for="group in targetGroups.targetGroups">
+      <Chip class="px-2" v-for="group in targetGroups.targetGroups">
           <span class="p-2 m-0">{{ group.name }}</span>
           <Button v-if="editing" class="p-0 m-0" icon="pi pi-times-circle" style="width: 2rem;" link @click="targetGroups.removeGroup(group.id)"/>
       </Chip>
