@@ -41,7 +41,10 @@ const fetch = () => {
 }
 
 const search = () => {
-    filteredGroups.value = groups.value.filter((g: any ) => g.name.includes(searchTerm.value) || g.agency.includes(searchTerm.value))
+    const lowerCaseSearchTerm = searchTerm.value.toLowerCase();
+    filteredGroups.value = groups.value.filter((g: any ) => 
+        g.name.toLowerCase().includes(lowerCaseSearchTerm) || g.agency.toLowerCase().includes(lowerCaseSearchTerm)
+    );
 }
 
 const isGroupAdded = (id: number) => {
