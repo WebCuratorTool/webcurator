@@ -59,7 +59,7 @@ fetch();
     <div class="h-full">
         <h5>Search</h5>
         <div class="flex mb-4">
-            <InputText v-model="searchTerm" type="text" placeholder="Name" class="mr-4" />
+            <InputText v-model="searchTerm" type="text" class="mr-4" />
             <Button label="Search&nbsp;&nbsp;" icon="pi pi-search" iconPos="right" @click="search()" />
         </div>
     
