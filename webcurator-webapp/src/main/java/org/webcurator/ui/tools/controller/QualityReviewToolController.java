@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -44,7 +44,7 @@ import org.webcurator.ui.util.PrimarySeedFirstCompare;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 @RequestMapping(path = "/curator/target/quality-review-toc.html")
 public class QualityReviewToolController {
-    static private Log log = LogFactory.getLog(QualityReviewToolController.class);
+    private static final Logger log = LoggerFactory.getLogger(QualityReviewToolController.class);
 
     @Autowired
     private QualityReviewToolControllerAttribute attr;
@@ -66,6 +66,8 @@ public class QualityReviewToolController {
 
     @GetMapping
     public ModelAndView getHandle(@RequestParam("targetInstanceOid") String sTargetInstanceOid, @RequestParam("harvestResultId") String sHarvestResultId, @RequestParam("harvestNumber") String sHarvestNumber) throws Exception {
+        log.debug("is opening, targetInstanceOid={} harvestResultId={} harvestNumber={}", sTargetInstanceOid, sHarvestResultId, sHarvestNumber);
+
         long targetInstanceOid = -1;
         long harvestResultId = -1;
         int harvestNumber = 0;
@@ -78,6 +80,8 @@ public class QualityReviewToolController {
             log.error("Invalid parameter", e);
             throw e;
         }
+
+        log.debug("parsed the string terms to number, targetInstanceOid={} harvestResultId={} harvestNumber={}", targetInstanceOid, harvestResultId, harvestNumber);
 
         QualityReviewToolCommand cmd = new QualityReviewToolCommand();
         cmd.setTargetInstanceOid(targetInstanceOid);
@@ -96,8 +100,12 @@ public class QualityReviewToolController {
     private ModelAndView handle(long targetInstanceOid, long harvestResultId, QualityReviewToolCommand cmd) throws Exception {
         TargetInstance ti = attr.targetInstanceManager.getTargetInstance(targetInstanceOid);
 
+        log.debug("queried the TargetInstance, targetInstanceOid={} harvestResultId={}", targetInstanceOid, harvestResultId);
+
         //Do not load fully as this loads ALL resources, regardless of whether they're seeds. Causes OutOfMemory for large harvests.
         HarvestResult result = attr.targetInstanceDao.getHarvestResult(harvestResultId, false);
+
+        log.debug("queried the HarvestResult, targetInstanceOid={} harvestResultId={}", targetInstanceOid, harvestResultId);
 
         ScreenshotIdentifierCommand identifiers = new ScreenshotIdentifierCommand();
         identifiers.setTiOid(targetInstanceOid);
@@ -106,13 +114,17 @@ public class QualityReviewToolController {
         for (SeedHistory seedHistory : ti.getSeedHistory()) {
             SeedHistoryDTO seedHistoryDTO = new SeedHistoryDTO(seedHistory);
             identifiers.getSeeds().add(seedHistoryDTO);
+            log.debug("added a history seed, targetInstanceOid={}, seed={}", targetInstanceOid, seedHistory.getSeed());
         }
         ScreenshotState screenshotState = new ScreenshotState();
-        try {
-            screenshotState = screenshotClient.checkScreenshotState(identifiers);
-        } catch (Exception e) {
-            log.error("Failed to get screenshot state", e);
+        if (enableScreenshots) { //If the screenshots is disabled, it will take a long moment to check the state
+            try {
+                screenshotState = screenshotClient.checkScreenshotState(identifiers);
+            } catch (Exception e) {
+                log.error("Failed to get screenshot state", e);
+            }
         }
+        log.debug("checked the state of screenshot: targetInstanceOid={}", targetInstanceOid);
 
         ModelAndView mav = new ModelAndView("quality-review-toc", "command", cmd);
         mav.addObject("targetInstanceOid", ti.getOid());
@@ -154,6 +166,7 @@ public class QualityReviewToolController {
                 mav.addObject("primarySeedUrl", s.getSeed());
                 //				break;
             }
+            log.debug("added a history seed to mav, targetInstanceOid={}, seed={}", targetInstanceOid, s.getSeed());
         }
         mav.addObject(QualityReviewToolCommand.MDL_SEEDS, sMap);
 
@@ -164,6 +177,8 @@ public class QualityReviewToolController {
 
         mav.addObject("thumbnailRenderer", attr.thumbnailRenderer);
         mav.addObject("enableScreenshots", enableScreenshots);
+
+        log.debug("created the mav, targetInstanceOid={}", targetInstanceOid);
         return mav;
     }
 
