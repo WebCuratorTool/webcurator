@@ -71,6 +71,11 @@ public interface Harvester {
     void start(File aProfile, String aJobName);
 
     /**
+     * Start harvest from the latest checkpoint.
+     */
+    void startFromCheckpoint();
+
+    /**
      * Recover harvest by getting status from H3.
      */
     void recover();

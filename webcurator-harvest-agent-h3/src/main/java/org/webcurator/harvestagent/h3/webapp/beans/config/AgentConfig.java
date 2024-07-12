@@ -121,6 +121,9 @@ public class AgentConfig {
     @Value("${harvestAgent.attemptHarvestRecovery}")
     private String harvestAgentAttemptHarvestRecovery;
 
+    @Value("${harvestAgent.useCheckpoints}")
+    private boolean harvestAgentUseCheckpoints;
+
     @Value("${harvestAgent.allowedAgencies}")
     private String allowedAgencies;
 
@@ -210,6 +213,7 @@ public class AgentConfig {
         bean.setName(harvestAgentName);
         bean.setProvenanceNote(harvestAgentProvenanceNote);
         bean.setAlertThreshold(harvestAgentAlertThreshold);
+        bean.setUseCheckpoints(harvestAgentUseCheckpoints);
         if (allowedAgencies.isEmpty() || allowedAgencies == null) {
             bean.setAllowedAgencies(new ArrayList());
         } else {

@@ -19,10 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.archive.crawler.admin.CrawlJob;
 import org.archive.crawler.settings.XMLSettingsHandler;
-import org.netarchivesuite.heritrix3wrapper.EngineResult;
-import org.netarchivesuite.heritrix3wrapper.Heritrix3Wrapper;
-import org.netarchivesuite.heritrix3wrapper.JobResult;
-import org.netarchivesuite.heritrix3wrapper.ScriptResult;
+import org.netarchivesuite.heritrix3wrapper.*;
 import org.netarchivesuite.heritrix3wrapper.jaxb.ConfigFile;
 import org.netarchivesuite.heritrix3wrapper.jaxb.Engine;
 import org.netarchivesuite.heritrix3wrapper.jaxb.Job;
@@ -160,7 +157,7 @@ public class HarvesterH3 implements Harvester {
         String password = heritrix3WrapperConfiguration.getPassword();
         log.info("Getting Heritrix3Wrapper using hostname=" + hostname + ", port=" + port + ", keyStoreFile=" +
                 keystoreFile + ", userName=" + userName);
-        return Heritrix3Wrapper.getInstance(hostname, port, keystoreFile, keyStorePassword, userName, password);
+        return WctHeritrix3Wrapper.getInstance(hostname, port, keystoreFile, keyStorePassword, userName, password);
     }
 
     public static Map<String, String> getActiveH3JobNames() {
@@ -177,6 +174,17 @@ public class HarvesterH3 implements Harvester {
 
         return activeH3JobNames;
 
+    }
+
+    public static Map<String, String> getH3JobNames() {
+        Heritrix3Wrapper h3 = getH3WrapperInstance();
+        EngineResult engineResult = h3.rescanJobDirectory();
+        Engine engine = engineResult.engine;
+        Map<String, String> h3JobNames = new HashMap<>();
+        for (JobShort job : engine.jobs) {
+            h3JobNames.put(job.shortName, job.crawlControllerState);
+        }
+        return h3JobNames;
     }
 
     /**
@@ -259,6 +267,7 @@ public class HarvesterH3 implements Harvester {
 
         return status;
     }
+
 
     /**
      * @see Harvester#getHarvestDigitalAssetsDirs().
@@ -364,27 +373,6 @@ public class HarvesterH3 implements Harvester {
 //        return compressed;
     }
 
-    /**
-     * @return
-     */
-    private XMLSettingsHandler getSettingsHandler() {
-//		XMLSettingsHandler settings = job.getSettingsHandler();
-//        if (settings == null || settings.getOrder() == null) {
-//            File profile = new File(job.getDirectory() + File.separator + PROFILE_NAME);
-//            try {
-//                settings = new XMLSettingsHandler(profile);
-//                settings.initialize();
-//            }
-//            catch (InvalidAttributeValueException e) {
-//            	if (log.isErrorEnabled()) {
-//            		log.error("Failed to get settings for job " + name + ": " + e.getMessage(), e);
-//            	}
-//                throw new HarvesterException("Failed to get settings for job " + name + ": " + e.getMessage(), e);
-//            }
-//        }
-//		return settings;
-        return null;
-    }
 
     /**
      * @see Harvester#getHarvestLogDir().
@@ -617,6 +605,57 @@ public class HarvesterH3 implements Harvester {
 
     }
 
+
+    /**
+     * @see Harvester#startFromCheckpoint()
+     */
+    public void startFromCheckpoint() {
+        // Rebuild the job on Heritrix
+        JobResult jobResult = buildH3JobConfiguration(h3job.shortName);
+        if (jobResult == null) {
+            throw new RuntimeException("JobResult from Heritrix API unexpectedly null");
+        }
+
+        // Refresh job struct
+        h3job = jobResult.job;
+
+        if (jobResult == null) {
+            throw new RuntimeException("JobResult from Heritrix API unexpectedly null");
+        }
+        // If built successfully, launch from latest checkpoint
+        if (jobResult.job.statusDescription.equals("Ready")) {
+            log.info("Relaunching H3 job " + h3job.shortName + ".....");
+            ((WctHeritrix3Wrapper)heritrix).launchJob(h3job.shortName, "latest");
+            try {
+                jobResult = waitForH3JobState(h3job.shortName, Heritrix3Wrapper.CrawlControllerState.PAUSED, 5, 1000);
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            throw new HarvesterException("Failed to start harvester " + name + ": Could not launch H3 job.");
+        }
+
+        // If launched and paused, one last status check, then unpause
+        if (jobResult.job.statusDescription.equals("Active: PAUSED")) {
+            jobResult = unpauseH3Job(h3job.shortName);
+        } else {
+            throw new HarvesterException("Failed to start harvester " + name + ": Could not unpause and launch H3 job.");
+        }
+
+        h3job = jobResult.job;
+
+        log.debug("Waiting for job to start.");
+        try {
+            jobResult = waitForH3JobState(h3job.shortName, Heritrix3Wrapper.CrawlControllerState.RUNNING, 50, 1000);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        if (jobResult != null && jobResult.job.statusDescription.equals("Active: RUNNING")) {
+            h3job = jobResult.job;
+            log.info("H3 job " + h3job.shortName + " has resumed from its latest checkpoint.");
+        }
+    }
+
     /**
      * @see Harvester#start(File, String).
      */
@@ -647,41 +686,13 @@ public class HarvesterH3 implements Harvester {
                 throw new HarvesterException("Failed to start harvester " + name + ": Could not unpause and launch H3 job.");
             }
 
-
-            //TODO - HarvesterH3 will need to poll H3 instance regularly to get updates, status changes etc
             h3job = jobStatus;
-//            CrawlJob tmpJob = null;
-//            CrawlJobHandler cjw = heritrix.getJobHandler();
-//            Iterator it = cjw.getPendingJobs().iterator();
-//            while (it.hasNext()) {
-//                tmpJob = (CrawlJob) it.next();
-//                if (tmpJob.getJobName().equals(aJobName)) {
-//                    job = tmpJob;
-//                    job.getSettingsHandler().initialize();
-//                    if (log.isInfoEnabled()) {
-//                        log.info("Found and initialised job " + job.getJobName());
-//                    }
-//
-//                    HarvesterListener listener = new HarvesterListener();
-//                    job.addNotificationListener(listener, null, aJobName);
-//                }
-//                else {
-//                    if (log.isDebugEnabled()) {
-//                        log.info("About to delete job " + tmpJob.getJobName());
-//                    }
-//                    cjw.deleteJob(tmpJob.getJobName());
-//                }
-//            }
-//
-//            heritrix.startCrawling();
 
-            boolean started = false;
             if (log.isDebugEnabled()) {
                 log.debug("Waiting for job to start.");
             }
             JobResult crawlStarted = waitForH3JobState(aJobName, Heritrix3Wrapper.CrawlControllerState.RUNNING, 50, 1000);
             if (crawlStarted != null && crawlStarted.job.statusDescription.equals("Active: RUNNING")) {
-                started = true;
                 h3job = crawlStarted.job;
                 log.info("H3 job " + aJobName + " has started.");
                 // Pre-load dir vars
@@ -693,16 +704,6 @@ public class HarvesterH3 implements Harvester {
             if (log.isErrorEnabled()) {
                 log.error("Failed to start harvester " + name + ": " + e.getMessage(), e);
             }
-
-//        	try {
-//				deregister();
-//                h3job = null;
-//			} catch (Throwable ex) {
-//				if (log.isWarnEnabled()) {
-//					log.warn("Failed to deregister harvester " + name + ": " + ex.getMessage(), ex);
-//				}
-//			}
-
             throw new HarvesterException("Failed to start harvester " + name + ": " + e.getMessage(), e);
         }
     }

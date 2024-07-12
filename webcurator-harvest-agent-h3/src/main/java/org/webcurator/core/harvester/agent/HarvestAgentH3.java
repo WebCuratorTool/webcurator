@@ -101,6 +101,8 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
      */
     private HarvestAgentListener harvestCoordinatorNotifier = null;
 
+    private boolean useCheckpoints = false;
+
     /**
      * the logger.
      */
@@ -173,30 +175,35 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         try {
             if (!activeCoreJobs.isEmpty()) {
                 log.info("Checking for harvests to recover. Active jobs received from Core: " + activeCoreJobs.size());
-                Map<String, String> activeH3JobNames = getActiveH3Jobs();
+                Map<String, String> h3JobNames = HarvesterH3.getH3JobNames();
 
-                // Check this H3 instance has active jobs
-                if (!activeH3JobNames.isEmpty()) {
+                // Check wether this H3 instance has jobs
+                if (!h3JobNames.isEmpty()) {
                     // Look for matches between Core and H3 jobs
                     for (String jobName : activeCoreJobs) {
                         log.info("Checking job " + jobName + " for recovery");
-                        if (activeH3JobNames.containsKey(jobName)) {
+                        if (h3JobNames.containsKey(jobName)) {
                             // then attempt to recover
                             Harvester harvester = null;
                             // get status of h3 job
-                            String h3JobState = activeH3JobNames.get(jobName);
-                            // If I want to include aborted Core jobs then activeCoreJobs needs to be a Map
-                            // with name and status
+                            String h3JobState = h3JobNames.get(jobName);
 
-                            if (h3JobState.equals("RUNNING") || h3JobState.equals("PAUSED") || h3JobState.equals("FINISHED")) {
-                                log.info("Harves Agent recovering job " + jobName + " from H3 in state: " + h3JobState);
-                                Map<String, String> params = new HashMap<String, String>();
-                                params.put("profile", "");
-                                params.put("seeds", "");
-                                super.initiateHarvest(jobName, params);
+                            if (h3JobState != null && (h3JobState.equals("RUNNING") || h3JobState.equals("PAUSED") || h3JobState.equals("FINISHED"))) {
+                                // Heritrix was still running while we were down: simply load our datastructures with the latest status info from Heritrix
+                                log.info("Harvest Agent recovering job " + jobName + " from H3 in state: " + h3JobState);
+                                super.initiateHarvest(jobName, null);
                                 harvester = getHarvester(jobName);
                                 harvester.recover();
                                 harvester.setAlertThreshold(alertThreshold);
+                            } else if (h3JobState == null && useCheckpoints) {
+                                // Apparently Heritrix went down, so we optimistically resume from the latest checkpoint,
+                                // regardless of previous crawl state
+                                log.info("Recovering job " + jobName + " after H3 restart");
+                                super.initiateHarvest(jobName, null);
+                                harvester = getHarvester(jobName);
+                                harvester.recover();
+                                harvester.setAlertThreshold(alertThreshold);
+                                harvester.startFromCheckpoint();
                             }
                         }
                     }
@@ -966,6 +973,14 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         } else {
             return new HarvestAgentScriptResult();
         }
+    }
+
+    public boolean isUseCheckpoints() {
+        return useCheckpoints;
+    }
+
+    public void setUseCheckpoints(boolean useCheckpoints) {
+        this.useCheckpoints = useCheckpoints;
     }
 
     private String generatedValidateJobName() {

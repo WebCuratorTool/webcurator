@@ -58,8 +58,13 @@ public class HarvestAgentHeartBeatJob extends QuartzJobBean {
             aJobContext.getScheduler().pauseTrigger(triggerKey);
             log.debug("Executing heartbeat - Trigger state: " + triggerState);
 
+            // Get status from agent
             HarvestAgentStatusDTO status = harvestAgent.getStatus();
+
+            // Update info on webapp ("core") side
             notifier.heartbeat(status);
+
+            // Trigger webapp to initiate harvest recovery request (this is ignored after the first time)
             notifier.requestRecovery(status);
 
             /* H3 polling begin*/

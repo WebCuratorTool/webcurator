@@ -201,8 +201,10 @@ public class WctCoordinator implements HarvestCoordinator, DigitalAssetStoreCoor
     public void recoverHarvests(HarvestAgentStatusDTO aStatus) {
         TargetInstanceCriteria criteria = new TargetInstanceCriteria();
         Set<String> states = new HashSet<String>();
-        states.add("Running");
-        states.add("Paused");
+        states.add(TargetInstance.STATE_RUNNING);
+        states.add(TargetInstance.STATE_PAUSED);
+        states.add(TargetInstance.STATE_PATCHING);
+        states.add(TargetInstance.STATE_STOPPING);
         criteria.setStates(states);
         List<TargetInstance> results = targetInstanceDao.findTargetInstances(criteria);
         List<String> activeJobs = new ArrayList<String>();
