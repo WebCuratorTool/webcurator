@@ -50,16 +50,16 @@ public class ScreenshotGenerator {
         }
     }
 
-    private boolean waitForIndex(ScreenshotIdentifierCommand identifiers) {
+    private boolean isIndexReady(ScreenshotIdentifierCommand identifiers) {
         //The wb-manager is used to add the WARC files to collections, and index synchronized.
         if (this.waybackName.equalsIgnoreCase("pywb")) {
-            return this.waitForIndexPywb(identifiers);
+            return this.isIndexReadyPywb(identifiers);
         } else {
-            return this.waitForIndexWayback(identifiers);
+            return this.isIndexReadyWayback(identifiers);
         }
     }
 
-    private boolean waitForIndexWayback(ScreenshotIdentifierCommand identifiers) {
+    private boolean isIndexReadyWayback(ScreenshotIdentifierCommand identifiers) {
         List<SeedHistoryDTO> seeds = identifiers.getSeeds();
         for (SeedHistoryDTO seed : seeds) {
             String targetUrl = getWaybackUrl(seed.getSeed(), seed.getTimestamp(), identifiers);
@@ -83,7 +83,7 @@ public class ScreenshotGenerator {
         return true;
     }
 
-    private boolean waitForIndexPywb(ScreenshotIdentifierCommand identifiers) {
+    private boolean isIndexReadyPywb(ScreenshotIdentifierCommand identifiers) {
         List<SeedHistoryDTO> seeds = identifiers.getSeeds();
         for (SeedHistoryDTO seed : seeds) {
             String pywbUrl = this.getPywbCDXJServerApiUrl(seed.getSeed(), seed.getTimestamp(), identifiers);
@@ -328,19 +328,19 @@ public class ScreenshotGenerator {
 
     public boolean checkIndexState(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
         File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
-        List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractor.getSeedWithTimestamps(identifiers.getSeeds(), directory);
+        List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractorFromCDX.getSeedWithTimestamps(identifiers.getSeeds(), directory);
         if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
             log.error("Failed to extract timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
             return false;
         }
         identifiers.setSeeds(seedWithTimestamp);
-        return this.waitForIndex(identifiers);
+        return this.isIndexReady(identifiers);
     }
 
     public Boolean createScreenshots(ScreenshotIdentifierCommand identifiers) throws DigitalAssetStoreException {
         if (identifiers.getScreenshotType() == ScreenshotType.harvested) {
             File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
-            List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractor.getSeedWithTimestamps(identifiers.getSeeds(), directory);
+            List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractorFromCDX.getSeedWithTimestamps(identifiers.getSeeds(), directory);
             if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
                 log.error("Failed to extract timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
                 return false;
@@ -348,7 +348,7 @@ public class ScreenshotGenerator {
             identifiers.setSeeds(seedWithTimestamp);
 
             for (int count = 0; count < 60; count++) {
-                if (this.waitForIndex(identifiers)) {
+                if (this.isIndexReady(identifiers)) {
                     break;
                 }
                 try {
