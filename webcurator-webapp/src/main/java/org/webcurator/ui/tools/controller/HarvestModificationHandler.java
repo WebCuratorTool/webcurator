@@ -501,7 +501,7 @@ public class HarvestModificationHandler {
             return;
         }
 
-        if (headers==null){
+        if (headers == null) {
             log.warn("The headers is null for ti " + ti.getOid());
             rsp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
@@ -649,11 +649,8 @@ public class HarvestModificationHandler {
                     col++;
                 }
                 if (Utils.isEmpty(bulkImportFileRowObject.getOption()) || Utils.isEmpty(bulkImportFileRowObject.getUrl())) {
-                    log.warn("Invalid row: " + i);
-                    continue;
-                }
-
-                if (!Utils.isEmpty(bulkImportFileRowObject.getOption()) && !Utils.isEmpty(bulkImportFileRowObject.getUrl())) {
+                    log.error("TI: {}, invalid row: {}, option={}, url={}", targetInstanceId, i, bulkImportFileRowObject.getOption(), bulkImportFileRowObject.getUrl());
+                } else {
                     importFileRows.add(bulkImportFileRowObject);
                 }
             }
