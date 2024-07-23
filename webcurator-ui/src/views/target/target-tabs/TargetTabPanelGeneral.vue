@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
 import { useTargetGeneralDTO, useTargetGropusDTO, useTargetSeedsDTO, formatTargetState, useNextStateStore } from '@/stores/target'
@@ -7,7 +7,8 @@ import { useTargetGeneralDTO, useTargetGropusDTO, useTargetSeedsDTO, formatTarge
 import WctFormField from '@/components/WctFormField.vue'
 import WctTabViewPanel from '@/components/WctTabViewPanel.vue'
 
-const AddGroupsModal = defineAsyncComponent(() => import('./TargetAddGroupsModal.vue'))
+const AddGroupsModal = defineAsyncComponent(() => import('./modals/TargetAddGroupsModal.vue'))
+const AddHarvestAuthModal = defineAsyncComponent(() => import('./modals/TargetAddHarvestAuthModal.vue'))
 
 defineProps<{
     editing: boolean
@@ -21,11 +22,41 @@ const users = useUsersStore();
 const nextStates = useNextStateStore();
 
 const addGroupsModal = useDialog();
+const addSeedsModal = useDialog();
+
+const newSeed = ref({ seed: '', authorisations: [], primary: false });
+
+const editingSeed = ref(0);
+const previousSeedName = ref('');
 
 const showAddGroups = () => {
   const modalRef = addGroupsModal.open(AddGroupsModal, {
     props: { header: 'Add Groups', modal: true, dismissableMask: true, style: { width: '50vw' } }
   })
+}
+
+const showAddHarvestAuth = (seed: any) => {
+  const modalRef = addSeedsModal.open(AddHarvestAuthModal, {
+    props: { header: `Add Harvest Auth to ${seed.seed}`, modal: true, dismissableMask: true, style: { width: '50vw' } },
+    data: { seed: seed }
+  })
+}
+
+const addSeed = () => {
+  if (newSeed.value.seed != '') {
+    targetSeeds.addSeed(newSeed.value);
+    newSeed.value = { seed: '', authorisations: [], primary: false };
+  }
+}
+
+const editSeed = (seed: any) => {
+  previousSeedName.value = seed.seed;
+  editingSeed.value = seed.id;
+}
+
+const cancelEditSeed = (seed: any) => {
+  seed.seed = previousSeedName.value;
+  editingSeed.value = 0;
 }
 
 </script>
@@ -120,10 +151,48 @@ const showAddGroups = () => {
   <!-- Seeds -->
   <h4>Seeds</h4>
   <WctTabViewPanel>
+    <div v-if="editing" class="mb-2">
+      <div class="flex justify-content-between">
+        <p>Add Seed</p>
+      </div>
+      <InputText v-model="newSeed.seed" />
+      <div class="mt-4">
+        <span class="line-height-0">Authorisation</span>
+        <div class="flex align-items-center">
+          <Dropdown :options="['Auto', 'Add Later']"/>
+          <div class="flex-shrink-0">
+            <Button icon="pi pi-plus" label="Add"  text @click="addSeed" />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <DataTable class="w-full" :rowHover="true" :value="targetSeeds.targetSeeds">
-      <Column field="seed" header="Seed"></Column>
+      <Column field="seed" header="Seed">
+        <template #body="{ data }">
+          <div class="flex align-items-center justify-content-between">
+            <span v-if="editingSeed != data.id">{{ data.seed }}</span>
+            <InputText v-else v-model="data.seed" />
+
+            <Button v-if="editing && editingSeed != data.id" icon="pi pi-pencil" text @click="editSeed(data)" />
+            <div v-else-if="editing && editingSeed == data.id" class="flex justify-content-between">
+              <Button icon="pi pi-save" text @click="editingSeed = 0" />
+              <Button icon="pi pi-times" text @click="cancelEditSeed(data)" />
+            </div>
+          </div>
+        </template>
+      </Column>
       <Column field="authorisations" header="Harvset Auth">
-        <template #body="{ data }">{{ data.authorisations[0] }}</template>
+        <template #body="{ data }">
+          <div class="flex align-items-center">
+            <div v-for="authorisation in data.authorisations">
+              <span>{{ authorisation }}</span>
+            </div>
+            <div class="flex-shrink-0">
+              <Button v-if="editing" label="Add" text @click="showAddHarvestAuth(data)" />
+            </div>
+          </div>
+        </template>
       </Column>
       <Column field="primary" header="Primary">
         <template #body="{ data }">
@@ -132,6 +201,11 @@ const showAddGroups = () => {
               :binary="true"
               :disabled="!editing" 
           />
+        </template>
+      </Column>
+      <Column v-if="editing" style="max-width: 8rem">
+        <template #body="{ data }">
+          <Button icon="pi pi-trash" text @click="targetSeeds.removeSeed(data.id)" />
         </template>
       </Column>
     </DataTable>

@@ -57,7 +57,8 @@ const save = () => {
         general: targetGeneral.getData(),
         profile: targetProfile.getData(),
         description: targetDescription.getData(),
-        groups: targetGroups.getData()
+        groups: targetGroups.getData(),
+        seeds: targetSeeds.getData()
     }    
 
     rest.put('targets/' + targetGeneral.id, dataReq)

@@ -1,7 +1,7 @@
 import { ref, computed} from 'vue';
 import { defineStore } from 'pinia';
 import { useUserProfileStore, getPresentationUserName } from '@/stores/users';
-import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile } from '@/types/target';
+import { type Target, type TargetAccess, type TargetDescription, type TargetGroups, type TargetProfile, type TargetSeeds } from '@/types/target';
 
 const TARGET_STATE_PENDING = { name: "Pending", code: 1 }
 const TARGET_STATE_REINSTATED = { name: "Reinstated", code: 2 }
@@ -321,18 +321,27 @@ export const useTargetDescriptionDTO = defineStore('TargetDescriptionDTO', () =>
 });
 
 export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
-    const targetSeeds = ref([]);
+    const targetSeeds = ref([] as TargetSeeds);
     
     const initData = () => {
-        targetSeeds.value = [];
+        targetSeeds.value = [] as TargetSeeds;
     }
 
-    const setData = (data: any) => {
+    const setData = (data: TargetSeeds) => {
         targetSeeds.value = data;
     }
+
     const getData = () => targetSeeds.value;
 
-    return { targetSeeds, initData, setData, getData }
+    const addSeed = (seed: any) => {
+        targetSeeds.value.push(seed)
+    }
+
+    const removeSeed = (seedId: number) => {
+        targetSeeds.value = targetSeeds.value.filter(s => s.id != seedId)
+    }
+
+    return { targetSeeds, addSeed, getData, initData, removeSeed, setData }
 });
 
 export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {

@@ -87,7 +87,7 @@ fetch();
                 <template #body="{ data }">
                     <div class="flex justify-content-center">
                         <i v-if="isGroupAdded(data.id)" class="pi pi-check" />
-                        <Button v-else class="p-0 m-0" label="Add" text @click="targetGroups.addGroup(data)" />
+                        <Button v-else class="p-0 m-0" label="Add" text @click="targetGroups.addGroup(data.value)" />
                     </div>
                 </template>
             </Column>

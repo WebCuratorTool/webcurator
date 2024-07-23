@@ -7,27 +7,12 @@ interface Target {
     groups: TargetGroups
 }
 
-interface TargetGeneral {
-    id: number,
-    name: string,
-    creationDate: number,
-    description: string,
-    referenceNumber: string,
-    runOnApproval: boolean,
-    automatedQA: boolean,
-    selectedUser: string,
-    selectedState: {},
-    autoPrune: boolean,
-    referenceCrawl: boolean,
-    requestToArchivists: string,
-    nextStates: []
-}
-
-interface TargetSeeds {
-    id: number,
-    seed: string,
-    primary: boolean,
-    authorisations: []
+interface TargetAccess {
+    displayTarget: boolean,
+    accessZone: number,
+    accessZoneText: string,
+    displayChangeReason: string,
+    displayNote: string
 }
 
 interface TargetDescription {
@@ -47,6 +32,27 @@ interface TargetDescription {
     isbn: string,
 }
 
+interface TargetGeneral {
+    id: number,
+    name: string,
+    creationDate: number,
+    description: string,
+    referenceNumber: string,
+    runOnApproval: boolean,
+    automatedQA: boolean,
+    selectedUser: string,
+    selectedState: {},
+    autoPrune: boolean,
+    referenceCrawl: boolean,
+    requestToArchivists: string,
+    nextStates: []
+}
+
+interface TargetGroup {
+    id: number,
+    name: string
+}
+
 interface TargetProfileOverride {
     id: string;
     value: string | number | boolean | any[];
@@ -62,20 +68,16 @@ interface TargetProfile {
     overrides: Array<TargetProfileOverride>
 }
 
-interface TargetGroup {
-    id: number,
-    name: string
-}
-
 interface TargetGroups extends Array<TargetGroup>{}
 
-interface TargetAccess {
-    displayTarget: boolean,
-    accessZone: number,
-    accessZoneText: string,
-    displayChangeReason: string,
-    displayNote: string
+interface TargetSeed {
+    id: number,
+    seed: string,
+    primary: boolean,
+    authorisations: []
 }
+
+interface TargetSeeds extends Array<TargetSeed>{}
 
 export type {
     Target,
@@ -86,5 +88,6 @@ export type {
     TargetGroups,
     TargetProfile,
     TargetProfileOverride,
+    TargetSeed,
     TargetSeeds
 }
