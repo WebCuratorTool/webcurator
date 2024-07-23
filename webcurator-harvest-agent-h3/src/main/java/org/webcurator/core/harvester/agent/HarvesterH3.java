@@ -286,29 +286,20 @@ public class HarvesterH3 implements Harvester {
         if (h3job != null) {
 
             try {
-                String subDirName = "warcs";
                 getHarvestDir();
-
-                ConfigFile warcBase = null;
-                if (h3job.configFiles != null) {
-                    List<ConfigFile> configFiles = h3job.configFiles;
-                    for (ConfigFile config : configFiles) {
-                        if (config.key.equals("warcWriter.directory")) {
-                            warcBase = config;
-                            break;
+                for (File f : harvestDir.listFiles()) {
+                    // Skip "latest" dir, since it's a symlink
+                    if (f.isDirectory() && !f.getName().equals("latest")) {
+                        for (File file : f.listFiles()) {
+                            if (file.isDirectory() && file.getName().equals("warcs")) {
+                                outputDirs.add(file);
+                            }
                         }
                     }
                 }
-
-                if (warcBase != null) {
-                    String harvestWarcsPath = warcBase.path;
-                    outputDirs.add(new File(harvestWarcsPath + File.separator + subDirName));
-                }
-
-                if (outputDirs != null && !outputDirs.isEmpty()) {
+                if (!outputDirs.isEmpty()) {
                     harvestDigitalAssetsDirs = outputDirs;
                 }
-
             } catch (Exception e) {
                 if (log.isErrorEnabled()) {
                     log.error("Failed to get archive directories " + name + ": " + e.getMessage(), e);
@@ -316,7 +307,6 @@ public class HarvesterH3 implements Harvester {
                 throw new HarvesterException("Failed to get archive directories " + name + ": " + e.getMessage(), e);
             }
         }
-
         return outputDirs;
     }
 

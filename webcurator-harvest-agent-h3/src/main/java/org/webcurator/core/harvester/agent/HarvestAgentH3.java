@@ -369,11 +369,11 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             return NO_FAILURES;
         }
 
-        List das = getHarvester(aJob).getHarvestDigitalAssetsDirs();
+        List digitalAssetsDirs = getHarvester(aJob).getHarvestDigitalAssetsDirs();
 
         // Make sure that the files are not longer in use.
         if (aFailureStep == NO_FAILURES) {
-            checkHarvesterFinishedWithDigitalAssets(das);
+            checkHarvesterFinishedWithDigitalAssets(digitalAssetsDirs);
         }
 
         // Send the ARC files to the DAS.
@@ -381,7 +381,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
             log.info("Getting digital assets to send to store for job " + aJob);
 
             try {
-                File[] fileList = getFileArray(das, new NegateFilter(new ExtensionFileFilter(Constants.EXTN_OPEN_ARC)));
+                File[] fileList = getFileArray(digitalAssetsDirs, new NegateFilter(new ExtensionFileFilter(Constants.EXTN_OPEN_ARC)));
                 int numberOfFiles = fileList.length;
 
                 for (int i = 0; i < numberOfFiles; i++) {
@@ -391,7 +391,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
                 }
 
             } catch (Exception e) {
-                if (dirsExist(das)) {
+                if (dirsExist(digitalAssetsDirs)) {
                     log.error("Failed to send harvest result to digital asset store for job " + aJob + ": " + e.getMessage(), e);
                 } else {
                     log.error("Failed to find harvest path for job " + aJob + ": " + e.getMessage(), e);
