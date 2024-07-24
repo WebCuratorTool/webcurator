@@ -330,7 +330,7 @@ public class ScreenshotGenerator {
         File directory = new File(baseDir, identifiers.getTiOid() + File.separator + identifiers.getHarvestNumber());
         List<SeedHistoryDTO> seedWithTimestamp = ScreenshotTimestampExtractorFromCDX.getSeedWithTimestamps(identifiers.getSeeds(), directory);
         if (seedWithTimestamp == null || seedWithTimestamp.size() != identifiers.getSeeds().size()) {
-            log.error("Failed to extract timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
+            log.error("Failed to append timestamp for seeds: {}, {}", identifiers.getTiOid(), identifiers.getHarvestNumber());
             return false;
         }
         identifiers.setSeeds(seedWithTimestamp);

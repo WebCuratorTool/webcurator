@@ -49,9 +49,10 @@ public class ScreenshotTimestampExtractorFromCDX {
     }
 
     private static void extractTimestampFromHarvests(List<SeedHistoryDTO> seeds, File cdxFile) throws IOException {
-        CdxReader cdxReader = new CdxReader(Files.newInputStream(cdxFile.toPath()));
-        for (CdxRecord rec : cdxReader) {
-            extractTimestampFromHarvests(seeds, rec);
+        try (CdxReader cdxReader = new CdxReader(Files.newInputStream(cdxFile.toPath()))) {
+            for (CdxRecord rec : cdxReader) {
+                extractTimestampFromHarvests(seeds, rec);
+            }
         }
     }
 
