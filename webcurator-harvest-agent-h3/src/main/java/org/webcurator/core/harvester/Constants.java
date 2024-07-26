@@ -39,6 +39,8 @@ public final class Constants {
     public static final String DIR_REPORTS = "reports";
     /** the name of the Log file extension. */
     public static final String EXTN_LOGS = ".log";
+    /** regex for log files to include files rotated for checkpointing */
+    public static final String REGEX_LOGS = ".*\\.log(\\.cp.+)?$";
     /** the name of the reports file extension. */
     public static final String EXTN_REPORTS = ".txt";
     /** the name of the open arc file extension file extension. */

@@ -18,7 +18,6 @@ package org.webcurator.core.harvester.agent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.archive.crawler.admin.CrawlJob;
-import org.archive.crawler.settings.XMLSettingsHandler;
 import org.netarchivesuite.heritrix3wrapper.*;
 import org.netarchivesuite.heritrix3wrapper.jaxb.ConfigFile;
 import org.netarchivesuite.heritrix3wrapper.jaxb.Engine;
@@ -281,33 +280,11 @@ public class HarvesterH3 implements Harvester {
             return harvestDigitalAssetsDirs;
         }
 
-        List<File> outputDirs = new ArrayList<File>();
-
-        if (h3job != null) {
-
-            try {
-                getHarvestDir();
-                for (File f : harvestDir.listFiles()) {
-                    // Skip "latest" dir, since it's a symlink
-                    if (f.isDirectory() && !f.getName().equals("latest")) {
-                        for (File file : f.listFiles()) {
-                            if (file.isDirectory() && file.getName().equals("warcs")) {
-                                outputDirs.add(file);
-                            }
-                        }
-                    }
-                }
-                if (!outputDirs.isEmpty()) {
-                    harvestDigitalAssetsDirs = outputDirs;
-                }
-            } catch (Exception e) {
-                if (log.isErrorEnabled()) {
-                    log.error("Failed to get archive directories " + name + ": " + e.getMessage(), e);
-                }
-                throw new HarvesterException("Failed to get archive directories " + name + ": " + e.getMessage(), e);
-            }
+        List<File> warcDirs = getAllSubdirectories("warcs");
+        if (!warcDirs.isEmpty()) {
+            harvestDigitalAssetsDirs = warcDirs;
         }
-        return outputDirs;
+        return warcDirs;
     }
 
     /**
@@ -363,6 +340,19 @@ public class HarvesterH3 implements Harvester {
 //        return compressed;
     }
 
+    /**
+     * @return All log directories for this crawl, not just the active one
+     */
+    public List<File> getHarvestLogDirs() {
+        return getAllSubdirectories("logs");
+    }
+
+    /**
+     * @return All reports directories for this crawl, not just the active one
+     */
+    public List<File> getHarvestReportDirs() {
+        return getAllSubdirectories("reports");
+    }
 
     /**
      * @see Harvester#getHarvestLogDir().
@@ -821,6 +811,32 @@ public class HarvesterH3 implements Harvester {
      */
     public void setAlertThreshold(int alertThreshold) {
         this.alertThreshold = alertThreshold;
+    }
+
+
+    /**
+     * Get all subdirectories with the given name (e.g. "warcs", "logs", "reports")
+     */
+    private List<File> getAllSubdirectories(String subDirName) {
+        List<File> subDirs = new ArrayList<File>();
+        if (h3job != null) {
+            try {
+                getHarvestDir();
+                for (File f : harvestDir.listFiles()) {
+                    // Skip "latest" dir, since it's a symlink
+                    if (f.isDirectory() && !f.getName().equals("latest")) {
+                        for (File file : f.listFiles()) {
+                            if (file.isDirectory() && file.getName().equals(subDirName)) {
+                                subDirs.add(file);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                throw new HarvesterException(String.format("Failed to get directories with name %s for harvester %s", subDirName, name), e);
+            }
+        }
+        return subDirs;
     }
 
 

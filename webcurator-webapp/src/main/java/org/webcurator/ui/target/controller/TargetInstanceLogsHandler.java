@@ -16,6 +16,8 @@
 package org.webcurator.ui.target.controller;
 
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -104,7 +106,12 @@ public class TargetInstanceLogsHandler extends TabHandler {
 		}
 
 		List<LogFilePropertiesDTO> logs = new ArrayList<>(wctCoordinator.listLogFileAttributes(ti));
-
+        Collections.sort(logs, new Comparator<LogFilePropertiesDTO>() {
+            @Override
+            public int compare(LogFilePropertiesDTO logFileProps1, LogFilePropertiesDTO logFileProps2) {
+                return logFileProps1.getName().compareTo(logFileProps2.getName());
+            }
+        });
 		tmav.addObject(TargetInstanceCommand.MDL_LOG_LIST, logs);
 		tmav.addObject(Constants.GBL_CMD_DATA, populatedCommand);
 		tmav.addObject(TargetInstanceCommand.MDL_INSTANCE, ti);

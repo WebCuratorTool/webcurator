@@ -23,7 +23,6 @@ import org.webcurator.core.harvester.Constants;
 import org.webcurator.core.harvester.HarvesterType;
 import org.webcurator.core.harvester.agent.exception.HarvestAgentException;
 import org.webcurator.core.harvester.agent.filter.*;
-import org.webcurator.core.harvester.agent.filter.FileFilter;
 import org.webcurator.core.harvester.coordinator.HarvestAgentListener;
 import org.webcurator.core.reader.LogProvider;
 import org.webcurator.core.store.DigitalAssetStore;
@@ -32,7 +31,9 @@ import org.webcurator.domain.model.core.LogFilePropertiesDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvestAgentStatusDTO;
 import org.webcurator.domain.model.core.harvester.agent.HarvesterStatusDTO;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -404,7 +405,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         // Send the log files to the DAS.
         if (aFailureStep <= FAILED_ON_SEND_LOGS) {
             try {
-                File[] fileList = getFileArray(harvester.getHarvestLogDir(), NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_LOGS)));
+                File[] fileList = getFileArray(((HarvesterH3)harvester).getHarvestLogDirs(), NotEmptyFileFilter.notEmpty(new RegexNameFilter(Constants.REGEX_LOGS)));
                 log.info("Sending harvest logs to digital asset store for job " + aJob);
                 for (int i = 0; i < fileList.length; i++) {
                     digitalAssetStore.save(aJob, Constants.DIR_LOGS, fileList[i].toPath());
@@ -420,9 +421,7 @@ public class HarvestAgentH3 extends AbstractHarvestAgent implements LogProvider 
         // Send the reports to the DAS.
         if (aFailureStep <= FAILED_ON_SEND_RPTS) {
             try {
-                String harvestLogsDir = harvester.getHarvestLogDir().getParent();
-                File reportsDir = new File(harvestLogsDir + File.separator + "reports");
-                File[] fileList = getFileArray(reportsDir, NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_REPORTS)), NotEmptyFileFilter.notEmpty(new ExactNameFilter(PROFILE_NAME)));
+                File[] fileList = getFileArray(((HarvesterH3)harvester).getHarvestReportDirs(), NotEmptyFileFilter.notEmpty(new ExtensionFileFilter(Constants.EXTN_REPORTS)), NotEmptyFileFilter.notEmpty(new ExactNameFilter(PROFILE_NAME)));
                 log.info("Sending harvest reports to digital asset store for job " + aJob);
                 for (int i = 0; i < fileList.length; i++) {
                     digitalAssetStore.save(aJob, Constants.DIR_REPORTS, fileList[i].toPath());
