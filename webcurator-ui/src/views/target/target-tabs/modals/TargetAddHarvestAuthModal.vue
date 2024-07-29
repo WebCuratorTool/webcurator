@@ -46,6 +46,10 @@ const isAuthAdded = (id: number) => {
     return seed.value.authorisations.some((authId: any) => authId == id);
 }
 
+const removeAuthorisation = (id: number) => {
+
+}
+
 onMounted(() => {
     seed.value = dialogRef.value.data.seed;
 })
@@ -75,7 +79,10 @@ fetch();
             <Column>
                 <template #body="{ data }">
                     <div class="flex justify-content-center">
-                        <i v-if="isAuthAdded(data.id)" class="pi pi-check" />
+                        <div v-if="isAuthAdded(data.id)" class="flex align-items-center">
+                            <i class="pi pi-check" />
+                            <Button icon="pi pi-trash" text @click="seed.authorisations = seed.authorisations.filter((authId: number) => authId != data.id)" />
+                        </div>
                         <Button v-else class="p-0 m-0" label="Add" text @click="seed.authorisations.push(data.id)" />
                     </div>
                 </template>

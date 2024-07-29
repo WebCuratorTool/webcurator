@@ -341,7 +341,11 @@ export const useTargetSeedsDTO = defineStore('TargetSeedsDTO', () => {
         targetSeeds.value = targetSeeds.value.filter(s => s.id != seedId)
     }
 
-    return { targetSeeds, addSeed, getData, initData, removeSeed, setData }
+    const replaceSeed = (replacementSeed: any) => {
+        targetSeeds.value = targetSeeds.value.map(seed => seed.id === replacementSeed.id ? replacementSeed : seed);
+    }
+
+    return { targetSeeds, addSeed, getData, initData, removeSeed, replaceSeed, setData }
 });
 
 export const useTargetGropusDTO = defineStore('TargetGroupsDTO', () => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent, ref, toRaw } from 'vue';
 import { useDialog } from 'primevue/usedialog';
 import { useUsersStore, getPresentationUserName } from '@/stores/users'
 import { useTargetGeneralDTO, useTargetGropusDTO, useTargetSeedsDTO, formatTargetState, useNextStateStore } from '@/stores/target'
@@ -27,7 +27,7 @@ const addSeedsModal = useDialog();
 const newSeed = ref({ seed: '', authorisations: [], primary: false });
 
 const editingSeed = ref(0);
-const previousSeedName = ref('');
+const previousSeed = ref({});
 
 const showAddGroups = () => {
   const modalRef = addGroupsModal.open(AddGroupsModal, {
@@ -50,12 +50,12 @@ const addSeed = () => {
 }
 
 const editSeed = (seed: any) => {
-  previousSeedName.value = seed.seed;
+  previousSeed.value = structuredClone(toRaw(seed));
   editingSeed.value = seed.id;
 }
 
-const cancelEditSeed = (seed: any) => {
-  seed.seed = previousSeedName.value;
+const cancelEditSeed = () => {
+  targetSeeds.replaceSeed(previousSeed.value)
   editingSeed.value = 0;
 }
 
@@ -173,12 +173,6 @@ const cancelEditSeed = (seed: any) => {
           <div class="flex align-items-center justify-content-between">
             <span v-if="editingSeed != data.id">{{ data.seed }}</span>
             <InputText v-else v-model="data.seed" />
-
-            <Button v-if="editing && editingSeed != data.id" icon="pi pi-pencil" text @click="editSeed(data)" />
-            <div v-else-if="editing && editingSeed == data.id" class="flex justify-content-between">
-              <Button icon="pi pi-save" text @click="editingSeed = 0" />
-              <Button icon="pi pi-times" text @click="cancelEditSeed(data)" />
-            </div>
           </div>
         </template>
       </Column>
@@ -189,7 +183,7 @@ const cancelEditSeed = (seed: any) => {
               <span>{{ authorisation }}</span>
             </div>
             <div class="flex-shrink-0">
-              <Button v-if="editing" label="Add" text @click="showAddHarvestAuth(data)" />
+              <Button v-if="editing && editingSeed == data.id" label="Add" text @click="showAddHarvestAuth(data)" />
             </div>
           </div>
         </template>
@@ -205,7 +199,14 @@ const cancelEditSeed = (seed: any) => {
       </Column>
       <Column v-if="editing" style="max-width: 8rem">
         <template #body="{ data }">
-          <Button icon="pi pi-trash" text @click="targetSeeds.removeSeed(data.id)" />
+          <div v-if="editing && editingSeed != data.id">
+            <Button icon="pi pi-pencil" text @click="editSeed(data)" />
+            <Button icon="pi pi-trash" text @click="targetSeeds.removeSeed(data.id)" />
+          </div>
+          <div v-else-if="editing && editingSeed == data.id">
+              <Button icon="pi pi-save" text @click="editingSeed = 0" />
+              <Button icon="pi pi-times" text @click="cancelEditSeed()" />
+            </div>
         </template>
       </Column>
     </DataTable>
