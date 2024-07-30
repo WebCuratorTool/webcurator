@@ -32,10 +32,12 @@ const targetList = ref([])
 const loadingTargetList = ref(false)
 const filteredTargetList = ref()
 const filter = () => {
+  loadingTargetList.value = true;
+
   const ret = [];
   for (let idx = 0; idx < targetList.value.length; idx++) {
     const target: any = targetList.value[idx];
-    if (filters.selectedAgency.code !== "" && target.agency !== filters.selectedAgency.code) {
+    if (filters.selectedAgency.code !== "" && target.agency !== filters.selectedAgency.name) {
       continue;
     }
 
@@ -57,6 +59,7 @@ const filter = () => {
     ret.push(target);
   }
   filteredTargetList.value = ret;
+  loadingTargetList.value = false;
 }
 
 const resetFilter = () => {
@@ -71,6 +74,8 @@ const resetFilter = () => {
   }
 
   filters.selectedState = [];
+
+  filter();
 }
 
 const search = () => {
@@ -86,7 +91,7 @@ const search = () => {
   const searchParams = {
     filter: searchConditions,
     offset: 0,
-    limit: 1024,
+    limit: 0,
     sortBy: 'creationDate,asc'
   }
 
@@ -256,7 +261,7 @@ onMounted(() => {
     <Divider type="dotted" />
 
     <!-- <div class="col-12 surface-section"> -->
-    <DataTable class="w-full" :value="filteredTargetList" size="small" :paginator="true" :rows="10" dataKey="oid"
+    <DataTable class="w-full" :value="filteredTargetList" size="small" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 50, 100]" dataKey="oid"
       :rowHover="true" filterDisplay="menu" :loading="loadingTargetList"
       :globalFilterFields="['name', 'country.name', 'representative.name', 'balance', 'status']" resizableColumns
       columnResizeMode="fit" showGridlines>
